@@ -20,7 +20,7 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventHandlerType;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;

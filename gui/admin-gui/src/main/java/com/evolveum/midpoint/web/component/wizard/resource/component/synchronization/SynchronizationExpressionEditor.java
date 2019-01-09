@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.synchroniz
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 

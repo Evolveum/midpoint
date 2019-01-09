@@ -55,7 +55,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectDeltaOperationType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 

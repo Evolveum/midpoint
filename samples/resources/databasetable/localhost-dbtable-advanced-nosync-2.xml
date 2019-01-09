@@ -30,7 +30,7 @@ using an Identity Connector Framework DBTable connector.
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	xmlns:my="http://myself.me/schemas/whatever">
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d4eeee">

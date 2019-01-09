@@ -47,7 +47,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 
 public abstract class AbstractOrgTabPanel extends BasePanel {
 	private static final long serialVersionUID = 1L;

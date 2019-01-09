@@ -34,11 +34,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_4.SchemaDefinitionType;
 
 /**

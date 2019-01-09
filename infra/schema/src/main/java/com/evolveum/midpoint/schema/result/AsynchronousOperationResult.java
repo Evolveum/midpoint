@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.schema.result;
 
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationTypeType;
 
 /**
  * Primary goal of this class is to support asynchronous operations.

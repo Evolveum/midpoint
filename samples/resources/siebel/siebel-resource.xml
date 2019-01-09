@@ -14,7 +14,7 @@
   		</q:equal>
   	</filter>
    </connectorRef>
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                            xsi:type="c:ConnectorConfigurationType">
       <icfc:timeouts>

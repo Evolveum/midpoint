@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 import org.jetbrains.annotations.Nullable;
 
 /**

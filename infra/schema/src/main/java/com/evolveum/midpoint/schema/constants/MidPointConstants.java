@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ public class MidPointConstants {
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public";
 	public static final String NS_MIDPOINT_TEST_PREFIX = "http://midpoint.evolveum.com/xml/ns/test";
 
-	public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-3";
+	public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	public static final String PREFIX_NS_RA = "ra";
 	public static final QName RA_RESOURCE_OBJECT = new QName(NS_RA, "resourceObject");
 	public static final QName RA_KIND = new QName(NS_RA, "kind");
@@ -48,18 +48,18 @@ public class MidPointConstants {
 	@Deprecated
 	public static final QName RA_ACCOUNT_TYPE = new QName(NS_RA, "accountType");
 
-	public static final String NS_RI = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/instance-3";
+	public static final String NS_RI = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/instance-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	public static final String PREFIX_NS_RI = "ri";
 
 	public static final String FUNCTION_LIBRARY_BASIC_VARIABLE_NAME = "basic";
-	public static final String NS_FUNC_BASIC = NS_MIDPOINT_PUBLIC_PREFIX+"/function/basic-3";
+	public static final String NS_FUNC_BASIC = NS_MIDPOINT_PUBLIC_PREFIX+"/function/basic-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	public static final String FUNCTION_LIBRARY_MIDPOINT_VARIABLE_NAME = "midpoint";
-	public static final String NS_FUNC_MIDPOINT = NS_MIDPOINT_PUBLIC_PREFIX+"/function/midpoint-3";
+	public static final String NS_FUNC_MIDPOINT = NS_MIDPOINT_PUBLIC_PREFIX+"/function/midpoint-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	public static final String FUNCTION_LIBRARY_LOG_VARIABLE_NAME = "log";
-	public static final String NS_FUNC_LOG = NS_MIDPOINT_PUBLIC_PREFIX+"/function/log-3";
+	public static final String NS_FUNC_LOG = NS_MIDPOINT_PUBLIC_PREFIX+"/function/log-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	
-	public static final String NS_FUNC_CUSTOM = NS_MIDPOINT_PUBLIC_PREFIX+"/function/custom-3";
+	public static final String NS_FUNC_CUSTOM = NS_MIDPOINT_PUBLIC_PREFIX+"/function/custom-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 }

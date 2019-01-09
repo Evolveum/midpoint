@@ -24,16 +24,16 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.CLOSED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.IN_REMEDIATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.*;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.assertEquals;

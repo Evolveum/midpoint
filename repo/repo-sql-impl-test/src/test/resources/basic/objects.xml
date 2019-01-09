@@ -233,7 +233,7 @@
 
         <connectorConfiguration
                 xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 
             <icfc:configurationProperties>
                 <icfcldap:port>1389</icfcldap:port>
@@ -816,13 +816,13 @@
         <schema>
         <definition>
             <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
             xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"/>
 
                 <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
                 <xsd:complexType name="ConfigurationType">

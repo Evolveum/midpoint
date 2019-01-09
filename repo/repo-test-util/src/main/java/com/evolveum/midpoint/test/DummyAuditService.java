@@ -42,8 +42,8 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 import org.apache.commons.lang.Validate;
 

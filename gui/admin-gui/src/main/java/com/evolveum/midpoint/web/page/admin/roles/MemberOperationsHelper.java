@@ -37,13 +37,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.MemberOperation;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.QueryScope;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 
 public class MemberOperationsHelper {
 

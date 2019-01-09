@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
 
 import org.jetbrains.annotations.Nullable;
 

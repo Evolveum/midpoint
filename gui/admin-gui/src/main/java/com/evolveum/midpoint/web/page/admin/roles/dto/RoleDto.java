@@ -17,8 +17,8 @@ package com.evolveum.midpoint.web.page.admin.roles.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 

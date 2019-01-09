@@ -41,7 +41,7 @@ import com.evolveum.midpoint.report.impl.ReportCreateTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 
 /**
  * Looks like this test goes directly to Jasper.

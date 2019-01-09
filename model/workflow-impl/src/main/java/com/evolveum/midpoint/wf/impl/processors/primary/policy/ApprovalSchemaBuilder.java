@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +38,7 @@ import java.util.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ProcessSpecification;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TriggeredPolicyRulesStorageStrategyType.FULL;
 import static java.util.Comparator.naturalOrder;
 
 /**

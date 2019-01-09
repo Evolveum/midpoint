@@ -36,16 +36,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyExceptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * Security tests for multitenant environment.

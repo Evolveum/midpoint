@@ -19,8 +19,8 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfConfigurationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

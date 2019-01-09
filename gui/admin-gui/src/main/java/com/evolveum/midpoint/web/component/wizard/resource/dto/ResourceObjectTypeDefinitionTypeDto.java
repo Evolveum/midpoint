@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceObjectTypeDefinitionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;

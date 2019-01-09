@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageArgumentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LocalizableMessageArgumentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LocalizableMessageListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SingleLocalizableMessageType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 

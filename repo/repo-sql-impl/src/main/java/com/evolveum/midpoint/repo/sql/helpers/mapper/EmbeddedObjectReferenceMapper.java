@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 /**
  * Created by Viliam Repan (lazyman).

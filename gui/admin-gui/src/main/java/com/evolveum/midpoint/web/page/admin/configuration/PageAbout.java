@@ -50,10 +50,10 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 

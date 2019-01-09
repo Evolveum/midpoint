@@ -47,7 +47,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 import org.apache.commons.collections.CollectionUtils;

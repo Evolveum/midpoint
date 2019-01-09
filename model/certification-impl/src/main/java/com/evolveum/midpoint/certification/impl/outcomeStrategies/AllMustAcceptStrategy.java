@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl.outcomeStrategies;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -24,12 +24,12 @@ import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.NOT_DECIDED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.REDUCE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.REVOKE;
 
 /**
  * @author mederly

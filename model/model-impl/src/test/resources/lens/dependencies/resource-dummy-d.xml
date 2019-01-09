@@ -43,7 +43,7 @@
 		</filter>
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>D</icfi:instanceId>

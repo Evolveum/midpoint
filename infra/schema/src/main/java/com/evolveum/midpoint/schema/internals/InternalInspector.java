@@ -15,9 +15,9 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 /**
  * @author semancik

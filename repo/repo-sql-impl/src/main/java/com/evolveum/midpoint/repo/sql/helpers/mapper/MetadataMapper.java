@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MetadataType;
 
 /**
  * Created by Viliam Repan (lazyman).

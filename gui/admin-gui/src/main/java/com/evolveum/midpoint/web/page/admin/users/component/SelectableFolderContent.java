@@ -25,7 +25,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 
 /**
  * @author lazyman

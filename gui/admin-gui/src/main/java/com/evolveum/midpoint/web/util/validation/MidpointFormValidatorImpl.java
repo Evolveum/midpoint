@@ -18,9 +18,9 @@ package com.evolveum.midpoint.web.util.validation;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 import java.util.ArrayList;

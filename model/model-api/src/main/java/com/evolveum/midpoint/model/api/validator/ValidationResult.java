@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.model.api.validator;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ValidationResultType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

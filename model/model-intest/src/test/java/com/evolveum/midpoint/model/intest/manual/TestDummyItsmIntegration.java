@@ -48,15 +48,15 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * @author Radovan Semancik

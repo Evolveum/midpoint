@@ -26,8 +26,8 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrderConstraintsType;
 
 /**
  * @author semancik

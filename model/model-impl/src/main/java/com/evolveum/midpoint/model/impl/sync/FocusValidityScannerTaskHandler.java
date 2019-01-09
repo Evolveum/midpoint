@@ -42,14 +42,14 @@ import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NotificationPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TimeValidityPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -64,10 +64,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ASSIGNMENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType.F_VALID_FROM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType.F_VALID_TO;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType.F_ACTIVATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType.F_ASSIGNMENT;
 
 /**
  *

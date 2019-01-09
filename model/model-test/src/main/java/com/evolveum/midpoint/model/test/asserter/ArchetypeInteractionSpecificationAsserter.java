@@ -24,7 +24,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ArchetypePolicyAsserter;
 import com.evolveum.midpoint.test.asserter.DisplayTypeAsserter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ArchetypePolicyType;
 
 /**
  * @author semancik

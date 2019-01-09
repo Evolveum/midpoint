@@ -27,9 +27,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;

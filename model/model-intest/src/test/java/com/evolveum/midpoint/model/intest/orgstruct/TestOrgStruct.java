@@ -34,9 +34,9 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -63,12 +63,12 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PartialProcessingTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * @author semancik

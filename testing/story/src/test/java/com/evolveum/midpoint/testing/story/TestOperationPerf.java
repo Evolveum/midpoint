@@ -42,8 +42,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 /**

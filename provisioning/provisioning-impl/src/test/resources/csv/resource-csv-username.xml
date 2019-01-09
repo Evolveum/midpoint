@@ -20,7 +20,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
           xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 								  
 	<name>Test CSV: username</name>

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import org.apache.commons.collections4.Bag;

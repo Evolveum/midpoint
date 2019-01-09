@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType;
 import org.apache.wicket.Component;
 
 import java.util.stream.Collectors;

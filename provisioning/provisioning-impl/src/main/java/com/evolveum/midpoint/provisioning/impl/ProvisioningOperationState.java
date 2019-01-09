@@ -23,11 +23,11 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 /**
  * @author semancik

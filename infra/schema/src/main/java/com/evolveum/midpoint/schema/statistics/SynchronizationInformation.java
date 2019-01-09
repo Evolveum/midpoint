@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationInformationType;
 
 import javax.xml.namespace.QName;
 

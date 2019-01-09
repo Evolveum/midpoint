@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationIntentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationIntentType;
 
 /**
  * @author semancik

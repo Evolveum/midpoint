@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingType;
 
 /**
  *  @author shood

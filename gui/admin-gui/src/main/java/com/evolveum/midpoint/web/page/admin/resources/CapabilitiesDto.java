@@ -18,8 +18,8 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.RunAsCapabilityType;
 
 public class CapabilitiesDto implements Serializable {
 	private static final long serialVersionUID = 1L;

@@ -20,8 +20,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationSituationType;
 
 import java.util.ArrayList;
 import java.util.Collection;

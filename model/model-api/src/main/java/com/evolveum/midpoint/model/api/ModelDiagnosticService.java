@@ -25,10 +25,10 @@ import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LogFileContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationRequestType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LogFileContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingEvaluationRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingEvaluationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 
 /**
  * A service provided by the IDM Model focused on system diagnostic. It allows to retrieve diagnostic data

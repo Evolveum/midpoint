@@ -60,7 +60,7 @@ import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 @PageDescriptor(url = "/admin/config/debug", action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,

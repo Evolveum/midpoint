@@ -21,8 +21,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationWorkItemType;
 import org.jetbrains.annotations.NotNull;
 
 /**

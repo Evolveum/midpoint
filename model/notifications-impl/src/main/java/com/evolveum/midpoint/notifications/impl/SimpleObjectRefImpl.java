@@ -20,8 +20,8 @@ import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import org.apache.commons.lang.Validate;
 
 /**

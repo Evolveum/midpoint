@@ -80,12 +80,12 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FileConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MailConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MailServerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MailTransportSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 
 /**

@@ -19,9 +19,9 @@ package com.evolveum.midpoint.wf.impl.processes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfProcessSpecificWorkItemPartType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemResultType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

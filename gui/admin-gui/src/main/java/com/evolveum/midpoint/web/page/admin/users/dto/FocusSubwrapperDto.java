@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.HeaderStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 import org.apache.commons.lang.Validate;
 

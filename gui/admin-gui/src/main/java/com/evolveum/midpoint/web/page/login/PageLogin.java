@@ -29,9 +29,9 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RegistrationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityPolicyType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;

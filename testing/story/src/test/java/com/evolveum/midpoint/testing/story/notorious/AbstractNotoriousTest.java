@@ -46,12 +46,12 @@ import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.testing.story.CountingInspector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * Testing bushy roles hierarchy. Especially reuse of the same role

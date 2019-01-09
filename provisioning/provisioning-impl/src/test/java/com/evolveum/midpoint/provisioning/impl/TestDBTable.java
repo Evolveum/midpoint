@@ -37,11 +37,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 import org.springframework.beans.factory.annotation.Autowired;

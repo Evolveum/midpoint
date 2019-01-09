@@ -6,7 +6,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 public class SystemConfigurationSummaryPanel extends ObjectSummaryPanel<SystemConfigurationType> {
 

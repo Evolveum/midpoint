@@ -28,8 +28,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ExecuteCredentialResetResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;

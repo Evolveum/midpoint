@@ -41,16 +41,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * @author semancik

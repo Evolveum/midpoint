@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 /**

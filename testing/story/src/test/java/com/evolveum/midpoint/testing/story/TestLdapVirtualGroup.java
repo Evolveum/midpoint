@@ -58,17 +58,17 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 /**
@@ -701,7 +701,7 @@ public class TestLdapVirtualGroup extends AbstractStoryTest {
 		return role;
 	}
 
-	protected <F extends com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType> PrismObject<F> getObjectByName(
+	protected <F extends com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType> PrismObject<F> getObjectByName(
 			Class clazz, String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<F> object = (PrismObject<F>) findObjectByName(clazz, name);

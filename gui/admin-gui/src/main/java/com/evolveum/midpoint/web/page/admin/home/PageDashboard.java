@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;

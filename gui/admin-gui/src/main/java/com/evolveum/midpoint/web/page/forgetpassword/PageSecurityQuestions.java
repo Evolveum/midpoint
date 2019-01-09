@@ -29,7 +29,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 import org.apache.commons.lang.StringEscapeUtils;

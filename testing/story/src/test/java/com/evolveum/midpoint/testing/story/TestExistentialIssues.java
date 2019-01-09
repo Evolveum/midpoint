@@ -26,8 +26,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * Tests for weird activation existence mappings, delayed deletes and similar existential issues.

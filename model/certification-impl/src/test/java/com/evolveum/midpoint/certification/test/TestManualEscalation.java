@@ -23,7 +23,7 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -33,9 +33,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType.ENABLED;
 import static org.testng.AssertJUnit.*;
 
 /**

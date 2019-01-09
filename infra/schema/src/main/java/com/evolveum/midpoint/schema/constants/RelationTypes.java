@@ -16,15 +16,15 @@
 
 package com.evolveum.midpoint.schema.constants;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RelationKindType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AreaCategoryType.*;
 import static java.util.Collections.singletonList;
 
 /**

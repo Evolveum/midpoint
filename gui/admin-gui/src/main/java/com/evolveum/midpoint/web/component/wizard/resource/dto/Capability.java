@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.*;
 import org.jetbrains.annotations.Nullable;
 
 /**

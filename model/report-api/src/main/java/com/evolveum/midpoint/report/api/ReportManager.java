@@ -26,10 +26,10 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportType;
 
 import java.io.IOException;
 import java.io.InputStream;

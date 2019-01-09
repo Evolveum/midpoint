@@ -24,10 +24,10 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 
 /**
  * Aggregate bean containing resource OID, intent and tombstone flag.

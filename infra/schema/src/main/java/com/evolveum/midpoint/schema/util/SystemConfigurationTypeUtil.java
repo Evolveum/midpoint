@@ -18,8 +18,8 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.InternalsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 /**
  * @author mederly

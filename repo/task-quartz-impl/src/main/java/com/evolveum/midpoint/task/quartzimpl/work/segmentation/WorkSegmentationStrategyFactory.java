@@ -19,7 +19,7 @@ package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

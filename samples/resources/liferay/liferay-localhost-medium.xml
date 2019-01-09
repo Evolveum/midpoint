@@ -14,7 +14,7 @@
             </q:equal>
         </filter>
     </connectorRef>
-    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
         <icfc:configurationProperties xmlns:gen877="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-liferay/com.evolveum.polygon.connector.liferay.LiferayConnector">
             <gen877:username>test</gen877:username>
             <gen877:defaultRoles>User</gen877:defaultRoles>

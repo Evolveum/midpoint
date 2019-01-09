@@ -41,8 +41,8 @@ import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 
 /**
  * @author lazyman

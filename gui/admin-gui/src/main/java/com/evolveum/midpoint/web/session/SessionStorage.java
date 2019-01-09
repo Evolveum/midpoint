@@ -25,7 +25,7 @@ import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 import org.apache.commons.lang.StringUtils;
 
 /**

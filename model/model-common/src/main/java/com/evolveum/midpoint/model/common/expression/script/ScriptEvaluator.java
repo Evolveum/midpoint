@@ -28,8 +28,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ScriptExpressionReturnTypeType;
 
 import java.util.Collection;
 import java.util.List;

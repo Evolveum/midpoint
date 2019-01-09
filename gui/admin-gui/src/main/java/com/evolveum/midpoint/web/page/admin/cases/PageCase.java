@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;

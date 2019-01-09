@@ -8,14 +8,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailAuthenticationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsAuthenticationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractAuthenticationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MailAuthenticationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RegistrationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SelfRegistrationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SmsAuthenticationPolicyType;
 
 public class SelfRegistrationDto implements Serializable {
 

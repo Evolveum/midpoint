@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerPanelFactory;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;

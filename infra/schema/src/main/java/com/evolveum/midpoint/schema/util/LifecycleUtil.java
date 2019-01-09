@@ -20,10 +20,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualAssignmentSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LifecycleStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.VirtualAssignmentSpecificationType;
 import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 
 import javax.xml.namespace.QName;

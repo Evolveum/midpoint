@@ -45,24 +45,24 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConstExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoginEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrderConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceObjectTypeDependencyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationSituationDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UnknownJavaObjectType;
 import com.evolveum.prism.xml.ns._public.query_4.PagingType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
@@ -917,7 +917,7 @@ public class SchemaDebugUtil {
 	private static String tryPrettyPrint(Object value) {
 		if (value instanceof Class) {
 			Class<?> c = (Class<?>)value;
-			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_3")) {
+			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_4")) {
 				return c.getSimpleName();
 			}
 			return c.getName();

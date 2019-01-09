@@ -68,9 +68,9 @@ import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConfigTypeReferenceDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PropertyConstraintType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 

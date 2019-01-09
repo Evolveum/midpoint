@@ -7,7 +7,7 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 public class ObjectTypeChoiceRenderer<T extends ObjectType> implements IChoiceRenderer<T>  {
 

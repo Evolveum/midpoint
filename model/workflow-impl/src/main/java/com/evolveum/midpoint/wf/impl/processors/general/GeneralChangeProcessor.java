@@ -39,7 +39,7 @@ import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

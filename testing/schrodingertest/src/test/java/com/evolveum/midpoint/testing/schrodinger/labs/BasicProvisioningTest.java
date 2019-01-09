@@ -6,8 +6,8 @@ import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

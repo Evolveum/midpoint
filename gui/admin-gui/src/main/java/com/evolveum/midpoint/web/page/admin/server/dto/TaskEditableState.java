@@ -19,9 +19,9 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.HandlerDtoEditableState;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ThreadStopActionType;
 
 import java.io.Serializable;
 import java.util.Date;

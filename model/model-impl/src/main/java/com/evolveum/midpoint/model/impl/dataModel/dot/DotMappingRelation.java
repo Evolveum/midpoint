@@ -19,7 +19,7 @@ package com.evolveum.midpoint.model.impl.dataModel.dot;
 import com.evolveum.midpoint.model.impl.dataModel.model.MappingRelation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_4.RawType;
 import org.apache.commons.lang3.StringUtils;

@@ -42,7 +42,7 @@ import com.evolveum.midpoint.wf.impl.WfTestUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_4.RawType;
@@ -61,9 +61,9 @@ import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType.*;
 import static org.testng.AssertJUnit.*;
 
 /**

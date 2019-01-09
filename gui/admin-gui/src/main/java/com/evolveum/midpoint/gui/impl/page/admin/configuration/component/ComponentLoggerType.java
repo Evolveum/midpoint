@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingComponentType;
 
 /**
  *  @author skublik

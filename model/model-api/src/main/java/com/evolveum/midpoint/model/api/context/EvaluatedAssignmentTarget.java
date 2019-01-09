@@ -18,9 +18,9 @@ package com.evolveum.midpoint.model.api.context;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 import org.jetbrains.annotations.NotNull;
 
 /**

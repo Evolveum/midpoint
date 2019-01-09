@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.INTERVAL;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.PREFIX;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.StringWorkBucketsBoundaryMarkingType.INTERVAL;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.StringWorkBucketsBoundaryMarkingType.PREFIX;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 

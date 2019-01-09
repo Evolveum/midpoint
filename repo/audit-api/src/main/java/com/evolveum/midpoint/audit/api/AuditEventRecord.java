@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;

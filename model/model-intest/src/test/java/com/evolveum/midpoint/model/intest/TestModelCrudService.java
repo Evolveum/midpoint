@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;

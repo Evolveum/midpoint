@@ -24,8 +24,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.wf.DecisionsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ItemApprovalProcessStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;

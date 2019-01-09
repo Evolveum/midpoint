@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.wf.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemEventCauseInformationType;
 
 /**
  * What caused the operation.

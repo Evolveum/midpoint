@@ -27,7 +27,7 @@
                  oid="f7182d67-5dc1-46a0-a86c-fb773baed4ec"
                  relation="org:default"
                  type="c:ConnectorType"><!-- ConnId com.evolveum.polygon.connector.box.rest.BoxConnector v1.0 --></connectorRef>
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                            xsi:type="c:ConnectorConfigurationType">
       <icfc:configurationProperties xmlns:gen575="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-box-rest/com.evolveum.polygon.connector.box.rest.BoxConnector"

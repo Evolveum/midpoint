@@ -8,7 +8,7 @@
     <name>Localhost Liferay</name>
     <!-- TODO connector search filter -->
     <connectorRef oid="5b5ca099-3de7-4633-a644-d220a2fd3794" type="ConnectorType"><!-- ICF com.evolveum.polygon.connector.liferay.LiferayConnector v1.0.0.0-SNAPSHOT --></connectorRef>
-    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
         <icfc:configurationProperties xmlns:gen877="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-liferay/com.evolveum.polygon.connector.liferay.LiferayConnector">
             <gen877:username>test</gen877:username>
             <gen877:defaultRoles>User</gen877:defaultRoles>

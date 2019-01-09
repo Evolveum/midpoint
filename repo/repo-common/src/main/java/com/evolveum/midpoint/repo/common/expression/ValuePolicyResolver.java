@@ -17,7 +17,7 @@ package com.evolveum.midpoint.repo.common.expression;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ValuePolicyType;
 
 /**
  *

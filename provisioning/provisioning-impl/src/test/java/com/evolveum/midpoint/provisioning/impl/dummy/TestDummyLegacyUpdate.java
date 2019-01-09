@@ -27,7 +27,7 @@ import com.evolveum.icf.dummy.connector.DummyConnectorLegacyUpdate;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.UpdateCapabilityType;
 
 /**
  * Almost the same as TestDummy but this is using connector with legacy update methods.

@@ -22,9 +22,9 @@ import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfProcessSpecificationType;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 

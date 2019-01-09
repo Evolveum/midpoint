@@ -37,8 +37,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CommandLineScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CommandLineScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportType;
 
 /**
  * @author semancik

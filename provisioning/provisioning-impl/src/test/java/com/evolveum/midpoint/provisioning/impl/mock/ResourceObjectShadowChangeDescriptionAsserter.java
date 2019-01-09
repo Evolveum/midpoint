@@ -25,7 +25,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 /**
  * @author semancik

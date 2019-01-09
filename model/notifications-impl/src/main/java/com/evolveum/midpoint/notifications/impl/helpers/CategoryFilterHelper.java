@@ -19,8 +19,8 @@ package com.evolveum.midpoint.notifications.impl.helpers;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventHandlerType;
 import org.springframework.stereotype.Component;
 
 /**

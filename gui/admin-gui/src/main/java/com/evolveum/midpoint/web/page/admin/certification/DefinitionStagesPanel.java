@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationStageDefinitionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;

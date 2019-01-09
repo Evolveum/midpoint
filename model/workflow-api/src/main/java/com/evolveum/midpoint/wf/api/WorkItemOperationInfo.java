@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemOperationKindType;
 
 /**
  * Primarily used to simplify passing parameters to WorkflowListener.

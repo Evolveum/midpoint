@@ -26,16 +26,18 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType.F_WORK_ITEM;
 
 /**
  * @author Vilo Repan
  * @author Radovan Semancik
  */
 public abstract class SchemaConstants {
+	
+	public static final int SCHEMA_MAJOR_VERSION = 4;
 
 	public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
 	public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
@@ -44,27 +46,27 @@ public abstract class SchemaConstants {
 
 	// NAMESPACES
 
-	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
+	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-" + SCHEMA_MAJOR_VERSION;
 	public static final String PREFIX_NS_ORG = "org";
 	public static final String NS_QUERY = PrismConstants.NS_QUERY;
 	public static final String NS_QUERY_PREFIX = "q";
 	public static final String NS_TYPES = PrismConstants.NS_TYPES;
 	public static final String NS_TYPES_PREFIX = "t";
-	public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3";
+	public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-" + SCHEMA_MAJOR_VERSION;
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
-	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-" + SCHEMA_MAJOR_VERSION;
 	public static final String NS_C_PREFIX = "c";
-	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3";
+	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-" + SCHEMA_MAJOR_VERSION;
 	public static final String NS_FILTER = NS_MIDPOINT_PUBLIC + "/common/value-filter-1.xsd";
-	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-3";
-	public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
-	public static final String NS_SAMPLES_EXTENSION = "http://midpoint.evolveum.com/xml/ns/samples/extension-3";
-	public static final String NS_CASE = "http://midpoint.evolveum.com/xml/ns/public/common/case-3";
+	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-" + SCHEMA_MAJOR_VERSION;
+	public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-" + SCHEMA_MAJOR_VERSION;
+	public static final String NS_SAMPLES_EXTENSION = "http://midpoint.evolveum.com/xml/ns/samples/extension-" + SCHEMA_MAJOR_VERSION;
+	public static final String NS_CASE = "http://midpoint.evolveum.com/xml/ns/public/common/case-" + SCHEMA_MAJOR_VERSION;
 
 	/**
 	 * Namespace for default (bult-in) object collections, such as "all objects", "all roles", ...
 	 */
-	public static final String NS_OBJECT_COLLECTIONS = NS_MIDPOINT_PUBLIC + "/common/object-collections-3";
+	public static final String NS_OBJECT_COLLECTIONS = NS_MIDPOINT_PUBLIC + "/common/object-collections-" + SCHEMA_MAJOR_VERSION;
 
 	// COMMON NAMESPACE
 
@@ -242,12 +244,12 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_METADATA_MODIFY_TIMESTAMP = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
-	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
+	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-" + SCHEMA_MAJOR_VERSION;
 	public static final ItemName SYNC_TOKEN = new ItemName(NS_PROVISIONING_LIVE_SYNC, "token");
 	public static final String NS_PROVISIONING_TASK = NS_PROVISIONING + "/task";
 
 	// Synchronization constants
-	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
+	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-" + SCHEMA_MAJOR_VERSION;
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
 	public static final String CHANGE_CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_LIVE_SYNC);
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
@@ -259,14 +261,14 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
-	public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
+	public static final String NS_MODEL_WS = NS_MODEL + "/model-" + SCHEMA_MAJOR_VERSION;
 
 	public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
-	public static final String NS_REPORT_WS = NS_REPORT + "/report-3";
+	public static final String NS_REPORT_WS = NS_REPORT + "/report-" + SCHEMA_MAJOR_VERSION;
 	public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
 	public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow";
 
-	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-3";
+	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-" + SCHEMA_MAJOR_VERSION;
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
 	public static final String CHANNEL_WEB_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
 	public static final QName CHANNEL_OBJECT_IMPORT_QNAME = new QName(NS_MODEL_CHANNEL, "objectImport");
@@ -276,9 +278,9 @@ public abstract class SchemaConstants {
 	public static final QName CHANNEL_REMEDIATION_QNAME = new QName(NS_MODEL_CHANNEL, "remediation");
 	public static final String CHANNEL_REMEDIATION_URI = QNameUtil.qNameToUri(CHANNEL_REMEDIATION_QNAME);
 
-	public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-3";
+	public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-" + SCHEMA_MAJOR_VERSION;
 
-	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
+	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-" + SCHEMA_MAJOR_VERSION;
 	public static final ItemName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new ItemName(
 			NS_MODEL_EXTENSION, "freshnessInterval"); // unused? TODO consider
 														// removing
@@ -371,11 +373,11 @@ public abstract class SchemaConstants {
 	public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTION = new ItemName(NS_MODEL_EXTENSION, "workItemAction");
 	public static final ItemName MODEL_EXTENSION_TIME_BEFORE_ACTION = new ItemName(NS_MODEL_EXTENSION, "timeBeforeAction");
 
-	public static final String NOOP_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/noop/handler-3";
+	public static final String NOOP_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/noop/handler-" + SCHEMA_MAJOR_VERSION;
 	public static final ItemName NOOP_DELAY_QNAME = new ItemName(NOOP_SCHEMA_URI, "delay");
 	public static final ItemName NOOP_STEPS_QNAME = new ItemName(NOOP_SCHEMA_URI, "steps");
 
-	public static final String JDBC_PING_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/jdbc-ping/handler-3";
+	public static final String JDBC_PING_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/jdbc-ping/handler-" + SCHEMA_MAJOR_VERSION;
 	public static final ItemName JDBC_PING_TESTS_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "tests");
 	public static final ItemName JDBC_PING_INTERVAL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "interval");
 	public static final ItemName JDBC_PING_TEST_QUERY_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "testQuery");
@@ -386,7 +388,7 @@ public abstract class SchemaConstants {
 	public static final ItemName JDBC_PING_LOG_ON_INFO_LEVEL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "logOnInfoLevel");
 
 	public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
-	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
+	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-" + SCHEMA_MAJOR_VERSION;
 	
 	// Init channel, used when system is initializing itself
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
@@ -422,7 +424,7 @@ public abstract class SchemaConstants {
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
-	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
+	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-" + SCHEMA_MAJOR_VERSION;
 	public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
 			"configurationProperties");
 	public static final ItemName ICF_TIMEOUTS = new ItemName(NS_ICF_CONFIGURATION, "timeouts");
@@ -432,7 +434,7 @@ public abstract class SchemaConstants {
 			"connectorPoolConfiguration");
 
 	// Note! This is also specified in SchemaConstants (MID-356)
-	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
+	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-" + SCHEMA_MAJOR_VERSION;
 	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
 	public static final ItemName ICFS_NAME = new ItemName(NS_ICF_SCHEMA, "name");
 	public static final ItemName ICFS_UID = new ItemName(NS_ICF_SCHEMA, "uid");
@@ -450,10 +452,10 @@ public abstract class SchemaConstants {
 	public static final ItemName ICF_CONNECTOR_USUAL_NAMESPACE_PREFIX = new ItemName(ICF_CONNECTOR_EXTENSION,
 			"usualNamespacePrefix");
 
-	public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3";
+	public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-" + SCHEMA_MAJOR_VERSION;
 	public static final ItemName SE_EXECUTE_SCRIPT = new ItemName(SCRIPTING_EXTENSION_NS, "executeScript");
 
-	public static final String NS_SCRIPTING = "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3";
+	public static final String NS_SCRIPTING = "http://midpoint.evolveum.com/xml/ns/public/model/scripting-" + SCHEMA_MAJOR_VERSION;
 	public static final ItemName S_PIPELINE = new ItemName(NS_SCRIPTING, "pipeline");
 	public static final ItemName S_SEARCH = new ItemName(NS_SCRIPTING, "search");
 	public static final ItemName S_SEQUENCE = new ItemName(NS_SCRIPTING, "sequence");
@@ -462,7 +464,7 @@ public abstract class SchemaConstants {
 	public static final ItemName S_PIPELINE_DATA = new ItemName(NS_SCRIPTING, "pipelineData");
 
 	public static final ItemName C_EVENT = new ItemName(NS_C, "event");
-	public static final ItemName C_EVENT_HANDLER = new ItemName(NS_C, "eventHandler");			// TODO: no such element in common-3 - is it OK?
+	public static final ItemName C_EVENT_HANDLER = new ItemName(NS_C, "eventHandler");			// TODO: no such element in common-4 - is it OK?
 	public static final ItemName C_TEXT_FORMATTER = new ItemName(NS_C, "textFormatter");
 	public static final ItemName C_NOTIFICATION_FUNCTIONS = new ItemName(NS_C, "notificationFunctions");
 
@@ -575,7 +577,7 @@ public abstract class SchemaConstants {
 //	public static final String RESET_PASSWORD_TOKEN = "token";
 
 	// a bit of hack
-	public static final String COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI = SchemaConstants.NS_MODEL + "/completedTaskCleanup/handler-3";
+	public static final String COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI = SchemaConstants.NS_MODEL + "/completedTaskCleanup/handler-" + SCHEMA_MAJOR_VERSION;
 
 	// other (temp)
 	public static final ItemPath PATH_CREDENTIALS_PASSWORD_VALUE = ItemPath

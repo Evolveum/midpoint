@@ -25,10 +25,10 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConstructionStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 /**
  * @author Radovan Semancik

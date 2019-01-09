@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AutoassignSpecificationType;
 import org.apache.commons.lang3.Validate;
 
 import javax.persistence.Embeddable;

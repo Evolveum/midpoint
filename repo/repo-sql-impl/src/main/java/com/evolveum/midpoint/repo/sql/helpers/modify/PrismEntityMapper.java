@@ -33,7 +33,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.*;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

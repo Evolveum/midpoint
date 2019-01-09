@@ -19,7 +19,7 @@ package com.evolveum.midpoint.wf.impl.policy.assignments.plain;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
 
 /**
  * Tests assigning of roles 1..3 with explicitly defined approvers (i.e. via approverRef item).

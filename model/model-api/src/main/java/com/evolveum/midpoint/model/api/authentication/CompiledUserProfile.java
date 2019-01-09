@@ -30,21 +30,21 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractObjectTypeConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationRoleManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardLayoutType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiExportSettingsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractObjectTypeConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AdminGuiConfigurationRoleManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DashboardLayoutType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DashboardWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FeedbackMessagesHookType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiExportSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectDetailsPageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectDetailsSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectFormsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SearchBoxConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserInterfaceElementVisibilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserInterfaceFeatureType;
 
 /**
  * Compiled user profile. This class contains information about configuration and customization

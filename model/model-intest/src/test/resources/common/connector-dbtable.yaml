@@ -14,14 +14,14 @@ connector:
         schema: "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n<xsd:schema elementFormDefault=\"\
           qualified\" targetNamespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector\"\
           \ xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\" xmlns:a=\"\
-          http://prism.evolveum.com/xml/ns/public/annotation-3\" xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\"\
-          \ xmlns:qn342=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3\"\
+          http://prism.evolveum.com/xml/ns/public/annotation-4\" xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\"\
+          \ xmlns:qn342=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4\"\
           \ xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-4\" xmlns:tns=\"\
           http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector\"\
           \ xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n\t        <xsd:import\
-          \ namespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3\"\
+          \ namespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4\"\
           />\n\t        <xsd:import namespace=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\"\
-          />\n\t        <xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-3\"\
+          />\n\t        <xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-4\"\
           />\n\t        <xsd:complexType name=\"ConfigurationType\">\n\t         \
           \ <xsd:sequence>\n\t            <xsd:element minOccurs=\"0\" ref=\"qn342:connectorPoolConfiguration\"\
           >\n\t              <xsd:annotation>\n\t                <xsd:appinfo>\n\t\

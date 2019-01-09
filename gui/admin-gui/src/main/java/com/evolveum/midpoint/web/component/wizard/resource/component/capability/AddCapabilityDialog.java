@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.wizard.resource.CapabilityStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.Capability;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CapabilityType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;

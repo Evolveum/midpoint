@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.objects;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Component;
 

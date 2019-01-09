@@ -23,7 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * Same test as TestImportRecon, but this is using logged-in user with limited

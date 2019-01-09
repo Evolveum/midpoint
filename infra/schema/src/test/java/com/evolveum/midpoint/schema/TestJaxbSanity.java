@@ -31,7 +31,7 @@ import javax.xml.bind.JAXBException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -43,7 +43,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectModificationType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_4.RawType;
 import com.evolveum.prism.xml.ns._public.types_4.SchemaDefinitionType;

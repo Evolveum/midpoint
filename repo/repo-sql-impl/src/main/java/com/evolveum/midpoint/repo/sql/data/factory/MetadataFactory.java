@@ -10,8 +10,8 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;

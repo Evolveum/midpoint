@@ -20,7 +20,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 public abstract class AbstractScannerResultHandler<O extends ObjectType> extends
 		AbstractSearchIterativeResultHandler<O> {

@@ -26,8 +26,8 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.AccessCertificatio
 import com.evolveum.midpoint.web.page.admin.certification.dto.ManagerSearchDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseOutcomeStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;

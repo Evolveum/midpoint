@@ -20,8 +20,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GetOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.IterationMethodType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 

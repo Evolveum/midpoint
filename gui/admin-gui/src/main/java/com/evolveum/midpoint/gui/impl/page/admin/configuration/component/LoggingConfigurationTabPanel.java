@@ -77,13 +77,13 @@ import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SyslogAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 /**
  * @author skublik

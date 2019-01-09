@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationExecutionStatusType.COMPLETED;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -39,7 +39,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.midpoint.schema.SearchResultList;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
@@ -78,7 +78,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectModificationType;
 import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 

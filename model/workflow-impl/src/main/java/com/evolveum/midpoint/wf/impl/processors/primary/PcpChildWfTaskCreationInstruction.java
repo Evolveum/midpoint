@@ -34,7 +34,7 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;

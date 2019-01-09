@@ -34,7 +34,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.model.IModel;

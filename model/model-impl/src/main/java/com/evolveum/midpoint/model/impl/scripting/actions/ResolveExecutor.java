@@ -24,8 +24,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionExpressionType;
 
 import org.springframework.stereotype.Component;
 

@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType;
 import org.apache.wicket.Component;
 
 /**

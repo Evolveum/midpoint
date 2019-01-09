@@ -42,7 +42,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ProcessSpecification;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 import org.apache.commons.lang3.tuple.Pair;

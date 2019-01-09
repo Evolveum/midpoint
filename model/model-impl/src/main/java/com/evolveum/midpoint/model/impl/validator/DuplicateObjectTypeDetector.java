@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.model.impl.validator;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

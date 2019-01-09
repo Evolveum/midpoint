@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import static com.evolveum.midpoint.schema.util.SchemaTestConstants.EXTENSION_LO
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.EXTENSION_LOCATIONS_TYPE;
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES;
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES_TYPE;
-import static com.evolveum.midpoint.schema.util.SchemaTestConstants.NS_ICFC;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -53,16 +52,16 @@ import com.evolveum.midpoint.schema.util.SchemaTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_4.SchemaDefinitionType;
 
@@ -96,8 +95,8 @@ public class TestSchemaSanity {
 		assertMapping(prefixMapper, PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION);
 		assertMapping(prefixMapper, SchemaConstantsGenerated.NS_COMMON, "");
 		assertMapping(prefixMapper, MidPointConstants.NS_RA, MidPointConstants.PREFIX_NS_RA);
-		assertMapping(prefixMapper, SchemaTestConstants.NS_ICFC, "icfc");
-		assertMapping(prefixMapper, SchemaTestConstants.NS_ICFS, "icfs");
+		assertMapping(prefixMapper, SchemaConstants.NS_ICF_CONFIGURATION, "icfc");
+		assertMapping(prefixMapper, SchemaConstants.NS_ICF_SCHEMA, "icfs");
 
 		QName cBarQName = new QName(SchemaConstantsGenerated.NS_COMMON, "bar");
 		QName cBarQNameWithPrefix = prefixMapper.setQNamePrefix(cBarQName);
@@ -300,7 +299,7 @@ public class TestSchemaSanity {
 		System.out.println("Schema registry:");
 		System.out.println(schemaRegistry.debugDump());
 
-		PrismSchema icfSchema = schemaRegistry.findSchemaByNamespace(NS_ICFC);
+		PrismSchema icfSchema = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
 		assertNotNull("No ICF schema", icfSchema);
 		System.out.println("ICF schema:");
 		System.out.println(icfSchema.debugDump());

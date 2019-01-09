@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 

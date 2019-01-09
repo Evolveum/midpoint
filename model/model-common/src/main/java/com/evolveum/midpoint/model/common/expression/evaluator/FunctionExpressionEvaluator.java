@@ -46,12 +46,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionReturnMultiplicityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FunctionExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 /**
  * @author katkav

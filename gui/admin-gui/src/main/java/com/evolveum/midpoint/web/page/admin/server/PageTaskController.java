@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskEditableState;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstances;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;

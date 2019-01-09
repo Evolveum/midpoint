@@ -36,10 +36,10 @@ import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 public class ValueOperation extends Operation {
 

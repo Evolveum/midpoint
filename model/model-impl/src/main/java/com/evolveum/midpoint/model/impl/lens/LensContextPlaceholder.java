@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 /**
  * This class does nothing. It just takes place when no real Lens Context is available.

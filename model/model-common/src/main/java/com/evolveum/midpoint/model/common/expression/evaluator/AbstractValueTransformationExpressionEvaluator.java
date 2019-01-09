@@ -45,8 +45,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionRelativityModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TransformExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TransformExpressionRelativityModeType;
 
 /**
  * @author Radovan Semancik

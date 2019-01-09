@@ -47,7 +47,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import org.jetbrains.annotations.NotNull;
@@ -65,15 +65,15 @@ import static com.evolveum.midpoint.certification.api.OutcomeUtils.*;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CREATED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_CREATE_TIMESTAMP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_ID_USED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.CLOSED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.CREATED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType.F_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseType.F_CURRENT_STAGE_CREATE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_ID_USED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
 
 /**
  * Supports campaign and stage opening operations.

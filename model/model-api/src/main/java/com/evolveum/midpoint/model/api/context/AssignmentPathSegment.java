@@ -20,10 +20,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentPathSegmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrderConstraintsType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

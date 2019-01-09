@@ -36,10 +36,10 @@ import com.evolveum.midpoint.web.page.admin.workflow.WorkItemsPageType;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
@@ -52,8 +52,8 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_CREATE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType.F_CREATE_TIMESTAMP;
 
 /**
  * @author lazyman

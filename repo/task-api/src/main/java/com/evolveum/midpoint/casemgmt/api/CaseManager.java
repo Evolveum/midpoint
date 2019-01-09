@@ -18,8 +18,8 @@ package com.evolveum.midpoint.casemgmt.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CaseWorkItemType;
 
 /**
  * Analogous to WorkflowManager, this component will be responsible for managing cases and their work items.

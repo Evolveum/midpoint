@@ -24,8 +24,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.RunAsCapabilityType;
 
 /**
  * @author semancik

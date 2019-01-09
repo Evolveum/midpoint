@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.datatype.Duration;

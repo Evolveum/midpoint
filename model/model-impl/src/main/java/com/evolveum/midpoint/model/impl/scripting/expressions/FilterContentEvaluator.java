@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.FilterContentExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.FilterContentExpressionType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import org.springframework.stereotype.Component;
 

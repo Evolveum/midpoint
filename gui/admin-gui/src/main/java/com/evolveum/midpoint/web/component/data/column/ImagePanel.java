@@ -18,8 +18,8 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.IconType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;

@@ -33,8 +33,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReferenceSearchExpressionEvaluatorType;
 
 import org.apache.commons.lang.Validate;
 

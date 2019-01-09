@@ -37,7 +37,7 @@ import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

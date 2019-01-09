@@ -19,8 +19,8 @@ package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectSearchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 import javax.xml.namespace.QName;
 

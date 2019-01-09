@@ -16,11 +16,11 @@
 package com.evolveum.midpoint.testing.sanity;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PasswordType;
 import com.evolveum.prism.xml.ns._public.types_4.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
@@ -64,12 +64,12 @@ public class ModelClientUtil {
 	private static final DocumentBuilder domDocumentBuilder;
 
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
-		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
-				"com.evolveum.midpoint.xml.ns._public.common.common_3:" +
+		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_4:" +
+				"com.evolveum.midpoint.xml.ns._public.common.common_4:" +
 				"com.evolveum.midpoint.xml.ns._public.common.fault_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
-				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_3:" +
+				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_4:" +
 				"com.evolveum.prism.xml.ns._public.annotation_4:" +
 				"com.evolveum.prism.xml.ns._public.query_4:" +
 				"com.evolveum.prism.xml.ns._public.types_4:" +

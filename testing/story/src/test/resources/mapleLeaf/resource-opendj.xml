@@ -44,7 +44,7 @@
 
     <connectorConfiguration
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
         <icfc:configurationProperties>
             <icfcldap:port>10389</icfcldap:port>
             <icfcldap:host>localhost</icfcldap:host>

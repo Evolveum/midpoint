@@ -14,8 +14,8 @@ resource:
         - path: "connectorVersion"
           value: "2.0"
   connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ConnectorConfigurationType>
-    '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-    configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3/ConfigurationPropertiesType>
+    '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
+    configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4/ConfigurationPropertiesType>
       '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
       instanceId: ""
       requireExplicitEnable: "true"
@@ -37,7 +37,7 @@ resource:
       default: true
       objectClass: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#AccountObjectClass"
       attribute:
-      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3';\
+      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4';\
           \ icfs:name"
         displayName: "Username"
         outbound:
@@ -52,7 +52,7 @@ resource:
         - strength: "weak"
           target:
             path: "$user/name"
-      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3';\
+      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4';\
           \ icfs:uid"
         displayName: "UID"
       - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004';\
@@ -175,7 +175,7 @@ resource:
         - "group"
         direction: "objectToSubject"
         associationAttribute: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#members"
-        valueAttribute: "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3#name"
+        valueAttribute: "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4#name"
       - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004';\
           \ ri:priv"
         kind: "entitlement"
@@ -183,13 +183,13 @@ resource:
         - "privilege"
         direction: "subjectToObject"
         associationAttribute: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#privileges"
-        valueAttribute: "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3#name"
+        valueAttribute: "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4#name"
       iteration:
         maxIterations: 5
       protected:
-      - '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      - '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
         name: "daviejones"
-      - '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      - '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
         name: "calypso"
       activation:
         existence:
@@ -227,7 +227,7 @@ resource:
       default: false
       objectClass: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#AccountObjectClass"
       attribute:
-      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3';\
+      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4';\
           \ icfs:name"
         outbound:
           strength: "strong"
@@ -293,7 +293,7 @@ resource:
         - "group"
         direction: "objectToSubject"
         associationAttribute: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#members"
-        valueAttribute: "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3#name"
+        valueAttribute: "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4#name"
       - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004';\
           \ ri:priv"
         kind: "entitlement"
@@ -301,7 +301,7 @@ resource:
         - "privilege"
         direction: "subjectToObject"
         associationAttribute: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#privileges"
-        valueAttribute: "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3#name"
+        valueAttribute: "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4#name"
       iteration:
         maxIterations: 5
       activation:
@@ -319,7 +319,7 @@ resource:
       default: true
       objectClass: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004#GroupObjectClass"
       attribute:
-      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3';\
+      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4';\
           \ icfs:name"
         displayName: "Groupname"
         matchingRule: "http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase"
@@ -448,7 +448,7 @@ resource:
       condition:
         script:
         - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
-          code: "!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3',\
+          code: "!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4',\
             \ 'name').startsWith(\"T\")"
       correlation:
       - '@ns': "http://prism.evolveum.com/xml/ns/public/query-4"
@@ -457,7 +457,7 @@ resource:
           http://midpoint.evolveum.com/xml/ns/public/common/common-4#expression:
             '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             path: |-
-              declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+              declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
                                           $account/attributes/icfs:name
       reaction:
       - situation: "linked"
@@ -482,7 +482,7 @@ resource:
       condition:
         script:
         - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
-          code: "basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3',\
+          code: "basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4',\
             \ 'name').startsWith(\"T\")"
       correlation:
       - '@ns': "http://prism.evolveum.com/xml/ns/public/query-4"
@@ -491,7 +491,7 @@ resource:
           http://midpoint.evolveum.com/xml/ns/public/common/common-4#expression:
             '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             script:
-              code: "basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3',\
+              code: "basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4',\
                 \ 'name').substring(1)"
       reaction:
       - situation: "linked"

@@ -16,7 +16,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
 	xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
 

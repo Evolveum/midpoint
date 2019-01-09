@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExportType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;

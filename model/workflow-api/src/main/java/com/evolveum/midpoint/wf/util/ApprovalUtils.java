@@ -18,9 +18,9 @@ package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalLevelOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemOutcomeType;
 import org.apache.commons.lang.BooleanUtils;
 
 /**

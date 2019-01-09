@@ -84,14 +84,14 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 /**
  * Implementation of provisioning service.
@@ -745,7 +745,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#executeScript(java.lang.Class, java.lang.String, com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#executeScript(java.lang.Class, java.lang.String, com.evolveum.midpoint.xml.ns._public.common.common_4.ProvisioningScriptType, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
 	public <T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script,

@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -40,12 +40,12 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_ACTIVATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.CLOSED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.IN_REMEDIATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseType.F_ACTIVATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType.ENABLED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 

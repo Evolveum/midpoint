@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SearchBoxScopeType;
 
 import javax.xml.namespace.QName;
 /**

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationActionType;
 
 import java.io.Serializable;
 

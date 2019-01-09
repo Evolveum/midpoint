@@ -51,7 +51,7 @@ Used at run time by SOAP clients.
 
     <!-- provisioning -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" uri="../xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" uri="../xml/ns/public/connector/icf-1/connector-schema-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" uri="../xml/ns/public/connector/icf-1/connector-schema-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" uri="../xml/ns/public/resource/capabilities-3.xsd" />
 
     <!-- model -->

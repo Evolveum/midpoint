@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
 
 import java.io.Serializable;
 import java.util.List;

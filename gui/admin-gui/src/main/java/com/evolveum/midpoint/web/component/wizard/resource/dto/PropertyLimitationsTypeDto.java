@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PropertyLimitationsType;
 
 import java.io.Serializable;
 

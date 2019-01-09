@@ -21,9 +21,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.QNameUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

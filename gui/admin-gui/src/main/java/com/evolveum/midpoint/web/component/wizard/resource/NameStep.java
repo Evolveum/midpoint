@@ -48,9 +48,9 @@ import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostTypeComparator;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import org.apache.commons.lang.ObjectUtils;

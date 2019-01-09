@@ -1,9 +1,9 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;

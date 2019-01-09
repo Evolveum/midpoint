@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.certification.impl.outcomeStrategies;
 
 import com.evolveum.midpoint.certification.impl.AccCertResponseComputationHelper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseOutcomeStrategyType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

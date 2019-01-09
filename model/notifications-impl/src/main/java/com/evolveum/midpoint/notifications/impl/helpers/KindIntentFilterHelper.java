@@ -20,8 +20,8 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 import org.springframework.stereotype.Component;
 
 /**

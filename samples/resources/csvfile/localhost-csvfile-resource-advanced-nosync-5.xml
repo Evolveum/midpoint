@@ -32,7 +32,7 @@ using an Identity Connector Framework connector.
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
          	xmlns:my="http://whatever.com/my"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-        	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 
 
     	<!-- Resource name. It will be displayed in GUI.  -->

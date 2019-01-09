@@ -23,7 +23,7 @@
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	xmlns:my="http://myself.me/schemas/whatever">
 
    	<name>CRM</name>

@@ -38,8 +38,8 @@ import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ServiceType;
 
 @PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,

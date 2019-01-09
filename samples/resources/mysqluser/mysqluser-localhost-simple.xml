@@ -53,7 +53,7 @@ This resource definition contains only the very basic definitions for midPoint t
              such as hostnames and passwords -->
 		<connectorConfiguration
 			xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.mysqluser/org.identityconnectors.mysqluser.MySQLUserConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 
             <!-- Configuration specific for the MySQL connector -->
 			<icfc:configurationProperties>

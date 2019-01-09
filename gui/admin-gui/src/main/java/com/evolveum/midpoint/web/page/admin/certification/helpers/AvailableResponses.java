@@ -18,18 +18,18 @@ package com.evolveum.midpoint.web.page.admin.certification.helpers;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.NOT_DECIDED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.REDUCE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.REVOKE;
 
 /**
  * TODO implement more cleanly

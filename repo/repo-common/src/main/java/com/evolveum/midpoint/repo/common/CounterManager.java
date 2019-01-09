@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 
 /**
  * @author katka

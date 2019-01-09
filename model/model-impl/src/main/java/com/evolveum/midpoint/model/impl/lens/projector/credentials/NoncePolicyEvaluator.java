@@ -18,10 +18,10 @@ package com.evolveum.midpoint.model.impl.lens.projector.credentials;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NonceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * @author semancik

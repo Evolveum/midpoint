@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 

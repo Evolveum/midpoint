@@ -44,7 +44,7 @@
 
 		<connectorConfiguration
 				xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector"
-				xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+				xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 				<icfc:resultsHandlerConfiguration>
 					<icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>
 					<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>

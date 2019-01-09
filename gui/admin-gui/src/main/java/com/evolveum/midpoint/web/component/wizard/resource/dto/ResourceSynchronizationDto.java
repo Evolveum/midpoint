@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConditionalSearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationReactionType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;

@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuthorizationDecisionType;
 
 /**
  * @author semancik

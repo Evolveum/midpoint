@@ -45,12 +45,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.PasswordCapabilityType;
 
 /**
  * Almost the same as TestDummy but with some extra things, such as:

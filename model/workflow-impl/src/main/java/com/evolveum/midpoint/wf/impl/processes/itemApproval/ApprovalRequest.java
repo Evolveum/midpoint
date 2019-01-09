@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalSchemaType;
 
 import java.io.Serializable;
 

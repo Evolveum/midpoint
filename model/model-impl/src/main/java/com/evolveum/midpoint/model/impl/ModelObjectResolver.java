@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.TaskManager;
 
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

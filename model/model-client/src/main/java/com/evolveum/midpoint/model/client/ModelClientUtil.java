@@ -41,21 +41,21 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GetOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SelectorQualifiedGetOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SelectorQualifiedGetOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_4.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
@@ -89,12 +89,12 @@ public class ModelClientUtil {
 	private static final JAXBContext jaxbContext;
 
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
-		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
-				"com.evolveum.midpoint.xml.ns._public.common.common_3:" +
+		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_4:" +
+				"com.evolveum.midpoint.xml.ns._public.common.common_4:" +
 				"com.evolveum.midpoint.xml.ns._public.common.fault_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
-				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_3:" +
+				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_4:" +
 				"com.evolveum.prism.xml.ns._public.annotation_4:" +
 				"com.evolveum.prism.xml.ns._public.query_4:" +
 				"com.evolveum.prism.xml.ns._public.types_4");

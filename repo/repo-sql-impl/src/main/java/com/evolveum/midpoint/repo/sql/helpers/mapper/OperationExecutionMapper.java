@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationExecutionType;
 
 /**
  * Created by Viliam Repan (lazyman).

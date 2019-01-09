@@ -138,34 +138,34 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AuxiliaryObjectClassesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.BeforeAfterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CriticalityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProvisioningScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationLockoutStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationValidityCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.AddRemoveAttributeValuesCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.AuxiliaryObjectClassesCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.LiveSyncCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.PagedSearchCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.RunAsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.SchemaCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ScriptCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.TestConnectionCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_4.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
@@ -181,8 +181,8 @@ import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
  */
 public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
-	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
-		= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
+	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ObjectFactory CAPABILITY_OBJECT_FACTORY
+		= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ObjectFactory();
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 

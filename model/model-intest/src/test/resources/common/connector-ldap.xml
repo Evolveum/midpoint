@@ -28,11 +28,11 @@
       <definition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector"
-                     xmlns:qn406="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                     xmlns:qn406="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
             <xsd:complexType name="ConfigurationPropertiesType">

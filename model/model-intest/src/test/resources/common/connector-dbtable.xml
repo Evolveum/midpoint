@@ -35,12 +35,12 @@
 	            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
 	            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	            xmlns:qn342="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	            xmlns:qn342="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
 	            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	            elementFormDefault="qualified"
 	            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
-	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
+	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"/>
 	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
 	        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
 	        <xsd:complexType name="ConfigurationType">

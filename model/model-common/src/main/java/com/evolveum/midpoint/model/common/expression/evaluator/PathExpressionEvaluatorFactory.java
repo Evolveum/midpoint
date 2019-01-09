@@ -33,7 +33,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 /**

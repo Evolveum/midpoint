@@ -7,7 +7,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 public class SingleValueChoosePanel<U, T extends ObjectType> extends ConvertingMultiValueChoosePanel<U,T> {
 

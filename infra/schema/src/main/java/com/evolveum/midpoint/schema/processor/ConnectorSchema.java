@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

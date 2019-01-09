@@ -33,7 +33,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -45,7 +45,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createExecuteImmediatelyAfterApproval;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.CLOSED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskExecutionStatusType.CLOSED;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;

@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -58,7 +58,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CapabilityType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 /**

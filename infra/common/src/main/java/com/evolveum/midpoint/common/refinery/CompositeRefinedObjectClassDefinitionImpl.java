@@ -29,9 +29,9 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 import org.apache.commons.collections.CollectionUtils;

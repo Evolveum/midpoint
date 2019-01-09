@@ -29,7 +29,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * @author semancik

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ScriptingExpressionEvaluationOptionsType;
 
 import java.util.HashMap;
 import java.util.List;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 /**
@@ -55,25 +55,6 @@ public class XsdTypeConverterTest {
 	private static final String FOO_NAMESPACE = "http://foo.com/";
 	private static final QName FOO_QNAME = new QName(FOO_NAMESPACE,"foo");
 	private static final QName BAR_QNAME = new QName(FOO_NAMESPACE,"bar");
-
-
-//	@Test(enabled=false)
-//	public void testConvertFromProtectedString() throws SchemaException {
-//		Document document = DOMUtil.parseDocument(
-//				"<password xmlns=\""+FOO_NAMESPACE+"\" "+
-//				"xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" "+
-//				"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
-//				"xsi:type=\"c:ProtectedStringType\">"+
-//				"<c:clearValue>3lizab3th</c:clearValue></password>");
-//		Element element = DOMUtil.getFirstChildElement(document);
-//
-//		Object value = XmlTypeConverter.toJavaValue(element);
-//
-//		System.out.println("XML -> ProtectedStringType: "+value);
-//		assertNotNull(value);
-//		assertTrue(value instanceof ProtectedStringType);
-//		assertEquals("3lizab3th",((ProtectedStringType)value).getClearValue());
-//	}
 
 	@Test(enabled=false)
 	public void testConvertToProtectedString() throws JAXBException, SchemaException {

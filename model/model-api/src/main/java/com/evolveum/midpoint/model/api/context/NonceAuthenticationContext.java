@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NonceCredentialsPolicyType;
 
 public class NonceAuthenticationContext extends AbstractAuthenticationContext {
 

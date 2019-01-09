@@ -29,13 +29,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import org.quartz.*;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ScheduleType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 

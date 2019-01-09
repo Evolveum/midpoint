@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineDataType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.PipelineDataType;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.annotations.Test;
 
@@ -85,10 +85,8 @@ public class TestParseScriptOutput extends AbstractPropertyValueParserTest<Pipel
 		String serialized = getPrismContext().xmlSerializer().serialize(xnode);
 		System.out.println("XML: " + serialized);
 
-		final String common_3 = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-
-		int count = StringUtils.countMatches(serialized, common_3);
-		assertEquals("Wrong # of occurrences of '" + common_3 + "' in serialized form", 2, count);
+		int count = StringUtils.countMatches(serialized, SchemaConstants.NS_C);
+		assertEquals("Wrong # of occurrences of '" + SchemaConstants.NS_C + "' in serialized form", 2, count);
 	}
 
 //	private void assertNamespaceDeclarations(String context, Element element, String... prefixes) {

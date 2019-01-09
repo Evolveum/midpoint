@@ -36,8 +36,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
 
 public class SelfConsentPanel extends BasePanel<AssignmentType> {
 

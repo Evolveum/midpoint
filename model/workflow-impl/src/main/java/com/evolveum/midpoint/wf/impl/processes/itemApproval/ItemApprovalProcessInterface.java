@@ -31,7 +31,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationIn
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 
 import org.apache.commons.lang.BooleanUtils;

@@ -20,8 +20,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsPropagationUserControlType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PasswordChangeSecurityType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 /**

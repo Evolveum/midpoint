@@ -49,11 +49,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.StringLimitType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ValuePolicyType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

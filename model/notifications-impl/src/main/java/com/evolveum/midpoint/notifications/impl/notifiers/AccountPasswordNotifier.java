@@ -24,9 +24,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccountPasswordNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccountPasswordNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GeneralNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

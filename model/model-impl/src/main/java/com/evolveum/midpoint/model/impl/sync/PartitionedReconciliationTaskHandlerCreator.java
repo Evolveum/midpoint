@@ -21,8 +21,8 @@ import com.evolveum.midpoint.task.api.StaticTaskPartitionsDefinition;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPartitionsDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskPartitionsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

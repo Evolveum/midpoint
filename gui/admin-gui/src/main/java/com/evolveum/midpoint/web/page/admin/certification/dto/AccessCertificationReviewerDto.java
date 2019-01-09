@@ -7,14 +7,14 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF;
 
 /**
  * Created by Kate on 15.12.2015.

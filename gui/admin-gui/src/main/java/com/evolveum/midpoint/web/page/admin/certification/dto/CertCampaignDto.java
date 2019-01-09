@@ -24,12 +24,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;

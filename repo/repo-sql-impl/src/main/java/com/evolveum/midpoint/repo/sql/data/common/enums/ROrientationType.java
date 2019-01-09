@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrientationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrientationType;
 
 @JaxbType(type = OrientationType.class)
 public enum ROrientationType implements SchemaEnum<OrientationType> {

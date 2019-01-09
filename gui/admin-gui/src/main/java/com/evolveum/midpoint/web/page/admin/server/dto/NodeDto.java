@@ -20,10 +20,10 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeErrorStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;

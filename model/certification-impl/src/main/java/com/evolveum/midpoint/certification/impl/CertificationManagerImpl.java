@@ -41,7 +41,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +54,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.*;
 
 /**
  * All operations carried out by CertificationManager have to be authorized by it. ModelController does NOT execute

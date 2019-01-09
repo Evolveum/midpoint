@@ -35,8 +35,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SequentialValueExpressionEvaluatorType;
 
 /**
  * @author semancik

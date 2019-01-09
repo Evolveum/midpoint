@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;

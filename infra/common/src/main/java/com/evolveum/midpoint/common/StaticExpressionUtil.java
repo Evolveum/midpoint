@@ -34,8 +34,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionReturnMultiplicityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
 import com.evolveum.prism.xml.ns._public.types_4.RawType;
 
 /**

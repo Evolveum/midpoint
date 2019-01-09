@@ -16,26 +16,26 @@
 package com.evolveum.midpoint.testing.model.client.sample;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OptionObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RetrieveOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GetOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OptionObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RetrieveOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SelectorQualifiedGetOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SelectorQualifiedGetOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
@@ -502,8 +502,8 @@ public class Main {
         ObjectFactory factory = new ObjectFactory();
         JAXBElement<PropertyComplexValueFilterClauseType> equal = factory.createEqual(fc);
 
-        JAXBContext jaxbContext = JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
-                "com.evolveum.midpoint.xml.ns._public.common.common_3:" +
+        JAXBContext jaxbContext = JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_4:" +
+                "com.evolveum.midpoint.xml.ns._public.common.common_4:" +
                 "com.evolveum.prism.xml.ns._public.annotation_4:" +
                 "com.evolveum.prism.xml.ns._public.query_4:" +
                 "com.evolveum.prism.xml.ns._public.types_4:");

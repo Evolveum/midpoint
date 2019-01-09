@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,8 +52,8 @@ import java.util.List;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType.F_WORK_ITEM;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 

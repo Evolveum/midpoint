@@ -27,10 +27,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.sql.ScriptRunner;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeErrorStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeExecutionStatusType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeType;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.listeners.SchedulerListenerSupport;

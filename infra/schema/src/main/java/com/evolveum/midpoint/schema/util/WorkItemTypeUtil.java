@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemType;
 
 /**
  * @author mederly

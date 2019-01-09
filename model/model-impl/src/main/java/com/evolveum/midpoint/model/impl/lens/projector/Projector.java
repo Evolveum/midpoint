@@ -25,7 +25,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

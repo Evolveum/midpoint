@@ -50,7 +50,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 
 import org.activiti.engine.TaskService;
@@ -66,8 +66,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.DELEGATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.ESCALATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemOperationKindType.DELEGATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemOperationKindType.ESCALATE;
 
 /**
  * @author mederly

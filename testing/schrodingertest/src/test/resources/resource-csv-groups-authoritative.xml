@@ -23,7 +23,7 @@
              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
              xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
              xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 
 
     <!-- Resource name. It will be displayed in GUI.  -->

@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;

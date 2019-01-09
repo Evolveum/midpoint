@@ -60,13 +60,13 @@ import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExclusionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GlobalPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 /**
  * @author skublik

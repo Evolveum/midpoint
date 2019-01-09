@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.testing.story.notorious;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;

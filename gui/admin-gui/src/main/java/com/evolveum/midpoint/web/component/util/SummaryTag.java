@@ -22,7 +22,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 /**
  * @author semancik

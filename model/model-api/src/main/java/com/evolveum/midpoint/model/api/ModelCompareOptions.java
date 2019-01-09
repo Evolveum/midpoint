@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelCompareOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ModelCompareOptionsType;
 
 import java.io.Serializable;
 import java.util.List;

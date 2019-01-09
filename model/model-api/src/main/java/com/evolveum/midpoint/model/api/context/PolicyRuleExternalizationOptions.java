@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TriggeredPolicyRulesStorageStrategyType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * @author mederly

@@ -21,8 +21,8 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConditionalSearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.PropertyModel;
 

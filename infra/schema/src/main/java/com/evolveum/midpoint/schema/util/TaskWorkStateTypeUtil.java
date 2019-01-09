@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

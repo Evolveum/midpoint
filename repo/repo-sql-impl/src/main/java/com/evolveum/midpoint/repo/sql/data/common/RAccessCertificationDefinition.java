@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationDefinitionType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 

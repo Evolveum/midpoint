@@ -18,7 +18,7 @@ package com.evolveum.midpoint.notifications.api.transports;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NotificationMessageType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

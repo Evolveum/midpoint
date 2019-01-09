@@ -40,8 +40,8 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CredentialsCapabilityType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;

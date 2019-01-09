@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FunctionLibraryType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 

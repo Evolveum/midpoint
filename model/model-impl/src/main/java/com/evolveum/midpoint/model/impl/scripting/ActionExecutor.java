@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionExpressionType;
 
 /**
  * Executes an action of a given type. Instances of this type must be registered with ScriptingExpressionEvaluator.

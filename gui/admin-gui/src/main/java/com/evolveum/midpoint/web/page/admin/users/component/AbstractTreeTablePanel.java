@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 
 /**
  * Common superclass for TreeTablePanel and OrgTreeTablePanel

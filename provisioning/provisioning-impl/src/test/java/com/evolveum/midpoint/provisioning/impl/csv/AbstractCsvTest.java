@@ -63,17 +63,17 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProvisioningScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ScriptCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ScriptCapabilityType.Host;
 
 /**
  * The test of Provisioning service on the API level. The test is using CSV resource.

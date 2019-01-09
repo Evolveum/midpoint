@@ -22,7 +22,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ThreadStopActionType;
 
 public class TsaValidator extends AbstractFormValidator {
 

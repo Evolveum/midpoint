@@ -8,8 +8,8 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 

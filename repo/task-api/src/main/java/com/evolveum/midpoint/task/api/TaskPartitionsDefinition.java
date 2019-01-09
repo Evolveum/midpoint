@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskWorkManagementType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;

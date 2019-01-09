@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.util.TreeNode;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import org.apache.wicket.Component;
 
 import java.util.Collection;
@@ -40,9 +40,9 @@ import java.util.List;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType.*;
 
 /**
  * @author lazyman

@@ -24,10 +24,10 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import org.testng.annotations.Test;
 

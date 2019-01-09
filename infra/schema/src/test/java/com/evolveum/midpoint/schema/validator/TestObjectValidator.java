@@ -32,9 +32,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MultiplicityPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
 
 /**
  * @author semancik

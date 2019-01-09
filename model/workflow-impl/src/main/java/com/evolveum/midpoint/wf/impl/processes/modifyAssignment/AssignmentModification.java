@@ -19,8 +19,8 @@ package com.evolveum.midpoint.wf.impl.processes.modifyAssignment;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
 
 import org.apache.commons.lang3.Validate;

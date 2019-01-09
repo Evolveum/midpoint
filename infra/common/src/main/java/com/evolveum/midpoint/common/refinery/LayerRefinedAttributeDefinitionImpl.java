@@ -30,9 +30,9 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingType;
 import org.jetbrains.annotations.NotNull;
 
 /**

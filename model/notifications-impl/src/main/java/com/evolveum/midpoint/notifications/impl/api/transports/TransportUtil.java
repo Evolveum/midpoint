@@ -22,9 +22,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NamedConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NamedConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExportType;
 
 
 @JaxbType(type = ExportType.class)

@@ -290,10 +290,10 @@
                 <version>4.0-SNAPSHOT</version>
                 <configuration>
                     <schemaFiles>
-                        <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/common-4.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-4.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-4.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-4.xsd</schemaFile>
                     </schemaFiles>
                     <catalogFiles>
                         <catalogFile>src/compile/resources/jax-ws-catalog.xml</catalogFile>

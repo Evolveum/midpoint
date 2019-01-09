@@ -58,7 +58,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.SelectableFolderCont
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
 	private static final long serialVersionUID = 1L;

@@ -28,13 +28,13 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CollectionSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DistinctSearchOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectColumnType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectListViewAdditionalPanelsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SearchBoxConfigurationType;
 
 /**
  * @author semancik

@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
 
 import java.io.Serializable;
 import java.util.Comparator;

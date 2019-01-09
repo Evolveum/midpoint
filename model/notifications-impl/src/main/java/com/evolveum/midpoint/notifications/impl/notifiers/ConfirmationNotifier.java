@@ -31,10 +31,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfirmationNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConfirmationNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GeneralNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RegistrationConfirmationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * @author katkav

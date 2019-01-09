@@ -39,8 +39,8 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;

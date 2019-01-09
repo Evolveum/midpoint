@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectActionsExecutedEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActionsExecutedInformationType;
 
 import java.util.ArrayList;
 import java.util.Collections;

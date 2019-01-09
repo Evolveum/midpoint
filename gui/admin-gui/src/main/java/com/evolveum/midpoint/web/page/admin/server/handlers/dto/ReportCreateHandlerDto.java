@@ -27,8 +27,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebXmlUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import org.apache.wicket.Application;
 
 /**

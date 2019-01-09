@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-    <resource oid="11111111-3333-1111-1111-000000000010" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:my="http://myself.me/schemas/whatever" xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+    <resource oid="11111111-3333-1111-1111-000000000010" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:my="http://myself.me/schemas/whatever" xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
         <name>Exchange</name>
 
         <connectorRef type="ConnectorType">
@@ -13,11 +13,11 @@
             </filter>
         </connectorRef>
         <connectorConfiguration>
-            <icfc:resultsHandlerConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+            <icfc:resultsHandlerConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
                 <icfc:enableNormalizingResultsHandler>true</icfc:enableNormalizingResultsHandler>
                 <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
             </icfc:resultsHandlerConfiguration>
-            <icfc:configurationProperties xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:ex="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/Exchange.Connector/Org.IdentityConnectors.Exchange.ExchangeConnector">
+            <icfc:configurationProperties xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" xmlns:ex="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/Exchange.Connector/Org.IdentityConnectors.Exchange.ExchangeConnector">
                 <ex:ObjectClass>User</ex:ObjectClass>
                 <ex:DirectoryAdminName>...PUT ADMIN USER NAME HERE...</ex:DirectoryAdminName>
                 <ex:DirectoryAdminPassword>

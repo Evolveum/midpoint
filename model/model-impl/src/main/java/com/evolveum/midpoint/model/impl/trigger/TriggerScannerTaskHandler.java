@@ -35,8 +35,8 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TriggerType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,8 +46,8 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType.F_TRIGGER;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TriggerType.F_TIMESTAMP;
 
 /**
  *

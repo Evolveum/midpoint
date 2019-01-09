@@ -28,9 +28,9 @@ import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTa
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeErrorStatusType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeType;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**

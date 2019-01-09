@@ -41,12 +41,12 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.LiveSyncCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 import org.testng.annotations.BeforeSuite;

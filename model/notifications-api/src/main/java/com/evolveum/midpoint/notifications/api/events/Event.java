@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import javax.xml.namespace.QName;
 

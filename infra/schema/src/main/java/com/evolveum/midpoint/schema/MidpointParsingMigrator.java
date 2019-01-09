@@ -20,10 +20,10 @@ import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationPartType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.InformationPartType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.InformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SingleLocalizableMessageType;
 
 /**
  * @author mederly

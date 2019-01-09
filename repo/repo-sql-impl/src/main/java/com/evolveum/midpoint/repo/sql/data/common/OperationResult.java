@@ -22,7 +22,7 @@ import java.io.Serializable;
 
 /**
  * This interface helps handling and translation from and to
- * to {@link com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType}.
+ * to {@link com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType}.
  *
  * @author lazyman
  */

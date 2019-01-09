@@ -31,7 +31,7 @@
          </q:equal>
       </filter>
    </connectorRef>
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
       <icfc:configurationProperties xmlns:gen4="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedrest-connector/org.forgerock.openicf.connectors.scriptedrest.ScriptedRESTConnector">
          <gen4:createScriptFileName>CreateScript.groovy</gen4:createScriptFileName>
          <gen4:reloadScriptOnExecution>true</gen4:reloadScriptOnExecution>

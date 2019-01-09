@@ -18,7 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;

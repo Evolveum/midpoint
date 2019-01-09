@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
 
 public class VirtualAssignmenetSpecification<R extends AbstractRoleType> {
 	

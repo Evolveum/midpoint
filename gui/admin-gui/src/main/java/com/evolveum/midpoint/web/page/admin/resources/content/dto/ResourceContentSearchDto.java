@@ -21,7 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 
 public class ResourceContentSearchDto implements Serializable, DebugDumpable {
 	private static final long serialVersionUID = 1L;

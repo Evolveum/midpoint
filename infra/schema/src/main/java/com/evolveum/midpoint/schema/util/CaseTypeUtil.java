@@ -20,8 +20,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CaseWorkItemType;
 import org.jetbrains.annotations.NotNull;
 
 /**

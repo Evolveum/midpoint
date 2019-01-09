@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AdminGuiConfigurationType;
 
 import java.util.Locale;
 

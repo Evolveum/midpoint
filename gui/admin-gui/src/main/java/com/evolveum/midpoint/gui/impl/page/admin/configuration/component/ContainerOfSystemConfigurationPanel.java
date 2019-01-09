@@ -31,11 +31,11 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PcpAspectConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PrimaryChangeProcessorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfConfigurationType;
 
 /**
  * @author skublik

@@ -20,8 +20,8 @@ import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.AugmentedTrigger;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EvaluatedPolicyRuleTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EvaluatedPolicyRuleType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;

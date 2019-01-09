@@ -59,13 +59,13 @@ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionAnswerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionsCredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
 /**

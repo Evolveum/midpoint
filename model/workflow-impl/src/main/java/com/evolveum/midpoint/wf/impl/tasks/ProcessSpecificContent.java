@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfProcessSpecificStateType;
 
 import java.util.Map;
 

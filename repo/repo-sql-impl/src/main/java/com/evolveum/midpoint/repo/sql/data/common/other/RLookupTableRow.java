@@ -11,7 +11,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableRowType;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;

@@ -27,7 +27,7 @@
 	<name>Embedded Test OpenDJ</name>
 	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
 	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 					   
 		<icfc:configurationProperties>
 			<icfcldap:port>

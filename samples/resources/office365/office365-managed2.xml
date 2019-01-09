@@ -40,7 +40,7 @@ This contains configuration for a managed (non federated) Office 365 domain
         <connectorRef oid="7ded7a48-bde6-4318-b481-604a049a899d" type="c:ConnectorType">
             <!-- ICF org.identityconnectors.office365.Office365Connector v1.2.0.0-SNAPSHOT -->
         </connectorRef>
-        <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
             <icfc:configurationProperties xmlns:gen548="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.office365-connector/org.identityconnectors.office365.Office365Connector">
                 <gen548:apiEndPoint>graph.windows.net</gen548:apiEndPoint>
                 <gen548:tenancy>TENANCYNAME.onmicrosoft.com</gen548:tenancy>

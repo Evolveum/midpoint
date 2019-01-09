@@ -63,15 +63,15 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractCredentialType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsStorageTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PasswordHistoryEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 

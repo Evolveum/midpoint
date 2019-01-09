@@ -16,11 +16,11 @@
 package com.evolveum.midpoint.testing.model.client.sample;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptsOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.OutputFormatType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ExecuteScriptsOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.OutputFormatType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.SingleScriptOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;

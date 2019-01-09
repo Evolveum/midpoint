@@ -26,9 +26,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionExpressionType;
 
 import org.springframework.stereotype.Component;
 

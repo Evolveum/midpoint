@@ -16,11 +16,11 @@
 				}
 			},
 			"connectorConfiguration" : {
-				"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3",
+				"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4",
 				"@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorConfigurationType",
 				"configurationProperties" : {
 					"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector",
-					"@type" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3#ConfigurationPropertiesType",
+					"@type" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4#ConfigurationPropertiesType",
 					"jdbcDriver" : "org.apache.derby.jdbc.ClientDriver",
 					"jdbcUrlTemplate" : "jdbc:derby://%h:%p/%d",
 					"keyColumn" : "login",

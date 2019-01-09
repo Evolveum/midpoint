@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventCategoryType;
 
 /**
  * @author mederly

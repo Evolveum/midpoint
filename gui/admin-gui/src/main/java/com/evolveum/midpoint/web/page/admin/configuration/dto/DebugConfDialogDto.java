@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 import java.io.Serializable;
 import java.util.ArrayList;

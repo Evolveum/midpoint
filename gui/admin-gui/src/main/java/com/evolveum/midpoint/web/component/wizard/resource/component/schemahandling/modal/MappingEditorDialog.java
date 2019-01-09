@@ -60,10 +60,10 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ValuePolicyType;
 import org.jetbrains.annotations.NotNull;
 
 /**

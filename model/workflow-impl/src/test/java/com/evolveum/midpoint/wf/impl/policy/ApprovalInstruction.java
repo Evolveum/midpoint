@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.policy;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType;
 
 /**
  * @author mederly

@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 
 import javax.xml.namespace.QName;
 import java.util.HashMap;

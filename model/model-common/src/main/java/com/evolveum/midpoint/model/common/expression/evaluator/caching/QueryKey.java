@@ -20,8 +20,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectSearchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_4.QueryType;
 
 /**

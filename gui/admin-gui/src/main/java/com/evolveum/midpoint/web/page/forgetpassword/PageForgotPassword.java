@@ -59,11 +59,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto.ResetMethod;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 @PageDescriptor(url = "/forgotpassword", permitAll = true)

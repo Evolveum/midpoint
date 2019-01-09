@@ -8,7 +8,7 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.jetbrains.annotations.NotNull;
 

@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RelationKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

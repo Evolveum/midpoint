@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.InformationType;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;

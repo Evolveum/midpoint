@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.IterativeTaskInformationType;
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
 
 import javax.xml.datatype.DatatypeConstants;

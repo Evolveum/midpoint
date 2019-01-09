@@ -24,8 +24,8 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SynchronizationActionTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.BeforeAfterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationActionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;

@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -56,13 +56,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_PARENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ORIGINAL_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_EXTERNAL_ID;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_PARENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType.F_REQUESTER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType.F_ORIGINAL_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType.F_EXTERNAL_ID;
 
 /**
  * @author mederly

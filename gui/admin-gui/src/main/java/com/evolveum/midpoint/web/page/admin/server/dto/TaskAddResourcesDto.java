@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.util.Choiceable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import java.io.Serializable;

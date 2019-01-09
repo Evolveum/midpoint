@@ -45,13 +45,13 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PartialProcessingTypeType.SKIP;
 
 /**
  * @author mederly

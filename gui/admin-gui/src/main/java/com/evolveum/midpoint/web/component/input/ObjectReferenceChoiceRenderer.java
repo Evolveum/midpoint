@@ -8,7 +8,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 public class ObjectReferenceChoiceRenderer implements IChoiceRenderer<ObjectReferenceType> {
 

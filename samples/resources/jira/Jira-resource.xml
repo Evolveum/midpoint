@@ -18,7 +18,7 @@
          </q:equal>
       </filter>
 	 </connectorRef>
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
       <icfc:configurationProperties xmlns:gen156="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-jira-rest/com.evolveum.polygon.connector.jira.rest.JiraConnector">
          <gen156:baseUrl>172.16.1.253:8084</gen156:baseUrl>
          <gen156:username>administrator</gen156:username>

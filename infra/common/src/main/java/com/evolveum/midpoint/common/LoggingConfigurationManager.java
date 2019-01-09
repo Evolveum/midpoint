@@ -39,13 +39,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SyslogAppenderConfigurationType;
 
 public class LoggingConfigurationManager {
 

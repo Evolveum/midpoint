@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;

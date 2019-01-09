@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DefinitionProcessingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DefinitionProcessingOptionType;
 
 /**
  * How should be definitions processed when object is to be retrieved. Currently applies at the model level;

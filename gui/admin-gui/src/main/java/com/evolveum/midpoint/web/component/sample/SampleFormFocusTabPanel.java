@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 

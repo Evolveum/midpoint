@@ -26,9 +26,9 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationAssignmentCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;

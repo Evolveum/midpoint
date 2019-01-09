@@ -6,7 +6,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 public class ItemPathDto implements Serializable{

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 
 
 /**

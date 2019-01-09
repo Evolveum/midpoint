@@ -82,12 +82,12 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupable {

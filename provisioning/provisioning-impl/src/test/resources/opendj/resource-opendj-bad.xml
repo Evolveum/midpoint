@@ -20,7 +20,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 								  
 	<name>Embedded Test OpenDJ</name>
 	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>

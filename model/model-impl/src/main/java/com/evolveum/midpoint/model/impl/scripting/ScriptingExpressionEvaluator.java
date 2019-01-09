@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.RawType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;

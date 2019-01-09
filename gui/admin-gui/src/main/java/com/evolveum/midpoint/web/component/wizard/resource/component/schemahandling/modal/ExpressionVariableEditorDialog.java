@@ -48,9 +48,9 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ExpressionVariableDefinitionTypeDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionVariableDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 
 /**

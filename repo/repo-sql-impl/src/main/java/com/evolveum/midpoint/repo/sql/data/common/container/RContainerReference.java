@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 
 import javax.persistence.Transient;

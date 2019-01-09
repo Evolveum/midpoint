@@ -191,12 +191,12 @@ public class EventOperationFilterType
             for (final Iterator<?> it = source.iterator(); it.hasNext(); ) {
                 final Object next = it.next();
                 if (next instanceof String) {
-                    // CEnumLeafInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType
+                    // CEnumLeafInfo: com.evolveum.midpoint.xml.ns._public.common.common_4.EventOperationType
                     target.add(((String) next));
                     continue;
                 }
                 // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Operation' of class 'com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType'."));
+                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Operation' of class 'com.evolveum.midpoint.xml.ns._public.common.common_4.EventOperationFilterType'."));
             }
         }
     }

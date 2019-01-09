@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 /**
  * OpenDJ, but without permissive modify, shortcut attributes, with manual matching rules, etc.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 public class SchemaProcessorTest {
@@ -62,7 +62,7 @@ public class SchemaProcessorTest {
 		ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom), filename, PrismTestUtil.getPrismContext());
 
 		final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
-		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+		final String icfNS = SchemaConstants.NS_ICF_SCHEMA;
 		ObjectClassComplexTypeDefinition objectDef = schema.findObjectClassDefinition(new ItemName(defaultNS, "AccountObjectClass"));
 		assertNotNull("AccountObjectClass definition not found", objectDef);
 

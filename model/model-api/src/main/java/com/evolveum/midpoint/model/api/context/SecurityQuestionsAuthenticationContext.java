@@ -2,7 +2,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import java.util.Map;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionsCredentialsPolicyType;
 
 public class SecurityQuestionsAuthenticationContext extends AbstractAuthenticationContext{
 

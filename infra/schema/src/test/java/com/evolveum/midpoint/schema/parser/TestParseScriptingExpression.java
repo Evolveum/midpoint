@@ -24,10 +24,10 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ExpressionPipelineType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ExpressionSequenceType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.SearchExpressionType;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBElement;

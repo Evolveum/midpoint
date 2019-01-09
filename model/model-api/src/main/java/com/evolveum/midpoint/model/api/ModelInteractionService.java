@@ -36,10 +36,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ExecuteCredentialResetRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ExecuteCredentialResetResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.PolicyItemsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
 

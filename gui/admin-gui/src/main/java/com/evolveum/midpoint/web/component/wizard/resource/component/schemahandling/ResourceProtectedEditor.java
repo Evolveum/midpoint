@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectPatternType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceObjectPatternType;
 import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 
 import org.apache.wicket.AttributeModifier;

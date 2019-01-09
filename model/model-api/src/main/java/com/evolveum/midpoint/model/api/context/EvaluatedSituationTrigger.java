@@ -20,9 +20,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EvaluatedSituationTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicySituationPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.LocalizableMessageList;
 import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * Code used to enforce the policy rules that have the enforce action.

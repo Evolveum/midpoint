@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.helpers.mapper;
 
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RAutoassignSpecification;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AutoassignSpecificationType;
 
 /**
  * Created by Viliam Repan (lazyman).

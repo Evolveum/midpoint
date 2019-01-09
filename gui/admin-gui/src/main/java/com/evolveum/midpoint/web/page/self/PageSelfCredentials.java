@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PasswordChangeSecurityType;
 
 @PageDescriptor(url = {"/self/credentials"}, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.AccountTests;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;

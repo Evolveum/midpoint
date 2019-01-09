@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.IterationMethodType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

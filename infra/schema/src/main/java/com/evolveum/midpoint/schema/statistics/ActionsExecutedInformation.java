@@ -18,8 +18,8 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectActionsExecutedEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActionsExecutedInformationType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.datatype.DatatypeConstants;

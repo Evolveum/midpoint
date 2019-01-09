@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;

@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -50,7 +50,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PartialProcessingTypeType.SKIP;
 
 /**
  * Created by honchar.

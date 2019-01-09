@@ -18,9 +18,9 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedStateTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EvaluatedStateTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.StatePolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 
 /**

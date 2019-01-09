@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionParameterValueType;
 import com.evolveum.prism.xml.ns._public.types_4.RawType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;

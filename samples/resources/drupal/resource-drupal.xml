@@ -28,7 +28,7 @@
     </connectorRef>
 
     <connectorConfiguration
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
         <icfc:configurationProperties
                 xmlns:icfcp="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-drupal/com.evolveum.polygon.connector.drupal.DrupalConnector">
             <icfcp:ignoreTypeMismatch>true</icfcp:ignoreTypeMismatch>

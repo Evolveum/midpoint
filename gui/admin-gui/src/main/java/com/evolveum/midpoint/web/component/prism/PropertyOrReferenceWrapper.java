@@ -33,11 +33,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FormItemServerValidationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FormItemValidationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ItemRefinedDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MetadataType;
 
 /**
  * Extracts common functionality of PropertyWrapper and ReferenceWrapper.

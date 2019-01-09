@@ -46,7 +46,7 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDtoProvide
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -72,7 +72,7 @@ import java.util.List;
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.OBJECT;
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.TARGET;
 import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCasesStatisticsType.*;
 
 /**
  * @author mederly

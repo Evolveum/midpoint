@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -49,9 +49,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.CLOSED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType.F_STATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType.F_NAME;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;

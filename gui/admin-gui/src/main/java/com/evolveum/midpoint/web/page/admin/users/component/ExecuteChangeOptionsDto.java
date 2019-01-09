@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;

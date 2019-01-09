@@ -20,9 +20,9 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalLevelOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalSchemaExecutionInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;

@@ -22,7 +22,7 @@ import java.util.Date;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExportType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 

@@ -21,7 +21,7 @@
             </q:equal>
         </filter>
     </connectorRef>
-    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
         <icfc:connectorPoolConfiguration>
             <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
             <icfc:minIdle>1</icfc:minIdle>

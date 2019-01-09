@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingLevelType;
 
 /**
  * @author lazyman

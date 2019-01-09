@@ -27,9 +27,9 @@ import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemEventCauseInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType;
 
 import java.util.Map;
 

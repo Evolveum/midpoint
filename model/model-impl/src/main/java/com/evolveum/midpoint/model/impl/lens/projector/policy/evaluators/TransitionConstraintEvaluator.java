@@ -31,10 +31,10 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TransitionPolicyConstraintType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

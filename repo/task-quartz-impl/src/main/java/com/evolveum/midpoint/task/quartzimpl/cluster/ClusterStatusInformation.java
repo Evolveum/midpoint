@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeType;
 
 import java.io.Serializable;
 import java.util.*;

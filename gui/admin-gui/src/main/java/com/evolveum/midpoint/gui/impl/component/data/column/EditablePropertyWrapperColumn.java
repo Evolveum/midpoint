@@ -35,10 +35,10 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyColumn;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 /**
  * @author skublik

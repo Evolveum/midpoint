@@ -41,9 +41,9 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.util.exception.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ExecuteScriptResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.PipelineItemType;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;

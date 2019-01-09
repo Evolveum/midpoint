@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 /**
  * Constants for use in tests. DO NOT USE IN "MAIN" CODE. This is placed in "main" just for convenience, so the
@@ -28,17 +29,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class SchemaTestConstants {
 
 	public static final String NS_ICFC_LDAP = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector";
-	public static final String NS_ICFC = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3";
-	public static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 
-	public static final ItemName ICFC_CONFIGURATION_PROPERTIES = new ItemName(NS_ICFC, "configurationProperties");
-	public static final ItemName ICFC_CONFIGURATION_PROPERTIES_TYPE = new ItemName(NS_ICFC, "ConfigurationPropertiesType");
+	public static final ItemName ICFC_CONFIGURATION_PROPERTIES = SchemaConstants.ICF_CONFIGURATION_PROPERTIES;
+	public static final ItemName ICFC_CONFIGURATION_PROPERTIES_TYPE = new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, "ConfigurationPropertiesType");
 	public static final String ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 	public static final String ICF_GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
 
-	public static final ItemName ICFS_UID = new ItemName(NS_ICFS, "uid");
+	public static final ItemName ICFS_UID = new ItemName(SchemaConstants.NS_ICF_SCHEMA, "uid");
 	public static final ItemPath ICFS_UID_PATH_PARTS = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_UID);
-	public static final ItemName ICFS_NAME = new ItemName(NS_ICFS, "name");
+	public static final ItemName ICFS_NAME = new ItemName(SchemaConstants.NS_ICF_SCHEMA, "name");
 	public static final ItemPath ICFS_NAME_PATH_PARTS = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_NAME);
 
 	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";

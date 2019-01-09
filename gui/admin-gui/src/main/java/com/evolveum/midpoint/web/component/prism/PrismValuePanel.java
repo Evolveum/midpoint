@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.query_4.QueryType;
 import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;

@@ -19,9 +19,9 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectDetailsPageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SummaryPanelSpecificationType;
 
 import org.apache.wicket.model.IModel;
 

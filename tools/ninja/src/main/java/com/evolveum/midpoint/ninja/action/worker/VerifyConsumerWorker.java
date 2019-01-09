@@ -30,7 +30,7 @@ import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 import java.io.IOException;
 import java.io.Writer;

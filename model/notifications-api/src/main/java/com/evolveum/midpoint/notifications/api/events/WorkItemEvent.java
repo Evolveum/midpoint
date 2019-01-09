@@ -23,7 +23,7 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.api.WorkItemOperationInfo;
 import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

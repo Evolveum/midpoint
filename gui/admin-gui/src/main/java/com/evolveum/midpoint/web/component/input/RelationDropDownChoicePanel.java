@@ -38,8 +38,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RelationDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 /**

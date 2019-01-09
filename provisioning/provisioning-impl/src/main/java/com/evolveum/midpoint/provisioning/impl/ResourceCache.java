@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 
 /**
  * Class for caching ResourceType instances with a parsed schemas.

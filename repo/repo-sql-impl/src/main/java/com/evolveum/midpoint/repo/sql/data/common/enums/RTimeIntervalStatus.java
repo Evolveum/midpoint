@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.enums;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TimeIntervalStatusType;
 
 /**
  * @author lazyman

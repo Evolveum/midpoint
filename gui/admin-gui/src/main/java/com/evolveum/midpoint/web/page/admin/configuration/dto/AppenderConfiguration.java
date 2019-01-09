@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.Editable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AppenderConfigurationType;
 
 import org.apache.commons.lang.Validate;
 

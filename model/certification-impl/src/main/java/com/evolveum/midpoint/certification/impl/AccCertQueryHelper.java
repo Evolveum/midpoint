@@ -30,16 +30,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemOutputType.F_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationWorkItemType.*;
 
 /**
  * @author mederly

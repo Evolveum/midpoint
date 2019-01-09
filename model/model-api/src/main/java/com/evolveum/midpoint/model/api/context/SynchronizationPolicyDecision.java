@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationPolicyDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationPolicyDecisionType;
 
 /**
  * Describes what the policy "decides" about a specific account.

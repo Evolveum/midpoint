@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.assignment.InducedEntitlementsPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
 
 /**
  * Created by honchar.

@@ -2,7 +2,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractPolicyConstraintType;
 import org.apache.wicket.model.IModel;
 
 /**

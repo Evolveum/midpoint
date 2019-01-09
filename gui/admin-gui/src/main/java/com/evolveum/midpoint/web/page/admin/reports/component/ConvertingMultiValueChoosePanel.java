@@ -10,7 +10,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 public class ConvertingMultiValueChoosePanel<U, T extends ObjectType> extends MultiValueChoosePanel<T> {
 	private static final long serialVersionUID = 1L;

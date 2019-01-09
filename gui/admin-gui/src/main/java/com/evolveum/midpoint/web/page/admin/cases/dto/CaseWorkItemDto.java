@@ -20,10 +20,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;

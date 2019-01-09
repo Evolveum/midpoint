@@ -20,12 +20,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * @author mederly

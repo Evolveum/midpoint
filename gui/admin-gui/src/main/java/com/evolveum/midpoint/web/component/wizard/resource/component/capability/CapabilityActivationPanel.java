@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationCapabilityType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.notifications.api.events.TaskEvent;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventOperationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

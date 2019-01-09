@@ -17,7 +17,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 /**
  * Class provides {@link OperationResult} summarizing functionality for result handler.

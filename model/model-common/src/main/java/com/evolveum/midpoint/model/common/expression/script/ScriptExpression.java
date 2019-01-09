@@ -36,8 +36,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ScriptExpressionReturnTypeType;
 
 /**
  * The expressions should be created by ExpressionFactory. They expect correct setting of

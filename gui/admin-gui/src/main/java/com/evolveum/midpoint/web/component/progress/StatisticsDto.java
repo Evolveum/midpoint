@@ -20,7 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.schema.statistics.StatusMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EnvironmentalPerformanceInformationType;
 
 import java.io.Serializable;
 import java.util.Date;

@@ -19,7 +19,7 @@ package com.evolveum.midpoint.model.api;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemOutputType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

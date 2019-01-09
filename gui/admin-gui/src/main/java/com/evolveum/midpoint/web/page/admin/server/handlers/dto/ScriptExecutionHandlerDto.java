@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebXmlUtil;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ExecuteScriptType;
 import org.apache.wicket.Application;
 
 /**

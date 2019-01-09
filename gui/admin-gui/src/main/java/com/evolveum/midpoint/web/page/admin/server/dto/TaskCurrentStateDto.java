@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationStatsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationInformationType;
 
 /**
  * @author Pavol Mederly

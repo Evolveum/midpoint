@@ -11,9 +11,9 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MultiplicityPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintsType;
 
 public class BaseAbstractRolePanel extends SimplePanel<AbstractRoleType>{
 

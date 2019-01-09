@@ -31,7 +31,7 @@
 		</filter>
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 					   
 		<icfc:configurationProperties>
 			<icfi:jdbcDriver>org.apache.derby.jdbc.ClientDriver</icfi:jdbcDriver>

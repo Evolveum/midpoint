@@ -16,15 +16,15 @@
 
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.FilterExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ForeachExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ExpressionPipelineType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ExpressionSequenceType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.FilterExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ForeachExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ScriptingExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.SearchExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.SelectExpressionType;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;

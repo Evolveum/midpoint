@@ -5,7 +5,7 @@
 	  	  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
 	  	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" 
 	  	  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
-	  	  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	  	  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	  	  xmlns:icfconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.connid.bundles.unix/org.connid.bundles.unix.UnixConnector"
 	  	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	  	  oid="017a3bc5-e102-4baa-bf93-369a90ec29dd">

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.HttpMethodType;
 import org.springframework.http.HttpMethod;
 
 /**

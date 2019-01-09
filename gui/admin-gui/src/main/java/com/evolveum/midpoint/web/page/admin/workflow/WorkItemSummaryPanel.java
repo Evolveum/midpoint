@@ -25,8 +25,8 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType;
 import org.apache.wicket.model.IModel;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;

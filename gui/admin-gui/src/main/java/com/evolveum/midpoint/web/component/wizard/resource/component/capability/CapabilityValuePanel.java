@@ -21,7 +21,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.Capability;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CapabilityType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;

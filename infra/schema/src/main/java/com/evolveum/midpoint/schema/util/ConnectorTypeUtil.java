@@ -23,10 +23,10 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_4.SchemaDefinitionType;
 
 /**

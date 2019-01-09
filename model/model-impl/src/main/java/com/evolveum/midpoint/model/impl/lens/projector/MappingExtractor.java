@@ -21,7 +21,7 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 
 @FunctionalInterface
 public interface MappingExtractor<V extends PrismValue, D extends ItemDefinition, F extends FocusType> {

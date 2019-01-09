@@ -61,9 +61,9 @@ import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 /**
  * @author semancik

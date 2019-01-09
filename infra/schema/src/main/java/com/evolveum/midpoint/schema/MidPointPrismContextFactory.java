@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,61 +121,61 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
 
 		// Prism Schemas
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-3.xsd", "a");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "a");
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t",
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "t",
 				com.evolveum.prism.xml.ns._public.types_4.ObjectFactory.class.getPackage(), true);          // declared by default
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q",
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "q",
 				com.evolveum.prism.xml.ns._public.query_4.ObjectFactory.class.getPackage(), true);          // declared by default
 
 
 		// midPoint schemas
-		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-3.xsd", "c",
-				com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());         // declared by default
+		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "c",
+				com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectFactory.class.getPackage());         // declared by default
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/audit-3.xsd", "aud",
-				com.evolveum.midpoint.xml.ns._public.common.audit_3.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/audit-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "aud",
+				com.evolveum.midpoint.xml.ns._public.common.audit_4.ObjectFactory.class.getPackage());
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti",
-				com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "apti",
+				com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectFactory.class.getPackage());
 
-        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/model/model-3.wsdl",
-                Arrays.asList(com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory.class.getPackage()));
+        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/model/model-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".wsdl",
+                Arrays.asList(com.evolveum.midpoint.xml.ns._public.model.model_4.ObjectFactory.class.getPackage()));
 
-        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/report/report-3.wsdl",
-                Arrays.asList(com.evolveum.midpoint.xml.ns._public.report.report_3.ObjectFactory.class.getPackage()));
+        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/report/report-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".wsdl",
+                Arrays.asList(com.evolveum.midpoint.xml.ns._public.report.report_4.ObjectFactory.class.getPackage()));
 
-//        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/report/report-3.wsdl",
-//                Arrays.asList(com.evolveum.midpoint.xml.ns._public.report.report_3.ObjectFactory.class.getPackage()));
+//        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/report/report-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".wsdl",
+//                Arrays.asList(com.evolveum.midpoint.xml.ns._public.report.report_4.ObjectFactory.class.getPackage()));
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-3.xsd", "ra");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "ra");
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-3.xsd", "cap",
-				com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "cap",
+				com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ObjectFactory.class.getPackage());
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-3.xsd", "icfc",
-				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "icfc",
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_4.ObjectFactory.class.getPackage());
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-3.xsd", "icfs",
-				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3.ObjectFactory.class.getPackage(), true); // declared by default
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "icfs",
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_4.ObjectFactory.class.getPackage(), true); // declared by default
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/extension-3.xsd", "mext");
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/report/extension-3.xsd", "rext");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/extension-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "mext");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/report/extension-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "rext");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/scripting-3.xsd", "s",
-                com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory.class.getPackage());
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/scripting-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "s",
+                com.evolveum.midpoint.xml.ns._public.model.scripting_4.ObjectFactory.class.getPackage());
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-3.xsd", "noop");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "noop");
 
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/jdbc-ping-3.xsd", "jping");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/jdbc-ping-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "jping");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-3.xsd", "taskext");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "taskext");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-3.xsd", "connext");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "connext");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-3.xsd", "se");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-"+SchemaConstants.SCHEMA_MAJOR_VERSION+".xsd", "se");
 
         schemaRegistry.getNamespacePrefixMapper().registerPrefix(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
         schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(MidPointConstants.PREFIX_NS_RI); // declared by default

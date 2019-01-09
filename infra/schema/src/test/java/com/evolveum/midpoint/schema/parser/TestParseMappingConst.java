@@ -24,9 +24,9 @@ import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConstExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 

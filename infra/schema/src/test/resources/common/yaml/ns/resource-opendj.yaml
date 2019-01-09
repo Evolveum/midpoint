@@ -23,7 +23,7 @@ resource:
         value: "org.identityconnectors.ldap.LdapConnector"
     resolutionTime: "import"
   connectorConfiguration:
-    '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+    '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
     configurationProperties:
       '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
       port: "10389"
@@ -62,10 +62,10 @@ resource:
       schema: "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n<xsd:schema elementFormDefault=\"\
         qualified\" targetNamespace=\"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff\"\
         \ xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\" xmlns:icfs=\"\
-        http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"\
+        http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4\"\
         \ xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-4\" xmlns:xsd=\"\
-        http://www.w3.org/2001/XMLSchema\">\n\t\t\t\t\t<xsd:import namespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"\
-        />\n\t\t\t\t\t\n\t\t\t\t\t<xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-3\"\
+        http://www.w3.org/2001/XMLSchema\">\n\t\t\t\t\t<xsd:import namespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4\"\
+        />\n\t\t\t\t\t\n\t\t\t\t\t<xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-4\"\
         />\n\t\t\t\t\t<xsd:complexType name=\"GroupObjectClass\">\n\t\t\t\t\t\t<xsd:annotation>\n\
         \t\t\t\t\t\t\t<xsd:appinfo>\n\t\t\t\t\t\t\t\t<ra:resourceObject xmlns:ra=\"\
         http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"/>\n\t\t\
@@ -191,7 +191,7 @@ resource:
       default: true
       objectClass: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff#AccountObjectClass"
       attribute:
-      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; icfs:name"
+      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4'; icfs:name"
         displayName: "Distinguished Name"
         limitations:
         - access:
@@ -204,7 +204,7 @@ resource:
           expression:
             script:
             - code: "'uid=' +name+ ',ou=people,dc=example,dc=com'"
-      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; icfs:uid"
+      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4'; icfs:uid"
         displayName: "Entry UUID"
         limitations:
         - access:
@@ -292,7 +292,7 @@ resource:
               returnType: "scalar"
               code: "\n\t\t\t\t\t\t\t\t\t$my:defaultLocation\n\t\t\t\t\t\t\t"
       protected:
-      - '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      - '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
         name: "uid=idm,ou=Administrators,dc=example,dc=com"
       activation:
         administrativeStatus:

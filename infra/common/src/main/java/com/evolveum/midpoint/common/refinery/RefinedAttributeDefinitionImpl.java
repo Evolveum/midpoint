@@ -38,13 +38,13 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ItemProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PropertyLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceAttributeDefinitionType;
 import org.jetbrains.annotations.NotNull;
 
 /**

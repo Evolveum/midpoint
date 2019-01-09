@@ -46,10 +46,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CustomNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NotificationMessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

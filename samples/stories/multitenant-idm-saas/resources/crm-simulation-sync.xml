@@ -35,7 +35,7 @@ object.
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
            xmlns:my="http://myself.me/schemas/whatever"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 
 	<c:resource oid="b2911718-cbe3-11e5-b1ea-3c970e44b9e2">
 

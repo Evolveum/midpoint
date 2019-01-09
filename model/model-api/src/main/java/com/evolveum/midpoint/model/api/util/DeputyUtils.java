@@ -21,7 +21,7 @@ import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 

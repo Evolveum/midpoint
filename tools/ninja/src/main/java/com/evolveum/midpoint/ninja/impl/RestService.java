@@ -8,7 +8,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.midpoint.ninja.util.BasicAuthenticationInterceptor;
 import com.evolveum.midpoint.ninja.util.LoggingInterceptor;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;

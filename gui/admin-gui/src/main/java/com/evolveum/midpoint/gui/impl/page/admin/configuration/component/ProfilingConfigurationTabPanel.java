@@ -37,11 +37,11 @@ import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProfilingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.model.ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel;
 

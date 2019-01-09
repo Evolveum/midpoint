@@ -35,7 +35,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 /**
  * @author Pavol Mederly
@@ -88,8 +88,8 @@ public class JAXBUtilTest {
 
 		String s = "<?xml version='1.0' encoding='utf-8'?> " +
 				"<user oid='deadbeef-c001-f00d-1111-222233330001'" +
-                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'" +
-				"      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>" +
+                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'" +
+				"      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>" +
 				"	<fullName><t:orig>Jožko Nováčik</t:orig><t:norm>jozko novacik</t:norm></fullName>" +
 				"</user>";
 
@@ -110,8 +110,8 @@ public class JAXBUtilTest {
 
 		String s = "<?xml version='1.0' encoding='iso-8859-2'?> " +
 				"<user oid='deadbeef-c001-f00d-1111-222233330001'" +
-                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'" +
-				"      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>" +
+                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'" +
+				"      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>" +
 				"	<fullName><t:orig>Jožko Nováčik</t:orig><t:norm>jozko novacik</t:norm></fullName>" +
 				"</user>";
 

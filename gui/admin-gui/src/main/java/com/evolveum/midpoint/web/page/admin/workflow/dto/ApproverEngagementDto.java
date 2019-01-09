@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

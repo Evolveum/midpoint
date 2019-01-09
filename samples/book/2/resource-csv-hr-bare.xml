@@ -30,7 +30,7 @@ This file is an example of Resource definition. It defines CSV resource.
 			xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 
 	<c:name>HR System</c:name>
 

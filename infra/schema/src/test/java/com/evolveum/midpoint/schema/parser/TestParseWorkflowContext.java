@@ -18,8 +18,8 @@ package com.evolveum.midpoint.schema.parser;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemCompletionEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemCompletionEventType;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;

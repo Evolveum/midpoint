@@ -32,8 +32,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -45,9 +45,9 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.F_ROW;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableRowType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableType.F_ROW;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType.F_NAME;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 

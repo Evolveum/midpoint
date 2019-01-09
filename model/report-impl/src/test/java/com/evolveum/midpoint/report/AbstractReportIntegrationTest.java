@@ -29,8 +29,8 @@ import com.evolveum.midpoint.report.impl.ReportCreateTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

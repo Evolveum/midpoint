@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType;
 
 import java.io.Serializable;
 

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReferenceSearchExpressionEvaluatorType;
 
 /**
  * @author Radovan Semancik

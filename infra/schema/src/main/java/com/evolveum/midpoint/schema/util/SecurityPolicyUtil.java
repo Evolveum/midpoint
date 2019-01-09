@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailAuthenticationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsAuthenticationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractAuthenticationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuthenticationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MailAuthenticationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SmsAuthenticationPolicyType;
 
 public class SecurityPolicyUtil {
 

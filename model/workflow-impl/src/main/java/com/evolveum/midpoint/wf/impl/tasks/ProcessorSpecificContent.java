@@ -18,7 +18,7 @@ package com.evolveum.midpoint.wf.impl.tasks;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessorSpecificStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfProcessorSpecificStateType;
 
 import java.util.Map;
 

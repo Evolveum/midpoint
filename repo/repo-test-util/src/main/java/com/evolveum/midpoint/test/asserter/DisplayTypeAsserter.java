@@ -21,7 +21,7 @@ import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DisplayType;
 
 /**
  * @author semancik

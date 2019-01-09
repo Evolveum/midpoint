@@ -27,11 +27,11 @@ import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentPathType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrderConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 
 import org.jetbrains.annotations.NotNull;
 

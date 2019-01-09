@@ -48,18 +48,18 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NonceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PasswordHistoryEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionsCredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SubjectedObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TriggerType;
 
 /**
  * @author Viliam Repan (lazyman)

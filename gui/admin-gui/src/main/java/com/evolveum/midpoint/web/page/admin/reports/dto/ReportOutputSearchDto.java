@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExportType;
 
 import java.util.*;
 

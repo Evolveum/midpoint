@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchemaImpl;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType;
 
 import org.w3c.dom.Element;
 

@@ -37,7 +37,7 @@ import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,10 +48,10 @@ import java.util.*;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalLevelOutcomeType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PartialProcessingTypeType.PROCESS;
 import static java.util.Collections.*;
 import static org.testng.AssertJUnit.*;
 

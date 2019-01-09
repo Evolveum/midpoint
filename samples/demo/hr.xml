@@ -23,7 +23,7 @@
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
            xmlns:my="http://myself.me/schemas/whatever"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	   xmlns:ext="http://prism.evolveum.com/xml/ns/demo/extension-electra">
 
     <c:resource oid="8844dcca-775d-11e2-a0ac-001e8c717e5b">

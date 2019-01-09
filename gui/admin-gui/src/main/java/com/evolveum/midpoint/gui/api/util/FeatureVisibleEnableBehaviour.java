@@ -18,7 +18,7 @@ package com.evolveum.midpoint.gui.api.util;
 import com.evolveum.midpoint.gui.api.GuiFeature;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserInterfaceElementVisibilityType;
 
 /**
  * Behaviour class that determines visibility of (configurable) UI feature.

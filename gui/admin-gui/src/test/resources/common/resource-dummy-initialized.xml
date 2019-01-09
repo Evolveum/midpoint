@@ -44,7 +44,7 @@
          </q:and>
       </filter>
    </connectorRef>
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
       <icfc:resultsHandlerConfiguration>
          <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
          <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>

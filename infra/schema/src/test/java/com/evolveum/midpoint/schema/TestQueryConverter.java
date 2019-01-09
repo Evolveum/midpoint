@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DomAsserts;
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.query_4.PagingType;
 import com.evolveum.prism.xml.ns._public.query_4.QueryType;
 import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
@@ -53,7 +54,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType.F_OWNER_REF;
 import static org.testng.AssertJUnit.*;
 
 public class TestQueryConverter {
@@ -63,13 +64,12 @@ public class TestQueryConverter {
 	private static final File TEST_DIR = new File("src/test/resources/queryconverter");
 
 	private static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
-	private static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 	private static final String NS_BLA = "http://midpoint.evolveum.com/blabla";
 
 	private static final QName intExtensionDefinition = new QName(NS_EXTENSION, "intType");
 	private static final QName stringExtensionDefinition = new QName(NS_EXTENSION, "stringType");
 	private static final QName fooBlaDefinition = new QName(NS_BLA, "foo");
-	private static final QName ICF_NAME = new QName(NS_ICFS, "name");
+	private static final QName ICF_NAME = SchemaConstants.ICFS_NAME;
 
 	private static final QName FAILED_OPERATION_TYPE_QNAME = new QName(SchemaConstantsGenerated.NS_COMMON,
 			"FailedOperationTypeType");

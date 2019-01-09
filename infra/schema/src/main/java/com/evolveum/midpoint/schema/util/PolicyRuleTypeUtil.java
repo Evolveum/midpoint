@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,7 +39,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintsType.*;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**

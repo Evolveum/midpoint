@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.cache;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).

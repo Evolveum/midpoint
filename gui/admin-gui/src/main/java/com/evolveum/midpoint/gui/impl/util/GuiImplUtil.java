@@ -18,7 +18,7 @@ package com.evolveum.midpoint.gui.impl.util;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractFormItemType;
 
 /**
  * Class for misc GUI util methods (impl).

@@ -17,8 +17,8 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 
 /**
  * @author semancik

@@ -19,7 +19,7 @@ package com.evolveum.midpoint.wf.impl.processes;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.InformationType;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

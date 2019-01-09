@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.schema.result;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationTypeType;
 
 /**
  * This may seems too simple and maybe pointless now. But we expect

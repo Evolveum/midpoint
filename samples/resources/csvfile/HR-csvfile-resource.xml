@@ -33,7 +33,7 @@ object.
 			xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 			oid="10000000-0000-0000-0000-000000000001">
 
 	<!-- Resource name. It will be displayed in GUI.  -->

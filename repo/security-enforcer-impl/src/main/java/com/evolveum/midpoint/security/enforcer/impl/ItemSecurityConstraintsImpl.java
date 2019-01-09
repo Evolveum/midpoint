@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuthorizationDecisionType;
 
 /**
  * @author semancik

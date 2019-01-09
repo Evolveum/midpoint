@@ -28,10 +28,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionExpressionType;
 
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionParameterValueType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 

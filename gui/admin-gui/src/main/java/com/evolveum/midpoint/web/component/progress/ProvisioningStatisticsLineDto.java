@@ -17,9 +17,9 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EnvironmentalPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProvisioningStatisticsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProvisioningStatisticsType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;

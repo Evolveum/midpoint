@@ -44,14 +44,14 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.client.ModelClientUtil;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 
 /**

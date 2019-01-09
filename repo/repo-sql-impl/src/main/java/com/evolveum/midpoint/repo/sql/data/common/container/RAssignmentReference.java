@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
@@ -96,7 +96,7 @@ public class RAssignmentReference extends RContainerReference  {
 
     /**
      * Represents {@link javax.xml.namespace.QName} type attribute in reference e.g.
-     * {@link com.evolveum.midpoint.xml.ns._public.common.common_3.UserType} represented
+     * {@link com.evolveum.midpoint.xml.ns._public.common.common_4.UserType} represented
      * as enum {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType#USER}
      *
      * @return null if not defined, otherwise value from {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType} enum

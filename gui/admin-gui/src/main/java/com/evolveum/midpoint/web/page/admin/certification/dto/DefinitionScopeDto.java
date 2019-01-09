@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
 import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 
 import javax.xml.namespace.QName;

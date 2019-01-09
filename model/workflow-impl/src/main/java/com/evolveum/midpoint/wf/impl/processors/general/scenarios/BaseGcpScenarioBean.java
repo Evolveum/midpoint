@@ -32,9 +32,9 @@ import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessorSpecificContent;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemEventCauseInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

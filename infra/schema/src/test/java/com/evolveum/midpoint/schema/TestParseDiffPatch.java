@@ -36,8 +36,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 import org.testng.AssertJUnit;
@@ -436,7 +436,7 @@ public class TestParseDiffPatch {
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("update"), 3);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
         PrismAsserts.assertPropertyDelete(resourceDelta,
-                ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
+                ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, "producerBufferSize")),
         		100);
         PrismAsserts.assertPropertyReplaceSimple(resourceDelta, ResourceType.F_SYNCHRONIZATION);
         // Configuration properties changes
@@ -534,8 +534,8 @@ public class TestParseDiffPatch {
 	}
 
 	private ItemPath pathTimeouts(String last) {
-		return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaTestConstants.NS_ICFC, "timeouts"),
-				new ItemName(SchemaTestConstants.NS_ICFC, last));
+		return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, "timeouts"),
+				new ItemName(SchemaConstants.NS_ICF_CONFIGURATION, last));
 	}
 
 	@Test

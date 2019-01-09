@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 /**

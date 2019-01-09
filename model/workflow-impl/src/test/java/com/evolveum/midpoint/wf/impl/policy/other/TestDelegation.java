@@ -29,10 +29,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemDelegationEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,8 +44,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.ADD_ASSIGNEES;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemDelegationMethodType.ADD_ASSIGNEES;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
 import static org.testng.AssertJUnit.*;
 
 /**

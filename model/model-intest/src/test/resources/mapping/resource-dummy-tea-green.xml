@@ -45,7 +45,7 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 		</filter>
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>tea-green</icfi:instanceId>

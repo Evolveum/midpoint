@@ -59,8 +59,8 @@ import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.DeploymentInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;

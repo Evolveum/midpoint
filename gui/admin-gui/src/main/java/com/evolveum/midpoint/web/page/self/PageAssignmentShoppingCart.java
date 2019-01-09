@@ -32,7 +32,7 @@ import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;

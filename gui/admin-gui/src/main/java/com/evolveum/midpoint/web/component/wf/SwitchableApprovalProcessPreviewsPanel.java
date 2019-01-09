@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.TaskWfChildPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalSchemaExecutionInformationType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;

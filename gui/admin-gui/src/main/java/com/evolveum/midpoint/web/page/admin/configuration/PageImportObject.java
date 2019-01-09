@@ -34,9 +34,9 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ImportOptionsPanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ImportOptionsType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ModelExecuteOptionsType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;

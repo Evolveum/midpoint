@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,11 +49,11 @@ import java.util.*;
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.*;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ESCALATION_LEVEL;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemType.F_ESCALATION_LEVEL;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType.F_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCaseType.*;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**

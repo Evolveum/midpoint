@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.notifications.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventStatusType;
 
 /**
  * Created with IntelliJ IDEA.

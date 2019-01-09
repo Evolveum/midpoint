@@ -45,7 +45,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;

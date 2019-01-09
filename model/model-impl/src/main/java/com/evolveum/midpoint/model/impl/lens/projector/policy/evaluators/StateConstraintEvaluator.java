@@ -45,10 +45,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.StatePolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,8 +59,8 @@ import java.util.*;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_OBJECT;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OBJECT_STATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintKindType.ASSIGNMENT_STATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintKindType.OBJECT_STATE;
 import static java.util.Collections.emptyList;
 
 /**

@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskBindingType;
 
 /**
  * Binding tells about task "affinity" to a particular node.

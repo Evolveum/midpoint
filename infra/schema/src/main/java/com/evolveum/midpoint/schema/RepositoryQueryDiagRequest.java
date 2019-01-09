@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 import java.io.Serializable;
 import java.util.Collection;

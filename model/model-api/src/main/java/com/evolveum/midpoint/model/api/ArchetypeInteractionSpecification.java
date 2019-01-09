@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.api;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ArchetypePolicyType;
 
 /**
  * Data structure that contains information about all archetype-related interactions for a particular object.

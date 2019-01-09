@@ -32,7 +32,7 @@
             </q:equal>
         </filter>
     </connectorRef>
-    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
         <icfc:configurationProperties xmlns:sap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-sap/com.evolveum.polygon.connector.sap.SapConnector">
             <sap:host>host.to.sap</sap:host>
             <sap:systemNumber>34</sap:systemNumber>

@@ -27,9 +27,9 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitatio
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PropertyLimitationsType;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;

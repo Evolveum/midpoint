@@ -45,11 +45,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptOutputType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ExecuteScriptOutputType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ExecuteScriptType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_4.QueryType;
 
 import org.apache.commons.collections.CollectionUtils;

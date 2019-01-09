@@ -20,9 +20,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchIndexedItemsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FullTextSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FullTextSearchIndexedItemsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 

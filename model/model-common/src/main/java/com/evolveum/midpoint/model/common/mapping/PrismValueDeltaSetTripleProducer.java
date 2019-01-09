@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingStrengthType;
 
 public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extends ItemDefinition> extends HumanReadableDescribable {
 

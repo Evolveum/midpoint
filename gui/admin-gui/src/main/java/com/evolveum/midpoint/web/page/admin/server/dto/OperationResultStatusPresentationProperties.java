@@ -17,7 +17,7 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
 
 /**
  *  @author shood

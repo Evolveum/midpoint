@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.xjc;
 
 import javax.xml.XMLConstants;
+import com.evolveum.midpoint.prism.PrismConstants;
 
 /**
  * @author lazyman
@@ -25,21 +26,21 @@ public enum PrefixMapper {
 
     //W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "WORKFLOW"),
 
-    C("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "COMMON"),
+    C("http://midpoint.evolveum.com/xml/ns/public/common/common-" + PrismConstants.PRISM_MAJOR_VERSION, "COMMON"),
 
-    T("http://prism.evolveum.com/xml/ns/public/types-3", "TYPES"),
+    T(PrismConstants.NS_TYPES, "TYPES"),
 
-    Q("http://prism.evolveum.com/xml/ns/public/query-3", "QUERY"),
+    Q(PrismConstants.NS_QUERY, "QUERY"),
 
-    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3", "CAPABILITIES"),
+    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-" + PrismConstants.PRISM_MAJOR_VERSION, "CAPABILITIES"),
 
-    A("http://prism.evolveum.com/xml/ns/public/annotation-3", "ANNOTATION"),
+    A(PrismConstants.NS_ANNOTATION, "ANNOTATION"),
 
     S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "SITUATION"),
 
-    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "ICF_SCHEMA"),
+    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-" + PrismConstants.PRISM_MAJOR_VERSION, "ICF_SCHEMA"),
 
-    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3", "ICF_CONFIGURATION"),
+    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-" + PrismConstants.PRISM_MAJOR_VERSION, "ICF_CONFIGURATION"),
 
     ENC("http://www.w3.org/2001/04/xmlenc#", "XML_ENC"),
 

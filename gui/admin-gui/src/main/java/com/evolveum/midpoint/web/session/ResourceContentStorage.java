@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
 
 public class ResourceContentStorage implements PageStorage {
 	private static final long serialVersionUID = 1L;

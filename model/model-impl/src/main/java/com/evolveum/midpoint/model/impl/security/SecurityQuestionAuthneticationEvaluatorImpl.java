@@ -14,12 +14,12 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionAnswerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionsCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionsCredentialsType;
 
 @Component("securityQuestionsAuthenticationEvaluator")
 public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationEvaluatorImpl<SecurityQuestionsCredentialsType, SecurityQuestionsAuthenticationContext>{

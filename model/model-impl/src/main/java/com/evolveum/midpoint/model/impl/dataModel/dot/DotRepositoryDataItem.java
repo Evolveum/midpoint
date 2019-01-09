@@ -18,9 +18,9 @@ package com.evolveum.midpoint.model.impl.dataModel.dot;
 
 import com.evolveum.midpoint.model.impl.dataModel.model.RepositoryDataItem;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import org.apache.commons.lang.StringUtils;
 
 /**

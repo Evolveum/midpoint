@@ -19,8 +19,8 @@ package com.evolveum.midpoint.gui.impl.model;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectPolicyConfigurationType;
 
 import org.apache.wicket.model.IModel;
 

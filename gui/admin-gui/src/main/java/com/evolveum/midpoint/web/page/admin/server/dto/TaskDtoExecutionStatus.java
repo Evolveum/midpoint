@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskExecutionStatusType;
 
 /**
  * Adds "RUNNING" state to the TaskExecutionStatus (meaning the task is currently executing at a node).

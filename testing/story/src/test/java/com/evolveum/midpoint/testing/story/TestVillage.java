@@ -43,7 +43,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;

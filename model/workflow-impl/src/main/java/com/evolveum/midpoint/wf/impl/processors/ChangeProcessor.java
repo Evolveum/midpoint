@@ -36,9 +36,9 @@ import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemEventCauseInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

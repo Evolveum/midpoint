@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.wicket.markup.html.basic.Label;
 
 import java.util.List;

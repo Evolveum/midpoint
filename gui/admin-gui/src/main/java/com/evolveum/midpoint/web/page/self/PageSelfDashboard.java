@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web.page.self;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_CREATE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemType.F_CREATE_TIMESTAMP;
 
 import java.util.*;
 
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;

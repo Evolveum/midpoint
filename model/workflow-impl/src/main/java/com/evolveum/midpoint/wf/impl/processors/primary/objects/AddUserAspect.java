@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.objects;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Component;
 

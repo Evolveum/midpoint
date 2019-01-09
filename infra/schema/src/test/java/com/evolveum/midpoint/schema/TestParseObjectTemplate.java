@@ -23,9 +23,9 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectTemplateMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import com.evolveum.prism.xml.ns._public.types_4.RawType;

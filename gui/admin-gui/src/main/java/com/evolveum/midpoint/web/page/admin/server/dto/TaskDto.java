@@ -63,7 +63,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.query_4.QueryType;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 

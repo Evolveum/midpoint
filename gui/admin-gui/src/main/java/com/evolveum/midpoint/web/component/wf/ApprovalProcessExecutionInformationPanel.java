@@ -26,9 +26,9 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutio
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalStageExecutionInformationDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApproverEngagementDto;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalLevelOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.WorkItemOutcomeType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;

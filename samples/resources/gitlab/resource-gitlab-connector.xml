@@ -27,7 +27,7 @@
                  oid="815a52b5-1618-43d8-a430-817db7f4bb25"
                  relation="org:default"
                  type="c:ConnectorType"><!-- ConnId com.evolveum.polygon.connector.gitlab.rest.GitlabRestConnector v1.0 --></connectorRef>
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                            xsi:type="c:ConnectorConfigurationType">
       <icfc:configurationProperties xmlns:gen142="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-gitlab-rest/com.evolveum.polygon.connector.gitlab.rest.GitlabRestConnector"

@@ -18,8 +18,8 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.springframework.test.annotation.DirtiesContext;

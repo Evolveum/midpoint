@@ -33,11 +33,11 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PropertyConstraintType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 /**

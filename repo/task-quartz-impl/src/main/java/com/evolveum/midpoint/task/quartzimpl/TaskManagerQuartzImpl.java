@@ -44,7 +44,7 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.task.quartzimpl.work.workers.WorkersManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;

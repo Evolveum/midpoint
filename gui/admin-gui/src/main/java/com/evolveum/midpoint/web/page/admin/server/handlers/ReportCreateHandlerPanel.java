@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ReportCreateHandlerDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportOutputType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextArea;

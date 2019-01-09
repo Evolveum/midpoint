@@ -17,7 +17,7 @@ package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

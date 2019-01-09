@@ -44,8 +44,8 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -74,7 +74,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.OBJECT;
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.TARGET;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationResponseType.*;
 
 /**
  * @author mederly

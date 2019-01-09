@@ -13,8 +13,8 @@ objects:
           path: "connectorType"
           value: "com.evolveum.icf.dummy.connector.DummyConnector"
     connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ConnectorConfigurationType>
-      '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-      configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3/ConfigurationPropertiesType>
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
+      configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4/ConfigurationPropertiesType>
         '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
         jdbcDriver: "org.apache.derby.jdbc.ClientDriver"
         jdbcUrlTemplate: "jdbc:derby://%h:%p/%d"

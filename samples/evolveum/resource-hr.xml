@@ -23,7 +23,7 @@
            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
            xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
 
 	<c:resource oid="66245ea2-07d9-11e7-ac98-67b627683b1b">

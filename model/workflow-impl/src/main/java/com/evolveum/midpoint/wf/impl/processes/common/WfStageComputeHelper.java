@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,9 +50,9 @@ import java.util.function.Function;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getMiscDataUtil;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalLevelOutcomeType.APPROVE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 
 /**
  * @author mederly

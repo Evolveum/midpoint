@@ -60,7 +60,7 @@ import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 

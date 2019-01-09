@@ -3,8 +3,8 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
 import java.io.Serializable;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 
 public class ResourceConfigurationDto implements Serializable{
 

@@ -51,7 +51,7 @@ import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfiguratio
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportType;
 
 /**
  * @author shood

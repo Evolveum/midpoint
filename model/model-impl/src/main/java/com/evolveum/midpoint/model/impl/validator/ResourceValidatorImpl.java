@@ -39,7 +39,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +51,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.SynchronizationSituationType.*;
 
 /**
  * EXPERIMENTAL

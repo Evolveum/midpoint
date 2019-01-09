@@ -63,11 +63,11 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguratio
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LifecycleStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 /**
  * @author skublik

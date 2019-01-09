@@ -24,8 +24,8 @@ import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;

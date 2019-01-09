@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
@@ -61,7 +61,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Collection;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_OBJECT_REF;
 
 /**
  * @author mederly

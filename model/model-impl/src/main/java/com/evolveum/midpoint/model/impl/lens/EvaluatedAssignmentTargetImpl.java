@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

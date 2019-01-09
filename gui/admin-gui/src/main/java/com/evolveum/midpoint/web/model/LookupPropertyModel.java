@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Application;

@@ -31,11 +31,11 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;

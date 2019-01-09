@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LocalizableMessageType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -44,9 +44,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SingleLocalizableMessageType;
 
 import org.jetbrains.annotations.NotNull;
 

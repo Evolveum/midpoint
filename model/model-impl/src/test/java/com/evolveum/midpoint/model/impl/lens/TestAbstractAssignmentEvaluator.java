@@ -19,8 +19,8 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createDuration;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_ACTIVATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType.F_ADMINISTRATIVE_STATUS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType.F_ACTIVATION;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -67,11 +67,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

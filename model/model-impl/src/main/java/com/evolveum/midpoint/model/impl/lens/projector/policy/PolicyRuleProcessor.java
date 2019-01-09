@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -56,7 +56,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toConstraintsList;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.F_AND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PolicyConstraintsType.F_AND;
 
 /**
  * @author semancik

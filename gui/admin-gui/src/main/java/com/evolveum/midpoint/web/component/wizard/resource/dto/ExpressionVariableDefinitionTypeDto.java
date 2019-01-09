@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionVariableDefinitionType;
 
 import java.io.Serializable;
 

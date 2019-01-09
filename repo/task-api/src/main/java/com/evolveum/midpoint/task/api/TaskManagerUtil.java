@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskGroupExecutionLimitationType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;

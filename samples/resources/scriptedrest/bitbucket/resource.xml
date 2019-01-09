@@ -24,7 +24,7 @@
        </filter>
     </connectorRef>
 
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
       <icfc:configurationProperties xmlns:gen460="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedrest-connector/org.forgerock.openicf.connectors.scriptedrest.ScriptedRESTConnector">
          <gen460:login>administrator</gen460:login>
          <gen460:password>

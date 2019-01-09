@@ -57,19 +57,19 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemMergeConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefMergeConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionMergeConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionMergeSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ItemMergeConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ItemRefMergeConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MergeConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MergeStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProjectionMergeConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProjectionMergeSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 
 /**
  * Class responsible for object merging. This acts as a controller

@@ -16,9 +16,9 @@
 package com.evolveum.midpoint.test.asserter;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationType;
 import com.evolveum.prism.xml.ns._public.types_4.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;

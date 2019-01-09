@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PointInTimeTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PointInTimeTypeType;
 
 /**
  * Specifies the point in time for the returned data. This option controls whether fresh or cached data will

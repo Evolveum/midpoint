@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.repo.common;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 public interface Cacheable {
 

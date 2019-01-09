@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web.page.self.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 
 import java.io.Serializable;
 

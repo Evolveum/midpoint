@@ -18,13 +18,13 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EnvironmentalPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingsStatisticsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MappingsStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NotificationsStatisticsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.NotificationsStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProvisioningStatisticsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ProvisioningStatisticsType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.datatype.DatatypeConstants;

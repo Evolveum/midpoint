@@ -16,13 +16,13 @@
 package com.evolveum.midpoint.testing.model.client.sample;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteChangesType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;

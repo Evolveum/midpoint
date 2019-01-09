@@ -21,14 +21,14 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationStageDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.EventStatusType;
 import org.apache.commons.lang.Validate;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.*;
 
 /**
  * Any event that is related to access certification.

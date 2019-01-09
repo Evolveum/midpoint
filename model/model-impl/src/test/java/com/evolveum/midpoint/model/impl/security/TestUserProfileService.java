@@ -23,7 +23,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -36,7 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType.DISABLED;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**

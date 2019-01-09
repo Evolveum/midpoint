@@ -31,7 +31,7 @@ connector server.
 	xmlns:my="http://myself.me/schemas/whatever"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe">

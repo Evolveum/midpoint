@@ -110,20 +110,20 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.UpdateCapabilityType;
 
 /**
  * @author Radovan Semancik

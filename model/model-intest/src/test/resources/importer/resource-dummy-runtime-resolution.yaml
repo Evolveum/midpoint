@@ -16,8 +16,8 @@ objects:
             value: "2.0"
       resolutionTime: "run"
     connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ConnectorConfigurationType>
-      '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-      configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3/ConfigurationPropertiesType>
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
+      configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4/ConfigurationPropertiesType>
         '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
         instanceId: "runtime"
         requireExplicitEnable: "true"

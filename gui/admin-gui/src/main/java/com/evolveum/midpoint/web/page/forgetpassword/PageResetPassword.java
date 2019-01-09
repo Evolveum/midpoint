@@ -16,7 +16,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 
 @PageDescriptor(url = "/resetPassword", action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,

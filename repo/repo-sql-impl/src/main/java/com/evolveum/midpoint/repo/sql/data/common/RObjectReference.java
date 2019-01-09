@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.NotFound;
@@ -135,7 +135,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
     /**
      * Represents {@link javax.xml.namespace.QName} type attribute in reference e.g.
-     * {@link com.evolveum.midpoint.xml.ns._public.common.common_3.UserType} represented
+     * {@link com.evolveum.midpoint.xml.ns._public.common.common_4.UserType} represented
      * as enum {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType#USER}
      *
      * @return null if not defined, otherwise value from {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType} enum

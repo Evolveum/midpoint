@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ThreadStopActionType;
 
 import javax.xml.namespace.QName;
 

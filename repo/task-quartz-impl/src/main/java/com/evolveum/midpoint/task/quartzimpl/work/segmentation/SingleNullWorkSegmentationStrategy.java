@@ -19,9 +19,9 @@ package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskWorkManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskWorkStateType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

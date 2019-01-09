@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.self.dto;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 /**
  * Created by honchar.

@@ -16,12 +16,12 @@
 package com.evolveum.midpoint.model.intest.rbac;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PartialProcessingOptionsType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.PartialProcessingTypeType.SKIP;
 
 /**
  * @author mederly

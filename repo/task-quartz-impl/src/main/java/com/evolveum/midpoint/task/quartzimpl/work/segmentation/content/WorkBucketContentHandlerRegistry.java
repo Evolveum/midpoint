@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work.segmentation.content;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkBucketContentType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 

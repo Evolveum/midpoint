@@ -38,7 +38,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -51,8 +51,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignStateType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType.F_CASE;
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 

@@ -39,7 +39,7 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,10 +51,10 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_RESULTING_DELTAS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfContextType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.WfPrimaryChangeProcessorStateType.F_RESULTING_DELTAS;
 import static java.util.Collections.emptySet;
 
 /**

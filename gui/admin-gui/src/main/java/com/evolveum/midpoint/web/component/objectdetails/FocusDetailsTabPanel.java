@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -34,8 +34,8 @@ import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 /**
  * @author semancik

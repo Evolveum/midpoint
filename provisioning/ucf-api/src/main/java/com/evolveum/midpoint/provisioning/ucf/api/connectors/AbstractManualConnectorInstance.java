@@ -54,19 +54,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.AbstractWriteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.AddRemoveAttributeValuesCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.PagedSearchCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.UpdateCapabilityType;
 
 /**
  * Common abstract superclass for all manual connectors. There are connectors that do not
@@ -82,8 +82,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	private static final String OPERATION_MODIFY = AbstractManualConnectorInstance.class.getName() + ".modifyObject";
 	private static final String OPERATION_DELETE = AbstractManualConnectorInstance.class.getName() + ".deleteObject";
 
-	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
-	= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
+	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ObjectFactory CAPABILITY_OBJECT_FACTORY
+	= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ObjectFactory();
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractManualConnectorInstance.class);
 

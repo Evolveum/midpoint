@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 
@@ -44,8 +44,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;

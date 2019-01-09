@@ -29,7 +29,7 @@
 	</connectorRef>
 	<connectorConfiguration>
 		<icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
@@ -54,7 +54,7 @@
 			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 		</icfcldap:configurationProperties>
 		<icfc:connectorPoolConfiguration xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
@@ -66,7 +66,7 @@
 			<icfc:maxWait>150000</icfc:maxWait>
 		</icfc:connectorPoolConfiguration>
 		<icfc:producerBufferSize xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"

@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;

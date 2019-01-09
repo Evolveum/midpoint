@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ConstExpressionEvaluatorType;
 
 /**
  * @author semancik

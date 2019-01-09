@@ -17,7 +17,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.form.Form;

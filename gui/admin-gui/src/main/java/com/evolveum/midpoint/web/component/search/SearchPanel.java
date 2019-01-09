@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SearchBoxModeType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;

@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.LocalizableMessageType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 

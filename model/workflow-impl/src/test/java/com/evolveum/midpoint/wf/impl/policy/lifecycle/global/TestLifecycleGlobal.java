@@ -35,7 +35,7 @@ import com.evolveum.midpoint.wf.impl.policy.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.policy.lifecycle.AbstractTestLifecycle;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.testng.annotations.Test;
 
 import java.io.File;

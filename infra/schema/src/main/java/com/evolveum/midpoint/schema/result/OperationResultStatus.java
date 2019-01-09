@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.schema.result;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
 import org.jetbrains.annotations.NotNull;
 
 /**

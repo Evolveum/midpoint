@@ -14,7 +14,7 @@
          </q:equal>
       </filter>
    </connectorRef>
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
       <icfc:configurationProperties xmlns:gen760="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedrest-connector/org.forgerock.openicf.connectors.scriptedrest.ScriptedRESTConnector">
          <gen760:deleteScriptFileName>/opt/midpoint-home/icf-connectors/opst-scripts/OpenStack-DeleteScript.groovy</gen760:deleteScriptFileName>
          <gen760:schemaScriptFileName>/opt/midpoint-home/icf-connectors/opst-scripts/OpenStack-schema.groovy</gen760:schemaScriptFileName>

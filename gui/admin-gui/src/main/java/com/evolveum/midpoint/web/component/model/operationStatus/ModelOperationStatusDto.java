@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 import java.io.Serializable;
 import java.util.ArrayList;

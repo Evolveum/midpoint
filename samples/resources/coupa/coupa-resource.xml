@@ -32,7 +32,7 @@
       <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
    </metadata>
    <connectorRef oid="coupa-rest-connector" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.rest.CoupaRestConnector v1.4.2.14-SNAPSHOT --></connectorRef>
-   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
       <icfc:configurationProperties xmlns:gen108="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-rest-coupa/com.evolveum.polygon.rest.CoupaRestConnector">
          <gen108:trustAllCertificates>true</gen108:trustAllCertificates>
          <gen108:tokenName>X-COUPA-API-KEY</gen108:tokenName>

@@ -49,7 +49,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -64,8 +64,8 @@ import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_MODEL_OPERATION_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType.F_WORKFLOW_CONTEXT;
 import static java.util.Collections.*;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 

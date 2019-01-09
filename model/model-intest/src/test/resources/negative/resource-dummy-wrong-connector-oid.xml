@@ -28,7 +28,7 @@
 	<connectorRef oid="00cc00cc-c0c0-0000-0000-666600660005" type="c:ConnectorType">
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance. -->

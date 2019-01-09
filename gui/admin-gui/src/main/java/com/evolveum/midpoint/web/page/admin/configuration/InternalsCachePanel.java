@@ -4,7 +4,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.FunctionLibraryType;
 
 public class InternalsCachePanel extends BasePanel<Void>{
 

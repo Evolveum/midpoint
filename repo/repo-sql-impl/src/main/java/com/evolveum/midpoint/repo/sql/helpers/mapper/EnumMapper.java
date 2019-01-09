@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ExportType;
 import org.apache.commons.lang.StringUtils;
 
 /**

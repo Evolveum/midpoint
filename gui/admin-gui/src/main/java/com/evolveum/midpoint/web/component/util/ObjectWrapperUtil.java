@@ -21,8 +21,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 
 public class ObjectWrapperUtil {
 

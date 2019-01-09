@@ -24,8 +24,8 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.AuthorizationPhaseType;
 
 public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints {
 

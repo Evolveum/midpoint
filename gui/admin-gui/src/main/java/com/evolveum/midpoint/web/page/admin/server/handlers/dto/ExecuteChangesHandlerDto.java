@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebXmlUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ModelExecuteOptionsType;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 
 /**

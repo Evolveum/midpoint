@@ -28,9 +28,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionAnswerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionsCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.SecurityQuestionsCredentialsType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 public class SecurityQuestionsPolicyEvaluator extends CredentialPolicyEvaluator<SecurityQuestionsCredentialsType, SecurityQuestionsCredentialsPolicyType> {
