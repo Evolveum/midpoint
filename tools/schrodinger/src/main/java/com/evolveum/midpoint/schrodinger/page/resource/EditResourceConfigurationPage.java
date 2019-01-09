@@ -3,7 +3,6 @@ package com.evolveum.midpoint.schrodinger.page.resource;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.resource.*;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceConnectorPoolTab;
