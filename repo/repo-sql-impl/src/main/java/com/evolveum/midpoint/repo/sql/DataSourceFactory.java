@@ -99,9 +99,6 @@ public class DataSourceFactory {
             config.setTransactionIsolation("TRANSACTION_" + ti.name());
         }
 
-        // todo fix this !!! and the same in ctx-test-datasource.xml
-        //        config.setConnectionTesterClassName(MidPointConnectionTester.class.getName());
-
         if (configuration.isUsingMySqlCompatible()) {
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
