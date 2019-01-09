@@ -102,18 +102,18 @@
     
     <schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3">
+			xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4">
 		<definition>
 			  <xsd:schema elementFormDefault="qualified"
-			  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-				xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+			  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+				xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" />
 					
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -270,7 +270,7 @@ This is now the only account type that midPoint can work with. -->
                     <expression>
                     	<script>
 	                        <code>
-<!-- 	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3"; -->
+<!-- 	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4"; -->
 	                            'uid=' +name+ ',ou=people,dc=example,dc=com'
 	                        </code>
                         </script>
@@ -288,7 +288,7 @@ This is now the only account type that midPoint can work with. -->
            configuration. Please see connector documentation for
            more details.-->
             <attribute>
-                <ref>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"; icfs:uid</ref>
+                <ref>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"; icfs:uid</ref>
 
                 <!-- Readable name for the attribute. This will be used in GUI -->
                 <displayName>Entry UUID</displayName>
@@ -473,7 +473,7 @@ This is now the only account type that midPoint can work with. -->
 <!--                 <inbound> -->
 <!--                     <target> -->
 <!--                     	<path> -->
-<!-- 	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3"; -->
+<!-- 	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4"; -->
 <!-- 	                        declare namespace my="http://whatever.com/my"; -->
 <!-- 	                        $i:user/i:extension/my:description -->
 <!--                         </path> -->

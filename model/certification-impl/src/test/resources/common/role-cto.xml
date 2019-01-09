@@ -15,7 +15,7 @@
   -->
 
 <role oid="00000000-d34d-b33f-f00d-000000000003"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>CTO</name>
     <riskLevel>critical</riskLevel>
 </role>

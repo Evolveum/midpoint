@@ -18,11 +18,11 @@
 <!-- GREEN dummy resource. This is authoritative resource. -->
 
 <resource oid="10000000-0000-0000-0000-000000000404"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -264,7 +264,7 @@
 				<q:equal>
 					<q:path>c:name</q:path>
 					<expression>
-						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
                             $account/attributes/icfs:name</path>
 					</expression>
 				</q:equal>

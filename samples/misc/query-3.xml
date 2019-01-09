@@ -16,8 +16,8 @@
   -->
 
 
-<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-       xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
+<query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-4"
        xmlns:foo="http://foo.com/">
 
    <!-- Query filter example -->

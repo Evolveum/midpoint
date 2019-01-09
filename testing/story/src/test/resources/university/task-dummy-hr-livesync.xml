@@ -16,15 +16,15 @@
   -->
 
 <task oid="10000000-0000-0000-5555-555500000001"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  
 	<name>Live Sync: Dummy HR Resource</name>
 
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
         <mext:kind>generic</mext:kind>
         <mext:intent>ou</mext:intent>
         <mext:objectclass>ri:CustomprivilegeObjectClass</mext:objectclass>

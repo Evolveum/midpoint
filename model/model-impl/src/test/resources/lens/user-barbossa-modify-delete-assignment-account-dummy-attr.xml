@@ -16,10 +16,10 @@
   -->
 
 <apit:objectModification 
-	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-4'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<apit:oid>c0c010c0-d34d-b33f-f00d-111111111112</apit:oid>
 	<apit:itemDelta>

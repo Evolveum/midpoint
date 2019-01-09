@@ -19,9 +19,9 @@
    -->
   
 <role oid="667a242c-dd13-4dbb-bc9f-ab678ba80d37"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Createable</name>
     <description>Thou shalt not create this role! (disabled)</description>

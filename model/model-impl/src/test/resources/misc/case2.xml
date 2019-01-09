@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		oid="4fb91911-c64d-4c18-8a3e-b3f987408578">
 	<name>case2</name>
 	<workItem id="1">

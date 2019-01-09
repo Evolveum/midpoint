@@ -16,7 +16,7 @@
   -->
 
 <role oid="f8f217f2-b864-416b-bce6-90c85385e43e"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>metarole-sod-notification</name>
 	<inducement>
 		<policyRule>

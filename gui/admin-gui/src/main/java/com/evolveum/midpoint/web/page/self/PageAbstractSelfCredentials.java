@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -62,7 +61,8 @@ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_4.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 /**
  * @author Viliam Repan (lazyman)

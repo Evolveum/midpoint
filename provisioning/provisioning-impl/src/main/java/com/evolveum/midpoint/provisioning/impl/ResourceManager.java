@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_4.SchemaDefinitionType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;

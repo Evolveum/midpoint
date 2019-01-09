@@ -18,8 +18,8 @@
 <!-- Jack's account on a resource with identified by resourceRef.  -->
 
 <account oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3aaaa" 
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<name>jack</name>
 	<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"/>

@@ -1,8 +1,8 @@
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="056f714a-efac-476f-b38e-9588b4907e5b"
       version="8">
@@ -16,7 +16,7 @@
    <iterationToken/>
    <inducement id="1">
       <construction>
-         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                       oid="407fa41e-27cd-4396-8a28-c93bc6b48574"
                       type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
          <kind>account</kind>

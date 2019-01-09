@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="e53baf94-aa99-11e6-962a-5362ec2dd7df"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Immutable</name>
     <description>Role that cannot be modified because there is a modification rule with enforcement action.</description>

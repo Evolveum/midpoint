@@ -21,12 +21,12 @@
 	-->
 
 <resource oid="72a928b6-ff7b-11e7-9643-7366d7749c31"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
 		  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -229,7 +229,7 @@
 				<q:equal>
 					<q:path>name</q:path>
 					<expression>
-						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
                             $account/attributes/icfs:name</path>
 					</expression>
 				</q:equal>

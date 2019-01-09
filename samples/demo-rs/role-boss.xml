@@ -15,9 +15,9 @@
   -->
 
 <role oid="12345678-d34d-b33f-f00d-98798798798a" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Boss</name>
     <description>Big Boss role</description>
     <inducement>

@@ -16,10 +16,10 @@
   -->
 
 <task oid="44444444-0000-0000-0000-140000000000"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	<name>task-140-c-single</name>
     <taskIdentifier>44444444-0000-0000-0000-140000000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>

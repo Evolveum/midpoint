@@ -22,10 +22,10 @@ This file is an example of Resource definition. It defines CSV resource.
 
 -->
 <c:resource oid="03c3ceea-78e2-11e6-954d-dfdfa9ace0cf"
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 			xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"

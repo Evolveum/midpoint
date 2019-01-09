@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<user oid="afc1c45d-fdb8-48cf-860b-b305f96a07e3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<user oid="afc1c45d-fdb8-48cf-860b-b305f96a07e3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>bob-deputy-no-assignments</name>
 	<assignment>
 		<targetRef oid="c0c010c0-d34d-b33f-f00d-111111111134" type="UserType" relation="deputy"/>	<!-- bob -->

@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="19f11686-df22-11e6-b0e9-835ed7ca08a5"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Prize: Bronze</name>
     <assignment>

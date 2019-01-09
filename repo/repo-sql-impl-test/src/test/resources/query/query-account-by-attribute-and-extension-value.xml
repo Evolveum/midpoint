@@ -17,9 +17,9 @@
   -->
 
 <query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
 <filter>
   <and>
 	<equal>

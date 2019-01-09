@@ -14,13 +14,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	
-	xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+	xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-	xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
     <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
     <objectClass>ri:AccountObjectClass</objectClass>

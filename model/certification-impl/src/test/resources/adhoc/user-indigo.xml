@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	oid="11b35bd2-9b2f-4a00-94fa-7ed0079a7500">
 	<name>indigo</name>
 	<assignment>

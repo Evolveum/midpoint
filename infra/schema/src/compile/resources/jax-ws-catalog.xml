@@ -25,9 +25,9 @@ Placed in src/compile to be consistent with model-client module structure.
 
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../prism-impl/src/main/resources/xml/ns/public/annotation-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../../prism-impl/src/main/resources/xml/ns/public/types-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../../prism-impl/src/main/resources/xml/ns/public/query-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-4" uri="../../../../prism-impl/src/main/resources/xml/ns/public/annotation-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-4" uri="../../../../prism-impl/src/main/resources/xml/ns/public/types-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-4" uri="../../../../prism-impl/src/main/resources/xml/ns/public/query-3.xsd" />
 
     <nextCatalog catalog="../../main/resources/META-INF/schemas-in-this-module.xml"/>
 </catalog>

@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="12345111-1111-2222-1111-121212111569"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Offender</name>
     <assignment>
         <targetRef oid="12345111-1111-2222-1111-121212111568" type="RoleType"/>     <!-- metarole - defender -->

@@ -19,10 +19,10 @@
      even if there is a broken connector in the repository. -->
 
 <connector oid="cccccccc-76e0-59e2-ffff-ffffffffffff" 
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>ICF Broken Connector</name>

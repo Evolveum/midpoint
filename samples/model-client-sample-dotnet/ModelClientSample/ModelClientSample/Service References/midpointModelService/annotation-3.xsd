@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsd:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/annotation-3" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<xsd:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/annotation-4" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <xsd:annotation>
     <xsd:documentation>
             Common Prism annotations used in various XSD schemas.

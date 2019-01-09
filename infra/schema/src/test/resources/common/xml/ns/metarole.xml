@@ -15,7 +15,7 @@
   -->
 
 <role oid="12345678-d34d-b33f-f00d-55555555a020"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Generic Metarole</name>
     <description>Metarole for all roles which are assigned directly to users</description>
@@ -40,7 +40,7 @@
                 <!-- applies to all assignment operations of this metarole-bearer as the target -->
                 <objectState>
                     <executeScript>
-                        <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                        <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4">
                             <s:type>UserType</s:type>
                         </s:search>
                     </executeScript>

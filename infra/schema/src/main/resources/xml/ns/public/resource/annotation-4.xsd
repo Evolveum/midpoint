@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            MidPoint annotations intended for resource schemas. 
+            
+            These annotation are supposed to be used in the resource schema. They should be places as
+            annotation to the complexType definitions of resource schema. They extend the expression
+            capabilities of prism annotation to further specify that details regarding resource
+            objects, details that are out of the scope of prism objects.
+            
+            Version: 4.0
+            Usual prefix: ra
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="resourceObject">
+        <xsd:annotation>
+            <xsd:documentation>
+                Resource object marker. The complex type marked by this annotation is considered to be
+                a resource object.
+                
+                Every object in the resource schema should have this marker annotation. Complex type 
+                definition that do not have this annotation are not considered part of the resource schema
+                unless they are referred from types that have this annotation.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="account">
+        <xsd:annotation>
+            <xsd:documentation>
+                Account marker. The complex type marked by this annotation is considered to be
+                an account.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="default" type="xsd:boolean" default="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                A flag that specifies whether this object class is a default for its type of object classes. E.g.
+                when combined with "account" annotation it marks a default account type.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="accountType" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Account type specification. The annotation contains a simple string value that is used to define
+                account type, e.g. "user" or "admin".
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="nativeObjectClass" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Native object class name. This annotation contains string value that specifies native object class
+                of the resource object without any transformations, the name as it is used on the resource or as 
+                seen by the connector.
+                
+                This annotation is used to specify the native object class only for diagnostics purposes and may be 
+                used by the connector itself. As the object class names in XSD have to comply with XSD limitations
+                and by midPoint convention should end with ObjectClass suffix, this may be the only way how to determine
+				original object class name. It is "read-only" in this aspect. It cannot use used to change or enforce 
+				object class mapping.
+				
+				The name should be the same as the one used by the resource, if the resource supports naming of object
+				classes. E.g. in case of LDAP this annotation should contain "inetOrgPerson", "groupOfNames", etc. If
+				the resource is not that flexible, the native object class names may be hardcoded (e.g. "account", "group")
+				or may not be present at all (which is discouraged).
+
+				This annotation may appear several times if the object is composed from several native object classes 
+				(e.g. as usual in LDAP).
+
+				If not present, the it defaults to the name of the object class XSD type (without namespace).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="nativeAttributeName" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Native attribute name. This annotation contains string value that specifies native name of the attribute
+                without any transformations, the name as it is used on the resource or as seen by the connector.
+                
+                This annotation is used to specify the native attribute name only for diagnostics purposes and may be
+                used by the connector itself. As the attribute names in XSD have to comply with XML element name limitations,
+                this may be the only way how to determine original attribute name. It is "read-only" in this aspect. It
+                cannot use used to change or enforce attribute name mapping.
+                
+                The name should be the same as the one used by the resource, if the resource supports naming of attributes.
+                E.g. in case of LDAP this annotation should contain "cn", "givenName", etc. If the resource is not that flexible,
+                the native attribute names may be hardcoded (e.g. "username", "homeDirectory") or may not be present at all.
+
+				If not present, the it defaults to the corresponding element name (without namespace).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="frameworkAttributeName" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Name of the attribute as given in the connector framework.
+                This is not used for any significant logic. It is mostly for diagnostics.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="identifier" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to the (primary) identifier attribute. This annotation contains a QName of the attribute that must
+                be used to identify the resource objects. Identifiers are used to locate the object and to work with
+                it. Every resource object must have at least one identifier to be practical.
+                
+                The value of identifier must by unique in the scope of the resource.
+                
+                The identifier should be immutable. E.g. if the object is renamed the identifier should be unchanged.
+                
+                There may be multiple identifiers for a single object type. In that case it is assumed that all such
+                identifier attributes form a compound identifier. E.g. that each unique combination of identifier values
+                refers to a different object.
+                
+                E.g. LDAP entryUUID, Unix UID, persistent object identifiers and similar attributes make a good identifier.
+                Usernames, DNs and similar attributes may be used as well. But these are less desirable as they may change.
+                Therefore these should be used only if no other option is available.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="secondaryIdentifier" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to the secondary identifier attribute. This annotation contains a QName of the attribute that may
+                be used to provide additional identification to the resource objects. Secondary identifiers are used 
+                as an alternative way to locate the object. 
+                
+                The value of secondary identifier must by unique in the scope of the resource.
+                
+                It is OK for a secondary identifier to be mutable.
+
+				Secondary identifiers are optional. It is OK if an object has no secondary identifiers.
+                There may be multiple secondary identifiers for a single object type. In that case it is assumed that all such
+                identifier attributes form a compound identifier. E.g. that each unique combination of identifier values
+                refers to a different object.   
+                
+                E.g. LDAP DN, username, unique object name or similar attributes are usually presented as secondary identifiers.
+                
+                There are many reasons for taking secondary identifiers into account. The most important reason is the 
+                uniqueness requirement for secondary identifiers. I.e. a new resource object (e.g. account) cannot be
+                created if the value of a secondary identifier conflicts with existing object. When midPoint knows about
+                such secondary identifiers, it may read and cache them in shadows. Then it can make a uniqueness check
+                for both primary and secondary identifiers by just looking at the shadows. Which is much more efficient
+                than trying to create the account on resource and failing (maybe even several times). Secondary identifiers
+                may be also used to confirm the equivalence of an object after primary identifier changes and in similar situations.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="namingAttribute" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to the naming name attribute. This annotation contains a QName of the attribute that should
+                be used to "name" the resource objects. The values of such attribute will be used for "name" property
+                in shadows and may be also used for other similar purposes. This may not necessarily be human-readable,
+                but it should be unique within the scope of the resource. It should also be admin-friendly in a sense that
+                administrator should be able to quickly interpret that. E.g. user names, login names, screen name, DNs and similar
+                attributes are good candidate for naming attribute.   
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="displayNameAttribute" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to the display name attribute. This annotation contains a QName of the attribute that should
+                be used as a human-readable "display name" for the resource objects. E.g. if it refers to the ldap:cn attribute then the
+                content of that attribute will be used as short name when displaying the resource object to user (e.g. in GUI).
+                This should be used for user-friendly values such as cn, full name, etc. There is no requirement for uniqueness.  
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="descriptionAttribute" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to the desription attribute. This annotation contains a QName of the attribute that should
+                be used as description of resource objects. Description is a longer (multi-line) free form-text. The
+                description may be used as a general comment, it may be displayed when the object details are shown
+                to the user, etc.  
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="auxiliary" type="xsd:boolean" default="false">
+        <xsd:annotation>
+            <xsd:documentation>
+                A flag that specifies whether this object class is an auxiliary object class.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+</xsd:schema>
+
+

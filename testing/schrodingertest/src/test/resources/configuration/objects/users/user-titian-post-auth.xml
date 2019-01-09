@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <user oid="f0108726-6e4c-4e32-98b9-2e8d67cec6d6"
-      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <name>titian</name>
     <fullName>Tiziano Vecelli</fullName>
     <givenName>Tiziano</givenName>

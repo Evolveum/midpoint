@@ -16,7 +16,7 @@
   -->
 
 <securityPolicy oid="51545f14-b4df-11e7-a37a-d37b7c2b3f4c" 
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<name>Security Policy - Persona</name>
 	<credentials>
 		<password>

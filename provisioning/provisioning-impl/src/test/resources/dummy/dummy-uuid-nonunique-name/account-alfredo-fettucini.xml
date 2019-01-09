@@ -16,9 +16,9 @@
   -->
 
 <account oid="c0c010c0-d34d-b44f-f11d-444400009ffa"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
 	<objectClass>ri:AccountObjectClass</objectClass>

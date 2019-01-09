@@ -16,11 +16,11 @@
   ~ limitations under the License.
   -->
 <user xmlns:my="http://example.com/p"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>
         <t:orig>testuserX123</t:orig>
         <t:norm>testuserx123</t:norm>
@@ -32,18 +32,18 @@
     <parentOrgRef oid="123456" type="c:OrgType"/>
     <metadata>
         <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
     </metadata>
-    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000a1123" type="c:ShadowType"/>
-    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000a2123" type="c:ShadowType"/>
-    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000a3123" type="c:ShadowType"/>
-    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000a4123" type="c:ShadowType"/>
-    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000a5123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000a1123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000a2123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000a3123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000a4123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000a5123" type="c:ShadowType"/>
     <assignment id="1">
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
             <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
         </metadata>
         <extension>
@@ -65,7 +65,7 @@
     <assignment id="2">
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
             <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
         </metadata>
         <construction>
@@ -78,7 +78,7 @@
         </extension>
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
             <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
         </metadata>
         <construction>
@@ -88,7 +88,7 @@
     <assignment id="4">
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
             <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
         </metadata>
         <construction>
@@ -98,7 +98,7 @@
     <assignment id="5">
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
             <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
         </metadata>
         <construction>
@@ -111,15 +111,15 @@
         <validFrom>2013-05-21T14:57:50.759+02:00</validFrom>
         <validTo>2015-12-31T22:59:00.000+01:00</validTo>
     </activation>
-    <fullName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <fullName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>Test UserX123</t:orig>
         <t:norm>test userx123</t:norm>
     </fullName>
-    <givenName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <givenName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>TestX</t:orig>
         <t:norm>testx</t:norm>
     </givenName>
-    <familyName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <familyName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>UserX123</t:orig>
         <t:norm>userx123</t:norm>
     </familyName>
@@ -127,25 +127,25 @@
     <employeeType>e1</employeeType>
     <employeeType>e2</employeeType>
     <employeeType>e3</employeeType>
-    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>org 1</t:orig>
         <t:norm>org 1</t:norm>
     </organization>
-    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>org 2</t:orig>
         <t:norm>org 2</t:norm>
     </organization>
-    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>org unit 1</t:orig>
         <t:norm>org unit 1</t:norm>
     </organizationalUnit>
-    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>org unit 2</t:orig>
         <t:norm>org unit 2</t:norm>
     </organizationalUnit>
     <credentials>
         <password>
-            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
@@ -161,7 +161,7 @@
                     </enc:CipherData>
                 </enc:EncryptedData>
             </c:value>
-            <c:lastSuccessfulLogin xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+            <c:lastSuccessfulLogin xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                 <c:timestamp>2012-10-17T21:14:44.376+02:00</c:timestamp>
                 <c:from>127.0.0.1</c:from>
             </c:lastSuccessfulLogin>

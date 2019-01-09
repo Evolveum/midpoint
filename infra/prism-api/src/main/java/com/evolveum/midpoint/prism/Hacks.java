@@ -19,7 +19,8 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedDataType;
+
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;

@@ -166,8 +166,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
-import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.query_4.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 /**
  * Implementation of ConnectorInstance for ConnId connectors.

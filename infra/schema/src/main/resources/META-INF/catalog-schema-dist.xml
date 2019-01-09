@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ Prism schemas are in the same source tree as schema ones.
 
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../xml/ns/public/annotation-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../xml/ns/public/types-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../xml/ns/public/query-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-4" uri="../xml/ns/public/annotation-4.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-4" uri="../xml/ns/public/types-4.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-4" uri="../xml/ns/public/query-4.xsd" />
 
     <nextCatalog catalog="schemas-in-this-module.xml"/>
 </catalog>

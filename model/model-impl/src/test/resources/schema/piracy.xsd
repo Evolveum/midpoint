@@ -17,11 +17,11 @@
   -->
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
 
     <!-- user extension -->
 

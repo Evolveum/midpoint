@@ -3,8 +3,8 @@
   -->
 
 <objects xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
 	<org oid="00000000-9999-9999-0000-110000000000">

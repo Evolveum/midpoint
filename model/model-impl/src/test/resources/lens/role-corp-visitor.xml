@@ -16,7 +16,7 @@
 
 <role oid="12345678-d34d-b33f-f00d-55555555a005"
 	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Visitor</name>
     <description>Just a random visitor</description>
 	<extension>

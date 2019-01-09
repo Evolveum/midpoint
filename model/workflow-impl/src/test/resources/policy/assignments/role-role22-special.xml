@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  oid="00000001-d34d-b33f-f00d-000000000022">
 	<name>Role22</name>
 	<description>Special approval (org:special-approver)</description>

@@ -63,8 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.SchemaDefinitionType;
 
 /**
  * @author semancik

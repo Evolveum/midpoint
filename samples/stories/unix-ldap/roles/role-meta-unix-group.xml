@@ -18,10 +18,10 @@
      I really mean assigned, not included or induced. -->
 
 <role oid="31ea66ac-1a8e-11e5-8ab8-001e8c717e5b"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:posix="http://sample.evolveum.com/xml/ns/sample-idm/extension"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>LDAP Unix Group Metarole</name>
     <description>If assigning this metarole, role's identifier is group name (use: servername-users value).</description>

@@ -18,8 +18,8 @@
 <!-- Synchronization task definition for OpenDJ resource -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:my="http://whatever.com/my">

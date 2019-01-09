@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.prism.impl.lex.json;
 
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerializerTemp;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;

@@ -1,5 +1,5 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 user:
   oid: "c0c010c0-d34d-b33f-f00d-111111111122"
   name: "herman"
@@ -13,5 +13,5 @@ user:
   credentials:
     password:
       value:
-        '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+        '@ns': "http://prism.evolveum.com/xml/ns/public/types-4"
         clearValue: "m0nk3y"

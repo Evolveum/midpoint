@@ -14,10 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="UserType"
 	xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../ns/public/common/common-3.xsd">
+   http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../ns/public/common/common-3.xsd">
 	<name>james bond</name>
 	<givenName>James</givenName>
 	<familyName>Bond</familyName>

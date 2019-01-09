@@ -26,10 +26,10 @@ object.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 			xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -172,14 +172,14 @@ object.
 					<displayName>Artistic name</displayName>
 					<inbound>
 					   <target>
-						  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+						  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 								  xmlns:ext="http://prism.evolveum.com/xml/ns/demo/extension-electra">$user/extension/ext:artisticName</c:path>
 					   </target>
 					</inbound>
 					<inbound>
 					   <strength>weak</strength>
 					   <target>
-						  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">$user/nickName</c:path>
+						  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">$user/nickName</c:path>
 					   </target>
 					</inbound>
 					<inbound>
@@ -191,7 +191,7 @@ object.
 						  </script>
 					   </expression>
 					   <target>
-						  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">$user/name</c:path>
+						  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">$user/name</c:path>
 					   </target>
 					</inbound>
 				</attribute>
@@ -200,7 +200,7 @@ object.
 					<displayName>Employee type</displayName>
 					<inbound>
 					   <target>
-						  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">$user/employeeType</c:path>
+						  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">$user/employeeType</c:path>
 					   </target>
 					</inbound>
 				</attribute>
@@ -308,8 +308,8 @@ object.
 	</c:resource>
 
 	<task oid="10000000-0000-0000-5555-555500000001"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 									  

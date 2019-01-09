@@ -3,7 +3,7 @@
     "oid" : "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
     "name" : "Resource with expressions",
     "connectorRef" : {
-      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType",
       "filter" : {
         "equal" : {
           "path" : "extension/extConnType",

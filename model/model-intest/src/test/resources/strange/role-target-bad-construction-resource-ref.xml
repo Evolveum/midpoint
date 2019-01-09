@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="e69b791a-eba8-11e5-80f5-33732b18f10a"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>Bad resourceRef in construction target role</name>
     <assignment>
         <targetRef oid="90b931ae-eba8-11e5-977a-b73ba58cf18b" type="RoleType"/>

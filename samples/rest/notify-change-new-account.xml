@@ -15,13 +15,13 @@
   ~ limitations under the License.
   -->
 
-<resourceObjectShadowChangeDescription xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<resourceObjectShadowChangeDescription xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-4'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">
 	<objectDelta>
 		<t:changeType>add</t:changeType>
 		<t:objectType>ShadowType</t:objectType>

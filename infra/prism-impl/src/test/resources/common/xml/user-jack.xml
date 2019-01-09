@@ -20,9 +20,9 @@
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
 		xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 		xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
 		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>

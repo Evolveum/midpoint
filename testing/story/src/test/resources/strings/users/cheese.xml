@@ -16,9 +16,9 @@
   -->
 
 <user oid="b2a3f4ad-ad7b-4691-83d9-34d5ebb50a04"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
 
 	<name>cheese</name>

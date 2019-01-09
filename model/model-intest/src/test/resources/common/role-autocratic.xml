@@ -14,12 +14,12 @@
   ~ limitations under the License.
   -->
 <role oid="4a678382-e3f4-11e6-8c3d-cfd3dba8168f"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>Autocratic</name>
     <roleType>auto</roleType> <!-- may be used for mapping range -->
     <inducement>
@@ -34,7 +34,7 @@
 						<associationTargetSearch>
 							<filter>
 								<q:equal>
-									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"; attributes/icfs:name</q:path>
+									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"; attributes/icfs:name</q:path>
 									<expression>
 										<script>
 											<code>

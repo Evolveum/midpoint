@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <!-- cannot show the difference between '6' and '7' in JSON/YAML here, as we cannot distinguish between List and Object in XML -->
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>u1</name>
 	<givenName>g1</givenName>
 	<familyName>f1</familyName>

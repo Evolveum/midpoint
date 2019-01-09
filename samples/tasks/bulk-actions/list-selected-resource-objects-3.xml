@@ -15,15 +15,15 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 
     <task>
         <name>List selected resource objects (by uid)</name>
 		<extension>
             <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-                <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4">
                     <s:type>c:ShadowType</s:type>
                     <s:searchFilter>
                         <q:and>
@@ -39,7 +39,7 @@
                                 <q:value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:CustomAcceptedDomainObjectClass</q:value>
                             </q:equal>
                             <q:equal>
-                                <q:path xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">attributes/icfs:uid</q:path>
+                                <q:path xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">attributes/icfs:uid</q:path>
                                 <q:value>ec51c25e-1de6-4747-872e-f5f58203ef22</q:value>
                             </q:equal>
                         </q:and>

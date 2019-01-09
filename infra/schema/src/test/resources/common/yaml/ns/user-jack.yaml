@@ -1,6 +1,6 @@
 ---
-'@ns' : 'http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-object: !http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType
+'@ns' : 'http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+object: !http://midpoint.evolveum.com/xml/ns/public/common/common-4/UserType
   oid: 2f9b9299-6f45-498f-bc8e-8d17c6b93b20
   name: jack
   extension:
@@ -11,8 +11,8 @@ object: !http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType
       - !http://www.w3.org/2001/XMLSchema/string raz
       - !http://www.w3.org/2001/XMLSchema/string dva
       - !http://www.w3.org/2001/XMLSchema/string tri
-    password: !http://prism.evolveum.com/xml/ns/public/types-3/ProtectedStringType
-      "http://prism.evolveum.com/xml/ns/public/types-3#clearValue": "openS3zam3"
+    password: !http://prism.evolveum.com/xml/ns/public/types-4/ProtectedStringType
+      "http://prism.evolveum.com/xml/ns/public/types-4#clearValue": "openS3zam3"
   link:
     -
       oid: 2f9b9299-6f45-498f-aaaa-000000001111
@@ -31,10 +31,10 @@ object: !http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType
       objectClass: AccountObjectClass
   linkRef:
     oid: 2f9b9299-6f45-498f-aaaa-000000003333
-    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType"
+    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ShadowType"
     description: This is third accountRef
     filter:
-      "@ns": "http://prism.evolveum.com/xml/ns/public/query-3"
+      "@ns": "http://prism.evolveum.com/xml/ns/public/query-4"
       equal:
         path: connectorType
         value: org.identityconnectors.ldap.LdapConnector
@@ -66,7 +66,7 @@ object: !http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType
   credentials:
     password:
       value:
-        "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3"
+        "@ns" : "http://prism.evolveum.com/xml/ns/public/types-4"
         encryptedData:
           encryptionMethod:
             algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc"

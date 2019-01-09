@@ -1,12 +1,12 @@
 {
-  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
   "objects" : [ {
     "resource" : {
       "name" : "Sample Resource",
       "connectorRef" : {
-        "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+        "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType",
         "filter" : {
-          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-4",
           "equal" : {
             "path" : "connectorType",
             "value" : "com.evolveum.polygon.connector.ldap.LdapConnector"
@@ -14,7 +14,7 @@
         }
       },
       "connectorConfiguration" : {
-        "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorConfigurationType"
+        "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorConfigurationType"
       },
       "namespace" : "http://foo.bar.com/",
       "schema" : { }

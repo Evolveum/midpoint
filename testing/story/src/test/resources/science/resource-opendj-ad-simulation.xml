@@ -18,14 +18,14 @@
 <!-- Resource definition for an embedded OpenDJ instance. -->
 
 <resource oid="10000000-0000-0000-0000-0000000001ad"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext"
 >
@@ -203,7 +203,7 @@
 <!--             <displayName>Aix username</displayName> -->
 <!--             <outbound> -->
 <!--                <source> -->
-<!--                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path> -->
+<!--                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">name</c:path> -->
 <!--                </source> -->
 <!--             </outbound> -->
 <!--          </attribute> -->
@@ -271,7 +271,7 @@
    <synchronization>
       <objectSynchronization>
          <enabled>true</enabled>
-         <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+         <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
             <q:description>
 	                    Correlation expression is a search query.
 	                    Following search query will look for users that have "name"
@@ -284,7 +284,7 @@
                <q:matching>polyStringNorm</q:matching>
                <q:path>name</q:path>
                <expression>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">$shadow/attributes/ri:uid</c:path>
                </expression>
             </q:equal>

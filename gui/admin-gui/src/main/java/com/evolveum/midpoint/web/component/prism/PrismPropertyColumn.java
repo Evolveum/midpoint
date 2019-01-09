@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 /**
  * @author katkav

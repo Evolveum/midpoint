@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="3b8cb17a-5da2-11e7-b260-a760972b54fb"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>One: Semi Manual Disable</name>
     <inducement>

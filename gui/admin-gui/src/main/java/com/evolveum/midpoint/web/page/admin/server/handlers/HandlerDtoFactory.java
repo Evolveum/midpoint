@@ -23,7 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_4.QueryType;
 
 import java.util.Arrays;
 import java.util.Collections;

@@ -1,14 +1,14 @@
 {
-	"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+	"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
 	"objects" : [ {
 		"resource" : {
 			"oid" : "ef2bc95b-76e0-59e2-86d6-9119011311ab",
 			"name" : "Embedded Test Derby: Import test",
 			"connectorRef" : {
 				"oid" : "7d3ebd6f-6113-4833-8a6a-596b73a5e434",
-				"type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+				"type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType",
 				"filter" : {
-					"@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+					"@ns" : "http://prism.evolveum.com/xml/ns/public/query-4",
 					"equal" : {
 						"path" : "connectorType",
 						"value" : "com.evolveum.icf.dummy.connector.DummyConnector"
@@ -17,7 +17,7 @@
 			},
 			"connectorConfiguration" : {
 				"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3",
-				"@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorConfigurationType",
+				"@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorConfigurationType",
 				"configurationProperties" : {
 					"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector",
 					"@type" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3#ConfigurationPropertiesType",
@@ -26,7 +26,7 @@
 					"keyColumn" : "login",
 					"passwordColumn" : "password",
 					"password" : {
-						"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+						"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
 						"clearValue" : "secret"
 					},
 					"table" : "users",

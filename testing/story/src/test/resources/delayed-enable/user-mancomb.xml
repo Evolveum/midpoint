@@ -16,9 +16,9 @@
   -->
  
 <user oid="8e3a3770-cc60-11e8-8354-a7bb150473c1"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delayedEnable/ext">
 	<name>mancomb</name>
 	<extension>

@@ -28,8 +28,8 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.query_4.QueryType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;

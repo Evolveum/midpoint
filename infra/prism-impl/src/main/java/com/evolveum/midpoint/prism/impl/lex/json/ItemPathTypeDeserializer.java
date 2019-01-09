@@ -3,9 +3,10 @@ package com.evolveum.midpoint.prism.impl.lex.json;
 import java.io.IOException;
 
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathParserTemp;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;

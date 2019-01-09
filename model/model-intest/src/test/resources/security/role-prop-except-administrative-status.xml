@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="cc549256-02a5-11e8-994e-43c307e2a819"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>Prop all except administrativeStatus</name>    
     <authorization>
     	<name>read-except-administrativeStatus</name>

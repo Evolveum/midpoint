@@ -124,9 +124,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.RawType;
 
 /**
  * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test accross all subsystems.

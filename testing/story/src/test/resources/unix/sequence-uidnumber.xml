@@ -15,7 +15,7 @@
   -->
 
 <sequence oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Unix UID numbers</name>
     <counter>1001</counter>
     <maxUnusedValues>10</maxUnusedValues>

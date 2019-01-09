@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	  oid="e5144353-c39d-445c-bf15-c4b80ce75918">
 	<name>metarole-approve-unassign</name>
 	<inducement>

@@ -15,6 +15,6 @@
   -->
 
 <role oid="00000000-d34d-b33f-f00d-444444444444"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>CxO dummy metaroke</name>
 </role>

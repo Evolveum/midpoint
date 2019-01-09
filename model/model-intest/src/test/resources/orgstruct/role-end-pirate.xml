@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="67780b58-cd69-11e8-b664-dbc7b09e163e"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>End Pirate</name>
     <description>Modified/simplified end user role</description>
     <authorization id="0">

@@ -18,8 +18,8 @@
      "title" attribute to a fixed value. -->
 
 <role oid="12345678-d34d-b33f-f00d-987987555555"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Smith</name>
     <inducement>
         <construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">

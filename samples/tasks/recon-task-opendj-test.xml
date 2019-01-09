@@ -18,7 +18,7 @@
 <!--Reconciliation task definition for OpenDJ resource test-->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d30001"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
@@ -27,7 +27,7 @@
 	<!-- Resource printable name -->
 	<name>Reconciliation: OpenDJ test</name>
 
-	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
 		<mext:objectclass>ri:inetOrgPerson</mext:objectclass>
 	</extension>
 	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30001</taskIdentifier>

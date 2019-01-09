@@ -17,9 +17,9 @@
 
 <objectTemplate oid="84769304-7776-11e2-b582-001e8c717e5b"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'>
     <name>Default User Template</name>
 	<item>
 		<c:ref>employeeType</c:ref>

@@ -18,10 +18,10 @@
 <!-- Object modification description that is changing user "jack" by adding a new account -->
 
 <objectDelta
-	xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-4"
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" 
  				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<changeType>modify</changeType>
 	<objectType>c:UserType</objectType>
@@ -30,7 +30,7 @@
 		<t:modificationType>add</t:modificationType>
 		<t:path>c:linkRef</t:path>
 		<t:value xsiType="c:ShadowType">
-<!-- 			<c:link xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" -->
+<!-- 			<c:link xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" -->
 <!-- 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">  -->
 				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
 				<!-- No name here. We expect that it will be generated -->

@@ -16,7 +16,7 @@
   -->
 
 <resource oid="deadbeef-c001-f00d-1111-222233330001"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>white</name>
     <connectorConfiguration/>
     <schemaHandling>

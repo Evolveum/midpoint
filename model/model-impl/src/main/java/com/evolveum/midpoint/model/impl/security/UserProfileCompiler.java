@@ -107,7 +107,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 
 /**
  * Compiles user interface profile for a particular user. The profile contains essential information needed to efficiently render

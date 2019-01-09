@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 
 
 <definitions name="reportService"
-    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report/report-3"
-    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/report/report-3"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report/report-4"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/report/report-4"
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -29,18 +29,18 @@
         <xsd:schema>
             <!-- here are XSDs that are not included by means of report-3.wsdl mentioned below -->
             <!-- this is to compile all XSDs for midPoint (see explanation in pom.xml) -->
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-                        schemaLocation="../../public/connector/icf-1/connector-schema-3.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
+                        schemaLocation="../../public/connector/icf-1/connector-schema-4.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"
                         schemaLocation="../../public/gui/admin-1.xsd"/>
         </xsd:schema>
     </types>
 
-    <import namespace="http://midpoint.evolveum.com/xml/ns/public/report/report-3"
-            location="http://midpoint.evolveum.com/xml/ns/public/report/report-3"/>
+    <import namespace="http://midpoint.evolveum.com/xml/ns/public/report/report-4"
+            location="http://midpoint.evolveum.com/xml/ns/public/report/report-4"/>
     <service name="reportService">
         <port name="reportPort" binding="tns:reportBinding">
-            <soap:address location="http://localhost:${HttpDefaultPort}/report/report-3"/>
+            <soap:address location="http://localhost:${HttpDefaultPort}/report/report-4"/>
         </port>
     </service>
 </definitions>

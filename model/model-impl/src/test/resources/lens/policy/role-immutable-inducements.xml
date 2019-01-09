@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="cfdac6b8-f6e2-4bee-8c3e-97a377257d4b"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>Immutable inducements</name>
 	<inducement id="1">
 		<targetRef type="RoleType" oid="00000000-0000-0000-0000-000000000004" />

@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Thief</name>
 	<assignment>
 		<targetRef oid="34d73991-8cbc-46e5-b8c2-b8b62029e711" type="RoleType"/> 		<!-- metarole-criminal-exclusion -->

@@ -16,7 +16,7 @@
   -->
 
 <user oid="c0c010c0-d34d-b33f-f00d-111111111222"
-   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>guybrush</name>
 
     <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="ShadowType"/>

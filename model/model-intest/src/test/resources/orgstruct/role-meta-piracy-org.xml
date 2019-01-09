@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="d534f1b2-a26c-11e6-abf5-e71dff038896"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Piracy Org Metarole</name>
     <description>Metarole for all piracy orgs (org-caribbean.xml)</description>
     <inducement xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000704">

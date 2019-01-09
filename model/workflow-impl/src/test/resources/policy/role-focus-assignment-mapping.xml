@@ -15,8 +15,8 @@
   -->
 
 <role oid="4bdd7ccc-8c52-41ff-a975-0313ec788507" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	  xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	  xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<name>role-focus-assignment-mapping</name>
 	<inducement>
 		<focusMappings>

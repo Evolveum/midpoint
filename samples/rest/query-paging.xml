@@ -1,4 +1,4 @@
-<query xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+<query xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
     <paging>
         <orderBy>name</orderBy>
         <offset>0</offset>

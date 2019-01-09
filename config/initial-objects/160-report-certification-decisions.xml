@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         oid="00000000-0000-0000-0000-000000000160">
    <name>Certification decisions report</name>
    <description>Decisions of individual reviewers for a certification campaign as a whole or for a given campaign stage.</description>

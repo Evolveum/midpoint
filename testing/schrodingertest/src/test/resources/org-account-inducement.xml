@@ -1,5 +1,5 @@
-<org xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-     xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<org xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+     xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
      xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>testOrgUnit</name>
     <inducement>

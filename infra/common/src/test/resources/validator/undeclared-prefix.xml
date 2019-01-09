@@ -17,7 +17,7 @@
 
 <!-- Prefix "i" is not declared -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
         <name>Localhost OpenDJ</name>

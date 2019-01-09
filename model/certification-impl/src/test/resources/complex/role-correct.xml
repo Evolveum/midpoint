@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  oid="ab0e3dd4-3cdf-4c5e-b349-e7b4904730a1">
 	<name>correct</name>
 	<lifecycleState>draft</lifecycleState>

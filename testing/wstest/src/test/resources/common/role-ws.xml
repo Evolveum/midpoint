@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="ac4c987a-d7b3-11e4-9623-001e8c717e5b"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>WS</name>    
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#all</action>

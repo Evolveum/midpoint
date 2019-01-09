@@ -159,7 +159,7 @@ public class NinjaUtils {
         // todo fix this brutal hack (related to checking whether to include particular options)
         boolean all = type == null
                 || Objectable.class.equals(type)
-                || com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(type)
+                || com.evolveum.prism.xml.ns._public.types_4.ObjectType.class.equals(type)
                 || ObjectType.class.equals(type);
 
         if (all || UserType.class.isAssignableFrom(type)) {

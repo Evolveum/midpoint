@@ -16,8 +16,8 @@
   -->
 
 <connector oid="ef2bc95b-76e0-59e2-86d6-dddddddddddd" 
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
 	<name>com.evolveum.icf.dummy.connector.DummyConnector</name>
@@ -29,18 +29,18 @@
 	<schema>
 		<definition>
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	            xmlns:qn942="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-	            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	            xmlns:qn984="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+	            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+	            xmlns:qn984="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	            elementFormDefault="qualified"
 	            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
-	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
 	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
-	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
 	            <xsd:complexType name="ConfigurationPropertiesType">
 	               <xsd:sequence>
 	               	  <!--  The type of uselessString is overridden to ProtectedString. This is the hack we want to test. -->

@@ -30,6 +30,8 @@ import javax.mail.internet.MimeMessage;
 
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
+
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -69,7 +71,6 @@ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 
 @PageDescriptor(url = "/securityquestions", permitAll = true)

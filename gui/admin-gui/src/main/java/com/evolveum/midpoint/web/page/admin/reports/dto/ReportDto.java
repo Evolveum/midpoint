@@ -18,7 +18,8 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
+
 import org.apache.commons.lang.BooleanUtils;
 
 import java.io.Serializable;

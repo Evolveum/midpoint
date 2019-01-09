@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="12345678-d34d-b33f-f00d-555555556666"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Pirate</name>
     <description>Scurvy Pirates</description>
 	<assignment>

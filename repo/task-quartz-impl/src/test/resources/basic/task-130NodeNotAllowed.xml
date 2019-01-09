@@ -16,7 +16,7 @@
   -->
 
 <task oid="91919191-76e0-59e2-86d6-556655660130"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
 	<name>Testing task with node not allowed</name>
 	

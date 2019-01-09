@@ -15,8 +15,8 @@
  */
 package com.evolveum.midpoint.prism.crypto;
 
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.HashedDataType;
+import com.evolveum.prism.xml.ns._public.types_4.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_4.HashedDataType;
 
 /**
  * @author Radovan Semancik

@@ -15,7 +15,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_4.SchemaDefinitionType;
 
 
 /**

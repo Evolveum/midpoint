@@ -14,20 +14,20 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object oid="007" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<object oid="007" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="UserTemplateType"
 	xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../ns/public/common/common-3.xsd">
+   http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../ns/public/common/common-3.xsd">
 	<name>Default User Template2</name>
 	<propertyConstruction>
 		<property>
-			declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+			declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 			i:fullName
 		</property>
 		<valueConstruction default="true">
 			<expression>
 				<code>
-					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 					concat($i:user/i:givenName,' ',$i:user/i:familyName)
 				</code>
 			</expression>			
@@ -35,14 +35,14 @@
 	</propertyConstruction>
 	<propertyConstruction>
 		<property>
-			declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+			declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 			declare namespace e="http://example.com";
 			i:extension/e:mackoUsko
 		</property>
 		<valueConstruction default="true">
 			<expression>
 				<code>
-					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 					concat($i:user/i:givenName,' ',$i:user/i:familyName)
 				</code>
 			</expression>			

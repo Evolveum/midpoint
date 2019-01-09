@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.util.validation;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import java.io.Serializable;
+
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 /**
  *  This is just a simple representation of custom form validation error. Currently, it holds

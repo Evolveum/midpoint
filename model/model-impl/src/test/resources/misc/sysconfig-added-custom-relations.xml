@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 					 xmlns:test="http://test"
 					 xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
 	<roleManagement>

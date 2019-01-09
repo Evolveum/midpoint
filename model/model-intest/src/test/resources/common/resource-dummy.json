@@ -1,12 +1,12 @@
 {
-  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
   "resource" : {
     "oid" : "10000000-0000-0000-0000-000000000004",
     "name" : "Dummy Resource",
     "connectorRef" : {
-      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType",
       "filter" : {
-        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-4",
         "and" : {
           "equal" : [ {
             "path" : "connectorType",
@@ -20,14 +20,14 @@
     },
     "connectorConfiguration" : {
       "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3",
-      "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorConfigurationType",
+      "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorConfigurationType",
       "configurationProperties" : {
         "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector",
         "@type" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3#ConfigurationPropertiesType",
         "instanceId" : "",
         "requireExplicitEnable" : "true",
         "uselessGuardedString" : {
-          "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+          "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
           "clearValue" : "whatever"
         },
         "uselessString" : "USEless",
@@ -57,7 +57,7 @@
             } ],
             "expression" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "\n\t\t\t\t\t\t\t\tname + iterationToken\n\t\t\t\t\t\t\t"
               } ]
             }
@@ -83,7 +83,7 @@
             "strength" : "weak",
             "expression" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "allowEmptyValues" : true,
                 "code" : "\n\t\t\t\t\t\t\t\tif (input?.contains('#')) {\n                            \t\treturn null\n                        \t\t} else {\n                            \t\treturn input\n                        \t\t}\n\t\t\t\t\t\t\t"
               } ]
@@ -109,7 +109,7 @@
             "expression" : {
               "allowEmptyValues" : false,
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "'Came from ' + input"
               } ]
             },
@@ -123,7 +123,7 @@
           "inbound" : [ {
             "expression" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "allowEmptyValues" : false,
                 "code" : "'The crew of ' + input"
               } ]
@@ -133,7 +133,7 @@
             },
             "condition" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "input != null"
               } ]
             }
@@ -146,7 +146,7 @@
             "channel" : [ "http://pirates.net/avast" ],
             "expression" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "9999 + 1"
               } ]
             }
@@ -235,7 +235,7 @@
             "outbound" : [ {
               "expression" : {
                 "asIs" : [ {
-                  "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#AsIsExpressionEvaluatorType"
+                  "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#AsIsExpressionEvaluatorType"
                 } ]
               }
             } ]
@@ -246,7 +246,7 @@
               "strength" : "weak",
               "condition" : {
                 "script" : [ {
-                  "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                  "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                   "code" : "focus?.getActivation()?.getValidFrom() == null && focus?.getActivation()?.getValidTo() == null"
                 } ]
               }
@@ -261,7 +261,7 @@
             "outbound" : [ {
               "expression" : {
                 "asIs" : [ {
-                  "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#AsIsExpressionEvaluatorType"
+                  "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#AsIsExpressionEvaluatorType"
                 } ]
               }
             } ],
@@ -269,7 +269,7 @@
               "strength" : "weak",
               "expression" : {
                 "generate" : [ {
-                  "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#GenerateExpressionEvaluatorType"
+                  "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#GenerateExpressionEvaluatorType"
                 } ]
               }
             } ]
@@ -290,7 +290,7 @@
             } ],
             "expression" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "\n\t\t\t\t\t\t\t\t'T' + name + iterationToken\n\t\t\t\t\t\t\t"
               } ]
             }
@@ -299,7 +299,7 @@
             "strength" : "weak",
             "expression" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "\n\t\t\t\t\t\t\t\tinput?.substring(1)\n\t\t\t\t\t\t\t"
               } ]
             },
@@ -315,7 +315,7 @@
             } ],
             "expression" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "fullName + ' (test)'"
               } ]
             }
@@ -340,7 +340,7 @@
           "inbound" : [ {
             "expression" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "'The crew of Titanicum ' + input + 'icum'"
               } ]
             },
@@ -349,7 +349,7 @@
             },
             "condition" : {
               "script" : [ {
-                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+                "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
                 "code" : "input != null"
               } ]
             }
@@ -413,8 +413,8 @@
             } ],
             "expression" : {
               "path" : [ {
-                "@type" : "http://prism.evolveum.com/xml/ns/public/types-3#ItemPathType",
-                "@value" : "declare namespace t='http://prism.evolveum.com/xml/ns/public/types-3'; t:norm"
+                "@type" : "http://prism.evolveum.com/xml/ns/public/types-4#ItemPathType",
+                "@value" : "declare namespace t='http://prism.evolveum.com/xml/ns/public/types-4'; t:norm"
               } ]
             }
           }
@@ -455,19 +455,19 @@
         "language" : "Logo",
         "argument" : [ {
           "script" : [ {
-            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
             "code" : "\n\t\t\t\t\t'user: ' + user?.getName()\n\t\t\t\t\t"
           } ],
           "name" : "usr"
         }, {
           "script" : [ {
-            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
             "code" : "\n\t\t\t\t\t'account: ' + account?.getActivation()?.getAdministrativeStatus()\n\t\t\t\t\t"
           } ],
           "name" : "acc"
         }, {
           "script" : [ {
-            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
             "code" : "\n\t\t\t\t\t'resource: ' + resource?.getName()\n\t\t\t\t\t"
           } ],
           "name" : "res"
@@ -484,7 +484,7 @@
         "language" : "Gibberish",
         "argument" : [ {
           "path" : [ {
-            "@type" : "http://prism.evolveum.com/xml/ns/public/types-3#ItemPathType",
+            "@type" : "http://prism.evolveum.com/xml/ns/public/types-4#ItemPathType",
             "@value" : "$user/costCenter"
           } ],
           "name" : "howMuch"
@@ -493,13 +493,13 @@
           "name" : "howLong"
         }, {
           "path" : [ {
-            "@type" : "http://prism.evolveum.com/xml/ns/public/types-3#ItemPathType",
+            "@type" : "http://prism.evolveum.com/xml/ns/public/types-4#ItemPathType",
             "@value" : "$user/name"
           } ],
           "name" : "who"
         }, {
           "path" : [ {
-            "@type" : "http://prism.evolveum.com/xml/ns/public/types-3#ItemPathType",
+            "@type" : "http://prism.evolveum.com/xml/ns/public/types-4#ItemPathType",
             "@value" : "$user/fullName"
           } ],
           "name" : "whatchacallit"
@@ -520,7 +520,7 @@
         "language" : "Gibberish",
         "argument" : [ {
           "path" : [ {
-            "@type" : "http://prism.evolveum.com/xml/ns/public/types-3#ItemPathType",
+            "@type" : "http://prism.evolveum.com/xml/ns/public/types-4#ItemPathType",
             "@value" : "$focus/name"
           } ],
           "name" : "who"
@@ -534,7 +534,7 @@
         "language" : "Gibberish",
         "argument" : [ {
           "path" : [ {
-            "@type" : "http://prism.evolveum.com/xml/ns/public/types-3#ItemPathType",
+            "@type" : "http://prism.evolveum.com/xml/ns/public/types-4#ItemPathType",
             "@value" : "$shadow/activation/administrativeStatus"
           } ],
           "name" : "how"
@@ -557,16 +557,16 @@
         "enabled" : true,
         "condition" : {
           "script" : [ {
-            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
             "code" : "!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith(\"T\")"
           } ]
         },
         "correlation" : [ {
-          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-4",
           "equal" : {
             "path" : "name",
-            "http://midpoint.evolveum.com/xml/ns/public/common/common-3#expression" : {
-              "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+            "http://midpoint.evolveum.com/xml/ns/public/common/common-4#expression" : {
+              "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
               "path" : "declare namespace icfs=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\";\n                            $account/attributes/icfs:name"
             }
           }
@@ -600,16 +600,16 @@
         "enabled" : true,
         "condition" : {
           "script" : [ {
-            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+            "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
             "code" : "basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith(\"T\")"
           } ]
         },
         "correlation" : [ {
-          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-4",
           "equal" : {
             "path" : "name",
-            "http://midpoint.evolveum.com/xml/ns/public/common/common-3#expression" : {
-              "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+            "http://midpoint.evolveum.com/xml/ns/public/common/common-4#expression" : {
+              "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
               "script" : {
                 "code" : "basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)"
               }

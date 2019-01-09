@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,18 +18,18 @@
 
 
 <definitions name="modeService"
-    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
-    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-4"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-4"
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
 
-    <import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
-            location="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+    <import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-4"
+            location="http://midpoint.evolveum.com/xml/ns/public/model/model-4"/>
     <service name="modelService">
         <port name="modelPort" binding="tns:modelBinding">
-            <soap:address location="http://localhost:${HttpDefaultPort}/model/model-3"/>
+            <soap:address location="http://localhost:${HttpDefaultPort}/model/model-4"/>
         </port>
     </service>
 </definitions>

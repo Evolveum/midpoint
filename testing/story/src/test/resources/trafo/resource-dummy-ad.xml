@@ -16,10 +16,10 @@
   -->
 
 <resource oid="14400000-0000-0000-0000-000000000003"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:trafo="http://midpoint.evolveum.com/xml/ns/story/trafo/ext"
@@ -527,7 +527,7 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
 		tmpContainer = '(?i)^CN=.*?,(OU=.*,)O=Trafo'
 		dnRegExp2 = ~tmpContainer
 		
-		tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
+		tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4', 'name')
 		tmpLogin = basic.getAttributeValue(account, 'sAMAccountName')
 		
 		loginMatcher = (tmpLogin =~ sAMAccountNameRegExp)

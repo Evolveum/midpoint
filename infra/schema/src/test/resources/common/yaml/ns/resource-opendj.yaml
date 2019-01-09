@@ -1,5 +1,5 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 resource:
   oid: "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
   name: "Embedded Test OpenDJ"
@@ -13,10 +13,10 @@ resource:
           toString: "my.value"
         key: "a-key"
   connectorRef:
-    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"
+    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType"
     description: "Reference to the ICF LDAP connector."
     filter:
-      '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+      '@ns': "http://prism.evolveum.com/xml/ns/public/query-4"
       description: "...a filter description..."
       equal:
         path: "declare namespace x='http://x/'; extension/x:extConnType"
@@ -31,7 +31,7 @@ resource:
       baseContexts: "dc=example,dc=com"
       principal: "cn=directory manager"
       credentials:
-        '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+        '@ns': "http://prism.evolveum.com/xml/ns/public/types-4"
         clearValue: "secret"
       vlvSortAttribute: "uid"
       accountOperationalAttributes: "ds-pwp-account-disabled"
@@ -61,9 +61,9 @@ resource:
       '@ns': "http://www.w3.org/2001/XMLSchema"
       schema: "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n<xsd:schema elementFormDefault=\"\
         qualified\" targetNamespace=\"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff\"\
-        \ xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" xmlns:icfs=\"\
+        \ xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\" xmlns:icfs=\"\
         http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"\
-        \ xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-3\" xmlns:xsd=\"\
+        \ xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-4\" xmlns:xsd=\"\
         http://www.w3.org/2001/XMLSchema\">\n\t\t\t\t\t<xsd:import namespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"\
         />\n\t\t\t\t\t\n\t\t\t\t\t<xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-3\"\
         />\n\t\t\t\t\t<xsd:complexType name=\"GroupObjectClass\">\n\t\t\t\t\t\t<xsd:annotation>\n\
@@ -332,14 +332,14 @@ resource:
     objectSynchronization:
     - enabled: true
       correlation:
-      - http://prism.evolveum.com/xml/ns/public/query-3#description: "\n         \
+      - http://prism.evolveum.com/xml/ns/public/query-4#description: "\n         \
           \           ...\n                "
-        http://prism.evolveum.com/xml/ns/public/query-3#equal:
-          http://prism.evolveum.com/xml/ns/public/query-3#path: "name"
+        http://prism.evolveum.com/xml/ns/public/query-4#equal:
+          http://prism.evolveum.com/xml/ns/public/query-4#path: "name"
           expression:
             path: |
               declare namespace my='http://myself.me/schemas/whatever';
-              declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-3';
+              declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-4';
               $account/c:attributes/my:yyy
         condition:
           value:

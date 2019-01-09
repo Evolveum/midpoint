@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringNormalizerConfigurationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

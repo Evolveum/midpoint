@@ -15,8 +15,8 @@
   -->
 
 <role oid="0d70504c-d094-11e8-b0cc-675c492577e7"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
       
     <name>One</name> <!-- OK -->
     <description>First role</description> <!-- OK -->

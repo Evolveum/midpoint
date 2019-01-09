@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="50803e46-a168-4901-ada2-931e780aba33"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
 	<name>ordinary-2</name>
 	<assignment>
 		<policyRule>

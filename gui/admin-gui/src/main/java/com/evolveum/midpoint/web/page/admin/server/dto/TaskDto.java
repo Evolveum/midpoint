@@ -64,8 +64,9 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.query_4.QueryType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.jetbrains.annotations.NotNull;

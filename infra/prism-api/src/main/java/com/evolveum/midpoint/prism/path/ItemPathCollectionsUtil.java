@@ -17,7 +17,8 @@
 package com.evolveum.midpoint.prism.path;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

@@ -15,8 +15,8 @@
   -->
 <!-- MID-4251 -->
 <objectTemplate
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" 
 	oid="ee079df8-1146-4e53-872f-b9733f24ebfe">
 	<name>Special user template for dynamic role assignment</name>
 	<mapping>

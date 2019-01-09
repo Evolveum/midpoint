@@ -17,7 +17,7 @@
 <c:user oid="c0c010c0-d34d-b33f-f00d-111111111999"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <c:name>alice</c:name>
     <c:fullName>alice</c:fullName>
     <c:givenName>alice</c:givenName>

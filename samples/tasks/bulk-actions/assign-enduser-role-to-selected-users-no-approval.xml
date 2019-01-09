@@ -15,14 +15,14 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <task>
         <name>Assign Enduser role to users starting with 'a' (skipping approvals)</name>
 		<extension>
             <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
-                                 xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                 xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+                                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
                 <s:search>

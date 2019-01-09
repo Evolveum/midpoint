@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		oid="f1adc5ec-09b9-41e3-b94c-c8d4d598e540">
 	<name>case1</name>
 	<objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>		<!-- Dummy Resource -->

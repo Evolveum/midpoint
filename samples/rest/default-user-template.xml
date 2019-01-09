@@ -1,4 +1,4 @@
-<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 
         <name>Default User Template</name>
 

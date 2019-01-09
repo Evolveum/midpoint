@@ -33,8 +33,8 @@ import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;

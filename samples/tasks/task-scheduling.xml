@@ -25,14 +25,14 @@ these tasks via admin GUI.
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
          xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <task oid="00000000-0000-0000-0000-123450000001">
         <name>Task1: basic single-run task (takes 3x60 sec)</name>

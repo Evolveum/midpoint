@@ -16,7 +16,7 @@
   -->
 
 <org oid="a14afc10-e4a2-48a4-abfd-e8a2399f98d3"
-	 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>Security Approvers</name>
 	<parentOrgRef oid="b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54" type="OrgType"></parentOrgRef>
 	<assignment>

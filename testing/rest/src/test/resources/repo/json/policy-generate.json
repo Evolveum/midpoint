@@ -6,7 +6,7 @@
     	"path": "telephoneNumber"
       },
       "valuePolicyRef": {
-        "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType",
+        "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ValuePolicyType",
         "oid": "00000000-0000-0000-1111-000000000003"
       }
     },

@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<object xsi:type="TaskType" oid="91919191-76e0-59e2-86d6-3d4f02d3ffff" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gen495="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<object xsi:type="TaskType" oid="91919191-76e0-59e2-86d6-3d4f02d3ffff" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gen495="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <name>Synchronization: Embedded Test OpenDJ</name>
     <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes

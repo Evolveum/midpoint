@@ -15,12 +15,12 @@
   ~ limitations under the License.
   -->
 
-<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <s:search>
         <s:type>c:UserType</s:type>
         <s:query>
-            <filter xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+            <filter xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
                 <or>
                     <equal>
                         <path>c:name</path>

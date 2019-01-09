@@ -13,8 +13,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       oid="10000000-0000-0000-0000-000000000602"
       version="0">
     <name>Simple account construction</name>

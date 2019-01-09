@@ -14,14 +14,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>janko</name>
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="2">
         <name>Localhost OpenDJ</name>
         <type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</type>
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
         <connectorConfiguration>
-            <idc:ConnectorConfiguration xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+            <idc:ConnectorConfiguration xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
                 <idc:ConnectorRef bundleName="org.identityconnectors.ldap" bundleVersion="1.0.5531" connectorName="org.identityconnectors.ldap.LdapConnector">
                     <idc:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</idc:ConnectorHostRef>
                 </idc:ConnectorRef>
@@ -54,14 +54,14 @@
         	<definition>
             <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" />
 					
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -163,15 +163,15 @@
             <accountType default="true">
                 <name>Default Account</name>
                 <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
-                <attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                <attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                     <name>Distinguished Name</name>
                     <access>create</access>
                     <access>read</access>
-                    <outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                    <outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                         <expression>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</expression>
                     </outbound>
                 </attribute>
-                <attribute ref="ids:uid" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                <attribute ref="ids:uid" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                     <name>Entry UUID</name>
                     <access>read</access>
                 </attribute>
@@ -181,7 +181,7 @@
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">$i:user/i:fullName</expression>
+                        <valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">$i:user/i:fullName</expression>
                     </outbound>
                     <inbound>
                         <valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
@@ -193,8 +193,8 @@
                                   </f:replace>
                         </valueFilter>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
+                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                             $c:user/i:fullName
                         </target>
                     </inbound>
@@ -205,7 +205,7 @@
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">$i:user/i:familyName</expression>
+                        <valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">$i:user/i:familyName</expression>
                     </outbound>
                 </attribute>
                 <attribute ref="ri:givenName" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
@@ -214,12 +214,12 @@
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">$i:user/i:givenName</expression>
+                        <valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">$i:user/i:givenName</expression>
                     </outbound>
                 </attribute>
                 <attribute ref="ri:description" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
                     <outbound default="true">
-                        <value xmlns:ns4="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns6="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">Created by IDM</value>
+                        <value xmlns:ns4="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns6="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">Created by IDM</value>
                     </outbound>
                 </attribute>
                 <attribute ref="ri:title" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
@@ -229,8 +229,8 @@
                     <access>update</access>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
+                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                             $c:user/i:honorificPrefix
                         </target>
                     </inbound>
@@ -241,12 +241,12 @@
     <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
     <attributes>
         <!-- Value of this attribute will be replaced by the test code! -->
-        <vr0:cn xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">jan prvy</vr0:cn>
+        <vr0:cn xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">jan prvy</vr0:cn>
 
-        <vr1:__NAME__ xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd">uid=janko nemenny,ou=people,dc=example,dc=com</vr1:__NAME__>
-        <vr0:sn xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">prvy</vr0:sn>
-        <vr1:__PASSWORD__ xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd">janco</vr1:__PASSWORD__>
-        <vr0:givenName xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">junit test given name</vr0:givenName>
+        <vr1:__NAME__ xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd">uid=janko nemenny,ou=people,dc=example,dc=com</vr1:__NAME__>
+        <vr0:sn xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">prvy</vr0:sn>
+        <vr1:__PASSWORD__ xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd">janco</vr1:__PASSWORD__>
+        <vr0:givenName xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">junit test given name</vr0:givenName>
         <dj:givenName xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ">James Jr.</dj:givenName>
         <vr0:title xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">Mr.</vr0:title>
     </attributes>

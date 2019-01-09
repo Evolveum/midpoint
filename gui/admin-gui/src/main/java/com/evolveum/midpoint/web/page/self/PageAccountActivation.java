@@ -62,7 +62,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 @PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.ACCOUNT_ACTIVATION_PREFIX)}, permitAll = true)
 public class PageAccountActivation extends PageBase {

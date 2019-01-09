@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Validity Scanner (partitioned)</name>
     <description>A system task that maintains effective status of objects, based on their validity time constraints.</description>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>

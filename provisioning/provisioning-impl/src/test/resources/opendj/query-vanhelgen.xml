@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <q:query xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 

@@ -15,8 +15,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<lookupTable xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<lookupTable xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>first lookup</name>
     <description>description of lookuptable</description>

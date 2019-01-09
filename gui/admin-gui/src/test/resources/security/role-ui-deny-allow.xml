@@ -16,8 +16,8 @@
   -->
 
 <role oid="da47fcf6-d02b-11e7-9e78-f31ae9aa0674" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>UI Deny Allow</name>
     <authorization>
 	<name>objectautz</name>

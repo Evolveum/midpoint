@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  oid="e84350b3-3320-4cdf-942a-9c5507e1777d">
 	<name>eve</name>
 	<assignment>

@@ -17,7 +17,7 @@
 
 <!-- Simple modification that changes the value of Jack's e-mail address -->
 
-<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
    <oid>deadbeef-c001-f00d-1111-222233330001</oid>
    <propertyModification modificationType="replace">
        <value>

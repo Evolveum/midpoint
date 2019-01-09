@@ -14,11 +14,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         oid="e6de6150-66ff-40ea-a6e7-2d96fb0579f8">
     <name>Logins in last 24 hours</name>

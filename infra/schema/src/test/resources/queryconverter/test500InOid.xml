@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<query xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+<query xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
     <filter>
         <inOid>
             <value>oid1</value>

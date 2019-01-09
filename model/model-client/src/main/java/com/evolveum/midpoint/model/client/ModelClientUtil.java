@@ -56,14 +56,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_4.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -95,9 +95,9 @@ public class ModelClientUtil {
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_3:" +
-				"com.evolveum.prism.xml.ns._public.annotation_3:" +
-				"com.evolveum.prism.xml.ns._public.query_3:" +
-				"com.evolveum.prism.xml.ns._public.types_3");
+				"com.evolveum.prism.xml.ns._public.annotation_4:" +
+				"com.evolveum.prism.xml.ns._public.query_4:" +
+				"com.evolveum.prism.xml.ns._public.types_4");
 	}
 
 	public static Element createPathElement(String stringPath, Document doc) {

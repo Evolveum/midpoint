@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
  
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<user>
 		<name>frank</name>
 		<description>Tall one with a pegleg</description>

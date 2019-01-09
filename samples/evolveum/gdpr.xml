@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
  
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
 	<role oid="665d7d52-92d7-11e7-877a-b359a4a005d2">

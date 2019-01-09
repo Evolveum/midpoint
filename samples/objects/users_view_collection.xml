@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 
-<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                   oid="d2521d0b-6784-4540-bdff-086858ae0cc7"
                   version="68157">
     <name>Users view collection</name>

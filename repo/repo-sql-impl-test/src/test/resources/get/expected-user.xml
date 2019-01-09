@@ -16,9 +16,9 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <user oid="f00d-0">
         <name>get account user</name>
         <link oid="f00d-acc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -27,7 +27,7 @@
             <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
             <attributes>
                 <icfs:uid xsi:type="xsd:string"
-                          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
                           xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
             </attributes>
             <activation>

@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <c:object oid="007" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
    xsi:type="c:UserType">
     <name>bond</name>
     <fullName>James Bond 007</fullName>

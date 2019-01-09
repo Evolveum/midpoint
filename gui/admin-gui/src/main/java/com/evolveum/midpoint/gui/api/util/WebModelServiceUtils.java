@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+import com.evolveum.prism.xml.ns._public.types_4.EvaluationTimeType;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.LocaleUtils;
@@ -713,7 +713,7 @@ public class WebModelServiceUtils {
 		// todo fix this brutal hack (related to checking whether to include particular options)
 		boolean all = type == null
 				|| Objectable.class.equals(type)
-				|| com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(type)
+				|| com.evolveum.prism.xml.ns._public.types_4.ObjectType.class.equals(type)
 				|| ObjectType.class.equals(type);
 
 		if (all || UserType.class.isAssignableFrom(type)) {

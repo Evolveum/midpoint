@@ -3,7 +3,8 @@ package com.evolveum.midpoint.prism.util;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

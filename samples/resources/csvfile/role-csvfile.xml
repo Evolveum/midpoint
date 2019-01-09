@@ -15,8 +15,8 @@
   -->
 
 <role oid="3931573a-2d85-11e6-8ac1-3c970e44b9e2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>CSV File</name>    
     <description>Role to create normal account on CSV File target resource.</description>
     <inducement>

@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<sequence xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<sequence xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Sequence 0-99, rewindable, 10 unused values</name>
     <counter>0</counter>
     <maxCounter>99</maxCounter>

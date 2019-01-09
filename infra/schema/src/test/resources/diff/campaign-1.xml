@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 							 oid="461db8c7-4c1f-4a05-8338-d90dd2b3dba3"
 							 version="4">
 	<name>Assignment certification by Organization 3</name>

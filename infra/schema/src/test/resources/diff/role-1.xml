@@ -14,9 +14,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       oid="6077bad0-43ff-4958-acce-73c0e04f178d"
       version="4">
     <name>asdf</name>

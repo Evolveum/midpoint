@@ -15,8 +15,8 @@
   -->
 <c:object oid="007" 
 	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'	
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
    xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
    xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
    xmlns:mi6="http://mi6.gov.uk/schema/"
@@ -25,7 +25,7 @@
    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
    xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS"
    xmlns:opendsl="http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS"
-   xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+   xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xsi:type="c:UserType">
     <name>bond new</name>
@@ -97,7 +97,7 @@
                 targetNamespace="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" 
                 xmlns:tns="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" 
                 xmlns:r="http://midpoint.evolveum.com/xml/ns/resource/1#" 
-				xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+				xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                 xmlns:idc="http://midpoint.evolveum.com/xml/ns/resource/idconnector/1#" 
                 elementFormDefault="qualified">
                     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/resource/idconnector/1#"/>

@@ -15,12 +15,12 @@
   ~ limitations under the License.
   -->
 
-<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <s:type>c:UserType</s:type>
     <s:searchFilter>
-        <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+        <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
             <path>c:name</path>
             <value>jack</value>
         </equal>
@@ -29,7 +29,7 @@
         <s:type>notify</s:type>
         <s:parameter>
             <s:name>handler</s:name>
-            <c:value xsi:type="c:EventHandlerType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+            <c:value xsi:type="c:EventHandlerType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                 <generalNotifier>
                     <recipientExpression>
                         <value>recipient@evolveum.com</value>

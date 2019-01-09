@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <user>
         <name>name0</name>
         <description>description0</description>

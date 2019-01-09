@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<wsdl:definitions xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns="http://schemas.xmlsoap.org/wsdl/" name="model" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+<wsdl:definitions xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns="http://schemas.xmlsoap.org/wsdl/" name="model" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
   <documentation>
 
 	Interface of the IDM Model subsystem.
@@ -20,11 +20,11 @@
   <wsdl:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" location="http://localhost.:8080/midpoint/model/model-3?wsdl=../common/fault-3.wsdl" />
   <wsdl:types>
     <xsd:schema xmlns="http://schemas.xmlsoap.org/wsdl/" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3">
-      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
-      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" />
-      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/query-3" namespace="http://prism.evolveum.com/xml/ns/public/query-3" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/common/api-types-4" namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/query-4" namespace="http://prism.evolveum.com/xml/ns/public/query-3" />
       <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" />
-      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" />
       <xsd:complexType name="GetObjectType">
         <xsd:sequence>
           <xsd:element name="objectType" type="xsd:QName" />

@@ -19,7 +19,8 @@ package com.evolveum.midpoint.prism.impl;
 import com.evolveum.midpoint.prism.ItemPathParser;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**

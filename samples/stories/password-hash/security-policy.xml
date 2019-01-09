@@ -16,7 +16,7 @@
   -->
 
 <securityPolicy oid="24bd8e70-5cc5-11e7-b20d-67ebcbf174d3" 
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<name>Security Policy: Hasing</name>
 	<credentials>
 		<password>

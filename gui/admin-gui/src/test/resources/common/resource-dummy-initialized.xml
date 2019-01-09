@@ -16,12 +16,12 @@
   -->
 
 <resource oid="10000000-0000-0000-0000-000000000004"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+		  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -68,14 +68,14 @@
       </cachingMetadata>
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
             <xsd:complexType name="GroupObjectClass">
                <xsd:annotation>
                   <xsd:appinfo>
@@ -739,7 +739,7 @@
                   <c:path>$focus/name</c:path>
                </source>
                <expression>
-                  <c:path>declare namespace t='http://prism.evolveum.com/xml/ns/public/types-3'; t:norm</c:path>
+                  <c:path>declare namespace t='http://prism.evolveum.com/xml/ns/public/types-4'; t:norm</c:path>
                </expression>
             </outbound>
          </attribute>
@@ -782,7 +782,7 @@
          <retrievalTimestamp>2016-01-05T17:49:22.504+01:00</retrievalTimestamp>
          <serialNumber>ad58de483086a60c-a0cbfa56429029a8</serialNumber>
       </cachingMetadata>
-      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
          <cap:addRemoveAttributeValues/>
          <cap:activation>
             <cap:status/>
@@ -921,14 +921,14 @@ end
          <enabled>true</enabled>
          <condition>
             <script>
-               <code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+               <code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4', 'name').startsWith("T")</code>
             </script>
          </condition>
          <correlation>
             <q:equal>
                <q:path>name</q:path>
                <expression>
-                  <c:path>declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; $account/attributes/icfs:name</c:path>
+                  <c:path>declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4'; $account/attributes/icfs:name</c:path>
                </expression>
             </q:equal>
          </correlation>
@@ -965,7 +965,7 @@ end
          <enabled>true</enabled>
          <condition>
             <script>
-               <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+               <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4', 'name').startsWith("T")</code>
             </script>
          </condition>
          <correlation>
@@ -973,7 +973,7 @@ end
                <q:path>name</q:path>
                <expression>
                   <script>
-                     <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
+                     <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4', 'name').substring(1)</code>
                   </script>
                </expression>
             </q:equal>

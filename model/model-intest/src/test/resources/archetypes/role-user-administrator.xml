@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <role oid="6ae02e34-f8b0-11e8-9c40-87e142b606fe"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>User administrator</name>
     <description>Role for delegated administration of users.</description>
     

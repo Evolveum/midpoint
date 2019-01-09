@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <user oid="b6e2a7b3-2444-4853-bf6a-201960a636df"
-      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <name>botticelli</name>
     <fullName>Alessandro di Mariano di Vanni Filipepi</fullName>
     <givenName>Alessandro</givenName>

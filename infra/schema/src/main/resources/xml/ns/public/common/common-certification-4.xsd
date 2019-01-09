@@ -1,0 +1,1487 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            TODO
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-4"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-4"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-4" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-4" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-4" />
+
+    <xsd:complexType name="AbstractAccessCertificationDefinitionType" abstract="true">      <!-- TODO [4.0] remove -->
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an access certification - a template for
+                a set of access certification campaigns.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AssignmentHolderType">
+                <xsd:sequence>
+                    <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The certification handler that should take care of certification campaigns
+                                created according to this definition.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="scopeDefinition" type="tns:AccessCertificationScopeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the standard scope of certifications of this type. (In the future it can be overridden
+                                in specific certification campaign.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The user that owns certification campaigns based on this definition.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="remediationDefinition" type="tns:AccessCertificationRemediationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the identified cases have to be resolved?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reiterationDefinition" type="tns:AccessCertificationReiterationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the manual or automatic reiteration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stageDefinition" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of individual stages (reviewers, duration, ...).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reviewStrategy" type="tns:AccessCertificationCaseReviewStrategyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Strategy used to compute review outcome for a given case, based on results of individual stages,
+                                along with instructions when a case review advances from a stage to next one.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="adHoc" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Denotes "ad hoc" certification campaign, i.e. one that is started by policy rules, not explicitly by a user.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastCampaignIdUsed" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                ID that was used to auto-generate campaign name last time (null if none so far).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastCampaignStartedTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the last campaign of this type was started (in its first iteration)?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lastCampaignClosedTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the last campaign of this type was closed? Deletion is not recorded in this attribute.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!--<xsd:element name="campaignSchedulingInterval" type="xsd:duration" minOccurs="0">-->
+                    <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                    <!--How often should a campaign of this type be automatically started?-->
+                    <!--(null if automated scheduling is not required)-->
+                    <!--Scheduling is based on last campaign started timestamp.-->
+                    <!--</xsd:documentation>-->
+                    <!--</xsd:annotation>-->
+                    <!--</xsd:element>-->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationDefinitionForReportType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Access certification definition augmented with report-related information
+                (e.g. number of campaigns).
+
+                EXPERIMENTAL. It is to be seen if this form is OK.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractAccessCertificationDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="campaigns" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="openCampaigns" type="xsd:int" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationDefinitionForReport" type="tns:AccessCertificationDefinitionForReportType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="AccessCertificationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Access certification definition.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractAccessCertificationDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="AccessCertificationStageDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an access certification campaign stage.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="number" type="xsd:int" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stages are numbered from 1 onwards.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stage name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stage description.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="duration" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How long should the stage last?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadlineRounding" type="c:DeadlineRoundingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to round the deadline (if at all)? The default is to 23:59:59 of the computed day.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="notifyBeforeDeadline" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How long before the end of stage should notifications be sent?
+                        (Multiple values can be put here.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="notifyOnlyWhenNoDecision" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Send notifications only to people that have not decided yet.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reviewerSpecification" type="tns:AccessCertificationReviewerSpecificationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outcomeStrategy" type="tns:AccessCertificationCaseOutcomeStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to determine outcome of the approval process (e.g. if multiple reviewers are present)?
+                        Default is oneAcceptAccepts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outcomeIfNoReviewers" type="tns:AccessCertificationResponseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What is the outcome if no reviewers are available? (This is not the same situation as if some reviewers were computed but none of them responded!)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stopReviewOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What decisions stop the case from advancing to the next stage?
+                        If neither stopReviewOn nor advanceToNextStageOn is used, a default (defined at the campaign level) is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="advanceToNextStageOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What decisions make the case to advance to the next stage?
+                        If neither stopReviewOn nor advanceToNextStageOn is used, a default (defined at the campaign level) is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						What actions are to be applied to work items when given timer(s) occur.
+						EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationReviewerSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies how to select reviewers for a campaign stage.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User-readable name of this reviewer specification. (In case it is necessary.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of this reviewer specification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useTargetOwner" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that target object (Org, Role, Resource) owner(s) should be used as reviewer(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useTargetApprover" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that target object (Org, Role, Resource) approver(s) should be used as reviewer(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useObjectOwner" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that object (Org, Role) owner(s) should be used as reviewer(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useObjectApprover" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that object (Org, Role) approver(s) should be used as reviewer(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useObjectManager" type="tns:ManagerSearchType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that the object's managers should be used. The interpretation depends on what kind
+                        of object there is.
+
+                        For a user, the managers of all organizations to which he/she belongs, are taken.
+                        For an org, its managers are taken.
+                        (For the future: For a role, if it has a parentOrgRef, managers of these are taken. If it has
+                        none, no reviewers are contributed by this option.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reviewerExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The most general way of specifying the reviewer. Inputs for such expressions are:
+                        - certificationCase (current certification case),
+						- campaign (certification campaign object),
+						- reviewerSpecification (current reviewer specification).
+						Output is a collection of parent-less reviewer references (of type ObjectReferenceType).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultReviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If no reviewer(s) are computed by other means, this/these should be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="additionalReviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        These reviewers are always used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationCampaignType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an access certification campaign.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AssignmentHolderType">
+                <xsd:sequence>
+                    <xsd:element name="definitionRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the definition for this certification campaign.
+                                (It is optional, as there are also ad-hoc certifications with no pre-existing definition.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the owner of this certification campaign.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The certification handler that should take care of this campaign.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="scopeDefinition" type="tns:AccessCertificationScopeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the scope of this campaign.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="remediationDefinition" type="tns:AccessCertificationRemediationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the identified cases have to be resolved?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reiterationDefinition" type="tns:AccessCertificationReiterationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the manual or automatic reiteration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stageDefinition" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of individual stages.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reviewStrategy" type="tns:AccessCertificationCaseReviewStrategyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Strategy used to compute review outcome for a given case, based on results of individual stages,
+                                along with instructions when a case review advances from a stage to next one.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When this campaign has to start (or has started).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When this campaign has finished.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Which iteration this campaign is in. 1 means the regular (first) run;
+                                2 means first repetition, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="state" type="tns:AccessCertificationCampaignStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                In which state is the current campaign.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stageNumber" type="xsd:int" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The stage this campaign is in.
+                                0 means it has not started yet.
+                                X in 1..N (where N is the number of defined stages) means that stage X is being carried out.
+                                Y greater than N means the campaign has been already finished.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stage" type="tns:AccessCertificationStageType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Stages for this campaign (already finished, current, or planned).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="case" type="tns:AccessCertificationCaseType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Certification cases for this campaign.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationCampaign" type="tns:AccessCertificationCampaignType" substitutionGroup="c:object" />
+
+    <xsd:complexType name="AccessCertificationStageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about a stage of a campaign.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Which iteration this stage is part of. 1 means the first (i.e. regular) run.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="number" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stage name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stage description.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this stage has started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadline" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this stage has to finish.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this stage has actually finished.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="escalationLevel" type="tns:WorkItemEscalationLevelType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The escalation level is currently the same for open all cases and their open work items in the stage.
+                        (This might change in the future.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the scope of an access certification campaign.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User-readable name of this scope definition. (In case it is necessary.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of this scope definition.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationObjectBasedScopeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                The most common way of specifying scope - providing type+search filter to select "base" objects
+                and then some means of deriving certification cases from them.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AccessCertificationScopeType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of objects to be selected for certification.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="searchFilter" type="q:SearchFilterType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filter to find objects for certification.
+                                By default, all objects of a given type will be selected.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="itemSelectionExpression" type="c:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that selects items that are to be included in the certification.
+                                Exact use of this expression depends on the certification handler.
+                                E.g. user assignment handler could call this expression individually with each assignment
+                                to determine which assignments should be included and which should not.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="caseGenerationExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that produces certification cases. This can be any expression, whose input is an object
+                                that has passed the search filter specified above, and its output is a list of certification cases.
+                                An example: a groovy expression, creating certification cases by selecting user's
+                                "risky" assignments (e.g. assignments to a roles of a given type/types). Another example
+                                can be the computation of all assignments (direct and indirect ones), and selecting among these.
+                                NOT IMPLEMENTED YET
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationObjectBasedScopeType" type="tns:AccessCertificationObjectBasedScopeType"/>
+
+    <xsd:complexType name="AccessCertificationAssignmentReviewScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope for assignment-related reviews.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AccessCertificationObjectBasedScopeType">
+                <xsd:sequence>
+                    <xsd:element name="includeAssignments" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeInducements" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should inducements be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeRoles" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of roles be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeOrgs" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of orgs be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeResources" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of resources be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeServices" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of services be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="includeUsers" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of users (e.g. deputy relations) be included in the certification?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="enabledItemsOnly" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should we approve only assignments/inducements that are currently enabled?
+                                (I.e. with administrativeStatus either null or ENABLED)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Relation(s) which are to be considered. Value of q:any means "any relation".
+								If no relation is present, org:default (i.e. null) is assumed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationAssignmentReviewScopeType" type="tns:AccessCertificationAssignmentReviewScopeType"/>
+
+    <xsd:complexType name="AccessCertificationCaseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An item that has to be certified, viewed in the scope of a given certification campaign.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object (e.g. a user) that is being touched by this case.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Quite an abstract parameter - describing the object of the certification case (e.g. a role, a resource, ...).
+                        Used for selecting relevant cases for approvals.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tenantRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For parameterized certification items (e.g. assignments): a tenant parameter, if applicable.
+                        See discussion on tenantRef in AssignmentType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="orgRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For parameterized certification items (e.g. assignments): an org parameter, if applicable.
+                        See discussion on orgRef in AssignmentType.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the target is assigned with activation information (e.g. validFrom/validTo/administrativeStatus)
+                        here is the information copied. Note that other activation information (e.g. effectiveStatus) are
+                        _not_ updated here and probably should be ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!--
+<xsd:element name="targetQualification" type="xsd:string" minOccurs="0">
+    <xsd:annotation>
+        <xsd:documentation>
+            E.g. kind+intent of a resource object (if target is a resource).
+
+                        TargetRef + targetQualification are used to group cases e.g. by role, by roleType,
+                        by resource, by resource object ... We could add more similar properties,
+                        as requirements evolve.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            -->
+            <xsd:element name="stageNumber" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number of current stage in which this case is.
+                        E.g. currentOutcome relates to the currentStage.
+                        Case is "enabled" for a current campaign stage if and only if case.currentStage == campaign.stageNumber.
+
+                        When opening a campaign stage, case's currentStage either advances (if it is transferred to stage being opened)
+                        or stays at the existing value (if it is not). It then indicates the last stage this case
+                        was reviewed in.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Iteration this case takes part of. Case is "enabled" for a current campaign stage if and only if
+                        case.iteration == campaign.iteration (beware of null comparison).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="workItem" type="tns:AccessCertificationWorkItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work items for this stage. Some might be completed. Work items are not deleted.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+						<a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentStageCreateTimestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this certification case requested to be reviewed?
+                        (Can be found in certification.stage.start but we need to
+                        sort according to this value.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentStageDeadline" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When should this certification case be reviewed?
+                        (Can be found in certification.stage.end but we need to
+                        sort according to this value.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentStageOutcome" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently valid outcome, relevant to the current stage. It is recomputed on each reviewer's
+                        response based on defined algorithms. If the case is not transferred into the next stage,
+                        the value of this item stays as it is.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The outcome, taking into account all closed stages plus current stage (if any).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reviewFinishedTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was the review process for this case finished (for the current iteration)?
+                        This value is cleared for cases entering the next iteration.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="remediedTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this certification case was remedied?
+                        If null, this means that either remediation was not required
+                        (either because the decision was "accept" or "abstain" or
+                        because remediation mode was set to "none").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="event" type="tns:CaseEventType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Events that occurred during lifetime of this case.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationCase" type="tns:AccessCertificationCaseType"/>
+
+    <xsd:complexType name="AccessCertificationCaseStageOutcomeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="1" />
+            <xsd:element name="outcome" type="tns:AccessCertificationResponseType" minOccurs="1" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationWorkItemType">
+        <xsd:annotation>
+			<xsd:documentation>
+				A work item for a certification case.
+			</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+				<a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkItemType">
+                <xsd:sequence>
+                    <xsd:element name="outputChangeTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the decision was made or changed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Which iteration this work item is part of. 1 means the first (i.e. regular) run.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationAssignmentCaseType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AccessCertificationCaseType">
+                <xsd:sequence>
+                    <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Assignment that is being considered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="isInducement" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Indicates if the above assignment is an assignment or (in case of roles) an inducement.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationAssignmentCase" type="tns:AccessCertificationAssignmentCaseType"/>
+
+    <xsd:simpleType name="AccessCertificationResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible reviewers' responses.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="accept">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A.k.a. maintain, confirm, certify, approve, OK - the situation was approved and can be left
+                        as it is. It is possible to enter a date when the approval will expire. Until this time
+                        the item will be considered approved and will not be shown in the certification list
+                        for the given certifier. (We have to decide how to implement this feature. The most simple
+                        but not entirely correct solution is to set "validTo" date for a given assignment. But it
+                        wouldn't work e.g. for indirect assignments.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCEPT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="revoke">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A.k.a. reject, remove, "not OK" - the situation is unacceptable and has to be eliminated
+                        or disabled. E.g. the assignment has to be removed or disabled.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REVOKE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reduce">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A.k.a. update - situation is not acceptable; however, simple elimination/disabling is not
+                        necessary or not appropriate - someone has to look at this and try to find another solution.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REDUCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notDecided">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A.k.a. abstain - responsible person says he/she is not able to decide.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_DECIDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delegate">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Responsible person delegates the decision to someone else.
+                        DEPRECATED
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELEGATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noResponse">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No response was provided by the given reviewer.
+                        (This state can be used e.g. to facilitate querying by state.)
+
+                        SHOULD NOT BE USED FOR INDIVIDUAL RESPONSES. (A null value should be used instead.)
+                        But it's OK to use this for stage/case outcome.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NO_RESPONSE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AccessCertificationCaseReviewStrategyType">
+        <xsd:sequence>
+            <xsd:element name="outcomeStrategy" type="tns:AccessCertificationCaseOutcomeStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Strategy used to compute review outcome for a given case, based on results of individual stages.
+                        Default is oneDenyDenies.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stopReviewOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What decisions stop the case from advancing to the next stage?
+                        If neither stopReviewOn nor advanceToNextStageOn is used, a default (defined by the outcomeStrategy) is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="advanceToNextStageOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What decisions make the case to advance to the next stage?
+                        If neither stopReviewOn nor advanceToNextStageOn is used, a default (defined by the outcomeStrategy) is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AccessCertificationCaseOutcomeStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible strategies for case outcome (approval) computation - currently both at the stage and campaign level.
+                (In the future, these uses might be split.)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="oneAcceptAccepts">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If at least one reviewer approves, the result is "APPROVED" regardless of the other votes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONE_ACCEPT_ACCEPTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oneDenyDenies">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If at least one reviewer denies (either via revoke or reduce), the result is "NOT APPROVED".
+                        However, for the case to be approved, at least approval must be present.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONE_DENY_DENIES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="acceptedIfNotDenied">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Approved if none of the reviewers denies (either via revoke or reduce).
+                        So e.g. if nobody says anything, the case is approved.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCEPTED_IF_NOT_DENIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allMustAccept">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All reviewers must approve, i.e. no revoke, reduce, noResponse is acceptable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL_MUST_ACCEPT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AccessCertificationRemediationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="style" type="tns:AccessCertificationRemediationStyleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="revokeOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What (final) outcomes cause actual remediation (e.g. deletion of an assignment) if automated remediation is configured?
+                        The default is "revoke". But more can be specified here, e.g. noResponse.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationReiterationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="startsAfter" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How long after campaign is closed should automatic reiteration start?
+                        The default is that reiteration starts only manually.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="limitWhenAutomatic" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many iterations are allowed for automatic start? After reaching the specified number of iterations
+                        (irrespective of how they were started) automatic reiteration mechanism will be disabled for this
+                        campaign.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="limit" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many iterations are allowed in total? After reaching the specified number of iterations
+                        no new iterations can be opened.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AccessCertificationRemediationStyleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible styles for certification case remediation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="automated">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resolution of revoked cases is fully automated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTOMATED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reportOnly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Non-conformant cases are only to be reported.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT_ONLY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="AccessCertificationCampaignStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible states of a certification campaign.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="created">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Campaign was created, but its first stage has not been started yet.
+                        Current stage number is 0.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CREATED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inReviewStage">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review is being carried out, in a given stage.
+                        Current stage number is between 1 and N (number of stages).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REVIEW_STAGE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reviewStageDone">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A given review stage was done. Next stage nor remediation (if any) has not started yet.
+                        Current stage number indicates the number of stage that has been recently done.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REVIEW_STAGE_DONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inRemediation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The last stage was closed, remediation (either automated or manual) is in progress.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REMEDIATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="closed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review and possibly remediation is over. The campaign is closed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!--
+    <xsd:simpleType name="AccessCertificationCaseStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines possible states of a certification case.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inReview">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review is being carried out.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REVIEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reviewDone">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review was done. Remediation (if any) has not started yet.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REVIEW_DONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inRemediation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The last stage was closed, remediation (either automated or manual) is in progress.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_REMEDIATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="closed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Review and remediation is over. The case is closed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType> -->
+
+    <xsd:complexType name="AccessCertificationCasesStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistics give a set of access certification cases.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="markedAsAccept" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsRevoke" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsRevokeAndRemedied" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsReduce" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsReduceAndRemedied" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsNotDecide" type="xsd:int" minOccurs="1" default="0"/>
+            <xsd:element name="markedAsDelegate" type="xsd:int" minOccurs="1" default="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="withoutResponse" type="xsd:int" minOccurs="1" default="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationCasesStatisticsType" type="tns:AccessCertificationCasesStatisticsType" />
+
+    <xsd:complexType name="ManagerSearchType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="orgType" type="xsd:string" minOccurs="0" />
+            <xsd:element name="allowSelf" type="xsd:boolean" minOccurs="0" default="false" />
+            <!-- todo whether to search in upper layers (by default: yes) -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for access certification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="availableResponse" minOccurs="0" maxOccurs="unbounded" type="tns:AccessCertificationResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What response types are available to reviewers? Empty list means all responses.
+                        TODO should we configure also names of the responses? (probably no)
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>AccessCertificationConfigurationType.availableResponse</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reviewerCommentsFormatting" minOccurs="0" type="tns:PerformerCommentsFormattingType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Instructions how to format reviewers comments before storing them into metadata.
+                        EXPERIMENTAL
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <a:since>3.7.1</a:since>
+						<a:displayName>AccessCertificationConfigurationType.reviewerCommentsFormatting</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

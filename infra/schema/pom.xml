@@ -213,11 +213,11 @@
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-4</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-4</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-4</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
@@ -245,11 +245,11 @@
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-4</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-4</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-4</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>

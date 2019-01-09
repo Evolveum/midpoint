@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <task oid="00000000-0000-0000-0000-000000000006"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 
     <name>Validity Scanner</name>
     <description>A system task that maintains effective status of objects, based on their validity time constraints.</description>

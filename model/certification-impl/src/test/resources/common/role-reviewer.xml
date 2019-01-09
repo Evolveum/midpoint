@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="00000000-d34d-b33f-f00d-ffffffff0000"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Reviewer</name>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readOwnCertificationDecisions</action>

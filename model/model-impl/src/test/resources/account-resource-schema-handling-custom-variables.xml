@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 <object xsi:type="AccountShadowType" 
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3">
+		xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4">
     <name>janko</name>
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="2">
         <name>Localhost OpenDJ</name>
@@ -28,14 +28,14 @@
         <schema>
             <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" />
 					
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -132,7 +132,7 @@
 				</xsd:schema>
         </schema>
 
-        <schemaHandling xmlns:my="http://myself.me/schemas/whatever" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+        <schemaHandling xmlns:my="http://myself.me/schemas/whatever" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
             <accountType default="true">
                 <name>Default Account</name>
                <objectClass>ri:Account</objectClass>
@@ -161,7 +161,7 @@
                              in the $my:config variable specified above. -->                             
                         <i:valueExpression>
                         <i:code>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                             declare namespace my="http://myself.me/schemas/whatever";
                             if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
                                 $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
@@ -178,7 +178,7 @@
                     <c:access>update</c:access>
                     <i:inbound>
                         <i:target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                             $i:user/i:eMailAddress
                         </i:target>
                     </i:inbound>
@@ -189,6 +189,6 @@
     </resource>
     <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
     <attributes>
-        <vr1:__NAME__ xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd">uid=janko nemenny,ou=people,dc=example,dc=com</vr1:__NAME__>
+        <vr1:__NAME__ xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd">uid=janko nemenny,ou=people,dc=example,dc=com</vr1:__NAME__>
     </attributes>
 </object>

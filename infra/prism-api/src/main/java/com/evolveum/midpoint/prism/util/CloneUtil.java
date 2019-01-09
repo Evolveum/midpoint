@@ -27,6 +27,9 @@ import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.RawType;
+
 import org.apache.commons.lang.SerializationUtils;
 
 import com.evolveum.midpoint.prism.Item;
@@ -34,8 +37,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.springframework.util.ClassUtils;
 
 import javax.xml.datatype.XMLGregorianCalendar;

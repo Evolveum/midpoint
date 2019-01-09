@@ -21,7 +21,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
             elementFormDefault="qualified"
             jaxb:extensionBindingPrefixes="xjc"
             jaxb:version="2.0">

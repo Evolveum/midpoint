@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <service oid="914b94be-1901-11e6-9269-972ee32cd8db"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>The Sea Monkey</name>
     <serviceType>ship</serviceType>    
 </service>

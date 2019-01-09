@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<definitions  name="report"
+	targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report/report-4"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/report/report-4"
+    xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+    xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4"
+    xmlns:aud="http://midpoint.evolveum.com/xml/ns/public/common/audit-4"
+    xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-4"
+    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" >
+ <documentation>
+ 	Web service interface for jasper report data source provider
+ </documentation>
+ 
+ 
+   <types>
+        <!-- Element form name is QUALIFIED to prevent some problems with marshalling/unmarshalling. This deviates from RPC/Literal convention, but we
+             do not have to obey this convention -->
+        <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report/report-4" elementFormDefault="qualified">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4"
+            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/audit-4"
+            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/audit-4"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-4"
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-4"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+         
+     
+        <xsd:complexType name="ProcessReportType">
+          <xsd:sequence>
+            <xsd:element name="query" type="xsd:string"/>
+            <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
+            <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" minOccurs="0"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      <xsd:element name="processReport" type="tns:ProcessReportType" />
+      
+        <xsd:complexType name="ProcessReportResponseType">
+          <xsd:sequence>
+          <xsd:element name="objectList" type="apit:ObjectListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of objects that match given criteria.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      <xsd:element name="processReportResponse" type="tns:ProcessReportResponseType"/>
+      
+            
+            <xsd:complexType name="EvaluateScriptType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    
+                    <xsd:element name="script" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Script to evaluate
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                     <xsd:element name="parameters" type="tns:RemoteReportParametersType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parameters needed for script evaluation
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="evaluateScript" type="tns:EvaluateScriptType"/>
+
+            <xsd:complexType name="EvaluateScriptResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="objectList" type="apit:ObjectListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of objects that match given criteria.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                   
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="evaluateScriptResponse" type="tns:EvaluateScriptResponseType"/>
+      
+      <xsd:complexType name="EvaluateAuditScriptType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A request for searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    
+                    <xsd:element name="script" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Script to evaluate
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                     <xsd:element name="parameters" type="tns:RemoteReportParametersType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parameters needed for script evaluation
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="evaluateAuditScript" type="tns:EvaluateAuditScriptType"/>
+
+            <xsd:complexType name="EvaluateAuditScriptResponseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="objectList" type="aud:AuditEventRecordListType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of objects that match given criteria.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                   
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="evaluateAuditScriptResponse" type="tns:EvaluateAuditScriptResponseType"/>
+            
+             
+            <xsd:complexType name="RemoteReportParametersType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+	                <xsd:appinfo>
+	                	<a:container/>
+	            	</xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="remoteParameter" type="tns:RemoteReportParameterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Remote parameters
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                 </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="remoteReportParameters" type="tns:RemoteReportParametersType"/>
+            
+            <xsd:complexType name="RemoteReportParameterType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A response from searchObjects operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+	                	<a:container/>
+	                </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="parameterName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                     <xsd:element name="parameterValue" type="c:ReportParameterType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                           
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="remoteReportParameter" type="tns:RemoteReportParameterType"/>
+        
+            
+      
+       
+    </xsd:schema>
+  </types>
+  
+  <message name="processReport">
+    <part element="tns:processReport" name="parameters"/>
+  </message>
+  <message name="processReportResponse">
+    <part element="tns:processReportResponse" name="parameters"/>
+  </message>
+  
+  <message name="evaluateScript">
+    <part element="tns:evaluateScript" name="parameters"/>
+  </message>
+  <message name="evaluateScriptResponse">
+    <part element="tns:evaluateScriptResponse" name="parameters"/>
+  </message>
+  
+  <message name="evaluateAuditScript">
+    <part element="tns:evaluateAuditScript" name="parameters"/>
+  </message>
+  <message name="evaluateAuditScriptResponse">
+    <part element="tns:evaluateAuditScriptResponse" name="parameters"/>
+  </message>
+  
+  <portType name="reportPortType">
+    <operation name="processReport">
+      <input message="tns:processReport"/>
+      <output message="tns:processReportResponse"/>
+    </operation>
+     
+    <operation name="evaluateScript">
+      <input message="tns:evaluateScript"/>
+      <output message="tns:evaluateScriptResponse"/>
+    </operation>
+     <operation name="evaluateAuditScript">
+      <input message="tns:evaluateAuditScript"/>
+      <output message="tns:evaluateAuditScriptResponse"/>
+    </operation>
+     
+  </portType>
+  
+  
+  <binding name="reportBinding" type="tns:reportPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="processReport">
+      <soap:operation name="processReport"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output name="processReportResponse">
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    
+    <operation name="evaluateScript">
+      <soap:operation name="evaluateScript"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output name="evaluateScriptResponse">
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="evaluateAuditScript">
+      <soap:operation name="evaluateAuditScript"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output name="evaluateAuditScriptResponse">
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    
+  </binding>
+  <service name="reportWebService">
+        <port name="reportPort"
+                   binding="tns:reportBinding">
+            <soap:address location="http://localhost:8080/dummy"/>
+        </port>
+    </service>
+</definitions>

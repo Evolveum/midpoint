@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/extension-4"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/extension-4"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Model object extension schema. Used mostly in task extensions. (Some of them in trigger extensions.)
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
+    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-4"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/query-4">
+        <xsd:annotation>
+            <xsd:documentation>
+                Query-related schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-4"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-4">
+        <xsd:annotation>
+            <xsd:documentation>
+                Types-related schema, e.g. ObjectDeltaType, ...
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:element name="freshnessInterval" type="xsd:long">
+        <xsd:annotation>
+            <xsd:documentation>
+                Interval in which the shadow will be considered fresh. It is conted from the last synchronization
+                of the shadow (any kind of synchronization). It is in milliseconds.
+                If no value is specified then a default value will be used.
+                If a negative value is specified then the shadow will never be considered fresh and it will be
+                synchronized every time (may be inefficient).
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <!--  TODO deprecated -->
+    <xsd:element name="dryRun" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+               Indicates if the reconciliation runs in default mode or as a dry run. If set to true, it means that 
+               the reconciliation will not perform any action, but it will only compare the resource and repository state. 
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Dry run</a:displayName>
+                <a:displayOrder>800</a:displayOrder>
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+     <xsd:element name="simulateBeforeExecute" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+               Indicates if the reconciliation runs in default mode or firstly simulate and compute changes. If set to true, 
+               it means that the reconciliation will not perform any action, but it will run projection in preview mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Simulation before execution</a:displayName>
+                <a:displayOrder>804</a:displayOrder>
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="retryLiveSyncErrors" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+               Indicates if the LiveSync retries non-handled errors in the next run. Handled-errors are always treated as success and never retried.
+               Retry is implemented by not refreshing LiveSync token to the new value. If set to false, sync token is always refreshed to the last processed entry. 
+               This is true by default.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Retry LiveSync Errors</a:displayName>
+                <a:displayOrder>801</a:displayOrder>
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="finishOperationsOnly" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+               TODO. EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <!--<a:displayName>Dry run</a:displayName>-->
+                <!--<a:displayOrder>800</a:displayOrder>-->
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lastScanTimestamp" type="xsd:dateTime">
+        <xsd:annotation>
+            <xsd:documentation>
+               TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="objectQuery" type="q:QueryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Some handlers (namely children of AbstractSearchIterativeTaskHandler) iterate over a set of objects.
+                For some of them (user recomputation, import from resource) the default is 'all available objects'.
+                By setting this item it is possible to restrict the set of objects to be searched (or extend it,
+                in case of handlers that by default provide a non-empty query).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Object query</a:displayName>
+                <a:displayOrder>120</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options to be used for object search (if supported by particular task handler).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Search options</a:displayName>
+                <!--<a:displayOrder>120</a:displayOrder>-->
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="useRepositoryDirectly" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Whether to use repository directly when searching for objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Use repository directly</a:displayName>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="objectType" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Object type to use for search queries or other operations (e.g. UserType, ShadowType)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Object type</a:displayName>
+                <a:displayOrder>110</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="iterationMethod" type="c:IterationMethodType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to iterate through objects. Should be used only when really needed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="objectDelta" type="t:ObjectDeltaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="objectDeltas" type="t:ObjectDeltaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>unbounded</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="executeOptions" type="c:ModelExecuteOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="workerThreads" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Handlers of search-iterative type (subclasses of AbstractSearchIterativeTaskHandler) can execute
+                their duties using multiple worker threads. This feature is enabled by specifying this property
+                in task extension. If not specified or specified as 0, traditional behavior (one-threaded)
+                is applied. If specified as a value of 1, one master and one worker thread is created
+                (not really useful for production).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="objectclass" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                QName of an object class to process in the import task.
+                E.g. during import from resource.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="kind" type="c:ShadowKindType">
+        <xsd:annotation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="intent" type="xsd:string">
+        <xsd:annotation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="filename" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Name of file (on the server) to process.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="endpoint" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Name of Camel endpoint to process messages from.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="route" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Name of Camel route used to process messages.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>-1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="optionRaw" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Raw option for some operations (e.g. bulk delete task)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="diagnose" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Problems to diagnose, e.g. for ShadowIntegrityCheck task handler.
+                If not specified, usually all checks are done.
+                TODO change to an enum.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Diagnose</a:displayName>
+                <a:displayOrder>200</a:displayOrder>
+                <a:maxOccurs>-1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="fix" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Problems to fix, e.g. for ShadowIntegrityCheck task handler.
+                If not specified, usually no fixes are done.
+                TODO change to an enum.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Fix</a:displayName>
+                <a:displayOrder>210</a:displayOrder>
+                <a:maxOccurs>-1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="duplicateShadowsResolver" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Class that is used to resolve duplicate shadows in ShadowIntegrityCheck task.
+                If not specified, a default implementation is used.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Duplicate shadows resolver</a:displayName>
+                <a:displayOrder>400</a:displayOrder>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="checkDuplicatesOnPrimaryIdentifiersOnly" type="xsd:boolean" default="false">
+        <xsd:annotation>
+            <xsd:documentation>
+                Should ShadowIntegrityCheck task handler check duplicates only for primary identifiers?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Check duplicates on primary identifiers only</a:displayName>
+                <a:displayOrder>500</a:displayOrder>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="cleanupPolicies" type="c:CleanupPoliciesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Overrides default system cleanup policy for CleanUpTaskHandler.
+                Used e.g. to cleanup all currently closed tasks.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Task-specific cleanup policies</a:displayName>
+                <a:displayOrder>100</a:displayOrder>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+	<!-- Elements to be stored in task trigger extension (used for workflows) -->
+	<xsd:element name="workItemActions" type="c:WorkItemActionsType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="workItemAction" type="c:AbstractWorkItemActionType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="workItemId" type="xsd:string">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="timeBeforeAction" type="xsd:duration">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+</xsd:schema>
+
+

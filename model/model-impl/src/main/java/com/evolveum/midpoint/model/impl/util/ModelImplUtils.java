@@ -70,8 +70,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_4.EvaluationTimeType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;

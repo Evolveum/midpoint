@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="e2c88fea-db21-11e5-80ba-d7b2f1155264"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Manager Full Control</name>    
     <description>

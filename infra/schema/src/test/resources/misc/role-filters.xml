@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="aad19b9a-d511-11e7-8bf7-cfecde275e59"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>Role with import filters</name>
     <description>Role with strange filters (MID-3879)</description>
     <inducement>

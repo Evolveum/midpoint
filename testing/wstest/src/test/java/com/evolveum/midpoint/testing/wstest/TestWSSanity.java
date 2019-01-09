@@ -73,12 +73,12 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectNotFoundFaultTy
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.PolicyViolationFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.query_4.QueryType;
+import com.evolveum.prism.xml.ns._public.types_4.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_4.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;

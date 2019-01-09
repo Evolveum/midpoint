@@ -15,8 +15,8 @@
   -->
 
 <role oid="34d73991-8cbc-46e5-b8c2-b8b62029e711"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	<name>metarole-criminal-exclusion</name>
 	<inducement>
 		<policyRule>

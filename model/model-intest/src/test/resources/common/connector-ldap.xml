@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 
-<c:connector xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<c:connector xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
              oid="14e63399-8869-4787-9369-93f9d1311671">
    <c:name>ICF org.identityconnectors.ldap.LdapConnector</c:name>
    <c:namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector</c:namespace>
@@ -25,16 +25,16 @@
    <c:connectorBundle>com.evolveum.polygon.connector-ldap</c:connectorBundle>
    <c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
    <c:schema>
-      <definition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <definition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector"
                      xmlns:qn406="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
             <xsd:complexType name="ConfigurationPropertiesType">
                <xsd:sequence>
                   <xsd:element minOccurs="0" name="accountSynchronizationFilter" type="xsd:string">

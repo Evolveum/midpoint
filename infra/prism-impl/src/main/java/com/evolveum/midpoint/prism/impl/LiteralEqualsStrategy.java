@@ -17,7 +17,8 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.lang.JAXBEqualsStrategy;

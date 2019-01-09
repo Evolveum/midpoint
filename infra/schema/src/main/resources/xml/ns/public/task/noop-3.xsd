@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
   ~ limitations under the License.
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 

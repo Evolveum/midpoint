@@ -15,27 +15,27 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>
-        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">u2</orig>
-        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">u2</norm>
+        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">u2</orig>
+        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">u2</norm>
     </name>
     <fullName>
-        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">fu2</orig>
-        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">fu2</norm>
+        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">fu2</orig>
+        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">fu2</norm>
     </fullName>
     <givenName>
-        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">gi2</orig>
-        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">gi2</norm>
+        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">gi2</orig>
+        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">gi2</norm>
     </givenName>
     <familyName>
-        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">fa2</orig>
-        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">fa2</norm>
+        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">fa2</orig>
+        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">fa2</norm>
     </familyName>
     <credentials>
         <password>
          <value> 
-            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
                <t:encryptionMethod>
                   <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
                </t:encryptionMethod>
@@ -47,13 +47,13 @@
                </t:cipherData>
             </t:encryptedData>
          </value>
-<!--             <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
-<!--                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" -->
-<!--                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" -->
+<!--             <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" -->
+<!--                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" -->
+<!--                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" -->
 <!--                      xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" -->
-<!--                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" -->
-<!--                      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" -->
-<!--                      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" -->
+<!--                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" -->
+<!--                      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" -->
+<!--                      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4" -->
 <!--                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#" -->
 <!--                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
 <!--                      xmlns:enc="http://www.w3.org/2001/04/xmlenc#" -->

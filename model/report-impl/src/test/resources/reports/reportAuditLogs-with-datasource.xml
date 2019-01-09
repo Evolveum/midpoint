@@ -13,15 +13,15 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		oid="AUDITLOG-3333-3333-TEST-1DATASOURCE"
         version="0">
 	<name>
-		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Audit logs report with datasource</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Audit logs report with datasource</norm>
+		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">Audit logs report with datasource</orig>
+		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">Audit logs report with datasource</norm>
 	</name>
 	<description>Report made from audit records. With special datasource</description>
 	<reportOrientation>landscape</reportOrientation>

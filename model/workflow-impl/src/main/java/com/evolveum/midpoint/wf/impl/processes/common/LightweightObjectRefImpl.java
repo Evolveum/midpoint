@@ -23,7 +23,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
-import static com.evolveum.prism.xml.ns._public.types_3.PolyStringType.fromOrig;
+import static com.evolveum.prism.xml.ns._public.types_4.PolyStringType.fromOrig;
 
 /**
  * @author mederly

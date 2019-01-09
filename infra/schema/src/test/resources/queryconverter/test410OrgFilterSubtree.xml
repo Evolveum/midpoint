@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<query xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+<query xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
     <filter>
         <org>
             <orgRef>

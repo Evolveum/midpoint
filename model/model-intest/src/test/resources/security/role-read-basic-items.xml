@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="519e8bf4-3af3-11e7-bc89-cbcee62d4088"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>Read Basic Items</name>    
     <authorization>
     	<name>autz-read-basic</name>

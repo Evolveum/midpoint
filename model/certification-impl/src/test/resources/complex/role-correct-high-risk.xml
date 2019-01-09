@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  oid="7a1ec439-865a-42cd-8acd-361df6dc41dd">
 	<name>correct-high-risk</name>
 	<description>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns:jaxws="http://java.sun.com/xml/ns/jaxws" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns="http://schemas.xmlsoap.org/wsdl/" name="fault" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+<wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns:jaxws="http://java.sun.com/xml/ns/jaxws" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns="http://schemas.xmlsoap.org/wsdl/" name="fault" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
   <wsdl:types>
     <xsd:schema xmlns="http://schemas.xmlsoap.org/wsdl/" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3">
-      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4" />
       <xsd:complexType name="FaultType" abstract="true">
         <xsd:sequence>
           <xsd:element name="message" type="xsd:string" />

@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_4.EvaluationTimeType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import javax.xml.namespace.QName;
 

@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="8fdb56d8-e3f3-11e6-8be9-cb9862ab7c04"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>Automatic</name>
     <roleType>auto</roleType> <!-- may be used for mapping range -->
 </role>

@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsd:schema xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/annotation-3" namespace="http://prism.evolveum.com/xml/ns/public/annotation-3">
+<xsd:schema xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/annotation-4" namespace="http://prism.evolveum.com/xml/ns/public/annotation-3">
     <xsd:annotation>
       <xsd:documentation>
                 Common prism annotations used in various XSD schemas.
             </xsd:documentation>
     </xsd:annotation>
   </xsd:import>
-  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/prism/xml/ns/public/types-3.xsd" namespace="http://prism.evolveum.com/xml/ns/public/types-3">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/prism/xml/ns/public/types-3.xsd" namespace="http://prism.evolveum.com/xml/ns/public/types-4">
     <xsd:annotation>
       <xsd:documentation>
                 Prism data types.
             </xsd:documentation>
     </xsd:annotation>
   </xsd:import>
-  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/query-3" namespace="http://prism.evolveum.com/xml/ns/public/query-3">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/query-4" namespace="http://prism.evolveum.com/xml/ns/public/query-3">
     <xsd:annotation>
       <xsd:documentation>
                 Prism data types.
             </xsd:documentation>
     </xsd:annotation>
   </xsd:import>
-  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <xsd:annotation>
       <xsd:documentation>
                 Common midPoint schema.
@@ -252,7 +252,7 @@
   <xsd:element name="constant" nillable="true" substitutionGroup="tns:expression" type="xsd:anyType">
     <xsd:annotation>
       <xsd:appinfo>
-        <a:rawType xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+        <a:rawType xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4" />
       </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>

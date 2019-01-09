@@ -38,10 +38,10 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPrope
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.RawType;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 

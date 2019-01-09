@@ -1,15 +1,15 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 accessCertificationDefinition:
   name: "All user assignments"
   description: "Certifies all users' assignments. Everything is certified by the\
     \ administrator."
   handlerUri: "http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment"
-  scopeDefinition: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/AccessCertificationAssignmentReviewScopeType>
+  scopeDefinition: !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/AccessCertificationAssignmentReviewScopeType>
     objectType: "UserType"
   ownerRef:
     oid: "00000000-0000-0000-0000-000000000002"
-    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-4#UserType"
   remediationDefinition:
     style: "automated"
   stageDefinition:
@@ -25,5 +25,5 @@ accessCertificationDefinition:
     reviewerSpecification:
       defaultReviewerRef:
         oid: "00000000-0000-0000-0000-000000000002"
-        type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+        type: "http://midpoint.evolveum.com/xml/ns/public/common/common-4#UserType"
                               

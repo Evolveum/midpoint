@@ -60,8 +60,8 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
 -->
 
 <accessCertificationDefinition
-        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         oid="33333333-0000-0000-0000-000000000002">
     <name>Role Inducements</name>

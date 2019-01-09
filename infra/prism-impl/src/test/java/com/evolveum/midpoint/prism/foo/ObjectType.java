@@ -21,8 +21,8 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import javax.xml.bind.annotation.*;
 

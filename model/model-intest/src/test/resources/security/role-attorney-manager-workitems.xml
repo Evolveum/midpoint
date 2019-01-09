@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <role oid="5cf5b6c8-b968-11e7-b77d-6b029450f900"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
       xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Attorney Manager Workitems</name>
     <description>Power of attorney for subordinate employees. Authorizations limited to workitems.</description>

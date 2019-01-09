@@ -15,12 +15,12 @@
   ~ limitations under the License.
   -->
 
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
       oid="172b3d9f-66f8-4731-b023-0e2d8ca5cd6f">
     <name>Reencrypt selected objects</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4"
                xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
         <scext:executeScript>
             <s:pipeline>

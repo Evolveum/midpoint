@@ -16,12 +16,12 @@
   -->
  
 <user oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20" 
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>jack</name>
     <fullName>
         <t:orig>Jack Sparrow</t:orig>

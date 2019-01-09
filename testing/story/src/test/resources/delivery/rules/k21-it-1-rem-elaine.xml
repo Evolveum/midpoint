@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
 	  oid="540160d2-3af6-480a-a784-bb8d3c2b9bfe">
 	<name>k21-it-1-rem-elaine</name>

@@ -14,11 +14,11 @@
   ~ limitations under the License.
   -->
 
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Shadow Integrity Check</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
         <mext:objectQuery>
-            <q:paging xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+            <q:paging xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
                 <q:orderBy>name</q:orderBy>     <!-- in order to work with repositories that implement iteration by paging (so the order is not changed via fix operations) -->
             </q:paging>
         </mext:objectQuery>

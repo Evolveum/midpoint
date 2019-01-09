@@ -14,10 +14,10 @@
   ~ limitations under the License.
   -->
 <role oid="d867ca80-b18a-11e6-826e-1b0f95ef9125"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>Prop Deny Modify Some</name>
     <authorization>
     	<name>allow all</name>

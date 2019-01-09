@@ -18,8 +18,8 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.ModificationTypeType;
 
 /**
  *

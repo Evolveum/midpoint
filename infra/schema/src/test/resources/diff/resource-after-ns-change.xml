@@ -18,13 +18,13 @@
 <!-- This is essentially the same as resource-before just some namespaces, comments and whitespaces are changed.
      It is otherwise semantically the same thing. -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+		  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Embedded Test OpenDJ</name>
@@ -77,13 +77,13 @@
 		<definition>
 			  <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" />
 					
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -107,7 +107,7 @@
 							<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
 							<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
 							<!-- Moved the c prefix declaration here -->
-							<xsd:element xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" name="fakePassword"
+							<xsd:element xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" name="fakePassword"
 										type="t:ProtectedStringType" minOccurs="0" maxOccurs="unbounded">
 								<xsd:annotation>
 									<xsd:documentation>
@@ -205,7 +205,7 @@
         </objectType>
 	</c:schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
                   xmlns:ri1="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 		<configured>
 			<cap:activation>
@@ -226,7 +226,7 @@
     <synchronization>
         <objectSynchronization>
             <correlation>
-                <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
                     <q:path>c:name</q:path>
                     <expression>
                         <path>$account/attributes/ri:uid</path>

@@ -14,8 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-       xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+<filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
 
     <equal>
     	<path>c:fullName</path>

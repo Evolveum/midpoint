@@ -16,8 +16,8 @@
   -->
 
 <user oid="7a194af0-792a-4e76-bb0b-a8367a68970a"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
 	<name>lechuck-deputy-limited</name>
 	<assignment>

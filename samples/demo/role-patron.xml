@@ -16,8 +16,8 @@
 
 <role oid="1ba23cd0-8fe4-11e2-86e1-3c970e467874" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Patron</name>    
     <description>A role for art patrons. Designed to be assigned manually.</description>

@@ -1,4 +1,4 @@
-<resource xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="d0811790-1d80-11e4-86b2-3c970e467874" version="51" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<resource xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="d0811790-1d80-11e4-86b2-3c970e467874" version="51" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
       <name>OpenLDAP</name>
       <description>LDAP resource using a ConnId LDAP connector. It contains configuration&#13;
             for use with OpenLDAP servers.</description>
@@ -769,7 +769,7 @@
             <retrievalTimestamp>2016-09-19T11:31:29.130Z</retrievalTimestamp>
             <serialNumber>c996715ea32c2cc6-d5c42d146fb5bc09</serialNumber>
          </cachingMetadata>
-         <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+         <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
             <cap:addRemoveAttributeValues/>
             <cap:credentials>
                <cap:password/>

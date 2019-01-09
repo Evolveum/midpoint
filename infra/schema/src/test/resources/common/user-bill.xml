@@ -14,8 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+<user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <name>bill</name>
     <assignment>
         <c:targetRef oid="00000001-d34d-b33f-f00d-000000000001" type="c:RoleType" />

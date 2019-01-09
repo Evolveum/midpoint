@@ -66,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnsw
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 
 @PageDescriptor(url = "/PasswordQuestions", action = {

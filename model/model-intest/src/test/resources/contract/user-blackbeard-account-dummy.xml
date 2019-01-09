@@ -15,12 +15,12 @@
   ~ limitations under the License.
   -->
 <user oid="c0c010c0-d34d-b33f-f00d-161161116666" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
-		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">
     <name>blackbeard</name>
 
     <link xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">

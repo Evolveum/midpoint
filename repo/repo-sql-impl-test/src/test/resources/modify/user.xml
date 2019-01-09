@@ -15,11 +15,11 @@
   -->
 
 <user version="1" oid="f65963e3-9d47-4b18-aaf3-bfc98bdfa000"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>modifyUser</name>
     <fullName>
         <t:orig>Test UserX00002</t:orig>

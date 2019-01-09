@@ -18,9 +18,9 @@
 "Object integrity check" is a placeholder for future functionality.
 Currently it measures repo sizes of selected (or all) objects.
 -->
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Object size check</name>
-    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
         <mext:objectQuery>
             <!-- put object query here, if needed -->
         </mext:objectQuery>

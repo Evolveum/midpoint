@@ -16,9 +16,9 @@
   -->
 
 <user oid="60dd9e6b-7403-4075-bcfa-d4566a552d41"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
 	<name>chef</name>
 	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>

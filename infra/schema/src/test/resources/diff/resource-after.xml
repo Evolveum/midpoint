@@ -15,12 +15,12 @@
   ~ limitations under the License.
   -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Embedded Test OpenDJ</name>
@@ -81,7 +81,7 @@
         </objectType>
     </c:schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 		<configured>
 			<cap:activation>
 				<cap:status>
@@ -101,7 +101,7 @@
     <synchronization>
         <objectSynchronization>
             <correlation>
-                <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
                     <q:path>name</q:path>       <!-- change from c:name to name should be recognized -->
                     <expression>
                         <path>$account/attributes/ri:uid</path>

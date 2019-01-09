@@ -15,8 +15,8 @@
   -->
 
 <role oid="12345678-d34d-b33f-f00d-000387987988"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Sensitive Role 3</name>
     <description>Security-sensitive role, whose assignment to a user must be approved user's boss or bosses, if there are more of them.</description>
     <approvalSchema>

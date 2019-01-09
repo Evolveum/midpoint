@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <user oid="f15b45d6-f638-413f-9572-83554c7b3b88"
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <name>sod-approver</name>
 	<assignment> <!-- approver -->
 		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>

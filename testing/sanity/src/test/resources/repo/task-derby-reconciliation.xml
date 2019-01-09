@@ -18,8 +18,8 @@
 <!--Reconciliation task definition for Derby resource -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d3dddd"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"

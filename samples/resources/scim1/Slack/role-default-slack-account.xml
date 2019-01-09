@@ -1,8 +1,8 @@
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="5ae47cad-f67d-4b34-a97b-03315666db68"
       version="6">
@@ -16,7 +16,7 @@
    <iterationToken/>
    <inducement id="1">
       <construction>
-         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                       oid="2556e12c-d5ef-42bb-8079-abea9526face"
                       type="tns:ResourceType"><!-- slack-scim-connector --></resourceRef>
          <kind>account</kind>

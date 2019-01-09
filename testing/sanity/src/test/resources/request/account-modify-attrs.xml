@@ -18,9 +18,9 @@
 <!-- Object modification description that is changing account of "guybrush" -->
 
 <objectDelta
-	xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-4"
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<t:changeType>modify</t:changeType>
 	<objectType>c:ShadowType</objectType>
@@ -28,7 +28,7 @@
 	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
 		<t:path>
-			declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+			declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 			declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 			c:attributes/ri:roomNumber
 		</t:path>

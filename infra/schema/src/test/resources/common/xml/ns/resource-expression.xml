@@ -18,16 +18,16 @@
 <!-- Resource definition that is using expressions. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+          xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:my="http://myself.me/schemas/whatever"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:mr="http://midpoint.evolveum.com/xml/ns/public/common/matching-rule-3">

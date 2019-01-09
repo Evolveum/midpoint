@@ -14,12 +14,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 
 <role oid="00000000-d34d-b33f-f00d-100000000001"
-xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"      
-xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"      
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
  <name>Resource View Administrator</name>
  <description>Role containing authorizations to view resource details.</description>
  <authorization>
@@ -28,9 +28,9 @@ xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
  </authorization>
 </role>
 <role oid="00000000-d34d-b33f-f00d-100000000002" 
-xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"      
-xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"      
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
  <name>Resource Administrator</name>
  <description>Role containing authorizations to manage resources.</description>
  <authorization>
@@ -38,9 +38,9 @@ xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
  </authorization>
 </role>
 <role oid="00000000-d34d-b33f-f00d-100000000003" 
-xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"      
-xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"      
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
  <name>User Administrator</name>
  <description>Role containing authorizations to manage users.</description>
  <authorization>
@@ -48,9 +48,9 @@ xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
  </authorization>
 </role>
 <role oid="00000000-d34d-b33f-f00d-100000000004" 
-xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"      
-xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"      
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
  <name>Report Administrator</name>
  <description>Role containing authorizations to run reports.</description>
  <authorization>

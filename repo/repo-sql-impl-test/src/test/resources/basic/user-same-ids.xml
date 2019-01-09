@@ -16,11 +16,11 @@
   ~ limitations under the License.
   -->
 <user xmlns:my="http://example.com/p"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <name xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>testuserX123aaa</t:orig>
         <t:norm>testuserx123aaa</t:norm>
     </name>
@@ -28,13 +28,13 @@
     <parentOrgRef oid="123456" type="c:OrgType"/>
     <metadata>
         <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
     </metadata>
     <assignment id="1">
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
             <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
         </metadata>
         <extension>
@@ -47,7 +47,7 @@
     <assignment id="2">
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
-            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
             <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
         </metadata>
         <construction>
@@ -60,15 +60,15 @@
         <validFrom>2013-05-21T14:57:50.759+02:00</validFrom>
         <validTo>2015-12-31T22:59:00.000+01:00</validTo>
     </activation>
-    <fullName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <fullName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>Test UserX123aaa</t:orig>
         <t:norm>test userx123aaa</t:norm>
     </fullName>
-    <givenName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <givenName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>TestX</t:orig>
         <t:norm>testx</t:norm>
     </givenName>
-    <familyName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <familyName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <t:orig>UserX123</t:orig>
         <t:norm>userx123</t:norm>
     </familyName>

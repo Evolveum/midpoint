@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
 	<code>
         // we are not able to return complex objects yet, so we test by returning the name

@@ -16,16 +16,16 @@
   -->
 
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
     xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
 	<c:resource oid="11111111-2222-3333-4444-000000000000" xsi:type="c:ResourceType">
 
@@ -372,7 +372,7 @@
     <task oid="11111111-2222-3333-4444-100000000001">
         <name>Synchronization: Active Directory (groups)</name>
         <extension>
-            <mext:kind xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">entitlement</mext:kind>
+            <mext:kind xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">entitlement</mext:kind>
         </extension>
         <taskIdentifier>11111111-2222-3333-4444-100000000001</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
@@ -387,9 +387,9 @@
     </task>
 
     <role oid="11111111-2222-3333-4444-200000000001"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
         <name>Metarole for groups</name>
 
@@ -430,9 +430,9 @@
 
     <objectTemplate oid="11111111-2222-3333-4444-300000000001"
                     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-                    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-                    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+                    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
         <name>Role Template</name>
 
         <mapping>

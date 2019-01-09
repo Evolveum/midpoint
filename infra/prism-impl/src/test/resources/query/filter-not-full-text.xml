@@ -17,7 +17,7 @@
   -->
 
 <q:filter xsi:type="q:SearchFilterType"
-		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<q:not>
 		<q:fullText>

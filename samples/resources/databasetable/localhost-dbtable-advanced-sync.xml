@@ -25,13 +25,13 @@ This resource definition contains also definition to enable synchronization.
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	xmlns:my="http://myself.me/schemas/whatever">
 
@@ -213,7 +213,7 @@ This resource definition contains also definition to enable synchronization.
 				</credentials>
 			</objectType>
 		</schemaHandling>
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 			<configured>
 				<cap:activation>
 					<cap:status>
@@ -246,7 +246,7 @@ This resource definition contains also definition to enable synchronization.
 						<q:path>c:name</q:path>
 						<expression>
 							<path>
-								declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+								declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
 								$account/attributes/icfs:name
 							</path>
 						</expression>

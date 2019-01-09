@@ -41,8 +41,8 @@ import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormali
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.query_4.QueryType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.Collections.singleton;

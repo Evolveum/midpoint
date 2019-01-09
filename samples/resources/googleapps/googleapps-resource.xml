@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
    <name>Google Apps</name>
    <connectorRef type="c:ConnectorType">
@@ -35,14 +35,14 @@
    <schema>
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    			        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-				        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-				        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+    			        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+				        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
+				        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
 				        <xsd:complexType name="AccountObjectClass">
 					          <xsd:annotation>
 						            <xsd:appinfo>
@@ -749,7 +749,7 @@
    </schemaHandling>
    
    <capabilities>
-      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
          <cap:addRemoveAttributeValues/>
          <cap:credentials>
             <cap:password>
@@ -768,7 +768,7 @@
          </cap:script>
          <cap:pagedSearch/>
       </native>
-      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
          <cap:create>
             <cap:enabled>true</cap:enabled>
          </cap:create>
@@ -816,7 +816,7 @@
             <q:equal>
                <q:path>c:emailAddress</q:path>
                <expression>
-                  <c:path>declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; $account/attributes/icfs:name</c:path>
+                  <c:path>declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4'; $account/attributes/icfs:name</c:path>
                </expression>
             </q:equal>
          </correlation>

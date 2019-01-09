@@ -1,8 +1,8 @@
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           oid="acbc95b-76e0-48e2-86d6-3d4f02d420ac">
    <name>OpenStack Scripted REST</name>
@@ -204,7 +204,7 @@
          <retrievalTimestamp>2016-01-26T16:41:46.178+01:00</retrievalTimestamp>
          <serialNumber>abb7784558b80f89-5f96984a51759e0c</serialNumber>
       </cachingMetadata>
-      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
          <cap:addRemoveAttributeValues/>
          <cap:liveSync/>
          <cap:testConnection/>

@@ -14,10 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	   xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	   xsi:type="c:AccessCertificationAssignmentCaseType"
 	   id="4">
 	<objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"/>

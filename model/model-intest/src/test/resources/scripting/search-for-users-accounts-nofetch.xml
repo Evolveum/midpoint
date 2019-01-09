@@ -15,8 +15,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <s:expression xsi:type="s:SearchExpressionType">
         <s:type>c:UserType</s:type>

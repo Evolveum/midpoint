@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 <user oid="9e796c76-45e0-11e7-9dfd-1792e56081d0" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>cheese</name>

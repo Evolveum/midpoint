@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 /**
  * @author semancik

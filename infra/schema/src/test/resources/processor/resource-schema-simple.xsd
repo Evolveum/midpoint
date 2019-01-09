@@ -19,9 +19,9 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			targetNamespace="http://schema.foo.com/bar"
 			xmlns:tns="http://schema.foo.com/bar"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
             elementFormDefault="qualified">
             
 			<xsd:complexType name="AccountObjectClass">

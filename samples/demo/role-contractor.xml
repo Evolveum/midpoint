@@ -16,8 +16,8 @@
 
 <role oid="8d62985c-7797-11e2-94a6-001e8c717e5b" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Contractor role</name>    
     <description>Role that gives contractors necessary access.</description>

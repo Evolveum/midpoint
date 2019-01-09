@@ -6,4 +6,4 @@ objects:
     name: "u2"
 - role:
     name: "r1"
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"

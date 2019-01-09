@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <functionLibrary
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		oid="24fb0df6-bd9b-4de5-bfce-c359cbe58b7d">
 	<name>rulesLib</name>

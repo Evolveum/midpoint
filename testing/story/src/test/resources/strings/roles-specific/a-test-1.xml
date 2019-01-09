@@ -15,9 +15,9 @@
   -->
 
 <role oid="0daa49bc-6f5b-4746-8461-2e1a633070e3"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	<name>a-test-1</name>
 	<c:description>Approved by managers, security and role approvers (all)</c:description>
 	<c:assignment id="1">

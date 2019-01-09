@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/prism/xml/ns/public/types-3.xsd" namespace="http://prism.evolveum.com/xml/ns/public/types-3" />
+<xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/prism/xml/ns/public/types-3.xsd" namespace="http://prism.evolveum.com/xml/ns/public/types-4" />
   <xsd:annotation>
     <xsd:documentation>
 			Version: 2.0
@@ -13,8 +13,8 @@
                 UID unique identifier
             </xsd:documentation>
       <xsd:appinfo>
-        <a:access xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">read</a:access>
-        <a:maxOccurs xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">1</a:maxOccurs>
+        <a:access xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4">read</a:access>
+        <a:maxOccurs xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4">1</a:maxOccurs>
       </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
@@ -24,7 +24,7 @@
                 __NAME__ attribute
             </xsd:documentation>
       <xsd:appinfo>
-        <a:maxOccurs xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">1</a:maxOccurs>
+        <a:maxOccurs xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4">1</a:maxOccurs>
       </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
@@ -111,7 +111,7 @@
                 __DESCRIPTION__ attribute
             </xsd:documentation>
       <xsd:appinfo>
-        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">__DESCRIPTION__</a:nativeAttributeName>
+        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4">__DESCRIPTION__</a:nativeAttributeName>
       </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
@@ -121,7 +121,7 @@
                 __GROUPS__ attribute
             </xsd:documentation>
       <xsd:appinfo>
-        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">__GROUPS__</a:nativeAttributeName>
+        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4">__GROUPS__</a:nativeAttributeName>
       </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>
@@ -131,7 +131,7 @@
                 __LAST_LOGIN_DATE__ attribute
             </xsd:documentation>
       <xsd:appinfo>
-        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">__LAST_LOGIN_DATE__</a:nativeAttributeName>
+        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4">__LAST_LOGIN_DATE__</a:nativeAttributeName>
       </xsd:appinfo>
     </xsd:annotation>
   </xsd:element>

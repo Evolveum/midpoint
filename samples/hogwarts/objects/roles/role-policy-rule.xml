@@ -1,5 +1,5 @@
 <role oid="2dadd243-687d-4b4c-80cd-09ddfe4cbf59"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>metarole-approval-role-approvers-all</name>
     <description>Requests to assign role holding this metarole will be approved by the role approver(s) using "all must approve" method</description>
     <displayName>Metarole: approval by the role approver(s) - all must approve</displayName>

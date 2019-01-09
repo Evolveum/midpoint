@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <task oid="00000000-0000-0000-0000-000000000005"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 
     <name>Cleanup</name>
     <description>A system task that repeatedly checks for outdated objects (e.g. closed tasks, old audit records) and removes them.</description>

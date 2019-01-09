@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="12345111-1111-2222-1111-121212111566"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Offender Admin</name>
     <assignment>
         <targetRef oid="12345111-1111-2222-1111-121212111565" type="RoleType"/>     <!-- metarole - defender - admin -->

@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 
-<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+					 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 
 	<globalPolicyRule>
 		<name>all-operations</name>

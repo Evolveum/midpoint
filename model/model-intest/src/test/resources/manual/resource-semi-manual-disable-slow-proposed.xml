@@ -16,15 +16,15 @@
   -->
 
 <resource oid="8ed29734-a1ed-11e7-b7f9-7bce8b17fd64"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
         xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 								  
 	<name>Semi-Manual disable-on-delete slow proposed CSV Resource</name>
 	

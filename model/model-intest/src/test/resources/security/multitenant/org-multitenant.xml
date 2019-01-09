@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
  
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 
 	<org oid="00000000-8888-6666-a000-000000000000">
 		<name>0000</name>

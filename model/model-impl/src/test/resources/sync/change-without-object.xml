@@ -15,12 +15,12 @@
   ~ limitations under the License.
   -->
 <c:change xsi:type="c:ResourceObjectShadowChangeDescriptionType" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3' xmlns='http://default.com/whatever'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-4' xmlns='http://default.com/whatever'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4' xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
 	
 	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-3.xsd
+   http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-3.xsd
    '>
 
 	<i:sourceChannel>
@@ -105,14 +105,14 @@
         	<definition>
             <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" />
 					
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -215,7 +215,7 @@
 			of the attributes are defined in this section. This is the part where most of the customization takes place. -->
 		<c:schemaHandling xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
-			elementFormDefault="qualified" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+			elementFormDefault="qualified" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
 			xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd" xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">
 
@@ -246,7 +246,7 @@
 					<i:outbound default="true">
 						<i:valueExpression>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
 						</i:valueExpression>
 					</i:outbound>
@@ -288,7 +288,7 @@
 					<i:outbound>
 						<i:valueExpression>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							$i:user/i:fullName
                         </i:valueExpression>
 					</i:outbound>
@@ -298,7 +298,7 @@
 					<i:inbound>
 						<i:target>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							$i:user/i:fullName
 						</i:target>
 					</i:inbound>
@@ -314,7 +314,7 @@
 					<i:outbound>
 						<i:valueExpression>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							$i:user/i:familyName
                         </i:valueExpression>
 					</i:outbound>
@@ -322,7 +322,7 @@
 					<i:inbound>
 						<i:target>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							$i:user/i:familyName
                         </i:target>
 					</i:inbound>
@@ -337,7 +337,7 @@
 					<i:outbound>
 						<i:valueExpression>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							$i:user/i:givenName
                         </i:valueExpression>
 					</i:outbound>
@@ -345,7 +345,7 @@
 					<i:inbound>
 						<i:target>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							$i:user/i:givenName
 						</i:target>
 					</i:inbound>
@@ -360,7 +360,7 @@
 						<!-- It is mapped from (and also to) "name" property of user. It is essentially a login name -->
 						<i:valueExpression>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							$i:user/i:name
                         </i:valueExpression>
 					</i:outbound>
@@ -368,7 +368,7 @@
 					<i:inbound>
 						<i:target>
 							declare namespace
-							i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 							$i:user/i:name
 						</i:target>
 					</i:inbound>
@@ -403,7 +403,7 @@
 
 			<!-- Correlation expression. It will be used to find appropriate user entry for an account. -->
 			<i:correlation> <!-- Correlation rule is a search query -->
-				<!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"/> is implicit in 
+				<!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-4#UserType"/> is implicit in 
 					correlation rules -->
 				<!-- Following search query will look for users that have "name" equal to the "uid" attribute of the account. Simply 
 					speaking, it will look for match in usernames in the IDM and the resource. -->
@@ -413,7 +413,7 @@
 						<c:ref>c:name</c:ref>
 						<c:code>
 						declare namespace
-						i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+						i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 						declare namespace
 						dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111";
 						$i:account/i:attributes/dj:uid

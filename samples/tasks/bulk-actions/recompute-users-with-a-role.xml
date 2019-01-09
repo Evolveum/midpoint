@@ -15,15 +15,15 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 
     <task>
         <name>Recompute users that have directly assigned a given role</name>
 		<extension>
             <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-                <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4">
                     <s:type>c:UserType</s:type>
                     <s:searchFilter>
                         <q:ref>

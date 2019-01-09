@@ -16,9 +16,9 @@
   -->
 
 <objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-4'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
     <itemDelta>
         <t:modificationType>replace</t:modificationType>

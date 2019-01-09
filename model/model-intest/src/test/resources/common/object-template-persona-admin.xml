@@ -16,9 +16,9 @@
   -->
 <objectTemplate oid="894ea1a8-2c0a-11e7-a950-ff2047b0c053"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'>
     <name>Persona admin object mapping</name>
 
 	<item>

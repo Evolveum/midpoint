@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<org oid="b5b179cc-03c7-11e5-9839-001e8c717e5b" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+<org oid="b5b179cc-03c7-11e5-9839-001e8c717e5b" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <name>FICT</name>
     <description>Fictional org unit. It triggers mapping in object template.</description>
     <displayName>Fictional Org</displayName>

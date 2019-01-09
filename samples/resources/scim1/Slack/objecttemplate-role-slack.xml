@@ -1,8 +1,8 @@
-<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                 oid="bfeff922-de9c-49e9-afff-93574a7c7a09"
                 version="12">

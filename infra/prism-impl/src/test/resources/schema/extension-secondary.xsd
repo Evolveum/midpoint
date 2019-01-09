@@ -23,7 +23,7 @@
             targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extension/secondary"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extension/secondary"
             xmlns:foo="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
 	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"

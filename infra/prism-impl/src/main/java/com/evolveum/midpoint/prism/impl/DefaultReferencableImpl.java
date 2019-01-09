@@ -19,9 +19,9 @@ package com.evolveum.midpoint.prism.impl;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.impl.xjc.PrismForJAXBUtil;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_4.EvaluationTimeType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;

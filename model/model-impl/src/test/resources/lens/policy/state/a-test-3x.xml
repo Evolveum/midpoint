@@ -15,9 +15,9 @@
   -->
 
 <role oid="d3767689-cf26-4e2f-8a1e-5cd139fc4401"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	<name>a-test-3x</name>
 	<c:description>Embedded role, conflicting with 3y</c:description>
 	<assignment>

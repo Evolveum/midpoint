@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <role oid="00000000-0000-0000-0000-000000000004"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Superuser</name>
     <description>Role that gives user full authorization in MidPoint.</description>
     <authorization>

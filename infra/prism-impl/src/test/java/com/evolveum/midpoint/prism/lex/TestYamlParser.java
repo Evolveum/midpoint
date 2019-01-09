@@ -1,5 +1,21 @@
+/*
+ * Copyright (c) 2014-2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.prism.lex;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.json.YamlLexicalProcessor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -62,7 +78,7 @@ public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
 
 		assertEquals("Wrong # of nodes read", 4, nodes.size());
 
-		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-" + PrismConstants.PRISM_MAJOR_VERSION;
 		Iterator<RootXNodeImpl> i = nodes.iterator();
 		assertEquals("Wrong namespace for node 1", NS_C, i.next().getRootElementName().getNamespaceURI());
 		assertEquals("Wrong namespace for node 2", NS_C, i.next().getRootElementName().getNamespaceURI());

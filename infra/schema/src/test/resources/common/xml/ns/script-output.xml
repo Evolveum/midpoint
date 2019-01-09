@@ -14,9 +14,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<s:output xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<s:output xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+		xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 		xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:type="s:PipelineDataType">
@@ -24,20 +24,20 @@
 		<s:value oid="00000000-0000-0000-0000-000000000002"
 				 version="0"
 				 xsi:type="c:UserType">
-			<name xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">administrator</name>
-			<assignment xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" id="1">
+			<name xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">administrator</name>
+			<assignment xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" id="1">
 				<targetRef oid="00000000-0000-0000-0000-000000000004"
 						   relation="org:default"
 						   type="c:RoleType"/>
 			</assignment>
-			<activation xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+			<activation xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 				<administrativeStatus>enabled</administrativeStatus>
 			</activation>
-			<fullName xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">midPoint Administrator</fullName>
-			<givenName xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">midPoint</givenName>
-			<familyName xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">Administrator</familyName>
-			<emailAddress xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">administrator@evolveum.com</emailAddress>
-			<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+			<fullName xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">midPoint Administrator</fullName>
+			<givenName xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">midPoint</givenName>
+			<familyName xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">Administrator</familyName>
+			<emailAddress xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">administrator@evolveum.com</emailAddress>
+			<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 				<password>
 					<value>
 						<t:encryptedData>
@@ -56,9 +56,9 @@
 			</credentials>
 		</s:value>
 		<s:result>
-			<operation xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator.process</operation>
-			<status xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">success</status>
-			<token xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">1000000000000000752</token>
+			<operation xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator.process</operation>
+			<status xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">success</status>
+			<token xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">1000000000000000752</token>
 		</s:result>
 	</s:item>
 </s:output>

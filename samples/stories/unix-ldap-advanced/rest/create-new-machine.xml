@@ -1,8 +1,8 @@
-<service xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
-xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+<service xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4" 
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
 xmlns:gen780="http://prism.evolveum.com/xml/ns/public/debug" 
-xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
-xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" 
+xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
       <name>m1011</name>
       <description>Members will be user dn's who have access to this machine.</description>
       <parentOrgRef oid="af5ea4a1-bd88-40de-978d-50a7c263d38e" type="c:OrgType">

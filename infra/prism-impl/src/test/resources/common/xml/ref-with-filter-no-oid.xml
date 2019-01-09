@@ -16,7 +16,7 @@
   -->
 <user xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
 	  xmlns:f='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	<name>user</name>
 	<accountRef type="AccountType">
 		<description>This is a reference with a filter</description>

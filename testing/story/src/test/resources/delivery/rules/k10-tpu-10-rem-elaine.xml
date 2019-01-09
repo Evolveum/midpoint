@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
 	  oid="fceb5715-545f-4d67-86c8-5f4783597736">
 	<name>k10-tpu-10-rem-elaine</name>

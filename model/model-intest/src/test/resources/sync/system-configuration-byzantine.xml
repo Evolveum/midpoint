@@ -18,8 +18,8 @@
 <!-- as main sysconfig, but this one contains user template reference -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>SystemConfiguration</name>
     <objectTemplate>
         <type>c:UserType</type>

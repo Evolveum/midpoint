@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Thief</name>
     <!-- No construction here. By purpose: to test exclusivity without any constructions. -->

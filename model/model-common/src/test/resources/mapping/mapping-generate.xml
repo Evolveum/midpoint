@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<expression>
 		<generate/>
 	</expression>

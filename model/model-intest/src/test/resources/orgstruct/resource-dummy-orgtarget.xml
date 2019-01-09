@@ -18,12 +18,12 @@
 <!-- Target resource for organizational structure assignments. -->
 
 <resource oid="89cb4c72-cd61-11e8-a21b-27cbf58a8c0e"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 		  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

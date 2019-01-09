@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- (c) 2011-2016 Evolveum, All rights reserved -->
 
-<objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<role oid="e4142fbc-e111-460b-805a-ffacb7031208" version="1">
 		<name>SmartRecruiters:Employee</name>
 		<description>Can only access Internal Mobility and the Referrals Portal unless they're invited to be part of a hiring process.</description>

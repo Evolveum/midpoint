@@ -16,8 +16,8 @@
   -->
 
 <user oid="058cf8d5-01ec-4818-87cc-6477b1a6505f"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
 	<name>lechuck</name>
 	<!-- LeChuck just manages, does not belong to anywhere -->

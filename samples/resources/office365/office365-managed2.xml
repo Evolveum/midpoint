@@ -28,11 +28,11 @@ This contains configuration for a managed (non federated) Office 365 domain
 -->
 
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           oid="resource-o365">
         <name>Office 365 Connector</name>
@@ -57,14 +57,14 @@ This contains configuration for a managed (non federated) Office 365 domain
     <schema>
         <definition>
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                         xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                         elementFormDefault="qualified"
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
                 <xsd:complexType name="AccountObjectClass">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -513,7 +513,7 @@ This contains configuration for a managed (non federated) Office 365 domain
         </objectType>
     </schemaHandling>
     <capabilities>
-        <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
             <cap:addRemoveAttributeValues/>
             <cap:credentials>
                 <cap:password>
@@ -531,7 +531,7 @@ This contains configuration for a managed (non federated) Office 365 domain
                 </cap:host>
             </cap:script>
         </native>
-        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
             <cap:activation>
                 <cap:status>
                     <cap:attribute>ri:accountEnabled</cap:attribute>

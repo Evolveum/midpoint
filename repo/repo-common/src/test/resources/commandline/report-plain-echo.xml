@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <report oid="ec991962-c87e-11e7-8b73-73ef3f6057d7"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<name>Report plain echo</name>
 	<postReportScript>

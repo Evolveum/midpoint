@@ -20,7 +20,7 @@ This resource definition contains also definition to enable synchronization and
 especially an expression that is using a lookup of value from an configuration
 object.
 
---><c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:my="http://myself.me/schemas/whatever" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+--><c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:my="http://myself.me/schemas/whatever" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe">
 
@@ -183,7 +183,7 @@ object.
 
 			</objectType>
 		</schemaHandling>
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 			<configured>
 				<cap:activation>
 					<cap:status>
@@ -215,7 +215,7 @@ object.
 						<q:path>c:name</q:path>
 						<expression>
 							<path>
-								declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+								declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
 								$account/attributes/icfs:name
 							</path>
 						</expression>
@@ -287,7 +287,7 @@ object.
 		<description>
             Definition of a live synchronization task. It will poll changelog and pull in changes
 		</description>
-		<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+		<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
 			<mext:kind>account</mext:kind>
 		</extension>
 		<taskIdentifier>91919191-76e0-59e2-8888-3d4f02d3ffff</taskIdentifier>

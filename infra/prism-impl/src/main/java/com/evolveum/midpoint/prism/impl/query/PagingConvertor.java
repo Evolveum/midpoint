@@ -19,9 +19,9 @@ package com.evolveum.midpoint.prism.impl.query;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.query_4.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.query_4.PagingType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 
 
 

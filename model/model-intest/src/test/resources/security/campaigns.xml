@@ -15,10 +15,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <accessCertificationCampaign>
         <name>All user assignments 1 (administrator)</name>

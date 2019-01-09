@@ -16,13 +16,13 @@
   ~ limitations under the License.
   -->
 <objectModification
-        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-4'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <oid>00000000-d34d-b33f-f00d-100000000001</oid>
     <itemDelta>
         <t:modificationType>add</t:modificationType>
-        <t:path xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>c:inducement</t:path>
+        <t:path xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>c:inducement</t:path>
         <t:value>
             <c:construction>
                 <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee" type="c:ResourceType"/>

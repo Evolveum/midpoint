@@ -15,11 +15,11 @@
   ~ limitations under the License.
   -->
 
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>Set preferredLanguage for all users (multinode)</name>
     <extension>
@@ -38,7 +38,7 @@
                 </s:parameter>
             </s:action>
         </scext:executeScript>
-        <mext:objectType xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">UserType</mext:objectType>
+        <mext:objectType xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">UserType</mext:objectType>
     </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>

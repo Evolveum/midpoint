@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<valuePolicy oid="00000000-0000-0000-1111-000000000003" xsi:type="c:ValuePolicyType" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<valuePolicy oid="00000000-0000-0000-1111-000000000003" xsi:type="c:ValuePolicyType" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<name>Numeric Policy</name>
 	<description>A policy useful for generating PIN.</description>

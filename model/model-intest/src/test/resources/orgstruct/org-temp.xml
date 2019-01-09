@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<org oid="43214321-4311-0952-4762-854392584320" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+<org oid="43214321-4311-0952-4762-854392584320" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <name>TEMP</name>
     <description>Suddenly appearing and disappearing org</description>
     <displayName>Temp Org</displayName>

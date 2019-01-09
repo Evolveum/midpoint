@@ -16,7 +16,7 @@
   -->
 
 <shadow oid="3a1902a4-14d8-11e5-b0b5-001e8c717e5b"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<name>uid=mcmutton,ou=People,dc=example,dc=com</name>

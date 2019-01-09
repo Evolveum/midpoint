@@ -15,17 +15,17 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       oid="00000000-d34d-b33f-f00d-100000000001"
       version="3">
     <name>
-        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">testRole</orig>
-        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">testrole</norm>
+        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">testRole</orig>
+        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">testrole</norm>
     </name>
     <description>GUI</description>
     <metadata>
         <createTimestamp>2013-06-14T09:26:57.644+02:00</createTimestamp>
-        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                     oid="00000000-0000-0000-0000-000000000002"
                     type="c:UserType"/>
         <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>

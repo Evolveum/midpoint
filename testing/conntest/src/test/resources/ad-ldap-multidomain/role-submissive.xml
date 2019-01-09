@@ -15,10 +15,10 @@
   -->
 
 <role oid="0c0c81b2-d0a1-11e5-b51e-0309a826745e" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>Submissive</name>
     <description>Role that creates account in AD subdomain</description>
     <inducement>

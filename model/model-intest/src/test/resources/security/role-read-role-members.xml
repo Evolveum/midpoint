@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="40df00e8-3efc-11e7-8d18-7b955ccb96a1"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>Read Role Members</name>
     <description>Minimum authorization to read members of the roles</description>    
     <authorization>

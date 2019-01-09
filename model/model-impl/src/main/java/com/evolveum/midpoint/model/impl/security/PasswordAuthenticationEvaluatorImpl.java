@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 @Component("passwordAuthenticationEvaluator")
 public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl<PasswordType, PasswordAuthenticationContext>{

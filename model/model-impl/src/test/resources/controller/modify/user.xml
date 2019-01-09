@@ -16,7 +16,7 @@
   -->
 <?xml version="1.0" encoding="UTF-8"?>
 <object xsi:type="UserType" oid="f65963e3-9d47-4b18-aaf3-bfc98bdfaf0b" version="1.0"
-	xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/model/password-1.wsdl" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/model/password-1.wsdl" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<name>a</name>
 
@@ -29,7 +29,7 @@
 	<locality>a</locality>
 	<credentials>
 		<password>
-			<c:base64 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
+			<c:base64 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" />
 		</password>
 	</credentials>
 	<activation>

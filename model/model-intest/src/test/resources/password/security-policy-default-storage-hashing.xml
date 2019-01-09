@@ -16,7 +16,7 @@
   -->
 
 <securityPolicy oid="0ea3b93c-0425-11e7-bbc1-73566dc53d59" 
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<name>Security Policy: default storage hashing</name>
 	<credentials>
 		<default>

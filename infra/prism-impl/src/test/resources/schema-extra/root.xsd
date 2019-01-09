@@ -19,11 +19,11 @@
 	xmlns="http://www.w3.org/2001/XMLSchema" 
 	targetNamespace="http://example.com/xml/ns/test/root.xsd"
 	xmlns:tns="http://example.com/xml/ns/test/root.xsd"
-	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
 	xmlns:foo="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
 	elementFormDefault="qualified">
 	
-	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4" />
 	<import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" />
 	
 	<complexType name="MyExtensionType">

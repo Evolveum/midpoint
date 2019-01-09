@@ -16,7 +16,7 @@
   -->
 
 <task oid="eb8f5be6-2b51-11e7-848c-2fd84a283b03"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  

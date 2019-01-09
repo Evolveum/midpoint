@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <role oid="00000000-0000-0000-0000-000000000008"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>End user</name>
     <description>Role authorizing end users to log in, change their passwords and review assigned accounts. Note: This role definition is just an example. It should be tailored for each specific deployment.</description>
     <authorization>

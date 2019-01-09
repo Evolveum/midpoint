@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<c:genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:my="http://myself.me/schemas/whatever">
+<c:genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:my="http://myself.me/schemas/whatever">
 <c:name>My Sample Config Object</c:name>
         <c:extension>
             <!-- This additional level of depth (the "locations" element) is needed now

@@ -15,11 +15,11 @@
   ~ limitations under the License.
   -->
 <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111"
-                xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 
     <name>Default User Template 1</name>
 

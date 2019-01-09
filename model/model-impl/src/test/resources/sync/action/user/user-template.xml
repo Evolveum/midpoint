@@ -16,27 +16,27 @@
   -->
 <i:userTemplate oid="c0c010c0-d34d-b55f-f22d-777666111111"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <c:name>Default User Template</c:name>
     <i:propertyConstruction>
         <i:property>i:fullName</i:property>
         <i:valueConstruction default="true">
             <i:valueExpression>
             	<c:code>
-                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                     concat($i:user/i:givenName,' ',$i:user/i:familyName)
                 </c:code>
             </i:valueExpression>
 <!-- First work-around for ProeprtyConstructionType have to be applied, to activate and implement support for dependencies -->
 
 <!--                <i:dependency>
-                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                     $i:user/i:givenName
                 </i:dependency>
                 <i:dependency>
-                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                     $i:user/i:familyName
                 </i:dependency>
 -->

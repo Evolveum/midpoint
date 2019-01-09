@@ -15,11 +15,11 @@
   ~ limitations under the License.
   -->
 
-<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <s:type>c:ResourceType</s:type>
     <s:searchFilter>
-        <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+        <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
             <path>c:name</path>
             <value>Dummy Resource Black</value>
         </equal>

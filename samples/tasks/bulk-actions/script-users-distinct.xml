@@ -14,14 +14,14 @@
   ~ limitations under the License.
   -->
 
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
 	  xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
-	  xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+	  xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4">
 	<name>script users (distinct)</name>
 	<executionStatus>runnable</executionStatus>
 	<extension>

@@ -16,9 +16,9 @@
   -->
 <q:filter xsi:type="q:SearchFilterType" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 
 	<q:and>
 		<q:ref>
@@ -28,7 +28,7 @@
 			</q:value>
 		</q:ref>
 		<q:equal>
-			<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+			<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
                 c:attributes/icfs:name</q:path>
 			<q:value xsi:type="xsd:string">uid=jbond,ou=People,dc=example,dc=com</q:value>
 		</q:equal>

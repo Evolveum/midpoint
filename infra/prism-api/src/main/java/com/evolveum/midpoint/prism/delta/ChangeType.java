@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_4.ChangeTypeType;
 
 /**
  * @author semancik

@@ -22,7 +22,7 @@ File that contains three simple valid objects
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <user oid="c0c010c0-d34d-b33f-f00d-111111111111">

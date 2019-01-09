@@ -14,10 +14,10 @@
   ~ limitations under the License.
   -->
 <role oid="ce67b472-e5a6-11e7-98c3-174355334559"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>Limited Role Administrator</name>    
     <authorization>
     	<name>self-read</name>

@@ -16,8 +16,8 @@
   -->
 
 <connector oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd" 
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
 	<name>ICF com.evolveum.polygon.connector.ldap.LdapConnector</name>

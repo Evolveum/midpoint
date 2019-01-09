@@ -17,16 +17,16 @@
 
 <!-- Import test file with references between objects -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 
-	<resource xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<resource xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 		<name>Sample Resource</name>
 		<connectorRef type="ConnectorType">
 			<filter>
 				<!-- <q:and> -->
-				<!-- <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"/> -->
+				<!-- <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType"/> -->
 				<q:equal>
 					<q:path>c:connectorType</q:path>
 					<q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>

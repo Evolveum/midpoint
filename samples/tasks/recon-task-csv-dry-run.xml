@@ -18,17 +18,17 @@
 <!--Reconciliation task definition for CSV resource -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d30011"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:my="http://whatever.com/my"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
 	  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<!-- Resource printable name -->
 	<name>Reconciliation: CSV (dry-run)</name>
 	
-	<extension xmlns:sync="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+	<extension xmlns:sync="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
           <sync:dryRun>true</sync:dryRun>
         </extension>
 

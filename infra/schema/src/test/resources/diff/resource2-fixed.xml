@@ -17,8 +17,8 @@
 
 <!-- Testing undeclared namespaces -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 								  
@@ -34,7 +34,7 @@
         </objectType>
 	</c:schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 		<configured>
 			<cap:activation>
 				<cap:status>
@@ -49,7 +49,7 @@
     <synchronization>
         <objectSynchronization>
             <correlation>
-                <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
                     <q:path>name</q:path>
                     <expression>
                         <path>uid</path>

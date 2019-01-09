@@ -33,10 +33,10 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.HashedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_4.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_4.HashedDataType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 public class XNodeProcessorUtil {
 

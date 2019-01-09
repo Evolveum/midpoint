@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="21ab0013-3d64-44d6-ac87-d14e844781f9"
       version="14">
@@ -20,7 +20,7 @@
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
       <modifyTimestamp>2017-06-20T16:37:39.533+02:00</modifyTimestamp>
       <modifierRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-                   xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                   xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                    oid="00000000-0000-0000-0000-000000000002"
                    relation="org:default"
                    type="tns:UserType"><!-- administrator --></modifierRef>

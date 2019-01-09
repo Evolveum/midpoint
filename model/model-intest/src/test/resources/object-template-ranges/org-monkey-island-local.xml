@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
  
-<c:objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<c:objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+		   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 		   xmlns:ext="http://sample.evolveum.com/xml/ns/sample-idm/extension"
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 

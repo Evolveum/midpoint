@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 
-<shadow xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<shadow xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		oid="88519fca-3f4a-44ca-91c8-dc9be5bf3d03" version="0">
 	<name>hbarbossa</name>
 	<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>

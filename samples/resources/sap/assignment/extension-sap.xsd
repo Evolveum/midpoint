@@ -7,8 +7,8 @@ test initialization (creation of prism context). -->
 <xsd:schema elementFormDefault="qualified"
   targetNamespace="http://example.com/mycustomer"
   xmlns:tns="http://example.com/mycustomer"
-  xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
   <xsd:complexType name="UserExtensionType">

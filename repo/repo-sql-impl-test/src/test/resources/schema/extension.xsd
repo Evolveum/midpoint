@@ -18,13 +18,13 @@
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://example.com/p"
             xmlns:tns="http://example.com/p"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
         <xsd:annotation>
             <xsd:documentation>
                 Common objects.
@@ -32,8 +32,8 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
-                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-4"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-4">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.

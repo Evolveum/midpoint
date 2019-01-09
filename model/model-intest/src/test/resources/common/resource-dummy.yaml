@@ -1,26 +1,26 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 resource:
   oid: "10000000-0000-0000-0000-000000000004"
   name: "Dummy Resource"
   connectorRef:
-    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"
+    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType"
     filter:
-      '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+      '@ns': "http://prism.evolveum.com/xml/ns/public/query-4"
       and:
         equal:
         - path: "connectorType"
           value: "com.evolveum.icf.dummy.connector.DummyConnector"
         - path: "connectorVersion"
           value: "2.0"
-  connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ConnectorConfigurationType>
+  connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ConnectorConfigurationType>
     '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
     configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3/ConfigurationPropertiesType>
       '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
       instanceId: ""
       requireExplicitEnable: "true"
       uselessGuardedString:
-        '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         clearValue: "whatever"
       uselessString: "USEless"
       varyLetterCase: "true"
@@ -46,7 +46,7 @@ resource:
           - path: "$user/name"
           expression:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "\n\t\t\t\t\t\t\t\tname + iterationToken\n\t\t\t\t\t\t\t"
         inbound:
         - strength: "weak"
@@ -65,7 +65,7 @@ resource:
         - strength: "weak"
           expression:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               allowEmptyValues: true
               code: "\n\t\t\t\t\t\t\t\tif (input?.contains('#')) {\n             \
                 \               \t\treturn null\n                        \t\t} else\
@@ -89,7 +89,7 @@ resource:
           expression:
             allowEmptyValues: false
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "'Came from ' + input"
           target:
             path: "description"
@@ -99,14 +99,14 @@ resource:
         inbound:
         - expression:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               allowEmptyValues: false
               code: "'The crew of ' + input"
           target:
             path: "organizationalUnit"
           condition:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "input != null"
       - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004';\
           \ ri:loot"
@@ -117,7 +117,7 @@ resource:
           - "http://pirates.net/avast"
           expression:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "9999 + 1"
       - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004';\
           \ ri:weapon"
@@ -196,7 +196,7 @@ resource:
           outbound:
           - expression:
               asIs:
-              - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/AsIsExpressionEvaluatorType> {}
+              - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/AsIsExpressionEvaluatorType> {}
         administrativeStatus:
           outbound:
           - {}
@@ -204,7 +204,7 @@ resource:
           - strength: "weak"
             condition:
               script:
-              - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+              - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
                 code: "focus?.getActivation()?.getValidFrom() == null && focus?.getActivation()?.getValidTo()\
                   \ == null"
         lockoutStatus:
@@ -215,12 +215,12 @@ resource:
           outbound:
           - expression:
               asIs:
-              - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/AsIsExpressionEvaluatorType> {}
+              - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/AsIsExpressionEvaluatorType> {}
           inbound:
           - strength: "weak"
             expression:
               generate:
-              - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/GenerateExpressionEvaluatorType> {}
+              - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/GenerateExpressionEvaluatorType> {}
     - kind: "account"
       intent: "test"
       displayName: "Testing Account"
@@ -235,13 +235,13 @@ resource:
           - path: "$user/name"
           expression:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "\n\t\t\t\t\t\t\t\t'T' + name + iterationToken\n\t\t\t\t\t\t\t"
         inbound:
         - strength: "weak"
           expression:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "\n\t\t\t\t\t\t\t\tinput?.substring(1)\n\t\t\t\t\t\t\t"
           target:
             path: "$user/name"
@@ -252,7 +252,7 @@ resource:
           - path: "$user/fullName"
           expression:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "fullName + ' (test)'"
         inbound:
         - strength: "weak"
@@ -270,13 +270,13 @@ resource:
         inbound:
         - expression:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "'The crew of Titanicum ' + input + 'icum'"
           target:
             path: "organizationalUnit"
           condition:
             script:
-            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+            - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
               code: "input != null"
       association:
       - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004';\
@@ -329,8 +329,8 @@ resource:
           - path: "$focus/name"
           expression:
             path:
-            - !<http://prism.evolveum.com/xml/ns/public/types-3/ItemPathType> "declare\
-              \ namespace t='http://prism.evolveum.com/xml/ns/public/types-3'; t:norm"
+            - !<http://prism.evolveum.com/xml/ns/public/types-4/ItemPathType> "declare\
+              \ namespace t='http://prism.evolveum.com/xml/ns/public/types-4'; t:norm"
       - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004';\
           \ ri:description"
         outbound:
@@ -360,16 +360,16 @@ resource:
       language: "Logo"
       argument:
       - script:
-        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
           code: "\n\t\t\t\t\t'user: ' + user?.getName()\n\t\t\t\t\t"
         name: "usr"
       - script:
-        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
           code: "\n\t\t\t\t\t'account: ' + account?.getActivation()?.getAdministrativeStatus()\n\
             \t\t\t\t\t"
         name: "acc"
       - script:
-        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
           code: "\n\t\t\t\t\t'resource: ' + resource?.getName()\n\t\t\t\t\t"
         name: "res"
       - value:
@@ -386,16 +386,16 @@ resource:
       language: "Gibberish"
       argument:
       - path:
-        - !<http://prism.evolveum.com/xml/ns/public/types-3/ItemPathType> "$user/costCenter"
+        - !<http://prism.evolveum.com/xml/ns/public/types-4/ItemPathType> "$user/costCenter"
         name: "howMuch"
       - value:
         - "from here to there"
         name: "howLong"
       - path:
-        - !<http://prism.evolveum.com/xml/ns/public/types-3/ItemPathType> "$user/name"
+        - !<http://prism.evolveum.com/xml/ns/public/types-4/ItemPathType> "$user/name"
         name: "who"
       - path:
-        - !<http://prism.evolveum.com/xml/ns/public/types-3/ItemPathType> "$user/fullName"
+        - !<http://prism.evolveum.com/xml/ns/public/types-4/ItemPathType> "$user/fullName"
         name: "whatchacallit"
       code: "Beware the Jabberwock, my son!"
       operation:
@@ -415,7 +415,7 @@ resource:
       language: "Gibberish"
       argument:
       - path:
-        - !<http://prism.evolveum.com/xml/ns/public/types-3/ItemPathType> "$focus/name"
+        - !<http://prism.evolveum.com/xml/ns/public/types-4/ItemPathType> "$focus/name"
         name: "who"
       code: "The vorpal blade went snicker-snack!"
       operation:
@@ -427,7 +427,7 @@ resource:
       language: "Gibberish"
       argument:
       - path:
-        - !<http://prism.evolveum.com/xml/ns/public/types-3/ItemPathType> "$shadow/activation/administrativeStatus"
+        - !<http://prism.evolveum.com/xml/ns/public/types-4/ItemPathType> "$shadow/activation/administrativeStatus"
         name: "how"
       code: "He left it dead, and with its head"
       operation:
@@ -447,15 +447,15 @@ resource:
       enabled: true
       condition:
         script:
-        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
           code: "!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3',\
             \ 'name').startsWith(\"T\")"
       correlation:
-      - '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+      - '@ns': "http://prism.evolveum.com/xml/ns/public/query-4"
         equal:
           path: "name"
-          http://midpoint.evolveum.com/xml/ns/public/common/common-3#expression:
-            '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          http://midpoint.evolveum.com/xml/ns/public/common/common-4#expression:
+            '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             path: |-
               declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
                                           $account/attributes/icfs:name
@@ -481,15 +481,15 @@ resource:
       enabled: true
       condition:
         script:
-        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
+        - !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ScriptExpressionEvaluatorType>
           code: "basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3',\
             \ 'name').startsWith(\"T\")"
       correlation:
-      - '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+      - '@ns': "http://prism.evolveum.com/xml/ns/public/query-4"
         equal:
           path: "name"
-          http://midpoint.evolveum.com/xml/ns/public/common/common-3#expression:
-            '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          http://midpoint.evolveum.com/xml/ns/public/common/common-4#expression:
+            '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             script:
               code: "basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3',\
                 \ 'name').substring(1)"

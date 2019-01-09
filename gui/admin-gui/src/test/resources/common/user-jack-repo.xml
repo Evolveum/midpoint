@@ -16,14 +16,14 @@
   -->
 
 <user oid="b5541d3c-b2fd-11e5-88c0-4f82a8602266" version="2"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
       xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
+      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4"
       xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-3"
       xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -37,7 +37,7 @@
     <parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
     <metadata>
         <createTimestamp>2013-05-29T13:12:36.371+02:00</createTimestamp>
-        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                     oid="00000000-0000-0000-0000-000000000002"
                     type="c:UserType"/>
         <createChannel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</createChannel>
@@ -51,11 +51,11 @@
         <piracy:weapon>mouth</piracy:weapon>
         <piracy:badLuck>0</piracy:badLuck>
     </extension>
-    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
              oid="8d64f4f0-2b44-47aa-935a-63727e78c639"
              type="c:ShadowType"/>
     <assignment id="1">
-        <targetRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        <targetRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                    oid="00000000-8888-6666-0000-100000000011"
                    type="c:OrgType"/>
     </assignment>

@@ -18,7 +18,7 @@
 <!-- Light recompute. Efficient recompute that only recomputes the focus. -->
 
 <task oid="b7b6af78-fffe-11e6-ac04-2fdd62641ce2"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  

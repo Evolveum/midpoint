@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="bc0f3bfe-029f-11e8-995d-273b6606fd79"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>Prop all except assignment</name>    
     <authorization>
     	<name>read-except-assignment</name>

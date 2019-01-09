@@ -15,7 +15,7 @@
   -->
 
 <role oid="4a6b03b0-8936-43e6-b597-ad342c6bc44b"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Sensitive Role With Additional Information</name>
     <assignment>
         <policyRule>

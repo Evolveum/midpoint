@@ -39,17 +39,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
-import com.evolveum.prism.xml.ns._public.query_3.ObjectFactory;
-import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
-import com.evolveum.prism.xml.ns._public.query_3.PropertyComplexValueFilterClauseType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.query_4.ObjectFactory;
+import com.evolveum.prism.xml.ns._public.query_4.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.query_4.PagingType;
+import com.evolveum.prism.xml.ns._public.query_4.PropertyComplexValueFilterClauseType;
+import com.evolveum.prism.xml.ns._public.query_4.QueryType;
+import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_4.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
@@ -504,9 +504,9 @@ public class Main {
 
         JAXBContext jaxbContext = JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
                 "com.evolveum.midpoint.xml.ns._public.common.common_3:" +
-                "com.evolveum.prism.xml.ns._public.annotation_3:" +
-                "com.evolveum.prism.xml.ns._public.query_3:" +
-                "com.evolveum.prism.xml.ns._public.types_3:");
+                "com.evolveum.prism.xml.ns._public.annotation_4:" +
+                "com.evolveum.prism.xml.ns._public.query_4:" +
+                "com.evolveum.prism.xml.ns._public.types_4:");
         Marshaller marshaller = jaxbContext.createMarshaller();
         DOMResult result = new DOMResult();
         marshaller.marshal(equal, result);

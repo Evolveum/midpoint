@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <role oid="23d90f70-1924-419e-9beb-78a8bde6d261"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
    <name>Stats</name>
    <inducement id="1">
@@ -28,7 +28,7 @@
             <outbound>
                <expression>
                   <associationTargetSearch>
-                     <filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                     <filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
                         <q:equal>
                            <q:path>attributes/ri:dn</q:path>
                            <q:value>CN=StatsUsers,OU=groups,DC=example,DC=com</q:value>

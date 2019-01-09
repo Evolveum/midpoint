@@ -16,7 +16,7 @@
   -->
 
 <securityPolicy oid="f30d36a6-fc11-11e5-9b5f-3c970e44b9e2" 
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<name>Security Policy for Passwords (Max. password age = 30D, 3 failed attempts lock for 15 min.)</name>
 	<credentials>
 		<password>

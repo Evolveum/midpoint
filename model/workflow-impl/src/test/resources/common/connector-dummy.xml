@@ -16,10 +16,10 @@
   -->
 
 <connector oid="cccccccc-cccc-cccc-cccc-000000000004"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
-           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
 	
    <c:name>ICF com.evolveum.icf.dummy.connector.DummyConnector</c:name>
@@ -29,17 +29,17 @@
    <c:connectorBundle>com.evolveum.icf.dummy</c:connectorBundle>
    <c:namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</c:namespace>
    <c:schema>
-      <definition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <definition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:qn915="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
             <xsd:complexType name="ConfigurationPropertiesType">
                <xsd:sequence>
                   <xsd:element minOccurs="0" name="uselessString" type="xsd:string">

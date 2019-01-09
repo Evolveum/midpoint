@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <service oid="ba64f6e8-a77e-11e8-a0e8-fb9318a3952f"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>barellium</name>
     <description>Barellium Superiorum</description>
 </service>

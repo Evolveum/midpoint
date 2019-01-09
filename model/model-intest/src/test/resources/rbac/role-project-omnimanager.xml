@@ -14,10 +14,10 @@
   ~ limitations under the License.
   -->
 <role oid="f23ab26c-69df-11e6-8330-979c643ea51c"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Project Omnimanager</name>

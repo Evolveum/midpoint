@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="4838ce2c-5250-4d9c-b5cc-b6b946852806"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<!-- This is a hidden thief; not directly listed in criminal-exclusion participants. But should be excluded nevertheless. -->
     <name>Respectable</name>
 	<inducement>

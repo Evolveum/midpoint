@@ -24,9 +24,9 @@ Matches if (for any N) the value of 'attributeN' is equal to 'valueN'.
 
 -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 		oid="72d69ea9-dc0a-4769-b0a4-282f40226de2">
 	<name>k11</name>
 	<inducement>

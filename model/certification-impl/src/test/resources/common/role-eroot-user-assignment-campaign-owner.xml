@@ -15,9 +15,9 @@
   -->
 
 <role oid="00000000-d34d-b33f-f00d-ffffffff0001"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>ERoot user assignment campaign owner</name>
     <authorization>

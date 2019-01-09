@@ -1,8 +1,8 @@
-<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
                      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                      oid="00000000-0000-0000-0000-000000000001"
                      version="63">
@@ -11,13 +11,13 @@
       <createTimestamp>2016-05-25T16:15:56.179+02:00</createTimestamp>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
       <modifyTimestamp>2016-09-06T12:31:38.442+02:00</modifyTimestamp>
-      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                    oid="00000000-0000-0000-0000-000000000002"
                    type="tns:UserType"><!-- administrator --></modifierRef>
       <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
    </metadata>
    <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:ValuePolicyType"><!-- Default Password Policy --></globalPasswordPolicyRef>
-   <globalSecurityPolicyRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+   <globalSecurityPolicyRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                             oid="00000000-0000-0000-0000-000000000120"
                             type="tns:SecurityPolicyType"><!-- Default Security Policy --></globalSecurityPolicyRef>
    <logging>
@@ -94,13 +94,13 @@
    </logging>
    <objectTemplate>
       <type>RoleType</type>
-      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                          oid="bfeff922-de9c-49e9-afff-93574a7c7a09"
                          type="tns:ObjectTemplateType"><!-- Group role template - Slack  --></objectTemplateRef>
    </objectTemplate>
    <objectTemplate>
       <type>UserType</type>
-      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                          oid="1e73da26-f4bb-4143-9ba2-5f873d519d80"
                          type="tns:ObjectTemplateType"><!-- User template - Slack --></objectTemplateRef>
    </objectTemplate>

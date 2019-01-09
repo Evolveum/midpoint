@@ -15,23 +15,23 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
+    <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           oid="0e030e0c-a37d-47b2-bde8-f8e61e4a2bfb"
           version="2">
         <name>
-            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss2</orig>
-            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss2</norm>
+            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">boss2</orig>
+            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">boss2</norm>
         </name>
         <activation>
             <administrativeStatus>enabled</administrativeStatus>
         </activation>
         <fullName>
-            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Boss2</orig>
-            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss2</norm>
+            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">Boss2</orig>
+            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">boss2</norm>
         </fullName>
         <credentials>
             <password>
@@ -41,19 +41,19 @@
             </password>
         </credentials>
     </user>
-    <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
           version="2">
         <name>
-            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">security</orig>
-            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">security</norm>
+            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">security</orig>
+            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">security</norm>
         </name>
         <activation>
             <administrativeStatus>enabled</administrativeStatus>
         </activation>
         <fullName>
-            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Security Manager</orig>
-            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">security manager</norm>
+            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">Security Manager</orig>
+            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">security manager</norm>
         </fullName>
         <credentials>
             <password>
@@ -63,19 +63,19 @@
             </password>
         </credentials>
     </user>
-    <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           oid="75f2806d-e31b-40c9-8133-85ed4d9e6252"
           version="5">
         <name>
-            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss1</orig>
-            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss1</norm>
+            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">boss1</orig>
+            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">boss1</norm>
         </name>
         <activation>
             <administrativeStatus>enabled</administrativeStatus>
         </activation>
         <fullName>
-            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Boss1</orig>
-            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss1</norm>
+            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-4">Boss1</orig>
+            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-4">boss1</norm>
         </fullName>
         <credentials>
             <password>

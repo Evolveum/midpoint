@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<form xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<form xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20">
 	<name>form1</name>
 	<formDefinition>

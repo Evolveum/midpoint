@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<c:provisioningScripts xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<c:provisioningScripts xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<c:script>
         <c:operation>reconcile</c:operation>
         <c:host>resource</c:host>

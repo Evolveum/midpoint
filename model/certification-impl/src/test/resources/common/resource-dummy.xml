@@ -16,11 +16,11 @@
   -->
 
 <resource oid="10000000-0000-0000-0000-000000000004"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -425,7 +425,7 @@
 				    	<path>$focus/name</path>
 				    </source>
                     <expression>
-                        <path>declare namespace t="http://prism.evolveum.com/xml/ns/public/types-3";
+                        <path>declare namespace t="http://prism.evolveum.com/xml/ns/public/types-4";
                             t:norm</path>
                     </expression>
 				</outbound>
@@ -582,14 +582,14 @@ end
 			<enabled>true</enabled>
 			<condition>
 				<script>
-					<code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+					<code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4', 'name').startsWith("T")</code>
 				</script>
 			</condition>
 			<correlation>
 				<q:equal>
 					<q:path>name</q:path>
 					<expression>
-						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
                             $account/attributes/icfs:name</path>
 					</expression>
 				</q:equal>
@@ -628,7 +628,7 @@ end
 			<enabled>true</enabled>
 			<condition>
 				<script>
-					<code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+					<code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4', 'name').startsWith("T")</code>
 				</script>
 			</condition>
 			<correlation>
@@ -636,7 +636,7 @@ end
 					<q:path>name</q:path>
 					<expression>
 						<script>
-							<code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
+							<code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4', 'name').substring(1)</code>
 						</script>
 					</expression>
 				</q:equal>

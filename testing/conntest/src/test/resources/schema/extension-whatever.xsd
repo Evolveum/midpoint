@@ -19,11 +19,11 @@
 	xmlns="http://www.w3.org/2001/XMLSchema" 
 	targetNamespace="http://whatever.com/my"
 	xmlns:tns="http://whatever.com/my"
-	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	elementFormDefault="qualified">
 	
-	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4" />
 	
 	<complexType name="UserExtensionType">
 		<annotation>

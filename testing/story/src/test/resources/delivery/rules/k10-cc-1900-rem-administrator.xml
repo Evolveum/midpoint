@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
 	  oid="24d185b8-024e-4161-a93d-4df806c561d2">
 	<name>k10-cc-1900-rem-administrator</name>

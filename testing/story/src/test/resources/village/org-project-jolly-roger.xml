@@ -16,7 +16,7 @@
   -->
 
 <org oid="a9ac1aa2-0c0f-11e4-9214-001e8c717e5b"
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<name>Jolly Roger</name>
 	<parentOrgRef oid="00000000-8888-6666-0000-200000000000"/>
 	<assignment>

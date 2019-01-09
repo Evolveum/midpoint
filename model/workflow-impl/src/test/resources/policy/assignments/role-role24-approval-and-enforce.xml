@@ -15,7 +15,7 @@
   -->
 
 <!-- MID-3836 -->
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  oid="00000001-d34d-b33f-f00d-000000000024">
 	<name>Role24</name>
 	<assignment> <!-- metarole-default -->

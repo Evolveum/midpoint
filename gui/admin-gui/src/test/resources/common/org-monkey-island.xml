@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
  
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
          xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 

@@ -15,20 +15,20 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
          xmlns:my="http://myself.me/schemas/whatever"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
          xmlns:p="http://example.com/p"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-core-3.xsd
-         http://prism.evolveum.com/xml/ns/public/query-3 ../../../../../../infra/prism-impl/src/main/resources/xml/ns/public/query-3.xsd">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-core-3.xsd
+         http://prism.evolveum.com/xml/ns/public/query-4 ../../../../../../infra/prism-impl/src/main/resources/xml/ns/public/query-3.xsd">
 
-    <user version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <user version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <c:name>atestuserX00002</c:name>
 
         <lifecycleState>testLifecycleStatus</lifecycleState>
@@ -112,7 +112,7 @@
         <credentials>
             <password>
              <c:value> -->
-            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
                <t:encryptionMethod>
                   <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
                </t:encryptionMethod>
@@ -146,7 +146,7 @@
         </activation>
     </user>
 
-    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>atestuserX00003</name>
 		<description>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut dapibus, felis tincidunt pellentesque
@@ -179,7 +179,7 @@
         <credentials>
             <password>
              <c:value> -->
-            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
                <t:encryptionMethod>
                   <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
                </t:encryptionMethod>
@@ -277,14 +277,14 @@
             <definition>
                 <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" />
 
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -537,7 +537,7 @@
 		           </protected>
 			</objectType>
 		</schemaHandling>
-        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
             <native>
                 <cap:delete/>
             </native>
@@ -692,23 +692,23 @@
         </schedule>
     </task>
 
-    <object xsi:type="ShadowType" oid="11223344" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+    <object xsi:type="ShadowType" oid="11223344" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>8daaeeae-f0c7-41c9-b258-2a3351aa8876</name>
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
         <kind>account</kind>
         <attributes>
-            <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
+            <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
         </attributes>
         <intent>aaa</intent>
         <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
         </activation>
-        <result xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <result xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
             <operation>com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType.importFromResource
             </operation>
             <status>in_progress</status>
@@ -727,14 +727,14 @@
                         </unknownJavaObject>
                     </entry>
 <!--                     <entry key="resourceOid"> -->
-<!--                         <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+<!--                         <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" -->
 <!--                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
 <!--                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
 <!--                                  xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff -->
 <!--                         </paramValue> -->
 <!--                     </entry> -->
 <!--                     <entry key="objectClass"> -->
-<!--                         <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+<!--                         <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" -->
 <!--                                  xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
 <!--                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
 <!--                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
@@ -753,7 +753,7 @@
 <!--                                    xsi:type="PropertyReferenceListType"/> -->
 <!--                         </entry> -->
 <!--                         <entry key="oid"> -->
-<!--                             <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+<!--                             <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" -->
 <!--                                      xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
 <!--                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
 <!--                                      xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff -->
@@ -785,13 +785,13 @@
         </synchronizationSituationDescription>
     </object>
 
-    <object xsi:type="ShadowType" oid="11223355" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <object xsi:type="ShadowType" oid="11223355" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>8daaeeae-f0c7-41c9-b258-2a3351aa8876</name>
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
         <kind>account</kind>
         <attributes>
-            <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
+            <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
         </attributes>
         <intent>aaa</intent>
         <activation>
@@ -806,7 +806,7 @@
 		</pendingOperation>
     </object>
 
-    <object xsi:type="ConnectorType" oid="1234" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <object xsi:type="ConnectorType" oid="1234" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>ICF com.evolveum.polygon.csvfile.CSVFileConnector</name>
         <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
         <connectorType>com.evolveum.polygon.csvfile.CSVFileConnector</connectorType>
@@ -817,14 +817,14 @@
         <definition>
             <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
 
-                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
                 <xsd:complexType name="ConfigurationType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -927,9 +927,9 @@
     </object>
 
      <object xsi:type="SystemConfigurationType"
-             xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-             xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+             xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+             xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
          <name>SystemConfiguration123</name>
          <logging>
@@ -1001,16 +1001,16 @@
          </profilingConfiguration>
      </object>
 
-    <object xsi:type="ConnectorHostType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <object xsi:type="ConnectorHostType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>ICF Connector server on admachine:8759</name>
         <hostname>admachine.example.com</hostname>
         <port>8759</port>
 <!--         <sharedSecret>secret</sharedSecret> -->
     </object>
 
-    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
         <name>Judge</name>
         <displayName>The honest one</displayName>
         <riskLevel>critical</riskLevel>
@@ -1087,9 +1087,9 @@
         </automaticallyApproved>
     </role>
 
-    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
         <name>Pirate</name>
         <roleType>business</roleType>
 		<autoassign>
@@ -1109,8 +1109,8 @@
 	</org>
 
 	<user oid="U1122334455" 
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 		<name>elaine123</name>
@@ -1123,16 +1123,16 @@
 		<title>Governor</title>
 	</user>
 	
-	<object xsi:type="ReportOutputType" oid="1122334455"  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	<object xsi:type="ReportOutputType" oid="1122334455"  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 		<name>report1.pdf</name>
         <filePath>${midpointhome}/reports/report1.pdf</filePath>
         <reportRef oid="111223355"/>
      </object>
 
-    <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             oid="AUDITLOG-3333-3333-TEST-10000000000"
             version="0">
@@ -1204,13 +1204,13 @@
             <definition>
                 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
                             xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
                             elementFormDefault="qualified"
                             targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
-                    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-                    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+                    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
+                    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-4"/>
 
                     <xsd:element name="hqlQuery" type="xsd:string"/>
                     <xsd:element name="type" type="xsd:QName"/>
@@ -1237,8 +1237,8 @@
     </report>
     
 	<valuePolicy oid="SECURITY-0000-0000-0000-000000000003"
-        		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         		version="0">
     	<name>Default Password Policy</name>
     	<description>Default password policy</description>
@@ -1279,7 +1279,7 @@
     	</stringPolicy>
 	</valuePolicy>
 
-    <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
         <name>Security policy</name>
         <description>Security policy example</description>
 <!--         <authentication> -->
@@ -1299,9 +1299,9 @@
 
     <objectTemplate oid="10000000-0000-0000-0000-000000000223"
                     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-                    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-                    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-                    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+                    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+                    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+                    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'>
         <name>Complex User Template Include</name>
         <mapping>
             <!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
@@ -1345,8 +1345,8 @@
 
     </objectTemplate>
 
-    <lookupTable xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <lookupTable xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
         <name>first lookup</name>
         <description>description of lookuptable</description>
         <row id="1">
@@ -1375,11 +1375,11 @@
         </row>
     </lookupTable>
 
-    <accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-                                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    <accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+                                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+                                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
                                  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
         <name>All user assignments 1</name>
         <description>Certifies all users' assignments. Everything is certified by the administrator.</description>

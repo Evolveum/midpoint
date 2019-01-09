@@ -25,9 +25,9 @@ Matches if the currently unassigned role is not assigned to any other user.
 
 -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 		oid="a19ede0a-94ff-4edd-990b-699b3ad7ab94">
 	<name>k23</name>
 	<inducement>

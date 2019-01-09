@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	  oid="df092a19-68f0-4056-adf8-482f8fd26410">
 	<name>metarole-approval-role-approvers-form</name>
 	<description>Always use along with approvers-all or approvers-first metarole!</description>

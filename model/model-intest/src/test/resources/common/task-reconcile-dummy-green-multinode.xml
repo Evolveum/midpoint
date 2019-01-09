@@ -18,10 +18,10 @@
 <!--Reconciliation task definition for dummy resource -->
 
 <task oid="10000000-0000-0000-565M-565600000404"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4"
 	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 

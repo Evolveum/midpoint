@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<s:pipeline list="true" xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+<s:pipeline list="true" xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4">
 	<s:sequence list="true">
 		<s:search xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:SearchExpressionType">
 			<s:type>RoleType</s:type>
@@ -35,9 +35,9 @@
 		</s:action>
 		<s:action xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
 			<s:type>assign</s:type>
-			<s:parameter xmlns:qn81="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+			<s:parameter xmlns:qn81="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 				<s:name>role</s:name>
-				<value xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">rome555c-7797-11e2-94a6-001e8c717e5b</value>
+				<value xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">rome555c-7797-11e2-94a6-001e8c717e5b</value>
 			</s:parameter>
 		</s:action>
 		<s:search xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:SearchExpressionType">

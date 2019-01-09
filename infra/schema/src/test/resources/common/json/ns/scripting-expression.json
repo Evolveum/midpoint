@@ -6,7 +6,7 @@
       "@element" : "search",
       "type" : "RoleType",
       "searchFilter" : {
-        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-4",
         "equal" : {
           "path" : "name",
           "value" : "AAAAA"
@@ -26,7 +26,7 @@
       "type" : "assign",
       "parameter" : {
         "name" : "role",
-        "http://midpoint.evolveum.com/xml/ns/public/common/common-3#value" : "rome555c-7797-11e2-94a6-001e8c717e5b"
+        "http://midpoint.evolveum.com/xml/ns/public/common/common-4#value" : "rome555c-7797-11e2-94a6-001e8c717e5b"
       }
     }, {
       "@element" : "search",

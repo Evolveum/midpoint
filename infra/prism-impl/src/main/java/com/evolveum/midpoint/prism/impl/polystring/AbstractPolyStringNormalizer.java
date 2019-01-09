@@ -19,9 +19,9 @@ import java.text.Normalizer;
 import java.util.regex.Pattern;
 
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringNormalizerConfigurationType;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+import org.apache.commons.lang.StringUtils;
 
 public abstract class AbstractPolyStringNormalizer implements PolyStringNormalizer, ConfigurableNormalizer {
 	

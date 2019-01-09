@@ -22,12 +22,12 @@ Used when building via xjc.
 -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../target/midpoint-schema/xml/ns/public/annotation-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../target/midpoint-schema/xml/ns/public/types-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../target/midpoint-schema/xml/ns/public/query-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-4" uri="../../../target/midpoint-schema/xml/ns/public/annotation-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-4" uri="../../../target/midpoint-schema/xml/ns/public/types-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-4" uri="../../../target/midpoint-schema/xml/ns/public/query-3.xsd" />
 
     <!-- common schema and its components; as they are included, use 'system' element to declare them -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-4" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-certification-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-certification-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-core-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-model-context-3.xsd" />
@@ -43,20 +43,20 @@ Used when building via xjc.
 
     <!-- midPoint XSDs -->
     <!-- common -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../../../target/midpoint-schema/xml/ns/public/common/api-types-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4" uri="../../../target/midpoint-schema/xml/ns/public/common/api-types-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/audit-3" uri="../../../target/midpoint-schema/xml/ns/public/common/audit-3.xsd" />
 
     <!-- gui -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../target/midpoint-schema/xml/ns/public/gui/admin-1.xsd" />
 
     <!-- provisioning -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../../../target/midpoint-schema/xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" uri="../../../target/midpoint-schema/xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" uri="../../../target/midpoint-schema/xml/ns/public/connector/icf-1/connector-schema-3.xsd" />
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" uri="../../../target/midpoint-schema/xml/ns/public/resource/capabilities-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" uri="../../../target/midpoint-schema/xml/ns/public/resource/capabilities-3.xsd" />
 
     <!-- model -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-3" uri="../../../target/midpoint-schema/xml/ns/public/model/import/extension-3.xsd" />
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../../../target/midpoint-schema/xml/ns/public/model/scripting/scripting-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4" uri="../../../target/midpoint-schema/xml/ns/public/model/scripting/scripting-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../../../target/midpoint-schema/xml/ns/public/model/scripting/extension-3.xsd" />
 
     <!-- Experimental XSD schema file locations -->

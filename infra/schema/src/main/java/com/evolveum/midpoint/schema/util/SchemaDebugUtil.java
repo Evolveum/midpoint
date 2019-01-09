@@ -63,12 +63,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.prism.xml.ns._public.query_4.PagingType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_4.RawType;
 
 /**
  *
@@ -823,7 +823,7 @@ public class SchemaDebugUtil {
 		sb.append(prettyPrint(deltaType.getObjectType())).append(" ");
 		sb.append(prettyPrint(deltaType.getOid())).append(" ");
 		sb.append(deltaType.getChangeType()).append(": ");
-		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+		com.evolveum.prism.xml.ns._public.types_4.ObjectType objectToAdd = deltaType.getObjectToAdd();
 		if (objectToAdd != null) {
 			sb.append(prettyPrint(objectToAdd));
 		}
@@ -977,7 +977,7 @@ public class SchemaDebugUtil {
 		sb.append(" ");
 		sb.append(deltaType.getOid()).append(" ");
 		sb.append(deltaType.getChangeType()).append(": ");
-		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+		com.evolveum.prism.xml.ns._public.types_4.ObjectType objectToAdd = deltaType.getObjectToAdd();
 		if (objectToAdd != null) {
 			sb.append(prettyPrint(objectToAdd));
 		}

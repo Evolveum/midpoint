@@ -13,13 +13,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-  <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       oid="00000000-0000-0000-0000-00000000aad1"
       version="0">
    <name>Basic Role</name>
    <inducement id="1">
       <construction>
-         <resourceRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         <resourceRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                       oid="10000000-0000-0000-0000-000000000004"
                       type="c:ResourceType"/>
       </construction>

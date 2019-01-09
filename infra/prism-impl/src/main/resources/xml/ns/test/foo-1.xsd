@@ -19,8 +19,8 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
             xmlns:ft="http://midpoint.evolveum.com/xml/ns/test/foo-types-1"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -41,7 +41,7 @@
         </xsd:appinfo>
     </xsd:annotation>
         
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-4" schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
             <xsd:documentation>
                 The XML Encryption schema. Used for "protected" data types (property encryption).

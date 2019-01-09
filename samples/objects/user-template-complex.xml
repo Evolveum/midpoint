@@ -19,9 +19,9 @@
 
 <objectTemplate oid="10000000-0000-0000-0000-000000000222"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'>
     <name>Complex User Template</name>
     <mapping>
 		<!-- This expression is NOT initial so if will in fact FORCE fullname consistency -->

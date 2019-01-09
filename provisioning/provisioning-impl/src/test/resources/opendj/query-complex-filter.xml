@@ -15,15 +15,15 @@
   ~ limitations under the License.
   -->
 <q:query xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 	xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-3.xsd'
-	xmlns:foo="http://foo.com/" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+   http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-3.xsd'
+	xmlns:foo="http://foo.com/" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">
 
 	<!-- Query filter example -->
 <q:filter>

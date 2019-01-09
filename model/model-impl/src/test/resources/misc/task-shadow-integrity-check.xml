@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="b5a8b51d-d834-4803-a7d0-c81bcc58113e">
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" oid="b5a8b51d-d834-4803-a7d0-c81bcc58113e">
 	<name>Shadow Integrity Check</name>
-	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
 		<mext:diagnose>uniqueness</mext:diagnose>
 		<mext:fix>uniqueness</mext:fix>
 	</extension>

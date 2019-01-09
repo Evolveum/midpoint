@@ -25,7 +25,7 @@ so please do not edit unless you know what you are doing.
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"

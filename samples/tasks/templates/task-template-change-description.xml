@@ -14,9 +14,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<task xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<task xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         oid="78a39955-743b-480f-86c0-9dbeafdbaba6">
     <name>Change description task template</name>
@@ -42,7 +42,7 @@
                 </s:parameter>
             </s:action>
         </scext:executeScript>
-        <mext:objectType xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">UserType</mext:objectType>
+        <mext:objectType xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">UserType</mext:objectType>
     </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>waiting</executionStatus>      <!-- this is task template -->

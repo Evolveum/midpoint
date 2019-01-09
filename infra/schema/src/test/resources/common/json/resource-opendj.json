@@ -1,5 +1,5 @@
 {
-    "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+    "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
     "resource" :
     {
         "oid": "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",

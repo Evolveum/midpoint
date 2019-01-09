@@ -12,9 +12,9 @@
         "parameter": [
           {
             "name": "delta",
-            "http://midpoint.evolveum.com/xml/ns/public/common/common-3#value": {
-              "@ns": "http://prism.evolveum.com/xml/ns/public/types-3",
-              "@type": "http://prism.evolveum.com/xml/ns/public/types-3#ObjectDeltaType",
+            "http://midpoint.evolveum.com/xml/ns/public/common/common-4#value": {
+              "@ns": "http://prism.evolveum.com/xml/ns/public/types-4",
+              "@type": "http://prism.evolveum.com/xml/ns/public/types-4#ObjectDeltaType",
               "itemDelta": [
                 {
                   "modificationType": "replace",
@@ -32,14 +32,14 @@
     "input": {
       "value": [
         {
-          "@type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ObjectReferenceType",
+          "@type": "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ObjectReferenceType",
           "oid": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-          "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+          "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-4#UserType"
         },
         {
-          "@type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ObjectReferenceType",
+          "@type": "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ObjectReferenceType",
           "oid": "229487cb-59b6-490b-879d-7a6d925dd08c",
-          "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+          "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-4#UserType"
         }
       ]
     },

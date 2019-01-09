@@ -13,10 +13,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" 
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" 
       oid="88888888-8888-8888-8888-000000000009">
    <name>LDAP Admins role</name>
    

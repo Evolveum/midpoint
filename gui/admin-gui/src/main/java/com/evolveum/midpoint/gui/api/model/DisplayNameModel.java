@@ -18,7 +18,7 @@ package com.evolveum.midpoint.gui.api.model;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 /**
  * 

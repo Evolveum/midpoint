@@ -20,7 +20,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 public class TestNonceAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, NonceAuthenticationContext, AuthenticationEvaluator<NonceAuthenticationContext>>{
 

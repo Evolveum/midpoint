@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="8418e248-3efc-11e7-a546-931a90cb8ee3"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>Read Role Members - Wrong</name>
     <description>Wrong authorization to read members of the roles. This should NOT give access to role members.</description>    
     <authorization>

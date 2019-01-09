@@ -15,9 +15,9 @@
   -->
 
 <role oid="fa636d6a-f016-491c-8cd5-cdcbfd516be5"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	<name>a-test-2a</name>
 	<c:description>Exclusive with test-2b/2c</c:description>
 	<assignment>

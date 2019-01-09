@@ -20,10 +20,10 @@
 <user oid="deadbeef-c001-f00d-1111-222233330001"
 	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 	
 	xmlns:foo="http://www.example.com/foo"
-    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
 	<name>jack</name>
 	<fullName>
         <t:orig>Cpt. Jack Sparrow</t:orig>

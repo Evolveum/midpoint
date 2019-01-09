@@ -16,8 +16,8 @@
   -->
 
 <s:executeScript
-        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <s:action>
         <s:type>execute-script</s:type>
@@ -36,7 +36,7 @@
         </s:parameter>
         <s:parameter>
             <s:name>outputItem</s:name>
-            <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-3#task</c:value>
+            <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-4#task</c:value>
         </s:parameter>
         <s:parameter>
             <s:name>forWholeInput</s:name>

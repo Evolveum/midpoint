@@ -15,11 +15,11 @@
   -->
 
 <role oid="12345678-d34d-b33f-f00d-000187987988"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Sensitive Role 1</name>
     <description>Security-sensitive role, whose assignment to a user must be approved by the responsible person - in this simple case, by the administrator.</description>
-    <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                  oid="00000000-0000-0000-0000-000000000002"
                  type="c:UserType">
         <description>Approval by the administrator</description>

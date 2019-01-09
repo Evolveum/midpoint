@@ -1,16 +1,16 @@
 {
-  "@ns": "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "@ns": "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
   "resource": {
     "oid": "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
     "name": {
-      "@ns": "http://prism.evolveum.com/xml/ns/public/types-3",
+      "@ns": "http://prism.evolveum.com/xml/ns/public/types-4",
       "orig": "Embedded Test OpenDJ",
       "norm": "embedded test opendj"
     },
     "connectorRef": {
-      "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+      "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType",
       "filter": {
-        "@ns": "http://prism.evolveum.com/xml/ns/public/query-3",
+        "@ns": "http://prism.evolveum.com/xml/ns/public/query-4",
         "description": "...a filter description...",
         "equal": {
           "path": "declare namespace x='http://x/'; extension/x:extConnType",
@@ -28,7 +28,7 @@
         "baseContexts": "dc=example,dc=com",
         "principal": "cn=directory manager",
         "credentials": {
-          "@ns": "http://prism.evolveum.com/xml/ns/public/types-3",
+          "@ns": "http://prism.evolveum.com/xml/ns/public/types-4",
           "clearValue": "secret"
         },
         "vlvSortAttribute": "uid",

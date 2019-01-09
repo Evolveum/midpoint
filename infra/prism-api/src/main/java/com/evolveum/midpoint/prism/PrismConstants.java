@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import javax.xml.namespace.QName;
  *
  */
 public class PrismConstants {
+	
+	public static final int PRISM_MAJOR_VERSION = 4; 
 
 	public static final String EXTENSION_LOCAL_NAME = "extension";
 	public static final String NAME_LOCAL_NAME = "name";
@@ -39,14 +41,14 @@ public class PrismConstants {
 	public static final String ELEMENT_FILTER_LOCAL_NAME = "filter";
 
 	public static final String NS_PREFIX = "http://prism.evolveum.com/xml/ns/public/";
-	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-3";
+	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-" + PRISM_MAJOR_VERSION;
 	public static final String PREFIX_NS_ANNOTATION = "a";
-	public static final String NS_TYPES = NS_PREFIX + "types-3";
+	public static final String NS_TYPES = NS_PREFIX + "types-" + PRISM_MAJOR_VERSION;
 	public static final String PREFIX_NS_TYPES = "t";
-	public static final String NS_QUERY = NS_PREFIX + "query-3";
+	public static final String NS_QUERY = NS_PREFIX + "query-" + PRISM_MAJOR_VERSION;
 	public static final String PREFIX_NS_QUERY = "q";
 
-	public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-3";
+	public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-" + PRISM_MAJOR_VERSION;
 
 	public static final QName DEFAULT_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "default");
 	public static final QName POLY_STRING_ORIG_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "polyStringOrig");
@@ -60,7 +62,7 @@ public class PrismConstants {
 
 	public static final String PREFIX_NS_MATCHING = "mr";
 
-	public static final String NS_POLY_STRING_NORMALIZER = NS_PREFIX + "poly-string-normalizer-3";
+	public static final String NS_POLY_STRING_NORMALIZER = NS_PREFIX + "poly-string-normalizer-" + PRISM_MAJOR_VERSION;
 
 	public static final QName ALPHANUMERIC_POLY_STRING_NORMALIZER = new QName(NS_POLY_STRING_NORMALIZER, "alphanumeric");
 	public static final QName ASCII7_POLY_STRING_NORMALIZER = new QName(NS_POLY_STRING_NORMALIZER, "ascii7");

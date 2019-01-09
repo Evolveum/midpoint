@@ -16,7 +16,8 @@
 package com.evolveum.midpoint.prism.impl.path;
 
 import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

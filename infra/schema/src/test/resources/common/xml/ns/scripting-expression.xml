@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 
-<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	<s:sequence>
 		<s:search>
 			<s:type>RoleType</s:type>

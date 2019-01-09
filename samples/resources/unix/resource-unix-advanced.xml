@@ -1,13 +1,13 @@
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-	  	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-	  	  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
-	  	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" 
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
+	  	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
+	  	  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" 
+	  	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" 
 	  	  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
 	  	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" 
-	  	  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+	  	  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
 	  	  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	  	  xmlns:icfconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.connid.bundles.unix/org.connid.bundles.unix.UnixConnector"
-	  	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	  	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	  	  oid="017a3bc5-e102-4baa-bf93-369a90ec29dd">
     <name>Unix Resource</name>   <!-- Rename --> 
     <connectorRef type="c:ConnectorType">
@@ -209,7 +209,7 @@
                 <q:equal>
                     <q:path>name</q:path>
                     <expression>
-                        <c:path xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">$shadow/attributes/icfs:name</c:path>
+                        <c:path xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">$shadow/attributes/icfs:name</c:path>
                     </expression>
                 </q:equal>
             </correlation>

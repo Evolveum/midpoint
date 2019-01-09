@@ -16,7 +16,7 @@
   -->
 
 <securityPolicy oid="b50aff7e-3784-11e6-b97e-0b955775c407" 
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<name>Evolveum Security Policy</name>
 	<authentication>
 		<mailAuthentication>

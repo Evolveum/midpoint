@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,9 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.SchemaDefinitionType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -384,7 +385,7 @@ public abstract class AbstractLexicalProcessorTest {
 
 	    List<RootXNodeImpl> nodes = standardTest(TEST_NAME, OBJECTS_1, 3);
 
-	    final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+	    final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-" + PrismConstants.PRISM_MAJOR_VERSION;
 	    nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
 	    assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
 	    assertEquals("Wrong namespace for node 2", NS_C, getFirstElementNS(nodes, 1));
@@ -444,7 +445,7 @@ public abstract class AbstractLexicalProcessorTest {
 
 	    assertEquals("Wrong # of nodes read", 2, nodes.size());
 
-	    final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+	    final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-" + PrismConstants.PRISM_MAJOR_VERSION;
 	    nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
 	    assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
 	    assertEquals("Wrong namespace for node 2", NS_C, getFirstElementNS(nodes, 1));
@@ -588,7 +589,7 @@ public abstract class AbstractLexicalProcessorTest {
 
 		assertEquals("Wrong # of nodes read", 1, nodes.size());
 
-		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-" + PrismConstants.PRISM_MAJOR_VERSION;
 		nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
 		assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
 
@@ -624,7 +625,7 @@ public abstract class AbstractLexicalProcessorTest {
 
 		assertEquals("Wrong # of nodes read", 1, nodes.size());
 
-		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-" + PrismConstants.PRISM_MAJOR_VERSION;
 		nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
 
 		// WHEN+THEN (parse in standard way)

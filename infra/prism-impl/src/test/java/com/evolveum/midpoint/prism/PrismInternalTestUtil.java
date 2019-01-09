@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,8 @@ import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.RawType;
 
 /**
  * @author semancik
@@ -246,8 +246,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-types-1.xsd", "foot", null);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t", com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage());
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q", com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-"+PrismConstants.PRISM_MAJOR_VERSION+".xsd", "t", com.evolveum.prism.xml.ns._public.types_4.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-"+PrismConstants.PRISM_MAJOR_VERSION+".xsd", "q", com.evolveum.prism.xml.ns._public.query_4.ObjectFactory.class.getPackage());
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
 		if (extraSchema != null){
 			schemaRegistry.registerPrismSchemaFile(extraSchema);
@@ -256,7 +256,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
 		PrismContextImpl prismContext = PrismContextImpl.create(schemaRegistry);
-		prismContext.setObjectsElementName(new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "objects"));
+		prismContext.setObjectsElementName(new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-"+PrismConstants.PRISM_MAJOR_VERSION, "objects"));
 		return prismContext;
 	}
 

@@ -258,7 +258,7 @@ public class SearchFactory {
         definitions.addAll(createExtensionDefinitionList(objectDef));
 
         Class<C> typeClass = objectDef.getCompileTimeClass();
-        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
+        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_4.ObjectType.class.equals(typeClass)) {
             List<ItemPath> paths = SEARCHABLE_OBJECTS.get(typeClass);
             if (paths != null) {
                 for (ItemPath path : paths) {

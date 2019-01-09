@@ -17,10 +17,10 @@
 <!-- MID-3826 -->
   
 <role oid="66ee3a78-1b8a-11e7-aac6-5f43a0a86116"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>Limited User Admin</name>
     <description>Limited capability to create new users</description>
 	<authorization>

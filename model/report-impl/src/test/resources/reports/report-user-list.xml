@@ -14,11 +14,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         oid="00000000-0000-0000-0000-000000000110"
         version="8">
@@ -29,7 +29,7 @@
       <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
       <modifyTimestamp>2016-11-03T19:57:22.109+01:00</modifyTimestamp>
-      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                    oid="00000000-0000-0000-0000-000000000002"
                    type="tns:UserType"><!-- administrator --></modifierRef>
       <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>

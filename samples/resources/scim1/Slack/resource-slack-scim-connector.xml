@@ -1,15 +1,15 @@
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           oid="2556e12c-d5ef-42bb-8079-abea9526face"
           version="80">
    <name>slack-scim-connector</name>
    <metadata>
       <modifyTimestamp>2016-11-28T12:58:06.463+01:00</modifyTimestamp>
-      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                    oid="00000000-0000-0000-0000-000000000002"
                    type="tns:UserType"/>
       <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
@@ -40,14 +40,14 @@
       </cachingMetadata>
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
             <xsd:complexType name="GroupObjectClass">
                <xsd:annotation>
                   <xsd:appinfo>
@@ -548,7 +548,7 @@
          <retrievalTimestamp>2016-11-28T12:58:10.316+01:00</retrievalTimestamp>
          <serialNumber>bc0db5a514cfe6e1-575a2f5dfa33ef8a</serialNumber>
       </cachingMetadata>
-      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:type="c:CapabilityCollectionType">
          <cap:addRemoveAttributeValues/>
@@ -571,7 +571,7 @@
             </cap:host>
          </cap:script>
       </native>
-      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:type="c:CapabilityCollectionType">
          <cap:activation>
@@ -596,7 +596,7 @@
             <q:equal>
                <q:path>c:name</q:path>
                <expression>
-                  <path>declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; $account/attributes/icfs:name</path>
+                  <path>declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4'; $account/attributes/icfs:name</path>
                </expression>
             </q:equal>
          </correlation>

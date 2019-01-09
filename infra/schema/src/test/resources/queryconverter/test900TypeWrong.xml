@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"><filter>
+<query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"><filter>
 	<q:type>
 		<q:type>RoleType</q:type>
 		<q:or>

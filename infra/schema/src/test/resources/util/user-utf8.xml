@@ -18,8 +18,8 @@
 <!-- Simple user definition -->
  
 <user oid="deadbeef-c001-f00d-1111-222233330001"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+	    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>novacik</name>
 	<fullName>
         <t:orig>Jožko Nováčik</t:orig>

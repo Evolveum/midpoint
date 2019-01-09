@@ -16,10 +16,10 @@
   -->
 
 <resource oid="10000000-0000-0000-0000-0000000004ax"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -65,7 +65,7 @@
          <default>true</default>
          <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
          <attribute>
-            <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">icfs:name</ref>
+            <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">icfs:name</ref>
             <displayName>Username</displayName>
             <limitations>
                <minOccurs>0</minOccurs>
@@ -74,7 +74,7 @@
             <outbound>
                <strength>weak</strength>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path>
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">name</c:path>
                </source>
             </outbound>
          </attribute>
@@ -83,13 +83,13 @@
             <outbound>
                <strength>weak</strength>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixDefaultShell</c:path>
                </source>
             </outbound>
             <inbound>
                <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixDefaultShell</c:path>
                </target>
             </inbound>
@@ -107,7 +107,7 @@
             <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Dir</ref>
             <inbound>
                <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixHomeDir</c:path>
                </target>
             </inbound>
@@ -124,24 +124,24 @@
 <!--             <outbound> -->
 <!--                <strength>weak</strength> -->
 <!--                <source> -->
-<!--                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+<!--                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" -->
 <!--                           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixUserId</c:path> -->
 <!--                </source> -->
 <!--             </outbound> -->
             <inbound>
             <strength>strong</strength>
                <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixUserId</c:path>
                </target>
             </inbound>
          </attribute>
          <attribute>
-            <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">ri:Description</ref>
+            <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">ri:Description</ref>
             <displayName>Description</displayName>
             <inbound>
                <target>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">$user/extension/ext:aixDescription</c:path>
                </target>
             </inbound>
@@ -162,7 +162,7 @@
    <synchronization>
       <objectSynchronization>
          <enabled>true</enabled>
-         <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+         <correlation xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
             <q:description>
 	                    Correlation expression is a search query.
 	                    Following search query will look for users that have "name"
@@ -174,8 +174,8 @@
             <q:equal>
                <q:path>name</q:path>
                <expression>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">$shadow/attributes/icfs:name</c:path>
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+                          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">$shadow/attributes/icfs:name</c:path>
                </expression>
             </q:equal>
          </correlation>

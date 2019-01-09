@@ -1,8 +1,8 @@
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="1a641f93-0e91-4e23-9dc7-21523c7688ba"
       version="14">
@@ -18,7 +18,7 @@
       <description>Construction</description>
       <construction>
          <description>Slack group construction</description>
-         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                       oid="2556e12c-d5ef-42bb-8079-abea9526face"
                       type="tns:ResourceType"><!-- slack-scim-connector --></resourceRef>
          <kind>entitlement</kind>
@@ -28,7 +28,7 @@
    <inducement id="2">
       <description>Slack group association</description>
       <construction>
-         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                       oid="2556e12c-d5ef-42bb-8079-abea9526face"
                       type="tns:ResourceType"><!-- slack-scim-connector --></resourceRef>
          <kind>account</kind>

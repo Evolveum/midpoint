@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="6de5ff6a-5b61-11e3-adc5-001e8c717e5b"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:trafo="http://midpoint.evolveum.com/xml/ns/story/trafo/ext">
     <name>Employee</name>    
     <inducement>

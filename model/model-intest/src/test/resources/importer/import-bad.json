@@ -1,5 +1,5 @@
 {
-  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
   "objects" : [ {
     "user" : {
       "oid" : "c0c010c0-d34d-b33f-f00d-111111111111",
@@ -31,12 +31,12 @@
       "name" : "Wrong Ref Account",
       "resourceRef" : {
         "oid" : "d0e5707e-8157-3333-4444-555511111111",
-        "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType"
+        "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ResourceType"
       },
       "objectClass" : "AccountObjectClass",
       "attributes" : {
         "@ns" : "http://midpoint.evolveum.com/xml/ns/samples/piracy",
-        "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowAttributesType",
+        "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ShadowAttributesType",
         "bar" : "foobar"
       }
     }

@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://prism.evolveum.com/xml/ns/public/query-4"
+            xmlns:tns="http://prism.evolveum.com/xml/ns/public/query-4"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            elementFormDefault="qualified"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            TODO
+            
+            Version: 3.3
+            Recommended namespace prefix: q
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-4">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common prism annotations used in various XSD schemas.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-4"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-4">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common prism types.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <!-- Filters & queries -->
+
+    <xsd:complexType name="QueryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="filter" type="tns:SearchFilterType" minOccurs="0"/>
+            <xsd:element name="paging" type="tns:PagingType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="query" type="tns:QueryType"/>
+
+    <xsd:complexType name="PagingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parameters limiting the number of returned
+                entries, offset, etc.
+                Used in the web service operations
+                such as list or search
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="orderBy" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Property by which the results should be sorted.
+                        Reference to a property (XPath).
+                        Just one property for now.
+                        Maybe we will change this to a list later.
+                        If not specified, the ordering is arbitrary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="orderDirection" type="tns:OrderDirectionType" minOccurs="0" default="ascending">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Direction of ordering (ascending or descending).
+                        Only valid if "orderBy" element is specified.
+                        If not specified, the ordering order is ascending.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="offset" type="xsd:int" default="0" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The index of the first returned entry, starting
+                        with zero. Therefore if 0 is specified, the resulting list
+                        will start with first entry. If 1 is specified, the resulting set will
+                        start with second entry. If not specified, value of zero (0) is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxSize" type="xsd:int" default="2147483647" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The maximum number of entries returned. The
+                        operation may return specified number of number of
+                        entries or less. If not specified, unlimited maximum 
+                        size is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="groupBy" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Property by which the results should be grouped.
+                        Reference to a property (XPath).
+                        Just one property for now.
+                        Maybe we will change this to a list later.
+                        If not specified, no grouping is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="OrderDirectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Direction of an ordering.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ascending">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASCENDING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="descending">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DESCENDING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="SearchFilterType">
+    	<xsd:sequence>
+    		<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:appinfo>
+			        	<jaxb:dom/>                 <!-- this is necessary for the model-client -->
+			        </xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="filter" type="tns:SearchFilterType"/>
+
+    <xsd:complexType name="FilterClauseType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:dom/>            <!-- this is necessary for the model-client -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="matching" type="xsd:string" minOccurs="0">           <!-- TODO move only to relevant clauses (not all support matching) -->
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Property which specifies matching rules. E.g. for polyString,
+                        matching rules can be: norm, orig, strict etc.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="filterClause" type="tns:FilterClauseType"/>
+
+    <!-- individual clauses -->
+
+    <!-- A: primitive filters -->
+    <!-- A1: trivial filters -->
+    <xsd:element name="all" substitutionGroup="tns:filterClause" type="tns:FilterClauseType"/>
+    <xsd:element name="none" substitutionGroup="tns:filterClause" type="tns:FilterClauseType"/>
+    <xsd:element name="undefined" substitutionGroup="tns:filterClause" type="tns:FilterClauseType"/>
+
+    <!-- A2: value filters -->
+    <xsd:element name="equal" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
+    <xsd:element name="greater" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+    <xsd:element name="greaterOrEqual" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+    <xsd:element name="less" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+    <xsd:element name="lessOrEqual" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+    <xsd:element name="substring" substitutionGroup="tns:filterClause" type="tns:SubstringFilterClauseType"/>
+
+    <xsd:element name="ref" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+    <xsd:element name="org" substitutionGroup="tns:filterClause" type="tns:OrgFilterClauseType"/>
+    <xsd:element name="inOid" substitutionGroup="tns:filterClause" type="tns:InOidFilterClauseType"/>
+    <xsd:element name="fullText" substitutionGroup="tns:filterClause" type="tns:FullTextFilterClauseType"/>
+
+    <!-- currently not supported -->
+    <!--
+    <xsd:element name="present" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
+    <xsd:element name="true" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
+    -->
+
+    <!-- B: complex filters -->
+    <!-- B1: logical filters -->
+    <xsd:element name="and" substitutionGroup="tns:filterClause" type="tns:NAryLogicalOperatorFilterClauseType"/>
+    <xsd:element name="or" substitutionGroup="tns:filterClause" type="tns:NAryLogicalOperatorFilterClauseType"/>
+    <xsd:element name="not" substitutionGroup="tns:filterClause" type="tns:UnaryLogicalOperatorFilterClauseType"/>
+
+    <!-- B2: other filters -->
+    <xsd:element name="type" substitutionGroup="tns:filterClause" type="tns:TypeFilterClauseType"/>
+    <xsd:element name="exists" substitutionGroup="tns:filterClause" type="tns:ExistsFilterClauseType"/>
+
+    <!-- Common types. TODO refactor these e.g. to be compatible with classes in
+         com.evolveum.midpoint.prism.query package (although these should be cleaned-up as well.
+         However, this would be an incompatible change, so it needs to wait for midPoint 4.0 -->
+
+    <!-- TODO what's the difference between PropertyComplexValueFilterClauseType and PropertySimpleValueFilterClauseType?
+         There doesn't seem to be any. (med) -->
+    <xsd:complexType name="PropertyComplexValueFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:path" minOccurs="0" maxOccurs="1"/>
+                    <xsd:choice>
+                        <xsd:element ref="tns:value" minOccurs="0" maxOccurs="unbounded"/>
+                        <xsd:element name="rightHandSidePath" type="t:ItemPathType">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    An item that is to be related to the left-hand-side one.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:any namespace="##other" processContents="strict">
+                        	<xsd:annotation>
+                        		<xsd:documentation>
+                        			Extensibility point for various expression languages and other
+                        			"value derivation" mechanisms.
+                        		</xsd:documentation>
+                        	</xsd:annotation>
+                        </xsd:any>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PropertySimpleValueFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:element name="path" type="t:ItemPathType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                XPath to the property being queried.
+                                It is mandatory, as there is no reasonable
+                                default as in the case of path.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:choice>
+                        <xsd:element name="value" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    The elements and values of queried properties.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="rightHandSidePath" type="t:ItemPathType" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    An item that is to be related to the left-hand-side one.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:any namespace="##other" processContents="strict">
+                        	<xsd:annotation>
+                        		<xsd:documentation>
+                        			Extensibility point for various expression languages and other
+                        			"value derivation" mechanisms.
+                        		</xsd:documentation>
+                        	</xsd:annotation>
+                        </xsd:any>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!-- Following element should be constrained a bit more, because their value
+    is always string respectively and it is exactly one. But we don't know how to constrain it now
+    and we do not have the time to find out. Therefore it should be OK for now. -->
+    <xsd:complexType name="SubstringFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:PropertySimpleValueFilterClauseType">
+                <xsd:sequence>
+                    <xsd:element name="anchorStart" type="xsd:boolean" minOccurs="0" default="false"/>
+                    <xsd:element name="anchorEnd" type="xsd:boolean" minOccurs="0" default="false"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="InOidFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="value" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Values of queried properties.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:any namespace="##other" processContents="strict">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Extensibility point for various expression languages and other
+                                    "value derivation" mechanisms.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:any>
+                    </xsd:choice>
+                    <xsd:element name="considerOwner" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, queries not objects with a given OID/ID, but objects that have an owner with given OID/ID.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="FullTextFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Values to be found.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:any namespace="##other" processContents="strict">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Extensibility point for various expression languages and other
+                                    "value derivation" mechanisms.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:any>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PropertyNoValueFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:element name="property" type="t:ItemPathType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrgFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:choice>
+                    <xsd:element name="isRoot" type="xsd:boolean"/>
+                    <xsd:sequence>
+                        <xsd:element name="orgRef" type="tns:OrgFilterRefType"/>
+                        <xsd:element name="scope" type="tns:OrgFilterScopeType" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:choice>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrgFilterRefType">
+        <xsd:sequence>
+            <xsd:element name="oid" type="xsd:string" />
+            <xsd:element name="scope" type="tns:OrgFilterScopeType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="OrgFilterScopeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="SUBTREE">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object being considered can reside anywhere in the subtree rooted at base org.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ONE_LEVEL">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object being considered has to reside one level below base org.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="TypeFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName" />
+                    <xsd:element ref="tns:filter" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ExistsFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:element name="path" type="t:ItemPathType" />
+                    <xsd:element ref="tns:filter" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="path" type="t:ItemPathType">
+        <xsd:annotation>
+            <xsd:documentation>
+                XPath to the XML element for the queried property.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="value" type="xsd:anyType"/>      <!-- parsed as RawType; anyType is here for schema compliance when using xsi:type attribute -->
+
+    <xsd:complexType name="LogicalOperatorFilterClauseType" abstract="true">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="UnaryLogicalOperatorFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:LogicalOperatorFilterClauseType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:filterClause"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="NAryLogicalOperatorFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:LogicalOperatorFilterClauseType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:filterClause" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!-- currently not used -->
+    <xsd:complexType name="UriFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:attribute name="uri" type="xsd:anyURI"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+</xsd:schema>
+

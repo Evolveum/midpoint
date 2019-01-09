@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<user oid="00000001-d34d-b33f-f00d-L00000000001" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<user oid="00000001-d34d-b33f-f00d-L00000000001" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>lead1</name>
 	<assignment> <!-- approver -->
 		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>

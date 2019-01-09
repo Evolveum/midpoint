@@ -16,9 +16,9 @@
   -->
 <user oid="00000000-0000-0000-0000-000000000002" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'>
 	<name>administrator</name>
 	<fullName>midPoint Administrator</fullName>
 	<givenName>midPoint</givenName>
@@ -27,7 +27,7 @@
 	<activation>
 		<administrativeStatus>enabled</administrativeStatus>
 	</activation>
-	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 		<password>
 			<value>
                      <t:clearValue>5ecr3t</t:clearValue>

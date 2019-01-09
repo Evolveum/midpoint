@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="0719ec66-edd9-11e6-bd70-03a74157ff9e"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Caribbean Pirate</name>
     <description>Hierachical role with a parameter in the hierarchy</description>

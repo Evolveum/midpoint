@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 <object xsi:type="AccountShadowType" 
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+		xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>janko</name>
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="2">
         <name>Localhost OpenDJ</name>
@@ -28,13 +28,13 @@
         <schema>
             <xsd:schema elementFormDefault="qualified" 
             		targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" 
-            		xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+            		xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
             		 
-            		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-            		xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
-            		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+            		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
+            		xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" 
+            		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"/>
                 
                 <xsd:complexType name="Account">
                     <xsd:annotation>
@@ -68,11 +68,11 @@
             <accountType default="true">
                 <name>Default Account</name>
                 <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
-                <attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                <attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                     <name>Distinguished Name</name>
                     <access>create</access>
                     <access>read</access>
-                    <outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                    <outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                         <valueExpression xmlns:custom="http://midpoint.evolveum.com/custom"><code>if (2 &lt; 1) then $i:user/i:givenName else $i:user/i:fullName</code></expression>
                     </outbound>
                 </attribute>

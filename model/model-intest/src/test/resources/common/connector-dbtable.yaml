@@ -1,5 +1,5 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 connector:
     oid: "7d3ebd6f-6113-4833-8a6a-596b73a5e434"
     name: "ICF org.identityconnectors.databasetable.DatabaseTableConnector"
@@ -13,14 +13,14 @@ connector:
         '@ns': "http://www.w3.org/2001/XMLSchema"
         schema: "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n<xsd:schema elementFormDefault=\"\
           qualified\" targetNamespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector\"\
-          \ xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" xmlns:a=\"\
-          http://prism.evolveum.com/xml/ns/public/annotation-3\" xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"\
+          \ xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\" xmlns:a=\"\
+          http://prism.evolveum.com/xml/ns/public/annotation-3\" xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\"\
           \ xmlns:qn342=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3\"\
-          \ xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-3\" xmlns:tns=\"\
+          \ xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-4\" xmlns:tns=\"\
           http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector\"\
           \ xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n\t        <xsd:import\
           \ namespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3\"\
-          />\n\t        <xsd:import namespace=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"\
+          />\n\t        <xsd:import namespace=\"http://midpoint.evolveum.com/xml/ns/public/common/common-4\"\
           />\n\t        <xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-3\"\
           />\n\t        <xsd:complexType name=\"ConfigurationType\">\n\t         \
           \ <xsd:sequence>\n\t            <xsd:element minOccurs=\"0\" ref=\"qn342:connectorPoolConfiguration\"\

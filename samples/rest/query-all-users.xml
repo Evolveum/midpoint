@@ -15,6 +15,6 @@
   ~ limitations under the License.
   -->
 
-<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <!-- empty query = return all records -->
 </q:query>

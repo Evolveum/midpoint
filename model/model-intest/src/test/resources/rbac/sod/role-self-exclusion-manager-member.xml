@@ -30,7 +30,7 @@
   ~ limitations under the License.
   -->
 <role oid="aeed4751-fad6-4c4e-9ece-c793128e0c13"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>self-exclusion-manager-member</name>
     <assignment>
     	<policyRule>

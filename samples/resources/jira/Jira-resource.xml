@@ -1,9 +1,9 @@
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           oid="cf933dce-43ef-4925-af9b-f9e13f91a665">
    <name>JiraConnector</name>
@@ -34,15 +34,15 @@
       </cachingMetadata>
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-4"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
             <xsd:complexType name="GroupObjectClass">
                <xsd:annotation>
                   <xsd:appinfo>
@@ -1026,7 +1026,7 @@
          <retrievalTimestamp>2017-08-16T14:58:40.894+02:00</retrievalTimestamp>
          <serialNumber>97c635ae8315d7bb-194b20ba30d0aaf8</serialNumber>
       </cachingMetadata>
-      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:type="c:CapabilityCollectionType">
          <cap:schema/>
@@ -1045,7 +1045,7 @@
             <cap:status/>
          </cap:activation>
       </native>
-      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:type="c:CapabilityCollectionType">
          <cap:addRemoveAttributeValues>

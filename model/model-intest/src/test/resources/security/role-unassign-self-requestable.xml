@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="7c903f28-04ed-11e8-bb7a-df31e8679d27"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>Unassign self requestable</name>
     <description>Unassign any requestable roles assigned to myself</description>    

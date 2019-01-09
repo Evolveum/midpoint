@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- (c) 2011-2016 Evolveum, All rights reserved -->
-<objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<role oid="f52cea12-8a50-4169-a71c-d747b0a4698f" version="1">
 		<name>Drupal:Authenticated user</name>
 		<description>Default role for any logged in user</description>

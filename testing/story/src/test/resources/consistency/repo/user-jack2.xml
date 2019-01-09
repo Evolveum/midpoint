@@ -17,9 +17,9 @@
 <i:user oid="c0c010c0-d34d-b33f-f00d-111111114444" 
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
    >
     <c:name>jackie</c:name>
     <i:fullName>Jack Russel</i:fullName>

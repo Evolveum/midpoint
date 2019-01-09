@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.impl.polystring.Ascii7PolyStringNormalizer;
 import com.evolveum.midpoint.prism.impl.polystring.PassThroughPolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringNormalizerConfigurationType;
 
 /**
  * @author semancik

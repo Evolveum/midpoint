@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         oid="00000000-0000-0000-0000-000000000140">
    <name>Certification campaigns report</name>
    <description>All certification campaigns along with their state.</description>

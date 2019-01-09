@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
 	  oid="c77c458d-0719-4bef-aa8d-dbf0460cd77c"
 	  version="35">

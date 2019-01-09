@@ -16,10 +16,10 @@
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000222"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
     <name>User Template</name>
 	
@@ -52,7 +52,7 @@
       <description>A hack to avoid feedback to HR feed - deleting accounts because they are not assigned</description>
 	  <strength>strong</strength>
       <source>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">employeeType</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">employeeType</c:path>
       </source>
       <expression>
          <value>
@@ -62,7 +62,7 @@
          </value>
       </expression>
       <target>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">assignment</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">assignment</c:path>
       </target>
       <condition>
          <script>
@@ -73,7 +73,7 @@
    <mapping>
 	  <strength>strong</strength>
       <source>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">employeeType</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">employeeType</c:path>
       </source>
       <expression>
          <value>
@@ -81,7 +81,7 @@
          </value>
       </expression>
       <target>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">assignment</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">assignment</c:path>
       </target>
       <condition>
          <script>
@@ -92,7 +92,7 @@
    <mapping>
 	  <strength>strong</strength>
       <source>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">employeeType</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">employeeType</c:path>
       </source>
       <expression>
          <value>
@@ -100,7 +100,7 @@
          </value>
       </expression>
       <target>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">assignment</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">assignment</c:path>
       </target>
       <condition>
          <script>
@@ -111,7 +111,7 @@
    <mapping>
 	  <strength>strong</strength>
       <source>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">employeeType</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">employeeType</c:path>
       </source>
       <expression>
          <value>
@@ -119,7 +119,7 @@
          </value>
       </expression>
       <target>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">assignment</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">assignment</c:path>
       </target>
       <condition>
          <script>
@@ -272,7 +272,7 @@
          <value>ENABLED</value>
       </expression>
       <target>
-         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">activation/administrativeStatus</c:path>
+         <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">activation/administrativeStatus</c:path>
       </target>
 	</mapping>	
 </objectTemplate>

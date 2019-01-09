@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <role oid="b27b9f3c-b962-11e7-9c89-03e5b32f525d"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>Attorney Caribbean Unlimited</name>
     <description>Unlimited power of attorney. But limited only to Caribbean users (objects)</description>
     

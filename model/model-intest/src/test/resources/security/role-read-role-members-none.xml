@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="9e93dfb2-3eff-11e7-b56b-1b0e35f837fc"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>Read Role Members - None</name>
     <description>
     	Authorization to read members of the roles that does not really allows access to roleMembershipRef.

@@ -1,0 +1,2542 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+			xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            TODO
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-4"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-4"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-4" />
+
+    <xsd:complexType name="PolicyConstraintsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Set of governance, risk management, compliance (GRC) and similar policy constraints
+                that influence the identity model. These constraints act as triggers for the rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractPolicyConstraintType">
+				<xsd:sequence>
+					<xsd:element name="objectState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Particular state of the object, described by a filter or an expression.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:displayName>PolicyConstraintsType.objectState</a:displayName>
+								<a:help>PolicyConstraintsType.objectState.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="assignmentState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Particular state of an assignment, described by a filter or an expression.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:displayName>PolicyConstraintsType.assignmentState</a:displayName>
+								<a:help>PolicyConstraintsType.assignmentState.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="hasAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								The focus has assignment(s) of given object(s).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:displayName>PolicyConstraintsType.hasAssignment</a:displayName>
+								<a:help>PolicyConstraintsType.hasAssignment.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="hasNoAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								The focus has no assignment(s) of given object(s).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:displayName>PolicyConstraintsType.hasNoAssignment</a:displayName>
+								<a:help>PolicyConstraintsType.hasNoAssignment.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Exclusion constraint. Constraint that forbids this object to be assigned together with other object.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.exclusion</a:displayName>
+								<a:help>PolicyConstraintsType.exclusion.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="minAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Actual number of objects that have this role assigned is lower than prescribed value.
+								(The constraint should be perhaps named minAssigneesViolation.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.minAssignees</a:displayName>
+								<a:help>PolicyConstraintsType.minAssignees.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="maxAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Actual number of objects that have this role assigned is higher than prescribed value.
+								(The constraint should be perhaps named maxAssigneesViolation.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.maxAssignees</a:displayName>
+								<a:help>PolicyConstraintsType.maxAssignees.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="objectMinAssigneesViolation" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Actual number of objects that have this object (e.g. role) assigned is lower than prescribed value.
+								This is the same as minAssignees, but indicates that the constraint should be evaluated against an object
+								when evaluating object constraints. HIGHLY EXPERIMENTAL
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:experimental>true</a:experimental>
+								<a:displayName>PolicyConstraintsType.objectMinAssigneesViolation</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="objectMaxAssigneesViolation" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Actual number of objects that have this object (e.g. role) assigned is higher than prescribed value.
+								This is the same as minAssignees, but indicates that the constraint should be evaluated against an object
+								when evaluating object constraints. HIGHLY EXPERIMENTAL
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:experimental>true</a:experimental>
+								<a:displayName>PolicyConstraintsType.objectMaxAssigneesViolation</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="modification" type="tns:ModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Constraint that triggers when the object is modified.
+								Modification of the object (add, modify, delete).
+								(This constraint should be perhaps named objectModification.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.modification</a:displayName>
+								<a:help>PolicyConstraintsType.modification.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="assignment" type="tns:AssignmentModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Constraint that triggers when the object is assigned, unassigned or the assignment is modified.
+								Modification of an assignment, i.e. where this object is a target of assignment that is being modified.
+								(This constraint should be perhaps named assignmentModification.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.assignment</a:displayName>
+								<a:help>PolicyConstraintsType.assignment.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="objectTimeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								A constraint that triggers when validity of an object or any of its time-sensitive
+								items (e.g. password) is about to end.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.objectTimeValidity</a:displayName>
+									<a:help>PolicyConstraintsType.objectTimeValidity.help</a:help>
+								</xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="assignmentTimeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								A constraint that triggers when validity of an assignment or any of its time-sensitive
+								items (e.g. password) is about to end.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.assignmentTimeValidity</a:displayName>
+									<a:help>PolicyConstraintsType.assignmentTimeValidity.help</a:help>
+								</xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="situation" type="tns:PolicySituationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Occurrence of the policy situation within an object or an assignment.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.situation</a:displayName>
+									<a:help>PolicyConstraintsType.situation.help</a:help>
+								</xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Constraints that must all apply. (But note that if there are more values of this item,
+								they are interpreted according to the enclosing operator.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:elaborate>true</a:elaborate>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="or" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Constraints from which at least one must apply. (But note that if there are more values of this item,
+								they are interpreted according to the enclosing operator.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:elaborate>true</a:elaborate>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="not" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								The inner constraint must not apply.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:elaborate>true</a:elaborate>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="transition" type="tns:TransitionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies how the inner constraints are to be evaluated with regards to operation start and end state.
+								May not include any transitional constraints itself!
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.transition</a:displayName>
+									<a:help>PolicyConstraintsType.transition.help</a:help>
+									<a:elaborate>true</a:elaborate>
+								</xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="ref" type="tns:PolicyConstraintReferenceType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								References another policy constraint e.g. by its name.
+								The referenced constraint must be present as part of policy rules gathered for a given
+								assignment or object. Also, all declared global constraints are available for referencing,
+								regardless of which objects they are attached to or whether they are active or not.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.ref</a:displayName>
+									<a:help>PolicyConstraintsType.ref.help</a:help>
+								</xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+        <!--<xsd:attribute name="id" type="xsd:long"/>--> <!-- already present in the abstract constraint -->
+    </xsd:complexType>
+
+    <xsd:complexType name="PolicyConstraintReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                References another policy constraint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+				<a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the constraint referenced.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyConstraintReferenceType.name</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+				<!-- parameters, if the referenced constraint is a parametrized one -->
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Basic data structure for all policy constraints.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of the constraint. It is used when midPoint
+                        needs to refer to a specific constraint, e.g. in order
+                        to record exception.
+                        This element is formally specified as optional, mostly
+                        due to the compatibility reasons. But it
+                        has to be provided in order for some functionality to
+                        work correctly.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.5</a:since>
+                        <xsd:appinfo>
+							<a:displayName>AbstractPolicyConstraintType.name</a:displayName>
+							<a:help>AbstractPolicyConstraintType.name.help</a:help>
+						</xsd:appinfo>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AbstractPolicyConstraintType.description</a:displayName>
+						<a:help>AbstractPolicyConstraintType.description.help</a:help>
+					</xsd:appinfo>            	
+            	</xsd:annotation>
+            </xsd:element>
+			<xsd:element name="presentation" type="tns:PolicyConstraintPresentationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How should be triggering of this constraint presented, e.g. in enforcement messages,
+						in approvals, in certification, in notifications, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+						<a:displayName>AbstractPolicyConstraintType.presentation</a:displayName>
+						<a:help>AbstractPolicyConstraintType.presentation.help</a:help>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="enforcement" type="tns:PolicyConstraintEnforcementType" minOccurs="0" default="enforce">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="abstractPolicyConstraint" type="tns:AbstractPolicyConstraintType" />
+
+	<xsd:complexType name="PolicyConstraintPresentationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How should be triggering of this constraint presented, e.g. in enforcement messages,
+				in approvals, in certification, in notifications, etc.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="message" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message to be conveyed to the user.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyConstraintPresentationType.message</a:displayName>
+						<a:help>PolicyConstraintPresentationType.message.help</a:help>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="shortMessage" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Very short message describing the situation. Could be used for e.g. notification messages subject, approval process or work item names.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyConstraintPresentationType.shortMessage</a:displayName>
+						<a:help>PolicyConstraintPresentationType.shortMessage.help</a:help>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="longMessage" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Long, documentation-like explanation of the rule.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyConstraintPresentationType.longMessage</a:displayName>
+						<a:help>PolicyConstraintPresentationType.longMessage.help</a:help>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- todo something like GUI component id/type -->
+			<xsd:element name="final" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true, no embedded triggers will be presented. Use for hiding constraints that are
+						to be considered too technical to be shown to user. EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:experimental>true</a:experimental>
+						<a:displayName>PolicyConstraintPresentationType.final</a:displayName>
+						<a:help>PolicyConstraintPresentationType.final.help</a:help>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="hidden" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true, this trigger will be excluded from presentation. EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:experimental>true</a:experimental>
+						<a:displayName>PolicyConstraintPresentationType.hidden</a:displayName>
+						<a:help>PolicyConstraintPresentationType.hidden.help</a:help>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Ordinal number that determines ordering of displayed messages. EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:experimental>true</a:experimental>
+						<a:displayName>PolicyConstraintPresentationType.displayOrder</a:displayName>
+						<a:help>PolicyConstraintPresentationType.displayOrder.help</a:help>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
+	</xsd:complexType>
+	<xsd:element name="policyConstraintPresentation" type="tns:PolicyConstraintPresentationType" />
+
+	<xsd:simpleType name="PolicyConstraintExpectedUseType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How is this constraint to be used? E.g. also for reporting or for certification? This determines
+				if its triggers and/or related policy situation should be stored into repository.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:deprecated>true</a:deprecated>
+				<a:plannedRemoval>4.0</a:plannedRemoval>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="certification">
+				<xsd:annotation>
+					<xsd:documentation>
+						Situation and triggers will be stored.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CERTIFICATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="briefReport">
+				<xsd:annotation>
+					<xsd:documentation>
+						Situation will be stored but no triggers.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="BRIEF_REPORT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="fullReport">
+				<xsd:annotation>
+					<xsd:documentation>
+						Situation and triggers will be stored.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULL_REPORT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="TriggeredPolicyRulesStorageStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How much information about triggered policy rules should be stored?
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						Triggered policy rules will not be stored.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="messageOnly">
+				<xsd:annotation>
+					<xsd:documentation>
+						Only message and short message for each trigger will be stored. Hidden and final presentation settings are respected.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MESSAGE_ONLY"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="full">
+				<xsd:annotation>
+					<xsd:documentation>
+						The triggers and other information for the rule will be stored (including subtriggers).
+						Hidden and final presentation settings are respected.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<!--<xsd:simpleType name="SituationConstraintsStorageStrategyType">-->
+		<!--<xsd:annotation>-->
+			<!--<xsd:documentation>-->
+				<!--Should triggers for situation constraints be stored "as is" or should referenced rules be unwrapped?-->
+				<!--EXPERIMENTAL-->
+			<!--</xsd:documentation>-->
+			<!--<xsd:appinfo>-->
+				<!--<jaxb:typesafeEnumClass/>-->
+				<!--<a:deprecated>true</a:deprecated>-->
+			<!--</xsd:appinfo>-->
+		<!--</xsd:annotation>-->
+		<!--<xsd:restriction base="xsd:string">-->
+			<!--<xsd:enumeration value="asIs">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Triggers for situation constraints should be stored "as is".-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<jaxb:typesafeEnumMember name="AS_IS"/>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:enumeration>-->
+			<!--<xsd:enumeration value="unwrapped">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Rules referenced from situation constraints should be unwrapped.-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<jaxb:typesafeEnumMember name="UNWRAPPED"/>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:enumeration>-->
+		<!--</xsd:restriction>-->
+	<!--</xsd:simpleType>-->
+
+    <xsd:complexType name="ExclusionPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Container that defines exclusion of entities (e.g. roles).
+                It is a part of Segregation of Duties (SoD) mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+				<a:displayName>ExclusionPolicyConstraintType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+					        	<p>
+	                                Target of exclusion. The object defining this "exclusion" and
+	                                the object defined as target cannot be assigned at the same time.
+	                                Filter in the reference may be used to dynamically exclude broader
+	                                range of roles - assuming that runtime resolution is used.
+	                            </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+				         		<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+								<a:displayName>ExclusionPolicyConstraintType.targetRef</a:displayName>
+								<a:help>ExclusionPolicyConstraintType.targetRef.help</a:help>
+					        </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="orderConstraint" type="tns:OrderConstraintsType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specification of relation(s) when this exclusion constraint should be applied at the source side.
+								(I.e. this is evaluated against the object defining this exclusion constraint.)
+								The default is "order = 1".
+
+								EXPERIMENTAL. Currently it does not work with non-member relations because of assignment
+								evaluation optimizations (see TestSegregationOfDuties.test950JackSelfExclusion). So it can
+								be used only for default and manager relations.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7.1</a:since>
+								<a:displayName>ExclusionPolicyConstraintType.orderConstraint</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="targetOrderConstraint" type="tns:OrderConstraintsType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specification of relation(s) when this exclusion constraint should be applied at the target side.
+								(I.e. this is evaluated against the target object.)
+								The default is "order = 1".
+
+								EXPERIMENTAL. Currently it does not work with non-member relations because of assignment
+								evaluation optimizations (see TestSegregationOfDuties.test950JackSelfExclusion). So it can
+								be used only for default and manager relations.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7.1</a:since>
+								<a:displayName>ExclusionPolicyConstraintType.targetOrderConstraint</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+								<a:displayName>ExclusionPolicyConstraintType.policy</a:displayName>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="exclusionPolicyConstraint" type="tns:ExclusionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="MultiplicityPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint on multiplicity of assigned objects.
+				(Other multiplicity requirements will be probably treated in separate constraints, like "constraint that
+				restricts value(s) of given item, based on a set of conditions that must be met".)
+            </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="multiplicity" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Numeric value or string "unbounded".
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>MultiplicityPolicyConstraintType.multiplicity</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Relation(s) to which this constraint applies. All of these relations must match
+								the defined multiplicity. If no relation is present, org:default (i.e. null) is assumed.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>MultiplicityPolicyConstraintType.relation</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+					<!-- TODO something like "assigned" vs. "effective" - i.e. if we watch assignments created
+					or assignments that are actually "alive" (i.e. enabled and with condition = true) -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="minAssigneesPolicyConstraint" type="tns:MultiplicityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="maxAssigneesPolicyConstraint" type="tns:MultiplicityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="ModificationPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint that triggers the rule on object modification, addition or deletion.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="operation" type="t:ChangeTypeType"  minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the operation(s) for which this constraints should be triggered.
+                                If not specified then it will be triggered for all operations.
+                                This defines the object operation (add/modify/delete of the entire object)
+								or assignment operation (add/modify/delete of the given assignment).
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ModificationPolicyConstraintType.operation</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specification of items that must be modified (all of them) in order for this
+                                constraint be triggered. If no items are specified then any modification will
+                                trigger this constraint.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ModificationPolicyConstraintType.item</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="exactPathMatch" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, item paths to be matched must match exactly. E.g. if "inducement" is specified
+								as an item to be matched, then only object modifications having "inducement" in the path
+								(i.e. whole inducement being added/deleted/replaced) would match.
+
+								This is applicable only for modification operations. For add and delete operations the
+								value of this flag is ignored.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:displayName>ModificationPolicyConstraintType.exactPathMatch</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="expression" type="c:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that is used to determine the result. It is evaluated in addition to all the other
+								conditions, and must have a value of true in order for constraint to be triggered.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:displayName>ModificationPolicyConstraintType.expression</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!--<xsd:element name="ignoreItem" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">-->
+                        <!--<xsd:annotation>-->
+                            <!--<xsd:documentation>-->
+                                <!--Modifications of these items are to be ignored.-->
+								<!--EXPERIMENTAL-->
+                            <!--</xsd:documentation>-->
+							<!--<xsd:appinfo>-->
+								<!--<a:experimental>true</a:experimental>-->
+								<!--<a:since>3.7</a:since>-->
+							<!--</xsd:appinfo>-->
+                        <!--</xsd:annotation>-->
+                    <!--</xsd:element>-->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="modificationPolicyConstraint" type="tns:ModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="AssignmentModificationPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint that triggers the rule when the object is assigned.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ModificationPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="relation" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This constraint only applies to relations of the specified type. The value
+                                of this element is compared to the relation of the targetRef relation
+                                in the assignment. If not specified then this policy only
+                                applies to the null (default) relation. If all relations need to be
+                                affected by this policy then the special value of "any" should be specified
+                                in this element.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>AssignmentModificationPolicyConstraintType.relation</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!--<xsd:element name="targetType" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">-->
+                        <!--<xsd:annotation>-->
+                            <!--<xsd:documentation>-->
+                                <!--This policy only applies to targets of the specified type.-->
+                            <!--</xsd:documentation>-->
+							<!--<xsd:appinfo>-->
+								<!--<a:since>3.6</a:since>-->
+							<!--</xsd:appinfo>-->
+                        <!--</xsd:annotation>-->
+                    <!--</xsd:element>-->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="assignmentModificationPolicyConstraint" type="tns:AssignmentModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+	<xsd:complexType name="AssignmentPolicyConstraintType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Original (3.6) name for AssignmentModificationPolicyConstraintType.
+				Provided here for migration purposes.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.5</a:since>
+				<a:deprecated>true</a:deprecated>
+				<a:deprecatedSince>3.7</a:deprecatedSince>
+				<a:plannedRemoval>4.0</a:plannedRemoval>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AssignmentModificationPolicyConstraintType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="HasAssignmentPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint that triggers when the focus has given assignment(s).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="targetRef" type="c:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Assignment target to be matched. Might be dynamic (with a resolution time of "run"), just
+                                like the one in exclusion constraint. If a relation here is specified, it takes precedence
+                                over "relation" item in this constraint.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>HasAssignmentPolicyConstraintType.targetRef</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="direct" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								If true the assignment to given target must be direct. If false, it must be indirect (induced).
+								If not specified, it might be either direct or indirect. But in all cases it must be of the order
+								one, i.e. metaroles are not considered.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>HasAssignmentPolicyConstraintType.direct</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+    				<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								If true the assignment to given target must be effectively enabled. If false, it must be present
+								but effectively disabled (beware, the behavior of midPoint for disabled indirect assignments may
+								be fragile). If not specified, the effective status is not considered.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>HasAssignmentPolicyConstraintType.enabled</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This policy only applies to relations of the specified type. (Provided that the relation
+                                is not set in the targetRef.) The value of this element is compared to the relation of the
+                                targetRef relation in the assignment/inducement. If not specified then this policy only
+                                applies to the null (default) relation. If all relations need to be affected by this policy
+                                then the special value of "any" should be specified in this element or in the targetRef element.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>HasAssignmentPolicyConstraintType.relation</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+				</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="hasAssignmentPolicyConstraint" type="tns:HasAssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="hasNoAssignmentPolicyConstraint" type="tns:HasAssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="TimeValidityPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A constraint that triggers when validity of an object, assignment, or basically any time-sensitive
+                item (e.g. password) is about to end.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="item" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The item whose validity is to be checked. If not specified, activation/validTo is assumed.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TimeValidityPolicyConstraintType.item</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="assignment" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true, validity of assignments of the relevant object are to be checked, not
+                                items of the object itself. So, for example, if you want to send notifications before validity of
+                                assignments to roles A, B, C expire, you'd need to attach a policy rule with this constraint
+                                having assignment=true to roles A, B, and C.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TimeValidityPolicyConstraintType.assignment</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="activateOn" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When will this policy constraint activate (trigger)? If not specified, activation will occur
+                                on the moment of validity change. Specify negative durations if you need to activate the trigger
+                                before that moment; and positive ones if the trigger should be activated after that.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TimeValidityPolicyConstraintType.activateOn</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="deactivateOn" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When will be this policy constraint deactivated? If not specified, it will be active forever.
+                                Specify negative durations if you need to activate the trigger before the moment of validity
+                                change; and positive ones is the trigger should be deactivated after that.
+
+                                If not specified, the trigger will be active forever (TODO ok? or only until validTo occurs?)
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TimeValidityPolicyConstraintType.deactivateOn</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="timeValidityPolicyConstraint" type="tns:TimeValidityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="StatePolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A constraint that triggers when a object or assignment is in a given state.
+                If both filter and expressions are specified, both must be true in order for constraint to be triggered.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filter that is to be used to determine the state. Mutually exclusive with expression, messageExpression, and executeScript.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>StatePolicyConstraintType.filter</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that is to be used to determine the state. Mutually exclusive with messageExpression, filter, and executeScript.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>StatePolicyConstraintType.expression</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="messageExpression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that is to be used to determine the state: if state matches it should return LocalizableMessageType to be used
+								(both as normal and short messages). Mutually exclusive with message, filter, and executeScript.
+
+								HIGHLY EXPERIMENTAL. Probably will change in the future.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>StatePolicyConstraintType.messageExpression</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Scripting expression (bulk action) to be used to determine the state. Mutually exclusive with filter, expression and messageExpression.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>StatePolicyConstraintType.executeScript</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="assignmentStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="PolicySituationPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint that triggers the rule when the object is in a given policy situation(s).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="situation" type="xsd:anyURI"  minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the policy situation URI(s) to look for.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicySituationPolicyConstraintType.situation</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- TODO some more complex expressions (at least "and / or"; or something like this) -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="situationPolicyConstraint" type="tns:PolicySituationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="TransitionPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+				Specifies how the inner constraints are to be evaluated with regards to operation start and end state.
+				May not include any transitional constraints itself!
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="stateBefore" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expected inner constraint state before the operation.
+								True means the constraint must evaluate to true. False means the constraint must evaluate to false.
+								Unspecified means the constraint is not checked before the operation.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TransitionPolicyConstraintType.stateBefore</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stateAfter" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expected inner constraint state after the operation.
+								True means the constraint must evaluate to true. False means the constraint must evaluate to false.
+								Unspecified means the constraint is not checked after the operation.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TransitionPolicyConstraintType.stateAfter</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="constraints" type="tns:PolicyConstraintsType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Non-transitional policy constraints to be evaluated.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TransitionPolicyConstraintType.constraints</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="transitionPolicyConstraint" type="tns:TransitionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:simpleType name="PolicyConstraintEnforcementType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enumeration of exclusion policy enforcement types.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.0</a:plannedRemoval>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enforce">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Strictly enforce the policy. Any operation that attempts to violate
+                        the policy will fail.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENFORCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="remediate">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The operation that attempts to violate the policy will be suspended.
+                        Remediation action will take place. This may be used e.g. to approve the
+                        exceptions from the policy.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REMEDIATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="report">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy will not be enforced in any way, the violations will only
+                        be reported.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ExclusionPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enumeration of exclusion policy enforcement types.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.0</a:plannedRemoval>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enforce">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Enforce the policy. Excluded entities must not be assigned together.
+                        Attempt to do so will result in an error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENFORCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="approve">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Exceptions to the policy are possible but are subject to an approval.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPROVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="report">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy will not be enforced in any way, the violations will only
+                        be reported.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="PolicyActionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Actions that are executed as reactions to triggered policy rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="enforcement" type="tns:EnforcementPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Enforcement action. This action stops the operation and results with the error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.enforcement</a:displayName>
+						<a:help>PolicyActionsType.enforcement.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approval" type="tns:ApprovalPolicyActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Approval action(s). The operation will be suspended and the approval workflow will be started.
+                        If the workflow ends with success the operation will proceed. If the workflow ends with
+                        an error the operation will also end with an error.
+
+						More approval actions can be specified. They will be eventually merged into one approval process.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.approval</a:displayName>
+						<a:help>PolicyActionsType.approval.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="remediation" type="tns:RemediationPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Remediation action. The operation will proceed. A workflow will be started to remediate the
+                        result of the operation after the operation is done.
+                        This action is ideal for operations that cannot be stopped, e.g. when manager
+                        of an organizational unit is deleted because he quits the job.
+                        This action starts a workflow. Therefore it is ideal for actions that are not frequent but
+                        that require immediate attention. E.g. missing manager for organizational unit.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:experimental>true</a:experimental>
+                    	<a:displayName>PolicyActionsType.remediation</a:displayName>
+						<a:help>PolicyActionsType.remediation.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="prune" type="tns:PrunePolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Prune action. The operation will proceed. Any other assignments that are in conflict with
+                        this assignment that triggered the rule will be "pruned": they will be removed. The removal
+                        of the conflicting assignments is automatic and silent. It will not be subject to approvals
+                        or other policy constraints.
+                        This mechanism can be used for example to implement set of roles where only one of the roles
+                        can be assigned at a time.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.6</a:since>
+                    	<a:displayName>PolicyActionsType.prune</a:displayName>
+						<a:help>PolicyActionsType.prune.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="certification" type="tns:CertificationPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Certification action. The operation will proceed. The object will be scheduled for
+                        a certification campaign after the operation is done.
+                        This action works with certification campaign. Therefore it is ideal for actions that are frequent
+                        and can occur on large number of objects. The campaign is an efficient method how to handle mass
+                        decisions. However it mat not be started immediately.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.certification</a:displayName>
+						<a:help>PolicyActionsType.certification.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="notification" type="tns:NotificationPolicyActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Notification action. The operation will proceed. Notifications are sent at the end of the
+                        operation. More notification actions can be specified.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.notification</a:displayName>
+						<a:help>PolicyActionsType.notification.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="record" type="tns:RecordPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Record action. The operation will proceed. Policy situation will be recorded for
+						given object or assignment. It can be reported on or certified later on.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.record</a:displayName>
+						<a:help>PolicyActionsType.record.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="scriptExecution" type="tns:ScriptExecutionPolicyActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execute script (bulk action). The operation will proceed. Script(s) are executed at the end of the operation.
+						HIGHLY EXPERIMENTAL. Use at your own risk. No guarantees here.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+						<a:experimental>true</a:experimental>
+                    	<a:displayName>PolicyActionsType.scriptExecution</a:displayName>
+						<a:help>PolicyActionsType.scriptExecution.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stop" type="tns:StopPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stop action. This action stops the operation after n executions and results with the error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.stop</a:displayName>
+						<a:help>PolicyActionsType.stop.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="PolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common supertype for policy actions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Name for the action. It is used for logging and other diagnostic purposes.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionType.name</a:displayName>
+						<a:help>PolicyActionType.name.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Free-form description (e.g. comments about the action purpose)
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionType.description</a:displayName>
+						<a:help>PolicyActionType.description.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            When should this action be applied?
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+                    	<a:displayName>PolicyActionType.condition</a:displayName>
+						<a:help>PolicyActionType.condition.help</a:help>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+             <xsd:element name="count" type="xsd:integer" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Action is executed after reatching the limit
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionType.count</a:displayName>
+						<a:help>PolicyActionType.cunt.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="EnforcementPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enforcement action. This action stops the operation and results with the error.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <!-- Empty for now.
+						 TODO: later add type of error and message -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+     <xsd:complexType name="StopPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Stop action. This action stops the operation and results with the error.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <!-- Empty for now.
+						 TODO: later add type of error and message -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ApprovalPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Approval action. The operation will be suspended and the approval workflow will be started.
+                If the workflow ends with success the operation will proceed. If the workflow ends with
+                an error the operation will also end with an error.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+				<a:displayName>ApprovalPolicyActionType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+					<xsd:element name="processSpecification" type="c:WfProcessSpecificationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								TODO
+								EXPERIMENTAL
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:experimental>true</a:experimental>
+								<a:displayName>ApprovalPolicyActionType.processSpecification</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="compositionStrategy" type="c:ApprovalCompositionStrategyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How should be this approval policy action composed with other ones that
+                                might be related to the same item (object or assignment)?
+                            </xsd:documentation>
+		                    <xsd:appinfo>
+		                    	<a:displayName>ApprovalPolicyActionType.compositionStrategy</a:displayName>
+								<a:help>ApprovalPolicyActionType.compositionStrategy.help</a:help>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="approvalDisplayName" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Display name for this approval definition. If not specified, the name is derived from triggered constraints (short messages).
+							</xsd:documentation>
+		                    <xsd:appinfo>
+		                    	<a:displayName>ApprovalPolicyActionType.approvalDisplayName</a:displayName>
+								<a:help>ApprovalPolicyActionType.approvalDisplayName.help</a:help>
+		                    </xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:choice>
+                        <xsd:sequence>
+                            <xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation>
+                                        <p>
+                                            What relation(s) to use when determining approvers? E.g. "approver", "owner",
+                                            "securityApprover", and so on.
+                                        </p>
+                                    </xsd:documentation>
+				                    <xsd:appinfo>
+				                    	<a:displayName>ApprovalPolicyActionType.approverRelation</a:displayName>
+										<a:help>ApprovalPolicyActionType.approverRelation.help</a:help>
+				                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation>
+                                        <p>
+                                            Direct enumeration of the approvers to be used.
+                                            May be used with approverRelation and approverExpression element(s).
+                                        </p>
+                                    </xsd:documentation>
+				                    <xsd:appinfo>
+				                    	<a:displayName>ApprovalPolicyActionType.approverRef</a:displayName>
+										<a:help>ApprovalPolicyActionType.approverRef.help</a:help>
+				                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation>
+                                        <p>
+                                            Expression(s) that yield approvers to be used. If specified, the expression(s) are evaluated and
+                                            the result is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
+                                            May be used with approverRelation and approverRef element(s).
+                                        </p>
+                                    </xsd:documentation>
+				                    <xsd:appinfo>
+				                    	<a:displayName>ApprovalPolicyActionType.approverExpression</a:displayName>
+										<a:help>ApprovalPolicyActionType.approverExpression.help</a:help>
+				                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    <p>
+                                        More complex (multi-stages) approval schema.
+                                    </p>
+                                </xsd:documentation>
+			                    <xsd:appinfo>
+			                    	<a:displayName>ApprovalPolicyActionType.approvalSchema</a:displayName>
+									<a:help>ApprovalPolicyActionType.approvalSchema.help</a:help>
+			                    </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="approvalProcess" type="xsd:string"
+                                     minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    <p>
+                                        Name of custom approval process.
+                                    </p>
+                                    <p>
+                                        THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
+                                    </p>
+                                </xsd:documentation>
+                                <xsd:appinfo>
+                                	<a:experimental>true</a:experimental>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
+                    <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Condition specifying when the approval is automatically granted (e.g.
+                                    "user is from Board of Directors"). This is an expression that should yield a
+                                    boolean value.
+
+                                    DEPRECATED. Use automaticallyCompleted in approval level definition.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.6</a:deprecatedSince>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ApprovalCompositionStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Prescribes how individual approval requirements should be composed into overall approval schema.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+                    <xsd:appinfo>
+		                <a:displayName>ApprovalCompositionStrategyType.order</a:displayName>
+                    </xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="exclusive" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, this fragment might be the only one with this particular order number.
+						(Other fragments could be merged into it, but in "mergeIntoOrder" mode. TODO TODO TODO)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+		                <a:displayName>ApprovalCompositionStrategyType.exclusive</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mergeable" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, this schema fragment is eligible to merging with other fragments of the same order.
+                        (Non-mergeable fragments with the same order are ordered randomly. Mergeable fragments must have
+                        order filled-in.)
+
+						Mergeable fragments must have "order" attribute set.
+
+                        Restrictions on merging schema fragments:
+                        1) Mergeable fragments must contain exactly one stage. It is merged with the stage(s) of the other
+                        fragment(s) without any further considerations (e.g. regarding stage order or name or whatever).
+                        2) It is expected that single policy rule triggered all the fragments that are being merged. So
+                        we consider any of these rules.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergeable</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mergeIntoOrder" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Which fragments should this one be merged with. This is mutually exclusive with the "order" attribute.
+						If order is set, it is not possible to specify mergeIntoOrder. Both fragments with the same order are
+						considered "equal". This can be used e.g. to provide a different set of approvers (for the given stage).
+						If mergeIntoOrder is set (usually with multiple values), this fragment is considered as an augmentation
+						of other ones. This can be used e.g. to provide an escalation or notification strategy, custom form information, etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergeIntoOrder</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="mergeIntoAll" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that this fragment is to be merged into all the other "base" fragments.
+						This is mutually exclusive with the "order" and "mergeIntoOrder" attributes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergeIntoAll</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mergePriority" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Provides an information about order in which this fragment is merged (lower numbers are processed before higher ones).
+					</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergePriority</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mergeOverwriting" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If stage B is being merged into existing stage A (i.e. mergeOrder B is greater mergeOrder A),
+                        all non-null values of B will be added to values of A; overwriting them in case of single-valued items.
+                        For items marked as "mergeOverwriting", the actual values of B (even those that are null or empty)
+                        overwrite those in A.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergeOverwriting</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="WfProcessSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of a process that is to be started.
+				EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+	        <xsd:choice>
+		        <xsd:element name="ref" type="xsd:string" minOccurs="0">
+			        <xsd:annotation>
+				        <xsd:documentation>
+					        Reference to existing process specification.
+				        </xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>WfProcessSpecificationType.ref</a:displayName>
+						</xsd:appinfo>
+			        </xsd:annotation>
+		        </xsd:element>
+		        <xsd:sequence>
+			        <xsd:element name="name" type="xsd:string" minOccurs="0">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        Name for this process specification.
+					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.name</a:displayName>
+							</xsd:appinfo>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="order" type="xsd:int" minOccurs="0">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        In what order this process specification is to be considered.
+					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.order</a:displayName>
+							</xsd:appinfo>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="deltaFrom" type="c:DeltaSourceSpecificationType" minOccurs="0" maxOccurs="unbounded">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        TODO
+					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.deltaFrom</a:displayName>
+							</xsd:appinfo>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="includeAction" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        What approval actions to include during approval schema creation for this process.
+								If they are not triggered an exception is thrown.
+					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.includeAction</a:displayName>
+							</xsd:appinfo>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="includeActionIfPresent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        What approval actions to include during approval schema creation for this process.
+								If they are not triggered they are silently skipped.
+					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.includeActionIfPresent</a:displayName>
+							</xsd:appinfo>
+				        </xsd:annotation>
+			        </xsd:element>
+					<xsd:element name="approvalDisplayName" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Name for approval process. If not specified, name from approval action(s) is taken.
+								If not specified even there, the name is derived from triggered constraints (short messages).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.approvalDisplayName</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+		        </xsd:sequence>
+	        </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeltaSourceSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+				EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+				<a:displayName>DeltaSourceSpecificationType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+			<xsd:choice>
+				<xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>
+							Include all modifications of these items as a delta that is to be approved.
+						</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>DeltaSourceSpecificationType.item</a:displayName>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="itemValue" type="t:ItemPathType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Create a delta for each value of this item that is to be added, deleted or modified.
+						</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>DeltaSourceSpecificationType.itemValue</a:displayName>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RemediationPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <!-- TODO -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PrunePolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <!-- TODO -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CertificationPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <xsd:element name="definitionRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Certification definition(s) to be started as part of the action execution.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
+                                <a:since>3.6</a:since>
+		                    	<a:displayName>CertificationPolicyActionType.definitionRef</a:displayName>
+								<a:help>CertificationPolicyActionType.definitionRef.help</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="NotificationPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+				<a:displayName>NotificationPolicyActionType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <!-- TODO -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ScriptExecutionPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+				HIGHLY EXPERIMENTAL. Use at your own risk. No guarantees here.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.9</a:since>
+                <a:experimental>true</a:experimental>
+				<a:displayName>ExecuteScriptPolicyActionType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RecordPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+					<xsd:element name="policyRules" type="tns:TriggeredPolicyRulesStorageStrategyType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								How much information about triggered policy rules should be stored?
+								EXPERIMENTAL
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:experimental>true</a:experimental>
+								<a:displayName>RecordPolicyActionType.policyRules</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<!--<xsd:element name="situationConstraints" type="tns:SituationConstraintsStorageStrategyType" minOccurs="0">-->
+						<!--<xsd:annotation>-->
+							<!--<xsd:documentation>-->
+								<!--Should triggers for situation constraints be stored "as is" or should referenced rules be unwrapped?-->
+								<!--EXPERIMENTAL-->
+							<!--</xsd:documentation>-->
+						<!--</xsd:annotation>-->
+					<!--</xsd:element>-->
+
+				</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PolicyExceptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Recorded exception from a policy rule. The exceptions that are approved are
+                recoded here to avoid re-evaluating and re-approving them all the time.
+                This is EXPERIMENTAL functionality. It is likely to change in the near future.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ruleName" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Name for the rule for which this is an exception.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Policy situation for which this is an exception.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: validity? -->
+            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PolicyRuleEnforcerHookPreviewOutputType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="rule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            TODO
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="LifecycleStateModelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of lifecycle states and state transitions.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="state" type="tns:LifecycleStateType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specification of lifecycle state.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateModelType.state</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LifecycleStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of lifecycle state.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+				<a:displayName>LifecycleStateType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier of the state. This is the value that is used in the
+                            lifecycleState property.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.name</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Free-form description of the state (e.g. purpose, mechanisms, etc.)
+                            Used for documentation purposes (comment).
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.description</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayName" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            User-friendly name of the state, e.g. for displaying in the user interface.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.displayName</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="forcedActivationStatus" type="tns:ActivationStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    		Activation status forced by this lifecycle state. If lifecycle state
+                    		implies activation status, then such status will be forced to all objects
+                    		that are in that lifecycle state. Such objects will have the effective status
+                    		set to the value of forcedActivationStatus regardless of other activation setting.
+                    		I.e. administrativeStatus and validity are not considered in this case.
+                    	</p>
+                    	<p>
+                    		If no forced status is specified for a state that is explicitly defined,
+                    		the "undefined" is implied. In that case the usual activation computation
+                    		takes place (e.g. administrativeStatus and validity).
+                    	</p>
+                    	<p>
+                    		However, there is a couple of hardcoded lifecycle states. If these states
+                    		are not explicitly defined in a lifecycle model, the hardcoded defaults are applied
+                    		for activation in these hardcoded states ("undefined" for active and deprecated
+                    		states, "archived" for archived state, "disabled" for all other states). To turn off this default behaviour
+                    		those hardcoded lifecycle states need to be explicitly defined in the state model
+                    		and the forcedActivationStatus property shoule be left undefined.
+                    	</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+						<a:displayName>LifecycleStateType.forcedActivationStatus</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="forcedAssignment" type="tns:VirtualAssignmentSpecificationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+                    		There are cases when you need to force midpoint thinks that user has assigned some
+                    		role. The assignemnt actually doesn't exist but there is a need to preted as it does.
+                    		This can be used e.g. for post-authentication flow. The user has assigned all business,
+                    		application, etc. roles but we don't want to consider these roles during his
+                    		post-authentication proces. Instead, we want to pretend he has "temporary" role assigned
+                    		which allows him to perform post-authentication.
+                    	</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.forcedAssignment</a:displayName>
+                    </xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="activeAssignments" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    		Setting that specifies whether object assignments should be considered
+                    		active in this lifecycle state. If set to true, then assignments are considered
+                    		active. That means that the assignments will be computed as usual.
+                    		If set to false then all object assignments are considered inactive. Which
+                    		means that they will be ignored (as if they do not exist at all).
+                    	</p>
+                    	<p>
+                    		If this setting is not specified then the result of forced activation status
+                    		determines behavior of the assignments. If forced activation is "disabled" or
+                    		"archived" then the assignments are considered to be inactive. If forced activation
+                    		status is "enabled" or if it is not defined at all then the assignments are considered
+                    		active.
+                    	</p>
+                    	<p>
+                    		However, there is a couple of hardcoded lifecycle states. If these states
+                    		are not explicitly defined in a lifecycle model, the hardcoded defaults are applied
+                    		for activation in these hardcoded states ("undefined" for active and deprecated
+                    		states, "disabled" for all other states). To turn off this default behaviour
+                    		those hardcoded lifecycle states need to be explicitly defined in the state model
+                    		and the forcedActivationStatus property shoule be left undefined.
+                    	</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+						<a:displayName>LifecycleStateType.activeAssignments</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: activationStatus -->
+            <xsd:element name="entryAction" type="tns:LifecycleStateActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            State entry action. Action that is executed when the state is entered.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.entryAction</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exitAction" type="tns:LifecycleStateActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            State exit action. Action that is executed when the state is exited.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.exitAction</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="transition" type="tns:LifecycleStateTransitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Transition to another state.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.transition</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="VirtualAssignmentSpecificationType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			<p>
+    				There are cases when you need to force midpoint thinks that user has assigned some
+                    role. The assignemnt actually doesn't exist but there is a need to preted as it does.
+                    This can be used e.g. for post-authentication flow. The user has assigned all business,
+                    application, etc. roles but we don't want to consider these roles during his
+                    post-authentication proces. Instead, we want to pretend he has "temporary" role assigned
+                    which allows him to perform post-authentication.
+    			</p>
+    		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:container/>
+    			<a:since>3.8.1</a:since>
+    			<a:experimental>true</a:experimental>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="targetType" type="xsd:QName" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The target type of the assignment, e.g RoleType, ServiceType, OrgType, ...
+    					</p>
+    				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>VirtualAssignmentSpecificationType.targetType</a:displayName>
+					</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						No filter, no virtual assignemnts.
+    					</p>
+    				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>VirtualAssignmentSpecificationType.filter</a:displayName>
+					</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LifecycleStateTransitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of lifecycle state transition.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Short name for the transition. It may be used in log files, user interface, etc.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateTransitionType.name</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Free-form description of transition purpose, mechanisms, etc.
+                            Used for documentation purposes (comment).
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateTransitionType.description</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetState" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier of the state that is the target of the transition.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateTransitionType.targetState</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Condition for automatic state transition. If the condition returns true value
+                            then lifecycle transitions to the target state.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateTransitionType.condition</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="LifecycleStateActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+				<a:displayName>LifecycleStateActionType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Short name of the action. It may be used in log files, user interface, etc.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateActionType.name</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Free-form description of the action purpose, mechanisms, etc.
+                            Used for documentation purposes (comment).
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateActionType.description</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dataReduction" type="tns:LifecycleStateActionDataReductionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Action that reduces (purges) object data.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateActionType.dataReduction</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: assign, (mass) unassign -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="LifecycleStateActionDataReductionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Action that reduces (purges) object data.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="purgeItem" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Remove all values of the item.
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateActionDataReductionType.purgeItem</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: keepItem -->
+            <!-- TODO: keepMetadata? keepOperationalData? -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+</xsd:schema>

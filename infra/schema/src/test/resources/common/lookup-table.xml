@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 
-<lookupTable xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<lookupTable xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
              oid="44444444-4444-4444-4444-000000001111">
     <name>first lookup</name>
     <description>description of lookup table</description>

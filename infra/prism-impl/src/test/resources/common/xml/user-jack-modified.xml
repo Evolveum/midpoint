@@ -18,8 +18,8 @@
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
     <description>This must be the best pirate the world has ever seen</description>

@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <user oid="00000001-d34d-b33f-f00d-SECAPP0000D1"
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
     <name>security-approver-deputy</name>
     <fullName>Security approver deputy</fullName>
 	<assignment>

@@ -14,10 +14,10 @@
   ~ limitations under the License.
   -->
 <role oid="b9fcce10-050d-11e8-b668-eb75ab96577d"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
     <name>Limited Read Role Administrator</name>
     <description>Role administrator with full access to inducement. But read is limited to reduce GUI boalt. (MID-4338)</description>    
     <authorization>

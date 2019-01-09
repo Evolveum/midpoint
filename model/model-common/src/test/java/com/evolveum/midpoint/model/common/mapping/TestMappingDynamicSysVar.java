@@ -24,7 +24,7 @@ import java.math.BigInteger;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <xsd:annotation>
     <xsd:documentation>
  			Identity Connector Framework version 1 (ICF1) connector configuration schema.
@@ -22,7 +22,7 @@
 				TODO
 			</xsd:documentation>
       <xsd:appinfo>
-        <a:container xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+        <a:container xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4" />
       </xsd:appinfo>
     </xsd:annotation>
     <xsd:sequence>

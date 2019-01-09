@@ -16,14 +16,14 @@
   -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd"
-		xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+		xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 								  
 	<name>Dummy Resource</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
@@ -160,7 +160,7 @@
 				<filter>
 					<q:equal>
 						<q:path>
-							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
 							attributes/icfs:name
 						</q:path>
 						<q:value>daviejones</q:value>
@@ -171,7 +171,7 @@
 				<filter>
 					<q:substring>
 						<q:path>
-							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
 							attributes/icfs:name
 						</q:path>
 						<q:value>X</q:value>
@@ -183,7 +183,7 @@
 				<filter>
 					<q:substring>
 						<q:path>
-							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4";
 							attributes/icfs:name
 						</q:path>
 						<q:value>-adm</q:value>

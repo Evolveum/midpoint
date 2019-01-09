@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
 
@@ -106,7 +106,7 @@
                 <retrievalTimestamp>2015-06-20T07:52:41.912+02:00</retrievalTimestamp>
                 <serialNumber>ea50ed1821e1d1f6-d9905c941fb779e1</serialNumber>
             </cachingMetadata>
-            <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
                 <cap:addRemoveAttributeValues/>
                 <cap:credentials>
                     <cap:password>

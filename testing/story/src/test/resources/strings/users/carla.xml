@@ -16,8 +16,8 @@
   -->
 
 <user oid="f9be8006-fd58-43f9-99ff-311935d9d3d3"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>carla</name>
 	<parentOrgRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
 	<parentOrgRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>

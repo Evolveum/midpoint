@@ -1,5 +1,5 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 user:
   oid: "bedf19c4-06f6-4651-a599-b8a3089e6a4d"
   name: "constrained-wrong"

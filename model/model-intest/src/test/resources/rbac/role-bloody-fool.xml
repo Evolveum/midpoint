@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <role oid="0a0ac150-af3d-11e6-9901-67fbcbd5bb25"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Bloody Fool</name>
     <assignment>
     	<!-- Fool metarole -->

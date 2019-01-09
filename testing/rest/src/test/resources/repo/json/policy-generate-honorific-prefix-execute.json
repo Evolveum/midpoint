@@ -7,7 +7,7 @@
           "path": "honorificPrefix"
         },
         "valuePolicyRef": {
-          "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType",
+          "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ValuePolicyType",
           "oid": "81818181-76e0-0000-8888-3d4f02d3fffb"
         },
         "execute": "true"

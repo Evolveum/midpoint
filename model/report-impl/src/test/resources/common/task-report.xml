@@ -18,8 +18,8 @@
 <!-- Report task definition -->
 
 <task oid="00000000-3333-3333-TASK-10000000000"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	>
 								  
 	<name>Report Recompute</name>

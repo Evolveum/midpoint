@@ -14,6 +14,6 @@
   ~ limitations under the License.
   -->
 <org oid="e015eb10-1426-4104-86c0-eb0cf9dc423f"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Security Team</name>
 </org>

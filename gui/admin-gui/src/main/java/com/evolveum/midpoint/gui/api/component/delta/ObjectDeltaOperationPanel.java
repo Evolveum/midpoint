@@ -17,7 +17,7 @@ package com.evolveum.midpoint.gui.api.component.delta;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 
 public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationType> {
 

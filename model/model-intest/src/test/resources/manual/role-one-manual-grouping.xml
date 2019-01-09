@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="bc586500-f092-11e7-9cda-f7cd4203a755"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>One: Grouping Manual</name>
     <inducement>

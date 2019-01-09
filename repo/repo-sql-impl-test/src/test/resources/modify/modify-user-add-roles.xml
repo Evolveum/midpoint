@@ -16,9 +16,9 @@
   ~ limitations under the License.
   -->
 <objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-4'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
 	<oid>00000000-8888-6666-0000-100000000005</oid>
 	<itemDelta>
 		<t:modificationType>add</t:modificationType>

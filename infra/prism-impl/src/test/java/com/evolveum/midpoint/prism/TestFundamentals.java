@@ -24,7 +24,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -32,6 +32,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_4.RawType;
 
 import javax.xml.namespace.QName;
 

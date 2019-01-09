@@ -16,13 +16,13 @@
   -->
 
 <resource oid="0ef80ab8-2906-11e7-b81a-3f343e28c264"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 								  
 	<name>Manual Resource</name>
 	
@@ -44,13 +44,13 @@
 		<!-- No cahingMetadata here MID-4472, MID-4174 -->
 		<definition>
 	         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
+	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
 	            <xsd:complexType name="AccountObjectClass">
 	               <xsd:annotation>
 	                  <xsd:appinfo>
@@ -129,7 +129,7 @@
 
 	<capabilities>
 		<!-- No cahingMetadata here MID-4472, MID-4174 -->
-		<native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+		<native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:type="c:CapabilityCollectionType">
          <cap:read>

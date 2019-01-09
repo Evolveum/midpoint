@@ -1,13 +1,13 @@
 {
-	"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+	"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
 	"objects" : [ {
 		"resource" : {
 			"oid" : "10000000-0000-0000-0000-000000000004",
 			"name" : "Dummy Resource",
 			"connectorRef" : {
-				"type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+				"type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorType",
 				"filter" : {
-					"@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+					"@ns" : "http://prism.evolveum.com/xml/ns/public/query-4",
 					"and" : {
 						"equal" : [ {
 							"path" : "connectorType",
@@ -21,14 +21,14 @@
 			},
 			"connectorConfiguration" : {
 				"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3",
-				"@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorConfigurationType",
+				"@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ConnectorConfigurationType",
 				"configurationProperties" : {
 					"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector",
 					"@type" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3#ConfigurationPropertiesType",
 					"instanceId" : "",
 					"requireExplicitEnable" : "true",
 					"uselessGuardedString" : {
-						"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+						"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
 						"clearValue" : "whatever"
 					}
 				}

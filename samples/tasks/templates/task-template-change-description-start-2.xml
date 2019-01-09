@@ -16,8 +16,8 @@
   -->
 
 <s:executeScript
-        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <s:action>
         <s:type>execute-script</s:type>
@@ -37,7 +37,7 @@
                         .build()
                     queryBean = QueryJaxbConvertor.createQueryType(query, prismContext)
                     midpoint.submitTaskFromTemplate('78a39955-743b-480f-86c0-9dbeafdbaba6',
-                        [(new QName('http://midpoint.evolveum.com/xml/ns/public/model/extension-3', 'objectQuery')):queryBean])
+                        [(new QName('http://midpoint.evolveum.com/xml/ns/public/model/extension-4', 'objectQuery')):queryBean])
                 </c:code>
             </c:value>
         </s:parameter>

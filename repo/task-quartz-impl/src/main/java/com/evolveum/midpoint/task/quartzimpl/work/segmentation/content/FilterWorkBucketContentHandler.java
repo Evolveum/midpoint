@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmenta
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FilterWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_4.SearchFilterType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 

@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<filter xmlns="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+<filter xmlns="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<equal>
 		<path>employeeType</path>
 		<c:expression>

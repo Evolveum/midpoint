@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.prism.impl.polystring;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringNormalizerConfigurationType;
 
 /**
  * @author semancik

@@ -16,15 +16,15 @@
   -->
 
 <resource oid="d180258a-ef5f-11e4-8737-001e8c717e5b"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 								  
 	<name>Embedded Test OpenDJ with bad bind DN</name>
 	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->

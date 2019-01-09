@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<org oid="00000000-8888-6666-0000-100000000001" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<org oid="00000000-8888-6666-0000-100000000001" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>F0001</name>
     <description>The office of the most respectful Governor.</description>
     <displayName>Governor Office</displayName>

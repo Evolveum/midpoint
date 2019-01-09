@@ -16,7 +16,7 @@
   -->
 
 <lookupTable oid="00000000-0000-0000-0000-000000000200"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 
 	<name>Languages</name>
 	

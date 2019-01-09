@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.query_4.OrderDirectionType;
 
 public enum OrderDirection {
 

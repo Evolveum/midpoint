@@ -1,8 +1,8 @@
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="a5bcd1cc-eb8a-469e-8ff2-3f5c6f97c463"
       version="14">
@@ -18,7 +18,7 @@
       <description>Construction</description>
       <construction>
          <description>Salesforce group construction</description>
-         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                       oid="407fa41e-27cd-4396-8a28-c93bc6b48574"
                       type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
          <kind>entitlement</kind>
@@ -28,7 +28,7 @@
    <inducement id="2">
       <description>Salesforce group association</description>
       <construction>
-         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                       oid="407fa41e-27cd-4396-8a28-c93bc6b48574"
                       type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
          <kind>account</kind>

@@ -1,5 +1,5 @@
 {
-  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4",
   "objectTemplate" : {
     "oid" : "c0c010c0-d34d-b33f-f00d-777111111111",
     "version" : "1",
@@ -13,7 +13,7 @@
       } ],
       "expression" : {
         "script" : [ {
-          "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+          "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
           "code" : "\n\t\t\t\t\tgivenName + '.' + familyName\n\t\t\t\t"
         } ]
       },
@@ -22,7 +22,7 @@
       },
       "condition" : {
         "script" : [ {
-          "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
+          "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-4#ScriptExpressionEvaluatorType",
           "code" : "givenName != null && familyName != null"
         } ]
       }

@@ -1,5 +1,5 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 objects:
 - user:
     oid: "c0c010c0-d34d-b33f-f00d-111111111111"
@@ -15,7 +15,7 @@ objects:
     credentials:
       password:
         value:
-          '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+          '@ns': "http://prism.evolveum.com/xml/ns/public/types-4"
           clearValue: "dead men tell no tales"
 - user:
     oid: "c0c010c0-d34d-b33f-f00d-111111111112"

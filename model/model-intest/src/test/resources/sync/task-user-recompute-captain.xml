@@ -16,11 +16,11 @@
   -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d3aaac"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:modelext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+	xmlns:modelext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">
 								  
 	<name>User Recompute: Captain</name>
 	

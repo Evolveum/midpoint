@@ -24,7 +24,7 @@ import java.io.IOException;
 import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_4.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;

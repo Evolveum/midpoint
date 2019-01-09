@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
 <role oid="a370bac5-6619-4fb5-bcf8-8e1199dc43e8"
-	  xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	  xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-	  xmlns:q='http://prism.evolveum.com/xml/ns/public/query-3'
+	  xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	  xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'
+	  xmlns:q='http://prism.evolveum.com/xml/ns/public/query-4'
 	  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	  xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
 	<name>constraints</name>

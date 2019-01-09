@@ -16,7 +16,7 @@
   -->
 
 <role oid="2330f9df-83bc-4270-86fc-27fca2b616a7"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>metarole-pruning-test2x-roles</name>
 	<inducement>
 		<policyRule>

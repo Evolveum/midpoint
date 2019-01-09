@@ -9,13 +9,13 @@
 	under the License. -->
 
 <resource oid="10000000-0000-0000-0000-000000000003"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
 	xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
@@ -61,11 +61,11 @@
 
 	</connectorConfiguration>
 	
-	<schema xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	<schema xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
    <generationConstraints>
       <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
@@ -295,7 +295,7 @@
 
 	<capabilities>
 		<configured
-			xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+			xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 			<cap:activation>
 				<cap:status>
 					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>

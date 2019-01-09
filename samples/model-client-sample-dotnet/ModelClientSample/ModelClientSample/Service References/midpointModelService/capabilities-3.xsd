@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsd:schema xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<xsd:schema xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <xsd:annotation>
       <xsd:documentation>
     			Import of the common schema. Some datatypes are reused here.
@@ -62,7 +62,7 @@
 								DEPRECATED. Does not work any more. Use "status" instead.
 							</xsd:documentation>
               <xsd:appinfo>
-                <a:deprecated xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">true</a:deprecated>
+                <a:deprecated xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4">true</a:deprecated>
               </xsd:appinfo>
             </xsd:annotation>
           </xsd:element>

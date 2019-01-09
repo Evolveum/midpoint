@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<accessCertificationDefinition xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<accessCertificationDefinition xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
         oid="33333333-0000-0000-0000-000000000002">
     <name>User Assignment Cert (more reviewers)</name>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/certification-3#user-assignment-basic</handlerUri>

@@ -17,11 +17,11 @@
 
 <objectChange xsi:type="ObjectChangeModificationType"
 	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<objectModification>
 		<oid>93f3c50f-479e-4a6f-90bc-90ace2ad107d</oid>
 		    <propertyModification modificationType="replace">
-	        <xp4133:path xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xp4133="http://midpoint.evolveum.com/xml/ns/public/common/common-3">idmdn:activation</xp4133:path>
+	        <xp4133:path xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:xp4133="http://midpoint.evolveum.com/xml/ns/public/common/common-3">idmdn:activation</xp4133:path>
 	        <value>
 	            <administrativeStatus>enabled</administrativeStatus>
 	        </value>

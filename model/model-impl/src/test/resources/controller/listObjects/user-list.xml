@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 <c:object xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-4'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xsi:type="apit:ObjectListType">
     <c:object xsi:type="c:UserType">

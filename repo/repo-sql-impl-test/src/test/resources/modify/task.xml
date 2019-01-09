@@ -15,14 +15,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<task oid="00000000-0000-0000-0000-123450000001" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<task oid="00000000-0000-0000-0000-123450000001" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
       xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
-      xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+      xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
     <name>Task1: basic single-run task (takes 3x60 sec)</name>
     <extension>
         <noop:delay xsi:type="xsd:int">60000</noop:delay>

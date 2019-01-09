@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
  
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
 	<role oid="08bd752e-1cf1-11e6-90a3-a3ad27be3da2">
@@ -388,8 +388,8 @@
 	</role>
 	
 	<role oid="d032653c-ce0d-11e7-a372-87f071f39cab"
-	      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	    <name>Evolveum End User</name>
 	    <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
 	    <authorization>

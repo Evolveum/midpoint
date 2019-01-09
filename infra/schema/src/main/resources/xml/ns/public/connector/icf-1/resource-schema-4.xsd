@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
+            elementFormDefault="qualified">
+
+	<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-4"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-4"/>
+
+    <xsd:annotation>
+        <xsd:documentation>
+			Version: 4.0
+            Recommended namespace prefix: icfs
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="uid" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                UID unique identifier
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:access>read</a:access>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:displayName>ConnId UID</a:displayName>
+                <a:displayOrder>100</a:displayOrder>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="name" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __NAME__ attribute
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            	<a:displayName>ConnId Name</a:displayName>
+            	<a:displayOrder>110</a:displayOrder>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="password" type="t:ProtectedStringType">
+        <xsd:annotation>
+            <xsd:documentation>
+                __PASSWORD__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="shortName" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __SHORT_NAME__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lastPasswordChangeDate" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __LAST_PASSWORD_CHANGE_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="passwordChangeInterval" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __PASSWORD_CHANGE_INTERVAL__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enable" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                __ENABLE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enableDate" type="xsd:long">
+        <xsd:annotation>
+            <xsd:documentation>
+                __ENABLE_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="disableDate" type="xsd:long">
+        <xsd:annotation>
+            <xsd:documentation>
+                __DISABLE_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lockOut" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                __LOCK_OUT__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="passwordExpirationDate" type="xsd:long">
+        <xsd:annotation>
+            <xsd:documentation>
+                __PASSWORD_EXPIRATION_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="passwordExpired" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                __PASSWORD_EXPIRED__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="currentPassword" type="t:ProtectedStringType">
+        <xsd:annotation>
+            <xsd:documentation>
+                __CURRENT_PASSWORD__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="description" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __DESCRIPTION__ attribute
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:nativeAttributeName>__DESCRIPTION__</a:nativeAttributeName>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="groups" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __GROUPS__ attribute
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:nativeAttributeName>__GROUPS__</a:nativeAttributeName>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="lastLoginDate" type="xsd:long">
+        <xsd:annotation>
+            <xsd:documentation>
+                __LAST_LOGIN_DATE__ attribute
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:nativeAttributeName>__LAST_LOGIN_DATE__</a:nativeAttributeName>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+</xsd:schema>
+

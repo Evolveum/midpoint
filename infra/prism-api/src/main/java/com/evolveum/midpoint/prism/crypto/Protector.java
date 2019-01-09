@@ -21,10 +21,10 @@ import java.util.List;
 
 import javax.net.ssl.TrustManager;
 
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_4.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
+
 import org.jetbrains.annotations.NotNull;
 
 public interface Protector {

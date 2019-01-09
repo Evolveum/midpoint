@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <connectorHost oid="08e687b6-4bd7-11e5-8484-001e8c717e5b" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
     <name>ConnId Connector server on localhost:8759</name>
     <hostname>localhost</hostname>
     <port>8759</port>

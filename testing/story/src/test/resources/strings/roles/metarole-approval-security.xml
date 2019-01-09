@@ -15,8 +15,8 @@
   -->
 
 <role oid="9c0c224f-f279-44b5-b906-8e8418a651a2"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	<name>metarole-approval-security</name>
 	<description>Requests to assign role holding this metarole will be approved by the security officer(s)</description>
 	<displayName>Metarole: approval by the security people</displayName>

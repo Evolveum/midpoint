@@ -15,20 +15,20 @@
   ~ limitations under the License.
   -->
 
-<task oid="44444444-4444-4444-4444-000000001111" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+<task oid="44444444-4444-4444-4444-000000001111" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>Task2</name>
     <extension>
         <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-            <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
+                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                         >
                 <s:search>
                     <s:type>c:RoleType</s:type>
                     <s:searchFilter>
-                        <q:equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+                        <q:equal xmlns="http://prism.evolveum.com/xml/ns/public/query-4">
                             <q:path>c:name</q:path>
                             <q:value>AAAAA</q:value>
                         </q:equal>

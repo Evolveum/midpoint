@@ -19,9 +19,9 @@
 	to set it up as needed. -->
 <i:userTemplate oid="c0c010c0-d34d-b55f-f22d-777666111111"
 	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
+	xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-4'>
 	<c:name>Default User Template</c:name>
 
 	<!-- Property construction. Defines how properties of user object are set 
@@ -33,7 +33,7 @@
 			<i:valueExpression>
 				<i:code>
 				declare namespace
-				i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+				i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
 				concat($i:user/i:givenName,' ',$i:user/i:familyName)
 				</i:code>
 			</i:valueExpression>

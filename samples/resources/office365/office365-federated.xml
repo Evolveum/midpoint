@@ -27,15 +27,15 @@ This contains configuration for a federated Office 365 domain
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-    xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
+    xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <resource oid="2fdc92cd-b373-455b-892c-627e65169aa0">
         <name>Office 365 Connector</name>
@@ -261,7 +261,7 @@ This contains configuration for a federated Office 365 domain
         </schemaHandling>
         
         <capabilities
-            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
             <configured>
                 <cap:activation>
                     <cap:status>

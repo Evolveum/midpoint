@@ -15,16 +15,16 @@
   ~ limitations under the License.
   -->
 <c:user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<c:name>administrator</c:name>
 	<c:fullName>midPoint Administrator</c:fullName>
 	<c:givenName>midPoint</c:givenName>
 	<c:familyName>Administrator</c:familyName>
 	<c:emailAddress>administrator@evolveum.com</c:emailAddress>
-	<c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 		<c:password>
 		 <c:value> 
-            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
                <t:encryptionMethod>
                   <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
                </t:encryptionMethod>
