@@ -30,3 +30,5 @@ CREATE TABLE m_global_metadata (
   ENGINE = InnoDB;
 
 INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');
+
+COMMIT;
