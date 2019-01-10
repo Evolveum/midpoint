@@ -36,9 +36,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ModelService;
 import com.evolveum.prism.xml.ns._public.query_4.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.query_4.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_4.PagingType;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public class ModelConstants {
 	public static final String NS_IMPORT_OBJECTS_PREFIX = SchemaConstants.NS_MODEL +"/import-objects";
 	public static final String NS_IMPORT_OBJECTS_TASK_PREFIX = NS_IMPORT_OBJECTS_PREFIX + "/task";
 
-	public static final String NS_EXTENSION = SchemaConstants.NS_MODEL + "/extension-3";
+	public static final String NS_EXTENSION = SchemaConstants.NS_MODEL + "/extension-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(ModelConstants.NS_EXTENSION, "objectclass");
 

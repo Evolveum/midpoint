@@ -40,7 +40,7 @@
                 <description>Assignment of this role is always automatically approved.</description>
                 <script>
                     <!-- This will be automatically converted to URI. Don't use this form in your code. This is here only because of testing. -->
-                    <code>com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE</code>
+                    <code>com.evolveum.midpoint.xml.ns._public.common.common_4.ApprovalLevelOutcomeType.APPROVE</code>
                 </script>
             </automaticallyCompleted>
         </stage>

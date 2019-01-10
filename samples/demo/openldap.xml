@@ -375,7 +375,7 @@
 
                                 import javax.naming.ldap.Rdn
                                 import javax.naming.ldap.LdapName
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
                                 dn = new LdapName('ou=Orgs,dc=example,dc=com')
                                 parents = new ArrayList()

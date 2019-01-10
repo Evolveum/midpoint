@@ -21,10 +21,10 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_4.OutputFormatType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_4.SingleScriptOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ExecuteScriptsResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ExecuteScriptsType;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ModelService;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

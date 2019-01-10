@@ -192,7 +192,7 @@
 		<script>
 			<code>
 				import com.evolveum.midpoint.schema.util.*
-				import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+				import com.evolveum.midpoint.xml.ns._public.common.common_4.*
 				log.debug('### workflow context:\n{}', workflowContext.asPrismContainerValue().debugDump())
 				def rules = WfContextUtil.getRulesForStage(workflowContext, stageDefinition.number)
 				log.debug('rules found: {}', rules)

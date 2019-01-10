@@ -278,7 +278,7 @@ if (focus.getOrganization().size() == 0) {
             			<condition>
             				<script>
             					<code>
-		            				import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+		            				import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
 		            				import com.evolveum.midpoint.schema.constants.SchemaConstants;
 		            				administrativeStatus == ActivationStatusType.DISABLED &amp;&amp; 
 		            					// do not delete explicitly disabled accounts
@@ -295,7 +295,7 @@ if (focus.getOrganization().size() == 0) {
                     	<expression>
                         	<script>
                         		<code>
-                        			import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                        			import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
                         			if (legal) {
                         				input;
                         			} else {

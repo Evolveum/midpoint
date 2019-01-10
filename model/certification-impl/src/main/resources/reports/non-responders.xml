@@ -52,7 +52,7 @@
 	<parameter name="campaignName" class="java.lang.String">
 		<property name="key" value="name"/>
 		<property name="label" value="name"/>
-		<property name="targetType" value="com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType"/>
+		<property name="targetType" value="com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertificationCampaignType"/>
 		<parameterDescription><![CDATA[Name of certification campaign whose non-responders are to be reported on.]]></parameterDescription>
 	</parameter>
 	<parameter name="stageNumber" class="java.lang.Integer">
@@ -64,9 +64,9 @@
 </code>]]>
 	</queryString>
 	<field name="stageNumber" class="java.lang.Integer"/>
-	<field name="originalAssigneeRef" class="com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType"/>
+	<field name="originalAssigneeRef" class="com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType"/>
 	<field name="assigneeRef" class="java.util.List"/>
-	<field name="output" class="com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType"/>
+	<field name="output" class="com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractWorkItemOutputType"/>
 	<field name="outputChangeTimestamp" class="javax.xml.datatype.XMLGregorianCalendar"/>
 	<field name="_parent_" class="com.evolveum.midpoint.prism.PrismContainerValue"/>
 	<field name="_this_" class="com.evolveum.midpoint.prism.PrismContainerValue"/>

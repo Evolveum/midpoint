@@ -470,7 +470,7 @@
 											<expression>
 												<script>
 													<code>
-														import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+														import com.evolveum.midpoint.xml.ns._public.common.common_4.*
 														// log.info('=== Variables ===')
 														// this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
 														new ObjectReferenceType().oid(object.oid)

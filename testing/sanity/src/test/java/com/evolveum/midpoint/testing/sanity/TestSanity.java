@@ -138,9 +138,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectAlreadyExistsFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_4.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_4.QueryType;

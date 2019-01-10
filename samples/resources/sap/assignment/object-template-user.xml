@@ -94,10 +94,10 @@
          <script>
          	<!-- <relativityMode>absolute</relativityMode> --><!-- FIX for multivalue -->
             <code>
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 		   import java.util.*;
 		   
 		   log.info("XXX assigning from SAP role {}" , sapRole)
@@ -145,10 +145,10 @@
 			<script>
 				<!-- <relativityMode>absolute</relativityMode> --><!-- FIX for multivalue -->
 				<code>
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+					import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+					import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+					import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+					import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 					import java.util.*;
 
 					log.info("XXX assigning from SAP role {}" , sapProfile)
@@ -196,10 +196,10 @@
 			<script>
 				<!-- <relativityMode>absolute</relativityMode> --><!-- FIX for multivalue -->
 				<code>
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+					import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+					import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+					import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+					import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 					import java.util.*;
 
 					log.info("XXX assigning from SAP role {}" , sapGroup)

@@ -199,7 +199,7 @@ Channel: $!event.channel</code>
                 <expression>
                     <script>
                         <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            import com.evolveum.midpoint.xml.ns._public.common.common_4.*
                             m = new NotificationMessageType()
                             m.setFrom("+421999000999")
                             m.getTo().add("+421905123456")
@@ -224,7 +224,7 @@ Channel: $!event.channel</code>
                 <expression>
                     <script>
                         <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            import com.evolveum.midpoint.xml.ns._public.common.common_4.*
                             m = new NotificationMessageType()
                             m.setFrom("+421999000999")
                             m.getTo().add("+421905123456")
@@ -273,7 +273,7 @@ Channel: $!event.channel</code>
                 <expression>
                     <script>
                         <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            import com.evolveum.midpoint.xml.ns._public.common.common_4.*
                             if (notificationFunctions != null &amp;&amp;
                                 textFormatter != null &amp;&amp;
                                 configuration != null) {

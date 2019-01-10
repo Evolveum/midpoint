@@ -21,7 +21,7 @@
         <type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</type>
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
         <connectorConfiguration>
-            <idc:ConnectorConfiguration xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+            <idc:ConnectorConfiguration xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                 <idc:ConnectorRef bundleName="org.identityconnectors.ldap" bundleVersion="1.0.5531" connectorName="org.identityconnectors.ldap.LdapConnector">
                     <idc:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</idc:ConnectorHostRef>
                 </idc:ConnectorRef>
@@ -163,7 +163,7 @@
                 <name>Default Account</name>
                 <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
                 <attribute ref="ri:intgivenname" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-                    <inbound xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                    <inbound xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
@@ -172,7 +172,7 @@
                     </inbound>
                 </attribute>
                 <attribute ref="ri:intfamilyname" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-                    <inbound xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                    <inbound xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
                         <target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
                             declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";

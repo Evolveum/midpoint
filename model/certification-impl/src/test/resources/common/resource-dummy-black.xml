@@ -264,7 +264,7 @@
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-4#import</channel>
 	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser"/>
 	        </reaction>
         </objectSynchronization>

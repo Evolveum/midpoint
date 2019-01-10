@@ -118,7 +118,7 @@
 				<outbound>
 					<expression>
 						<script>
-							<code>'I can see ' + midpoint.getObject(com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType.class, "70000000-0000-0000-1111-000000000001")</code>
+							<code>'I can see ' + midpoint.getObject(com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableType.class, "70000000-0000-0000-1111-000000000001")</code>
 						</script>
 					</expression>
 				</outbound>

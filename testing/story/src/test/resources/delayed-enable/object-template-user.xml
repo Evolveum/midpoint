@@ -126,7 +126,7 @@
 	    	<expression>
 	            <script>
 	            	<code>
-	            		import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+	            		import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType
 	            		import com.evolveum.midpoint.util.exception.SchemaException
 	            		
 	            		switch (hrStatus) {

@@ -68,7 +68,7 @@
                 <t:objectType>c:UserType</t:objectType>
                 <t:oid>c0c010c0-d34d-b33f-f00d-111111111111</t:oid>
             </primaryDelta>
-            <objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</objectTypeClass>
+            <objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_4.UserType</objectTypeClass>
             <oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
             <iteration>0</iteration>
             <iterationToken/>
@@ -110,7 +110,7 @@
                 </wave>
             </secondaryDeltas>
         </focusContext>
-        <focusClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</focusClass>
+        <focusClass>com.evolveum.midpoint.xml.ns._public.common.common_4.UserType</focusClass>
         <doReconciliationForAllProjections>false</doReconciliationForAllProjections>
         <executionPhaseOnly>false</executionPhaseOnly>
         <projectionWave>1</projectionWave>

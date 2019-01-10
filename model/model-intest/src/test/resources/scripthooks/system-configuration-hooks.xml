@@ -28,7 +28,7 @@
     			<script>
     				<code>
     					import com.evolveum.midpoint.prism.delta.*;
-    					import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+    					import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
                         import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
 
                         log.info('ORG HOOK WAS HERE: ' + modelContext)
@@ -85,7 +85,7 @@
                 <name>Bar</name>
                 <script>
                     <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+                        import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
                         import com.evolveum.midpoint.model.api.context.ModelState;
                         import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
 

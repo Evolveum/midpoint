@@ -168,7 +168,7 @@
 							<keyExpression>
 								<script>
 									<code>
-										import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+										import com.evolveum.midpoint.xml.ns._public.common.common_4.*
 
 										if (object.activation == null) {
 											'PolicyConstraint.validity-not-limited.validToNull'
@@ -194,7 +194,7 @@
 					<expression>
 						<script>
 							<code>
-								import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+								import com.evolveum.midpoint.xml.ns._public.common.common_4.*
 								import com.evolveum.midpoint.prism.xml.XmlTypeConverter
 
 								if (object.activation == null) {

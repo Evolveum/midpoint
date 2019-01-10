@@ -26,10 +26,10 @@
       <expression>
          <script>
             <code>
-    	   import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+    	   import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 		   import com.evolveum.midpoint.util.exception.SystemException;
 		   import java.util.*;
 		   
@@ -71,10 +71,10 @@
       <expression>
          <script>
             <code>
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-		   import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType;
 		   import com.evolveum.midpoint.util.exception.SystemException;
 		   import java.util.*;
 		   

@@ -453,7 +453,7 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
                       <condition>
                         <script>
                           <code>
-				import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+				import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
 				import com.evolveum.midpoint.schema.constants.SchemaConstants;
 				// do not delete explicitly disabled accounts
 				administrativeStatus == ActivationStatusType.DISABLED &amp;&amp; 
@@ -468,7 +468,7 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
                         <expression>
                             <script>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
                                     if (legal) {
                                         input;
                                     } else {

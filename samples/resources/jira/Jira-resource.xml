@@ -870,8 +870,8 @@
                   <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                           xsi:type="c:ScriptExpressionEvaluatorType">
                      <code>
-                           import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-                           import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                           import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+                           import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
                            
                            if (ownerRef != null){
                                 owner = midpoint.getUserByOid(ownerRef.getOid());
@@ -892,8 +892,8 @@
                   <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                           xsi:type="c:ScriptExpressionEvaluatorType">
                      <code>
-                           import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-                           import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                           import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
+                           import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
                            
                            if (input != null){
                                 leader = midpoint.searchObjectByName(UserType.class, input);

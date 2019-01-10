@@ -66,7 +66,7 @@ public class ModelClientUtil {
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
 		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_4:" +
 				"com.evolveum.midpoint.xml.ns._public.common.common_4:" +
-				"com.evolveum.midpoint.xml.ns._public.common.fault_3:" +
+				"com.evolveum.midpoint.xml.ns._public.common.fault_4:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_4:" +

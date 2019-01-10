@@ -95,7 +95,7 @@
                 <applicabilityCondition>
                     <script>
                         <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            import com.evolveum.midpoint.xml.ns._public.common.common_4.*
                             import com.evolveum.midpoint.schema.*
 
                             log.info('@@@ applicability condition evaluated for:', itemToApprove)
@@ -133,7 +133,7 @@
                     <script>
                         <code><![CDATA[
                                         context.getState() == com.evolveum.midpoint.model.api.context.ModelState.SECONDARY &&
-                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT, null)) != null
+                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowKindType.ACCOUNT, null)) != null
                                         ]]></code>
                     </script>
                 </activationCondition>

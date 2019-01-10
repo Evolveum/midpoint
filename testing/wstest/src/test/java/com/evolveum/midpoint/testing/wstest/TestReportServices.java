@@ -52,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.FaultMessage;
 
 /**
  *  Test for generating reports and especially for

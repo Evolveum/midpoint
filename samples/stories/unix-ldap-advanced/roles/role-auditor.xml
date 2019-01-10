@@ -1,4 +1,4 @@
-<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="56d4c66e-5a63-4eeb-8637-4eca6b13e7da" version="12" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="56d4c66e-5a63-4eeb-8637-4eca6b13e7da" version="12" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
       <name>auditor</name>
       <description>Gives users for all machines in selected set</description>
       <assignment id="1">
@@ -15,7 +15,7 @@
                 
                 import com.evolveum.midpoint.prism.*
                 import com.evolveum.midpoint.prism.delta.*
-                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                import com.evolveum.midpoint.xml.ns._public.common.common_4.*
                 
                 ContainerDelta roleDelta = objectDelta.findContainerDelta(UserType.F_ASSIGNMENT);
                 Collection assignmnetsToModify = new ArrayList();
@@ -57,7 +57,7 @@
             
                  import com.evolveum.midpoint.prism.*
                 import com.evolveum.midpoint.prism.delta.*
-                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                import com.evolveum.midpoint.xml.ns._public.common.common_4.*
                 
                 ContainerDelta roleDelta = objectDelta.findContainerDelta(UserType.F_ASSIGNMENT);
                 Collection assignmnetsToModify = new ArrayList();

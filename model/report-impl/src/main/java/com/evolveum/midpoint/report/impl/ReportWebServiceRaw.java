@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateAuditScriptResponseType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateAuditScriptType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateScriptResponseType;

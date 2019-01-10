@@ -73,7 +73,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.FaultMessage;
 
 /**
  *

@@ -46,7 +46,7 @@
 									<c:value>
 										<c:code>
 											import com.evolveum.midpoint.prism.delta.builder.*
-											import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+											import com.evolveum.midpoint.xml.ns._public.common.common_4.*
 											import com.evolveum.midpoint.model.api.*
 
 											log.info('=== Variables ===')

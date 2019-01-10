@@ -134,7 +134,7 @@
         <m:objectNewRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType">
             <c:filter/>
         </m:objectNewRef>
-        <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</m:objectTypeClass>
+        <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_4.UserType</m:objectTypeClass>
         <m:oid>c0c010c0-d34d-b33f-f00d-111111111111</m:oid>
         <m:secondaryDeltas>
             <m:wave number="0">
@@ -314,7 +314,7 @@
                 </t:value>
             </t:modification>
         </m:secondaryDelta>
-        <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType</m:objectTypeClass>
+        <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType</m:objectTypeClass>
         <m:syncAbsoluteTrigger>false</m:syncAbsoluteTrigger>
         <m:wave>0</m:wave>
         <m:resourceShadowDiscriminator>
@@ -339,7 +339,7 @@
         </m:accountPasswordPolicyRef>
     </m:projectionContext>
     -->
-    <m:focusClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</m:focusClass>
+    <m:focusClass>com.evolveum.midpoint.xml.ns._public.common.common_4.UserType</m:focusClass>
     <m:doReconciliationForAllProjections>false</m:doReconciliationForAllProjections>
     <m:projectionWave>2</m:projectionWave>
     <m:executionWave>0</m:executionWave>

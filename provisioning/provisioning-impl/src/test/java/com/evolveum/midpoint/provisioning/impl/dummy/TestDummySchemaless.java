@@ -667,7 +667,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 		assertEquals("Wrong refined displayName for attribute "+SchemaTestConstants.ICFS_NAME, "Modified ConnId Name", nameDef.getDisplayName());
 		assertEquals("Wrong refined displayOrder for attribute "+SchemaTestConstants.ICFS_NAME, (Integer)110, nameDef.getDisplayOrder());
 		
-		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef1.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef1.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"password")));
 		
 		// ACCOUNT
 		ObjectClassComplexTypeDefinition accountDef = resorceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);

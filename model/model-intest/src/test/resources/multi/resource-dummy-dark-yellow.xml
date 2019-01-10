@@ -142,7 +142,7 @@
 					</expression>
 				</outbound>
 				<inbound>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-4#import</channel>
 					<expression>
 						<script>
 							<code>'Came from ' + input</code>
@@ -230,7 +230,7 @@
 					<condition> <!--MID-3946 -->
 						<script>
 							<code>
-								shadowStatus == com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED
+								shadowStatus == com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType.ENABLED
 							</code>
 						</script>
 					</condition>
@@ -298,7 +298,7 @@
                         <expression>
                             <script>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
                                     if (legal &amp;&amp; assigned) {
                                         input;
                                     } else {

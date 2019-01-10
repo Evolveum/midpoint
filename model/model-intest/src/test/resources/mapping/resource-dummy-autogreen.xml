@@ -113,7 +113,7 @@
 				                <script>
 				                    <code>
 				                        import com.evolveum.midpoint.schema.constants.*
-			                         	import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+			                         	import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
 
 										if (projection == null || configuration == null) {
 											throw new AssertionError("No 'projection' or 'configuration' variable present")	// MID-4760
@@ -179,7 +179,7 @@
 				                <script>
 				                    <code>
 				                        import com.evolveum.midpoint.schema.constants.*
-				                        import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+				                        import com.evolveum.midpoint.xml.ns._public.common.common_4.RoleType;
 				                        
 				                        if (assignment.target != null) {
 				                        	log.info("### (association) target roleType " + assignment.target.roleType)

@@ -119,7 +119,7 @@
 					</source>
 				</outbound>
 				<inbound>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-4#import</channel>
 					<expression>
 						<script>
 							<code>'Came from ' + input</code>

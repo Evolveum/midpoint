@@ -139,7 +139,7 @@
                         			if (legal) {
                         				input;
                         			} else {
-                        				com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
+                        				com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType.DISABLED;
                         			}
                         		</code>
                         	</script>

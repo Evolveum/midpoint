@@ -719,7 +719,7 @@
                      <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                         <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
                             if (legal) {
               								if (admStatus?.value) {
               									if (admStatus.value.toUpperCase().equals('DISABLED')) {

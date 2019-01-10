@@ -30,7 +30,7 @@
                             <additionalInformation>
                                 <script>
                                     <code>
-                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_4.*
                                         new InformationType()
                                             .part(new InformationPartType()
                                                 .localizableText(new SingleLocalizableMessageType()

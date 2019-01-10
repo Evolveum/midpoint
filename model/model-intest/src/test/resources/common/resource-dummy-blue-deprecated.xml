@@ -214,7 +214,7 @@
 	        </reaction> -->
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#NoNsEnSe</channel>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-4#NoNsEnSe</channel>
 	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#disableAccount"/>
 	        </reaction>
         </objectSynchronization>

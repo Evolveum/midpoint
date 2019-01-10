@@ -241,7 +241,7 @@
 					<expression>
 						<script>
 							<code>
-								if (effectiveStatus == com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED) {
+								if (effectiveStatus == com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType.DISABLED) {
 									return true
 								} else {
 									return false

@@ -32,7 +32,7 @@
         <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                     oid="00000000-0000-0000-0000-000000000002"
                     type="c:UserType"/>
-        <createChannel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery</createChannel>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-4#discovery</createChannel>
         <modifyTimestamp>2013-09-30T14:26:27.965-04:00</modifyTimestamp>
         <modifierRef oid="00000000-0000-0000-0000-000000000002"/>
         <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>

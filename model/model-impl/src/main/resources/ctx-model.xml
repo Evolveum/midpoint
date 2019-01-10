@@ -65,7 +65,7 @@
     <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="log"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-3"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-4"/>
         <property name="genericFunctions">
             <ref bean="logFunctionObject"/>
         </property>
@@ -323,11 +323,11 @@
     <bean id="loggingFeature" class="com.evolveum.midpoint.model.impl.util.LoggingFeature"/>
 
     <jaxws:endpoint id="modelWS"
-                    address="/model-3"
-                    wsdlLocation="classpath:xml/ns/public/model/model-3.wsdl"
+                    address="/model-4"
+                    wsdlLocation="classpath:xml/ns/public/model/model-4.wsdl"
                     serviceName="model:modelWebService"
                     endpointName="model:modelPort"
-                    xmlns:model="http://midpoint.evolveum.com/xml/ns/public/model/model-3">
+                    xmlns:model="http://midpoint.evolveum.com/xml/ns/public/model/model-4">
         <jaxws:implementor>
             <bean parent="modelWebServiceRaw"/>
         </jaxws:implementor>

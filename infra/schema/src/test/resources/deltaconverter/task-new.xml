@@ -65,7 +65,7 @@
                     <c:entry key="type">
                         <c:unknownJavaObject>
                             <c:class>java.lang.Class</c:class>
-                            <c:toString>class com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType</c:toString>
+                            <c:toString>class com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType</c:toString>
                         </c:unknownJavaObject>
                     </c:entry>
                     <c:entry key="options"/>
@@ -83,7 +83,7 @@
                         <c:entry key="type">
                             <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                     xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType</c:value>
+                                     xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType</c:value>
                         </c:entry>
                     </c:params>
                     <c:token>1000000000000000891</c:token>
@@ -104,7 +104,7 @@
                             <c:entry key="type">
                                 <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType</c:value>
+                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_4.ConnectorType</c:value>
                             </c:entry>
                         </c:params>
                         <c:token>1000000000000000893</c:token>
@@ -172,7 +172,7 @@
                     <c:entry key="type">
                         <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                 xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType</c:value>
+                                 xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType</c:value>
                     </c:entry>
                 </c:params>
                 <c:token>1000000000000000899</c:token>

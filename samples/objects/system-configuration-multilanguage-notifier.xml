@@ -32,7 +32,7 @@
                 <script>
                     <code>
                     import com.evolveum.midpoint.notifications.api.events.ModelEvent
-                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+                    import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType
  
                    (event instanceof ModelEvent &amp;&amp; event.getFocusContext() != null &amp;&amp; UserType.class.isAssignableFrom(event.getFocusContext().getObjectTypeClass()) &amp;&amp; event.getFocusContext().isAdd()))
                     </code>

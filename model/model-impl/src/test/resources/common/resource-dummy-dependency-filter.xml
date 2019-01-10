@@ -116,7 +116,7 @@
 				</outbound>
 				<inbound>
 					<name>location inbound mapping</name>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-4#import</channel>
 					<expression>
 						<script>
 							<code>'Came from ' + input</code>
@@ -153,7 +153,7 @@
 					</expression>
 				</outbound>
 				<inbound>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync</channel>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-4#liveSync</channel>
 					<target>
 						<path>costCenter</path>
 					</target>
@@ -325,7 +325,7 @@
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <synchronize>true</synchronize>
-<!-- 	        <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel> -->
+<!-- 	        <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-4#import</channel> -->
 	            <action>
 	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
 	            </action>

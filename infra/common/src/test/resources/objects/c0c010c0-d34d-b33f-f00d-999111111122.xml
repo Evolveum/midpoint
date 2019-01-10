@@ -16,7 +16,7 @@
   -->
          
 <c:genericObject oid="c0c010c0-d34d-b33f-f00d-999111111122"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd"

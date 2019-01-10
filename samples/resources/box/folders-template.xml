@@ -112,7 +112,7 @@
                     xsi:type="c:ScriptExpressionEvaluatorType">
                <code>
       import com.evolveum.midpoint.schema.constants.*
-      import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+      import com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType
       leader = midpoint.searchObjectByName(OrgType.class, "Folders");
       value.targetRef != null &amp;&amp; value.targetRef.type == OrgType.COMPLEX_TYPE &amp;&amp; (value.targetRef.getOid().equals(leader.getOid()))
      </code>

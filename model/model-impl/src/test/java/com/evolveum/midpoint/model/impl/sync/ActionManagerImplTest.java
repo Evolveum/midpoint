@@ -25,6 +25,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.model.impl.sync.Action;
 import com.evolveum.midpoint.model.impl.sync.ActionManager;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
  *
@@ -55,7 +56,7 @@ public class ActionManagerImplTest extends AbstractTestNGSpringContextTests  {
 	@Test
 	public void getActionInstanceNullParameters() {
 		Action filter = manager
-				.getActionInstance("http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser");
+				.getActionInstance("http://midpoint.evolveum.com/xml/ns/public/model/action-"+SchemaConstants.SCHEMA_MAJOR_VERSION+"#addUser");
 		assertNotNull(filter);
 	}
 

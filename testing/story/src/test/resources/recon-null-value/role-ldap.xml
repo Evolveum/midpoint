@@ -26,7 +26,7 @@
 			<expression>
 				<script>
 					<code>
-						(focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.class)
+						(focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_4.UserType.class)
 					</code>
 				</script>
 			</expression>

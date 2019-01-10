@@ -45,7 +45,7 @@
 	    <expression>
 	      <script>
 	        <code>
-	          focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.class
+	          focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_4.OrgType.class
 	        </code>
 	      </script>
 	    </expression>

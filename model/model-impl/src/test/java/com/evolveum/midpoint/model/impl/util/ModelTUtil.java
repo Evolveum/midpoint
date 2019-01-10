@@ -42,9 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.IllegalArgumentFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_4.ObjectNotFoundFaultType;
 
 /**
  *

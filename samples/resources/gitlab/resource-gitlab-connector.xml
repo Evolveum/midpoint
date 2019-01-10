@@ -1486,7 +1486,7 @@
                      <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                              xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
                                     if (legal) {
                                         input;
                                     } else {

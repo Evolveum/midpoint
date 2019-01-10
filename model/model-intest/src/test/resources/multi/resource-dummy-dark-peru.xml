@@ -113,7 +113,7 @@
                         <expression>
                             <script>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
                                     if (legal &amp;&amp; assigned) {
                                         input;
                                     } else {

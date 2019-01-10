@@ -24,7 +24,7 @@
 					if (input == null) {
 						return null
 					} else {
-						def ort = new com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType();
+						def ort = new com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType();
 						ort.setOid(input)
 						return ort
 					}

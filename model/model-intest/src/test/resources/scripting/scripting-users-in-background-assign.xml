@@ -38,7 +38,7 @@
                 <c:value xsi:type="c:ScriptExpressionEvaluatorType">
                     <c:code>
                         import com.evolveum.midpoint.schema.constants.*
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                        import com.evolveum.midpoint.xml.ns._public.common.common_4.*
                         import com.evolveum.midpoint.model.api.*
                         def roleToAssignOid = '12345111-1111-2222-1111-121212111112'            // role-empty
 

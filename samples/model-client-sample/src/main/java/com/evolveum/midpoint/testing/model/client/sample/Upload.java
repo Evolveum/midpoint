@@ -23,9 +23,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectDeltaOperation
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteChangesType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ExecuteChangesType;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.model.model_4.ModelService;
 import com.evolveum.prism.xml.ns._public.types_4.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 import org.apache.commons.cli.CommandLine;
