@@ -26,7 +26,7 @@
 	<taskIdentifier>44444444-2222-2222-8888-100m00000000</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
 	<executionStatus>runnable</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/generic-partitioning/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/generic-partitioning/handler-4</handlerUri>
 	<workManagement>
 		<partitions>
 			<count>3</count>

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.task.quartzimpl.handlers;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -41,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
 public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForSubtasksByPollingTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-subtasks-polling/handler-3";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-subtasks-polling/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	private static WaitForSubtasksByPollingTaskHandler instance = null;
 	private TaskManagerQuartzImpl taskManagerImpl;

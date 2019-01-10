@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class WaitForTasksTaskHandler implements TaskHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForTasksTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-tasks/handler-3";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-tasks/handler-"  + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	private static WaitForTasksTaskHandler instance = null;
 	private TaskManagerQuartzImpl taskManagerImpl;
