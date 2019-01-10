@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
@@ -13,12 +13,12 @@
    <name>Metarole for Role</name>
    <metadata>
       <requestTimestamp>2017-06-20T16:33:05.999+02:00</requestTimestamp>
-      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                     oid="00000000-0000-0000-0000-000000000002"
                     relation="org:default"
                     type="c:UserType"><!-- administrator --></requestorRef>
       <createTimestamp>2017-06-20T16:33:06.099+02:00</createTimestamp>
-      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                   oid="00000000-0000-0000-0000-000000000002"
                   relation="org:default"
                   type="c:UserType"><!-- administrator --></creatorRef>
@@ -31,7 +31,7 @@
    <iteration>0</iteration>
    <iterationToken/>
    <inducement id="1">
-      <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                  relation="org:default"
                  type="c:OrgType">
          <filter>
@@ -51,7 +51,7 @@
       <focusType>UserType</focusType>
    </inducement>
    <inducement id="2">
-      <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                  relation="org:manager"
                  type="c:OrgType">
          <filter>

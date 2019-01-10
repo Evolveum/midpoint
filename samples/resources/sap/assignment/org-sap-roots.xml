@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"

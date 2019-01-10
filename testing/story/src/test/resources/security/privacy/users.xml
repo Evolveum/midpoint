@@ -16,7 +16,7 @@
   -->
  
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-4'
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 	
 	<user oid="0cf84e54-b815-11e8-9862-a7c904bd4e94">

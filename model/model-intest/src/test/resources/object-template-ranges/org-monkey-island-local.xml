@@ -18,7 +18,7 @@
 <c:objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 		   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 		   xmlns:ext="http://sample.evolveum.com/xml/ns/sample-idm/extension"
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-4'>
 
 	<!-- Functional organizational structure -->
 

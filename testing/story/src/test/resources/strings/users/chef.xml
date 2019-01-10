@@ -19,7 +19,7 @@
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<name>chef</name>
 	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
 	<assignment id="1">

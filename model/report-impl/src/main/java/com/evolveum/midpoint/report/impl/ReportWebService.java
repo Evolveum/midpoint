@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordListType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParameterType;

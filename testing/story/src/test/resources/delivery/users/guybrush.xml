@@ -18,7 +18,7 @@
 <user oid="47f403ae-5a22-4226-aab9-cd321a62d6d3"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<name>guybrush</name>
 	<!-- Member of Scumm Bar but manager of Ministry of Rum (where he is NOT member) -->
 	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>

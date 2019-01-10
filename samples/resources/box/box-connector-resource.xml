@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
@@ -13,7 +13,7 @@
    <name>BoxConnector</name>
    <metadata>
       <modifyTimestamp>2017-09-20T11:11:25.307+02:00</modifyTimestamp>
-      <modifierRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <modifierRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                    oid="00000000-0000-0000-0000-000000000002"
                    relation="org:default"
@@ -23,7 +23,7 @@
    <operationalState>
       <lastAvailabilityStatus>up</lastAvailabilityStatus>
    </operationalState>
-   <connectorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+   <connectorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                  oid="f7182d67-5dc1-46a0-a86c-fb773baed4ec"
                  relation="org:default"
                  type="c:ConnectorType"><!-- ConnId com.evolveum.polygon.connector.box.rest.BoxConnector v1.0 --></connectorRef>

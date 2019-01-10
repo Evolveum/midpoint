@@ -18,7 +18,7 @@
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="98ec371d-89f4-4f5d-9d32-5f8256caa953"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
 	<name>IT-5</name>
 
 	<assignment>

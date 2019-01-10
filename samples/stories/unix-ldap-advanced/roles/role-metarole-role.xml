@@ -65,7 +65,7 @@
          <focusType>UserType</focusType>
       </inducement>
       <inducement id="4">
-         <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" relation="org:manager" type="c:OrgType">
+         <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4" relation="org:manager" type="c:OrgType">
             <filter>
                <q:inOid>
                   <expression>

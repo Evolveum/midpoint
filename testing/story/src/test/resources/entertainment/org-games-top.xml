@@ -17,7 +17,7 @@
  
 <org oid="00000000-8888-6666-ent0-100000000001"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
-       xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+       xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-4'>
 	<name>Games</name>
 	<displayName>Games</displayName>
 	<identifier>0000</identifier>

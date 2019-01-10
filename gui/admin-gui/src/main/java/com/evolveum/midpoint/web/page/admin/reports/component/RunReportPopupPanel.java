@@ -80,8 +80,8 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterPro
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportValueDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;

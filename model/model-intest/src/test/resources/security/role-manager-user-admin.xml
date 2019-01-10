@@ -16,7 +16,7 @@
 <role oid="c545323c-5d68-11e7-acba-2b32ef514121"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-4'>
     <name>Manager User Admin</name>    
     <description>
     	Role that gives access to the organizational units and objects stored

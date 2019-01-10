@@ -19,7 +19,7 @@ package com.evolveum.midpoint.audit.api;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceValueType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordReferenceValueType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

@@ -20,7 +20,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
       xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
       xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4">
 	<name>Execute arbitrary script</name>

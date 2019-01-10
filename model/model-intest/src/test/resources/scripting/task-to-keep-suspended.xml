@@ -17,7 +17,7 @@
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
 	  oid="e6ad137e-23f6-444d-9478-c10a0b255b68"
 	  version="1">
 	<name>Approval and execution of: Assigning role "abc" to user "def" (old)</name>

@@ -19,7 +19,7 @@
 		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-		xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+		xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 		oid="695c6b4e-6162-48bb-81a8-cc80952f2fdb">

@@ -78,9 +78,9 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.DateValidator;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultStatusType;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
@@ -13,7 +13,7 @@
    <name>Basic GitLab role for group</name>
    <metadata>
       <createTimestamp>2017-06-26T14:08:31.535+02:00</createTimestamp>
-      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                   oid="00000000-0000-0000-0000-000000000002"
                   relation="org:default"
                   type="c:UserType"><!-- administrator --></creatorRef>
@@ -27,7 +27,7 @@
    <iterationToken/>
    <inducement id="1">
       <construction>
-         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                       oid="1c151bec-fa20-4097-bc64-0462ab2e5b7a"
                       relation="org:default"
                       type="c:ResourceType"><!-- Gitlab --></resourceRef>

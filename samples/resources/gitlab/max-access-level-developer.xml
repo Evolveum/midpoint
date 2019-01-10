@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
@@ -13,7 +13,7 @@
    <name>Max developer</name>
    <metadata>
       <createTimestamp>2017-07-20T12:36:03.563+02:00</createTimestamp>
-      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                   oid="00000000-0000-0000-0000-000000000002"
                   relation="org:default"
                   type="c:UserType"><!-- administrator --></creatorRef>
@@ -25,13 +25,13 @@
    </activation>
    <iteration>0</iteration>
    <iterationToken/>
-   <roleMembershipRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+   <roleMembershipRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                       oid="8c177712-cdd5-4ab1-a89c-0e957951dae2"
                       relation="org:default"
                       type="c:RoleType"><!-- Metarole for Role --></roleMembershipRef>
    <inducement id="1">
       <construction>
-         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                       oid="1c151bec-fa20-4097-bc64-0462ab2e5b7a"
                       relation="org:default"
                       type="c:ResourceType"><!-- Gitlab --></resourceRef>

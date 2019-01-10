@@ -34,8 +34,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import org.apache.commons.collections.CollectionUtils;

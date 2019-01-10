@@ -17,7 +17,7 @@
  
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-4'>
 
 	<org oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0">
         <name>policy-meta-approval</name>

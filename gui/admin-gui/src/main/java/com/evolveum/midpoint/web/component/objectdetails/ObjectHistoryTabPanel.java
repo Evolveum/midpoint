@@ -50,8 +50,8 @@ import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPane
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 

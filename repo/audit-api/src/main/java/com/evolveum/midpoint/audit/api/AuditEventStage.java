@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.audit.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventStageType;
 
 /**
  * @author semancik

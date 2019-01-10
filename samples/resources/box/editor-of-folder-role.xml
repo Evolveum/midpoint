@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
@@ -13,12 +13,12 @@
    <name>EditorOfFolder</name>
    <metadata>
       <requestTimestamp>2017-08-07T11:15:09.661+02:00</requestTimestamp>
-      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                     oid="00000000-0000-0000-0000-000000000002"
                     relation="org:default"
                     type="c:UserType"><!-- administrator --></requestorRef>
       <createTimestamp>2017-08-07T11:15:09.680+02:00</createTimestamp>
-      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                   oid="00000000-0000-0000-0000-000000000002"
                   relation="org:default"
                   type="c:UserType"><!-- administrator --></creatorRef>
@@ -32,7 +32,7 @@
    <iterationToken/>
    <inducement id="1">
       <construction>
-         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                       oid="e8146ed1-5e67-40ba-9e99-45ae01f69642"
                       relation="org:default"
                       type="c:ResourceType"><!-- BoxConnector --></resourceRef>
@@ -68,7 +68,7 @@
       </construction>
    </inducement>
    <inducement id="2">
-      <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                  relation="org:default"
                  type="c:OrgType">
          <filter>

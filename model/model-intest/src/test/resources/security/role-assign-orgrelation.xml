@@ -17,7 +17,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" 
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<name>Assign orgRelation</name>
 	<description>Assign requestable roles, constrained by orgRelation (both object and target)</description>
 	<authorization>

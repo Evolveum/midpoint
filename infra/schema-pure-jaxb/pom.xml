@@ -136,13 +136,13 @@
                         <!-- We simply exclude any imported files. So, after a new imported file is present, please add it into this list. -->
                         <filter implementation="org.codehaus.mojo.jaxb2.shared.filters.pattern.PatternFileFilter">
                             <patterns>
-                                <pattern>annotation-3\.xsd</pattern>
-                                <pattern>query-3\.xsd</pattern>
-                                <pattern>\\types-3\.xsd</pattern>       <!-- to match types but not api-types -->
-                                <pattern>/types-3\.xsd</pattern>        <!-- to match types but not api-types -->
+                                <pattern>annotation-4\.xsd</pattern>
+                                <pattern>query-4\.xsd</pattern>
+                                <pattern>\\types-4\.xsd</pattern>       <!-- to match types but not api-types -->
+                                <pattern>/types-4\.xsd</pattern>        <!-- to match types but not api-types -->
                                 <pattern>common-.*\.xsd</pattern>
-                                <pattern>scripting-3\.xsd</pattern>
-                                <pattern>resource-schema-3\.xsd</pattern>
+                                <pattern>scripting-4\.xsd</pattern>
+                                <pattern>resource-schema-4\.xsd</pattern>
                             </patterns>
                         </filter>
                     </xjcSourceExcludeFilters>

@@ -1111,7 +1111,7 @@
 	<user oid="U1122334455" 
 			xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-            xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
+            xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-4'
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 		<name>elaine123</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000085" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->

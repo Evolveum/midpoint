@@ -898,7 +898,7 @@ public class IntegrationTestTools {
 		assertEquals("Wrong refined displayName for attribute "+SchemaTestConstants.ICFS_NAME, "ConnId Name", nameDef.getDisplayName());
 		assertEquals("Wrong refined displayOrder for attribute "+SchemaTestConstants.ICFS_NAME, (Integer)110, nameDef.getDisplayOrder());
 
-		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"password")));
 	}
 
 	//TODO: add language parameter..for now, use xml serialization

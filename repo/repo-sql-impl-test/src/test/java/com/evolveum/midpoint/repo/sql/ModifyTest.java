@@ -334,28 +334,28 @@ public class ModifyTest extends BaseSQLRepoTest {
         OperationResult parentResult = new OperationResult("Modify user -> add roles");
         String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
 
-        PrismObject<ResourceType> csvResource = prismContext.parseObject(new File(TEST_DIR + "/resource-csv.xml"));
+        PrismObject<ResourceType> csvResource = prismContext.parseObject(new File(TEST_DIR, "resource-csv.xml"));
         repositoryService.addObject(csvResource, null, parentResult);
 
-        PrismObject<ResourceType> openDjResource = prismContext.parseObject(new File(TEST_DIR + "/resource-opendj.xml"));
+        PrismObject<ResourceType> openDjResource = prismContext.parseObject(new File(TEST_DIR, "resource-opendj.xml"));
         repositoryService.addObject(openDjResource, null, parentResult);
 
-        PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR + "/user.xml"));
+        PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR, "user.xml"));
         repositoryService.deleteObject(UserType.class, "f65963e3-9d47-4b18-aaf3-bfc98bdfa000", parentResult);       // from earlier test
         repositoryService.addObject(user, null, parentResult);
 
-        PrismObject<RoleType> roleCsv = prismContext.parseObject(new File(TEST_DIR + "/role-csv.xml"));
+        PrismObject<RoleType> roleCsv = prismContext.parseObject(new File(TEST_DIR, "role-csv.xml"));
         repositoryService.addObject(roleCsv, null, parentResult);
 
         String ldapRoleOid = "12345678-d34d-b33f-f00d-987987987988";
-        PrismObject<RoleType> roleLdap = prismContext.parseObject(new File(TEST_DIR + "/role-ldap.xml"));
+        PrismObject<RoleType> roleLdap = prismContext.parseObject(new File(TEST_DIR, "role-ldap.xml"));
         repositoryService.addObject(roleLdap, null, parentResult);
 
         RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, null, parentResult).asObjectable();
         assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
         assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
 
-        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(TEST_DIR + "/modify-user-add-roles.xml"),
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "modify-user-add-roles.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
 
 

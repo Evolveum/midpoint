@@ -53,9 +53,9 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceValueType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordReferenceValueType;
 
 import org.jetbrains.annotations.NotNull;
 

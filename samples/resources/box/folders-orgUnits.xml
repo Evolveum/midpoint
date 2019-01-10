@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
@@ -14,12 +14,12 @@
    <description>Folders that belongs under Box</description>
    <metadata>
       <requestTimestamp>2017-07-25T12:56:19.275+02:00</requestTimestamp>
-      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                     oid="00000000-0000-0000-0000-000000000002"
                     relation="org:default"
                     type="c:UserType"><!-- administrator --></requestorRef>
       <createTimestamp>2017-07-25T12:56:19.299+02:00</createTimestamp>
-      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                   oid="00000000-0000-0000-0000-000000000002"
                   relation="org:default"
                   type="c:UserType"><!-- administrator --></creatorRef>

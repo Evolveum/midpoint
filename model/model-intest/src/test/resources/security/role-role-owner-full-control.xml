@@ -16,7 +16,7 @@
 <role oid="9c6e597e-dbd7-11e5-a538-97834c1cd5ba"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-4'>
     <name>Role Owner Full Control</name>
     <authorization>
     	<name>read-self</name>

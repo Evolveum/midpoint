@@ -18,7 +18,7 @@
 <user oid="7a194af0-792a-4e76-bb0b-a8367a68970a"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<name>lechuck-deputy-limited</name>
 	<assignment>
 		<targetRef oid="058cf8d5-01ec-4818-87cc-6477b1a6505f" type="c:UserType" relation="org:deputy" />	<!-- lechuck -->

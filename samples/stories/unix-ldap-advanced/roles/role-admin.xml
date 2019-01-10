@@ -12,7 +12,7 @@
          <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
          <object>
             <orgRelation>
-               <subjectRelation xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">org:manager</subjectRelation>
+               <subjectRelation xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">org:manager</subjectRelation>
                <includeReferenceOrg>true</includeReferenceOrg>
             </orgRelation>
          </object>

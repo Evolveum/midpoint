@@ -16,7 +16,7 @@
 <role oid="91b9e546-ded6-11e5-9e87-171d047c57d1"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-4'>
     <name>Role Owner Assign</name>
     <authorization>
     	<name>auth-read</name>

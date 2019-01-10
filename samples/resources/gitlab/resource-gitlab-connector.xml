@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4">
 	<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
@@ -13,7 +13,7 @@
    <name>Gitlab</name>
    <metadata>
       <modifyTimestamp>2017-09-05T14:25:05.524+02:00</modifyTimestamp>
-      <modifierRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      <modifierRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                    oid="00000000-0000-0000-0000-000000000002"
                    relation="org:default"
@@ -23,7 +23,7 @@
    <operationalState>
       <lastAvailabilityStatus>up</lastAvailabilityStatus>
    </operationalState>
-   <connectorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+   <connectorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
                  oid="815a52b5-1618-43d8-a430-817db7f4bb25"
                  relation="org:default"
                  type="c:ConnectorType"><!-- ConnId com.evolveum.polygon.connector.gitlab.rest.GitlabRestConnector v1.0 --></connectorRef>
