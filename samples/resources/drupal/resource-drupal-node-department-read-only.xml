@@ -6,7 +6,7 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           oid="887f3fd7-1532-4eca-8f96-ae3b40c15f88">
 
 	<!-- just read all nodes with type 'department' -->
@@ -66,7 +66,7 @@
             </attribute>
             <attribute>
                 <c:ref>icfs:name</c:ref>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -154,28 +154,28 @@
                 <situation>linked</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyFocus</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyFocus</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>deleted</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteFocus</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
                 </action>
             </reaction>
         </objectSynchronization>

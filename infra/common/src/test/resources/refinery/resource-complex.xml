@@ -438,26 +438,26 @@
 			</correlation>
 			<reaction>
 				<situation>linked</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser" />
 			</reaction>
 			<reaction>
 				<situation>deleted</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount" />
 			</reaction>
 			<reaction>
 				<situation>unmatched</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addAccount" />
 			</reaction>
 			<reaction>
 				<situation>unlinked</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount" />
 			</reaction>
 			<reaction>
 				<situation>unmatched</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser">
 					<userTemplateRef oid="10000000-0000-0000-0000-000000000002"/>
 				</action>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount" />
 			</reaction>
 		</objectSynchronization>
 	</synchronization>

@@ -37,7 +37,7 @@
                                 </q:ref>
                                 <q:equal>
                                     <q:path>objectClass</q:path>
-                                    <q:value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</q:value>
+                                    <q:value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:AccountObjectClass</q:value>
                                 </q:equal>
                             </q:and>
                         </q:filter>

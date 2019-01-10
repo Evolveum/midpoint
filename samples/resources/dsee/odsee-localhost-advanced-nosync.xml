@@ -33,7 +33,7 @@ object.
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
            xmlns:my="http://myself.me/schemas/whatever"
@@ -349,25 +349,25 @@ object.
 	            <reaction>
 	                <situation>linked</situation>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
 	                </action>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
 	                </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
 	                </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
 	                    <!-- Reference to the User Template is here. If the user would be
 	                         created as a result of this action, it will be created according
 	                         to this template. -->

@@ -487,32 +487,32 @@ This resource definition contains also definition to enable synchronization.
 	            <reaction>
 	                <situation>linked</situation>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
 	              	</action>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
 	                </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
 	                </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
 	                    <!-- Reference to the User Template is here. If the user would be
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
 	                    <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 	                </action>
 	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
 	                </action>
 	            </reaction>
 	    	</objectSynchronization>

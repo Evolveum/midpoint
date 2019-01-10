@@ -7,7 +7,7 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           oid="501becec-90bc-44c6-93c9-0da4e02eb6a3">
 
     <name>Drupal</name>
@@ -81,7 +81,7 @@
                 <limitations>
                     <minOccurs>0</minOccurs>
                 </limitations>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <strength>strong</strength>
                     <source>
@@ -200,7 +200,7 @@
             <objectClass>ri:Customterm_company_structureObjectClass</objectClass>
             <attribute>
                 <c:ref>icfs:name</c:ref>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <strength>strong</strength>
                     <source>
@@ -275,7 +275,7 @@
 				<expression>
 					<description>Matches using Name</description>
 					<path>
-						declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+						declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 						$account/attributes/icfs:name
 					</path>
 				</expression>
@@ -290,14 +290,14 @@
                 <situation>deleted</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                 </action>
             </reaction>
             <reaction>
@@ -305,7 +305,7 @@
                 <synchronize>true</synchronize>
                 <action>
                 	<!-- when user from Drupal is not found in midPoint disable/lock it -->
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#inactivateShadow</handlerUri>
                 </action>
             </reaction>
         </objectSynchronization>
@@ -340,14 +340,14 @@
                 <situation>deleted</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                 </action>
             </reaction>
             <reaction>
@@ -355,7 +355,7 @@
                 <synchronize>true</synchronize>
                 <action>
                     <!-- dont need it, delete it in drupal -->
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteShadow</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteShadow</handlerUri>
                 </action>
             </reaction>
         </objectSynchronization>

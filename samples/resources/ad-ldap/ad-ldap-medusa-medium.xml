@@ -19,8 +19,8 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
           oid="746ecf5e-3e8c-11e6-b2f9-3c970e44b9e2">
     <name>Medusa Active Directory (LDAP)</name>
 
@@ -310,15 +310,15 @@
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#link"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-<!--                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>-->
+<!--                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus"/>-->
 	        </reaction>
 
 		</objectSynchronization>
@@ -345,15 +345,15 @@
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#link"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-<!--                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>-->
+<!--                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus"/>-->
 	        </reaction>
 
 		</objectSynchronization>

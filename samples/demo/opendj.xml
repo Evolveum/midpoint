@@ -20,10 +20,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
-         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4">
 
 
@@ -286,7 +286,7 @@
             <association>
                 <c:ref>ri:ldapProjects</c:ref>
                 <displayName>Project Membership</displayName>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <tolerant>false</tolerant>
                 <kind>entitlement</kind>
                 <intent>ldapProject</intent>
@@ -299,7 +299,7 @@
 			<protected>
                 <filter>
                     <q:equal>
-                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#distinguishedName</q:matching>
                         <q:path>attributes/ri:dn</q:path>
                         <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
                     </q:equal>
@@ -348,7 +348,7 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
                 <c:ref>ri:dn</c:ref>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <source>
                         <c:path>$focus/name</c:path>
@@ -369,7 +369,7 @@
             </attribute>
             <attribute>
                 <c:ref>ri:cn</c:ref>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <strength>weak</strength>
                     <source>
@@ -394,7 +394,7 @@
             <objectClass>ri:organizationalUnit</objectClass>
             <attribute>
                 <c:ref>ri:dn</c:ref>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <source>
                         <c:path>$focus/name</c:path>
@@ -433,7 +433,7 @@
             </attribute>
             <attribute>
                 <ref>ri:ou</ref>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <!--<inbound>
                     <target>
                         <path>name</path>
@@ -479,7 +479,7 @@
                     <q:path>c:name</q:path>
                     <expression>
                         <path>
-                        declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+                        declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
                         $account/attributes/ri:uid
                         </path>
                     </expression>
@@ -493,19 +493,19 @@
             <reaction>
                 <situation>deleted</situation>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
                 </action>
             </reaction>
         </objectSynchronization>
@@ -533,7 +533,7 @@
                     <q:path>c:name</q:path>
                     <expression>
                         <path>
-                            declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+                            declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
                             $shadow/attributes/ri:cn
                         </path>
                     </expression>
@@ -547,20 +547,20 @@
             <reaction>
                 <situation>deleted</situation>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                 </action>
             </reaction>
             <!--
             <reaction>
                 <situation>unmatched</situation>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
                 </action>
             </reaction> -->
         </objectSynchronization>
@@ -575,7 +575,7 @@
             <correlation>
                 <q:equal>
                     <q:path>c:name</q:path>
-                    <!--<matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>-->
+                    <!--<matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>-->
                     <expression>
                         <c:path>$account/attributes/ri:ou</c:path>
                     </expression>
@@ -589,14 +589,14 @@
                 <situation>deleted</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                 </action>
             </reaction>
             <reaction>

@@ -17,7 +17,7 @@
 <role oid="12345678-d34d-b33f-f00d-222222222222"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>Pirate OpenDJ</name>
     <description>
      A role that "extends" sailor role. It includes the sailor role and adds

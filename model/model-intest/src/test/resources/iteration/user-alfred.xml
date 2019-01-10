@@ -22,7 +22,7 @@
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>alfred</name>
 	<fullName>Alfred Hitchcock</fullName>
     <givenName>Alfred</givenName>

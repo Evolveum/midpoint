@@ -17,7 +17,7 @@
 <role oid="00000000-0000-0000-0000-00000000aa0g" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Modify user</name>
 <!-- ***** GUI ***** -->

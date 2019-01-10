@@ -18,7 +18,7 @@
      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
      oid="944cef84-6570-11e7-8262-079921253d05">
    <name>Cheaters</name>
    <description>This Org pretends to be suborg of Scumm Bar, but it is not. There is parentOrgRef, but no assignment. MID-3874</description>

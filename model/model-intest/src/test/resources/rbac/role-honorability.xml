@@ -37,7 +37,7 @@
     	</construction>
     </inducement>
     <inducement>
-    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     		<resourceRef oid="10000000-0000-0000-0000-000000000104" type="c:ResourceType"/> <!-- RED -->
     		<kind>account</kind>
     		<attribute>

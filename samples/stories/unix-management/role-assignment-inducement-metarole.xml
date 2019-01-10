@@ -3,9 +3,9 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-      xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+      xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
       xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/unix-1"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
      >
    <name>Assignemnt &amp; Inducement UNIX Group Metarole</name>
    <description>Create group in the unix, assign this group to the user when role with this metarole is assigned.</description>

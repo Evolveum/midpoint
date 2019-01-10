@@ -17,7 +17,7 @@
 
 <account oid="2db718b6-243a-11e7-a9e5-bbb2545f80ed"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999cccccccc" />
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<kind>account</kind>

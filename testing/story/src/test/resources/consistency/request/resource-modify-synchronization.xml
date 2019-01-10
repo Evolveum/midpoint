@@ -22,10 +22,10 @@
 	xmlns:a='http://midpoint.evolveum.com/xml/ns/public/common/api-types-4'
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
-	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 	<t:changeType>modify</t:changeType>
 	<t:objectType>c:ResourceType</t:objectType>
 	<t:oid>ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</t:oid>
@@ -65,7 +65,7 @@
                               <expression>
                                 <path>
                                 declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-4";
-			                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+			                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 			                    $account/attributes/ri:employeeNumber</path>
                               </expression>
 	                </q:equal>
@@ -82,15 +82,15 @@
 	             -->
 	            <reaction>
 	                <situation>linked</situation>
-	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>-->
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser"/>-->
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>

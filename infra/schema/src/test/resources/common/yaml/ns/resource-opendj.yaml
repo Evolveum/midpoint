@@ -68,14 +68,14 @@ resource:
         />\n\t\t\t\t\t\n\t\t\t\t\t<xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-4\"\
         />\n\t\t\t\t\t<xsd:complexType name=\"GroupObjectClass\">\n\t\t\t\t\t\t<xsd:annotation>\n\
         \t\t\t\t\t\t\t<xsd:appinfo>\n\t\t\t\t\t\t\t\t<ra:resourceObject xmlns:ra=\"\
-        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"/>\n\t\t\
-        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"/>\n\t\t\
+        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:uid</ra:identifier>\n\t\t\t                     <ra:displayNameAttribute\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:name</ra:displayNameAttribute>\n\t\t\t                     <ra:namingAttribute\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:name</ra:namingAttribute>\n\t\t\t                     <ra:nativeObjectClass\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >__GROUP__</ra:nativeObjectClass>\n\t\t\t\t\t\t\t</xsd:appinfo>\n\t\t\t\t\t\
         \t</xsd:annotation>\n\t\t\t\t\t\t<xsd:sequence>\n\t\t\t\t\t\t\t<xsd:element\
         \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"seeAlso\" type=\"xsd:string\"\
@@ -94,17 +94,17 @@ resource:
         />\n\t\t\t\t\t\t</xsd:sequence>\n\t\t\t\t\t</xsd:complexType>\n\t\t\t\t\t\
         <xsd:complexType name=\"AccountObjectClass\">\n\t\t\t\t\t\t<xsd:annotation>\n\
         \t\t\t\t\t\t\t<xsd:appinfo>\n\t\t\t\t\t\t\t\t <ra:resourceObject xmlns:ra=\"\
-        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"/>\n\t\t\
-        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"/>\n\t\t\
+        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:uid</ra:identifier>\n\t\t\t                     <ra:displayNameAttribute\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:name</ra:displayNameAttribute>\n\t\t\t                     <ra:namingAttribute\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:name</ra:namingAttribute>\n\t\t\t                     <ra:nativeObjectClass\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >__ACCOUNT__</ra:nativeObjectClass>\n\t\t\t                     <ra:account\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
-        />\n\t\t\t                     <ra:default xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
+        />\n\t\t\t                     <ra:default xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         />\n\t\t\t\t\t\t\t</xsd:appinfo>\n\t\t\t\t\t\t</xsd:annotation>\n\t\t\t\t\t\
         \t<xsd:sequence>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
         0\" name=\"internationaliSDNNumber\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t\
@@ -250,7 +250,7 @@ resource:
             path: "$user/givenName"
       - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:uid"
         displayName: "Login Name"
-        matchingRule: "http://midpoint.evolveum.com/xml/ns/public/common/matching-rule-3#stringIgnoreCase"
+        matchingRule: "http://midpoint.evolveum.com/xml/ns/public/common/matching-rule-4#stringIgnoreCase"
         outbound:
           strength: "weak"
           source:
@@ -312,13 +312,13 @@ resource:
               generate:
   capabilities:
     native:
-      '@ns': "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
       credentials:
         password:
       liveSync:
       testConnection:
     configured:
-      '@ns': "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
       activation:
       - status:
           attribute: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff#ds-pwp-account-disabled"
@@ -349,12 +349,12 @@ resource:
         synchronize: true
       - situation: "deleted"
         action:
-        - handlerUri: "http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"
+        - handlerUri: "http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount"
       - situation: "unlinked"
         action:
-        - ref: "http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"
+        - ref: "http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"
       - situation: "unmatched"
         action:
         - userTemplateRef:
             oid: "c0c010c0-d34d-b33f-f00d-777111111111"
-          ref: "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"
+          ref: "http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser"

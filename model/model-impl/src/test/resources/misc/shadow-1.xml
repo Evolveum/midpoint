@@ -16,7 +16,7 @@
 
 <shadow xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 	<name>identity-A</name>
 	<resourceRef oid="8fdb9db5-429a-4bcc-94f4-043dbd7f2eb2"/>
 	<objectClass>ri:account1</objectClass>

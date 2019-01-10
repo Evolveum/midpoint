@@ -19,7 +19,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 	<name>will</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddd0505" />
 	<objectClass>ri:AccountObjectClass</objectClass>

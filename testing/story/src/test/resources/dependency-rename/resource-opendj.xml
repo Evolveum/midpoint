@@ -22,12 +22,12 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
+          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-4"
           xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
 
     <name>Embedded Test OpenDJ</name>

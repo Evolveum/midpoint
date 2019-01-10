@@ -17,7 +17,7 @@
 
 <c:account oid="a0c010c0-d34d-b33f-f00d-111111111222"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4">
 	<c:name>uid=guybrush,ou=People,dc=example,dc=com</c:name>

@@ -46,7 +46,7 @@
         	<relation>manager</relation>
         </orderConstraint>
     </inducement>
-    <inducement xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <inducement xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     	<description>Red account for org managers</description>
         <construction>
         	<description>red</description>

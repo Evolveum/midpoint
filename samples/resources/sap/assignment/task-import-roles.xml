@@ -3,7 +3,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="9f405793-8b3a-4f9b-8812-a86316dcb7fa">
    <name>import role (activity groups)</name>
    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4">

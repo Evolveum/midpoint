@@ -19,14 +19,14 @@
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">
 	<name>Localhost OpenDJ</name>
 	<connectorRef type="ConnectorType">
 	    <filter>
@@ -201,7 +201,7 @@
 			<protected>
        			<filter>
 	       			<q:equal>
-	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#distinguishedName</q:matching>
 		            	<q:path>attributes/ri:dn</q:path>
 		                <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
 		            </q:equal>
@@ -312,19 +312,19 @@
 			
 			<reaction>
 	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser"/>
 	        </reaction>
 
 		</objectSynchronization>

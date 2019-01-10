@@ -36,12 +36,12 @@ removed all objects other than the resource itself.
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
           xmlns:my="http://whatever.com/my"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">
 
     <!-- Resource name. It will be displayed in GUI.  -->
     <name>Localhost OpenDJ (no extension schema)</name>
@@ -368,7 +368,7 @@ removed all objects other than the resource itself.
                     <q:path>c:name</q:path>
                     <expression>
                         <path>
-                            declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+                            declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
                             $account/attributes/ri:uid
                         </path>
                     </expression>
@@ -388,25 +388,25 @@ removed all objects other than the resource itself.
             <reaction>
                 <situation>linked</situation>
                 <action>
-                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>deleted</situation>
                 <action>
-                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <action>
-                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
                 <action>
-                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
                 </action>
             </reaction>
         </objectSynchronization>

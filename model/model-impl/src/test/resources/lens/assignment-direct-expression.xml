@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<assignment id="123" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4' xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+<assignment id="123" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4' xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 	<description>pirate</description>
 	<construction>
 		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>

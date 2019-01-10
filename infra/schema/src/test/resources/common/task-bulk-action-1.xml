@@ -21,7 +21,7 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>Task2</name>
     <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-4">
             <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                         >
@@ -62,6 +62,6 @@
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>runnable</executionStatus>
     <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-4</handlerUri>
     <recurrence>single</recurrence>
 </task>

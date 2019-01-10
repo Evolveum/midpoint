@@ -7,7 +7,7 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           oid="3d566aa3-e9f2-4e8d-8218-72c0aad5273b">
 
     <name>Smart Recruiters</name>
@@ -51,7 +51,7 @@
                     <minOccurs>0</minOccurs>
                 </limitations>
                 <matchingRule
-                        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase
+                        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase
                 </matchingRule>
                 <outbound>
                     <strength>strong</strength>
@@ -177,14 +177,14 @@
                 <situation>deleted</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                 </action>
             </reaction>
             <reaction>
@@ -192,7 +192,7 @@
                 <synchronize>true</synchronize>
                 <!-- when user from SmartRecruiters is not found in midPoint disable/lock it -->
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#inactivateShadow</handlerUri>
                 </action>
             </reaction>
         </objectSynchronization>

@@ -63,14 +63,14 @@ resource:
         />\n\t\t\t\t\t\n\t\t\t\t\t<xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-4\"\
         />\n\t\t\t\t\t<xsd:complexType name=\"GroupObjectClass\">\n\t\t\t\t\t\t<xsd:annotation>\n\
         \t\t\t\t\t\t\t<xsd:appinfo>\n\t\t\t\t\t\t\t\t<ra:resourceObject xmlns:ra=\"\
-        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"/>\n\t\t\
-        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"/>\n\t\t\
+        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:uid</ra:identifier>\n\t\t\t                     <ra:displayNameAttribute\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:name</ra:displayNameAttribute>\n\t\t\t                     <ra:namingAttribute\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:name</ra:namingAttribute>\n\t\t\t                     <ra:nativeObjectClass\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >__GROUP__</ra:nativeObjectClass>\n\t\t\t\t\t\t\t</xsd:appinfo>\n\t\t\t\t\t\
         \t</xsd:annotation>\n\t\t\t\t\t\t<xsd:sequence>\n\t\t\t\t\t\t\t<xsd:element\
         \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"seeAlso\" type=\"xsd:string\"\
@@ -89,17 +89,17 @@ resource:
         />\n\t\t\t\t\t\t</xsd:sequence>\n\t\t\t\t\t</xsd:complexType>\n\t\t\t\t\t\
         <xsd:complexType name=\"AccountObjectClass\">\n\t\t\t\t\t\t<xsd:annotation>\n\
         \t\t\t\t\t\t\t<xsd:appinfo>\n\t\t\t\t\t\t\t\t <ra:resourceObject xmlns:ra=\"\
-        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"/>\n\t\t\
-        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"/>\n\t\t\
+        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:uid</ra:identifier>\n\t\t\t                     <ra:displayNameAttribute\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:name</ra:displayNameAttribute>\n\t\t\t                     <ra:namingAttribute\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >icfs:name</ra:namingAttribute>\n\t\t\t                     <ra:nativeObjectClass\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         >__ACCOUNT__</ra:nativeObjectClass>\n\t\t\t                     <ra:account\
-        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
-        />\n\t\t\t                     <ra:default xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
+        />\n\t\t\t                     <ra:default xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4\"\
         />\n\t\t\t\t\t\t\t</xsd:appinfo>\n\t\t\t\t\t\t</xsd:annotation>\n\t\t\t\t\t\
         \t<xsd:sequence>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
         0\" name=\"internationaliSDNNumber\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t\

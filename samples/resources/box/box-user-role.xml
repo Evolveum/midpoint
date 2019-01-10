@@ -7,7 +7,7 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="928b0d40-ecf2-4a7f-b0a0-34e9cdd3414f"
       version="2">
    <name>Box User</name>

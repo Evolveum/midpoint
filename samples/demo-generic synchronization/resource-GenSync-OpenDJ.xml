@@ -21,11 +21,11 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
+          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-4"
           xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
 
 	<resource oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b">
@@ -101,10 +101,10 @@
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                      elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
@@ -13441,11 +13441,11 @@
 							<q:path>c:name</q:path>
 							<expression>
 								<path>
-								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 								$account/attributes/ri:uid
 								</path>
 								<!--<path>
-								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 								$shadow/attributes/ri:uid
 								</path>-->
 							</expression>
@@ -13460,21 +13460,21 @@
 						<situation>deleted</situation>
 						<synchronize>true</synchronize>
 						<action>
-							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 						</action>
 					</reaction>
 					<reaction>
 						<situation>unlinked</situation>
 						<synchronize>true</synchronize>
 						<action>
-							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 						</action>
 					</reaction>
 					<reaction>
 						<situation>unmatched</situation>
 						<synchronize>true</synchronize>
 						<action>
-							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
 						</action>
 					</reaction>
 			</objectSynchronization>
@@ -13491,7 +13491,7 @@
 						<q:path>c:name</q:path>
 						<expression>
 							<path>
-								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 								$shadow/attributes/ri:cn
 							</path>
 						</expression>
@@ -13506,21 +13506,21 @@
 					<situation>deleted</situation>
 					<synchronize>true</synchronize>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
 					<synchronize>true</synchronize>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
 					<synchronize>true</synchronize>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
 					</action>
 				</reaction>
 			</objectSynchronization>
@@ -13549,14 +13549,14 @@
 					<situation>deleted</situation>
 					<synchronize>true</synchronize>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
 					<synchronize>true</synchronize>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 					</action>
 				</reaction>
 				<reaction>

@@ -19,11 +19,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">
 
 
 	<resource oid="ba25d6e6-226c-11e6-a8e7-3c970e44b9e2">
@@ -319,7 +319,7 @@
 				<expression>
 					<description>Matches using cn attribute</description>
 					<path>
-						declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+						declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 						$account/attributes/ri:cn
 					</path>
 				</expression>
@@ -332,12 +332,12 @@
 	            <reaction>
 	                <situation>deleted</situation>
 	                <synchronize>true</synchronize>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
 	                <synchronize>true</synchronize>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#link"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>

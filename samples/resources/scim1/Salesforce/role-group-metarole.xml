@@ -3,7 +3,7 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="a5bcd1cc-eb8a-469e-8ff2-3f5c6f97c463"
       version="14">
    <name>group metarole</name>

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -32,11 +32,11 @@
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-4"
 	  oid="829c2d59-91c0-493f-9501-afc336e991c8"
 	  version="14">
 	<name>Create user</name>
-	<extension xmlns:se="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+	<extension xmlns:se="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-4"
 			   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			   xsi:type="c:ExtensionType">
@@ -69,7 +69,7 @@
 			  type="tns:UserType"><!-- administrator --></ownerRef>
 	<executionStatus>closed</executionStatus>
 	<category>BulkActions</category>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-4</handlerUri>
 	<recurrence>single</recurrence>
 	<binding>tight</binding>
 </task>

@@ -16,7 +16,7 @@
 
 <role oid="12345678-d34d-b33f-f00d-55555555a010"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>Job Metarole</name>
     <description>Metarole for all job roles</description>
     <inducement id="1">

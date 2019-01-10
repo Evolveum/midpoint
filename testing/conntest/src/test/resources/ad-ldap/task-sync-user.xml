@@ -21,7 +21,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 								  
 	<name>Synchronization: AD LDAP</name>
 	

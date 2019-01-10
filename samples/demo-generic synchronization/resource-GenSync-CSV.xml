@@ -30,7 +30,7 @@ object.
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 			xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -168,7 +168,7 @@ object.
 					</inbound>
 				</attribute>
 				<attribute>
-					<ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:artname</ref>
+					<ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:artname</ref>
 					<displayName>Artistic name</displayName>
 					<inbound>
 					   <target>
@@ -196,7 +196,7 @@ object.
 					</inbound>
 				</attribute>
 				<attribute>
-					<ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:emptype</ref>
+					<ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:emptype</ref>
 					<displayName>Employee type</displayName>
 					<inbound>
 					   <target>
@@ -205,7 +205,7 @@ object.
 					</inbound>
 				</attribute>
 				<attribute>
-					<ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:orgpath</ref>
+					<ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:orgpath</ref>
 					<displayName>Organization path</displayName>
 					<inbound>
 						<target>
@@ -214,7 +214,7 @@ object.
 					</inbound>
 				</attribute>
 				<attribute>
-					<ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:responsibility</ref>
+					<ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:responsibility</ref>
 					<displayName>Responsibilities</displayName>
 					<inbound>
 						<target>
@@ -257,25 +257,25 @@ object.
 					<reaction>
 						<situation>linked</situation>
 						<action>
-							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
 						</action>
 					</reaction>
 					<reaction>
 						<situation>deleted</situation>
 						<action>
-							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
 						</action>
 					</reaction>
 					<reaction>
 						<situation>unlinked</situation>
 						<action>
-							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
 						</action>
 					</reaction>
 					<reaction>
 						<situation>unmatched</situation>
 						<action>
-							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+							<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
 						</action>
 					</reaction>
 				<!--<reaction>
@@ -286,21 +286,21 @@ object.
 					<situation>deleted</situation>
 					<synchronize>true</synchronize>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteFocus</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
 					<synchronize>true</synchronize>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
 					<synchronize>true</synchronize>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
 					</action>
 				</reaction>-->
 			</objectSynchronization>

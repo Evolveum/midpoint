@@ -33,7 +33,7 @@ object.
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
            xmlns:my="http://myself.me/schemas/whatever"
            xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
@@ -340,7 +340,7 @@ object.
 						<q:path>c:name</q:path>
 						<expression>
 							<path>
-								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 								$account/attributes/ri:uid
 							</path>
 					</expression>
@@ -359,19 +359,19 @@ object.
 				<reaction>
 					<situation>linked</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>deleted</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
@@ -381,7 +381,7 @@ object.
 	                         to this template. -->
 					<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
 					</action>
 				</reaction>
 			</objectSynchronization>

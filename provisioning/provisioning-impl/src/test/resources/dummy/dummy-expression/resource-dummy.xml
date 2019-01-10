@@ -26,7 +26,7 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
 								  
 	<name>Dummy Resource</name>

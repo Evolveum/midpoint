@@ -3,7 +3,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           oid="2556e12c-d5ef-42bb-8079-abea9526face"
           version="80">
    <name>slack-scim-connector</name>
@@ -41,10 +41,10 @@
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                      elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
@@ -69,7 +69,7 @@
                            <a:displayOrder>120</a:displayOrder>
                            <a:access>create</a:access>
                            <a:access>read</a:access>
-                           <a:matchingRule xmlns:qn708="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn708:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn708="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn708:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>members.default.display</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -91,7 +91,7 @@
                            <a:displayOrder>130</a:displayOrder>
                            <a:access>create</a:access>
                            <a:access>read</a:access>
-                           <a:matchingRule xmlns:qn523="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn523:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn523="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn523:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>members.default.value</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -125,7 +125,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>120</a:displayOrder>
-                           <a:matchingRule xmlns:qn332="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn332:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn332="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn332:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>displayName</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -134,7 +134,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>130</a:displayOrder>
-                           <a:matchingRule xmlns:qn571="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn571:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn571="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn571:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>name.middleName</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -145,7 +145,7 @@
                            <a:displayOrder>140</a:displayOrder>
                            <a:access>create</a:access>
                            <a:access>read</a:access>
-                           <a:matchingRule xmlns:qn474="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn474:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn474="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn474:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>groups.default.value</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -167,7 +167,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>160</a:displayOrder>
-                           <a:matchingRule xmlns:qn114="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn114:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn114="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn114:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>name.honorificSuffix</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -176,7 +176,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>170</a:displayOrder>
-                           <a:matchingRule xmlns:qn814="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn814:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn814="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn814:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>name.formatted</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -185,7 +185,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>180</a:displayOrder>
-                           <a:matchingRule xmlns:qn319="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn319:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn319="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn319:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>name.familyName</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -194,7 +194,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>190</a:displayOrder>
-                           <a:matchingRule xmlns:qn580="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn580:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn580="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn580:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>name.honorificPrefix</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -203,7 +203,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>200</a:displayOrder>
-                           <a:matchingRule xmlns:qn926="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn926:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn926="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn926:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>nickName</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -225,7 +225,7 @@
                            <a:displayOrder>220</a:displayOrder>
                            <a:access>create</a:access>
                            <a:access>read</a:access>
-                           <a:matchingRule xmlns:qn717="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn717:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn717="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn717:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>groups.default.display</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -234,7 +234,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>230</a:displayOrder>
-                           <a:matchingRule xmlns:qn912="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn912:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn912="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn912:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>name.givenName</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -243,7 +243,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>240</a:displayOrder>
-                           <a:matchingRule xmlns:qn411="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn411:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn411="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn411:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>profileUrl</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -252,7 +252,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>250</a:displayOrder>
-                           <a:matchingRule xmlns:qn610="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn610:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn610="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn610:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>title</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -270,7 +270,7 @@
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>260</a:displayOrder>
-                           <a:matchingRule xmlns:qn684="http://prism.evolveum.com/xml/ns/public/matching-rule-3">qn684:stringIgnoreCase</a:matchingRule>
+                           <a:matchingRule xmlns:qn684="http://prism.evolveum.com/xml/ns/public/matching-rule-4">qn684:stringIgnoreCase</a:matchingRule>
                            <ra:frameworkAttributeName>timezone</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
@@ -604,28 +604,28 @@
             <situation>linked</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyFocus</handlerUri>
             </action>
          </reaction>
          <reaction>
             <situation>deleted</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
             </action>
          </reaction>
          <reaction>
             <situation>unlinked</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
             </action>
          </reaction>
          <reaction>
             <situation>unmatched</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
             </action>
          </reaction>
       </objectSynchronization>
@@ -652,21 +652,21 @@
             <situation>deleted</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
             </action>
          </reaction>
          <reaction>
             <situation>unlinked</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
             </action>
          </reaction>
          <reaction>
             <situation>unmatched</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
             </action>
          </reaction>
       </objectSynchronization>

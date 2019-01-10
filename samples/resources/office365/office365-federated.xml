@@ -32,7 +32,7 @@ This contains configuration for a federated Office 365 domain
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
     xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
@@ -316,25 +316,25 @@ This contains configuration for a federated Office 365 domain
                 <reaction>
                     <situation>linked</situation>
                     <action>
-                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
                     </action>
                 </reaction>
                 <reaction>
                     <situation>deleted</situation>
                     <action>
-                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
                     </action>
                 </reaction>
                 <reaction>
                     <situation>unlinked</situation>
                     <action>
-                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
                     </action>
                 </reaction>
                 <reaction>
                     <situation>unmatched</situation>
                     <action>
-                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+                    	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
                     </action>
                 </reaction>
             </objectSynchronization>

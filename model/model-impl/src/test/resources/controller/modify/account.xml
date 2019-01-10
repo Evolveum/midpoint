@@ -379,32 +379,32 @@
 			</correlation>
 			<reaction>
 				<situation>confirmed</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser" />
 			</reaction>
 			<reaction>
 				<situation>deleted</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount" />
 			</reaction>
 			<reaction>
 				<situation>missing</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addAccount" />
 			</reaction>
 			<reaction>
 				<situation>found</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount" />
 			</reaction>
 			<reaction>
 				<situation>unassigned</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount" />
 			</reaction>
 			<reaction>
 				<situation>unmatched</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser">
 					<c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222" xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 						xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 						xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever" />
 				</action>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount" />
 			</reaction>
 		</synchronization>
 	</resource>

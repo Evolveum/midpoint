@@ -20,7 +20,7 @@ This resource definition contains also definition to enable synchronization and
 especially an expression that is using a lookup of value from an configuration
 object.
 
---><c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:my="http://myself.me/schemas/whatever" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+--><c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:my="http://myself.me/schemas/whatever" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe">
 
@@ -234,25 +234,25 @@ object.
 				<reaction>
 					<situation>linked</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>deleted</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
 					</action>
 				</reaction>
 			</objectSynchronization>

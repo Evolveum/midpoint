@@ -3,7 +3,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="bcf00adb-67c6-43be-bf60-3e6e1a52db25"
       version="1">
     <name>LDAP Orgs MetaRole</name>

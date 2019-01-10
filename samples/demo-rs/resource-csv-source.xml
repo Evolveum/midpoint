@@ -32,7 +32,7 @@ object.
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
            xmlns:my="http://myself.me/schemas/whatever"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4">
@@ -239,25 +239,25 @@ object.
 				<reaction>
 					<situation>linked</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>deleted</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteUser</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
 					</action>
 				</reaction>
 			</objectSynchronization>

@@ -36,7 +36,7 @@
                             </q:ref>
                             <q:equal>
                                 <q:path>objectClass</q:path>
-                                <q:value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:CustomAcceptedDomainObjectClass</q:value>
+                                <q:value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:CustomAcceptedDomainObjectClass</q:value>
                             </q:equal>
                         </q:and>
                     </s:searchFilter>

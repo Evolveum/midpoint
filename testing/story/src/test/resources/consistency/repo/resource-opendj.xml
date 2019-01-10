@@ -25,7 +25,7 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
           xmlns:my="http://whatever.com/my">
@@ -394,7 +394,7 @@
 	                		<language>http://www.w3.org/TR/xpath/</language>
 		                    <code>
 			                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-4";
-			                    declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+			                    declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 			                    $c:account/c:attributes/dj:uid
 		                    </code>
 						</script>
@@ -421,21 +421,21 @@ always return at most one match, the confirmation rule is not needed. -->
             <c:situation>deleted</c:situation>
             <synchronize>true</synchronize>
             <action>
-            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
             </action>
         </c:reaction>
         <c:reaction>
             <c:situation>unlinked</c:situation>
             <synchronize>true</synchronize>
             <action>
-            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
             </action>
         </c:reaction>
         <c:reaction>
             <c:situation>unmatched</c:situation>
             <synchronize>true</synchronize>
             <action>
-            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
             </action>
         </c:reaction>
 </objectSynchronization>

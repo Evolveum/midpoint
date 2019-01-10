@@ -17,7 +17,7 @@
 <role oid="12345678-d34d-b33f-f00d-988888888889"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>Pirate Lord</name>
     <description>
      A role that "extends" pirate role. Used to test role hierarchies.

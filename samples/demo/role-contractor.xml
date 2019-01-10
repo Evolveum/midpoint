@@ -18,7 +18,7 @@
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>Contractor role</name>    
     <description>Role that gives contractors necessary access.</description>
     <inducement>

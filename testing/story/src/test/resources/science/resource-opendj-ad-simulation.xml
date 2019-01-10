@@ -22,11 +22,11 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
+          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-4"
           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext"
 >
 
@@ -199,7 +199,7 @@
             </outbound>
          </attribute>
 <!--          <attribute> -->
-<!--             <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:uid</ref> -->
+<!--             <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:uid</ref> -->
 <!--             <displayName>Aix username</displayName> -->
 <!--             <outbound> -->
 <!--                <source> -->
@@ -208,7 +208,7 @@
 <!--             </outbound> -->
 <!--          </attribute> -->
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:employeeType</ref>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:employeeType</ref>
             <displayName>AIX Group ID </displayName>
             <outbound>
                <strength>weak</strength>
@@ -285,14 +285,14 @@
                <q:path>name</q:path>
                <expression>
                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-                          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">$shadow/attributes/ri:uid</c:path>
+                          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">$shadow/attributes/ri:uid</c:path>
                </expression>
             </q:equal>
          </correlation>
          <reaction>
             <situation>unlinked</situation>
             <synchronize>true</synchronize>
-            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#link"/>
          </reaction>
       </objectSynchronization>
    </synchronization>

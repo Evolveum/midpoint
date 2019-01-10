@@ -23,7 +23,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -271,19 +271,19 @@
 			</correlation>
 			<reaction>
 	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser"/>
 	        </reaction>
         </objectSynchronization>
 	</synchronization>

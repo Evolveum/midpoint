@@ -33,12 +33,12 @@ object.
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
          xmlns:my="http://whatever.com/my"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">
 
 
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1b2">
@@ -319,7 +319,7 @@ else {
 			<protected>
 				<filter>
 					<q:equal>
-						<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+						<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#distinguishedName</q:matching>
 						<q:path>attributes/ri:dn</q:path>
 						<q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
 					</q:equal>

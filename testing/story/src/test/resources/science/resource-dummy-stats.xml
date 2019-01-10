@@ -20,8 +20,8 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
@@ -61,7 +61,7 @@
          <intent>default</intent>
          <displayName>Default Account</displayName>
          <default>true</default>
-         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
+         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:AccountObjectClass</objectClass>
          <attribute>
             <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">icfs:name</ref>
             <displayName>Username</displayName>
@@ -81,7 +81,7 @@
             </inbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Desc</ref>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:Desc</ref>
             <outbound>
                <strength>weak</strength>
                <expression>
@@ -141,7 +141,7 @@
          <reaction>
             <situation>unlinked</situation>
             <synchronize>true</synchronize>
-            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#link"/>
          </reaction>
       </objectSynchronization>
    </synchronization>

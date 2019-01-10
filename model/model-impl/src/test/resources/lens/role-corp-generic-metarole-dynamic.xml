@@ -41,7 +41,7 @@ metaroles:
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>Generic Metarole</name>
     <description>Metarole for all roles which are assigned directly to users</description>
     <inducement id="1">

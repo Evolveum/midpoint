@@ -20,7 +20,7 @@
 <account oid="c0c010c0-d34d-b33f-f00d-222211111112" 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 	xmlns:piracy="http://pirates.com/xml/ns"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">

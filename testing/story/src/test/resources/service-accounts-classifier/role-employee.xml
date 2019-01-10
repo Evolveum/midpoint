@@ -17,7 +17,7 @@
 <role oid="23d90f70-1924-419e-9beb-78a8bde6d261"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
    <name>Employee</name>
    <inducement id="1">
       <construction>

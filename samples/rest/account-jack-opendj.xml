@@ -20,7 +20,7 @@
 <account oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3aaaa" 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 	<name>jack</name>
 	<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 	<objectClass>ri:AccountObjectClass</objectClass>

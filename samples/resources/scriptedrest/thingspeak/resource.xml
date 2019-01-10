@@ -19,7 +19,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           oid="275ea738-5bb6-40ce-96fb-5941dbbc6dd5">
    <name>ThingSpeak channels</name>
    <description>Resource for managing channels of a ThingSpeak user</description>
@@ -161,7 +161,7 @@
          <reaction>
             <situation>unlinked</situation>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
             </action>
          </reaction>
          <reaction>

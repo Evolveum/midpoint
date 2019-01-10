@@ -23,7 +23,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
@@ -244,14 +244,14 @@
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 	            </action>
 	        </reaction>
 			<!-- We don't want the this resource to be authoritative w.r.t. creating user objects. This causes
@@ -262,7 +262,7 @@
 	            <situation>unmatched</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
 	            </action>
 	        </reaction> -->
 	        <reaction>
@@ -270,7 +270,7 @@
 	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#NoNsEnSe</channel>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#inactivateShadow</handlerUri>
 	            </action>
 	        </reaction>
         </objectSynchronization>

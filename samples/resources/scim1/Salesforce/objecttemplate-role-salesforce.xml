@@ -3,7 +3,7 @@
                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
                 oid="70ef7839-1e00-410f-81c4-3dd8993c65b7"
                 version="12">
    <name>Group and entitlement role template - Salesforce </name>

@@ -33,12 +33,12 @@ object.
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
          xmlns:my="http://whatever.com/my"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">
 
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
@@ -316,7 +316,7 @@ object.
 				<protected>
 					<filter>
 						<q:equal>
-							<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+							<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#distinguishedName</q:matching>
 							<q:path>attributes/ri:dn</q:path>
 							<!-- WilDCapiTaLIzaTioN and spacing makes sure that this is matched properly -->
 							<q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
@@ -393,7 +393,7 @@ object.
 						<q:path>c:name</q:path>
 						<expression>
 							<path>
-								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 								$account/attributes/ri:uid
 							</path>
 						</expression>
@@ -413,20 +413,20 @@ object.
 				<reaction>
 					<situation>linked</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
 					<situation>deleted</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
 					</action>
 				</reaction>
 
 				<reaction>
 					<situation>unlinked</situation>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount</handlerUri>
 					</action>
 				</reaction>
 				<reaction>
@@ -437,7 +437,7 @@ object.
 
 					<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
 					<action>
-						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser</handlerUri>
 					</action>
 				</reaction>
 			</objectSynchronization>

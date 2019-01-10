@@ -7,7 +7,7 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="0c17ae95-d96d-4c9f-b40d-d1cdb1417c55"
       version="4">
    <name>Box Group</name>

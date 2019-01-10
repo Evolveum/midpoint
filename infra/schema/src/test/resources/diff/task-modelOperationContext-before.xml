@@ -20,7 +20,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="9498f1b3-afb2-4696-8d5a-ef138365790b"
       version="3">
     <name>Approving and executing change of user "jack" (started Feb 1, 2018 11:28:55 AM)</name>

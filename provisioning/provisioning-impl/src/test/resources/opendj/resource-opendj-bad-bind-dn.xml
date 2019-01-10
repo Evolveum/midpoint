@@ -23,7 +23,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
           xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 								  
 	<name>Embedded Test OpenDJ with bad bind DN</name>

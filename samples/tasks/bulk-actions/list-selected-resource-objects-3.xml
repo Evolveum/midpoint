@@ -36,7 +36,7 @@
                             </q:ref>
                             <q:equal>
                                 <q:path>objectClass</q:path>
-                                <q:value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:CustomAcceptedDomainObjectClass</q:value>
+                                <q:value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:CustomAcceptedDomainObjectClass</q:value>
                             </q:equal>
                             <q:equal>
                                 <q:path xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">attributes/icfs:uid</q:path>

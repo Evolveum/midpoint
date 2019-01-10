@@ -19,7 +19,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="10000000-0000-0000-0000-000000006601">
     <name>Org Metarole</name>
 

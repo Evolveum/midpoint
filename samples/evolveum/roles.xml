@@ -19,7 +19,7 @@
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 
 	<role oid="08bd752e-1cf1-11e6-90a3-a3ad27be3da2">
 		<name>System Administrator</name>

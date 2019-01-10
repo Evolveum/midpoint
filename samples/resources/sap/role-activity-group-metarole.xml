@@ -3,7 +3,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="056f714a-efac-476f-b38e-9588b4907e5b"
       version="0">
     <name>activity group metarole</name>

@@ -16,7 +16,7 @@ object.
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
            xmlns:my="http://myself.me/schemas/whatever"
            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4" >
 
@@ -210,7 +210,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
         <protected>
             <filter>
                 <q:equal>
-                    <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                    <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#stringIgnoreCase</q:matching>
                     <q:path>attributes/ri:login</q:path>
         			<q:value>admin</q:value>
                 </q:equal>
@@ -371,7 +371,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                 <protected>
                     <filter>
                         <q:equal>
-                            <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                            <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#stringIgnoreCase</q:matching>
                             <q:path>attributes/ri:login</q:path>
                 			<q:value>admin</q:value>
                         </q:equal>
@@ -471,21 +471,21 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
 	                <situation>deleted</situation>
 	                <synchronize>true</synchronize>
                         <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
                         </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
 	                <synchronize>true</synchronize>
                         <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                         </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <synchronize>true</synchronize>
                         <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#inactivateShadow</handlerUri>
                         </action>
 	            </reaction>
 		</objectSynchronization>
@@ -538,21 +538,21 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
 	                <situation>deleted</situation>
 	                <synchronize>true</synchronize>
                         <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
                         </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
 	                <synchronize>true</synchronize>
                         <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
                         </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <synchronize>true</synchronize>
                         <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#inactivateShadow</handlerUri>
                         </action>
 	            </reaction>
 		</objectSynchronization>

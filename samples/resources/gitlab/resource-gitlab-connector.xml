@@ -7,7 +7,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           oid="1c151bec-fa20-4097-bc64-0462ab2e5b7a"
           version="271">
    <name>Gitlab</name>
@@ -62,10 +62,10 @@
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                      elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
@@ -1463,7 +1463,7 @@
          <protected>
             <filter>
                <q:equal>
-                  <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                  <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#stringIgnoreCase</q:matching>
                   <q:path>attributes/icfs:name</q:path>
                   <q:value>root</q:value>
                </q:equal>
@@ -1719,7 +1719,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteFocus</handlerUri>
             </action>
          </reaction>
          <reaction>
@@ -1727,7 +1727,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
             </action>
          </reaction>
          <reaction>
@@ -1735,7 +1735,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
                <objectTemplateRef oid="99cc8d77-dedc-1144-a081-b006821a9c79"/>
             </action>
          </reaction>
@@ -1766,7 +1766,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteFocus</handlerUri>
             </action>
          </reaction>
          <reaction>
@@ -1774,7 +1774,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
             </action>
          </reaction>
          <reaction>
@@ -1782,7 +1782,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
             </action>
          </reaction>
       </objectSynchronization>
@@ -1812,7 +1812,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteFocus</handlerUri>
             </action>
          </reaction>
          <reaction>
@@ -1820,7 +1820,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
             </action>
          </reaction>
          <reaction>
@@ -1828,7 +1828,7 @@
             <synchronize>true</synchronize>
             <reconcile>false</reconcile>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
             </action>
          </reaction>
       </objectSynchronization>

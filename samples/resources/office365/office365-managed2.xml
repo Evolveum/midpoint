@@ -33,7 +33,7 @@ This contains configuration for a managed (non federated) Office 365 domain
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           oid="resource-o365">
         <name>Office 365 Connector</name>
         <description>Office 365 Connector</description>
@@ -58,10 +58,10 @@ This contains configuration for a managed (non federated) Office 365 domain
         <definition>
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
-                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
                         xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
                         elementFormDefault="qualified"
-                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"/>
                 <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
@@ -555,22 +555,22 @@ This contains configuration for a managed (non federated) Office 365 domain
             <reaction>
                 <situation>linked</situation>
                 <synchronize>true</synchronize>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser"/>
             </reaction>
             <reaction>
                 <situation>deleted</situation>
                 <synchronize>true</synchronize>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount"/>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
                 <synchronize>true</synchronize>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
                 <synchronize>true</synchronize>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser"/>
             </reaction>
         </objectSynchronization>
     </synchronization>

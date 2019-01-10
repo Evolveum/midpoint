@@ -17,7 +17,7 @@
 <org oid="00000000-0000-0org-0000-111111111111"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>hogwarts</name>
 <!--     <parentOrgRef oid="4e5dfba1-f208-4038-962f-668f25e1e370" type="OrgType" /> -->
     <displayName>Hogwarts</displayName>

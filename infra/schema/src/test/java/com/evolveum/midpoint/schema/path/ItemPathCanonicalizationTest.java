@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ public class ItemPathCanonicalizationTest {
 		assertCanonical(getPrismContext().emptyPath(), null, "");
 	}
 
-	private static final String COMMON = "${common}3";
-	private static final String ICFS = "${icf}1/connector-schema-3";
+	private static final String COMMON = "${common}" + SchemaConstants.SCHEMA_MAJOR_VERSION;
+	private static final String ICFS = "${icf}1/connector-schema-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	private static final String ICF = "${icf}1";
 	private static final String ZERO = "${0}";
 	private static final String ONE = "${1}";

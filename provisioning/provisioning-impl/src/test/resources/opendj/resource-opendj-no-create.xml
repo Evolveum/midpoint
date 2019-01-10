@@ -25,7 +25,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">
 								  
 	<name>Embedded Test OpenDJ</name>
 	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
@@ -103,7 +103,7 @@
        		<protected>
        			<filter>
 	       			<q:equal>
-	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#distinguishedName</q:matching>
 		            	<q:path>attributes/ri:dn</q:path>
 		            	<!-- WilDCapiTaLIzaTioN and spacing makes sure that this is matched properly -->
 		                <q:value>uid=cAlyPSo, ou=PeoPle,    DC=example,dc=COM</q:value>

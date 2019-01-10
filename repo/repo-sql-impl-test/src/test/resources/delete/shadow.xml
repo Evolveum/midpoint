@@ -40,7 +40,7 @@
     <resourceRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
                  oid="af2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
                  type="c:ResourceType"/>
-    <objectClass xmlns:qn363="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn363:AccountObjectClass</objectClass>
+    <objectClass xmlns:qn363="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">qn363:AccountObjectClass</objectClass>
     <c:kind xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"

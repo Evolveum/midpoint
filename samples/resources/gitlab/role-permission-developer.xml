@@ -7,7 +7,7 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="21ab0054-3d64-44d6-ac87-d90e844591f9"
       version="24">
    <name>developer</name>

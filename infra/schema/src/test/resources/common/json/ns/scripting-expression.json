@@ -1,5 +1,5 @@
 {
-  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3",
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/model/scripting-4",
   "pipeline" : [ {
     "@element" : "sequence",
     "@value" : [ {

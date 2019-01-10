@@ -17,7 +17,7 @@
  
 <org oid="00000000-8888-6666-0000-100000ffffff"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
     xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 	<name>RETIRED</name>
 	<displayName>Retired</displayName>

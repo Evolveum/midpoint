@@ -33,11 +33,11 @@ It also contains inbound mappings and definition to enable synchronization.
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
          xmlns:my="http://whatever.com/my"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 
 		 
@@ -274,7 +274,7 @@ It also contains inbound mappings and definition to enable synchronization.
 		<protected>
 		<filter>
 			<q:equal>
-				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#stringIgnoreCase</q:matching>
 				<q:path>attributes/ri:dn</q:path>
 				<q:value>cn=idm,ou=Administrators,dc=example,dc=com</q:value>
 		    </q:equal>
@@ -684,7 +684,7 @@ It also contains inbound mappings and definition to enable synchronization.
 	                    <q:path>name</q:path>
 	                    <expression>
 							<path>
-								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 								$account/attributes/ri:uid
 							</path>
 	                    </expression>
@@ -709,7 +709,7 @@ It also contains inbound mappings and definition to enable synchronization.
 	                <situation>deleted</situation>
 	                <synchronize>true</synchronize>
 		            <action>
-		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 		            </action>
 	            </reaction>
 	
@@ -717,7 +717,7 @@ It also contains inbound mappings and definition to enable synchronization.
 	                <situation>unlinked</situation>
 	                <synchronize>true</synchronize>
 		            <action>
-		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 		            </action>
 	            </reaction>
 	            <reaction>
@@ -738,7 +738,7 @@ It also contains inbound mappings and definition to enable synchronization.
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
 tmpSuffix = '(?i)^ou=.*,ou=customers,dc=example,dc=com$'
 re = ~tmpSuffix
-basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'dn') ==~ re
+basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-4', 'dn') ==~ re
                            </code>
                         </script>
                 </condition>
@@ -748,7 +748,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
                         <q:path>c:name</q:path>
                         <expression>
                             <path>
-				declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+				declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 				$shadow/attributes/ri:ou
                             </path>
                         </expression>
@@ -762,7 +762,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
 		        <action>
-		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 		        </action>
 	        </reaction>
 	
@@ -770,7 +770,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 		        <action>
-		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 		        </action>
 	        </reaction>
 	        <reaction>
@@ -791,7 +791,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
 tmpSuffix = '(?i)^cn=.*-powerusers,ou=.*,ou=customers,dc=example,dc=com$'
 re = ~tmpSuffix
-basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'dn') ==~ re
+basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-4', 'dn') ==~ re
                            </code>
                         </script>
                 </condition>
@@ -802,7 +802,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
                         <expression>
                             <script>
                                 <code>
-				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'cn')
+				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-4', 'cn')
 				re = /(?i)^(.*)-powerusers$/
 				matcher = (tmpCn =~ re)
 				if (matcher.matches()) return matcher[0][1]
@@ -819,7 +819,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
 		        <action>
-		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 		        </action>
 	        </reaction>
 	
@@ -827,7 +827,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 		        <action>
-		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 		        </action>
 	        </reaction>
 	        <reaction>
@@ -847,7 +847,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
 tmpSuffix = '(?i)^cn=.*-users,ou=.*,ou=customers,dc=example,dc=com$'
 re = ~tmpSuffix
-basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'dn') ==~ re
+basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-4', 'dn') ==~ re
                            </code>
                         </script>
                 </condition>
@@ -858,7 +858,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
                         <expression>
                             <script>
                                 <code>
-				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'cn')
+				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-4', 'cn')
 				re = /(?i)^(.*)-users$/
 				matcher = (tmpCn =~ re)
 				if (matcher.matches()) return matcher[0][1]
@@ -875,7 +875,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
 		        <action>
-		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 		        </action>
 	        </reaction>
 	
@@ -883,7 +883,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 		        <action>
-		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 		        </action>
 	        </reaction>
 	        <reaction>
@@ -903,7 +903,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
 tmpSuffix = '(?i)^cn=.*-admins,ou=.*,ou=customers,dc=example,dc=com$'
 re = ~tmpSuffix
-basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'dn') ==~ re
+basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-4', 'dn') ==~ re
                            </code>
                         </script>
                 </condition>
@@ -914,7 +914,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
                         <expression>
                             <script>
                                 <code>
-				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'cn')
+				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-4', 'cn')
 				re = /(?i)^(.*)-admins$/
 				matcher = (tmpCn =~ re)
 				if (matcher.matches()) return matcher[0][1]
@@ -931,7 +931,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
 		        <action>
-		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
 		        </action>
 	        </reaction>
 	
@@ -939,7 +939,7 @@ basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/reso
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 		        <action>
-		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 		        </action>
 	        </reaction>
 	        <reaction>

@@ -27,7 +27,7 @@ connector server.
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 	xmlns:my="http://myself.me/schemas/whatever"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"

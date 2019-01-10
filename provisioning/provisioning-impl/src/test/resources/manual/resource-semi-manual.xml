@@ -22,7 +22,7 @@
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
         xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 								  
 	<name>Semi-Manual Resource</name>

@@ -22,7 +22,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4">
     <name>Smith</name>
     <inducement>
-        <construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        <construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
         	<!-- The c: prefix in type must be there due to a JAXB bug -->
             <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
             <attribute>

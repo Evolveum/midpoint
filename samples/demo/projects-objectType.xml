@@ -3,7 +3,7 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 
           version="93">
 
@@ -81,7 +81,7 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
                 <c:ref>icfs:name</c:ref>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <source>
                         <c:path>$focus/name</c:path>
@@ -102,7 +102,7 @@
             </attribute>
             <attribute>
                 <c:ref>ri:cn</c:ref>
-                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <strength>weak</strength>
                     <source>

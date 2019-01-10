@@ -461,46 +461,46 @@
                    therefore all accounts created on the resource should be reflected as new users in IDM. See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations -->
             <reaction>
                 <situation>confirmed</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser">
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser">
                     <decision>KEEP</decision>
                 </action>
             </reaction>
             <reaction>
                 <situation>deleted</situation>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>-->
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser">
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount"/>-->
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser">
                     <decision>UNLINK</decision>
                 </action>
             </reaction>
             <reaction>
                 <situation>missing</situation>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount"/>-->
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser">
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addAccount"/>-->
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser">
                     <decision>ADD</decision>
                 </action>
             </reaction>
             <reaction>
                 <situation>found</situation>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser">
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>-->
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser">
                     <decision>ADD</decision>
                 </action>
             </reaction>
             <reaction>
                 <situation>unassigned</situation>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser">
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>-->
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser">
                     <decision>KEEP</decision>
                 </action>
             </reaction>
             <i:reaction>
                 <i:situation>unmatched</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser">
                     <!-- Reference to the User Template is here. If the user would be created as a result of this action, it will be created
                              according to this template. -->
                     <i:userTemplateRef oid="c0c010c0-d34d-b55f-f22d-777666111111"/>
                 </i:action>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>
             </i:reaction>
 
         </i:synchronization>

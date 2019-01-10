@@ -23,7 +23,7 @@
           xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-4"
           xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
           xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
           xmlns:cdoext="http://xml.uniba.sk/cdoext"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

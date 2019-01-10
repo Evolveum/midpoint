@@ -20,8 +20,8 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
@@ -63,14 +63,14 @@
          <intent>default</intent>
          <displayName>Default Account</displayName>
          <default>true</default>
-         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
+         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:AccountObjectClass</objectClass>
          <attribute>
             <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4">icfs:name</ref>
             <displayName>Username</displayName>
             <limitations>
                <minOccurs>0</minOccurs>
             </limitations>
-            <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+            <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">mr:stringIgnoreCase</matchingRule>
             <outbound>
                <strength>weak</strength>
                <source>
@@ -79,7 +79,7 @@
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Shell</ref>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:Shell</ref>
             <outbound>
                <strength>weak</strength>
                <source>
@@ -95,7 +95,7 @@
             </inbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:SYSTEM</ref>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:SYSTEM</ref>
             <outbound>
                <strength>weak</strength>
                <expression>
@@ -104,7 +104,7 @@
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:Dir</ref>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:Dir</ref>
             <inbound>
                <target>
                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
@@ -113,7 +113,7 @@
             </inbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:internalId</ref>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">ri:internalId</ref>
             <limitations>
                <access>
                   <read>true</read>
@@ -182,7 +182,7 @@
          <reaction>
             <situation>unlinked</situation>
             <synchronize>true</synchronize>
-            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#link"/>
          </reaction>
       </objectSynchronization>
    </synchronization>

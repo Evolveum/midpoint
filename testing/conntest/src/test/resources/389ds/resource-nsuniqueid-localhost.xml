@@ -19,14 +19,14 @@
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4'
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4">
 	<name>Localhost 389ds</name>
 	<connectorRef type="ConnectorType">
 	    <filter>
@@ -188,7 +188,7 @@
 			<protected>
        			<filter>
 	       			<q:equal>
-	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#stringIgnoreCase</q:matching>
 		            	<q:path>attributes/ri:dn</q:path>
 		                <q:value>cn=idm,ou=Special Users,dc=example,dc=com</q:value>
 		            </q:equal>
@@ -312,15 +312,15 @@
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteFocus"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#link"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus"/>
 	        </reaction>
 
 		</objectSynchronization>
@@ -334,7 +334,7 @@
 			<enabled>true</enabled>
 			<correlation>
 				<q:equal>
-					<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#polyStringNorm</q:matching>
+					<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#polyStringNorm</q:matching>
 					<q:path>c:name</q:path>
 					<expression>
 						<path>$shadow/attributes/cn</path>
@@ -348,15 +348,15 @@
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteFocus"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#link"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus"/>
 	        </reaction>
 
 		</objectSynchronization>

@@ -19,11 +19,11 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-4' xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	xmlns:my="http://whatever.com/my" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
 	xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4">
 
 	<name>LDAP</name>
@@ -263,7 +263,7 @@
 			<protected>
 				<filter>
 					<q:equal>
-						<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+						<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-4#stringIgnoreCase</q:matching>
 						<q:path>attributes/ri:dn</q:path>
 						<q:value>cn=idm,ou=Administrators,dc=example,dc=com</q:value>
 					</q:equal>
@@ -433,7 +433,7 @@
 				<situation>deleted</situation>
 				<synchronize>true</synchronize>
 				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink
 					</handlerUri>
 				</action>
 			</reaction>
@@ -441,7 +441,7 @@
 				<situation>unlinked</situation>
 				<synchronize>true</synchronize>
 				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link
 					</handlerUri>
 				</action>
 			</reaction>
@@ -472,7 +472,7 @@
 				<situation>deleted</situation>
 				<synchronize>true</synchronize>
 				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink
 					</handlerUri>
 				</action>
 			</reaction>
@@ -480,7 +480,7 @@
 				<situation>unlinked</situation>
 				<synchronize>true</synchronize>
 				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link
 					</handlerUri>
 				</action>
 			</reaction>
@@ -511,7 +511,7 @@
 				<situation>deleted</situation>
 				<synchronize>true</synchronize>
 				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink
 					</handlerUri>
 				</action>
 			</reaction>
@@ -519,7 +519,7 @@
 				<situation>unlinked</situation>
 				<synchronize>true</synchronize>
 				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link
 					</handlerUri>
 				</action>
 			</reaction>

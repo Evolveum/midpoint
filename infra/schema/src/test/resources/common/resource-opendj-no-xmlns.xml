@@ -618,16 +618,16 @@ This is now the only account type that midPoint can work with. -->
 	        <reaction>
 	            <situation>deleted</situation>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount</handlerUri>
 	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser">
 	                <!-- Reference to the User Template is here. If the user would be
 	             created as a result of this action, it will be created according
 	             to this template. -->

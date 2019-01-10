@@ -31,7 +31,7 @@ object.
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
            xmlns:my="http://myself.me/schemas/whatever"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
@@ -268,25 +268,25 @@ object.
 	             -->
 	            <reaction>
 	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#modifyUser"/>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlinkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#addUser">
 	                    <!-- Reference to the User Template is here. If the user would be
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
 	                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
 	                </action>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-4#linkAccount"/>
 	            </reaction>
 			</objectSynchronization>
         </synchronization>

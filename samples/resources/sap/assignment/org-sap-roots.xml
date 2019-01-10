@@ -7,7 +7,7 @@
      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
      oid="b579d7b9-26f9-4cbd-87c7-74f549ce97e0"
      version="0">
    <name>sap-profiles</name>
@@ -20,7 +20,7 @@
      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
      oid="293e12ed-553a-468a-a7d1-99460b264fa1"
      version="0">
    <name>sap-groups</name>
@@ -33,7 +33,7 @@
      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
-     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
      oid="d13f5205-3348-4742-aedb-874d272806eb"
      version="1">
    <name>sap-roles</name>

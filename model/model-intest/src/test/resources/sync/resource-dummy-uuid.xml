@@ -21,7 +21,7 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-4"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
 								  
 	<name>Dummy UUID Resource</name>
@@ -150,21 +150,21 @@
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#deleteFocus</handlerUri>
 	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
 	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#addFocus</handlerUri>
 	            </action>
 	        </reaction>
         </objectSynchronization>

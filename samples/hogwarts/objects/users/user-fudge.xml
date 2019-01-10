@@ -20,7 +20,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
    <name>c.fudge</name>
    <assignment id="1">
       <targetRef oid="d163d767-2467-4304-badf-aaae421f2171"

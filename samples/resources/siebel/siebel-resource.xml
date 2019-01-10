@@ -4,7 +4,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
    <name>SIEBEL</name>
    <connectorRef type="c:ConnectorType">
   	<filter>
@@ -44,10 +44,10 @@
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
                      elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
 				        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-4"/>
 				        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"/>
 				        <xsd:complexType name="AccountObjectClass">
@@ -458,14 +458,14 @@
             <situation>deleted</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#unlink</handlerUri>
             </action>
          </reaction>
          <reaction>
             <situation>unlinked</situation>
             <synchronize>true</synchronize>
             <action>
-               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-4#link</handlerUri>
             </action>
          </reaction>
          <reaction>

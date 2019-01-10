@@ -5,7 +5,7 @@
 	  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" 
 	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" 
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4" 
-	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" 
+	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4" 
 	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4" 
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <name>Job-Role-MultiJobs</name>

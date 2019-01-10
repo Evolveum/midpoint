@@ -17,7 +17,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>Account-Only</name>
     <inducement id="1111">
     	<construction>

@@ -16,7 +16,7 @@
 <role oid="29eab2c8-5da2-11e7-85d3-c78728e05ca3"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4">
     <name>One: Semi Manual</name>
     <inducement>
     	<construction>

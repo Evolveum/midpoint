@@ -7,7 +7,7 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
       oid="a4227baa-39f5-4c9b-857d-0622e407f390"
       version="8">
    <name>ViewerUploader</name>
