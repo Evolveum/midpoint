@@ -47,9 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParametersType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.RemoteReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.RemoteReportParametersType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.ReportPortType;
 
 @Service
 public class ReportWebService implements ReportPortType, ReportPort {

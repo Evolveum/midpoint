@@ -31,12 +31,12 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_4.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateAuditScriptResponseType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateAuditScriptType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateScriptResponseType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.EvaluateScriptType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.ProcessReportResponseType;
-import com.evolveum.midpoint.xml.ns._public.report.report_3.ProcessReportType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.EvaluateAuditScriptResponseType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.EvaluateAuditScriptType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.EvaluateScriptResponseType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.EvaluateScriptType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.ProcessReportResponseType;
+import com.evolveum.midpoint.xml.ns._public.report.report_4.ProcessReportType;
 
 @Service
 public class ReportWebServiceRaw implements Provider<DOMSource> {
