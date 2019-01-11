@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -46,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.UserType;
 @Component
 public class RecomputeTriggerHandler implements TriggerHandler {
 
-	public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-3";
+	public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
 

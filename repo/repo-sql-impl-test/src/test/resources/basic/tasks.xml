@@ -23,7 +23,7 @@
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
          xmlns:my="http://myself.me/schemas/whatever"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd">
 
     <task oid="1238546">
         <name>Synchronization: Embedded Test OpenDJ1</name>
@@ -34,7 +34,7 @@
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
 
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-4</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
@@ -53,7 +53,7 @@
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
 
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-4</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
@@ -72,7 +72,7 @@
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
 
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-4</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>

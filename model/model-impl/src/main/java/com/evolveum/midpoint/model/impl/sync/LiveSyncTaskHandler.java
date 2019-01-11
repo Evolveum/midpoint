@@ -59,7 +59,7 @@ import java.util.List;
 @Component
 public class LiveSyncTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
+	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
     @Autowired private TaskManager taskManager;
 	@Autowired private ProvisioningService provisioningService;

@@ -17,7 +17,7 @@
 
 <task oid="91919191-76e0-59e2-86d6-556655662021"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4" 
-	xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
+	xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>DeleteTaskTree-child2</name>
@@ -31,7 +31,7 @@
     <parent>10000000-0000-0000-0000-123450000021</parent>
     <executionStatus>suspended</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4</handlerUri>
     <recurrence>single</recurrence>
 </task>
 

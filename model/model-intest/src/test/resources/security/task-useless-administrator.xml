@@ -29,7 +29,7 @@
 	<!-- Closed. We do not want it to run. -->
 	<executionStatus>closed</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-4</handlerUri>
 	<recurrence>single</recurrence>
 	<!-- No schedule -->
 

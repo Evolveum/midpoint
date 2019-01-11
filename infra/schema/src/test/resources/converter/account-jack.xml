@@ -23,7 +23,7 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:piracy="http://pirates.com/xml/ns"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation='http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd'>
+	xsi:schemaLocation='http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd'>
 	<name>jack</name>
 	<extension>
 		<piracy:ship>Black Pearl</piracy:ship>

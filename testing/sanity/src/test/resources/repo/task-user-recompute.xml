@@ -22,7 +22,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:my="http://whatever.com/my"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>User Recompute</name>
@@ -34,7 +34,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-4</handlerUri>
 	<recurrence>single</recurrence>
 	<binding>tight</binding>
 

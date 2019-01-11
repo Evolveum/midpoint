@@ -64,7 +64,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	protected static final String CYCLE_FINISHING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-finishing-task-handler";
 	protected static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
 	protected static final String SINGLE_TASK_HANDLER_2_URI = "http://midpoint.evolveum.com/test/single-task-handler-2";
-	protected static final String SINGLE_TASK_HANDLER_3_URI = "http://midpoint.evolveum.com/test/single-task-handler-3";
+	protected static final String SINGLE_TASK_HANDLER_4_URI = "http://midpoint.evolveum.com/test/single-task-handler-4";
 	protected static final String SINGLE_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-wb-task-handler";
 	protected static final String PARTITIONED_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/partitioned-wb-task-handler";
 	protected static final String PARTITIONED_WB_TASK_HANDLER_URI_1 = PARTITIONED_WB_TASK_HANDLER_URI + "#1";
@@ -113,7 +113,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		singleHandler2 = new MockSingleTaskHandler("2", taskManager);
 		taskManager.registerHandler(SINGLE_TASK_HANDLER_2_URI, singleHandler2);
 		singleHandler3 = new MockSingleTaskHandler("3", taskManager);
-		taskManager.registerHandler(SINGLE_TASK_HANDLER_3_URI, singleHandler3);
+		taskManager.registerHandler(SINGLE_TASK_HANDLER_4_URI, singleHandler3);
 
 		workBucketsTaskHandler = new MockWorkBucketsTaskHandler(null, taskManager);
 		taskManager.registerHandler(SINGLE_WB_TASK_HANDLER_URI, workBucketsTaskHandler);

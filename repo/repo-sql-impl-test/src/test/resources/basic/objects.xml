@@ -683,7 +683,7 @@
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 		<archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
 		<executionStatus>runnable</executionStatus>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-4</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
@@ -1385,15 +1385,15 @@
         <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
         <trigger id="677504621">
             <timestamp>2015-12-18T23:59:59.999+01:00</timestamp>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3</handlerUri>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-4</handlerUri>
         </trigger>
         <trigger id="677504622">
             <timestamp>2015-12-16T23:59:59.999+01:00</timestamp>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-4</handlerUri>
         </trigger>
         <trigger id="677504623">
             <timestamp>2015-12-18T11:59:59.999+01:00</timestamp>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-4</handlerUri>
         </trigger>
         <metadata>
             <createTimestamp>2015-12-04T00:37:08.885+01:00</createTimestamp>

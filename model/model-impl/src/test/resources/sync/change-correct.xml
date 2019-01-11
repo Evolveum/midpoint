@@ -22,7 +22,7 @@
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
           
           xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-3.xsd
+   http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-4.xsd
    '>
 
 

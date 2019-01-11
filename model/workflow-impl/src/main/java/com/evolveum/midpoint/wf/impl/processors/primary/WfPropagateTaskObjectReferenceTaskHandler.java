@@ -22,6 +22,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -53,7 +54,7 @@ import java.util.List;
 public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
     // should be available only within the context of primary change processor
-    static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/propagate-task-object-reference/handler-3";
+    static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/propagate-task-object-reference/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
     private static final Trace LOGGER = TraceManager.getTrace(WfPropagateTaskObjectReferenceTaskHandler.class);
 

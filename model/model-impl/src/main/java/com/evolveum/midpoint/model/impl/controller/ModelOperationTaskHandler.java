@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -59,7 +60,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
     private static final String DOT_CLASS = ModelOperationTaskHandler.class.getName() + ".";
 
-    public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3";
+    public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
     @Autowired private TaskManager taskManager;
     @Autowired private PrismContext prismContext;

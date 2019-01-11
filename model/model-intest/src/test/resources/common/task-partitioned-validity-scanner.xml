@@ -28,7 +28,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/partitioned-focus-validity-scanner/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/partitioned-focus-validity-scanner/handler-4</handlerUri>
 	<recurrence>recurring</recurrence>
 	<binding>loose</binding>
 	<schedule>

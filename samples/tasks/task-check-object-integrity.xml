@@ -27,6 +27,6 @@ Currently it measures repo sizes of selected (or all) objects.
     </extension>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/object-integrity-check/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/object-integrity-check/handler-4</handlerUri>
     <recurrence>single</recurrence>
 </task>

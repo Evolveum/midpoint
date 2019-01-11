@@ -74,6 +74,7 @@ import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -116,7 +117,7 @@ import net.sf.jasperreports.governors.TimeoutGovernor;
 @Component
 public class ReportCreateTaskHandler implements TaskHandler {
 
-    public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-3";
+    public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
     private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
 
     private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";

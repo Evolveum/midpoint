@@ -54,7 +54,7 @@ import java.util.List;
 @Component
 public class WfTimedActionTriggerHandler implements TriggerHandler {
 
-	public static final String HANDLER_URI = WorkflowConstants.NS_WORKFLOW_TRIGGER_PREFIX + "/timed-action/handler-3";
+	public static final String HANDLER_URI = WorkflowConstants.NS_WORKFLOW_TRIGGER_PREFIX + "/timed-action/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(WfTimedActionTriggerHandler.class);
 

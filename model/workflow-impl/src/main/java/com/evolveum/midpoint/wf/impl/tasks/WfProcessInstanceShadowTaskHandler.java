@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.tasks;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -43,7 +44,7 @@ import java.util.List;
 @DependsOn({ "taskManager" })
 public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/process-instance-shadow/handler-3";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/process-instance-shadow/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
     private static final String DOT_CLASS = WfProcessInstanceShadowTaskHandler.class.getName() + ".";
 
     @Autowired(required = true)

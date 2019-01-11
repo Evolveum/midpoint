@@ -39,7 +39,7 @@
 	</extension>
 	<trigger id="1">
 		<timestamp>2017-02-16T23:13:34.675+01:00</timestamp>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/workflow/trigger/timed-action/handler-3</handlerUri>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/workflow/trigger/timed-action/handler-4</handlerUri>
 		<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-4"
 				   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 				   xsi:type="c:ExtensionType">

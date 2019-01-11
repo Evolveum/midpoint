@@ -36,7 +36,7 @@ object.
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
            xmlns:my="http://myself.me/schemas/whatever"
-           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa">
 
@@ -399,7 +399,7 @@ object.
 		<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3afaf</taskIdentifier>
 		<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 		<executionStatus>runnable</executionStatus>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-4</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa" type="c:ResourceType"/>
 		<recurrence>recurring</recurrence>
 		<binding>tight</binding>

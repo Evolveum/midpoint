@@ -21,7 +21,7 @@
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
 	<name>JDBC Ping</name>
-	<extension xmlns:ping="http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3">
+	<extension xmlns:ping="http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-4">
 		<ping:tests>10</ping:tests>				<!-- 0 for infinite run -->
 		<ping:interval>1</ping:interval>		<!-- default is 10 -->
 		<ping:testQuery>SELECT * FROM M_CONNECTOR</ping:testQuery>			<!-- default is SELECT 1=1 -->
@@ -33,7 +33,7 @@
 	</extension>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-4</handlerUri>
 	<recurrence>single</recurrence>
 	<binding>tight</binding>
 </task>

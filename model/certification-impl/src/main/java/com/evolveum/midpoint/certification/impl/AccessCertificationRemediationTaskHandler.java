@@ -55,7 +55,7 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 @Component
 public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
-	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
+	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
     private static final String CLASS_DOT = AccessCertificationRemediationTaskHandler.class.getName() + ".";
 

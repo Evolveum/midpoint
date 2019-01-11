@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -57,7 +58,7 @@ import java.util.List;
 @Component
 public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
-    public static final String HANDLER_URI = ModelConstants.NS_IMPORT_OBJECTS_TASK_PREFIX + "/file/handler-3";
+    public static final String HANDLER_URI = ModelConstants.NS_IMPORT_OBJECTS_TASK_PREFIX + "/file/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
     @Autowired(required = true)
     private TaskManager taskManager;

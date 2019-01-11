@@ -77,7 +77,7 @@
     <executionStatus>waiting</executionStatus>      <!-- this is just a template, therefore it should not be executed -->
 
     <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-4</handlerUri>
     <cleanupAfterCompletion>PT1S</cleanupAfterCompletion>
     <recurrence>single</recurrence>
 

@@ -37,6 +37,6 @@
 			  oid="00000000-0000-0000-0000-000000000002"
 			  type="tns:UserType"><!-- administrator --></ownerRef>
 	<executionStatus>runnable</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-4</handlerUri>
 	<recurrence>single</recurrence>
 </task>

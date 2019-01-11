@@ -56,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 @Component
 public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, PropagationResultHandler> {
 	
-	public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/handler-3";
+	public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	
 	// WARNING! This task handler is efficiently singleton!
  	// It is a spring bean and it is supposed to handle all search task instances

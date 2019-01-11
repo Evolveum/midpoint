@@ -19,7 +19,7 @@
 	<name>Reindex audit records</name>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/auditReindex/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/auditReindex/handler-4</handlerUri>
 	<recurrence>single</recurrence>
 	<binding>tight</binding>
 </task>

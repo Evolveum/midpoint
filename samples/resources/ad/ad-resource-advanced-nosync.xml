@@ -33,7 +33,7 @@ This resource definition contains only the very basic definitions for midPoint t
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4" xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
     

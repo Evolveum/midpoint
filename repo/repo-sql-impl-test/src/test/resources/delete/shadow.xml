@@ -25,7 +25,7 @@
     </name>
     <trigger id="1">
         <timestamp>2018-01-01T00:00:00.000-05:00</timestamp>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/recompute/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/recompute/handler-4</handlerUri>
     </trigger>
     <metadata>
         <createTimestamp>2013-09-30T14:23:23.817-04:00</createTimestamp>

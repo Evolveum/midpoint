@@ -23,7 +23,7 @@
     <executionStatus>runnable</executionStatus>
 
     <category>System</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/focus-validation-scanner/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/focus-validation-scanner/handler-4</handlerUri>
     <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>

@@ -21,7 +21,7 @@
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="/../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+      xsi:schemaLocation="/../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Passive task 0004</name>

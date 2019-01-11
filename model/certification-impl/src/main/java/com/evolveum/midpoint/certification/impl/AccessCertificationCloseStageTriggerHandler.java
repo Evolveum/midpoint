@@ -19,6 +19,7 @@ import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -44,7 +45,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_4.AccessCertifi
 @Component
 public class AccessCertificationCloseStageTriggerHandler implements TriggerHandler {
 
-	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
+	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageTriggerHandler.class);
 

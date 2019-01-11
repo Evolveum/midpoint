@@ -25,7 +25,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-4"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Broken Resource</name>

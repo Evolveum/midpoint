@@ -19,7 +19,7 @@
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	  xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3">
+	  xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4">
 	<name>1000 objects in 20 buckets, 4 workers per node</name>
 	<extension>
 		<!-- 1 second per object -->
@@ -29,7 +29,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 	<category>Demo</category>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-4</handlerUri>
 	<workManagement>
 		<taskKind>coordinator</taskKind>
 		<buckets>
@@ -48,7 +48,7 @@
 			</allocation>
 		</buckets>
 		<workers>
-			<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+			<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4</handlerUri>
 			<workersPerNode>
 				<count>40</count>
 			</workersPerNode>

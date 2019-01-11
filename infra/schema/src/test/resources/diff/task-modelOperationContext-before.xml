@@ -32,10 +32,10 @@
     <waitingReason>otherTasks</waitingReason>
     <node>DefaultNode</node>
     <category>Workflow</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/workflow/prepare-root-operation/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/workflow/prepare-root-operation/handler-4</handlerUri>
     <otherHandlersUriStack>
         <uriStackEntry>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3</handlerUri>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-4</handlerUri>
             <recurrence>single</recurrence>
             <binding>tight</binding>
         </uriStackEntry>

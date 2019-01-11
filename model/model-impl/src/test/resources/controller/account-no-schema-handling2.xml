@@ -23,7 +23,7 @@
 	xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS" xmlns:opendsl="http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="c:AccountShadowType"
 	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../ns/public/common/common-3.xsd
+   http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../ns/public/common/common-4.xsd
    
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd ../ns/public/resource/idconnector/resource-schema-3.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>

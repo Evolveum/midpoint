@@ -24,7 +24,7 @@
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
          xmlns:my="http://myself.me/schemas/whatever"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-4"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd">
 
 	<report oid="report01-0000-0000-0000-000000000000">
         <name>report01</name>

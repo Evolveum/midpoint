@@ -13578,7 +13578,7 @@
 		<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 		<executionStatus>runnable</executionStatus>
 
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-4</handlerUri>
 		<objectRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
 		<recurrence>recurring</recurrence>
 		<!--<binding>tight</binding>-->

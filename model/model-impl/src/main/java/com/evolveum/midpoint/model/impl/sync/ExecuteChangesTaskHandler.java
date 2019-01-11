@@ -59,7 +59,7 @@ import com.evolveum.prism.xml.ns._public.types_4.ObjectDeltaType;
 @Component
 public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskHandler<FocusType, AbstractSearchIterativeResultHandler<FocusType>> {
 
-	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-3";
+	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
     @Autowired
 	private TaskManager taskManager;

@@ -57,7 +57,7 @@
         <executionStatus>runnable</executionStatus>
 
         <category>BulkActions</category>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-4</handlerUri>
         <recurrence>single</recurrence>
     </task>
 

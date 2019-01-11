@@ -21,10 +21,10 @@
 	<description>Assignment certification by Organization membership</description>
 	<trigger id="1">
 		<timestamp>2017-03-17T23:45:58.689+01:00</timestamp>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3</handlerUri>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-4</handlerUri>
 	</trigger>
 	<trigger id="2">
 		<timestamp>2017-03-17T23:44:58.689+01:00</timestamp>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-4</handlerUri>
 	</trigger>
 </accessCertificationCampaign>

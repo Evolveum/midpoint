@@ -350,7 +350,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File TASK_USELESS_JACK_FILE = new File(TEST_DIR,"task-useless-jack.xml");
 	protected static final String TASK_USELESS_JACK_OID = "642d8174-30c8-11e7-b338-c3cf3a6c548a";
-	protected static final String TASK_USELESS_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3";
+	protected static final String TASK_USELESS_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	protected static final File USER_TEMPLATE_SECURITY_FILE = new File(TEST_DIR,"user-template-security.xml");
 	protected static final String USER_TEMPLATE_SECURITY_OID = "b3a8f244-565a-11e7-8802-7b2586c1ce99";

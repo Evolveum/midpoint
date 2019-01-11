@@ -25,7 +25,7 @@
 	<executionStatus>runnable</executionStatus>
 
     <category>AccessCertification</category>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/task/campaign-creation/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/task/campaign-creation/handler-4</handlerUri>
 	<objectRef type="AccessCertificationDefinitionType">
 		<filter>
 			<q:equal>

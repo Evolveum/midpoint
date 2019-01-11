@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
@@ -39,7 +40,7 @@ import javax.annotation.PostConstruct;
 @Component
 public class AccessCertificationCampaignCreationTaskHandler implements TaskHandler {
 
-	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/campaign-creation/handler-3";
+	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/campaign-creation/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
     private static final String CLASS_DOT = AccessCertificationCampaignCreationTaskHandler.class.getName() + ".";
 
     @Autowired private TaskManager taskManager;

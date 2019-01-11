@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -51,7 +52,7 @@ import java.util.Set;
 @Component
 public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/prepare-root-operation/handler-3";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/prepare-root-operation/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareRootOperationTaskHandler.class);
 

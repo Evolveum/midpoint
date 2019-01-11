@@ -3083,7 +3083,7 @@ public final class WebComponentUtil {
 
 	public static void deleteSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType, PageBase pageBase){
 		String resourceOid = resourceType.getOid();
-		String handlerUri = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3";
+		String handlerUri = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resourceOid);
 		PrismObject<TaskType> oldTask;

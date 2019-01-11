@@ -37,7 +37,7 @@
     		<filter>
     			<q:equal>
     				<q:path>handlerUri</q:path>
-    				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3</q:value>
+    				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-4</q:value>
     			</q:equal>
     		</filter>
     		<owner>

@@ -29,7 +29,7 @@ public class ModelPublicConstants {
 	public static final String NS_SYNCHRONIZATION_TASK_PREFIX = NS_SYNCHRONIZATION_PREFIX + "/task";
 
 	public static final String DELETE_TASK_HANDLER_URI = NS_SYNCHRONIZATION_TASK_PREFIX + "/delete/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;	// TODO why "synchronization"?
-	public static final String REINDEX_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/reindex/handler-3";
+	public static final String REINDEX_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/reindex/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	public static final String AUDIT_REINDEX_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/auditReindex/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	public static final String CLEANUP_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/cleanup/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	public static final String SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/shadow-integrity-check/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;

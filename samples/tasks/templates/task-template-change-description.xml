@@ -47,7 +47,7 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>waiting</executionStatus>      <!-- this is task template -->
     <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-4</handlerUri>
     <cleanupAfterCompletion>PT10M</cleanupAfterCompletion>  <!-- delete 10 minutes after completion -->
     <recurrence>single</recurrence>
 </task>

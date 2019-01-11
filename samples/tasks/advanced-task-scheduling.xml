@@ -28,7 +28,7 @@ so please do not edit unless you know what you are doing.
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-4"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
+         xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4"
         >
 
     <task oid="00000005-0000-0000-0000-123450000001">
@@ -41,7 +41,7 @@ so please do not edit unless you know what you are doing.
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
         <category>Demo</category>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4</handlerUri>
         <recurrence>recurring</recurrence>
         <binding>loose</binding>
         <schedule>
@@ -60,7 +60,7 @@ so please do not edit unless you know what you are doing.
         <executionStatus>runnable</executionStatus>
 
         <category>Demo</category>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4</handlerUri>
         <recurrence>recurring</recurrence>
         <binding>loose</binding>
         <schedule>
@@ -79,7 +79,7 @@ so please do not edit unless you know what you are doing.
         <executionStatus>runnable</executionStatus>
 
         <category>Demo</category>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4</handlerUri>
         <recurrence>recurring</recurrence>
         <binding>loose</binding>
         <schedule>
@@ -100,7 +100,7 @@ so please do not edit unless you know what you are doing.
         <executionStatus>runnable</executionStatus>
 
         <category>Demo</category>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4</handlerUri>
         <recurrence>recurring</recurrence>
         <binding>loose</binding>
         <schedule>
@@ -120,7 +120,7 @@ so please do not edit unless you know what you are doing.
         <executionStatus>runnable</executionStatus>
 
         <category>Demo</category>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4</handlerUri>
         <recurrence>recurring</recurrence>
         <binding>loose</binding>
         <schedule>

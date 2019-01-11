@@ -26,7 +26,7 @@
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
 	xmlns:my="http://myself.me/schemas/whatever"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-4"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db">
     

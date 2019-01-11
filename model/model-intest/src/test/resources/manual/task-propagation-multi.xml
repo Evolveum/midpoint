@@ -30,7 +30,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/provisioning/task/propagation/multi-handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/provisioning/task/propagation/multi-handler-4</handlerUri>
 	<objectRef type="ResourceType">
 		<filter>
 			<q:equal>

@@ -37,7 +37,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-4</handlerUri>
 	<objectRef oid="10000000-0000-0000-0000-000000000204" type="ResourceType"/>
 	<workManagement>
 		<partitions>

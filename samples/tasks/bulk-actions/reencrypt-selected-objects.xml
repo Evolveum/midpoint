@@ -51,6 +51,6 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
     <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-4</handlerUri>
     <recurrence>single</recurrence>
 </task>

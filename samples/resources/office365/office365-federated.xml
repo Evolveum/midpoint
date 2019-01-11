@@ -35,7 +35,7 @@ This contains configuration for a federated Office 365 domain
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-    xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+    xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd">
 
     <resource oid="2fdc92cd-b373-455b-892c-627e65169aa0">
         <name>Office 365 Connector</name>

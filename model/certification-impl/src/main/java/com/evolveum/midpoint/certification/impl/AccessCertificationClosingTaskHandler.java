@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -62,7 +63,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 @Component
 public class AccessCertificationClosingTaskHandler implements TaskHandler {
 
-	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/closing/handler-3";
+	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/closing/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
     private static final String CLASS_DOT = AccessCertificationClosingTaskHandler.class.getName() + ".";
 

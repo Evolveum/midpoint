@@ -58,7 +58,7 @@ So all users should be processed in cca 4*103 seconds.
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
     <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-4</handlerUri>
     <workManagement>
         <buckets>
             <oidSegmentation>
@@ -66,7 +66,7 @@ So all users should be processed in cca 4*103 seconds.
             </oidSegmentation>
         </buckets>
         <workers>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-4</handlerUri>
             <workersPerNode>
                 <count>4</count>
             </workersPerNode>

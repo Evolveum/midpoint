@@ -29,8 +29,8 @@
 					</q:equal>
 					<q:equal>
 						<q:path>handlerUri</q:path>
-						<!-- use http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3 for real wf tasks -->
-						<q:value>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</q:value>
+						<!-- use http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-4 for real wf tasks -->
+						<q:value>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4</q:value>
 					</q:equal>
 					<q:equal>
 						<q:path>executionStatus</q:path>

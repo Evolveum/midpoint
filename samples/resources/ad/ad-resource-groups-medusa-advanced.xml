@@ -25,7 +25,7 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-4"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-4"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-4"
-        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
+        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-4 ../../../infra/schema/src/main/resources/xml/ns/public/common/common-4.xsd">
 
 	<c:resource oid="11111111-2222-3333-4444-000000000000" xsi:type="c:ResourceType">
 

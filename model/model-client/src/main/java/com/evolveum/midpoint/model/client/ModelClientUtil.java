@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,10 +72,10 @@ import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 public class ModelClientUtil {
 
 	// XML constants
-	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-    public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
-    public static final String NS_RI = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-    public static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-4";
+    public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-4";
+    public static final String NS_RI = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
+    public static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-4";
 
     public static final QName COMMON_PATH = new QName(NS_COMMON, "path");
 	public static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
@@ -92,8 +92,8 @@ public class ModelClientUtil {
 		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_4:" +
 				"com.evolveum.midpoint.xml.ns._public.common.common_4:" +
 				"com.evolveum.midpoint.xml.ns._public.common.fault_4:" +
-				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
-				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
+				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_4:" +
+				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_4:" +
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_4:" +
 				"com.evolveum.prism.xml.ns._public.annotation_4:" +
 				"com.evolveum.prism.xml.ns._public.query_4:" +

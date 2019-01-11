@@ -898,7 +898,7 @@ public class TestParseDiffPatch {
 		TriggerType triggerToDelete = new TriggerType(getPrismContext());
 		triggerToDelete.setId(3L);			// non-existing ID
 		triggerToDelete.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar("2017-03-17T23:43:49.705+01:00"));
-		triggerToDelete.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3");
+		triggerToDelete.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION);
 
 		@SuppressWarnings({"unchecked", "raw"})
         ObjectDelta<AccessCertificationCampaignType> delta =

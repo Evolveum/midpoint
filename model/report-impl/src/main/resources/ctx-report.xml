@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -36,11 +36,11 @@
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
     
     <jaxws:endpoint id="reportWS"
-                    address="/report-3"
-                    wsdlLocation="classpath:xml/ns/public/report/report-3.wsdl"
+                    address="/report-4"
+                    wsdlLocation="classpath:xml/ns/public/report/report-4.wsdl"
                     serviceName="report:reportWebService"
                     endpointName="report:reportPort"
-                    xmlns:report="http://midpoint.evolveum.com/xml/ns/public/report/report-3">
+                    xmlns:report="http://midpoint.evolveum.com/xml/ns/public/report/report-4">
         <jaxws:implementor>
             <bean parent="reportWebServiceRaw"/>
         </jaxws:implementor>

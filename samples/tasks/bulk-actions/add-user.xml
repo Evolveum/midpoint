@@ -37,6 +37,6 @@
 	<c:ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<c:executionStatus>runnable</c:executionStatus>
 	<c:category>BulkActions</c:category>
-	<c:handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</c:handlerUri>
+	<c:handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-4</c:handlerUri>
 	<c:recurrence>single</c:recurrence>
 </c:task>

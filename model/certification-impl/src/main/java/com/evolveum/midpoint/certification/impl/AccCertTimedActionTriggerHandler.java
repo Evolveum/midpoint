@@ -45,7 +45,7 @@ import java.util.List;
 @Component
 public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 
-	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/timed-action/handler-3";
+	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/timed-action/handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccCertTimedActionTriggerHandler.class);
 
