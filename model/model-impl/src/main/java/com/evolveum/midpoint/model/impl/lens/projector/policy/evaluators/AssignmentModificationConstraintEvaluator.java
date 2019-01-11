@@ -110,11 +110,23 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
-		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
-				.arg(ObjectTypeUtil.createDisplayInformation(ctx.getObject(), false))
-				.build();
+		QName relation = ctx.evaluatedAssignment.getNormalizedRelation(relationRegistry);
+		LocalizableMessage builtInMessage;
+
+		if (relation == null || relation == prismContext.getDefaultRelation()) {
+			builtInMessage = new LocalizableMessageBuilder()
+					.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
+					.arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
+					.arg(ObjectTypeUtil.createDisplayInformation(ctx.getObject(), false))
+					.build();
+		} else { //non-default relation = print relation to short message
+			builtInMessage = new LocalizableMessageBuilder()
+					.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_REL_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
+					.arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
+					.arg(ObjectTypeUtil.createDisplayInformation(ctx.getObject(), false))
+					.arg(relation.getLocalPart())
+					.build();
+		}
 		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 
