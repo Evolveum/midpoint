@@ -1069,4 +1069,43 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of shadows found (after)", 0, objectsAfter.size());
     }
 
+    /**
+     * Add case work items
+     */
+    @Test
+    public void test300AddCaseWorkItem() throws Exception {
+        final String TEST_NAME = "test300AddCaseWorkItem";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<CaseType> caseObject = prismContext.createObjectable(CaseType.class)
+                .name("testcase1")
+                .oid("de8857ab-0220-4f8c-b627-8d6bd6c679a9")
+                .state("open")
+                .asPrismObject();
+        repositoryService.addObject(caseObject, null, result);
+
+        CaseWorkItemType workItem = new CaseWorkItemType(prismContext)
+                .assigneeRef(new ObjectReferenceType().oid("f3285c65-a4fa-4bf3-bd78-3008bcf99d3c").type(UserType.COMPLEX_TYPE));
+
+        // WHEN
+
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
+                .item(CaseType.F_WORK_ITEM).add(workItem)
+                .asItemDeltas();
+        repositoryService.modifyObject(CaseType.class, caseObject.getOid(), itemDeltas, getModifyOptions(), result);
+
+        // THEN
+
+        ObjectQuery query = prismContext.queryFor(CaseType.class)
+                .item(CaseType.F_NAME).eqPoly("testcase1")
+                .build();
+        List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+        assertEquals("Wrong # of cases found", 1, cases.size());
+
+        display("case fetched from repository", cases.get(0));
+    }
+
 }

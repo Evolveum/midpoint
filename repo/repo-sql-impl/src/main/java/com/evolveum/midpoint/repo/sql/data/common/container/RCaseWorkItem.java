@@ -228,9 +228,6 @@ public class RCaseWorkItem implements Container<RCase> {
     private static void toRepo(RCaseWorkItem rWorkItem, CaseWorkItemType workItem, RepositoryContext context) throws DtoTranslationException {
         rWorkItem.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         Integer idInt = RUtil.toInteger(workItem.getId());
-        if (idInt == null) {
-            throw new IllegalArgumentException("No ID for case work item: " + workItem);
-        }
         rWorkItem.setId(idInt);
         rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.setOriginalAssigneeRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getOriginalAssigneeRef(), context.relationRegistry));
