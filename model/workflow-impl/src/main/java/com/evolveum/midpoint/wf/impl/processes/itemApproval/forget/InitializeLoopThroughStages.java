@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processes.itemApproval;
+package com.evolveum.midpoint.wf.impl.processes.itemApproval.forget;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 
-import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
+import java.util.List;
 
-public class PrepareResult implements JavaDelegate {
+public class InitializeLoopThroughStages implements JavaDelegate {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrepareResult.class);
+    private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughStages.class);
 
     public void execute(DelegateExecution execution) {
-
-        Boolean loopStagesStop = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LOOP_STAGES_STOP, Boolean.class, null);
-        boolean approved = !loopStagesStop;
-
-        execution.setVariable(CommonProcessVariableNames.VARIABLE_OUTCOME, ApprovalUtils.toUri(approved));
-
-        getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
+        LOGGER.trace("Executing the delegate; execution = {}", execution);
+		List stages = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.APPROVAL_STAGES, List.class, null);
+		execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_COUNT, stages.size());
+		execution.setVariableLocal(ProcessVariableNames.LOOP_STAGES_STOP, Boolean.FALSE);
     }
 
 }

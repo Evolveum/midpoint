@@ -238,7 +238,7 @@ public class WfContextUtil {
 	@SuppressWarnings("unchecked")
 	public static <T extends CaseEventType> List<T> getEventsForCurrentStage(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
 		if (wfc.getStageNumber() == null) {
-			throw new IllegalArgumentException("No stage number in workflow context; pid = " + wfc.getProcessInstanceId());
+			throw new IllegalArgumentException("No stage number in workflow context; pid = " + wfc.getCaseOid());
 		}
 		int stageNumber = wfc.getStageNumber();
 		return wfc.getEvent().stream()
@@ -266,7 +266,7 @@ public class WfContextUtil {
 		if (wfc == null) {
 			return "null";
 		}
-		return "pid: " + wfc.getProcessInstanceId() + ", name: " + wfc.getProcessInstanceName() + ", stage: " + wfc.getStageNumber();
+		return "pid: " + wfc.getCaseOid() + ", name: " + wfc.getProcessInstanceName() + ", stage: " + wfc.getStageNumber();
 	}
 
 	@NotNull
@@ -363,7 +363,7 @@ public class WfContextUtil {
 	}
 
 	public static String getProcessInstanceId(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getProcessInstanceId();
+		return getWorkflowContext(workItem).getCaseOid();
 	}
 
 	public static WfContextType getWorkflowContext(WorkItemType workItem) {
@@ -539,11 +539,11 @@ public class WfContextUtil {
 	// TODO rethink interface of this method
 	// returns parent-less values
 	public static void computeAssignees(List<ObjectReferenceType> newAssignees, List<ObjectReferenceType> delegatedTo,
-			List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method, AbstractWorkItemType workItem) {
+			List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method, List<ObjectReferenceType> currentAssignees) {
 		newAssignees.clear();
 		delegatedTo.clear();
 		switch (method) {
-			case ADD_ASSIGNEES: newAssignees.addAll(CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef())); break;
+			case ADD_ASSIGNEES: newAssignees.addAll(CloneUtil.cloneCollectionMembers(currentAssignees)); break;
 			case REPLACE_ASSIGNEES: break;
 			default: throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
 		}
@@ -578,18 +578,6 @@ public class WfContextUtil {
 		event.setDelegationMethod(method);
 		event.setCause(causeInformation);
 		return event;
-	}
-
-	@Nullable
-	public static WorkItemEscalationLevelType createNewEscalation(int escalationLevel, WorkItemEscalationLevelType escalation) {
-		WorkItemEscalationLevelType newEscalation;
-		if (escalation != null) {
-			newEscalation = escalation.clone();
-			newEscalation.setNumber(escalationLevel + 1);
-		} else {
-			newEscalation = null;
-		}
-		return newEscalation;
 	}
 
 	@NotNull

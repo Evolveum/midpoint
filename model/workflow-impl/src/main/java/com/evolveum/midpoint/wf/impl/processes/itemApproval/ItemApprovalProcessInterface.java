@@ -16,48 +16,29 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
-import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 
 /**
  * @author mederly
  */
 @Component
-public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
+public class ItemApprovalProcessInterface {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ItemApprovalProcessInterface.class);
 
-	public static final String PROCESS_DEFINITION_KEY = "ItemApproval";
+	@Autowired private PrismContext prismContext;
+
+	private static final String PROCESS_DEFINITION_KEY = "ItemApproval";
 
     public void prepareStartInstruction(WfTaskCreationInstruction instruction) {
         instruction.setProcessName(PROCESS_DEFINITION_KEY);
-        instruction.setSimple(false);
-        instruction.setSendStartConfirmation(true);
-        instruction.setProcessInterfaceBean(this);
 
         if (LOGGER.isDebugEnabled() && instruction instanceof PcpChildWfTaskCreationInstruction) {
 			PcpChildWfTaskCreationInstruction instr = (PcpChildWfTaskCreationInstruction) instruction;
@@ -70,45 +51,29 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 		}
     }
 
-    @Override
-	public WorkItemResultType extractWorkItemResult(Map<String, Object> variables) {
-	    Boolean wasCompleted = ActivitiUtil.getVariable(variables, VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.class, prismContext);
-	    if (BooleanUtils.isNotTrue(wasCompleted)) {
-		    return null;
-	    }
-		WorkItemResultType result = new WorkItemResultType(prismContext);
-		result.setOutcome(ActivitiUtil.getVariable(variables, FORM_FIELD_OUTCOME, String.class, prismContext));
-		result.setComment(ActivitiUtil.getVariable(variables, FORM_FIELD_COMMENT, String.class, prismContext));
-		String additionalDeltaString = ActivitiUtil.getVariable(variables, FORM_FIELD_ADDITIONAL_DELTA, String.class, prismContext);
-		boolean isApproved = ApprovalUtils.isApproved(result);
-		if (isApproved && StringUtils.isNotEmpty(additionalDeltaString)) {
-			try {
-				ObjectDeltaType additionalDelta = prismContext.parserFor(additionalDeltaString).parseRealValue(ObjectDeltaType.class);
-				ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
-				treeDeltas.setFocusPrimaryDelta(additionalDelta);
-				result.setAdditionalDeltas(treeDeltas);
-			} catch (SchemaException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse delta received from the activiti form:\n{}", e, additionalDeltaString);
-				throw new SystemException("Couldn't parse delta received from the activiti form: " + e.getMessage(), e);
-			}
-		}
-		return result;
-    }
-
-	@Override
-    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
-    	WfContextType wfc = job.getTask().getWorkflowContext();
-		List<ObjectReferenceType> rv = new ArrayList<>();
-    	if (!ApprovalUtils.isApprovedFromUri(event.getOutcome())) {		// wfc.approved is not filled in yet
-    		return rv;
-		}
-		for (WorkItemCompletionEventType completionEvent : WfContextUtil.getEvents(wfc, WorkItemCompletionEventType.class)) {
-			if (ApprovalUtils.isApproved(completionEvent.getOutput()) && completionEvent.getInitiatorRef() != null) {
-				rv.add(completionEvent.getInitiatorRef().clone());
-			}
-		}
-		return rv;
-    }
-
+//	@Override
+//	public WorkItemResultType extractWorkItemResult(Map<String, Object> variables) {
+//	    Boolean wasCompleted = ActivitiUtil.getVariable(variables, VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.class, prismContext);
+//	    if (BooleanUtils.isNotTrue(wasCompleted)) {
+//		    return null;
+//	    }
+//		WorkItemResultType result = new WorkItemResultType(prismContext);
+//		result.setOutcome(ActivitiUtil.getVariable(variables, FORM_FIELD_OUTCOME, String.class, prismContext));
+//		result.setComment(ActivitiUtil.getVariable(variables, FORM_FIELD_COMMENT, String.class, prismContext));
+//		String additionalDeltaString = ActivitiUtil.getVariable(variables, FORM_FIELD_ADDITIONAL_DELTA, String.class, prismContext);
+//		boolean isApproved = ApprovalUtils.isApproved(result);
+//		if (isApproved && StringUtils.isNotEmpty(additionalDeltaString)) {
+//			try {
+//				ObjectDeltaType additionalDelta = prismContext.parserFor(additionalDeltaString).parseRealValue(ObjectDeltaType.class);
+//				ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
+//				treeDeltas.setFocusPrimaryDelta(additionalDelta);
+//				result.setAdditionalDeltas(treeDeltas);
+//			} catch (SchemaException e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse delta received from the activiti form:\n{}", e, additionalDeltaString);
+//				throw new SystemException("Couldn't parse delta received from the activiti form: " + e.getMessage(), e);
+//			}
+//		}
+//		return result;
+//    }
 
 }

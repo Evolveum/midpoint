@@ -94,7 +94,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE = DOT_CLASS + "testRepositoryCheckOrgClosure";
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
     private static final String OPERATION_SUBMIT_REINDEX = DOT_CLASS + "submitReindex";
-    private static final String OPERATION_CLEANUP_ACTIVITI_PROCESSES = DOT_CLASS + "cleanupActivitiProcesses";
+    private static final String OPERATION_CLEANUP_ACTIVITI_PROCESSES = DOT_CLASS + "cleanupWfCases";
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
     private static final String OPERATION_DELETE_ALL_OBJECTS = DOT_CLASS + "deleteAllObjects";
     private static final String OPERATION_DELETE_TASK = DOT_CLASS + "deleteTask";
@@ -109,7 +109,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_TEST_REPOSITORY_CHECK_ORG_CLOSURE = "testRepositoryCheckOrgClosure";
     private static final String ID_REINDEX_REPOSITORY_OBJECTS = "reindexRepositoryObjects";
     private static final String ID_TEST_PROVISIONING = "testProvisioning";
-    private static final String ID_CLEANUP_ACTIVITI_PROCESSES = "cleanupActivitiProcesses";
+    private static final String ID_CLEANUP_ACTIVITI_PROCESSES = "cleanupWfCases";
     private static final String ID_IMPLEMENTATION_SHORT_NAME = "implementationShortName";
     private static final String ID_IMPLEMENTATION_DESCRIPTION = "implementationDescription";
     private static final String ID_IS_EMBEDDED = "isEmbedded";

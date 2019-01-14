@@ -30,7 +30,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -58,9 +57,6 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	protected PrismObject<UserType> getDefaultActor() {
 		return userAdministrator;
 	}
-
-	@Autowired
-	private ActivitiEngine activitiEngine;
 
 	@Autowired
 	private WorkflowService workflowService;

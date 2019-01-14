@@ -23,21 +23,17 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
-import com.evolveum.midpoint.wf.impl.processes.DefaultProcessMidPointInterface;
-import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessorSpecificContent;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * Base implementation of GcpScenarioBean.
@@ -55,13 +51,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
     private BaseAuditHelper baseAuditHelper;
 
     @Autowired
-    private ProcessInterfaceFinder processInterfaceFinder;
-
-    @Autowired
     private PrismContext prismContext;
-
-    @Autowired
-    private DefaultProcessMidPointInterface defaultProcessMidPointInterface;
 
     @Override
     public boolean determineActivation(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, com.evolveum.midpoint.task.api.Task taskFromModel, OperationResult result) {
@@ -85,13 +75,13 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
 //    }
 
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(WfContextType wfContext, WfTask wfTask, AuditEventStage stage, OperationResult result) {
         return baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, result);
         // TODO what with missing data (delta, result)? We could at least attempt to determine them ...
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask,
 			OperationResult result) {
         return baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
         // TODO fill-in missing delta somehow
@@ -99,7 +89,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-			TaskEvent taskEvent, WfTask wfTask, OperationResult result) {
+            WfTask wfTask, OperationResult result) {
         return baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
         // TODO fill-in missing delta somehow
     }
@@ -114,7 +104,6 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
         instruction.setProcessName(scenarioType.getProcessName());
         instruction.setRequesterRef(taskFromModel.getOwner());
         instruction.setTaskName("Workflow-monitoring task");
-        instruction.setProcessInterfaceBean(defaultProcessMidPointInterface);
         return instruction;
     }
 

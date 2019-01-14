@@ -48,9 +48,11 @@ public interface WorkflowService {
     void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
+    void claimWorkItem(String workItemId, OperationResult parentResult)
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
-    void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
+    void releaseWorkItem(String workItemId, OperationResult parentResult)
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException;
 
     void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;

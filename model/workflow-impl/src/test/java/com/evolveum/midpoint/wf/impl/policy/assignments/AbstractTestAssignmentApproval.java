@@ -37,6 +37,7 @@ import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -355,11 +356,11 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				assertActiveWorkItems(userLead1Oid, 1);
 				assertActiveWorkItems(userLead1Deputy1Oid, deputy ? 1 : 0);
 				assertActiveWorkItems(userLead1Deputy2Oid, deputy ? 1 : 0);
-				checkTargetOid(executionId, getRoleOid(1));
+				checkTargetOid(caseWorkItem, getRoleOid(1));
 				login(getUser(realApproverOid));
 				return true;
 			}
@@ -500,8 +501,8 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				String targetOid = getTargetOid(executionId);
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
+				String targetOid = getTargetOid(caseWorkItem);
 				if (getRoleOid(1).equals(targetOid)) {
 					login(getUser(userLead1Oid));
 					return approve1;

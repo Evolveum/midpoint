@@ -30,18 +30,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getMidpointFunctions;
@@ -166,29 +162,18 @@ public class ActivitiUtil implements Serializable {
 		}
 	}
 
-	public static List<LightweightObjectRef> toLightweightReferences(Collection<ObjectReferenceType> refs) {
-		return refs.stream().map(ort -> new LightweightObjectRefImpl(ort)).collect(Collectors.toList());
-	}
-
 	// TODO move to better place (it is called also from WorkItemManager)
-	// Make sure this does not refer to variables modified in activity db but not in the Java task object
-	// TODO CLEAN THIS UP!!! (maybe by reading WorkItemType?)
 	public static void fillInWorkItemEvent(WorkItemEventType event, MidPointPrincipal currentUser, String workItemId,
-			Map<String, Object> variables, PrismContext prismContext) {
+			WorkItemType workItem, PrismContext prismContext) {
 		if (currentUser != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getUser(), prismContext));
 			event.setAttorneyRef(ObjectTypeUtil.createObjectRef(currentUser.getAttorney(), prismContext));
 		}
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		event.setExternalWorkItemId(workItemId);
-		String originalAssigneeString = ActivitiUtil.getVariable(variables, VARIABLE_ORIGINAL_ASSIGNEE, String.class, prismContext);
-		if (originalAssigneeString != null) {
-			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
-		}
-		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, prismContext));
-		event.setEscalationLevel(WfContextUtil.createEscalationLevel(ActivitiUtil.getEscalationLevelNumber(variables),
-				ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, prismContext),
-				ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, prismContext)));
+		event.setOriginalAssigneeRef(workItem.getOriginalAssigneeRef());
+		event.setStageNumber(workItem.getStageNumber());
+		event.setEscalationLevel(workItem.getEscalationLevel());
 	}
 
 	public static int getEscalationLevelNumber(Map<String, Object> variables) {

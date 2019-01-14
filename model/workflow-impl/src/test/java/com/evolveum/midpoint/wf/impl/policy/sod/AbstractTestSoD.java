@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -208,7 +209,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				login(getUser(userSodApproverOid));
 				return true;
 			}
@@ -312,7 +313,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				login(getUser(userSodApproverOid));
 				return true;
 			}

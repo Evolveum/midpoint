@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -32,24 +30,19 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
@@ -60,6 +53,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.springframework.beans.factory.BeanNameAware;
@@ -68,10 +62,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -95,9 +86,6 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
     @Autowired
     protected PrimaryChangeAspectHelper primaryChangeAspectHelper;
-
-    @Autowired
-    protected ProcessInterfaceFinder processInterfaceFinder;
 
     @Autowired
     protected BaseConfigurationHelper baseConfigurationHelper;
@@ -145,14 +133,24 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     }
 
     @Override
-    public ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpWfTask pcpJob, OperationResult result) throws SchemaException {
-        return primaryChangeAspectHelper.prepareDeltaOut(event, pcpJob, result);
+    public ObjectTreeDeltas prepareDeltaOut(WfContextType wfContext, PcpWfTask pcpJob, OperationResult result) throws SchemaException {
+        return primaryChangeAspectHelper.prepareDeltaOut(wfContext, pcpJob, result);
     }
 
-    @Override
-    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
-        return processInterfaceFinder.getProcessInterface(event.getVariables()).prepareApprovedBy(event, job, result);
-    }
+//    @Override
+//    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
+//	    WfContextType wfc = job.getTask().getWorkflowContext();
+//	    List<ObjectReferenceType> rv = new ArrayList<>();
+//	    if (!ApprovalUtils.isApprovedFromUri(event.getOutcome())) {		// wfc.approved is not filled in yet
+//		    return rv;
+//	    }
+//	    for (WorkItemCompletionEventType completionEvent : WfContextUtil.getEvents(wfc, WorkItemCompletionEventType.class)) {
+//		    if (ApprovalUtils.isApproved(completionEvent.getOutput()) && completionEvent.getInitiatorRef() != null) {
+//			    rv.add(completionEvent.getInitiatorRef().clone());
+//		    }
+//	    }
+//	    return rv;
+//    }
 
     public PrimaryChangeProcessor getChangeProcessor() {
         return changeProcessor;

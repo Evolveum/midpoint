@@ -2155,7 +2155,7 @@ public class TaskQuartzImpl implements Task {
 	public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		WfContextType wfContextType = new WfContextType(getPrismContext());
-		wfContextType.setProcessInstanceId(processInstanceId);
+		wfContextType.setCaseOid(processInstanceId);
 		setWorkflowContextImmediate(wfContextType, result);
 	}
 

@@ -31,16 +31,14 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
+import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
 
 /**
  * A change processor can be viewed as a kind of framework supporting customer-specific
@@ -95,7 +93,7 @@ public interface ChangeProcessor {
      * @param result Here should be stored information about whether the finalization was successful or not
      * @throws SchemaException
      */
-    void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+    void onProcessEnd(EngineInvocationContext ctx, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
     /**
      * Prepares a process instance-related audit record.
@@ -106,17 +104,17 @@ public interface ChangeProcessor {
      * @param result
      * @return
      */
-    AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result);
+    AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, WfContextType wfContext, OperationResult result);
 
     /**
      * Prepares a work item-related audit record.
      */
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
     AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem,
-            TaskEvent taskEvent, WfTask wfTask, OperationResult result);
+            WfTask wfTask, OperationResult result);
 
     AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            TaskEvent taskEvent, WfTask wfTask, OperationResult result);
+            WfTask wfTask, OperationResult result);
 
     /**
      * Auxiliary method to access autowired Spring beans from within non-spring java objects.

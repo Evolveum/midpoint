@@ -26,10 +26,6 @@ public class CommonProcessVariableNames {
 	// Used for diagnostic purposes.
     public static final String VARIABLE_PROCESS_INSTANCE_NAME = "processInstanceName";
 
-	// [java.util.Date]
-    // When the process instance was started.
-    public static final String VARIABLE_START_TIME = "startTime";
-
 	// [String]
     // OID of task related to the process instance.
     public static final String VARIABLE_MIDPOINT_TASK_OID = "midPointTaskOid";
@@ -39,15 +35,8 @@ public class CommonProcessVariableNames {
     public static final String VARIABLE_CHANGE_PROCESSOR = "changeProcessor";
 
 	// [LightweightObjectRef]
-    // Requester - OID + name + perhaps additional information
-    public static final String VARIABLE_REQUESTER_REF = "requesterRef";
-
-	// [LightweightObjectRef]
-	// Object of the operation - if can be specified like this
-	public static final String VARIABLE_OBJECT_REF = "objectRef";
-
-	// [LightweightObjectRef]
 	// Target of the operation - if any
+	// Currently used only for testing purposes
 	public static final String VARIABLE_TARGET_REF = "targetRef";
 
 	// [Boolean]

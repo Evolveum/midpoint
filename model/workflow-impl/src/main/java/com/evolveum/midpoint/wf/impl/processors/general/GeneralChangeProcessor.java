@@ -27,24 +27,20 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
+import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBean;
-import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Map;
 
 /**
  * @author mederly
@@ -62,9 +58,6 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     @Autowired
     private WfTaskController wfTaskController;
-
-    @Autowired
-    private ActivitiEngine activitiEngine;
 
     @Autowired
     private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
@@ -90,8 +83,8 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         baseConfigurationHelper.registerProcessor(this);
     }
 
-    private GcpScenarioBean getScenarioBean(Map<String, Object> variables) {
-        String beanName = (String) variables.get(GcpProcessVariableNames.VARIABLE_MIDPOINT_SCENARIO_BEAN_NAME);
+    private GcpScenarioBean getScenarioBean(WfContextType wfContext) {
+        String beanName = ((WfGeneralChangeProcessorStateType) wfContext.getProcessorSpecificState()).getScenario();
         return findScenarioBean(beanName);
     }
 
@@ -176,9 +169,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     //region Finalizing the processing
     @Override
-    public void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    public void onProcessEnd(EngineInvocationContext ctx, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        Task task = wfTask.getTask();
+        Task task = ctx.wfTask;
         // we simply put model context back into parent task
         // (or if it is null, we set the task to skip model context processing)
 
@@ -186,21 +179,15 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
         Task rootTask = task.getParentTask(result);
 
-        SerializationSafeContainer<LensContextType> contextContainer = event.getVariable(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, SerializationSafeContainer.class);
-        LensContextType lensContextType = null;
-        if (contextContainer != null) {
-            contextContainer.setPrismContext(prismContext);
-            lensContextType = contextContainer.getValue();
-        }
-
+        WfGeneralChangeProcessorStateType processorSpecificState = (WfGeneralChangeProcessorStateType) ctx.getWfContext().getProcessorSpecificState();
+        LensContextType lensContextType = processorSpecificState != null ? processorSpecificState.getModelContext() : null;
         if (lensContextType == null) {
             LOGGER.debug(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT + " not present in process, this means we should stop processing. Task = {}", rootTask);
-            wfTaskUtil.storeModelContext(rootTask, (ModelContext) null, false);
+            wfTaskUtil.storeModelContext(rootTask, null, false);
         } else {
-            LOGGER.debug("Putting (changed or unchanged) value of {} into the task {}", GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, rootTask);
+            LOGGER.debug("Putting (changed or unchanged) value of model context into the task {}", rootTask);
             wfTaskUtil.storeModelContext(rootTask, lensContextType);
         }
-
         rootTask.savePendingModifications(result);
         LOGGER.trace("onProcessEnd ending for task {}", task);
     }
@@ -208,22 +195,22 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     //region Auditing
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
-        return getScenarioBean(variables).prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
+    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
+        return getScenarioBean(wfContext).prepareProcessInstanceAuditRecord(wfContext, wfTask, stage, result);
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, TaskEvent taskEvent, WfTask wfTask,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask,
             OperationResult result) {
-        return getScenarioBean(taskEvent.getVariables()).prepareWorkItemCreatedAuditRecord(workItem, wfTask, taskEvent, result);
+        return getScenarioBean(wfTask.getTask().getWorkflowContext()).prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
     }
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            TaskEvent taskEvent, WfTask wfTask,
+            WfTask wfTask,
             OperationResult result) {
-        return getScenarioBean(taskEvent.getVariables())
-                .prepareWorkItemDeletedAuditRecord(workItem, cause, taskEvent, wfTask, result);
+        return getScenarioBean(wfTask.getTask().getWorkflowContext())
+                .prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
     }
     //endregion
 }

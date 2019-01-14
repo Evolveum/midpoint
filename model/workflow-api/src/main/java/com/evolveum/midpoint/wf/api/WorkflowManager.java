@@ -74,9 +74,11 @@ public interface WorkflowManager {
 	void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
+	void claimWorkItem(String workItemId, OperationResult result)
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException;
 
-	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
+	void releaseWorkItem(String workItemId, OperationResult result)
+			throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
 	void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
@@ -123,7 +125,7 @@ public interface WorkflowManager {
 
 	void synchronizeWorkflowRequests(OperationResult parentResult);
 
-	void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException;
+	void cleanupWfCases(OperationResult parentResult) throws SchemaException;
 
 	/**
 	 * Retrieves information about actual or expected execution of an approval schema.

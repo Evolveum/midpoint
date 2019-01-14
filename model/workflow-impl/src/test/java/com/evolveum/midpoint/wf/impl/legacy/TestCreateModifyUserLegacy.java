@@ -27,6 +27,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -90,8 +91,8 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
         });
 	}
@@ -133,8 +134,8 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
         });
     }

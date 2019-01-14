@@ -34,8 +34,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
+import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
@@ -357,17 +356,17 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     //region Processing process finish event
     @Override
-    public void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        PcpWfTask pcpJob = new PcpWfTask(wfTask);
+    public void onProcessEnd(EngineInvocationContext ctx, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        PcpWfTask pcpJob = new PcpWfTask(wfTaskController.recreateWfTask(ctx.wfTask));
         PrimaryChangeAspect aspect = pcpJob.getChangeAspect();
 
-        pcpJob.storeResultingDeltas(aspect.prepareDeltaOut(event, pcpJob, result));
+        pcpJob.storeResultingDeltas(aspect.prepareDeltaOut(ctx.wfContext, pcpJob, result));
     }
     //endregion
 
     //region Auditing
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, result);
 
         ObjectTreeDeltas<?> deltas;
@@ -390,8 +389,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, TaskEvent taskEvent, WfTask wfTask,
-            OperationResult result) {
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask,
+		    OperationResult result) {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
         try {
             addDeltasToEventRecord(auditEventRecord,
@@ -404,7 +403,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-			TaskEvent taskEvent, WfTask wfTask, OperationResult result) {
+		    WfTask wfTask, OperationResult result) {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
         try {
 			AbstractWorkItemOutputType output = workItem.getOutput();

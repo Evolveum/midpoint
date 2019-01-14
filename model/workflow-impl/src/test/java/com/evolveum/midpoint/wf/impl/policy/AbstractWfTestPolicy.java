@@ -49,9 +49,8 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.WfTestUtil;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowInterface;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
@@ -181,8 +180,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	@Autowired protected Clockwork clockwork;
 	@Autowired protected TaskManager taskManager;
 	@Autowired protected WorkflowManager workflowManager;
+	@Autowired protected WorkflowEngine workflowEngine;
 	@Autowired protected WfTaskUtil wfTaskUtil;
-	@Autowired protected ActivitiEngine activitiEngine;
 	@Autowired protected MiscDataUtil miscDataUtil;
 	@Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
 	@Autowired protected GeneralChangeProcessor generalChangeProcessor;
@@ -483,7 +482,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return approve;
 			}
 		}, 1);
@@ -555,6 +554,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 
 		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			return null;
+		}
+
+		protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 			return null;
 		}
 
@@ -652,18 +655,17 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			// todo check correctness of the modification?
 
 			// now check the workflow state
-			String pid = wfTaskUtil.getProcessId(subtask);
-			assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
+			String caseOid = wfTaskUtil.getCaseOid(subtask);
+			assertNotNull("Workflow case OID not present in subtask " + subtask, caseOid);
 
-			List<org.activiti.engine.task.Task> tasks = activitiEngine.getTaskService().createTaskQuery().processInstanceId(pid).list();
-			assertFalse("activiti task not found", tasks.isEmpty());
+			SearchResultList<CaseWorkItemType> caseWorkItems = workflowEngine.getWorkItemsForCase(caseOid, null, result);
+			assertFalse("work item not found", caseWorkItems.isEmpty());
 
-			for (org.activiti.engine.task.Task task : tasks) {
-				String executionId = task.getExecutionId();
-				display("Execution id = " + executionId);
-				Boolean approve = testDetails.decideOnApproval(executionId, task);
+			for (CaseWorkItemType caseWorkItem : caseWorkItems) {
+				Boolean approve = testDetails.decideOnApproval(caseWorkItem);
 				if (approve != null) {
-					workflowManager.completeWorkItem(task.getId(), approve, null, null, null, result);
+					workflowManager.completeWorkItem(WorkflowInterface.createWorkItemId(caseOid, caseWorkItem.getId()),
+							approve, null, null, null, result);
 					login(userAdministrator);
 					break;
 				}
@@ -728,7 +730,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 		for (Task subtask : subtasks) {
 			if (subtask.getTaskPrismObject().asObjectable().getWorkflowContext() == null
-					|| subtask.getTaskPrismObject().asObjectable().getWorkflowContext().getProcessInstanceId() == null) {
+					|| subtask.getTaskPrismObject().asObjectable().getWorkflowContext().getCaseOid() == null) {
 				assertNull("More than one non-wf-monitoring subtask", task0);
 				task0 = subtask;
 			}
@@ -798,7 +800,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
 		display("rootTask", rootTaskType);
 		assertTrue("unexpected process instance id in root task",
-				rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getProcessInstanceId() == null);
+				rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getCaseOid() == null);
 
 		assertEquals("Wrong # of wf subtasks (" + expectedTasks + ")", expectedTasks.size(), subtasks.size());
 		int i = 0;
@@ -841,7 +843,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertNull("Unexpected fetch result in wf subtask: " + subtaskName, subtaskType.getFetchResult());
 		WfContextType wfc = subtaskType.getWorkflowContext();
 		assertNotNull("Missing workflow context in wf subtask: " + subtaskName, wfc);
-		assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getProcessInstanceId());
+		assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getCaseOid());
 		assertEquals("Wrong process ID name in subtask: " + subtaskName, expectedTask.processName, wfc.getProcessInstanceName());
 		if (expectedTask.targetOid != null) {
 			assertEquals("Wrong target OID in subtask: " + subtaskName, expectedTask.targetOid, wfc.getTargetRef().getOid());
@@ -854,21 +856,20 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		//assertEquals("Wrong state", null, wfc.getState());
 	}
 
-	protected String getTargetOid(String executionId)
-			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-			SecurityViolationException {
-		LightweightObjectRef targetRef = (LightweightObjectRef) activitiEngine.getRuntimeService()
-				.getVariable(executionId, CommonProcessVariableNames.VARIABLE_TARGET_REF);
+	protected String getTargetOid(CaseWorkItemType caseWorkItem)
+			throws ObjectNotFoundException, SchemaException {
+		WfContextType wfContext = workflowEngine.getWorkflowContext(caseWorkItem, new OperationResult("dummy"));
+		ObjectReferenceType targetRef = wfContext.getTargetRef();
 		assertNotNull("targetRef not found", targetRef);
 		String roleOid = targetRef.getOid();
 		assertNotNull("requested role OID not found", roleOid);
 		return roleOid;
 	}
 
-	protected void checkTargetOid(String executionId, String expectedOid)
+	protected void checkTargetOid(CaseWorkItemType caseWorkItem, String expectedOid)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
-		String realOid = getTargetOid(executionId);
+		String realOid = getTargetOid(caseWorkItem);
 		assertEquals("Unexpected target OID", expectedOid, realOid);
 	}
 
@@ -891,7 +892,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 		protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception { }
 		// mutually exclusive with getApprovalSequence
-		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception { return true; }
+		protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception { return true; }
 
 		private void sortSubtasks(List<Task> subtasks) {
 			subtasks.sort(Comparator.comparing(this::getCompareKey));
@@ -953,7 +954,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 							testDetails2.getObjectOid(),
 							testDetails2.getExpectedTasks(), testDetails2.getExpectedWorkItems());
 					for (Task subtask : subtasks) {
-						if (subtask.getWorkflowContext() != null && subtask.getWorkflowContext().getProcessInstanceId() != null) {
+						if (subtask.getWorkflowContext() != null && subtask.getWorkflowContext().getCaseOid() != null) {
 							Task opTask = taskManager.createTaskInstance("afterFirstClockworkRun");
 							OperationResult opResult = opTask.getResult();
 							ApprovalSchemaExecutionInformationType info = workflowManager.getApprovalSchemaExecutionInformation(subtask.getOid(), opTask, opResult);
@@ -990,8 +991,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return testDetails2.decideOnApproval(executionId, task);
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
+				return testDetails2.decideOnApproval(caseWorkItem);
 			}
 
 			@Override

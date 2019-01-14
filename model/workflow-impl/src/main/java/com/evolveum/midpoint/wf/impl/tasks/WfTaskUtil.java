@@ -116,9 +116,9 @@ public class WfTaskUtil {
         return wfConfiguration.findChangeProcessor(processorClassName);
     }
 
-    public String getProcessId(Task task) {
+    public String getCaseOid(Task task) {
         if (task.getWorkflowContext() != null) {
-            return task.getWorkflowContext().getProcessInstanceId();
+            return task.getWorkflowContext().getCaseOid();
         } else {
             return null;
         }

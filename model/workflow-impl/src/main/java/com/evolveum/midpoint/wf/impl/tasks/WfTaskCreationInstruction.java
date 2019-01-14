@@ -31,14 +31,9 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
-import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -61,7 +56,6 @@ import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariab
 public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS extends ProcessSpecificContent> implements DebugDumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskCreationInstruction.class);
-	private static final Integer DEFAULT_PROCESS_CHECK_INTERVAL = 30;
 	private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
 	private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
 
@@ -81,13 +75,6 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	protected boolean executeModelOperationHandler;       // should the task contain model operation to be executed?
 	protected boolean noProcess;                          // should the task provide no wf process (only direct execution of model operation)?
-
-	protected boolean simple;                             // is workflow process simple? (i.e. such that requires periodic watching of its state)
-	protected boolean sendStartConfirmation = true;       // should we send explicit "process started" event when the process was started by midPoint?
-                                                        // for listener-enabled processes this can be misleading, because "process started" event could come
-                                                        // after "process finished" one (for immediately-finishing processes)
-                                                        //
-                                                        // unfortunately, it seems we have to live with this (unless we define a "process started" listener)
 
 	protected TaskExecutionStatus taskInitialState = TaskExecutionStatus.RUNNABLE;
 
@@ -133,18 +120,6 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 	}
 
 	protected PrismContext getPrismContext() { return changeProcessor.getPrismContext(); }
-
-    public void setSimple(boolean simple) {
-        this.simple = simple;
-    }
-
-    public boolean isSendStartConfirmation() {
-        return sendStartConfirmation;
-    }
-
-    public void setSendStartConfirmation(boolean sendStartConfirmation) {
-        this.sendStartConfirmation = sendStartConfirmation;
-    }
 
 	public String getProcessName() {
 		return wfContext.getProcessName();
@@ -292,9 +267,9 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		wfContext.setRequesterRef(createObjectRef(requester, getPrismContext()));
     }
 
-    public void setProcessInterfaceBean(ProcessMidPointInterface processInterfaceBean) {
-		wfContext.setProcessInterface(processInterfaceBean.getBeanName());
-    }
+//    public void setProcessInterfaceBean(ProcessMidPointInterface processInterfaceBean) {
+//		wfContext.setProcessInterface(processInterfaceBean.getBeanName());
+//    }
 
 	public PRC getProcessorContent() {
 		return processorContent;
@@ -312,7 +287,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
     //region Diagnostics
     public String toString() {
-        return "WfTaskCreationInstruction: processDefinitionKey = " + getProcessName() + ", simple: " + simple;
+        return "WfTaskCreationInstruction: processDefinitionKey = " + getProcessName();
     }
 
     @Override
@@ -326,7 +301,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("WfTaskCreationInstruction: process: ").append(getProcessName()).append("/").append(getProcessInstanceName());
-		sb.append(" ").append(simple ? "simple" : "smart").append(", ").append(noProcess ? "no-process" : "with-process").append(", model-context: ");
+		sb.append(" ").append(", ").append(noProcess ? "no-process" : "with-process").append(", model-context: ");
 		sb.append(taskModelContext != null ? "YES" : "no").append(", task = ").append(taskName).append("\n");
 
         DebugUtil.indentDebugDump(sb, indent);
@@ -338,7 +313,6 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		DebugUtil.debugDumpWithLabelLn(sb, "Task object", String.valueOf(taskObject), indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Task owner", String.valueOf(taskOwner), indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Task initial state", String.valueOf(taskInitialState), indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "Send start confirmation", String.valueOf(sendStartConfirmation), indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Handlers after model operation", String.valueOf(handlersAfterModelOperation), indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Handlers before model operation", String.valueOf(handlersBeforeModelOperation), indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Handlers after wf process", String.valueOf(handlersAfterWfProcess), indent+1);
@@ -387,16 +361,8 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		wfTaskUtil.pushHandlers(task, getHandlersBeforeModelOperation());
 		wfTaskUtil.pushHandlers(task, getHandlersAfterWfProcess());
 		if (!noProcess) {
-			if (simple) {
-				ScheduleType schedule = new ScheduleType();
-				Integer processCheckInterval = wfConfigurationType != null ? wfConfigurationType.getProcessCheckInterval() : null;
-				schedule.setInterval(processCheckInterval != null ? processCheckInterval : DEFAULT_PROCESS_CHECK_INTERVAL);
-				schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + WfTaskController.TASK_START_DELAY)));
-				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
-			} else {
-				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
-				task.makeWaiting(TaskWaitingReason.OTHER);
-			}
+			task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
+			task.makeWaiting(TaskWaitingReason.OTHER);
 		}
 
 		// model and workflow context
@@ -496,29 +462,6 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 			wfContext.setProcessorSpecificState(null);			// ugly hack, see PrismForJaxbUtil:217
 			wfContext.setProcessorSpecificState(processorContent.createProcessorSpecificState());
 		}
-	}
-
-	public Map<String, Object> getAllProcessVariables() throws SchemaException {
-		Map<String, Object> map = new HashMap<>();
-		map.put(VARIABLE_PROCESS_INSTANCE_NAME, wfContext.getProcessInstanceName());
-		map.put(VARIABLE_START_TIME, processCreationTimestamp);
-		map.put(VARIABLE_OBJECT_REF, toLightweightObjectRef(wfContext.getObjectRef()));
-		map.put(VARIABLE_TARGET_REF, toLightweightObjectRef(wfContext.getTargetRef()));
-		map.put(VARIABLE_REQUESTER_REF, toLightweightObjectRef(wfContext.getRequesterRef()));
-		map.put(VARIABLE_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
-		map.put(VARIABLE_PROCESS_INTERFACE_BEAN_NAME, wfContext.getProcessInterface());
-		map.put(VARIABLE_UTIL, new ActivitiUtil());
-		if (processorContent != null) {
-			processorContent.createProcessVariables(map, getPrismContext());
-		}
-		if (processContent != null) {
-			processContent.createProcessVariables(map, getPrismContext());
-		}
-		return map;
-	}
-
-	private LightweightObjectRef toLightweightObjectRef(ObjectReferenceType ref) {
-		return ref != null ? new LightweightObjectRefImpl(ref) : null;
 	}
 
 	//endregion

@@ -1472,11 +1472,22 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
+			<xsd:element name="caseRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the case that holds work items for this workflow process.
+						EXPERIMENTAL. (Probably the whole workflow context will be moved to the case.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:CaseType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="caseOid" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Internal identifier of a process instance, assigned by the underlying workflow engine
-                        (currently Activiti).
+						(for backward compatibility - a heritage of processInstanceId)
+                        DEPRECATED. TO BE DELETED SOON.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1738,6 +1749,7 @@
             <xsd:extension base="tns:WfProcessorSpecificStateType">
                 <xsd:sequence>
                     <xsd:element name="scenario" type="xsd:string"/>
+					<xsd:element name="modelContext" type="c:LensContextType" minOccurs="0" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

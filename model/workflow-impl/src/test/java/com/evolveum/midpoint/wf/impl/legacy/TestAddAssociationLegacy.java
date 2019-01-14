@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -152,7 +153,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 return true;
             }
         });
@@ -228,7 +229,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 return false;
             }
         });

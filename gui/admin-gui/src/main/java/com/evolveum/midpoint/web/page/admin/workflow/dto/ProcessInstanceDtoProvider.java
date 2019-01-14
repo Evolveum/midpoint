@@ -136,7 +136,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
             q = q.item(F_OBJECT_REF).ref(currentUserOid).and();
         }
         return q
-                .not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+                .not().item(F_WORKFLOW_CONTEXT, F_CASE_OID).isNull()
                 .desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
                 .build();
     }

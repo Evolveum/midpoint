@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -467,7 +468,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;
 			}
 
@@ -588,7 +589,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;
 			}
 
@@ -720,7 +721,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;
 			}
 
@@ -832,7 +833,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;
 			}
 
@@ -945,7 +946,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return true;
 			}
 
@@ -1151,7 +1152,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;            // ignore this way of approving
 			}
 
@@ -1417,7 +1418,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;            // ignore this way of approving
 			}
 

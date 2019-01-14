@@ -2047,7 +2047,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
 			ObjectQuery query = prismContext.queryFor(TaskType.class)
-					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).eq(instanceId)
+					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_CASE_OID).eq(instanceId)
 					.build();
 			List<PrismObject<TaskType>> tasks = cacheRepositoryService.searchObjects(TaskType.class, query, GetOperationOptions.createRawCollection(), parentResult);
 			if (tasks.size() > 1) {
@@ -2061,12 +2061,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
+    public void claimWorkItem(String workItemId, OperationResult parentResult)
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         getWorkflowManagerChecked().claimWorkItem(workItemId, parentResult);
     }
 
     @Override
-    public void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
+    public void releaseWorkItem(String workItemId, OperationResult parentResult)
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException {
         getWorkflowManagerChecked().releaseWorkItem(workItemId, parentResult);
     }
 
@@ -2079,7 +2081,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_PROCESS_INSTANCES.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
-		getWorkflowManagerChecked().cleanupActivitiProcesses(parentResult);
+		getWorkflowManagerChecked().cleanupWfCases(parentResult);
 	}
 
 	//endregion

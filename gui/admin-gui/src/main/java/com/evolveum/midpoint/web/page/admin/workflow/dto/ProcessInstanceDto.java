@@ -121,7 +121,7 @@ public class ProcessInstanceDto extends Selectable {
 	}
 
 	public String getProcessInstanceId() {
-		return workflowContext.getProcessInstanceId();
+		return workflowContext.getCaseOid();
 	}
 
 //    public List<WorkItemDto> getWorkItems() {

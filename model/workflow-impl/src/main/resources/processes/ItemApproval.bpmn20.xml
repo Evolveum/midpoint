@@ -43,7 +43,7 @@
         <serviceTask id="start.1" activiti:class="com.evolveum.midpoint.wf.impl.processes.common.DumpVariables" />
         <sequenceFlow sourceRef="start.1" targetRef="initializeLoopThroughStages" />
 
-        <serviceTask id="initializeLoopThroughStages" activiti:class="com.evolveum.midpoint.wf.impl.processes.itemApproval.InitializeLoopThroughStages" />
+        <serviceTask id="initializeLoopThroughStages" activiti:class="com.evolveum.midpoint.wf.impl.processes.itemApproval.forget.InitializeLoopThroughStages" />
         <sequenceFlow sourceRef="initializeLoopThroughStages" targetRef="loopStages" />
 
         <!-- New variable:

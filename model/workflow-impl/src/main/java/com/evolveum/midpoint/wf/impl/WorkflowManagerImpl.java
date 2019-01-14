@@ -37,10 +37,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceManager;
-import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceProvider;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.impl.engine.dao.ProcessInstanceManager;
+import com.evolveum.midpoint.wf.impl.engine.dao.ProcessInstanceProvider;
+import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemManager;
+import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
@@ -105,7 +105,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("countContainers is available only for work items");
 			}
-			return workItemProvider.countWorkItems(query);
+			return workItemProvider.countWorkItems(query, result);
 		} catch (SchemaException|RuntimeException e) {
 			result.recordFatalError("Couldn't count items: " + e.getMessage(), e);
 			throw e;
@@ -126,7 +126,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("searchContainers is available only for work items");
 			}
-			return (SearchResultList<T>) workItemProvider.searchWorkItems(query, result);
+			return (SearchResultList<T>) workItemProvider.searchWorkItems(query, options, result);
 		} catch (SchemaException|RuntimeException e) {
 			result.recordFatalError("Couldn't count items: " + e.getMessage(), e);
 			throw e;
@@ -139,17 +139,23 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     public void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        workItemManager.completeWorkItem(taskId, ApprovalUtils.toUri(decision), comment, additionalDelta,
-				causeInformation, parentResult);
+	    try {
+		    workItemManager.completeWorkItem(taskId, ApprovalUtils.toUri(decision), comment, additionalDelta,
+						causeInformation, parentResult);
+	    } catch (ObjectAlreadyExistsException e) {
+		    throw new IllegalStateException(e);
+	    }
     }
 
     @Override
-    public void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException {
+    public void claimWorkItem(String workItemId, OperationResult result)
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException {
         workItemManager.claimWorkItem(workItemId, result);
     }
 
     @Override
-    public void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException {
+    public void releaseWorkItem(String workItemId, OperationResult result)
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         workItemManager.releaseWorkItem(workItemId, result);
     }
 
@@ -166,7 +172,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     @Override
     public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
-        processInstanceManager.stopProcessInstance(instanceId, username, parentResult);
+        processInstanceManager.closeCase(instanceId, username, parentResult);
     }
 
 	@Override
@@ -271,10 +277,10 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 	}
 
 	@Override
-	public void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".cleanupActivitiProcesses");
+	public void cleanupWfCases(OperationResult parentResult) throws SchemaException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".cleanupWfCases");
 		try {
-			processInstanceManager.cleanupActivitiProcesses(result);
+			processInstanceManager.cleanupWfCases(result);
 		} catch (Throwable t) {
 			result.recordFatalError("Couldn't cleanup Activiti processes: " + t.getMessage(), t);
 			throw t;

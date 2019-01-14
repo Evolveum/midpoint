@@ -592,7 +592,7 @@ public class TestStrings extends AbstractStoryTest {
 		assertAuditReferenceValue(workItemEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
 		// TODO other items
 		List<AuditEventRecord> processEvents = filter(getParamAuditRecords(
-				WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getWorkflowContext().getProcessInstanceId(), task, result),
+				WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getWorkflowContext().getCaseOid(), task, result),
 				AuditEventType.WORKFLOW_PROCESS_INSTANCE, AuditEventStage.EXECUTION);
 		assertAuditReferenceValue(processEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
 		assertAuditTarget(processEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");

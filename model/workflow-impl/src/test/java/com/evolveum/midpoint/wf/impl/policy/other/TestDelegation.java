@@ -26,13 +26,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -60,11 +55,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		return userAdministrator;
 	}
 
-	@Autowired
-	private ActivitiEngine activitiEngine;
-
-	@Autowired
-	private WorkflowService workflowService;
+	@Autowired private WorkflowService workflowService;
 
 	private PrismObject<UserType> userLead1, userLead3;
 	private String workItemId;
@@ -145,24 +136,21 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
-		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
-				.taskId(workItem.getExternalId())
-				.singleResult();
-		System.out.println("Activiti task: " + activitiTask);
-		assertEquals("Wrong activiti assignee", "UserType:"+userLead1Oid, activitiTask.getAssignee());
-		List<String> assignees = getAssignees(activitiTask);
-		assertEquals("Wrong midpoint-assignee values", new HashSet<>(Arrays.asList("UserType:" + userLead1Oid, "UserType:" + userLead2Oid)),
-				new HashSet<>(assignees));
+		WorkItemType workItem1 = workflowEngine.getFullWorkItem(workItem.getExternalId(), result);
+		System.out.println("Work item: " + workItem1);
+		List<String> assigneeOids = getAssigneeOids(workItem1);
+		assertEquals("Wrong midpoint-assignee values", new HashSet<>(Arrays.asList(userLead1Oid, userLead2Oid)),
+				new HashSet<>(assigneeOids));
 
 		List<WorkItemDelegationEventType> events = WfContextUtil.getWorkItemEvents(wfTask.asObjectable().getWorkflowContext(), workItemId, WorkItemDelegationEventType.class);
 		assertEquals("Wrong # of delegation events", 1, events.size());
 		// TODO check content
 	}
 
-	private List<String> getAssignees(org.activiti.engine.task.Task activitiTask) {
-		return activitiEngine.getTaskService().getIdentityLinksForTask(activitiTask.getId()).stream()
-						.filter(i -> CommonProcessVariableNames.MIDPOINT_ASSIGNEE.equals(i.getType()))
-						.map(i -> i.getUserId()).collect(Collectors.toList());
+	private List<String> getAssigneeOids(WorkItemType workItem) {
+		return workItem.getAssigneeRef().stream()
+				.map(ObjectReferenceType::getOid)
+				.collect(Collectors.toList());
 	}
 
 	@Test
@@ -188,14 +176,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead3Oid);
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
-		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
-				.taskId(workItem.getExternalId())
-				.singleResult();
-		System.out.println("Activiti task: " + activitiTask);
-		assertEquals("Wrong activiti assignee", "UserType:"+userLead3Oid, activitiTask.getAssignee());
-		List<String> assignees = getAssignees(activitiTask);
-		assertEquals("Wrong midpoint-assignee values", Collections.singleton("UserType:" + userLead3Oid),
-				new HashSet<>(assignees));
+		WorkItemType fullWorkItem = workflowEngine.getFullWorkItem(workItem.getExternalId(), result);
+		System.out.println("Full work item: " + fullWorkItem);
+		List<String> assigneeOids = getAssigneeOids(fullWorkItem);
+		assertEquals("Wrong assignees", Collections.singleton(userLead3Oid), new HashSet<>(assigneeOids));
 
 		List<WorkItemDelegationEventType> events = WfContextUtil.getWorkItemEvents(wfTask.asObjectable().getWorkflowContext(), workItemId, WorkItemDelegationEventType.class);
 		assertEquals("Wrong # of delegation events", 2, events.size());
@@ -225,12 +209,9 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertEquals("Wrong assigneeRef count", 0, workItem.getAssigneeRef().size());
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
-		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
-				.taskId(workItem.getExternalId())
-				.singleResult();
-		System.out.println("Activiti task: " + activitiTask);
-		assertEquals("Wrong activiti assignee", null, activitiTask.getAssignee());
-		assertEquals("Wrong # of assignees", 0, getAssignees(activitiTask).size());
+		WorkItemType fullWorkItem = workflowEngine.getFullWorkItem(workItem.getExternalId(), result);
+		System.out.println("Full work item: " + fullWorkItem);
+		assertEquals("Wrong # of assignees", 0, getAssigneeOids(fullWorkItem).size());
 
 		List<WorkItemDelegationEventType> events = WfContextUtil.getWorkItemEvents(wfTask.asObjectable().getWorkflowContext(), workItemId, WorkItemDelegationEventType.class);
 		assertEquals("Wrong # of delegation events", 3, events.size());

@@ -43,7 +43,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -92,9 +91,10 @@ public class PrimaryChangeAspectHelper {
      * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
      * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
      */
-    public ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpWfTask pcpJob, OperationResult result) throws SchemaException {
+    public ObjectTreeDeltas prepareDeltaOut(WfContextType wfContext,
+            PcpWfTask pcpJob, OperationResult result) throws SchemaException {
         ObjectTreeDeltas deltaIn = pcpJob.retrieveDeltasToProcess();
-        if (ApprovalUtils.isApprovedFromUri(event.getOutcome())) {
+        if (ApprovalUtils.isApprovedFromUri(wfContext.getOutcome())) {
             return deltaIn;
         } else {
             return null;

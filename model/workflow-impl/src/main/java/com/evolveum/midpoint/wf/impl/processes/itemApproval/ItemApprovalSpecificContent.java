@@ -62,10 +62,10 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 		this.policyRules = policyRules;
 	}
 
-	@Override public void createProcessVariables(Map<String, Object> map, PrismContext prismContext) {
-		map.put(ProcessVariableNames.APPROVAL_TASK_NAME, taskName);
-		map.put(ProcessVariableNames.APPROVAL_STAGES, createStages(approvalSchemaType));
-	}
+//	@Override public void createProcessVariables(Map<String, Object> map, PrismContext prismContext) {
+//		map.put(ProcessVariableNames.APPROVAL_TASK_NAME, taskName);
+//		map.put(ProcessVariableNames.APPROVAL_STAGES, createStages(approvalSchemaType));
+//	}
 
 	private List<Integer> createStages(ApprovalSchemaType schema) {
 		return IntStream.range(1, schema.getStage().size()+1).boxed().collect(Collectors.toList());

@@ -91,7 +91,7 @@ public class BaseAuditHelper {
 			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(wfc));
 			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(wfc));
 		}
-		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfc.getProcessInstanceId());
+		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfc.getCaseOid());
 		OperationBusinessContextType businessContext = WfContextUtil.getBusinessContext(wfc);
 		String requesterComment = businessContext != null ? businessContext.getComment() : null;
 		if (requesterComment != null) {

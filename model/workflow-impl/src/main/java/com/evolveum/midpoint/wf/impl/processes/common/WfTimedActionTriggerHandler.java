@@ -33,8 +33,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
 import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemManager;
+import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -110,7 +110,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 				}
 				executeActions(actions, workItem, wfTask, triggerScannerTask, result);
 			}
-		} catch (RuntimeException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
+		} catch (RuntimeException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException e) {
 			String message = "Exception while handling work item trigger for ID " + workItemId + ": " + e.getMessage();
 			result.recordFatalError(message, e);
 			throw new SystemException(message, e);
@@ -132,7 +132,8 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeActions(WorkItemActionsType actions, WorkItemType workItem, Task wfTask, Task triggerScannerTask,
 			OperationResult result)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 		for (WorkItemNotificationActionType notificationAction : actions.getNotify()) {
 			executeNotificationAction(workItem, notificationAction, wfTask, result);
 		}
@@ -148,7 +149,9 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	}
 
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
-			OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+			OperationResult result)
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? ApprovalUtils.fromUri(completeAction.getOutcome()) : WorkItemOutcomeType.REJECT;
 		workItemManager.completeWorkItem(workItem.getExternalId(), ApprovalUtils.toUri(outcome),
 				null, null, WfContextUtil.createCause(completeAction), result);

@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfTestUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -148,8 +147,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
         });
         displayAllNotifications();
@@ -164,7 +163,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         Task opTask = taskManager.createTaskInstance();
         TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
         display("rootTask", rootTaskType);
-        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getProcessInstanceId() == null);
+        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getCaseOid() == null);
 
         assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
         int i = 0;
@@ -202,7 +201,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         assertEquals("Unexpected fetch result in wf subtask: " + subtaskName, null, subtaskType.getFetchResult());
         WfContextType wfc = subtaskType.getWorkflowContext();
         assertNotNull("Missing workflow context in wf subtask: " + subtaskName, wfc);
-        assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getProcessInstanceId());
+        assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getCaseOid());
         assertEquals("Wrong process ID name in subtask: " + subtaskName, processName, wfc.getProcessInstanceName());
         assertNotNull("Missing process start time in subtask: " + subtaskName, wfc.getStartTimestamp());
         assertNull("Unexpected process end time in subtask: " + subtaskName, wfc.getEndTimestamp());
@@ -217,7 +216,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
         Task opTask = taskManager.createTaskInstance();
         TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
-        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getProcessInstanceId() == null);
+        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getCaseOid() == null);
 
         assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
         int i = 0;
@@ -227,7 +226,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             assertNull("Unexpected fetch result in wf subtask: " + subtask, subtaskType.getFetchResult());
             WfContextType wfc = subtaskType.getWorkflowContext();
             assertNotNull("Missing workflow context in wf subtask: " + subtask, wfc);
-            assertNotNull("No process ID in wf subtask: " + subtask, wfc.getProcessInstanceId());
+            assertNotNull("No process ID in wf subtask: " + subtask, wfc.getCaseOid());
             assertEquals("Wrong process ID name in subtask: " + subtask, processNames[i++], wfc.getProcessInstanceName());
             assertNotNull("Missing process start time in subtask: " + subtask, wfc.getStartTimestamp());
             assertNotNull("Missing process end time in subtask: " + subtask, wfc.getEndTimestamp());
@@ -284,8 +283,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
 
         });
@@ -332,8 +331,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
 
         });
@@ -392,8 +391,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
 
         });
@@ -449,8 +448,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
 
         });
@@ -499,8 +498,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
 
             @Override
@@ -563,8 +562,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(wfContext);
             }
 
             @Override
@@ -617,7 +616,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 login(getUser(USER_ADMINISTRATOR_OID));
                 return false;
             }
@@ -665,7 +664,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 login(getUser(USER_ADMINISTRATOR_OID));
                 return true;
             }
@@ -716,10 +715,10 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                LightweightObjectRef targetRef = (LightweightObjectRef) activitiEngine.getRuntimeService().getVariable(executionId, CommonProcessVariableNames.VARIABLE_TARGET_REF);
-                if (targetRef != null && RoleType.COMPLEX_TYPE.equals(targetRef.toObjectReferenceType().getType())) {
-                    return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+                ObjectReferenceType targetRef = wfContext.getTargetRef();
+                if (targetRef != null && RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
+                    return decideOnRoleApproval(wfContext);
                 } else {
                     login(getUser(USER_ADMINISTRATOR_OID));
                     return true;
@@ -762,7 +761,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -828,7 +827,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -874,7 +873,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -918,7 +917,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -984,7 +983,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 login(getUser(R1BOSS_OID));
                 return true;
             }
@@ -1078,7 +1077,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }
@@ -1130,7 +1129,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }
@@ -1188,7 +1187,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
+            boolean decideOnApproval(WfContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }

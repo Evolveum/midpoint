@@ -397,7 +397,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		workflowRequests = new ArrayList<>();
 		for (TaskType wfSubtask : rootTask.getSubtask()) {
 			final WfContextType subWfc = wfSubtask.getWorkflowContext();
-			if (subWfc != null && subWfc.getProcessInstanceId() != null) {
+			if (subWfc != null && subWfc.getCaseOid() != null) {
 				if (this.getOid() == null || !this.getOid().equals(wfSubtask.getOid())) {
 					workflowRequests.add(new ProcessInstanceDto(wfSubtask));
 				}
@@ -909,7 +909,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public String getWorkflowProcessInstanceId() {
-        return taskType.getWorkflowContext() != null ? taskType.getWorkflowContext().getProcessInstanceId() : null;
+        return taskType.getWorkflowContext() != null ? taskType.getWorkflowContext().getCaseOid() : null;
     }
 
     public boolean isWorkflowProcessInstanceFinished() {
@@ -1006,7 +1006,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public String getProcessInstanceId() {
 		WfContextType wfc = getWorkflowContext();
-		return wfc != null ? wfc.getProcessInstanceId() : null;
+		return wfc != null ? wfc.getCaseOid() : null;
 	}
 
 	public Boolean isExecuteInRawMode() {
@@ -1183,7 +1183,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public boolean isWorkflowChild() {
-		return isWorkflowCategory() && getWorkflowContext() != null && getWorkflowContext().getProcessInstanceId() != null;
+		return isWorkflowCategory() && getWorkflowContext() != null && getWorkflowContext().getCaseOid() != null;
 	}
 
 	public boolean isWorkflowParent() {

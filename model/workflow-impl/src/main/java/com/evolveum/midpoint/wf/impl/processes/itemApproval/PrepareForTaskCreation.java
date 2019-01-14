@@ -45,62 +45,6 @@ public class PrepareForTaskCreation implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-    	PrismContext prismContext = getPrismContext();
-		OperationResult result = new OperationResult(PrepareForTaskCreation.class.getName() + ".execute");
-		Task wfTask = ActivitiUtil.getTask(execution, result);
-		Task opTask = getTaskManager().createTaskInstance();
-		ApprovalStageDefinitionType stageDef = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
-
-		LightweightObjectRef approverRef = getRequiredVariable(execution, ProcessVariableNames.APPROVER_REF, LightweightObjectRef.class,
-				prismContext);
-
-        String assignee = null;
-        String candidateGroups = null;
-        if (approverRef.getType() == null || QNameUtil.match(UserType.COMPLEX_TYPE, approverRef.getType())) {
-            assignee = MiscDataUtil.refToString(new ObjectReferenceType().oid(approverRef.getOid()).type(UserType.COMPLEX_TYPE));
-        } else if (QNameUtil.match(RoleType.COMPLEX_TYPE, approverRef.getType()) ||
-				QNameUtil.match(OrgType.COMPLEX_TYPE, approverRef.getType()) ||
-				QNameUtil.match(ServiceType.COMPLEX_TYPE, approverRef.getType())) {
-            candidateGroups = MiscDataUtil.refToString(approverRef.toObjectReferenceType());
-        } else {
-            throw new IllegalStateException("Unsupported type of the approver: " + approverRef.getType());
-        }
-
-        // TODO optimize by using setVariablesLocal
-		execution.setVariableLocal(ProcessVariableNames.ASSIGNEE, assignee);
-		execution.setVariableLocal(ProcessVariableNames.CANDIDATE_GROUPS, candidateGroups);
-
-		List<InformationType> additionalInformation;
-        if (stageDef.getAdditionalInformation() != null) {
-			try {
-				WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
-				WfStageComputeHelper stageComputer = SpringApplicationContextHolder.getStageComputeHelper();
-				ExpressionVariables variables = stageComputer.getDefaultVariables(execution, wfTask, result);
-				additionalInformation = evaluator.evaluateExpression(stageDef.getAdditionalInformation(), variables,
-						"additional information expression", InformationType.class, InformationType.COMPLEX_TYPE,
-						true, this::createInformationType, opTask, result);
-			} catch (Throwable t) {
-        		throw new SystemException("Couldn't evaluate additional information expression in " + execution, t);
-			}
-		} else {
-        	additionalInformation = Collections.emptyList();
-		}
-		if (!additionalInformation.isEmpty()) {
-			execution.setVariableLocal(CommonProcessVariableNames.ADDITIONAL_INFORMATION,
-					new SingleItemSerializationSafeContainerImpl<>(additionalInformation, prismContext));
-		}
-
-        LOGGER.debug("Creating work item for assignee={}, candidateGroups={}, additionalInformation='{}'",
-				assignee, candidateGroups, additionalInformation);
     }
 
-	private InformationType createInformationType(Object o) {
-    	if (o == null || o instanceof InformationType) {
-    		return (InformationType) o;
-	    } else if (o instanceof String) {
-		    return MidpointParsingMigrator.stringToInformationType((String) o);
-	    } else {
-    		throw new IllegalArgumentException("Object cannot be converted into InformationType: " + o);
-	    }
-	}
 }

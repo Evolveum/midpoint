@@ -317,10 +317,10 @@ public class WorkItemDto extends Selectable {
 			return rv;
 		}
 		for (TaskType task : relatedTasks) {
-			if (task.getWorkflowContext() == null || task.getWorkflowContext().getProcessInstanceId() == null) {
+			if (task.getWorkflowContext() == null || task.getWorkflowContext().getCaseOid() == null) {
 				continue;
 			}
-			if (StringUtils.equals(getProcessInstanceId(), task.getWorkflowContext().getProcessInstanceId())) {
+			if (StringUtils.equals(getProcessInstanceId(), task.getWorkflowContext().getCaseOid())) {
 				continue;
 			}
 			rv.add(new ProcessInstanceDto(task));
@@ -330,7 +330,7 @@ public class WorkItemDto extends Selectable {
 
 	public String getProcessInstanceId() {
 		final TaskType task = getTaskType();
-		return task != null && task.getWorkflowContext() != null ? task.getWorkflowContext().getProcessInstanceId() : null;
+		return task != null && task.getWorkflowContext() != null ? task.getWorkflowContext().getCaseOid() : null;
 	}
 
 	public String getTaskOid() {

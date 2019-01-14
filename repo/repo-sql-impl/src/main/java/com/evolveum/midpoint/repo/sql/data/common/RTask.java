@@ -440,7 +440,7 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
 
         WfContextType wfc = jaxb.getWorkflowContext();
         if (wfc != null) {
-            repo.setWfProcessInstanceId(wfc.getProcessInstanceId());
+            repo.setWfProcessInstanceId(wfc.getCaseOid());
             repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), repositoryContext.relationRegistry));
             repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), repositoryContext.relationRegistry));
             repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), repositoryContext.relationRegistry));

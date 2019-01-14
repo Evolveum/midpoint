@@ -48,9 +48,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareChildOperationTaskHandler;
 import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareRootOperationTaskHandler;
@@ -92,17 +90,8 @@ public class MiscDataUtil {
 	@Autowired private SecurityEnforcer securityEnforcer;
 	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private WfConfiguration wfConfiguration;
-	@Autowired private ActivitiEngine activitiEngine;
 	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
 	@Autowired private RelationRegistry relationRegistry;
-
-    public static ObjectReferenceType toObjectReferenceType(LightweightObjectRef ref) {
-		if (ref != null) {
-			return ref.toObjectReferenceType();
-		} else {
-			return null;
-		}
-	}
 
 	//region ========================================================================== Miscellaneous
     public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
@@ -323,7 +312,7 @@ public class MiscDataUtil {
 				return true;
 			}
 		}
-		return isAmongCandidates(principal, workItem.getExternalId());
+		return isAmongCandidates(principal, workItem);
     }
 
 	public boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid,
@@ -341,40 +330,17 @@ public class MiscDataUtil {
     }
 
     // principal != null, principal.getOid() != null, principal.getUser() != null
-    private boolean isAmongCandidates(MidPointPrincipal principal, String taskId) {
-        String currentUserOid = principal.getOid();
-        List<IdentityLink> identityLinks;
-        try {
-            TaskService taskService = activitiEngine.getTaskService();
-            // working around activiti bug, see MID-3799.6 (the NPE when task does not exist)
-			org.activiti.engine.task.Task task = taskService.createTaskQuery()
-					.taskId(taskId)
-					.singleResult();
-			if (task == null) {
-				return false;
-			}
-			identityLinks = taskService.getIdentityLinksForTask(taskId);
-        } catch (ActivitiException e) {
-            throw new SystemException("Couldn't determine user authorization, because the task candidate users and groups couldn't be retrieved: " + e.getMessage(), e);
-        }
-        for (IdentityLink identityLink : identityLinks) {
-            if (identityLink.getUserId() != null && identityLink.getUserId().equals(currentUserOid)) {
-                return true;
-            }
-            if (identityLink.getGroupId() != null) {
-                if (isMemberOfActivitiGroup(principal.getUser(), identityLink.getGroupId())) {
-                    return true;
-                }
-            }
-        }
+    private boolean isAmongCandidates(MidPointPrincipal principal, WorkItemType workItem) {
+	    for (ObjectReferenceType candidateRef : workItem.getCandidateRef()) {
+		    if (principal.getOid().equals(candidateRef.getOid())
+		            || isMemberOrDeputyOf(principal.getUser(), candidateRef)) {
+			    return true;
+		    }
+	    }
         return false;
     }
 
     public boolean isAuthorizedToClaim(WorkItemType workItem) {
-        return isAuthorizedToClaim(workItem.getExternalId());
-    }
-
-    public boolean isAuthorizedToClaim(String taskId) {
         MidPointPrincipal principal;
         try {
             principal = securityContextManager.getPrincipal();
@@ -385,29 +351,19 @@ public class MiscDataUtil {
         if (currentUserOid == null) {
             return false;
         }
-        return isAmongCandidates(principal, taskId);
+        return isAmongCandidates(principal, workItem);
     }
 
 
-    // todo move to something activiti-related
-
-    public static Map<String,FormProperty> formPropertiesAsMap(List<FormProperty> properties) {
-        Map<String,FormProperty> retval = new HashMap<>();
-        for (FormProperty property : properties) {
-            retval.put(property.getId(), property);
-        }
-        return retval;
+    private boolean isMemberOrDeputyOf(UserType userType, ObjectReferenceType userOrRoleRef) {
+        return userType.getRoleMembershipRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref))
+				|| userType.getDelegatedRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref));
     }
 
-    public boolean isMemberOfActivitiGroup(UserType userType, String activitiGroupId) {
-        ObjectReferenceType groupRef = stringToRef(activitiGroupId);
-        return userType.getRoleMembershipRef().stream().anyMatch(ref -> matches(groupRef, ref))
-				|| userType.getDelegatedRef().stream().anyMatch(ref -> matches(groupRef, ref));
-    }
-
-	public boolean matches(ObjectReferenceType groupRef, ObjectReferenceType targetRef) {
-		return relationRegistry.isMember(targetRef.getRelation())
-				&& targetRef.getOid().equals(groupRef.getOid());
+	public boolean matches(ObjectReferenceType userOrRoleRef, ObjectReferenceType targetRef) {
+    	// TODO check also the reference target type (user vs. abstract role)
+		return (relationRegistry.isMember(targetRef.getRelation()) || relationRegistry.isDelegation(targetRef.getRelation()))
+				&& targetRef.getOid().equals(userOrRoleRef.getOid());
 	}
 
 	public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
@@ -504,7 +460,7 @@ public class MiscDataUtil {
 		ChangesByState rv = new ChangesByState(prismContext);
 
 		final WfContextType wfc = childTask.getWorkflowContext();
-		if (wfc != null && wfc.getProcessInstanceId() != null) {
+		if (wfc != null && wfc.getCaseOid() != null) {
 			Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
 			if (isApproved == null) {
 				if (wfc.getEndTimestamp() == null) {
@@ -547,7 +503,7 @@ public class MiscDataUtil {
 		for (TaskType subtask : rootTask.getSubtask()) {
 			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, task, result);
 			final WfContextType wfc = subtask.getWorkflowContext();
-			if (wfc != null && wfc.getProcessInstanceId() != null) {
+			if (wfc != null && wfc.getCaseOid() != null) {
 				Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
 				if (isApproved == null) {
 					if (wfc.getEndTimestamp() == null) {

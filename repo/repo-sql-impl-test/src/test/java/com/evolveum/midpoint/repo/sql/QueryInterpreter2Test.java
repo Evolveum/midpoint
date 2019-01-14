@@ -4349,7 +4349,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 		try {
 			ObjectQuery query = prismContext.queryFor(TaskType.class)
 					.item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref("123456")
-					.and().not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+					.and().not().item(F_WORKFLOW_CONTEXT, F_CASE_OID).isNull()
 					.desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
 					.build();
 			String real = getInterpretedQuery2(session, TaskType.class, query);

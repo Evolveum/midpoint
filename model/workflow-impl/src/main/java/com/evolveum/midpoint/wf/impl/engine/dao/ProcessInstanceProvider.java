@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.activiti.dao;
+package com.evolveum.midpoint.wf.impl.engine.dao;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -27,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,9 +39,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
 
 /**
  * @author mederly
@@ -75,7 +72,7 @@ public class ProcessInstanceProvider {
             if (taskType.getWorkflowContext() == null) {
                 return;
             }
-            final String instanceId = taskType.getWorkflowContext().getProcessInstanceId();
+            final String instanceId = taskType.getWorkflowContext().getCaseOid();
             if (instanceId == null) {
                 return;
             }
@@ -84,9 +81,9 @@ public class ProcessInstanceProvider {
                 // We assume that everything (except work items) is already stored in repo.
                 return;
             }
-			final List<WorkItemType> workItems = workItemProvider.getWorkItemsForProcessInstanceId(instanceId, result);
+			final List<WorkItemType> workItems = workItemProvider.getWorkItemsForCase(instanceId, result);
 			taskType.getWorkflowContext().getWorkItem().addAll(CloneUtil.cloneCollectionMembers(workItems));
-        } catch (RuntimeException e) {
+        } catch (RuntimeException| SchemaException e) {
             result.recordFatalError(e.getMessage(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare wf-related information for {}", e, ObjectTypeUtil.toShortString(object));
         } finally {

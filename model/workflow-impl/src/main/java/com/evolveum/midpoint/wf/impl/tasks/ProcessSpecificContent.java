@@ -38,8 +38,6 @@ import java.util.Map;
  */
 public interface ProcessSpecificContent {
 
-	void createProcessVariables(Map<String, Object> map, PrismContext prismContext);
-
 	WfProcessSpecificStateType createProcessSpecificState();
 
 	boolean checkEmpty(PcpChildWfTaskCreationInstruction instruction,

@@ -5280,7 +5280,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected TaskType getApprovalTask(List<PrismObject<TaskType>> tasks) {
 		List<TaskType> rv = tasks.stream()
 				.map(o -> o.asObjectable())
-				.filter(t -> t.getWorkflowContext() != null && t.getWorkflowContext().getProcessInstanceId() != null)
+				.filter(t -> t.getWorkflowContext() != null && t.getWorkflowContext().getCaseOid() != null)
 				.collect(Collectors.toList());
 		if (rv.isEmpty()) {
 			throw new AssertionError("No approval task found");

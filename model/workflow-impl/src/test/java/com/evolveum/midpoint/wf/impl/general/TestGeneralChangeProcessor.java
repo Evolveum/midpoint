@@ -39,7 +39,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.legacy.AbstractWfTestLegacy;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
@@ -90,9 +89,6 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
-
-    @Autowired
-    private ActivitiEngine activitiEngine;
 
     @Autowired
     private MiscDataUtil miscDataUtil;
@@ -415,7 +411,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             Task subtask = subtasks.get(subtaskIndex);
 
             // now check the workflow state
-            String pid = wfTaskUtil.getProcessId(subtask);
+            String pid = wfTaskUtil.getCaseOid(subtask);
             assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
 /*

@@ -170,7 +170,7 @@ public class AccCertCaseOperationsHelper {
 			WorkItemDelegationMethodType method = getDelegationMethod(delegateAction);
 			List<ObjectReferenceType> newAssignees = new ArrayList<>();
 			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
+			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
 			//noinspection ConstantConditions
 			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation);
 			event.setTimestamp(now);
@@ -264,7 +264,7 @@ public class AccCertCaseOperationsHelper {
 			WorkItemDelegationMethodType method = getDelegationMethod(escalateAction);
 			List<ObjectReferenceType> newAssignees = new ArrayList<>();
 			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
+			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
 			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation);
 			event.setTimestamp(now);
 			event.setInitiatorRef(initiator);

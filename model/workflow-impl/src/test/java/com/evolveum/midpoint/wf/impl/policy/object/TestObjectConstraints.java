@@ -167,7 +167,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 					}
 
 					@Override
-					protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+					protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 						login(getUser(userEmployeeOwnerOid));
 						return true;
 					}
@@ -340,7 +340,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				login(getUser(userEmployeeOwnerOid));
 				return true;
 			}

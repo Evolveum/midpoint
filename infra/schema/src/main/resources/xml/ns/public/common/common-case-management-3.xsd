@@ -149,13 +149,24 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the task holding workflow context for wf-related cases.
+                                EXPERIMENTAL. Probably will be removed.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- stage number -->
                     <!-- deadline -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="case" type="tns:CaseType"/>
+    <xsd:element name="case" type="tns:CaseType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="AbstractWorkItemType">
         <xsd:annotation>

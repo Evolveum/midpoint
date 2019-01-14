@@ -22,8 +22,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpRepoAccessHelper;
@@ -50,12 +49,8 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 		return context;
 	}
 
-    public static ActivitiInterface getActivitiInterface() {
-        return getBean("activitiInterface", ActivitiInterface.class);
-    }
-
-    public static ActivitiEngine getActivitiEngine() {
-        return getBean(ActivitiEngine.class);
+    public static WorkflowInterface getActivitiInterface() {
+        return getBean("activitiInterface", WorkflowInterface.class);
     }
 
     private static<T> T getBean(Class<T> aClass) {

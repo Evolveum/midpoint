@@ -28,24 +28,24 @@ public class ProcessVariableNames {
 	// Therefore it has a name different from "root" stageNumber variable.
 	public static final String STAGE_NUMBER_LOCAL = "stageNumberLocal";			// Integer
 
-	// How the user task (work item) should be named.
-    public static final String APPROVAL_TASK_NAME = "approvalTaskName";         // of type String
+//	// How the user task (work item) should be named.
+//    public static final String APPROVAL_TASK_NAME = "approvalTaskName";         // of type String
 
     // Whether we have to stop approving at the current stage (means the approval was rejected at this stage).
     public static final String LOOP_STAGES_STOP = "loopStages_stop";            // Boolean
 
-    // Approvers that should be consulted within this stage.
-    public static final String APPROVERS_IN_STAGE = "approversInStage";         // List<LightweightObjectRef>
-
-    // Current approver (one of APPROVERS_IN_STAGE)
-    public static final String APPROVER_REF = "approverRef";         // LightweightObjectRef
-
-    // Oid of the approver if approverRef is a user (in that case, the task is assigned directly to the user)
-    public static final String ASSIGNEE = "assignee";
-
-    // type:oid of the abstract role if approverRef is an abstract role (in that case, it is used as a candidate group)
-    // syntax was changed in midPoint 3.6 (e.g. from role:oid to RoleType:oid)
-    public static final String CANDIDATE_GROUPS = "candidateGroups";
+//    // Approvers that should be consulted within this stage.
+//    public static final String APPROVERS_IN_STAGE = "approversInStage";         // List<LightweightObjectRef>
+//
+//    // Current approver (one of APPROVERS_IN_STAGE)
+//    public static final String APPROVER_REF = "approverRef";         // LightweightObjectRef
+//
+//    // Oid of the approver if approverRef is a user (in that case, the task is assigned directly to the user)
+//    public static final String ASSIGNEE = "assignee";
+//
+//    // type:oid of the abstract role if approverRef is an abstract role (in that case, it is used as a candidate group)
+//    // syntax was changed in midPoint 3.6 (e.g. from role:oid to RoleType:oid)
+//    public static final String CANDIDATE_GROUPS = "candidateGroups";
 
     // Whether we have to stop evaluating current stage (e.g. because strategy was 'firstDecides' and the first person decided (approved or rejected).
     public static final String LOOP_APPROVERS_IN_STAGE_STOP = "loopApproversInStage_stop";  // Boolean

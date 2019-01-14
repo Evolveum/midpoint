@@ -40,20 +40,20 @@ public class MidPointProcessListener implements ExecutionListener {
 
     @Override
     public void notify(DelegateExecution execution) {
-        if (!ExecutionListener.EVENTNAME_END.equals(execution.getEventName())) {
-            return;
-        }
-        LOGGER.trace("Signalling process end; execution id = {}, current activity id = {}, current activity name = {}, instance id = {}",
-                execution.getId(), execution.getCurrentActivityId(), execution.getCurrentActivityName(), execution.getProcessInstanceId());
-        try {
-            getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
-        } catch (RuntimeException e) {
-            LOGGER.trace("Got exception while processing process end event in midpoint", e);
-            if (TRUE.equals(execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_IS_STOPPING))) {
-                LOGGER.trace("... the process is ending anyway, so we just ignore this exception");
-            } else {
-                throw e;
-            }
-        }
+//        if (!ExecutionListener.EVENTNAME_END.equals(execution.getEventName())) {
+//            return;
+//        }
+//        LOGGER.trace("Signalling process end; execution id = {}, current activity id = {}, current activity name = {}, instance id = {}",
+//                execution.getId(), execution.getCurrentActivityId(), execution.getCurrentActivityName(), execution.getProcessInstanceId());
+//        try {
+//            getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
+//        } catch (RuntimeException e) {
+//            LOGGER.trace("Got exception while processing process end event in midpoint", e);
+//            if (TRUE.equals(execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_IS_STOPPING))) {
+//                LOGGER.trace("... the process is ending anyway, so we just ignore this exception");
+//            } else {
+//                throw e;
+//            }
+//        }
     }
 }

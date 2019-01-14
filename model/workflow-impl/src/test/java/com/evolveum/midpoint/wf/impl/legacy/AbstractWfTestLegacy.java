@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -39,12 +40,12 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.WfTestUtil;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowInterface;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
@@ -93,8 +94,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     @Autowired
     protected WfTaskUtil wfTaskUtil;
 
-    @Autowired
-    protected ActivitiEngine activitiEngine;
+    @Autowired protected WorkflowEngine workflowEngine;
 
     @Autowired
     protected MiscDataUtil miscDataUtil;
@@ -259,13 +259,13 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
         void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception { }
-        boolean decideOnApproval(String executionId) throws Exception { return true; }
+        boolean decideOnApproval(WfContextType wfContext) throws Exception { return true; }
         String getObjectOid(Task task, OperationResult result) throws SchemaException { return null; };
         boolean removeAssignmentsBeforeTest() { return true; }
     }
 
-    protected boolean decideOnRoleApproval(String executionId) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
-        LightweightObjectRef targetRef = (LightweightObjectRef) activitiEngine.getRuntimeService().getVariable(executionId, CommonProcessVariableNames.VARIABLE_TARGET_REF);
+    protected boolean decideOnRoleApproval(WfContextType wfContext) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        ObjectReferenceType targetRef = wfContext.getTargetRef();
         assertNotNull("targetRef not found", targetRef);
         String roleOid = targetRef.getOid();
         assertNotNull("requested role OID not found", roleOid);
@@ -367,7 +367,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
                 // now check the workflow state
 
-                String pid = wfTaskUtil.getProcessId(subtask);
+                String pid = wfTaskUtil.getCaseOid(subtask);
                 assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
 //                WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
@@ -377,15 +377,17 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                 //String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
                 //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
 
-                org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().processInstanceId(pid).singleResult();
-                assertNotNull("activiti task not found", t);
+                SearchResultList<CaseWorkItemType> workItems = workflowEngine.getWorkItemsForCase(pid, null, result);
+                CaseWorkItemType workItem = MiscUtil.extractSingleton(workItems);
+                assertNotNull("work item not found", workItem);
 
-                String executionId = t.getExecutionId();
-                LOGGER.trace("Execution id = {}", executionId);
+                WfContextType wfContext = subtask.getWorkflowContext();
+                LOGGER.trace("wfContext = {}", wfContext);
 
-                boolean approve = testDetails.decideOnApproval(executionId);
+                boolean approve = testDetails.decideOnApproval(wfContext);
 
-                workflowManager.completeWorkItem(t.getId(), approve, null, null, null, result);
+                workflowManager.completeWorkItem(WorkflowInterface.createWorkItemId(wfContext.getCaseOid(), workItem.getId()),
+                        approve, null, null, null, result);
                 login(userAdministrator);
             }
         }
@@ -422,7 +424,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         Task task0 = null;
 
         for (Task subtask : subtasks) {
-			if (subtask.getTaskPrismObject().asObjectable().getWorkflowContext() == null || subtask.getTaskPrismObject().asObjectable().getWorkflowContext().getProcessInstanceId() == null) {
+			if (subtask.getTaskPrismObject().asObjectable().getWorkflowContext() == null || subtask.getTaskPrismObject().asObjectable().getWorkflowContext().getCaseOid() == null) {
 				assertNull("More than one non-wf-monitoring subtask", task0);
 				task0 = subtask;
 			}

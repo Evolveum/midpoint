@@ -35,7 +35,7 @@ import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -49,47 +49,46 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType
 /**
  * A class that describes wf-enabled tasks (plus tasks that do not carry wf process, like "task0" executing changes that do not need approvals)
  *
- * It points to the activiti process instance information as well as to the corresponding midPoint task.
+ * It points to the case object as well as to the corresponding midPoint task.
  *
  * @author mederly
  */
 public class WfTask {
 
-    private WfTaskController wfTaskController;
-
-    private Task task;                          // must be non-null
-    private String processInstanceId;                  // must be non-null for Activiti-related jobs (and may be filled-in later, when activiti process is started)
-    private ChangeProcessor changeProcessor;    // must be non-null
+    @NotNull private final WfTaskController wfTaskController;
+    @NotNull private final Task task;
+    @NotNull private final ChangeProcessor changeProcessor;
+    private String caseOid;                     // must be non-null for workflow-related tasks (and may be filled-in later, when activiti process is started)
 
     //region Constructors and basic getters
     WfTask(WfTaskController wfTaskController, Task task, ChangeProcessor changeProcessor) {
         this(wfTaskController, task, null, changeProcessor);
     }
 
-    protected WfTask(WfTaskController wfTaskController, Task task, String processInstanceId, ChangeProcessor changeProcessor) {
-        Validate.notNull(task, "Task");
-        Validate.notNull(changeProcessor, "Change processor");
+    protected WfTask(@NotNull WfTaskController wfTaskController, @NotNull Task task, String caseOid, @NotNull ChangeProcessor changeProcessor) {
         this.wfTaskController = wfTaskController;
         this.task = task;
-        this.processInstanceId = processInstanceId;
+        this.caseOid = caseOid;
         this.changeProcessor = changeProcessor;
     }
 
     protected WfTask(WfTask original) {
         this.wfTaskController = original.wfTaskController;
         this.task = original.task;
-        this.processInstanceId = original.processInstanceId;
+        this.caseOid = original.caseOid;
         this.changeProcessor = original.changeProcessor;
     }
 
-    public String getProcessInstanceId() {
-        return processInstanceId;
+    public String getCaseOid() {
+        return caseOid;
     }
 
+    @NotNull
     public Task getTask() {
         return task;
     }
 
+    @NotNull
     public ChangeProcessor getChangeProcessor() {
         return changeProcessor;
     }
@@ -99,7 +98,7 @@ public class WfTask {
     public String toString() {
         return "WfTask{" +
                 "task=" + task +
-                ", processInstanceId='" + processInstanceId + '\'' +
+                ", caseOid='" + caseOid + '\'' +
                 ", changeProcessor=" + changeProcessor +
                 '}';
     }
@@ -120,15 +119,15 @@ public class WfTask {
         task.startWaitingForTasksImmediate(result);
     }
 
-    public void setWfProcessId(String pid) throws SchemaException {
-		processInstanceId = pid;
+    public void setCaseOid(String oid) throws SchemaException {
+		caseOid = oid;
         task.addModification(
                 getPrismContext().deltaFor(TaskType.class)
-                        .item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).replace(pid)
+                        .item(F_WORKFLOW_CONTEXT, F_CASE_OID).replace(oid)
                         .asItemDelta());
     }
 
-    public void setProcessInstanceEndTimestamp() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void setProcessInstanceEndTimestamp() throws SchemaException {
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
         task.addModification(
                 getPrismContext().deltaFor(TaskType.class)
@@ -238,7 +237,7 @@ public class WfTask {
                 .asItemDeltas());
     }
 
-    public void setProcessInstanceStageInformation(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName)
+    public void setProcessInstanceStageInformation(Integer stageNumber)
 			throws SchemaException {
         task.addModifications(getPrismContext().deltaFor(TaskType.class)
 				.item(F_WORKFLOW_CONTEXT, F_STAGE_NUMBER).replace(stageNumber)
