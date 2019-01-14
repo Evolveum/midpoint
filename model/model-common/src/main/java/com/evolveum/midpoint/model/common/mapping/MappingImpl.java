@@ -34,8 +34,6 @@ import com.evolveum.prism.xml.ns._public.types_4.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.filter.Filter;
-import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -102,7 +100,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
     private final SecurityContextManager securityContextManager;          // in order to get c:actor variable
 	private final OriginType originType;
 	private final ObjectType originObject;
-	private final FilterManager<Filter> filterManager;
 	private final ValuePolicyResolver stringPolicyResolver;
 	private final boolean conditionMaskOld;
 	private final boolean conditionMaskNew;
@@ -152,7 +149,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		sources = builder.sources;
 		originType = builder.originType;
 		originObject = builder.originObject;
-		filterManager = builder.filterManager;
 		stringPolicyResolver = builder.valuePolicyResolver;
 		variableProducer = builder.variableProducer;
 		conditionMaskOld = builder.conditionMaskOld;
@@ -293,11 +289,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	private PrismContext getPrismContext() {
 		return outputDefinition.getPrismContext();
-	}
-
-	@SuppressWarnings("unused")
-	public FilterManager<Filter> getFilterManager() {
-		return filterManager;
 	}
 
 	@SuppressWarnings("unused")
@@ -455,12 +446,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				return;
 			}
 
-			// TODO: input filter
 			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
 			fixDefinition();
 			recomputeValues();
 			setOrigin();
-			// TODO: output filter
 
 			checkRange(task, result);
 
@@ -1380,7 +1369,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		private Collection<Source<?,?>> sources = new ArrayList<>();
 		private OriginType originType;
 		private ObjectType originObject;
-		private FilterManager<Filter> filterManager;
 		private ValuePolicyResolver valuePolicyResolver;
 		private VariableProducer variableProducer;
 		private boolean conditionMaskOld = true;
@@ -1461,11 +1449,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 		public Builder<V,D> originObject(ObjectType val) {
 			originObject = val;
-			return this;
-		}
-
-		public Builder<V,D> filterManager(FilterManager<Filter> val) {
-			filterManager = val;
 			return this;
 		}
 
@@ -1582,10 +1565,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 		public ObjectType getOriginObject() {
 			return originObject;
-		}
-
-		public FilterManager<Filter> getFilterManager() {
-			return filterManager;
 		}
 
 		public ValuePolicyResolver getValuePolicyResolver() {
@@ -1796,12 +1775,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		@Deprecated
 		public void setOriginObject(ObjectType originObject) {
 			this.originObject = originObject;
-		}
-
-		@Deprecated
-		public void setFilterManager(
-				FilterManager<Filter> filterManager) {
-			this.filterManager = filterManager;
 		}
 
 		@Deprecated

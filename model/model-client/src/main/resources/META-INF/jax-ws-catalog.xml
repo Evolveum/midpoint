@@ -59,13 +59,6 @@ Used at run time by SOAP clients.
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-4" uri="../xml/ns/public/model/scripting/scripting-4.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-4" uri="../xml/ns/public/model/scripting/extension-4.xsd" />
 
-    <!-- Experimental XSD schema file locations -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
-
-    <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd" />
-    <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd" />
-
     <!-- Bundled standard schemas -->
     <public publicId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
     <public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />

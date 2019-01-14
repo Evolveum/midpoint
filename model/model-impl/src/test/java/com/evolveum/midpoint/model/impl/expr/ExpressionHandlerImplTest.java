@@ -86,37 +86,6 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
         securityContext.setAuthentication(authentication);
 	}
 
-	// This test is wrong. Maybe wrong place.
-	// But the problem is, that the account here contains raw values. It does not have
-	// the definition applied. Therefore the equals() in groovy won't work.
-	@Test(enabled=false)
-	@SuppressWarnings("unchecked")
-	public void testConfirmUser() throws Exception {
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(
-				TEST_FOLDER, "account-xpath-evaluation.xml"));
-
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
-
-		//TODO:  "$c:user/c:givenName/t:orig replaced with "$c:user/c:givenName
-		ExpressionType expression = PrismTestUtil.parseAtomicValue(
-                "<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" "
-                        + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
-                        + "<script>\n"
-                        + "<trace>true</trace>\n"
-                        + "<code>"
-                        + "basic.getAttributeValues(projection, \"givenName\")?.contains(user.getGivenName().getOrig())"
-                        + "</code>"
-                        + "</script>"
-                        + "</object>", ExpressionType.COMPLEX_TYPE);
-
-		OperationResult result = new OperationResult("testConfirmUser");
-		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user.asObjectable(), account.asObjectable(), expression,
-				null, result);
-		LOGGER.info(result.debugDump());
-
-		assertTrue("Wrong expression result (expected true)", confirmed);
-	}
-
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEvaluateExpression() throws Exception {

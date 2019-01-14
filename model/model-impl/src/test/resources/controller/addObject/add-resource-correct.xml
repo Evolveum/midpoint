@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,42 +17,9 @@
 <c:object xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-4'
-   xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
-   xmlns:mi6="http://mi6.gov.uk/schema/"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-4"
 	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-4"
    xsi:type="c:ResourceType">    
     <c:name>add-resource-correct</c:name>
-    <namespace>http://mi6.gov.uk/schema/</namespace>
-    <schema>
-      <definition>
-        <xsd:schema targetNamespace="http://mi6.gov.uk/schema/">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/resource/ldap/1#"/>
-            <xsd:complexType name="Mi6PersonObjectClass">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <ra:identifier ref="ldap:dn"/>
-                        <a:displayName ref="ldap:uid"/>
-                        <ra:nativeObjectClass>mi6Person</ra:nativeObjectClass>
-                    </xsd:appinfo>
-                </xsd:annotation>
-                <xsd:complexContent>
-                    <xsd:extension base="ldap:InetOrgPersonObjectClass">
-                        <xsd:sequence>
-                            <xsd:element name="mi6Licence" type="xsd:string">
-                                <xsd:annotation>
-                                    <xsd:appinfo>
-                                        <c:name>Agent's Licence</c:name>
-                                        <c:access>read</c:access>
-                                    </xsd:appinfo>
-                                </xsd:annotation>
-                            </xsd:element>
-                        </xsd:sequence>
-                    </xsd:extension>
-                </xsd:complexContent>
-            </xsd:complexType>
-        </xsd:schema>
-      </definition>
-    </schema>
 </c:object>

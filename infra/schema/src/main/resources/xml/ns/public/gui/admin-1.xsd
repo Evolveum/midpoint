@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,7 +29,11 @@
     <xsd:annotation>
         <xsd:documentation>
             <p>
-                todo
+                TODO
+                
+                Still needed, even in 4.0. This is the schema for GUI descriptor.xml file
+                that contains list of packages to scan for pages.
+                However, this is DEPRECATED. We need to update the mechanism.
             </p>
         </xsd:documentation>
         <xsd:appinfo>

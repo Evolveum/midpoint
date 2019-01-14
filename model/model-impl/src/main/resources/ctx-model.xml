@@ -213,14 +213,13 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
         <property name="protector" ref="protector"/>
         <property name="prismContext" ref="prismContext"/>
-        <property name="filterManager" ref="filterManager"/>
         <property name="securityContextManager" ref="securityContextManager"/>
     </bean>
     
     <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="midpoint"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-4"/>
         <property name="genericFunctions">
             <ref bean="midpointFunctionsImpl"/>
         </property>
@@ -299,22 +298,6 @@
         <property name="auditService" ref="auditService"/>
         <property name="provisioningService" ref="provisioningService"/>
         <property name="contextFactory" ref="contextFactory"/>
-    </bean>
-
-    <bean id="filterManager" class="com.evolveum.midpoint.common.filter.FilterManagerImpl">
-        <property name="filterMapping">
-            <map>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#emptyFilter">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.impl.filter.EmptyFilter</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.impl.filter.PatternFilter</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#diacriticsFilter">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.impl.filter.DiacriticsFilter</value>
-                </entry>
-            </map>
-        </property>
     </bean>
 
     <import resource="classpath:META-INF/cxf/cxf.xml"/>

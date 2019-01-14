@@ -39,8 +39,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.filter.Filter;
-import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -95,7 +93,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceBidirectiona
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_4.ValueFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_4.ProtectedStringType;
 
@@ -115,7 +112,6 @@ public class InboundProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(InboundProcessor.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired private FilterManager<Filter> filterManager;
     @Autowired private MappingFactory mappingFactory;
     @Autowired private ContextLoader contextLoader;
     @Autowired private CredentialsProcessor credentialsProcessor;
@@ -1235,22 +1231,6 @@ public class InboundProcessor {
 		};
 		return stringPolicyResolver;
 	}
-
-	private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
-        PrismPropertyValue<T> filteredValue = propertyValue.clone();
-        filteredValue.setOriginType(OriginType.INBOUND);
-
-        if (filters == null || filters.isEmpty()) {
-            return filteredValue;
-        }
-
-        for (ValueFilterType filter : filters) {
-            Filter filterInstance = filterManager.getFilterInstance(filter.getType(), filter.getAny());
-            filterInstance.apply(filteredValue);
-        }
-
-        return filteredValue;
-    }
 
 	/**
      * Processing for special (fixed-schema) properties such as credentials and activation.
