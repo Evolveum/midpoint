@@ -22,7 +22,7 @@
         oid="79dacdf7-2bc9-4eef-9c63-08d53d2392c3">
     <name>Change description task template</name>
     <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-4">
             <s:pipeline>
                 <s:search>
                     <s:type>c:UserType</s:type>

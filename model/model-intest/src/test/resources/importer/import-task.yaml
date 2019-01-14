@@ -5,7 +5,7 @@ objects:
     oid: "00000000-0000-0000-0000-123450000001"
     name: "Task1: basic single-run task (takes 180x1 sec)"
     extension: !<http://midpoint.evolveum.com/xml/ns/public/common/common-4/ExtensionType>
-      '@ns': "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4"
       delay: 1000
       steps: 10
     taskIdentifier: "10000000-0000-0000-0000-123450000001"
@@ -13,6 +13,6 @@ objects:
       oid: "c0c010c0-d34d-b33f-f00d-111111111111"
       type: "http://midpoint.evolveum.com/xml/ns/public/common/common-4#UserType"
     executionStatus: "runnable"
-    handlerUri: "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
+    handlerUri: "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-4"
     recurrence: "single"
     binding: "tight"

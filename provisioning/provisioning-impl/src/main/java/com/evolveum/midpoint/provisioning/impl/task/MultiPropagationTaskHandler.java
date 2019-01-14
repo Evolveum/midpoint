@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 @Component
 public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHandler<ResourceType, MultiPropagationResultHandler> {
 	
-	public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/multi-handler-3";
+	public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/multi-handler-" + SchemaConstants.SCHEMA_MAJOR_VERSION;
 	
 	// WARNING! This task handler is efficiently singleton!
  	// It is a spring bean and it is supposed to handle all search task instances

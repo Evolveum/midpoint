@@ -22,7 +22,7 @@
         oid="1dfb1e5c-ec1a-42f4-8fe7-a072249a3ee5">
     <name>Change description task template (iterative)</name>
     <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-4">
             <s:action>
                 <s:type>execute-script</s:type>
                 <s:parameter>
