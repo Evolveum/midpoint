@@ -2147,9 +2147,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return;
         }
         objectViews.forEach(objectView -> {
-            //objectlistView.getType() might be null - from documentation:
-            // It may not be present in case that the type is defined in a referenced object colleciton.
-
         	CollectionSpecificationType collection = objectView.getCollection();
         	if (collection == null) {
         		return;
@@ -2168,7 +2165,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return;
             }
             ObjectType objectType = collectionObject.asObjectable();
-            if (!(objectType instanceof ArchetypeType)) {
+            if (!(objectType instanceof ArchetypeType) && !(objectType instanceof ObjectCollectionType)) {
                 return;
             }
             DisplayType viewDisplayType = objectView.getDisplay();
