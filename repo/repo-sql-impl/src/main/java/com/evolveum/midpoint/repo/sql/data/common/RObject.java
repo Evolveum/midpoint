@@ -323,6 +323,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @JaxbPath(itemPath = @JaxbName(localPart = "assignment"))
+    @JaxbPath(itemPath = @JaxbName(localPart = "inducement"))
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})

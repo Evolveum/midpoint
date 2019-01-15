@@ -330,9 +330,12 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
                     .resourceRef(MOVED_ASSIGNMENT_TARGET_OID, ResourceType.COMPLEX_TYPE)
                 .end();
 
+        AssignmentType in = a.clone();
+        in.setId(null);
+
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT).delete(a.clone())
-                .item(RoleType.F_INDUCEMENT).add(a.clone())
+                .item(RoleType.F_INDUCEMENT).add(in)
                 .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("delete add assignment");
@@ -349,7 +352,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assertNotNull(inducement);
         assertEquals(3, inducement.getValues().size());
 
-        assertNotNull(inducement.getValue(1L));
+        assertNotNull(inducement.getValue(6L));
         assertNotNull(inducement.getValue(2L));
         assertNotNull(inducement.getValue(5L));
     }
@@ -383,7 +386,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assertNotNull(assignment);
         assertEquals("Wrong number of assignments", 1, assignment.getValues().size());
         
-        assertEquals("Wrong assignment id", (Long) 6L, assignment.getValues().iterator().next().getId());
+        assertEquals("Wrong assignment id", (Long) 7L, assignment.getValues().iterator().next().getId());
     }
 
     

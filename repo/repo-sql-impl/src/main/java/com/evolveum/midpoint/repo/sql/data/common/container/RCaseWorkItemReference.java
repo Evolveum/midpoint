@@ -77,6 +77,9 @@ public class RCaseWorkItemReference extends RReference {
 	@Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public String getOwnerOwnerOid() {
+        if (ownerOwnerOid == null && getOwner() != null) {
+            ownerOwnerOid = getOwner().getOwnerOid();
+        }
         return ownerOwnerOid;
     }
 
@@ -87,6 +90,9 @@ public class RCaseWorkItemReference extends RReference {
 	@Column(name = "owner_id")
     @NotQueryable
     public Integer getOwnerId() {
+        if (ownerId == null && getOwner() != null) {
+            ownerId = getOwner().getId();
+        }
         return ownerId;
     }
 

@@ -232,4 +232,9 @@ public class PrismUtil {
 			DebugUtil.debugDumpWithLabel(sb, label, cc.asPrismContainerValue(), indent);
 		}
 	}
+	
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, Containerable cc, int indent) {
+		debugDumpWithLabel(sb, label, cc, indent);
+		sb.append("\n");
+	}
 }

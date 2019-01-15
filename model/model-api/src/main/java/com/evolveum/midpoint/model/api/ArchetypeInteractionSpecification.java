@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.util.List;
+
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.ArchetypePolicyType;
 public class ArchetypeInteractionSpecification implements DebugDumpable {
 	
 	private ArchetypePolicyType archetypePolicy;
+	private List<AssignmentTargetRelation> assignmentTargetRelations;
 
 	public ArchetypePolicyType getArchetypePolicy() {
 		return archetypePolicy;
@@ -41,12 +44,34 @@ public class ArchetypeInteractionSpecification implements DebugDumpable {
 		this.archetypePolicy = archetypePolicy;
 	}
 
-	// TODO: assignmentRelation info
-	
+	/**
+	 * Returns list of assignment target relation specifications. Simply speaking,
+	 * those are object types that can be targets of assignments for this object
+	 * and the respective relations. Simply speaking this means "what assignments can I have"
+	 * or "what are the valid targets for relations that I hold".
+	 * It is the reverse of assignmentRelation definition in AssignmentType in schema.
+	 *  
+	 * If null is returned then there is no applicable assignment target constraint.
+	 * That means any assignment with any target and any relation is allowed.
+	 * This is the default behavior.
+	 * 
+	 * If empty list is returned that means no assignments are allowed.
+	 * I.e. there is no valid combination of target type and relation that could
+	 * be applied. 
+	 */
+	public List<AssignmentTargetRelation> getAssignmentTargetRelations() {
+		return assignmentTargetRelations;
+	}
+
+	public void setAssignmentTargetRelations(List<AssignmentTargetRelation> assignmentTargetRelations) {
+		this.assignmentTargetRelations = assignmentTargetRelations;
+	}
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(ArchetypeInteractionSpecification.class, indent);
-		PrismUtil.debugDumpWithLabel(sb, "archetypePolicy", archetypePolicy, indent + 1);
+		PrismUtil.debugDumpWithLabelLn(sb, "archetypePolicy", archetypePolicy, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "assignmentTargetRelations", assignmentTargetRelations, indent + 1);
 		return sb.toString();
 	}
 
