@@ -1,12 +1,12 @@
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="b55125ff-8744-47bb-a171-1128a78ab144" version="12">
-    <name>openstackv30</name>
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="137edf3a-104e-49b4-9dcb-14db1062c8f3" version="9">
+    <name>openstackv38</name>
     <metadata>
-        <modifyTimestamp>2019-01-11T12:54:24.661+01:00</modifyTimestamp>
+        <modifyTimestamp>2019-01-15T00:33:06.733+01:00</modifyTimestamp>
         <modifierRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
         <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
     </metadata>
     <operationExecution id="1">
-        <timestamp>2019-01-11T12:53:34.906+01:00</timestamp>
+        <timestamp>2019-01-15T00:32:49.865+01:00</timestamp>
         <operation>
             <objectDelta>
                 <t:changeType>modify</t:changeType>
@@ -15,16 +15,16 @@
             <executionResult>
                 <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
                 <status>success</status>
-                <token>1000000000000000272</token>
+                <token>1000000000000000151</token>
             </executionResult>
-            <objectName>openstackv30</objectName>
+            <objectName>openstackv38</objectName>
         </operation>
         <status>success</status>
         <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
         <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
     </operationExecution>
     <operationExecution id="2">
-        <timestamp>2019-01-11T12:54:25.311+01:00</timestamp>
+        <timestamp>2019-01-15T00:33:07.456+01:00</timestamp>
         <operation>
             <objectDelta>
                 <t:changeType>modify</t:changeType>
@@ -33,9 +33,9 @@
             <executionResult>
                 <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
                 <status>success</status>
-                <token>1000000000000000340</token>
+                <token>1000000000000000227</token>
             </executionResult>
-            <objectName>openstackv30</objectName>
+            <objectName>openstackv38</objectName>
         </operation>
         <status>success</status>
         <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
@@ -44,32 +44,20 @@
     <operationalState>
         <lastAvailabilityStatus>up</lastAvailabilityStatus>
     </operationalState>
-    <connectorRef oid="86f94bcb-5b77-4841-8afe-8d85dc29bbc9" relation="org:default" type="c:ConnectorType"/>
+    <connectorRef oid="2de6486d-5710-4ed7-8d70-f0a4530eab0d" relation="org:default" type="c:ConnectorType"/>
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-        <icfc:configurationProperties xmlns:gen600="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-openStack-Keystone/com.evolveum.polygon.connector.openstackkeystone.rest.OpenStackConnector">
-            <gen600:endpoint>http://172.17.1.104:5000/v3</gen600:endpoint>
-            <gen600:userId>d29d24da1197425eb79ba047d3b52357</gen600:userId>
-            <gen600:secret>
-                <t:encryptedData>
-                    <t:encryptionMethod>
-                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
-                    </t:encryptionMethod>
-                    <t:keyInfo>
-                        <t:keyName>jWLlgKAGfVsmBs4Hb4/Xavk8E3I=</t:keyName>
-                    </t:keyInfo>
-                    <t:cipherData>
-                        <t:cipherValue>04wyuZrFZw5FtbCA/6y8F6MtUm11TuJmn/7AdMU95b0=</t:cipherValue>
-                    </t:cipherData>
-                </t:encryptedData>
-            </gen600:secret>
-            <gen600:projectName>admin</gen600:projectName>
-            <gen600:domainName>Default</gen600:domainName>
+        <icfc:configurationProperties xmlns:gen233="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-openStack-Keystone/com.evolveum.polygon.connector.openstackkeystone.rest.OpenStackConnector">
+            <gen233:endpoint>endpoint</gen233:endpoint>
+            <gen233:userId>userId</gen233:userId>
+            <gen233:secret>Secret</gen233:secret>
+            <gen233:projectName>projectName</gen233:projectName>
+            <gen233:domainName>domainName</gen233:domainName>
         </icfc:configurationProperties>
     </connectorConfiguration>
     <schema>
         <cachingMetadata>
-            <retrievalTimestamp>2019-01-11T12:53:43.883+01:00</retrievalTimestamp>
-            <serialNumber>8f9dac00adf4e58a-fa7f605ade886ded</serialNumber>
+            <retrievalTimestamp>2019-01-15T00:32:54.532+01:00</retrievalTimestamp>
+            <serialNumber>63a283fc71c19257-c22a5b2a4f05423d</serialNumber>
         </cachingMetadata>
         <definition>
             <xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
@@ -236,18 +224,10 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element minOccurs="0" name="enabled" type="xsd:boolean">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>150</a:displayOrder>
-                                    <ra:frameworkAttributeName>enabled</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
                         <xsd:element minOccurs="0" name="parent_id" type="xsd:string">
                             <xsd:annotation>
                                 <xsd:appinfo>
-                                    <a:displayOrder>160</a:displayOrder>
+                                    <a:displayOrder>150</a:displayOrder>
                                     <a:access>create</a:access>
                                     <a:access>read</a:access>
                                     <ra:frameworkAttributeName>parent_id</ra:frameworkAttributeName>
@@ -294,14 +274,6 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element minOccurs="0" name="enabled" type="xsd:boolean">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>130</a:displayOrder>
-                                    <ra:frameworkAttributeName>enabled</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
                         <xsd:element minOccurs="0" ref="icfs:uid">
                             <xsd:annotation>
                                 <xsd:appinfo>
@@ -327,18 +299,10 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                     <xsd:sequence>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="usertogroup" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>120</a:displayOrder>
-                                    <ra:frameworkAttributeName>usertogroup</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
                         <xsd:element minOccurs="0" name="description" type="xsd:string">
                             <xsd:annotation>
                                 <xsd:appinfo>
-                                    <a:displayOrder>130</a:displayOrder>
+                                    <a:displayOrder>120</a:displayOrder>
                                     <ra:frameworkAttributeName>description</ra:frameworkAttributeName>
                                 </xsd:appinfo>
                             </xsd:annotation>
@@ -346,7 +310,7 @@
                         <xsd:element minOccurs="0" name="domain_id" type="xsd:string">
                             <xsd:annotation>
                                 <xsd:appinfo>
-                                    <a:displayOrder>140</a:displayOrder>
+                                    <a:displayOrder>130</a:displayOrder>
                                     <ra:frameworkAttributeName>domain_id</ra:frameworkAttributeName>
                                 </xsd:appinfo>
                             </xsd:annotation>
@@ -354,7 +318,7 @@
                         <xsd:element maxOccurs="unbounded" minOccurs="0" name="links" type="xsd:string">
                             <xsd:annotation>
                                 <xsd:appinfo>
-                                    <a:displayOrder>150</a:displayOrder>
+                                    <a:displayOrder>140</a:displayOrder>
                                     <a:access>read</a:access>
                                     <ra:frameworkAttributeName>links</ra:frameworkAttributeName>
                                 </xsd:appinfo>
@@ -369,18 +333,10 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element minOccurs="0" name="enabled" type="xsd:boolean">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>160</a:displayOrder>
-                                    <ra:frameworkAttributeName>enabled</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
                         <xsd:element maxOccurs="unbounded" minOccurs="0" name="userroles" type="xsd:string">
                             <xsd:annotation>
                                 <xsd:appinfo>
-                                    <a:displayOrder>170</a:displayOrder>
+                                    <a:displayOrder>150</a:displayOrder>
                                     <ra:frameworkAttributeName>userroles</ra:frameworkAttributeName>
                                 </xsd:appinfo>
                             </xsd:annotation>
@@ -388,7 +344,7 @@
                         <xsd:element maxOccurs="unbounded" minOccurs="0" name="usergroups" type="xsd:string">
                             <xsd:annotation>
                                 <xsd:appinfo>
-                                    <a:displayOrder>180</a:displayOrder>
+                                    <a:displayOrder>160</a:displayOrder>
                                     <ra:frameworkAttributeName>usergroups</ra:frameworkAttributeName>
                                 </xsd:appinfo>
                             </xsd:annotation>
@@ -396,7 +352,7 @@
                         <xsd:element minOccurs="0" name="default_project_id" type="xsd:string">
                             <xsd:annotation>
                                 <xsd:appinfo>
-                                    <a:displayOrder>190</a:displayOrder>
+                                    <a:displayOrder>170</a:displayOrder>
                                     <ra:frameworkAttributeName>default_project_id</ra:frameworkAttributeName>
                                 </xsd:appinfo>
                             </xsd:annotation>
@@ -404,7 +360,7 @@
                         <xsd:element minOccurs="0" name="email" type="xsd:string">
                             <xsd:annotation>
                                 <xsd:appinfo>
-                                    <a:displayOrder>200</a:displayOrder>
+                                    <a:displayOrder>180</a:displayOrder>
                                     <ra:frameworkAttributeName>email</ra:frameworkAttributeName>
                                 </xsd:appinfo>
                             </xsd:annotation>
@@ -450,7 +406,7 @@
                         </script>
                     </expression>
                     <target>
-                        <c:path>$focus/orgType</c:path>
+                        <c:path>$focus/subtype</c:path>
                     </target>
                 </inbound>
                 <inbound id="16">
@@ -510,13 +466,13 @@
                     </expression>
                 </outbound>
             </attribute>
-            <association id="25">
-                <c:ref>ri:users_in_groups</c:ref>
-                <displayName>Users in groups</displayName>
+            <association id="48">
+                <c:ref>ri:user_in_groups</c:ref>
+                <displayName>User in groups</displayName>
                 <kind>entitlement</kind>
                 <intent>Group</intent>
-                <direction>objectToSubject</direction>
-                <associationAttribute>ri:group_members</associationAttribute>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:usergroups</associationAttribute>
                 <valueAttribute>icfs:uid</valueAttribute>
                 <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
@@ -529,39 +485,6 @@
                     </q:equal>
                 </filter>
             </protected>
-            <activation>
-                <existence>
-                    <outbound id="26">
-                        <strength>weak</strength>
-                        <expression>
-                            <c:path xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="t:ItemPathType">$focusExists</c:path>
-                        </expression>
-                    </outbound>
-                </existence>
-                <administrativeStatus>
-                    <outbound id="27">
-                        <strength>strong</strength>
-                        <expression>
-                            <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-                                    if (legal) {
-                                        input;
-                                    } else {
-                                        ActivationStatusType.DISABLED;
-                                    }
-                                </code>
-                            </script>
-                        </expression>
-                    </outbound>
-                    <inbound id="28">
-                        <strength>weak</strength>
-                        <expression>
-                            <asIs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:AsIsExpressionEvaluatorType"/>
-                        </expression>
-                    </inbound>
-                </administrativeStatus>
-            </activation>
             <credentials>
                 <password xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourcePasswordDefinitionType">
                     <outbound>
@@ -696,8 +619,8 @@
     </schemaHandling>
     <capabilities>
         <cachingMetadata>
-            <retrievalTimestamp>2019-01-11T12:53:43.871+01:00</retrievalTimestamp>
-            <serialNumber>fd1f8857f25a4b87-898e05eccdca69bb</serialNumber>
+            <retrievalTimestamp>2019-01-15T00:32:54.515+01:00</retrievalTimestamp>
+            <serialNumber>916d3c6041bff150-fb41ad86d8014e3d</serialNumber>
         </cachingMetadata>
         <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:CapabilityCollectionType">
             <cap:schema/>
@@ -711,6 +634,9 @@
                 </cap:host>
             </cap:script>
             <cap:addRemoveAttributeValues/>
+            <cap:activation>
+                <cap:status/>
+            </cap:activation>
             <cap:credentials>
                 <cap:password>
                     <cap:returnedByDefault>false</cap:returnedByDefault>
@@ -769,7 +695,7 @@
             <name>Groups sync</name>
             <kind>entitlement</kind>
             <intent>Group</intent>
-            <focusType>c:RoleType</focusType>
+            <focusType>c:OrgType</focusType>
             <enabled>true</enabled>
             <correlation>
                 <q:equal>
