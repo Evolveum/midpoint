@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.CaseWorkItemType;
 
 /**
  * Created by Viliam Repan (lazyman).
