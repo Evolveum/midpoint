@@ -5019,6 +5019,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            
+            <xsd:element name="assignmentRelation" type="tns:AssignmentRelationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies what types of assignments can be made to the focal object when it is a target of an assignment.
+                        This specifies possible relations of the assignment, type of assignment holder and so on.
+                        Simply speaking, this specifies "who can have assignment to me" or "who can hold assignment with me as a target".
+                        Limitations: assignmentRelation can appear only in archetype. It can appear in assignment or inducements, but 
+                        it must not have any order specification (i.e. it must be order 0 or 1).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -5073,6 +5088,48 @@
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Relation to which the order constraints apply. If none present, summary (i.e. non-delegation) order is considered.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+       </xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="AssignmentRelationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies what types of assignments can be made to the focal object when it is a target of an assignment.
+                This specifies possible relations of the assignment, type of assignment holder and so on.
+                Simply speaking, this specifies "who can have assignment to me" or "who can hold assignment with me as a target".
+                Limitations: assignmentRelation can appear only in archetype. It can appear in assignment or inducements, but 
+                it must not have any order specification (i.e. it must be order 0 or 1).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       	<xsd:sequence>
+       		<xsd:element name="holderType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					TODO
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="holderArchetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+   			<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					TODO
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
