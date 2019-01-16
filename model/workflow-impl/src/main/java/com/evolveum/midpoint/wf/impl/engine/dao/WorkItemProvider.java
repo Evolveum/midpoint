@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowInterface;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,8 +122,12 @@ public class WorkItemProvider {
 		    workItem.asPrismContainerValue().remove(item);
 		    fullWorkItem.asPrismContainerValue().add(item);
 	    }
+	    fullWorkItem.setId(workItem.getId());
 	    CaseType aCase = CaseWorkItemUtil.getCase(workItem);
 	    if (aCase != null) {
+	    	if (aCase.getOid() != null) {
+			    fullWorkItem.setExternalId(WorkflowInterface.createWorkItemId(aCase.getOid(), workItem.getId()));
+		    }
 		    String taskOid = WorkflowEngine.getTaskOidFromCaseName(aCase.getName().getOrig());
 		    if (taskOid != null) {
 			    TaskType ownerTask = resolveOwnerTask(taskOid, ownerTasks, result);

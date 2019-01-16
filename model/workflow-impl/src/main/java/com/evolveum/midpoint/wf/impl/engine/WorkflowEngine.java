@@ -52,6 +52,7 @@ import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.engine.processes.ItemApprovalProcessOrchestrator;
 import com.evolveum.midpoint.wf.impl.engine.processes.ProcessOrchestrator;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
+import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
@@ -125,24 +126,20 @@ public class WorkflowEngine {
 			ObjectAlreadyExistsException {
 		for (;;) {
 			refreshContext(ctx, result);
-			if (isWaiting(ctx) || isDone(ctx)) {
-				onProcessFinished(ctx, result);
+			if (isWaiting(ctx) || isClosed(ctx)) {
+				return;
+			}
+			if (ctx.isDone()) {
+				recordProcessOutcome(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE, result);
+				stopProcessInstance(ctx, result);
 				return;
 			}
 			orchestrator.advanceProcessInstance(ctx, result);
 		}
 	}
 
-	private <CTX extends EngineInvocationContext> void onProcessFinished(CTX ctx, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
-		refreshContext(ctx, result);
-		WfTask wfTask = getWfTask(ctx, result);
-		wfTaskController.auditProcessEnd(wfTask, ctx.wfContext, result);
-		wfTaskController.notifyProcessEnd(wfTask, result);
-	}
-
-	private <CTX extends EngineInvocationContext> boolean isDone(CTX ctx) {
-		return !SchemaConstants.CASE_STATE_OPEN.equals(ctx.wfCase.getState());
+	private <CTX extends EngineInvocationContext> boolean isClosed(CTX ctx) {
+		return SchemaConstants.CASE_STATE_CLOSED.equals(ctx.wfCase.getState());
 	}
 
 	private <CTX extends EngineInvocationContext> boolean isWaiting(CTX ctx) {
@@ -279,15 +276,15 @@ public class WorkflowEngine {
 
 		LOGGER.trace("======================================== Recording individual decision of {}", user);
 
-		@NotNull WorkItemResultType result1 = new WorkItemResultType(prismContext);
-		result1.setOutcome(outcome);
-		result1.setComment(comment);
-		boolean isApproved = ApprovalUtils.isApproved(result1);
+		@NotNull WorkItemResultType itemResult = new WorkItemResultType(prismContext);
+		itemResult.setOutcome(outcome);
+		itemResult.setComment(comment);
+		boolean isApproved = ApprovalUtils.isApproved(itemResult);
 		if (isApproved && additionalDelta != null) {
 			ObjectDeltaType additionalDeltaBean = DeltaConvertor.toObjectDeltaType(additionalDelta);
 			ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
 			treeDeltas.setFocusPrimaryDelta(additionalDeltaBean);
-			result1.setAdditionalDeltas(treeDeltas);
+			itemResult.setAdditionalDeltas(treeDeltas);
 		}
 
 		LevelEvaluationStrategyType levelEvaluationStrategyType = stageDef.getEvaluationStrategy();
@@ -303,10 +300,16 @@ public class WorkflowEngine {
 		}
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Approval process instance {} (case oid {}), stage {}: recording decision {}; stage stops now: {}",
+			LOGGER.debug("Recording decision for approval process instance {} (case oid {}), stage {}: decision: {}; stage stops now: {}",
 					ctx.wfContext.getProcessInstanceName(), ctx.getCaseOid(),
-					WfContextUtil.getStageDiagName(stageDef), result1.getOutcome(), stopTheStage);
+					WfContextUtil.getStageDiagName(stageDef), itemResult.getOutcome(), stopTheStage);
 		}
+
+		List<ItemDelta<?, ?>> resultModifications = prismContext.deltaFor(CaseType.class)
+				.item(CaseType.F_WORK_ITEM, workItem.getId(), CaseWorkItemType.F_OUTPUT).replace(itemResult)
+				.asItemDeltas();
+		repositoryService.modifyObject(CaseType.class, ctx.getCaseOid(), resultModifications, result);
+		workItem.setOutput(itemResult);
 
 		closeWorkItem(ctx, workItem, now, result);
 		onWorkItemClosure(ctx, workItem, wfTask, true, causeInformation, result);
@@ -320,40 +323,55 @@ public class WorkflowEngine {
 				return;
 			}
 		}
+		onStageClose(ctx, result);
+	}
 
+	public void onStageClose(EngineInvocationContext ctx, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		boolean stopTheProcess = closeTheStage(ctx, result);
 		if (stopTheProcess) {
-			List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(TaskType.class)
-					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_OUTCOME)
-					.replace(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)
-					.asItemDeltas();
-			repositoryService.modifyObject(TaskType.class, ctx.wfTask.getOid(), modifications, result);
-			onProcessFinished(ctx, result);
+			recordProcessOutcome(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT, result);
+			stopProcessInstance(ctx, result);
 		} else {
 			runTheProcess(((ItemApprovalEngineInvocationContext) ctx), itemApprovalProcessOrchestrator, result);        // temporary
 		}
 	}
 
+	private void recordProcessOutcome(EngineInvocationContext ctx, String processOutcome, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(TaskType.class)
+				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_OUTCOME)
+				.replace(processOutcome)
+				.asItemDeltas();
+		repositoryService.modifyObject(TaskType.class, ctx.wfTask.getOid(), modifications, result);
+		ctx.wfTask.getWorkflowContext().setOutcome(processOutcome);
+	}
+
 	private boolean closeTheStage(EngineInvocationContext ctx, OperationResult result) {
-
 		ApprovalStageDefinitionType stageDef = WfContextUtil.getCurrentStageDefinition(ctx.wfContext);
-		List<StageCompletionEventType> stageEvents = WfContextUtil.getEventsForCurrentStage(ctx.wfContext, StageCompletionEventType.class);
-
+//		List<StageCompletionEventType> stageEvents = WfContextUtil.getEventsForCurrentStage(ctx.wfContext, StageCompletionEventType.class);
 		boolean approved;
-		if (!stageEvents.isEmpty()) {   // i.e. automatic approval
-			String outcome = WfContextUtil.getCurrentStageOutcome(ctx.wfContext, stageEvents);
-			if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)
-					|| QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP)) {
-				approved = true;
-			} else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
-				approved = false;
-			} else {
-				throw new IllegalStateException("Unknown outcome: " + outcome);		// TODO less draconian handling
+		WfStageComputeHelper.ComputationResult preStageComputationResult = ((ItemApprovalEngineInvocationContext) ctx)
+				.getPreStageComputationResult();
+		if (preStageComputationResult != null) {
+			ApprovalLevelOutcomeType outcome = preStageComputationResult.getPredeterminedOutcome();
+			switch (outcome) {
+				case APPROVE:
+				case SKIP:
+					approved = true;
+					break;
+				case REJECT:
+					approved = false;
+					break;
+				default:
+					throw new IllegalStateException("Unknown outcome: " + outcome);		// TODO less draconian handling
 			}
+			// TODO stage closure event
 		} else {
 			LOGGER.trace("****************************************** Summarizing decisions in stage {} (stage evaluation strategy = {}): ",
 					stageDef.getName(), stageDef.getEvaluationStrategy());
 
+			// TODO let's take the work items themselves
 			List<WorkItemCompletionEventType> itemEvents = WfContextUtil.getEventsForCurrentStage(ctx.wfContext, WorkItemCompletionEventType.class);
 
 			boolean allApproved = true;
@@ -380,7 +398,7 @@ public class WorkflowEngine {
 		MidpointUtil.removeAllStageTriggersForWorkItem(ctx.wfTask, result);
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Approval process instance {} (case oid {}), stage {}: result of this stage: {}",
+			LOGGER.debug("Closing the stage for approval process instance {} (case oid {}), stage {}: result of this stage: {}",
 					ctx.wfContext.getProcessInstanceName(),
 					ctx.getCaseOid(), WfContextUtil.getStageDiagName(stageDef), approved);
 		}
@@ -588,7 +606,23 @@ public class WorkflowEngine {
 				.asItemDeltas();
 		repositoryService.modifyObject(CaseType.class, ctx.getCaseOid(), modifications, result);
 		refreshContext(ctx, result);
+		replaceWorkItemsWithRepoVersions(ctx.wfCase, workItems);
 		onWorkItemsCreation(ctx, workItems, result);
+	}
+
+	private void replaceWorkItemsWithRepoVersions(CaseType wfCase, List<CaseWorkItemType> workItems) {
+		List<CaseWorkItemType> newItems = new ArrayList<>();
+		item: for (CaseWorkItemType workItem : workItems) {
+			for (CaseWorkItemType i : wfCase.getWorkItem()) {
+				if (i.equals(workItem)) {
+					newItems.add(i);
+					continue item;
+				}
+			}
+			throw new IllegalStateException("Work item " + workItem + " was not found among case work items in " + wfCase);
+		}
+		workItems.clear();
+		workItems.addAll(newItems);
 	}
 
 	private void onWorkItemsCreation(EngineInvocationContext ctx, List<CaseWorkItemType> workItems, OperationResult result)

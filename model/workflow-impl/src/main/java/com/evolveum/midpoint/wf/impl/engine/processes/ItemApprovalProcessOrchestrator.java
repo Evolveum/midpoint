@@ -74,7 +74,7 @@ public class ItemApprovalProcessOrchestrator implements ProcessOrchestrator<Item
 		int stageCount = getStageCount(ctx);
 		int currentStage = getCurrentStage(ctx);
 		if (currentStage == stageCount) {
-			workflowEngine.stopProcessInstance(ctx, result);
+			ctx.setDone(true);
 			return;
 		}
 
@@ -105,58 +105,61 @@ public class ItemApprovalProcessOrchestrator implements ProcessOrchestrator<Item
 					WfContextUtil.getStageDiagName(stageDef), predeterminedOutcome, approverRefs);
 		}
 
-		if (predeterminedOutcome == null) {
-			List<CaseWorkItemType> workItems = new ArrayList<>();
-			XMLGregorianCalendar createTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-			XMLGregorianCalendar deadline;
-			if (stageDef.getDuration() != null) {
-				deadline = (XMLGregorianCalendar) createTimestamp.clone();
-				deadline.add(stageDef.getDuration());
+		if (predeterminedOutcome != null) {
+			workflowEngine.onStageClose(ctx, result);
+			return;
+		}
+
+		List<CaseWorkItemType> workItems = new ArrayList<>();
+		XMLGregorianCalendar createTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+		XMLGregorianCalendar deadline;
+		if (stageDef.getDuration() != null) {
+			deadline = (XMLGregorianCalendar) createTimestamp.clone();
+			deadline.add(stageDef.getDuration());
+		} else {
+			deadline = null;
+		}
+		for (ObjectReferenceType approverRef : approverRefs) {
+			CaseWorkItemType workItem = new CaseWorkItemType(prismContext)
+					.name(ctx.wfContext.getProcessInstanceName())
+					.stageNumber(stageToBe)
+					.createTimestamp(createTimestamp)
+					.deadline(deadline);
+			if (approverRef.getType() == null) {
+				approverRef.setType(UserType.COMPLEX_TYPE);
+			}
+			if (QNameUtil.match(UserType.COMPLEX_TYPE, approverRef.getType())) {
+				workItem.setOriginalAssigneeRef(approverRef.clone());
+				workItem.getAssigneeRef().add(approverRef.clone());
+			} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, approverRef.getType()) ||
+					QNameUtil.match(OrgType.COMPLEX_TYPE, approverRef.getType()) ||
+					QNameUtil.match(ServiceType.COMPLEX_TYPE, approverRef.getType())) {
+				workItem.getCandidateRef().add(approverRef.clone());
+				// todo what about originalAssigneeRef?
 			} else {
-				deadline = null;
+				throw new IllegalStateException("Unsupported type of the approver: " + approverRef.getType() + " in " + approverRef);
 			}
-			for (ObjectReferenceType approverRef : approverRefs) {
-				CaseWorkItemType workItem = new CaseWorkItemType(prismContext)
-						.name(ctx.wfContext.getProcessInstanceName())
-						.stageNumber(stageToBe)
-						.createTimestamp(createTimestamp)
-						.deadline(deadline);
-				if (approverRef.getType() == null) {
-					approverRef.setType(UserType.COMPLEX_TYPE);
+			if (stageDef.getAdditionalInformation() != null) {
+				try {
+					WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
+					WfStageComputeHelper stageComputer = SpringApplicationContextHolder.getStageComputeHelper();
+					ExpressionVariables variables = stageComputer.getDefaultVariables(ctx.wfContext, ctx.getChannel(), result);
+					List<InformationType> additionalInformation = evaluator.evaluateExpression(stageDef.getAdditionalInformation(), variables,
+							"additional information expression", InformationType.class, InformationType.COMPLEX_TYPE,
+							true, this::createInformationType, ctx.opTask, result);
+					workItem.getAdditionalInformation().addAll(additionalInformation);
+				} catch (Throwable t) {
+					throw new SystemException("Couldn't evaluate additional information expression in " + ctx, t);
 				}
-				if (QNameUtil.match(UserType.COMPLEX_TYPE, approverRef.getType())) {
-					workItem.setOriginalAssigneeRef(approverRef.clone());
-					workItem.getAssigneeRef().add(approverRef.clone());
-				} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, approverRef.getType()) ||
-						QNameUtil.match(OrgType.COMPLEX_TYPE, approverRef.getType()) ||
-						QNameUtil.match(ServiceType.COMPLEX_TYPE, approverRef.getType())) {
-					workItem.getCandidateRef().add(approverRef.clone());
-					// todo what about originalAssigneeRef?
-				} else {
-					throw new IllegalStateException("Unsupported type of the approver: " + approverRef.getType() + " in " + approverRef);
-				}
-				if (stageDef.getAdditionalInformation() != null) {
-					try {
-						WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
-						WfStageComputeHelper stageComputer = SpringApplicationContextHolder.getStageComputeHelper();
-						ExpressionVariables variables = stageComputer.getDefaultVariables(ctx.wfContext, ctx.getChannel(), result);
-						List<InformationType> additionalInformation = evaluator.evaluateExpression(stageDef.getAdditionalInformation(), variables,
-								"additional information expression", InformationType.class, InformationType.COMPLEX_TYPE,
-								true, this::createInformationType, ctx.opTask, result);
-						workItem.getAdditionalInformation().addAll(additionalInformation);
-					} catch (Throwable t) {
-						throw new SystemException("Couldn't evaluate additional information expression in " + ctx, t);
-					}
-				}
-				workItems.add(workItem);
 			}
-			workflowEngine.createWorkItems(ctx, workItems, result);
-			for (CaseWorkItemType workItem : ctx.wfCase.getWorkItem()) {
-				if (workItem.getCloseTimestamp() == null) {     // presumably opened just now
-					MidpointUtil.createTriggersForTimedActions(workflowEngine.createWorkItemId(ctx, workItem), 0,
-							XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
-							XmlTypeConverter.toDate(workItem.getDeadline()), ctx.wfTask, stageDef.getTimedActions(), result);
-				}
+			workItems.add(workItem);
+		}
+		workflowEngine.createWorkItems(ctx, workItems, result);
+		for (CaseWorkItemType workItem : ctx.wfCase.getWorkItem()) {
+			if (workItem.getCloseTimestamp() == null) {     // presumably opened just now
+				MidpointUtil.createTriggersForTimedActions(workflowEngine.createWorkItemId(ctx, workItem), 0,
+						XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
+						XmlTypeConverter.toDate(workItem.getDeadline()), ctx.wfTask, stageDef.getTimedActions(), result);
 			}
 		}
 	}

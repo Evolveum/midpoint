@@ -59,7 +59,7 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
     /**
      * Create org test1 - rejected
      */
-    @Test(enabled = true)
+    @Test(enabled = false)              // this is not enabled by default
     public void test010CreateTest1Rejected() throws Exception {
         TestUtil.displayTestTitle(this, "test010CreateTest1Rejected");
         executeTest("test010CreateTest1Rejected", ORG_TEST1_OID, new TestDetails() {
@@ -114,7 +114,7 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
     /**
      * Create org test1 - this time approved
      */
-	@Test(enabled = true)
+	@Test(enabled = false)                  // this is not enabled by default
     public void test020CreateTest1Approved() throws Exception {
         TestUtil.displayTestTitle(this, "test020CreateTest1Approved");
        	executeTest("test020CreateTest1Approved", ORG_TEST1_OID, new TestDetails() {

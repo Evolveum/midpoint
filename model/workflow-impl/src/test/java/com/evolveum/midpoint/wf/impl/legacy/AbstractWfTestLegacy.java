@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -506,5 +507,11 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                 modElement, context.getFocusClass(), prismContext);
         ModelImplUtils.encrypt((Collection) Arrays.asList(focusDelta), protector, null, new OperationResult("dummy"));
         return addFocusDeltaToContext(context, focusDelta);
+    }
+
+    protected ObjectQuery getOpenItemsQuery() {
+	    return prismContext.queryFor(WorkItemType.class)
+                .item(WorkItemType.F_CLOSE_TIMESTAMP).isNull()
+                .build();
     }
 }

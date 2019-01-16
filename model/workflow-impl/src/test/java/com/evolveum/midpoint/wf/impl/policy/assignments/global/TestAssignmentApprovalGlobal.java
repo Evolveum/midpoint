@@ -85,7 +85,7 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
 			// ok
 			System.out.println("Got expected exception: " + e);
 		}
-		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, getOpenItemsQuery(), null, task, result);
 		display("current work items", currentWorkItems);
 		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
 	}

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -491,7 +492,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected WorkItemType getWorkItem(Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 		//Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(WorkItemType.F_TASK_REF);
-		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, getOpenItemsQuery(), null, task, result);
 		if (itemsAll.size() != 1) {
 			System.out.println("Unexpected # of work items: " + itemsAll.size());
 			for (WorkItemType workItem : itemsAll) {
@@ -503,7 +504,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	}
 
 	protected SearchResultList<WorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
-		return modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		return modelService.searchContainers(WorkItemType.class, getOpenItemsQuery(), null, task, result);
 	}
 
 	protected void displayWorkItems(String title, List<WorkItemType> workItems) {
@@ -635,7 +636,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				.item(T_PARENT, F_REQUESTER_REF).resolve()
 				.build();
 
-		List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, modelTask, result);
+		List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, getOpenItemsQuery(), options1, modelTask, result);
 
 		testDetails.afterFirstClockworkRun(rootTask, subtasks, workItems, result);
 
@@ -677,7 +678,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			List<ApprovalInstruction> instructions = new ArrayList<>(testDetails.getApprovalSequence());
 			while (!instructions.isEmpty()) {
 				List<WorkItemType> currentWorkItems = modelService
-						.searchContainers(WorkItemType.class, null, options1, modelTask, result);
+						.searchContainers(WorkItemType.class, getOpenItemsQuery(), options1, modelTask, result);
 				boolean matched = false;
 
 				Collection<ApprovalInstruction> instructionsToConsider = testDetails.strictlySequentialApprovals()
@@ -1038,9 +1039,15 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		S_AtomicFilterExit q = QueryUtils
 				.filterForAssignees(prismContext.queryFor(WorkItemType.class), SecurityUtil.getPrincipal(),
 						OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, relationRegistry);
+		q = q.and().item(WorkItemType.F_CLOSE_TIMESTAMP).isNull();
 		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, q.build(), null, task, result);
 		long found = currentWorkItems.stream().filter(wi -> expectedWorkItem == null || expectedWorkItem.matches(wi)).count();
 		assertEquals("Wrong # of matching work items", count, found);
 	}
 
+	protected ObjectQuery getOpenItemsQuery() {
+		return prismContext.queryFor(WorkItemType.class)
+				.item(WorkItemType.F_CLOSE_TIMESTAMP).isNull()
+				.build();
+	}
 }

@@ -181,7 +181,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 .item(F_ORIGINAL_ASSIGNEE_REF).resolve()
                 .item(T_PARENT, F_REQUESTER_REF).resolve()
                 .build();
-        List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, opTask, result);
+        List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, getOpenItemsQuery(), options1, opTask, result);
         assertEquals("Wrong # of work items", processNames.length, workItems.size());
         i = 0;
         for (WorkItemType workItem : workItems) {
@@ -573,7 +573,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         });
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)      // password change aspect is not available any more
     public void test040UserModifyPasswordChangeBlocked() throws Exception {
         TestUtil.displayTestTitle(this, "test040UserModifyPasswordChangeBlocked");
         login(userAdministrator);
@@ -623,7 +623,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         });
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)      // password change aspect is not available any more
     public void test041UserModifyPasswordChange() throws Exception {
         TestUtil.displayTestTitle(this, "test041UserModifyPasswordChange");
         login(userAdministrator);
@@ -671,7 +671,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         });
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)      // password change aspect is not available any more
     public void test050UserModifyAddRoleAndPasswordChange() throws Exception {
         TestUtil.displayTestTitle(this, "test050UserModifyAddRoleAndPasswordChange");
         login(userAdministrator);
@@ -925,7 +925,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     }
 
 
-    @Test(enabled = true)
+    @Test(enabled = false)          // assignment modification approval is not enabled by default
     public void test070UserModifyAssignment() throws Exception {
         TestUtil.displayTestTitle(this, "test070UserModifyAssignment");
         login(userAdministrator);
@@ -1044,7 +1044,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     /**
      * User modification: adding single security-sensitive resource assignment.
      */
-    @Test(enabled = true)
+    @Test(enabled = false)          // this is not enabled by default
     public void test080UserModifyAddResource() throws Exception {
         TestUtil.displayTestTitle(this, "test080UserModifyAddResource");
         login(userAdministrator);
@@ -1087,7 +1087,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     /**
      * User modification: modifying validity of single security-sensitive resource assignment.
      */
-    @Test(enabled = true)
+    @Test(enabled = false)          // this is not enabled by default
     public void test090UserModifyModifyResourceAssignmentValidity() throws Exception {
         TestUtil.displayTestTitle(this, "test090UserModifyModifyResourceAssignmentValidity");
         login(userAdministrator);
@@ -1146,7 +1146,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
      *  DELETE: ResourceAttributeDefinitionType(ref=ItemPathType{itemPath=lastname}...)
      *
      */
-    @Test(enabled = true)
+    @Test(enabled = false)          // this is not enabled by default
     public void test095UserModifyModifyResourceAssignmentConstruction() throws Exception {
         final String TEST_NAME = "test095UserModifyModifyResourceAssignmentConstruction";
         TestUtil.displayTestTitle(this, TEST_NAME);

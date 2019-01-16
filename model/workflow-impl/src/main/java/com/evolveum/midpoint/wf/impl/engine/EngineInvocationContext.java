@@ -30,6 +30,7 @@ public class EngineInvocationContext implements DebugDumpable {
 	public Task wfTask;
 	public CaseType wfCase;
 	public Task opTask;
+	private boolean done;
 
 	public EngineInvocationContext(WfContextType wfContext, Task wfTask,
 			Task opTask) {
@@ -79,11 +80,20 @@ public class EngineInvocationContext implements DebugDumpable {
 		return opTask.getChannel();
 	}
 
+	public boolean isDone() {
+		return done;
+	}
+
+	public void setDone(boolean done) {
+		this.done = done;
+	}
+
 	@Override
 	public String toString() {
 		return "EngineInvocationContext{" +
 				"wfTask=" + wfTask +
 				", wfCase=" + wfCase +
+				", done=" + done +
 				'}';
 	}
 

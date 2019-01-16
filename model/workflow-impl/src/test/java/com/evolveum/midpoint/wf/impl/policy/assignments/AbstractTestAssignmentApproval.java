@@ -36,10 +36,7 @@ import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -370,7 +367,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	protected List<PrismReferenceValue> getPotentialAssignees(PrismObject<UserType> user) {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		rv.add(ObjectTypeUtil.createObjectRef(user, prismContext).asReferenceValue());
-		rv.addAll(DeputyUtils.getDelegatorReferences(user.asObjectable(), relationRegistry));
+		for (PrismReferenceValue delegatorReference : DeputyUtils.getDelegatorReferences(user.asObjectable(), relationRegistry)) {
+			rv.add(new ObjectReferenceType().oid(delegatorReference.getOid()).asReferenceValue());
+		}
 		return rv;
 	}
 
@@ -381,6 +380,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		Task task = createTask("query");
 		ObjectQuery query = prismContext.queryFor(WorkItemType.class)
 				.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssignees(getUser(approverOid)))
+				.and().item(WorkItemType.F_CLOSE_TIMESTAMP).isNull()
 				.build();
 		List<WorkItemType> items = modelService.searchContainers(WorkItemType.class, query, null, task, task.getResult());
 		assertEquals("Wrong active work items for " + approverOid, expectedCount, items.size());
