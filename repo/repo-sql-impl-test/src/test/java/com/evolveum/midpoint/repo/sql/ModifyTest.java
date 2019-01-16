@@ -1108,7 +1108,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         display("case fetched from repository", cases.get(0));
     }
 
-    @Test(enabled = false)      // MID-5070
+    @Test
     public void test310ModifyCaseWorkItemAssignee() throws Exception {
         final String TEST_NAME = "test310ModifyCaseWorkItemAssignee";
         TestUtil.displayTestTitle(TEST_NAME);
