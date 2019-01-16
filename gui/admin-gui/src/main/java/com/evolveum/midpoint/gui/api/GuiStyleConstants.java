@@ -23,6 +23,8 @@ public class GuiStyleConstants {
 
 	public static final String CLASS_BOX = "box";
 	public static final String CLASS_BOX_DEFAULT = "box-default";
+	
+	public static final String CLASS_DASHBOARD_ICON = "fa fa-dashboard";
 
 	public static final String CLASS_OBJECT_USER_ICON = "fa fa-user";
 	public static final String CLASS_OBJECT_USER_ICON_COLORED = CLASS_OBJECT_USER_ICON + " object-user-color";
