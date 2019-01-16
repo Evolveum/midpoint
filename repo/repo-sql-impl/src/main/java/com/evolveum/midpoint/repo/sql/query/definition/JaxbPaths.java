@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.gui.impl.component.icon;
+package com.evolveum.midpoint.repo.sql.query.definition;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * @author skublik
+ * Created by Viliam Repan (lazyman).
  */
-public interface IconCssStyle {
-	
-	public static final BottomLeftIconCssStyle BOTTOM_LEFT_STYLE = new BottomLeftIconCssStyle();
-	public static final BottomRightIconCssStyle BOTTOM_RIGHT_STYLE = new BottomRightIconCssStyle();
-	public static final CenterIconCssStyle CENTER_STYLE = new CenterIconCssStyle();
-	public static final InRowIconCssStyle IN_ROW_STYLE = new InRowIconCssStyle();
+@Target({TYPE, METHOD, FIELD})
+@Retention(RUNTIME)
+public @interface JaxbPaths {
 
-	public String getBasicCssClass();
-	
-	public String getLayerCssClass();
+    JaxbPath[] value();
 }

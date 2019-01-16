@@ -14,39 +14,65 @@
  * limitations under the License.
  */
  
+ //COLORS
+//--------------------------------------------------------
+//Primary
+@light-blue: #3c8dbc;
+//Danger
+@red: #dd4b39;
+//Success
+@green: #00a65a;
+//Info
+@aqua: #00c0ef;
+//Warning
+@yellow: #f39c12;
+@blue: #0073b7;
+@navy: #001F3F;
+@teal: #39CCCC;
+@olive: #3D9970;
+@lime: #01FF70;
+@orange: #FF851B;
+@fuchsia: #F012BE;
+@purple: #605ca8;
+@maroon: #D81B60;
+@black: #111;
+@gray-lte: #d2d6de;
+@default: #f4f4f4;
+ 
+ 
  i.icon-stroke-layer {
- 	-webkit-text-stroke: 3px white;
- 	-moz-text-stroke: 3px white;
+ 	-webkit-text-stroke: 2px white;
+ 	-moz-text-stroke: 2px white;
  }
  
  .btn-success > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: #00a65a;
- 	-moz-text-stroke-color: #00a65a;
+ 	-webkit-text-stroke-color: @green;
+ 	-moz-text-stroke-color: @green;
  }
  
  .btn-default > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: #f4f4f4;
- 	-moz-text-stroke-color: #f4f4f4;
+ 	-webkit-text-stroke-color: @default;
+ 	-moz-text-stroke-color: @default;
  }
  
  .btn-primary > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: #3c8dbc;
- 	-moz-text-stroke-color: #3c8dbc;
+ 	-webkit-text-stroke-color: @light-blue;
+ 	-moz-text-stroke-color: @light-blue;
  }
  
  .btn-info > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: #00c0ef;
- 	-moz-text-stroke-color: #00c0ef;
+ 	-webkit-text-stroke-color: @aqua;
+ 	-moz-text-stroke-color: @aqua;
  }
  
  .btn-warning > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: #f39c12;
- 	-moz-text-stroke-color: #f39c12;
+ 	-webkit-text-stroke-color: @yellow;
+ 	-moz-text-stroke-color: @yellow;
  }
  
  .btn-danger > i.icon-stroke-layer {
- 	-webkit-text-stroke-color: #dd4b39;
- 	-moz-text-stroke-color: #dd4b39;
+ 	-webkit-text-stroke-color: @red;
+ 	-moz-text-stroke-color: @red;
  }
  
  @media all and (-ms-high-contrast: none), (-ms-high-contrast: active){
@@ -112,8 +138,9 @@
  }
  
  i.icon-basic-layer {
- 	font-size: 210%;
+ 	font-size: 200% !important;
  	position: absolute;
+ 	top: 6%;
  	left: 0;
  	right: 0;
  }
@@ -135,3 +162,34 @@
   	left: 10%;
   	bottom: 5%;
  }
+ 
+ i.center-layer {
+  	font-size: 70% !important;
+  	position: absolute;
+  	top: 45%;
+  	right: 0;
+  	left: 0;
+ }
+ 
+ i.center-icon-stroke-layer {
+ 	-webkit-text-stroke: 1px white;
+ 	-moz-text-stroke: 1px white;
+ }
+ 
+ i.font-size-130-per{
+ 	font-size: 130% !important;
+ 	top: 24%;
+ }
+ 
+ .color-green{
+ 	color: @green !important;
+ }
+ 
+ .color-yellow{
+ 	color: @yellow !important;
+ }
+ 
+ .color-red{
+ 	color: @red !important;
+ }
+ 

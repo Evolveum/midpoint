@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -29,6 +30,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Target({TYPE, METHOD, FIELD})
 @Retention(RUNTIME)
+@Repeatable(JaxbPaths.class)
 public @interface JaxbPath {
 
     JaxbName[] itemPath();
