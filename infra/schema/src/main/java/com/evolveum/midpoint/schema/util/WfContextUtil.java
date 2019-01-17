@@ -719,7 +719,7 @@ public class WfContextUtil {
 				break;
 			case WORK_ITEM_CREATION:
 				if (start == null) {
-					throw new IllegalStateException("Task's start time is null");
+					throw new IllegalStateException("Work item create time is null");
 				}
 				baseTime = start;
 				break;

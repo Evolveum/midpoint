@@ -123,7 +123,7 @@ public class BaseAuditHelper {
 				.collect(Collectors.toList());
 	}
 
-	public AuditEventRecord prepareWorkItemAuditReportCommon(WorkItemType workItem, WfTask wfTask, AuditEventStage stage,
+	public AuditEventRecord prepareWorkItemAuditRecordCommon(WorkItemType workItem, WfTask wfTask, AuditEventStage stage,
 			OperationResult result) {
 
 		AuditEventRecord record = new AuditEventRecord();
@@ -155,7 +155,7 @@ public class BaseAuditHelper {
 	// workItem contains taskRef, assignee, originalAssignee, candidates resolved (if possible)
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, OperationResult result) {
 
-        AuditEventRecord record = prepareWorkItemAuditReportCommon(workItem, wfTask, AuditEventStage.REQUEST, result);
+        AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, wfTask, AuditEventStage.REQUEST, result);
 		record.setInitiator(wfTask.getRequesterIfExists(result));
 		record.setMessage(wfTask.getCompleteStageInfo());
         return record;
@@ -165,7 +165,7 @@ public class BaseAuditHelper {
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
 			WfTask wfTask, OperationResult result) {
 
-        AuditEventRecord record = prepareWorkItemAuditReportCommon(workItem, wfTask, AuditEventStage.EXECUTION, result);
+        AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, wfTask, AuditEventStage.EXECUTION, result);
 		setInitiatorAndAttorneyFromPrincipal(record);
 
 		if (cause != null) {

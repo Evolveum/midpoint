@@ -119,8 +119,8 @@ public class WorkItemProvider {
     	WorkItemType fullWorkItem = new WorkItemType(prismContext);
 	    //noinspection unchecked
 	    for (Item<?, ?> item : new ArrayList<>(emptyIfNull((List<Item<?, ?>>) workItem.asPrismContainerValue().getItems()))) {
-		    workItem.asPrismContainerValue().remove(item);
-		    fullWorkItem.asPrismContainerValue().add(item);
+//		    workItem.asPrismContainerValue().remove(item);
+		    fullWorkItem.asPrismContainerValue().add(item.clone());
 	    }
 	    fullWorkItem.setId(workItem.getId());
 	    CaseType aCase = CaseWorkItemUtil.getCase(workItem);

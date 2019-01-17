@@ -96,6 +96,8 @@ public class WorkflowEngine {
 	public <CTX extends EngineInvocationContext> void startProcessInstance(CTX ctx, ProcessOrchestrator<CTX> orchestrator,
 			OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
 
+		LOGGER.trace("startProcessInstance ENTER: ctx={}, orchestrator={}", ctx, orchestrator);
+
 		CaseType wfCase = new CaseType(prismContext);
 		ctx.setWfCase(wfCase);
 		wfCase.setName(PolyStringType.fromOrig(createCaseName(ctx.wfContext.getProcessInstanceName(), ctx.wfTask.getOid())));
@@ -118,20 +120,24 @@ public class WorkflowEngine {
 		orchestrator.startProcessInstance(ctx, result);
 
 		runTheProcess(ctx, orchestrator, result);
+
+		LOGGER.trace("startProcessInstance EXIT: ctx={}", ctx);
 	}
 
 	public <CTX extends EngineInvocationContext> void runTheProcess(CTX ctx, ProcessOrchestrator<CTX> orchestrator,
-			OperationResult result) throws SchemaException,
-			ObjectNotFoundException,
-			ObjectAlreadyExistsException {
+			OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+		LOGGER.trace("runTheProcess ENTER: ctx={}", ctx);
 		for (;;) {
 			refreshContext(ctx, result);
 			if (isWaiting(ctx) || isClosed(ctx)) {
+				LOGGER.trace("runTheProcess EXIT (waiting or closed): ctx={}", ctx);
 				return;
 			}
 			if (ctx.isDone()) {
 				recordProcessOutcome(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE, result);
 				stopProcessInstance(ctx, result);
+				LOGGER.trace("runTheProcess EXIT (done): ctx={}", ctx);
 				return;
 			}
 			orchestrator.advanceProcessInstance(ctx, result);
@@ -154,6 +160,8 @@ public class WorkflowEngine {
 	}
 
 	public void stopProcessInstance(EngineInvocationContext ctx, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		LOGGER.trace("stopProcessInstance ENTER: ctx={}", ctx);
+
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		List<ItemDelta<?, ?>> caseModifications = prismContext.deltaFor(CaseType.class)
 				.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
@@ -186,6 +194,7 @@ public class WorkflowEngine {
 			wfTask.computeTaskResultIfUnknown(result);
 			wfTask.removeCurrentTaskHandlerAndUnpause(result);            // removes WfProcessInstanceShadowTaskHandler
 		}
+		LOGGER.trace("stopProcessInstance EXIT: ctx={}", ctx);
 	}
 
 	/**
@@ -194,6 +203,7 @@ public class WorkflowEngine {
 	private void closeWorkItem(EngineInvocationContext ctx, AbstractWorkItemType workItem,
 			XMLGregorianCalendar now, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		LOGGER.trace("closeWorkItem ENTER: workItem={}, ctx={}", workItem, ctx);
 		List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 		closeWorkItemBatched(ctx, workItem.getId(), now, modifications, result);
 		repositoryService.modifyObject(CaseType.class, ctx.getCaseOid(), modifications, result);
@@ -202,6 +212,7 @@ public class WorkflowEngine {
 			itemDelta.setParentPath(itemDelta.getParentPath().rest(2));
 			itemDelta.applyTo(workItem.asPrismContainerValue());
 		}
+		LOGGER.trace("closeWorkItem EXIT: workItem={}, ctx={}", workItem, ctx);
 	}
 
 	private void closeWorkItemBatched(EngineInvocationContext ctx, Long workItemId,
@@ -265,6 +276,7 @@ public class WorkflowEngine {
 			WorkItemEventCauseInformationType causeInformation, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
+		LOGGER.trace("completeWorkItem ENTER: workItem={}, outcome={}", workItem, outcome);
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
 		EngineInvocationContext ctx = createInvocationContext(workItemId, result);
@@ -313,21 +325,25 @@ public class WorkflowEngine {
 
 		closeWorkItem(ctx, workItem, now, result);
 		onWorkItemClosure(ctx, workItem, wfTask, true, causeInformation, result);
+		refreshContext(ctx, result);
 
+		boolean keepStageOpen;
 		if (stopTheStage) {
 			closeOtherWorkItems(ctx, wfTask, causeInformation, now, result);
 			refreshContext(ctx, result);
+			keepStageOpen = false;
 		} else {
-			refreshContext(ctx, result);
-			if (ctx.wfCase.getWorkItem().stream().anyMatch(wi -> wi.getCloseTimestamp() == null)) {
-				return;
-			}
+			keepStageOpen = ctx.wfCase.getWorkItem().stream().anyMatch(wi -> wi.getCloseTimestamp() == null);
 		}
-		onStageClose(ctx, result);
+		if (!keepStageOpen) {
+			onStageClose(ctx, result);
+		}
+		LOGGER.trace("completeWorkItem EXIT: workItem={}, keepStageOpen={}", workItem, keepStageOpen);
 	}
 
 	public void onStageClose(EngineInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		LOGGER.trace("onStageClose ENTER: ctx={}", ctx);
 		boolean stopTheProcess = closeTheStage(ctx, result);
 		if (stopTheProcess) {
 			recordProcessOutcome(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT, result);
@@ -335,6 +351,7 @@ public class WorkflowEngine {
 		} else {
 			runTheProcess(((ItemApprovalEngineInvocationContext) ctx), itemApprovalProcessOrchestrator, result);        // temporary
 		}
+		LOGGER.trace("onStageClose EXIT: ctx={}", ctx);
 	}
 
 	private void recordProcessOutcome(EngineInvocationContext ctx, String processOutcome, OperationResult result)
@@ -348,6 +365,7 @@ public class WorkflowEngine {
 	}
 
 	private boolean closeTheStage(EngineInvocationContext ctx, OperationResult result) {
+		LOGGER.trace("closeTheStage ENTER: ctx={}", ctx);
 		ApprovalStageDefinitionType stageDef = WfContextUtil.getCurrentStageDefinition(ctx.wfContext);
 //		List<StageCompletionEventType> stageEvents = WfContextUtil.getEventsForCurrentStage(ctx.wfContext, StageCompletionEventType.class);
 		boolean approved;
@@ -403,6 +421,7 @@ public class WorkflowEngine {
 					ctx.getCaseOid(), WfContextUtil.getStageDiagName(stageDef), approved);
 		}
 
+		LOGGER.trace("closeTheStage EXIT: ctx={}, approved={}", ctx, approved);
 		return !approved;
 	}
 
@@ -440,6 +459,7 @@ public class WorkflowEngine {
 	public void closeOtherWorkItems(EngineInvocationContext ctx, WfTask wfTask,
 			WorkItemEventCauseInformationType causeInformation, XMLGregorianCalendar now,
 			OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+		LOGGER.trace("closeOtherWorkItems ENTER: ctx={}", ctx);
 		for (CaseWorkItemType workItem : ctx.wfCase.getWorkItem()) {
 			if (workItem.getCloseTimestamp() == null) {
 				closeWorkItem(ctx, workItem, now, result);
@@ -447,6 +467,7 @@ public class WorkflowEngine {
 				onWorkItemClosure(ctx, fullWorkItem, wfTask, false, causeInformation, result);
 			}
 		}
+		LOGGER.trace("closeOtherWorkItems EXIT: ctx={}", ctx);
 	}
 
 	private void onWorkItemClosure(EngineInvocationContext ctx,
@@ -465,8 +486,8 @@ public class WorkflowEngine {
 		// would be closed for the same reason. For a user it would be misleading if we would simply view this task
 		// as 'cancelled', while, in fact, it is e.g. approved/rejected because of a timed action.
 
+		LOGGER.trace("onWorkItemClosure ENTER: workItem={}, ctx={}, realClosure={}", workItem, ctx, realClosure);
 		WorkItemOperationKindType operationKind = realClosure ? WorkItemOperationKindType.COMPLETE : WorkItemOperationKindType.CANCEL;
-		WorkItemEventCauseInformationType cause = causeInformation;
 
 		MidPointPrincipal user;
 		try {
@@ -520,13 +541,13 @@ public class WorkflowEngine {
 
 		// We don't pass userRef (initiator) to the audit method. It does need the whole object (not only the reference),
 		// so it fetches it directly from the security enforcer (logged-in user). This could change in the future.
-		AuditEventRecord auditEventRecord = wfTask.getChangeProcessor().prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
+		AuditEventRecord auditEventRecord = wfTask.getChangeProcessor().prepareWorkItemDeletedAuditRecord(workItem, causeInformation, wfTask, result);
 		auditService.audit(auditEventRecord, wfTask.getTask());
 		try {
 			List<ObjectReferenceType> assigneesAndDeputies = wfTaskController.getAssigneesAndDeputies(workItem, wfTask, result);
 			WorkItemAllocationChangeOperationInfo operationInfo =
 					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
-			WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(userRef, cause, null);
+			WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(userRef, causeInformation, null);
 			if (workItem.getAssigneeRef().isEmpty()) {
 				wfTaskController.notifyWorkItemDeleted(null, workItem, operationInfo, sourceInfo, wfTask, result);
 			} else {
@@ -545,7 +566,7 @@ public class WorkflowEngine {
 		if (realClosure || output != null) {
 			WorkItemCompletionEventType event = new WorkItemCompletionEventType();
 			ActivitiUtil.fillInWorkItemEvent(event, user, workItemExternalId, workItem, prismContext);
-			event.setCause(cause);
+			event.setCause(causeInformation);
 			event.setOutput(output);
 			ObjectDeltaType additionalDelta = output instanceof WorkItemResultType && ((WorkItemResultType) output).getAdditionalDeltas() != null ?
 					((WorkItemResultType) output).getAdditionalDeltas().getFocusPrimaryDelta() : null;
@@ -554,6 +575,7 @@ public class WorkflowEngine {
 
 		MidpointUtil.removeTriggersForWorkItem(wfTask.getTask(), workItemExternalId, result);
 
+		LOGGER.trace("onWorkItemClosure EXIT: workItem={}, ctx={}, realClosure={}", workItem, ctx, realClosure);
 	}
 
 	public void deleteCase(String caseOid, OperationResult parentResult) {
@@ -601,6 +623,7 @@ public class WorkflowEngine {
 
 	public void createWorkItems(EngineInvocationContext ctx, List<CaseWorkItemType> workItems, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+		LOGGER.trace("createWorkItems ENTER: ctx={}, workItems={}", ctx, workItems);
 		List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
 				.item(CaseType.F_WORK_ITEM).addRealValues(workItems)
 				.asItemDeltas();
@@ -608,6 +631,7 @@ public class WorkflowEngine {
 		refreshContext(ctx, result);
 		replaceWorkItemsWithRepoVersions(ctx.wfCase, workItems);
 		onWorkItemsCreation(ctx, workItems, result);
+		LOGGER.trace("createWorkItems EXIT: ctx={}", ctx, workItems);
 	}
 
 	private void replaceWorkItemsWithRepoVersions(CaseType wfCase, List<CaseWorkItemType> workItems) {
@@ -627,6 +651,7 @@ public class WorkflowEngine {
 
 	private void onWorkItemsCreation(EngineInvocationContext ctx, List<CaseWorkItemType> workItems, OperationResult result)
 			throws SchemaException {
+		LOGGER.trace("onWorkItemsCreation ENTER: ctx={}, workItems={}", ctx, workItems);
 		WfTask wfTask = getWfTask(ctx, result);
 		List<WorkItemType> fullWorkItems = new ArrayList<>();
 		for (CaseWorkItemType workItem : workItems) {
@@ -650,6 +675,7 @@ public class WorkflowEngine {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
 			}
 		}
+		LOGGER.trace("onWorkItemsCreation EXIT: ctx={}, workItems={}", ctx, workItems);
 	}
 
 	public String createWorkItemId(EngineInvocationContext ctx, CaseWorkItemType workItem) {

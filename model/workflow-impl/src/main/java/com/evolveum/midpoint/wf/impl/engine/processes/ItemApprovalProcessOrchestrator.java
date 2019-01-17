@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.engine.processes;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -63,6 +64,7 @@ public class ItemApprovalProcessOrchestrator implements ProcessOrchestrator<Item
 	@Autowired private PrismContext prismContext;
 	@Autowired private WfStageComputeHelper stageComputeHelper;
 	@Autowired private RepositoryService repositoryService;
+	@Autowired private Clock clock;
 
 	@Override
 	public void startProcessInstance(ItemApprovalEngineInvocationContext ctx, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
@@ -111,7 +113,7 @@ public class ItemApprovalProcessOrchestrator implements ProcessOrchestrator<Item
 		}
 
 		List<CaseWorkItemType> workItems = new ArrayList<>();
-		XMLGregorianCalendar createTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+		XMLGregorianCalendar createTimestamp = clock.currentTimeXMLGregorianCalendar();
 		XMLGregorianCalendar deadline;
 		if (stageDef.getDuration() != null) {
 			deadline = (XMLGregorianCalendar) createTimestamp.clone();
@@ -155,12 +157,10 @@ public class ItemApprovalProcessOrchestrator implements ProcessOrchestrator<Item
 			workItems.add(workItem);
 		}
 		workflowEngine.createWorkItems(ctx, workItems, result);
-		for (CaseWorkItemType workItem : ctx.wfCase.getWorkItem()) {
-			if (workItem.getCloseTimestamp() == null) {     // presumably opened just now
-				MidpointUtil.createTriggersForTimedActions(workflowEngine.createWorkItemId(ctx, workItem), 0,
-						XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
-						XmlTypeConverter.toDate(workItem.getDeadline()), ctx.wfTask, stageDef.getTimedActions(), result);
-			}
+		for (CaseWorkItemType workItem : workItems) {
+			MidpointUtil.createTriggersForTimedActions(workflowEngine.createWorkItemId(ctx, workItem), 0,
+					XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
+					XmlTypeConverter.toDate(workItem.getDeadline()), ctx.wfTask, stageDef.getTimedActions(), result);
 		}
 	}
 
@@ -204,7 +204,7 @@ public class ItemApprovalProcessOrchestrator implements ProcessOrchestrator<Item
 	private void recordAutoCompletionDecision(String taskOid, ApprovalLevelOutcomeType outcome,
 			AutomatedCompletionReasonType reason, int stageNumber, OperationResult opResult) {
 		StageCompletionEventType event = new StageCompletionEventType();
-		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
 		event.setStageNumber(stageNumber);
 		event.setAutomatedDecisionReason(reason);
 		event.setOutcome(ApprovalUtils.toUri(outcome));
