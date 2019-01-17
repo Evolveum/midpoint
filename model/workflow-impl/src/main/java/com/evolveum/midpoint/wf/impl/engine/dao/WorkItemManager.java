@@ -87,7 +87,13 @@ public class WorkItemManager {
 			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE, opTask, result)) {
 				throw new SecurityViolationException("You are not authorized to complete this work item.");
 			}
-			workflowEngine.completeWorkItem(workItemId, workItem, outcome, comment, additionalDelta, causeInformation, result);
+			if (workItem.getCloseTimestamp() == null) {
+				workflowEngine
+						.completeWorkItem(workItemId, workItem, outcome, comment, additionalDelta, causeInformation, false, result);
+			} else {
+				LOGGER.debug("Work item {} was already closed on {}", workItemId, workItem.getCloseTimestamp());
+				result.recordWarning("Work item was already closed on " + workItem.getCloseTimestamp());
+			}
 		} catch (SecurityViolationException | RuntimeException | CommunicationException | ConfigurationException | SchemaException | ObjectAlreadyExistsException e) {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
