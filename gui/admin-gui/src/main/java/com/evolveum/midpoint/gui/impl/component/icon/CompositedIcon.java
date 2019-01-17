@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.icon;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,7 +27,7 @@ import org.apache.commons.lang.Validate;
 /**
  * @author skublik
  */
-public class CompositedIcon {
+public class CompositedIcon implements Serializable{
 	
 	private String basicIcon;
 	private List<String> layerIcons;

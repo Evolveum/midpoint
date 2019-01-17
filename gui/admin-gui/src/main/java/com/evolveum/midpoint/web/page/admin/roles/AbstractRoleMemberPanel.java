@@ -188,7 +188,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		form.add(memberContainer);
 
 		PageBase pageBase = getPageBase();
-		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
+		//TODO QName defines a relation value which will be used for new member creation
+		MainObjectListPanel<ObjectType, QName> childrenListPanel = new MainObjectListPanel<ObjectType, QName>(
 				ID_MEMBER_TABLE, ObjectType.class, getTableId(getComplexTypeQName()), getSearchOptions(), pageBase) {
 
 			private static final long serialVersionUID = 1L;
@@ -209,7 +210,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target) {
+            protected void newObjectPerformed(AjaxRequestTarget target, QName influencingObject) {
                 AbstractRoleMemberPanel.this.createFocusMemberPerformed(target);
             }
 
@@ -693,8 +694,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 
 	
-	private MainObjectListPanel<FocusType> getMemberTable() {
-		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
+	private MainObjectListPanel<FocusType, QName> getMemberTable() {
+		return (MainObjectListPanel<FocusType, QName>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 	
 	protected QueryScope getQueryScope(boolean isRecompute) {

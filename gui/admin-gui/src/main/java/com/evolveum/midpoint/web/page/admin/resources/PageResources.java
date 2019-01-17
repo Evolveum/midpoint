@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -399,8 +400,8 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         ((PageBase)getPage()).showMainPopup(dialog, target);
     }
 
-	private MainObjectListPanel<ResourceType> getResourceTable() {
-		return (MainObjectListPanel<ResourceType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+	private MainObjectListPanel<ResourceType, CompiledObjectCollectionView> getResourceTable() {
+		return (MainObjectListPanel<ResourceType, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
 
 	/**
