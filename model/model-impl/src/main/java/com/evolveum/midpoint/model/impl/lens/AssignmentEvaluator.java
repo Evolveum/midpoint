@@ -88,7 +88,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author semancik
  */
-public class AssignmentEvaluator<F extends FocusType> {
+public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 	
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 	
@@ -96,8 +96,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	// "Configuration parameters"
 	private final RepositoryService repository;
-	private final ObjectDeltaObject<F> focusOdo;
-	private final LensContext<F> lensContext;
+	private final ObjectDeltaObject<AH> focusOdo;
+	private final LensContext<AH> lensContext;
 	private final String channel;
 	private final ObjectResolver objectResolver;
 	private final SystemObjectCache systemObjectCache;
@@ -112,7 +112,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private final EvaluatedAssignmentTargetCache evaluatedAssignmentTargetCache;
 	private final LifecycleStateModelType focusStateModel;
 
-	private AssignmentEvaluator(Builder<F> builder) {
+	private AssignmentEvaluator(Builder<AH> builder) {
 		repository = builder.repository;
 		focusOdo = builder.focusOdo;
 		lensContext = builder.lensContext;
@@ -129,7 +129,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		mappingEvaluator = builder.mappingEvaluator;
 		evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
 		
-		LensFocusContext<F> focusContext = lensContext.getFocusContext();
+		LensFocusContext<AH> focusContext = lensContext.getFocusContext();
 		if (focusContext != null) {
 			focusStateModel = focusContext.getLifecycleModel();
 		} else {
@@ -142,11 +142,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	@SuppressWarnings("unused")
-	public ObjectDeltaObject<F> getFocusOdo() {
+	public ObjectDeltaObject<AH> getFocusOdo() {
 		return focusOdo;
 	}
 
-	public LensContext<F> getLensContext() {
+	public LensContext<AH> getLensContext() {
 		return lensContext;
 	}
 
@@ -200,7 +200,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	// Moreover, it highlights the fact that identity of objects referenced here is fixed for any invocation of the evaluate() method.
 	// (There is single EvaluationContext instance for any call to evaluate().)
 	private class EvaluationContext {
-		private final EvaluatedAssignmentImpl<F> evalAssignment;
+		private final EvaluatedAssignmentImpl<AH> evalAssignment;
 		private final AssignmentPathImpl assignmentPath;
 		// The primary assignment mode tells whether the primary assignment was added, removed or it is unchanged.
 		// The primary assignment is the first assignment in the assignmen path, the assignment that is located in the
@@ -209,7 +209,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		private final boolean evaluateOld;
 		private final Task task;
 		private final OperationResult result;
-		public EvaluationContext(EvaluatedAssignmentImpl<F> evalAssignment,
+		public EvaluationContext(EvaluatedAssignmentImpl<AH> evalAssignment,
 				AssignmentPathImpl assignmentPath, PlusMinusZero primaryAssignmentMode, boolean evaluateOld, Task task, OperationResult result) {
 			this.evalAssignment = evalAssignment;
 			this.assignmentPath = assignmentPath;
@@ -223,14 +223,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 	/**
 	 * evaluateOld: If true, we take the 'old' value from assignmentIdi. If false, we take the 'new' one.
 	 */
-	public EvaluatedAssignmentImpl<F> evaluate(
+	public EvaluatedAssignmentImpl<AH> evaluate(
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
 			PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription, boolean forcedAssignment, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assertSourceNotNull(source, assignmentIdi);
 
-		EvaluatedAssignmentImpl<F> evalAssignemntImpl = new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld, prismContext);
+		EvaluatedAssignmentImpl<AH> evalAssignemntImpl = new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld, prismContext);
 		evalAssignemntImpl.setVirtual(forcedAssignment);
 		
 		EvaluationContext ctx = new EvaluationContext(
@@ -354,7 +354,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private <R extends AbstractRoleType> boolean isVirtualAssignment(AssignmentPathSegmentImpl segment, EvaluationContext ctx)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
-		F focusNew = focusOdo.getNewObject().asObjectable();
+		AH focusNew = focusOdo.getNewObject().asObjectable();
     	Collection<R> forcedRoles = new HashSet<>();
     	try {
 			VirtualAssignmenetSpecification<R> virtualAssignmenetSpecification = LifecycleUtil.getForcedAssignmentSpecification(focusStateModel, focusNew.getLifecycleState(), prismContext);
@@ -553,7 +553,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		LOGGER.trace("Preparing construction '{}' in {}", constructionType.getDescription(), segment.source);
 
-		Construction<F> construction = new Construction<>(constructionType, segment.source);
+		Construction<AH> construction = new Construction<>(constructionType, segment.source);
 		// We have to clone here as the path is constantly changing during evaluation
 		construction.setAssignmentPath(ctx.assignmentPath.clone());
 		construction.setFocusOdo(focusOdo);
@@ -587,7 +587,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		LOGGER.trace("Preparing persona construction '{}' in {}", constructionType.getDescription(), segment.source);
 		
-		PersonaConstruction<F> construction = new PersonaConstruction<>(constructionType, segment.source);
+		PersonaConstruction<AH> construction = new PersonaConstruction<>(constructionType, segment.source);
 		// We have to clone here as the path is constantly changing during evaluation
 		construction.setAssignmentPath(ctx.assignmentPath.clone());
 		construction.setFocusOdo(focusOdo);
@@ -1116,7 +1116,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		collectMembershipRefVal(refVal, targetType.getClass(), relation, targetType, ctx);
 	}
 	
-	private void collectTenantRef(AssignmentHolderType targetType, AssignmentEvaluator<F>.EvaluationContext ctx) {
+	private void collectTenantRef(AssignmentHolderType targetType, AssignmentEvaluator<AH>.EvaluationContext ctx) {
 		if (targetType instanceof OrgType) {
 			if (BooleanUtils.isTrue(((OrgType)targetType).isTenant()) && ctx.evalAssignment.getTenantOid() == null) {
 				if (ctx.assignmentPath.hasOnlyOrgs()) {
@@ -1238,7 +1238,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return authorization;
 	}
 
-	private void assertSourceNotNull(ObjectType source, EvaluatedAssignment<F> assignment) {
+	private void assertSourceNotNull(ObjectType source, EvaluatedAssignment<AH> assignment) {
 		if (source == null) {
 			throw new IllegalArgumentException("Source cannot be null (while evaluating assignment "+assignment+")");
 		}
@@ -1326,10 +1326,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 				relationRegistry.normalizeRelation(assignmentType.getTargetRef().getRelation()) : null;
 	}
 
-	public static final class Builder<F extends FocusType> {
+	public static final class Builder<AH extends AssignmentHolderType> {
 		private RepositoryService repository;
-		private ObjectDeltaObject<F> focusOdo;
-		private LensContext<F> lensContext;
+		private ObjectDeltaObject<AH> focusOdo;
+		private LensContext<AH> lensContext;
 		private String channel;
 		private ObjectResolver objectResolver;
 		private SystemObjectCache systemObjectCache;
@@ -1345,77 +1345,77 @@ public class AssignmentEvaluator<F extends FocusType> {
 		public Builder() {
 		}
 
-		public Builder<F> repository(RepositoryService val) {
+		public Builder<AH> repository(RepositoryService val) {
 			repository = val;
 			return this;
 		}
 
-		public Builder<F> focusOdo(ObjectDeltaObject<F> val) {
+		public Builder<AH> focusOdo(ObjectDeltaObject<AH> val) {
 			focusOdo = val;
 			return this;
 		}
 
-		public Builder<F> lensContext(LensContext<F> val) {
+		public Builder<AH> lensContext(LensContext<AH> val) {
 			lensContext = val;
 			return this;
 		}
 
-		public Builder<F> channel(String val) {
+		public Builder<AH> channel(String val) {
 			channel = val;
 			return this;
 		}
 
-		public Builder<F> objectResolver(ObjectResolver val) {
+		public Builder<AH> objectResolver(ObjectResolver val) {
 			objectResolver = val;
 			return this;
 		}
 
-		public Builder<F> systemObjectCache(SystemObjectCache val) {
+		public Builder<AH> systemObjectCache(SystemObjectCache val) {
 			systemObjectCache = val;
 			return this;
 		}
 
-		public Builder<F> relationRegistry(RelationRegistry val) {
+		public Builder<AH> relationRegistry(RelationRegistry val) {
 			relationRegistry = val;
 			return this;
 		}
 
-		public Builder<F> prismContext(PrismContext val) {
+		public Builder<AH> prismContext(PrismContext val) {
 			prismContext = val;
 			return this;
 		}
 
-		public Builder<F> mappingFactory(MappingFactory val) {
+		public Builder<AH> mappingFactory(MappingFactory val) {
 			mappingFactory = val;
 			return this;
 		}
 
-		public Builder<F> activationComputer(ActivationComputer val) {
+		public Builder<AH> activationComputer(ActivationComputer val) {
 			activationComputer = val;
 			return this;
 		}
 
-		public Builder<F> now(XMLGregorianCalendar val) {
+		public Builder<AH> now(XMLGregorianCalendar val) {
 			now = val;
 			return this;
 		}
 
-		public Builder<F> loginMode(boolean val) {
+		public Builder<AH> loginMode(boolean val) {
 			loginMode = val;
 			return this;
 		}
 
-		public Builder<F> systemConfiguration(PrismObject<SystemConfigurationType> val) {
+		public Builder<AH> systemConfiguration(PrismObject<SystemConfigurationType> val) {
 			systemConfiguration = val;
 			return this;
 		}
 
-		public Builder<F> mappingEvaluator(MappingEvaluator val) {
+		public Builder<AH> mappingEvaluator(MappingEvaluator val) {
 			mappingEvaluator = val;
 			return this;
 		}
 
-		public AssignmentEvaluator<F> build() {
+		public AssignmentEvaluator<AH> build() {
 			return new AssignmentEvaluator<>(this);
 		}
 	}

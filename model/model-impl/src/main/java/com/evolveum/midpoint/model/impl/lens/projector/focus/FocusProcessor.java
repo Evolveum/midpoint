@@ -99,13 +99,15 @@ public class FocusProcessor {
 	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
 	@Autowired private ClockworkMedic medic;
 	@Autowired private PolicyRuleEnforcer policyRuleEnforcer;
+	
+	@Autowired private AssignmentHolderProcessor focusProcessor;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
 
-	public <O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription,
+	public <O extends ObjectType, AH extends AssignmentHolderType> void processFocus(LensContext<O> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
 					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
@@ -115,8 +117,8 @@ public class FocusProcessor {
     		return;
     	}
 
-    	if (FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-    		processFocusFocus((LensContext<F>)context, activityDescription, now, task, result);
+    	if (AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		processFocusFocus((LensContext<AH>)context, activityDescription, now, task, result);
     	} else {
     		processFocusNonFocus(context, activityDescription, now, task, result);
     	}
@@ -132,11 +134,11 @@ public class FocusProcessor {
 		
 	}
 	
-	private <F extends FocusType> void processFocusFocus(LensContext<F> context, String activityDescription,
+	private <AH extends AssignmentHolderType> void processFocusFocus(LensContext<AH> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
 					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
+		LensFocusContext<AH> focusContext = context.getFocusContext();
 		ObjectTemplateType objectTemplate = context.getFocusTemplate();
 		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
 
@@ -144,14 +146,14 @@ public class FocusProcessor {
 		int maxIterations = 0;
 		IterationSpecificationType iterationSpecificationType = null;
 		if (objectTemplate != null) {
-			iterationSpecificationType = objectTemplate.getIteration();
+			iterationSpecificationType = objectTemplate.getIterationSpecification();
 			maxIterations = LensUtil.determineMaxIterations(iterationSpecificationType);
 		}
 		int iteration = focusContext.getIteration();
 		String iterationToken = focusContext.getIterationToken();
 		boolean wasResetIterationCounter = false;
 
-		PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
+		PrismObject<AH> focusCurrent = focusContext.getObjectCurrent();
 		if (focusCurrent != null && iterationToken == null) {
 			Integer focusIteration = focusCurrent.asObjectable().getIteration();
 			if (focusIteration != null) {
@@ -159,11 +161,11 @@ public class FocusProcessor {
 			}
 			iterationToken = focusCurrent.asObjectable().getIterationToken();
 		}
-
+		
 		while (true) {
 
 			ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-			applyObjectPolicyConstraints(focusContext, objectPolicyConfigurationType);
+			LensUtil.applyObjectPolicyConstraints(focusContext, objectPolicyConfigurationType, prismContext);
 
 			ExpressionVariables variablesPreIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
 					null, null, null, context.getSystemConfiguration(), focusContext);
@@ -211,7 +213,7 @@ public class FocusProcessor {
 		        // ACTIVATION
 
 				medic.partialExecute("focusActivation",
-						() -> processActivationBeforeAssignments(context, now, result),
+						() -> focusProcessor.processActivationBeforeAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
 
@@ -226,7 +228,7 @@ public class FocusProcessor {
 		        // process activation again. Object template might have changed it.
 		        context.recomputeFocus();
 		        medic.partialExecute("focusActivation",
-						() -> processActivationBeforeAssignments(context, now, result),
+						() -> focusProcessor.processActivationBeforeAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
 		        // ASSIGNMENTS
@@ -270,13 +272,13 @@ public class FocusProcessor {
 		        // We also need to apply assignment activation if needed
 		        context.recomputeFocus();
 		        medic.partialExecute("focusActivation",
-						() -> processActivationAfterAssignments(context, now, result),
+						() -> focusProcessor.processActivationAfterAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
 		        // CREDENTIALS (including PASSWORD POLICY)
 
 		        medic.partialExecute("focusCredentials",
-						() -> credentialsProcessor.processFocusCredentials(context, now, task, result),
+						() -> focusProcessor.processCredentials(context, now, task, result),
 						partialProcessingOptions::getFocusCredentials);
 
 		        // We need to evaluate this as a last step. We need to make sure we have all the
@@ -309,7 +311,7 @@ public class FocusProcessor {
 		        	}
 		        }
 
-				PrismObject<F> previewObjectNew = focusContext.getObjectNew();
+				PrismObject<AH> previewObjectNew = focusContext.getObjectNew();
 				if (previewObjectNew == null) {
 					// this must be delete
 				} else {
@@ -323,7 +325,7 @@ public class FocusProcessor {
 				}
 
 				// Check if iteration constraints are OK
-				FocusConstraintsChecker<F> checker = new FocusConstraintsChecker<>();
+				FocusConstraintsChecker<AH> checker = new FocusConstraintsChecker<>();
 				checker.setPrismContext(prismContext);
 		        checker.setContext(context);
 		        checker.setRepositoryService(cacheRepositoryService);
@@ -423,72 +425,9 @@ public class FocusProcessor {
 
 
 
-	private <F extends FocusType> void applyObjectPolicyConstraints(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException, ConfigurationException {
-		if (objectPolicyConfigurationType == null) {
-			return;
-		}
-
-		final PrismObject<F> focusNew = focusContext.getObjectNew();
-		if (focusNew == null) {
-			// This is delete. Nothing to do.
-			return;
-		}
-
-		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
-			if (propertyConstraintType.getPath() == null) {
-				LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", objectPolicyConfigurationType);
-				throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + objectPolicyConfigurationType + " defined in system configuration.");
-			}
-			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
-			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
-				PrismProperty<Object> prop = focusNew.findProperty(itemPath);
-				if (prop == null || prop.isEmpty()) {
-					String newValue = focusNew.getOid();
-					if (newValue == null) {
-						newValue = OidUtil.generateOid();
-					}
-					LOGGER.trace("Generating new OID-bound value for {}: {}", itemPath, newValue);
-					PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
-					PrismPropertyDefinition<Object> propDef = focusDefinition.findPropertyDefinition(itemPath);
-					if (propDef == null) {
-						throw new SchemaException("No definition for property "+itemPath+" in "+focusDefinition+" as specified in object policy");
-					}
-					PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
-					if (String.class.isAssignableFrom(propDef.getTypeClass())) {
-						propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(newValue, OriginType.USER_POLICY, null));
-					} else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
-						propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
-					} else {
-						throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
-					}
-					focusContext.swallowToSecondaryDelta(propDelta);
-					focusContext.recompute();
-				}
-			}
-		}
-
-		// Deprecated
-		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
-			// Generate the name now - unless it is already present
-			PolyStringType focusNewName = focusNew.asObjectable().getName();
-			if (focusNewName == null) {
-				String newValue = focusNew.getOid();
-				if (newValue == null) {
-					newValue = OidUtil.generateOid();
-				}
-				LOGGER.trace("Generating new name (bound to OID): {}", newValue);
-				PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
-				PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
-				PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(FocusType.F_NAME);
-				nameDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
-				focusContext.swallowToSecondaryDelta(nameDelta);
-				focusContext.recompute();
-			}
-		}
-	}
-
-	private <F extends FocusType> boolean willResetIterationCounter(LensFocusContext<F> focusContext) throws SchemaException {
-		ObjectDelta<F> focusDelta = focusContext.getDelta();
+	
+	private <AH extends AssignmentHolderType> boolean willResetIterationCounter(LensFocusContext<AH> focusContext) throws SchemaException {
+		ObjectDelta<AH> focusDelta = focusContext.getDelta();
 		if (focusDelta == null) {
 			return false;
 		}
@@ -507,7 +446,7 @@ public class FocusProcessor {
 	/**
 	 * Remove the intermediate results of values processing such as secondary deltas. 
 	 */
-	private <F extends FocusType> void cleanupContext(LensFocusContext<F> focusContext) throws SchemaException, ConfigurationException {
+	private <AH extends AssignmentHolderType> void cleanupContext(LensFocusContext<AH> focusContext) throws SchemaException, ConfigurationException {
 		// We must NOT clean up activation computation. This has happened before, it will not happen again
 		// and it does not depend on iteration
 		LOGGER.trace("Cleaning up focus context");
@@ -517,286 +456,286 @@ public class FocusProcessor {
 		focusContext.recompute();
 	}
 
-	private <F extends FocusType> void processActivationBeforeAssignments(LensContext<F> context, XMLGregorianCalendar now,
-			OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-		processActivationBasic(context, now, result);
-	}
-
-	private <F extends FocusType> void processActivationAfterAssignments(LensContext<F> context, XMLGregorianCalendar now,
-			OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-		processActivationBasic(context, now, result);
-		processAssignmentActivation(context, now, result);
-	}
-
-	private <F extends FocusType> void processActivationBasic(LensContext<F> context, XMLGregorianCalendar now,
-			OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-
-		if (focusContext.isDelete()) {
-			LOGGER.trace("Skipping processing of focus activation: focus delete");
-			return;
-		}
-
-		processActivationAdministrativeAndValidity(focusContext, now, result);
-
-		if (focusContext.canRepresent(UserType.class)) {
-			processActivationLockout((LensFocusContext<UserType>) focusContext, now, result);
-		}
-	}
-
-	private <F extends FocusType> void processActivationAdministrativeAndValidity(LensFocusContext<F> focusContext, XMLGregorianCalendar now,
-			OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-
-		TimeIntervalStatusType validityStatusNew = null;
-		TimeIntervalStatusType validityStatusCurrent = null;
-		XMLGregorianCalendar validityChangeTimestamp = null;
-
-		String lifecycleStateNew = null;
-		String lifecycleStateCurrent = null;
-		ActivationType activationNew = null;
-		ActivationType activationCurrent = null;
-
-		PrismObject<F> focusNew = focusContext.getObjectNew();
-		if (focusNew != null) {
-			F focusTypeNew = focusNew.asObjectable();
-			activationNew = focusTypeNew.getActivation();
-			if (activationNew != null) {
-				validityStatusNew = activationComputer.getValidityStatus(activationNew, now);
-				validityChangeTimestamp = activationNew.getValidityChangeTimestamp();
-			}
-			lifecycleStateNew = focusTypeNew.getLifecycleState();
-		}
-
-		PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
-		if (focusCurrent != null) {
-			F focusCurrentType = focusCurrent.asObjectable();
-			activationCurrent = focusCurrentType.getActivation();
-			if (activationCurrent != null) {
-				validityStatusCurrent = activationComputer.getValidityStatus(activationCurrent, validityChangeTimestamp);
-			}
-			lifecycleStateCurrent = focusCurrentType.getLifecycleState();
-		}
-
-		if (validityStatusCurrent == validityStatusNew) {
-			// No change, (almost) no work
-			if (validityStatusNew != null && activationNew.getValidityStatus() == null) {
-				// There was no validity change. But the status is not recorded. So let's record it so it can be used in searches.
-				recordValidityDelta(focusContext, validityStatusNew, now);
-			} else {
-				LOGGER.trace("Skipping validity processing because there was no change ({} -> {})", validityStatusCurrent, validityStatusNew);
-			}
-		} else {
-			LOGGER.trace("Validity change {} -> {}", validityStatusCurrent, validityStatusNew);
-			recordValidityDelta(focusContext, validityStatusNew, now);
-		}
-
-		LifecycleStateModelType lifecycleModel = focusContext.getLifecycleModel();
-		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(lifecycleStateNew, activationNew, validityStatusNew, lifecycleModel);
-		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(lifecycleStateCurrent, activationCurrent, validityStatusCurrent, lifecycleModel);
-
-		if (effectiveStatusCurrent == effectiveStatusNew) {
-			// No change, (almost) no work
-			if (effectiveStatusNew != null && (activationNew == null || activationNew.getEffectiveStatus() == null)) {
-				// There was no effective status change. But the status is not recorded. So let's record it so it can be used in searches.
-				recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
-			} else {
-				if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().hasItemDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
-					LOGGER.trace("Forcing effective status delta even though there was no change ({} -> {}) because there is explicit administrativeStatus delta", effectiveStatusCurrent, effectiveStatusNew);
-					// We need this to force the change down to the projections later in the activation processor
-					// some of the mappings will use effectiveStatus as a source, therefore there has to be a delta for the mapping to work correctly
-					recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
-				} else {
-					//check computed effective status current with the saved one - e.g. there can be some inconsistencies so we need to check and force the change.. in other cases, effectvie status will be stored with
-					// incorrect value. Maybe another option is to not compute effectiveStatusCurrent if there is an existing (saved) effective status in the user.. TODO
-					if (activationCurrent != null && activationCurrent.getEffectiveStatus() != null) {
-						ActivationStatusType effectiveStatusSaved = activationCurrent.getEffectiveStatus();
-						if (effectiveStatusSaved != effectiveStatusNew) {
-							recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
-						}
-					}
-					LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusCurrent, effectiveStatusNew);
-				}
-			}
-		} else {
-			LOGGER.trace("Effective status change {} -> {}", effectiveStatusCurrent, effectiveStatusNew);
-			recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
-		}
-
-
-	}
-
-	private <F extends FocusType> void processActivationLockout(LensFocusContext<UserType> focusContext, XMLGregorianCalendar now,
-			OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-
-		ObjectDelta<UserType> focusPrimaryDelta = focusContext.getPrimaryDelta();
-		if (focusPrimaryDelta != null) {
-			PropertyDelta<LockoutStatusType> lockoutStatusDelta = focusContext.getPrimaryDelta().findPropertyDelta(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
-			if (lockoutStatusDelta != null) {
-				if (lockoutStatusDelta.isAdd()) {
-					for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToAdd()) {
-						if (pval.getValue() == LockoutStatusType.LOCKED) {
-							throw new SchemaException("Lockout status cannot be changed to LOCKED value");
-						}
-					}
-				} else if (lockoutStatusDelta.isReplace()) {
-					for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToReplace()) {
-						if (pval.getValue() == LockoutStatusType.LOCKED) {
-							throw new SchemaException("Lockout status cannot be changed to LOCKED value");
-						}
-					}
-				}
-			}
-		}
-
-		ActivationType activationNew = null;
-		ActivationType activationCurrent = null;
-
-		LockoutStatusType lockoutStatusNew = null;
-		LockoutStatusType lockoutStatusCurrent = null;
-
-		PrismObject<UserType> focusNew = focusContext.getObjectNew();
-		if (focusNew != null) {
-			activationNew = focusNew.asObjectable().getActivation();
-			if (activationNew != null) {
-				lockoutStatusNew = activationNew.getLockoutStatus();
-			}
-		}
-
-		PrismObject<UserType> focusCurrent = focusContext.getObjectCurrent();
-		if (focusCurrent != null) {
-			activationCurrent = focusCurrent.asObjectable().getActivation();
-			if (activationCurrent != null) {
-				lockoutStatusCurrent = activationCurrent.getLockoutStatus();
-			}
-		}
-
-		if (lockoutStatusNew == lockoutStatusCurrent) {
-			// No change, (almost) no work
-			LOGGER.trace("Skipping lockout processing because there was no change ({} -> {})", lockoutStatusCurrent, lockoutStatusNew);
-			return;
-		}
-
-		LOGGER.trace("Lockout change {} -> {}", lockoutStatusCurrent, lockoutStatusNew);
-
-		if (lockoutStatusNew == LockoutStatusType.NORMAL) {
-
-			CredentialsType credentialsTypeNew = focusNew.asObjectable().getCredentials();
-			if (credentialsTypeNew != null) {
-				resetFailedLogins(focusContext, credentialsTypeNew.getPassword(), SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
-				resetFailedLogins(focusContext, credentialsTypeNew.getNonce(), SchemaConstants.PATH_CREDENTIALS_NONCE_FAILED_LOGINS);
-				resetFailedLogins(focusContext, credentialsTypeNew.getSecurityQuestions(), SchemaConstants.PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS);
-			}
-
-			if (activationNew != null && activationNew.getLockoutExpirationTimestamp() != null) {
-				PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
-				PrismPropertyDefinition<XMLGregorianCalendar> lockoutExpirationTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
-				PropertyDelta<XMLGregorianCalendar> lockoutExpirationTimestampDelta
-						= lockoutExpirationTimestampDef.createEmptyDelta(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP));
-				lockoutExpirationTimestampDelta.setValueToReplace();
-				focusContext.swallowToProjectionWaveSecondaryDelta(lockoutExpirationTimestampDelta);
-			}
-		}
-
-	}
-
-	private void resetFailedLogins(LensFocusContext<UserType> focusContext, AbstractCredentialType credentialTypeNew, ItemPath path) throws SchemaException{
-		if (credentialTypeNew != null) {
-			Integer failedLogins = credentialTypeNew.getFailedLogins();
-			if (failedLogins != null && failedLogins != 0) {
-				PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
-				PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
-				failedLoginsDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(0, OriginType.USER_POLICY, null));
-				focusContext.swallowToProjectionWaveSecondaryDelta(failedLoginsDelta);
-			}
-		}
-	}
-
-	private <F extends ObjectType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
-			XMLGregorianCalendar now) throws SchemaException {
-		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
-
-		PrismPropertyDefinition<TimeIntervalStatusType> validityStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_STATUS);
-		PropertyDelta<TimeIntervalStatusType> validityStatusDelta
-				= validityStatusDef.createEmptyDelta(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS));
-		if (validityStatusNew == null) {
-			validityStatusDelta.setValueToReplace();
-		} else {
-			validityStatusDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(validityStatusNew, OriginType.USER_POLICY, null));
-		}
-		focusContext.swallowToProjectionWaveSecondaryDelta(validityStatusDelta);
-
-		PrismPropertyDefinition<XMLGregorianCalendar> validityChangeTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP);
-		PropertyDelta<XMLGregorianCalendar> validityChangeTimestampDelta
-				= validityChangeTimestampDef.createEmptyDelta(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP));
-		validityChangeTimestampDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(now, OriginType.USER_POLICY, null));
-		focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
-	}
-
-	private <F extends ObjectType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext,
-			ActivationStatusType effectiveStatusNew, XMLGregorianCalendar now)
-			throws SchemaException {
-		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
-
-		// We always want explicit delta for effective status even if there is no real change
-		// we want to propagate enable/disable events to all the resources, even if we are enabling
-		// already enabled user (some resources may be disabled)
-		// This may produce duplicate delta, but that does not matter too much. The duplicate delta
-		// will be filtered out later.
-		PrismPropertyDefinition<ActivationStatusType> effectiveStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_EFFECTIVE_STATUS);
-		PropertyDelta<ActivationStatusType> effectiveStatusDelta
-				= effectiveStatusDef.createEmptyDelta(PATH_ACTIVATION_EFFECTIVE_STATUS);
-		effectiveStatusDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(effectiveStatusNew, OriginType.USER_POLICY, null));
-		if (!focusContext.alreadyHasDelta(effectiveStatusDelta)){
-			focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
-		}
-
-		// It is not enough to check alreadyHasDelta(). The change may happen in previous waves
-		// and the secondary delta may no longer be here. When it comes to disableTimestamp we even
-		// cannot rely on natural filtering of already executed deltas as the timestamp here may
-		// be off by several milliseconds. So explicitly check for the change here.
-		PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
-		if (objectCurrent != null) {
-			PrismProperty<ActivationStatusType> effectiveStatusPropCurrent = objectCurrent.findProperty(PATH_ACTIVATION_EFFECTIVE_STATUS);
-			if (effectiveStatusPropCurrent != null && effectiveStatusNew.equals(effectiveStatusPropCurrent.getRealValue())) {
-				LOGGER.trace("Skipping setting disableTimestamp because there was no change");
-				return;
-			}
-		}
-
-		PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY,
-				prismContext);
-		if (!focusContext.alreadyHasDelta(timestampDelta)) {
-			focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
-		}
-	}
-
-
-	private PrismContainerDefinition<ActivationType> getActivationDefinition() {
-		if (activationDefinition == null) {
-			ComplexTypeDefinition focusDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinition(FocusType.COMPLEX_TYPE);
-			activationDefinition = focusDefinition.findContainerDefinition(FocusType.F_ACTIVATION);
-		}
-		return activationDefinition;
-	}
-
-	private PrismPropertyDefinition<Integer> getFailedLoginsDefinition() {
-		if (failedLoginsDefinition == null) {
-			PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-			failedLoginsDefinition = userDef.findPropertyDefinition(SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
-		}
-		return failedLoginsDefinition;
-	}
+//	private <F extends FocusType> void processActivationBeforeAssignments(LensContext<F> context, XMLGregorianCalendar now,
+//			OperationResult result)
+//			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+//		processActivationBasic(context, now, result);
+//	}
+//
+//	private <F extends FocusType> void processActivationAfterAssignments(LensContext<F> context, XMLGregorianCalendar now,
+//			OperationResult result)
+//			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+//		processActivationBasic(context, now, result);
+//		processAssignmentActivation(context, now, result);
+//	}
+//
+//	private <F extends FocusType> void processActivationBasic(LensContext<F> context, XMLGregorianCalendar now,
+//			OperationResult result)
+//			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+//		LensFocusContext<F> focusContext = context.getFocusContext();
+//
+//		if (focusContext.isDelete()) {
+//			LOGGER.trace("Skipping processing of focus activation: focus delete");
+//			return;
+//		}
+//
+//		processActivationAdministrativeAndValidity(focusContext, now, result);
+//
+//		if (focusContext.canRepresent(UserType.class)) {
+//			processActivationLockout((LensFocusContext<UserType>) focusContext, now, result);
+//		}
+//	}
+//
+//	private <F extends FocusType> void processActivationAdministrativeAndValidity(LensFocusContext<F> focusContext, XMLGregorianCalendar now,
+//			OperationResult result)
+//			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+//
+//		TimeIntervalStatusType validityStatusNew = null;
+//		TimeIntervalStatusType validityStatusCurrent = null;
+//		XMLGregorianCalendar validityChangeTimestamp = null;
+//
+//		String lifecycleStateNew = null;
+//		String lifecycleStateCurrent = null;
+//		ActivationType activationNew = null;
+//		ActivationType activationCurrent = null;
+//
+//		PrismObject<F> focusNew = focusContext.getObjectNew();
+//		if (focusNew != null) {
+//			F focusTypeNew = focusNew.asObjectable();
+//			activationNew = focusTypeNew.getActivation();
+//			if (activationNew != null) {
+//				validityStatusNew = activationComputer.getValidityStatus(activationNew, now);
+//				validityChangeTimestamp = activationNew.getValidityChangeTimestamp();
+//			}
+//			lifecycleStateNew = focusTypeNew.getLifecycleState();
+//		}
+//
+//		PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
+//		if (focusCurrent != null) {
+//			F focusCurrentType = focusCurrent.asObjectable();
+//			activationCurrent = focusCurrentType.getActivation();
+//			if (activationCurrent != null) {
+//				validityStatusCurrent = activationComputer.getValidityStatus(activationCurrent, validityChangeTimestamp);
+//			}
+//			lifecycleStateCurrent = focusCurrentType.getLifecycleState();
+//		}
+//
+//		if (validityStatusCurrent == validityStatusNew) {
+//			// No change, (almost) no work
+//			if (validityStatusNew != null && activationNew.getValidityStatus() == null) {
+//				// There was no validity change. But the status is not recorded. So let's record it so it can be used in searches.
+//				recordValidityDelta(focusContext, validityStatusNew, now);
+//			} else {
+//				LOGGER.trace("Skipping validity processing because there was no change ({} -> {})", validityStatusCurrent, validityStatusNew);
+//			}
+//		} else {
+//			LOGGER.trace("Validity change {} -> {}", validityStatusCurrent, validityStatusNew);
+//			recordValidityDelta(focusContext, validityStatusNew, now);
+//		}
+//
+//		LifecycleStateModelType lifecycleModel = focusContext.getLifecycleModel();
+//		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(lifecycleStateNew, activationNew, validityStatusNew, lifecycleModel);
+//		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(lifecycleStateCurrent, activationCurrent, validityStatusCurrent, lifecycleModel);
+//
+//		if (effectiveStatusCurrent == effectiveStatusNew) {
+//			// No change, (almost) no work
+//			if (effectiveStatusNew != null && (activationNew == null || activationNew.getEffectiveStatus() == null)) {
+//				// There was no effective status change. But the status is not recorded. So let's record it so it can be used in searches.
+//				recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
+//			} else {
+//				if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().hasItemDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
+//					LOGGER.trace("Forcing effective status delta even though there was no change ({} -> {}) because there is explicit administrativeStatus delta", effectiveStatusCurrent, effectiveStatusNew);
+//					// We need this to force the change down to the projections later in the activation processor
+//					// some of the mappings will use effectiveStatus as a source, therefore there has to be a delta for the mapping to work correctly
+//					recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
+//				} else {
+//					//check computed effective status current with the saved one - e.g. there can be some inconsistencies so we need to check and force the change.. in other cases, effectvie status will be stored with
+//					// incorrect value. Maybe another option is to not compute effectiveStatusCurrent if there is an existing (saved) effective status in the user.. TODO
+//					if (activationCurrent != null && activationCurrent.getEffectiveStatus() != null) {
+//						ActivationStatusType effectiveStatusSaved = activationCurrent.getEffectiveStatus();
+//						if (effectiveStatusSaved != effectiveStatusNew) {
+//							recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
+//						}
+//					}
+//					LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusCurrent, effectiveStatusNew);
+//				}
+//			}
+//		} else {
+//			LOGGER.trace("Effective status change {} -> {}", effectiveStatusCurrent, effectiveStatusNew);
+//			recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
+//		}
+//
+//
+//	}
+//
+//	private <F extends FocusType> void processActivationLockout(LensFocusContext<UserType> focusContext, XMLGregorianCalendar now,
+//			OperationResult result)
+//			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+//
+//		ObjectDelta<UserType> focusPrimaryDelta = focusContext.getPrimaryDelta();
+//		if (focusPrimaryDelta != null) {
+//			PropertyDelta<LockoutStatusType> lockoutStatusDelta = focusContext.getPrimaryDelta().findPropertyDelta(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+//			if (lockoutStatusDelta != null) {
+//				if (lockoutStatusDelta.isAdd()) {
+//					for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToAdd()) {
+//						if (pval.getValue() == LockoutStatusType.LOCKED) {
+//							throw new SchemaException("Lockout status cannot be changed to LOCKED value");
+//						}
+//					}
+//				} else if (lockoutStatusDelta.isReplace()) {
+//					for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToReplace()) {
+//						if (pval.getValue() == LockoutStatusType.LOCKED) {
+//							throw new SchemaException("Lockout status cannot be changed to LOCKED value");
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		ActivationType activationNew = null;
+//		ActivationType activationCurrent = null;
+//
+//		LockoutStatusType lockoutStatusNew = null;
+//		LockoutStatusType lockoutStatusCurrent = null;
+//
+//		PrismObject<UserType> focusNew = focusContext.getObjectNew();
+//		if (focusNew != null) {
+//			activationNew = focusNew.asObjectable().getActivation();
+//			if (activationNew != null) {
+//				lockoutStatusNew = activationNew.getLockoutStatus();
+//			}
+//		}
+//
+//		PrismObject<UserType> focusCurrent = focusContext.getObjectCurrent();
+//		if (focusCurrent != null) {
+//			activationCurrent = focusCurrent.asObjectable().getActivation();
+//			if (activationCurrent != null) {
+//				lockoutStatusCurrent = activationCurrent.getLockoutStatus();
+//			}
+//		}
+//
+//		if (lockoutStatusNew == lockoutStatusCurrent) {
+//			// No change, (almost) no work
+//			LOGGER.trace("Skipping lockout processing because there was no change ({} -> {})", lockoutStatusCurrent, lockoutStatusNew);
+//			return;
+//		}
+//
+//		LOGGER.trace("Lockout change {} -> {}", lockoutStatusCurrent, lockoutStatusNew);
+//
+//		if (lockoutStatusNew == LockoutStatusType.NORMAL) {
+//
+//			CredentialsType credentialsTypeNew = focusNew.asObjectable().getCredentials();
+//			if (credentialsTypeNew != null) {
+//				resetFailedLogins(focusContext, credentialsTypeNew.getPassword(), SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
+//				resetFailedLogins(focusContext, credentialsTypeNew.getNonce(), SchemaConstants.PATH_CREDENTIALS_NONCE_FAILED_LOGINS);
+//				resetFailedLogins(focusContext, credentialsTypeNew.getSecurityQuestions(), SchemaConstants.PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS);
+//			}
+//
+//			if (activationNew != null && activationNew.getLockoutExpirationTimestamp() != null) {
+//				PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
+//				PrismPropertyDefinition<XMLGregorianCalendar> lockoutExpirationTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
+//				PropertyDelta<XMLGregorianCalendar> lockoutExpirationTimestampDelta
+//						= lockoutExpirationTimestampDef.createEmptyDelta(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP));
+//				lockoutExpirationTimestampDelta.setValueToReplace();
+//				focusContext.swallowToProjectionWaveSecondaryDelta(lockoutExpirationTimestampDelta);
+//			}
+//		}
+//
+//	}
+//
+//	private void resetFailedLogins(LensFocusContext<UserType> focusContext, AbstractCredentialType credentialTypeNew, ItemPath path) throws SchemaException{
+//		if (credentialTypeNew != null) {
+//			Integer failedLogins = credentialTypeNew.getFailedLogins();
+//			if (failedLogins != null && failedLogins != 0) {
+//				PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
+//				PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
+//				failedLoginsDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(0, OriginType.USER_POLICY, null));
+//				focusContext.swallowToProjectionWaveSecondaryDelta(failedLoginsDelta);
+//			}
+//		}
+//	}
+//
+//	private <F extends ObjectType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
+//			XMLGregorianCalendar now) throws SchemaException {
+//		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
+//
+//		PrismPropertyDefinition<TimeIntervalStatusType> validityStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_STATUS);
+//		PropertyDelta<TimeIntervalStatusType> validityStatusDelta
+//				= validityStatusDef.createEmptyDelta(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS));
+//		if (validityStatusNew == null) {
+//			validityStatusDelta.setValueToReplace();
+//		} else {
+//			validityStatusDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(validityStatusNew, OriginType.USER_POLICY, null));
+//		}
+//		focusContext.swallowToProjectionWaveSecondaryDelta(validityStatusDelta);
+//
+//		PrismPropertyDefinition<XMLGregorianCalendar> validityChangeTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP);
+//		PropertyDelta<XMLGregorianCalendar> validityChangeTimestampDelta
+//				= validityChangeTimestampDef.createEmptyDelta(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP));
+//		validityChangeTimestampDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(now, OriginType.USER_POLICY, null));
+//		focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
+//	}
+//
+//	private <F extends ObjectType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext,
+//			ActivationStatusType effectiveStatusNew, XMLGregorianCalendar now)
+//			throws SchemaException {
+//		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
+//
+//		// We always want explicit delta for effective status even if there is no real change
+//		// we want to propagate enable/disable events to all the resources, even if we are enabling
+//		// already enabled user (some resources may be disabled)
+//		// This may produce duplicate delta, but that does not matter too much. The duplicate delta
+//		// will be filtered out later.
+//		PrismPropertyDefinition<ActivationStatusType> effectiveStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_EFFECTIVE_STATUS);
+//		PropertyDelta<ActivationStatusType> effectiveStatusDelta
+//				= effectiveStatusDef.createEmptyDelta(PATH_ACTIVATION_EFFECTIVE_STATUS);
+//		effectiveStatusDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(effectiveStatusNew, OriginType.USER_POLICY, null));
+//		if (!focusContext.alreadyHasDelta(effectiveStatusDelta)){
+//			focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
+//		}
+//
+//		// It is not enough to check alreadyHasDelta(). The change may happen in previous waves
+//		// and the secondary delta may no longer be here. When it comes to disableTimestamp we even
+//		// cannot rely on natural filtering of already executed deltas as the timestamp here may
+//		// be off by several milliseconds. So explicitly check for the change here.
+//		PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+//		if (objectCurrent != null) {
+//			PrismProperty<ActivationStatusType> effectiveStatusPropCurrent = objectCurrent.findProperty(PATH_ACTIVATION_EFFECTIVE_STATUS);
+//			if (effectiveStatusPropCurrent != null && effectiveStatusNew.equals(effectiveStatusPropCurrent.getRealValue())) {
+//				LOGGER.trace("Skipping setting disableTimestamp because there was no change");
+//				return;
+//			}
+//		}
+//
+//		PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY,
+//				prismContext);
+//		if (!focusContext.alreadyHasDelta(timestampDelta)) {
+//			focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
+//		}
+//	}
+//
+//
+//	private PrismContainerDefinition<ActivationType> getActivationDefinition() {
+//		if (activationDefinition == null) {
+//			ComplexTypeDefinition focusDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinition(FocusType.COMPLEX_TYPE);
+//			activationDefinition = focusDefinition.findContainerDefinition(FocusType.F_ACTIVATION);
+//		}
+//		return activationDefinition;
+//	}
+//
+//	private PrismPropertyDefinition<Integer> getFailedLoginsDefinition() {
+//		if (failedLoginsDefinition == null) {
+//			PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+//			failedLoginsDefinition = userDef.findPropertyDefinition(SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
+//		}
+//		return failedLoginsDefinition;
+//	}
 
 	/**
 	 * Adds deltas for iteration and iterationToken to the focus if needed.
 	 */
-	private <F extends FocusType> void addIterationTokenDeltas(LensFocusContext<F> focusContext, int iteration, String iterationToken) throws SchemaException {
-		PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+	private <AH extends AssignmentHolderType> void addIterationTokenDeltas(LensFocusContext<AH> focusContext, int iteration, String iterationToken) throws SchemaException {
+		PrismObject<AH> objectCurrent = focusContext.getObjectCurrent();
 		if (objectCurrent != null) {
 			Integer iterationOld = objectCurrent.asObjectable().getIteration();
 			String iterationTokenOld = objectCurrent.asObjectable().getIterationToken();
@@ -806,7 +745,7 @@ public class FocusProcessor {
 				return;
 			}
 		}
-		PrismObjectDefinition<F> objDef = focusContext.getObjectDefinition();
+		PrismObjectDefinition<AH> objDef = focusContext.getObjectDefinition();
 
 		PrismPropertyValue<Integer> iterationVal = prismContext.itemFactory().createPropertyValue(iteration);
 		iterationVal.setOriginType(OriginType.USER_POLICY);
@@ -822,48 +761,48 @@ public class FocusProcessor {
 
 	}
 
-	private <F extends FocusType> void processAssignmentActivation(LensContext<F> context, XMLGregorianCalendar now,
-			OperationResult result) throws SchemaException {
-		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-		if (evaluatedAssignmentTriple == null) {
-			// Code path that should not normally happen. But is used in some tests and may
-			// happen during partial processing.
-			return;
-		}
-		// We care only about existing assignments here. New assignments will be taken care of in the executor
-		// (OperationalDataProcessor). And why care about deleted assignments?
-		Collection<EvaluatedAssignmentImpl<?>> zeroSet = evaluatedAssignmentTriple.getZeroSet();
-		if (zeroSet == null) {
-			return;
-		}
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		for (EvaluatedAssignmentImpl<?> evaluatedAssignment: zeroSet) {
-			if (evaluatedAssignment.isVirtual()) {
-				continue;
-			}
-			AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();
-			ActivationType currentActivationType = assignmentType.getActivation();
-			ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), currentActivationType, null);
-			if (currentActivationType == null) {
-				PrismContainerDefinition<ActivationType> activationDef = focusContext.getObjectDefinition().findContainerDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION);
-				ContainerDelta<ActivationType> activationDelta = activationDef.createEmptyDelta(
-						ItemPath.create(FocusType.F_ASSIGNMENT, assignmentType.getId(), AssignmentType.F_ACTIVATION));
-				ActivationType newActivationType = new ActivationType();
-				activationDelta.setValuesToReplace(newActivationType.asPrismContainerValue());
-				newActivationType.setEffectiveStatus(expectedEffectiveStatus);
-				focusContext.swallowToSecondaryDelta(activationDelta);
-			} else {
-				ActivationStatusType currentEffectiveStatus = currentActivationType.getEffectiveStatus();
-				if (!expectedEffectiveStatus.equals(currentEffectiveStatus)) {
-					PrismPropertyDefinition<ActivationStatusType> effectiveStatusPropertyDef = focusContext.getObjectDefinition().findPropertyDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS);
-					PropertyDelta<ActivationStatusType> effectiveStatusDelta = effectiveStatusPropertyDef.createEmptyDelta(
-							ItemPath.create(FocusType.F_ASSIGNMENT, assignmentType.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-					effectiveStatusDelta.setRealValuesToReplace(expectedEffectiveStatus);
-					focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
-				}
-			}
-		}
-	}
+//	private <F extends FocusType> void processAssignmentActivation(LensContext<F> context, XMLGregorianCalendar now,
+//			OperationResult result) throws SchemaException {
+//		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+//		if (evaluatedAssignmentTriple == null) {
+//			// Code path that should not normally happen. But is used in some tests and may
+//			// happen during partial processing.
+//			return;
+//		}
+//		// We care only about existing assignments here. New assignments will be taken care of in the executor
+//		// (OperationalDataProcessor). And why care about deleted assignments?
+//		Collection<EvaluatedAssignmentImpl<?>> zeroSet = evaluatedAssignmentTriple.getZeroSet();
+//		if (zeroSet == null) {
+//			return;
+//		}
+//		LensFocusContext<F> focusContext = context.getFocusContext();
+//		for (EvaluatedAssignmentImpl<?> evaluatedAssignment: zeroSet) {
+//			if (evaluatedAssignment.isVirtual()) {
+//				continue;
+//			}
+//			AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();
+//			ActivationType currentActivationType = assignmentType.getActivation();
+//			ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), currentActivationType, null);
+//			if (currentActivationType == null) {
+//				PrismContainerDefinition<ActivationType> activationDef = focusContext.getObjectDefinition().findContainerDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION);
+//				ContainerDelta<ActivationType> activationDelta = activationDef.createEmptyDelta(
+//						ItemPath.create(FocusType.F_ASSIGNMENT, assignmentType.getId(), AssignmentType.F_ACTIVATION));
+//				ActivationType newActivationType = new ActivationType();
+//				activationDelta.setValuesToReplace(newActivationType.asPrismContainerValue());
+//				newActivationType.setEffectiveStatus(expectedEffectiveStatus);
+//				focusContext.swallowToSecondaryDelta(activationDelta);
+//			} else {
+//				ActivationStatusType currentEffectiveStatus = currentActivationType.getEffectiveStatus();
+//				if (!expectedEffectiveStatus.equals(currentEffectiveStatus)) {
+//					PrismPropertyDefinition<ActivationStatusType> effectiveStatusPropertyDef = focusContext.getObjectDefinition().findPropertyDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS);
+//					PropertyDelta<ActivationStatusType> effectiveStatusDelta = effectiveStatusPropertyDef.createEmptyDelta(
+//							ItemPath.create(FocusType.F_ASSIGNMENT, assignmentType.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+//					effectiveStatusDelta.setRealValuesToReplace(expectedEffectiveStatus);
+//					focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
+//				}
+//			}
+//		}
+//	}
 
 
 }

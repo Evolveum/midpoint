@@ -26,7 +26,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleStopExecutor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -157,6 +157,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		Stage stage = getStage(handlerUri);
 		LOGGER.trace("ReconciliationTaskHandler.run starting (stage: {})", stage);
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
+		
+		LOGGER.info("Recon task: {}", localCoordinatorTask.getTaskPrismObject().debugDump());
 
 		if (BooleanUtils.isTrue(localCoordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY))) {
 			if (stage == Stage.ALL) {
@@ -487,7 +489,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			boolean canContinue = performResourceReconciliationInternal(resource, objectclassDef, ModelImplUtils.isSimulateRun(localCoordinatorTask), 
 					reconResult, localCoordinatorTask, workBucket, result);
 			
-			if (canContinue && result.isSuccess()) {
+			if (canContinue) {
 				canContinue = performResourceReconciliationInternal(resource, objectclassDef, false, 
 						reconResult, localCoordinatorTask, workBucket, result);
 			}

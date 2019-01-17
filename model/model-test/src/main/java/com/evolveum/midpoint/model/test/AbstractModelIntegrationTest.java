@@ -2344,7 +2344,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		display(message, sb.toString());
 	}
 
-	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
+	protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedNumber);
 	}
 
@@ -2352,11 +2352,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertInducements(role, expectedNumber);
 	}
 
-	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
+	protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedType, expectedNumber);
 	}
 
-	protected <F extends FocusType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
+	protected <F extends AssignmentHolderType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		MidPointAsserts.assertAssigned(user, targetOid, refType);
 	}
 

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.caching.AbstractCache;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -43,19 +44,19 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author semancik
  *
  */
-public class FocusConstraintsChecker<F extends FocusType> {
+public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 
 	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusConstraintsChecker.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-	private LensContext<F> context;
+	private LensContext<AH> context;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
-	private PrismObject<F> conflictingObject;
+	private PrismObject<AH> conflictingObject;
 
 	public FocusConstraintsChecker() {
 	}
@@ -68,11 +69,11 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		this.prismContext = prismContext;
 	}
 
-	public LensContext<F> getContext() {
+	public LensContext<AH> getContext() {
 		return context;
 	}
 
-	public void setContext(LensContext<F> context) {
+	public void setContext(LensContext<AH> context) {
 		this.context = context;
 	}
 
@@ -92,10 +93,10 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		return messageBuilder.toString();
 	}
 
-	public PrismObject<F> getConflictingObject() {
+	public PrismObject<AH> getConflictingObject() {
 		return conflictingObject;
 	}
-	public void check(PrismObject<F> objectNew, OperationResult result) throws SchemaException {
+	public void check(PrismObject<AH> objectNew, OperationResult result) throws SchemaException {
 
 		if (objectNew == null) {
 			// This must be delete
@@ -116,7 +117,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		}
 	}
 
-	private <T> boolean checkPropertyUniqueness(PrismObject<F> objectNew, ItemPath propPath, LensContext<F> context, OperationResult result) throws SchemaException {
+	private <T> boolean checkPropertyUniqueness(PrismObject<AH> objectNew, ItemPath propPath, LensContext<AH> context, OperationResult result) throws SchemaException {
 
 		PrismProperty<T> property = objectNew.findProperty(propPath);
 		if (property == null || property.isEmpty()) {
@@ -128,7 +129,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 				.itemAs(property)
 				.build();
 
-		List<PrismObject<F>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
+		List<PrismObject<AH>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {}, property {} resulted in {} results, using query:\n{}",
 					objectNew, propPath, foundObjects.size(), query.debugDump());

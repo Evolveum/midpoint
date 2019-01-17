@@ -63,7 +63,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptExecutor;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleStopExecutor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -165,7 +165,7 @@ public class Clockwork {
 	@Autowired private Migrator migrator;
 	@Autowired private ClockworkMedic medic;
 	@Autowired private PolicyRuleScriptExecutor policyRuleScriptExecutor;
-	@Autowired private PolicyRuleStopExecutor policyRuleStopExecutor;
+	@Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
 	@Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
 	
 	@Autowired(required = false)
@@ -258,7 +258,7 @@ public class Clockwork {
 				}
 			}
 
-			policyRuleStopExecutor.execute(context, task, result);
+			policyRuleSuspendTaskExecutor.execute(context, task, result);
 			
 		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
 				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
@@ -682,11 +682,11 @@ public class Clockwork {
 		switchState(context, ModelState.PRIMARY);
 	}
 
-	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException {
+	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException, ObjectNotFoundException, SchemaException {
 		// Nothing to do now. The context is already recomputed.
 		switchState(context, ModelState.SECONDARY);
 		
-		policyRuleStopExecutor.execute(context, task, result);
+		policyRuleSuspendTaskExecutor.execute(context, task, result);
 		
 	}
 

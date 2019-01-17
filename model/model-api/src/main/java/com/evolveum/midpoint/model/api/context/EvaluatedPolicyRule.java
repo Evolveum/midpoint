@@ -52,6 +52,8 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 	PolicyRuleType getPolicyRule();
 
 	PolicyConstraintsType getPolicyConstraints();
+	
+	PolicyThresholdType getPolicyThreshold();
 
 	// returns statically defined actions; consider using getEnabledActions() instead
 	PolicyActionsType getActions();

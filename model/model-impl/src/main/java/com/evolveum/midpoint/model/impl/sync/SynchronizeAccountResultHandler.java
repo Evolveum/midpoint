@@ -203,6 +203,8 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		ModelImplUtils.clearRequestee(workerTask);
 		objectChangeListener.notifyChange(change, workerTask, result);
 		
+		LOGGER.info("#### notify chnage finished.");
+		
 		// No exception thrown here. The error is indicated in the result. Will be processed by superclass.
 		return workerTask.canRun();
 	}

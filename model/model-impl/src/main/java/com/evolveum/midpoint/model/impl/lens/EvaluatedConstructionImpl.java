@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -38,7 +39,7 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     final private boolean directlyAssigned;
     final private boolean weak;
 
-	public <F extends FocusType> EvaluatedConstructionImpl(Construction<F> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         resource = construction.getResource(task, result).asPrismObject();
         kind = construction.getKind();
         intent = construction.getIntent();

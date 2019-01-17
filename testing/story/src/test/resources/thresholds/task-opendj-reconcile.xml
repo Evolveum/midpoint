@@ -34,6 +34,12 @@
         <syncext:simulateBeforeExecute>true</syncext:simulateBeforeExecute>
 	</extension>
 	
+	<stage>
+		<errorCriticality>
+			<policy>fatal</policy>
+		</errorCriticality>
+	</stage>
+	
 	<taskIdentifier>10335c7c-838f-11e8-93a6-4b1dd0ab58e4</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
@@ -45,8 +51,8 @@
 		<interval>3</interval>
 	</schedule>
 	
-	<assignment>
-		<targetRef oid="00000000-role-0000-0000-999111111112" type="RoleType"/>
-	</assignment>
+<!-- 	<assignment> -->
+<!-- 		<targetRef oid="00000000-role-0000-0000-999111111112" type="RoleType"/> -->
+<!-- 	</assignment> -->
 
 </task>

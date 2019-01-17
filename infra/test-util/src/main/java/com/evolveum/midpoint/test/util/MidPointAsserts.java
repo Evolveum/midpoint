@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -51,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class MidPointAsserts {
 
-	public static <F extends FocusType> AssignmentType assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
+	public static <F extends AssignmentHolderType> AssignmentType assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		F userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
@@ -113,7 +114,7 @@ public class MidPointAsserts {
 		}
 	}
 
-	public static <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
+	public static <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		F userType = user.asObjectable();
 		assertEquals("Unexepected number of assignments in "+user+": "+userType.getAssignment(), expectedNumber, userType.getAssignment().size());
 	}
@@ -124,7 +125,7 @@ public class MidPointAsserts {
 				expectedNumber, roleType.getInducement().size());
 	}
 
-	public static <F extends FocusType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
+	public static <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
 		F userType = user.asObjectable();
 		int actualAssignments = 0;
 		List<AssignmentType> assignments = userType.getAssignment();

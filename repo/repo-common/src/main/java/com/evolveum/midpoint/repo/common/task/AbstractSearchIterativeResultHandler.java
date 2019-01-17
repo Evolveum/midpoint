@@ -34,7 +34,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +79,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private volatile boolean allItemsSubmitted = false;
 
 	private List<OperationResult> workerSpecificResults;
+	
+	private TaskStageType stageType;
 
 	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
 			String contextDesc, TaskManager taskManager) {
@@ -86,6 +90,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.processShortName = processShortName;
 		this.contextDesc = contextDesc;
 		this.taskManager = taskManager;
+		
+		this.stageType = coordinatorTask.getTaskType().getStage();
+		
 		stopOnError = true;
 		startTime = System.currentTimeMillis();
 	}
@@ -324,6 +331,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			// The meat
 			cont = handleObject(object, workerTask, result);
 
+			LOGGER.info("###Recon result: {}", result.getStatus());
+			LOGGER.info("###Recon result dump: {}", result.debugDump());
+			
 			// We do not want to override the result set by handler. This is just a fallback case
 			if (result.isUnknown() || result.isInProgress()) {
 				result.computeStatus();
@@ -335,7 +345,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
 							null /* TODO */, object.getOid(), startTime, getException(result));
 				}
-				cont = processError(object, null, result);
+				
+				cont = processError(object, result.getCause(), result);
 			} else {
 				if (isRecordIterationStatistics()) {
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
@@ -429,9 +440,27 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
 		}
 		result.summarize();
-		return !isStopOnError();
+		LOGGER.info("stop on error return: {}", !isStopOnError(ex));
+		return !isStopOnError(ex);
+//		return !isStopOnError();
 	}
 
+	private boolean isStopOnError(Throwable ex) {
+		if (stageType == null) {
+			return stopOnError;
+		}
+		
+		if (stageType.getErrorCriticality() == null) {
+			return stopOnError;
+		}
+		
+		if (stageType.getErrorCriticality().getPolicy() == null) {
+			return stopOnError;
+		}
+		
+		return stageType.getErrorCriticality().getPolicy() == CriticalityType.FATAL;
+	}
+	
 	public long heartbeat() {
 		// If we exist then we run. So just return the progress count.
 		return getProgress();

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathImpl;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -42,7 +43,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.asserter.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -74,6 +77,8 @@ public class TestThresholds extends AbstractStoryTest {
 
 	private PrismObject<ResourceType> resourceOpenDj;
 	
+	private RelationRegistry relationRegistry;
+	
 	private static int defaultLdapUsers = 3;
 	
 	@Override
@@ -96,20 +101,41 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		repoAddObjectFromFile(ROLE_POLICY_RULE_CREATE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_POLICY_RULE_CHANGE_ACTIVATION_FILE, initResult);
+		
+		repoAddObjectFromFile(TASK_RECONCILE_OPENDJ_FILE, initResult);
 
 	}
 	
 	@Test
-	public void test100startReconSimulateTask() throws Exception {
-		final String TEST_NAME = "test100startReconSimulateTask";
+	public void test100assignPolicyRuleCreateToTask() throws Exception {
+		final String TEST_NAME = "test100assignPolicyRuleCreateToTask";
+		displayTestTitle(TEST_NAME);
+
+		// WHEN
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		assignRole(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CREATE_OID, task, result);
+		
+		//THEN
+		PrismObject<TaskType> taskAfter = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);
+		display("Task after:", taskAfter);
+		assertAssignments(taskAfter, 1);
+		assertAssigned(taskAfter, ROLE_POLICY_RULE_CREATE_OID, RoleType.COMPLEX_TYPE);
+		
+	}
+	
+	@Test
+	public void test101startReconSimulateTask() throws Exception {
+		final String TEST_NAME = "test101startReconSimulateTask";
 		displayTestTitle(TEST_NAME);
 		
 		assertUsers(getNumberOfUsers());
 		
 		// WHEN
         displayWhen(TEST_NAME);
+        PrismObject<TaskType> taskBefore = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);
+		display("Task before:", taskBefore);
         
-        importObjectFromFile(TASK_RECONCILE_OPENDJ_FILE);
         
         // THEN
 		displayThen(TEST_NAME);
@@ -125,10 +151,6 @@ public class TestThresholds extends AbstractStoryTest {
 		final String TEST_NAME = "test110importAccountsSimulate";
 		displayTestTitle(TEST_NAME);
 		
-		//GIVEN
-		Task task = taskManager.createTaskInstance(TEST_NAME);
-		OperationResult result = task.getResult();
-		assignRole(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CREATE_OID, task, result);
 		
 		openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_FILE);
 		
@@ -210,7 +232,7 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		//WHEN
 		displayWhen(TEST_NAME);
-		OperationResult reconResult = waitForTaskNextRun(TASK_RECONCILE_OPENDJ_OID, false, 10000, true);
+		OperationResult reconResult = waitForTaskNextRun(TASK_RECONCILE_OPENDJ_OID, false, 20000, true);
 		assertFailure(reconResult);
 		
 		//THEN
