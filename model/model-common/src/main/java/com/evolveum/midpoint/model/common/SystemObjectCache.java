@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.common;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -124,5 +125,10 @@ public class SystemObjectCache {
 	public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		// TODO: make this efficient (use cache)
 		return cacheRepositoryService.getObject(ArchetypeType.class, oid, null, result);
+	}
+
+	public SearchResultList<PrismObject<ArchetypeType>> getAllArchetypes(OperationResult result) throws SchemaException {
+		// TODO: make this efficient (use cache)
+		return cacheRepositoryService.searchObjects(ArchetypeType.class, null, null, result);
 	}
 }

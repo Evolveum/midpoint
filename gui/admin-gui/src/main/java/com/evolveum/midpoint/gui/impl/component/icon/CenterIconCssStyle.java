@@ -19,14 +19,26 @@ package com.evolveum.midpoint.gui.impl.component.icon;
 /**
  * @author skublik
  */
-public interface IconCssStyle {
-	
-	public static final BottomLeftIconCssStyle BOTTOM_LEFT_STYLE = new BottomLeftIconCssStyle();
-	public static final BottomRightIconCssStyle BOTTOM_RIGHT_STYLE = new BottomRightIconCssStyle();
-	public static final CenterIconCssStyle CENTER_STYLE = new CenterIconCssStyle();
-	public static final InRowIconCssStyle IN_ROW_STYLE = new InRowIconCssStyle();
+public class CenterIconCssStyle implements LayeredIconCssStyle {
 
-	public String getBasicCssClass();
-	
-	public String getLayerCssClass();
+	@Override
+	public String getBasicCssClass() {
+		return "icon-basic-transparent";
+	}
+
+	@Override
+	public String getBasicLayerCssClass() {
+		return "icon-basic-layer";
+	}
+
+	@Override
+	public String getLayerCssClass() {
+		return "center-layer";
+	}
+
+	@Override
+	public String getStrokeLayerCssClass() {
+		return "center-icon-stroke-layer";
+	}
+
 }

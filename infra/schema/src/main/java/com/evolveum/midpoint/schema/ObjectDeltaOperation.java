@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author Radovan Semancik
@@ -155,6 +156,24 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 			clonedCollection.add(clonedDeltaOp);
 		}
 		return clonedCollection;
+	}
+	
+	public static ObjectDeltaOperation<? extends ObjectType> findFocusDeltaInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
+		for (ObjectDeltaOperation<? extends ObjectType> odo : odos) {
+			Class<? extends ObjectType> objectTypeClass = odo.getObjectDelta().getObjectTypeClass();
+			if (!ShadowType.class.equals(objectTypeClass)) {
+				return odo;
+			}
+		}
+		return null;
+	}
+	
+	public static String findFocusDeltaOidInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
+		ObjectDeltaOperation<? extends ObjectType> odo = findFocusDeltaInCollection(odos);
+		if (odo == null) {
+			return null;
+		}
+		return odo.getObjectDelta().getOid();
 	}
 
 	@Override

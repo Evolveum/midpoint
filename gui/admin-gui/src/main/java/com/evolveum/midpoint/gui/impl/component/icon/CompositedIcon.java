@@ -27,7 +27,9 @@ import org.apache.commons.lang.Validate;
 /**
  * @author skublik
  */
-public class CompositedIcon implements Serializable{
+public class CompositedIcon implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 	
 	private String basicIcon;
 	private List<String> layerIcons;

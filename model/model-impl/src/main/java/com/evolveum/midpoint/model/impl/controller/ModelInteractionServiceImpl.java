@@ -55,6 +55,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
+import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -109,6 +110,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -1699,19 +1701,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <O extends ObjectType> ArchetypeInteractionSpecification getInteractionSpecification(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-		if (object == null) {
+	public <O extends AssignmentHolderType> ArchetypeInteractionSpecification getInteractionSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+		if (assignmentHolder == null) {
 			return null;
 		}
-		if (!object.canRepresent(AssignmentHolderType.class)) {
-			return getArchetypePolicyLegacy(object, result);
+		if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
+			return getArchetypePolicyLegacy(assignmentHolder, result);
 		}
-		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object.asObjectable()).getArchetypeRef();
+		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)assignmentHolder.asObjectable()).getArchetypeRef();
 		if (archetypeRefs == null || archetypeRefs.isEmpty()) {
-			return getArchetypePolicyLegacy(object, result);
+			return getArchetypePolicyLegacy(assignmentHolder, result);
 		}
 		if (archetypeRefs.size() > 1) {
-			throw new SchemaException("Only a single archetype for an object is supported: "+object);
+			throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
 		}
 		ObjectReferenceType archetypeRef = archetypeRefs.get(0);
 
@@ -1719,13 +1721,81 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		try {
 			archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
 		} catch (ObjectNotFoundException e) {
-			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), object);
-			return getArchetypePolicyLegacy(object, result);
+			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
+			return getArchetypePolicyLegacy(assignmentHolder, result);
 		}
 		ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
 		ArchetypeInteractionSpecification archetypeSpec = new ArchetypeInteractionSpecification();
 		archetypeSpec.setArchetypePolicy(archetypePolicy);
+		
+		determineAssignmentTargetRelation(archetypeSpec, assignmentHolder, result);
+		
 		return archetypeSpec;
+	}
+
+	private <O extends AssignmentHolderType> void determineAssignmentTargetRelation(ArchetypeInteractionSpecification archetypeSpec, PrismObject<O> object, OperationResult result) throws SchemaException {
+		SearchResultList<PrismObject<ArchetypeType>> archetypes = systemObjectCache.getAllArchetypes(result);
+		List<AssignmentTargetRelation> assignmentTargetRelations = new ArrayList<>();
+		for (PrismObject<ArchetypeType> archetype : archetypes) {
+			List<QName> archetypeFocusTypes = null;
+			for (AssignmentType inducement : archetype.asObjectable().getInducement()) {
+				for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
+					if (canBeAssignmentHolder(assignmentRelation, object)) {
+						if (archetypeFocusTypes == null) {
+							archetypeFocusTypes = determineArchetypeFocusTypes(archetype);
+						}
+						AssignmentTargetRelation targetRelation = new AssignmentTargetRelation();
+						targetRelation.addTargetTypes(archetypeFocusTypes);
+						targetRelation.addArchetypeRef(archetype);
+						targetRelation.addRelations(assignmentRelation.getRelation());
+					}
+				}
+			}
+		}
+		// TODO: empty list vs null: default setting
+		archetypeSpec.setAssignmentTargetRelations(assignmentTargetRelations);
+	}
+
+	private List<QName> determineArchetypeFocusTypes(PrismObject<ArchetypeType> archetype) {
+		List<QName> focusTypes = new ArrayList<>();
+		for (AssignmentType assignment : archetype.asObjectable().getAssignment()) {
+			for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
+				focusTypes.addAll(assignmentRelation.getHolderType());
+			}
+		}
+		if (focusTypes.isEmpty()) {
+			focusTypes.add(AssignmentHolderType.COMPLEX_TYPE);
+		}
+		return focusTypes;
+	}
+	
+	private <O extends AssignmentHolderType> boolean canBeAssignmentHolder(AssignmentRelationType assignmentRelation, PrismObject<O> holder) {
+		return isHolderType(assignmentRelation.getHolderType(), holder) && isHolderArchetype(assignmentRelation.getHolderArchetypeRef(), holder);
+	}
+
+	private <O extends AssignmentHolderType> boolean isHolderType(List<QName> requiredHolderTypes, PrismObject<O> holder) {
+		if (requiredHolderTypes.isEmpty()) {
+			return true;
+		}
+		for (QName requiredHolderType : requiredHolderTypes) {
+			if (MiscSchemaUtil.canBeAssignedFrom(requiredHolderType, holder.getCompileTimeClass())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private <O extends AssignmentHolderType> boolean isHolderArchetype(List<ObjectReferenceType> requiredHolderArchetypeRefs, PrismObject<O> holder) {
+		if (requiredHolderArchetypeRefs.isEmpty()) {
+			return true;
+		}
+		List<ObjectReferenceType> presentHolderArchetypeRefs = holder.asObjectable().getArchetypeRef();
+		for (ObjectReferenceType requiredHolderArchetypeRef : requiredHolderArchetypeRefs) {
+			if (MiscSchemaUtil.contains(presentHolderArchetypeRefs, requiredHolderArchetypeRef)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private <O extends ObjectType> ArchetypeInteractionSpecification getArchetypePolicyLegacy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
