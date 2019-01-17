@@ -346,8 +346,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Preview context", modelContext);
 		checker.check(modelContext);
 
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 	}
 
 	private void doPreviewFail(Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
