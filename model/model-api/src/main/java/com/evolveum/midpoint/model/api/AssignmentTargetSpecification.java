@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,12 @@ public class AssignmentTargetSpecification implements DebugDumpable, Serializabl
 	private boolean supportGenericAssignment;
 	private List<AssignmentTargetRelation> assignmentTargetRelations;
 
+	/**
+	 * If set to true then the holder object can support "generic" assignment.
+	 * This means that any object type can be assigned (constrained by authorizations).
+	 * This usually means that GUI should render "add assignment" button that is not
+	 * constrained to specific target type or archetype.
+	 */
 	public boolean isSupportGenericAssignment() {
 		return supportGenericAssignment;
 	}
@@ -50,7 +56,7 @@ public class AssignmentTargetSpecification implements DebugDumpable, Serializabl
 	 * If empty list is returned that means no assignments are allowed.
 	 * I.e. there is no valid combination of target type and relation that could
 	 * be applied. However, generic assignments may still be allowed.
-	 * See supportGenericAssignment. 
+	 * See supportGenericAssignment.
 	 */
 	public List<AssignmentTargetRelation> getAssignmentTargetRelations() {
 		return assignmentTargetRelations;
