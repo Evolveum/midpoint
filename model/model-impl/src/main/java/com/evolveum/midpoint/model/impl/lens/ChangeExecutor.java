@@ -1353,7 +1353,9 @@ public class ChangeExecutor {
 							"Repository addObject returned null OID while adding " + objectToAdd);
 				}
 			}
-			change.setOid(oid);
+			if (!change.isImmutable()) {
+				change.setOid(oid);
+			}
 			objectToAdd.setOid(oid);
 			task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), oid,
 					ChangeType.ADD, context.getChannel(), null);

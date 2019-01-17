@@ -953,7 +953,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             // This is either UNLINK or null, both are in fact the same as KEEP
         	// Any delta is OK
         }
-		return origDelta;
+		if (origDelta != null && origDelta.isImmutable()) {
+			// E.g. locked primary delta.
+			// We need modifiable delta for execution, e.g. to set metadata, oid and so on.
+			return origDelta.clone();
+		} else {
+			return origDelta;
+		}
 	}
 
 	public void checkConsistence() {

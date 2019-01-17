@@ -15,14 +15,18 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -60,12 +64,30 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 		this.targetTypes = targetTypes;
 	}
 	
+	public void addTargetTypes(List<QName> newTargetTypes) {
+		if (newTargetTypes == null) {
+			return;
+		}
+		if (this.targetTypes == null) {
+			this.targetTypes = new ArrayList<>();
+		}
+		this.targetTypes.addAll(newTargetTypes);
+	}
+	
 	public List<ObjectReferenceType> getArchetypeRefs() {
 		return archetypeRefs;
 	}
 
 	public void setArchetypeRefs(List<ObjectReferenceType> archetypeRefs) {
 		this.archetypeRefs = archetypeRefs;
+	}
+	
+	public void addArchetypeRef(PrismObject<ArchetypeType> archetype) {
+		if (archetypeRefs == null) {
+			archetypeRefs = new ArrayList<>();
+		}
+		ObjectReferenceType ref = MiscSchemaUtil.createObjectReference(archetype, ArchetypeType.class);
+		archetypeRefs.add(ref);
 	}
 
 	public List<QName> getRelations() {
@@ -74,6 +96,16 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 	
 	public void setRelations(List<QName> relations) {
 		this.relations = relations;
+	}
+	
+	public void addRelations(List<QName> newRelations) {
+		if (newRelations == null) {
+			return;
+		}
+		if (this.relations == null) {
+			this.relations = new ArrayList<>();
+		}
+		this.relations.addAll(newRelations);
 	}
 
 	@Override

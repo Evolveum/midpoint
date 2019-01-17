@@ -3048,9 +3048,12 @@ public final class WebComponentUtil {
 		}
 		String objectName = object.asObjectable().getName() != null ? object.asObjectable().getName().getOrig() : "Unknown";
 		OperationResult result = new OperationResult("loadArchetypeSpecificationFor" + objectName);
+		if (!object.canRepresent(AssignmentHolderType.class)) {
+			return null;
+		}
 		ArchetypeInteractionSpecification spec = null;
 		try {
-			spec = locator.getModelInteractionService().getInteractionSpecification(object, result);
+			spec = locator.getModelInteractionService().getInteractionSpecification((PrismObject<? extends AssignmentHolderType>) object, result);
 		} catch (SchemaException | ConfigurationException ex){
 			result.recordPartialError(ex.getLocalizedMessage());
 			LOGGER.error("Cannot load ArchetypeInteractionSpecification for object ", object, ex.getLocalizedMessage());

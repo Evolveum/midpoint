@@ -382,6 +382,6 @@ public interface ModelInteractionService {
 	 * 
 	 * This method is supposed to be very efficient, it should be using caching as much as possible.
 	 */
-	<O extends ObjectType> ArchetypeInteractionSpecification getInteractionSpecification(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException;
+	<O extends AssignmentHolderType> ArchetypeInteractionSpecification getInteractionSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
 	
 }
