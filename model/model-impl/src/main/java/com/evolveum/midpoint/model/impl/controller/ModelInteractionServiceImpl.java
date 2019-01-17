@@ -54,8 +54,8 @@ import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
 import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
+import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -1701,7 +1701,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <O extends AssignmentHolderType> ArchetypeInteractionSpecification getInteractionSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+	public <O extends AssignmentHolderType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
 		if (assignmentHolder == null) {
 			return null;
 		}
@@ -1724,16 +1724,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
 			return getArchetypePolicyLegacy(assignmentHolder, result);
 		}
-		ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
-		ArchetypeInteractionSpecification archetypeSpec = new ArchetypeInteractionSpecification();
-		archetypeSpec.setArchetypePolicy(archetypePolicy);
-		
-		determineAssignmentTargetRelation(archetypeSpec, assignmentHolder, result);
-		
-		return archetypeSpec;
+		return archetype.asObjectable().getArchetypePolicy();
 	}
 
-	private <O extends AssignmentHolderType> void determineAssignmentTargetRelation(ArchetypeInteractionSpecification archetypeSpec, PrismObject<O> object, OperationResult result) throws SchemaException {
+	@Override
+	public <O extends AssignmentHolderType> AssignmentTargetSpecification determineAssignmentTargetSpecification(PrismObject<O> object, OperationResult result) throws SchemaException {
 		SearchResultList<PrismObject<ArchetypeType>> archetypes = systemObjectCache.getAllArchetypes(result);
 		List<AssignmentTargetRelation> assignmentTargetRelations = new ArrayList<>();
 		for (PrismObject<ArchetypeType> archetype : archetypes) {
@@ -1748,12 +1743,17 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 						targetRelation.addTargetTypes(archetypeFocusTypes);
 						targetRelation.addArchetypeRef(archetype);
 						targetRelation.addRelations(assignmentRelation.getRelation());
+						targetRelation.setDescription(assignmentRelation.getDescription());
+						assignmentTargetRelations.add(targetRelation);
 					}
 				}
 			}
 		}
+		
+		AssignmentTargetSpecification spec = new AssignmentTargetSpecification();
+		spec.setAssignmentTargetRelations(assignmentTargetRelations);
 		// TODO: empty list vs null: default setting
-		archetypeSpec.setAssignmentTargetRelations(assignmentTargetRelations);
+		return spec;
 	}
 
 	private List<QName> determineArchetypeFocusTypes(PrismObject<ArchetypeType> archetype) {
@@ -1798,7 +1798,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		return false;
 	}
 
-	private <O extends ObjectType> ArchetypeInteractionSpecification getArchetypePolicyLegacy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+	private <O extends ObjectType> ArchetypePolicyType getArchetypePolicyLegacy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
 		SystemConfigurationType systemConfiguration;
 		try {
 			systemConfiguration = getSystemConfiguration(result);
@@ -1810,9 +1810,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (objectPolicyConfiguration == null) {
 			return null;
 		}
-		ArchetypeInteractionSpecification archetypeSpec = new ArchetypeInteractionSpecification();
-		archetypeSpec.setArchetypePolicy(objectPolicyConfiguration);
-		return archetypeSpec;
+		return objectPolicyConfiguration;
 	}
 
 }

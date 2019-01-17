@@ -5109,6 +5109,13 @@
             </xsd:appinfo>
         </xsd:annotation>
        	<xsd:sequence>
+       		<xsd:element name="description" type="xsd:string" minOccurs="0">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					Free-form description (comment)
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
        		<xsd:element name="holderType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
 	   			<xsd:annotation>
     				<xsd:documentation>

@@ -522,10 +522,16 @@ public class IntegrationTestTools {
 	}
 
 	public static void display(String title, Containerable value) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump()));
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
-				+ SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump()));
+		
+		if (value == null) {
+			System.out.println(OBJECT_TITLE_OUT_PREFIX + title + ": null");
+			LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + ": null");
+		} else {
+			System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+			System.out.println(SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump()));
+			LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+					+ SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump(1)));
+		}
 	}
 
 	public static void display(String title, Throwable e) {
