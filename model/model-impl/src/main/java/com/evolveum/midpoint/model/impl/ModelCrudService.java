@@ -46,6 +46,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -279,10 +280,10 @@ public class ModelCrudService {
 
 			ObjectDelta<T> objectDelta = DeltaFactory.Object.createAddDelta(object);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelService.executeChanges(deltas, options, task, result);
 
-			oid = objectDelta.getOid();
+			Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = modelService.executeChanges(deltas, options, task, result);
 
+			oid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, object);
 			result.computeStatus();
 			result.cleanupResult();
 
