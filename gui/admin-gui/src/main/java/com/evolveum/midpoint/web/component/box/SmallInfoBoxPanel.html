@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,20 +17,19 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<div class="col-md-4 col-sm-12 col-xs-12">
-		<div class="info-box" wicket:id="infoBox">
-			<span class="info-box-icon " wicket:id="infoBoxIcon">
-				<i class="fa "wicket:id="imageId"></i>
-			</span>
-
-			<div class="info-box-content">
-				<span class="info-box-text" wicket:id="message"/>
-				<span class="info-box-number" wicket:id="number"/>
-				<div class="progress" wicket:id="progress">
-					<div style="width:100%;height:100%" wicket:id="progressBar"/>
-				</div>
-				<span class="progress-description" wicket:id="description"/>
+	<div class="col-lg-3 col-xs-6">
+		<div class="small-box" wicket:id="infoBox">
+			<div class="inner">
+				<h3 wicket:id="number"/>
+				<p wicket:id="message"/>
 			</div>
+			<div class="icon" wicket:id="infoBoxIcon">
+				<i wicket:id="imageId"></i>
+			</div>
+			<div class="small-box-footer" wicket:id="moreInfoBox">
+				<div wicket:id="moreInfoBoxLabel"/>
+              	<i class="fa fa-arrow-circle-right" wicket:id="moreInfoBoxIcon"/>
+            </div>
 		</div>
 	</div>
 </wicket:panel>

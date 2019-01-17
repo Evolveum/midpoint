@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,22 @@
 package com.evolveum.midpoint.repo.sql.helpers.mapper;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class EmbeddedObjectReferenceMapper extends ReferenceMapper<REmbeddedReference> {
+public abstract class ReferenceMapper<T> implements Mapper<Referencable, T> {
 
-    @Override
-    public REmbeddedReference map(Referencable input, MapperContext context) {
-        ObjectReferenceType objectRef = buildReference(input);
+    protected ObjectReferenceType buildReference(Referencable input) {
+        ObjectReferenceType objectRef;
+        if (input instanceof ObjectReferenceType) {
+            objectRef = (ObjectReferenceType) input;
+        } else {
+            objectRef = new ObjectReferenceType();
+            objectRef.setupReferenceValue(input.asReferenceValue());
+        }
 
-        ObjectTypeUtil.normalizeRelation(objectRef, context.getRelationRegistry());
-
-        REmbeddedReference rref = new REmbeddedReference();
-        REmbeddedReference.fromJaxb(objectRef, rref, context.getRelationRegistry());
-
-        return rref;
+        return objectRef;
     }
 }
-

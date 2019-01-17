@@ -16,14 +16,26 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,12 +43,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxType;
+import com.evolveum.midpoint.web.component.box.SmallInfoBoxPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
+import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -47,42 +63,21 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 /**
  * @author lazyman
  */
-@PageDescriptor(
-		urls = {
-				@Url(mountUrl = "/admin", matchUrlForSecurity = "/admin"),
-				@Url(mountUrl = "/admin/dashboard"),
-		},
-		action = {
-				@AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,
-						label = PageAdminHome.AUTH_HOME_ALL_LABEL,
-						description = PageAdminHome.AUTH_HOME_ALL_DESCRIPTION),
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-						label = "PageDashboard.auth.dashboard.label",
-						description = "PageDashboard.auth.dashboard.description")
-		})
-public class PageDashboard extends PageAdminHome {
+
+public abstract class PageDashboard extends PageAdminHome {
 	private static final long serialVersionUID = 1L;
-
-	private static final Trace LOGGER = TraceManager.getTrace(PageDashboard.class);
-
-    private static final String DOT_CLASS = PageDashboard.class.getName() + ".";
-
-    private static final String ID_INFO_BOX_USERS = "infoBoxUsers";
-    private static final String ID_INFO_BOX_ORGS = "infoBoxOrgs";
-    private static final String ID_INFO_BOX_ROLES = "infoBoxRoles";
-    private static final String ID_INFO_BOX_SERVICES = "infoBoxServices";
-    private static final String ID_INFO_BOX_RESOURCES = "infoBoxResources";
-    private static final String ID_INFO_BOX_TASKS = "infoBoxTasks";
-
-    private static final String ID_PERSONAL_INFO = "personalInfo";
-    private static final String ID_SYSTEM_INFO = "systemInfo";
 
     private final Model<PrismObject<UserType>> principalModel = new Model<>();
 
     public PageDashboard() {
         principalModel.setObject(loadUserSelf());
         setTimeZone(PageDashboard.this);
-        initLayout();
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
     }
 
     @Override
@@ -90,43 +85,94 @@ public class PageDashboard extends PageAdminHome {
         super.createBreadcrumb();
 
         Breadcrumb bc = getLastBreadcrumb();
-        bc.setIcon(new Model("fa fa-dashboard"));
+        bc.setIcon(new Model(GuiStyleConstants.CLASS_DASHBOARD_ICON));
     }
+    
+    protected abstract void initLayout();
+    
+    protected Model<InfoBoxType> getResourceInfoBoxTypeModel(OperationResult result, Task task) {
+    	InfoBoxType infoBoxType = new InfoBoxType("object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
+    			getString("PageDashboard.infobox.resources.label"));
+    	Integer totalCount;
+		try {
+			totalCount = getModelService().countObjects(ResourceType.class, null, null, task, result);
+			if (totalCount == null) {
+				totalCount = 0;
+			}
 
-    private void initLayout() {
-    	initInfoBoxes();
-        initPersonalInfo();
-        initSystemInfo();
+			ObjectQuery query = getPrismContext().queryFor(ResourceType.class)
+					.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
+					.build();
+			Integer activeCount = getModelService().countObjects(ResourceType.class, query, null, task, result);
+			if (activeCount == null) {
+				activeCount = 0;
+			}
 
-    }
+			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.resources.number"));
 
-    private void initInfoBoxes() {
-    	Task task = createSimpleTask("PageDashboard.infobox");
-    	OperationResult result = task.getResult();
+			int progress = 0;
+			if (totalCount != 0) {
+				progress = activeCount * 100 / totalCount;
+			}
+			infoBoxType.setProgress(progress);
 
-    	add(createFocusInfoBoxPanel(ID_INFO_BOX_USERS, UserType.class, "object-user-bg",
-    			GuiStyleConstants.CLASS_OBJECT_USER_ICON, "PageDashboard.infobox.users", PageUsers.class,
-    			result, task));
+			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.resources.total"));
 
-    	add(createFocusInfoBoxPanel(ID_INFO_BOX_ORGS, OrgType.class, "object-org-bg",
-    			GuiStyleConstants.CLASS_OBJECT_ORG_ICON, "PageDashboard.infobox.orgs", PageOrgTree.class,
-    			result, task));
+		} catch (Exception e) {
+			infoBoxType.setNumber("ERROR: "+e.getMessage());
+		}
+		
+		customizationResourceInfoBoxType(infoBoxType, result, task);
 
-    	add(createFocusInfoBoxPanel(ID_INFO_BOX_ROLES, RoleType.class, "object-role-bg",
-    			GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "PageDashboard.infobox.roles", PageRoles.class,
-    			result, task));
-
-    	add(createFocusInfoBoxPanel(ID_INFO_BOX_SERVICES, ServiceType.class, "object-service-bg",
-    			GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, "PageDashboard.infobox.services", PageServices.class,
-    			result, task));
-
-    	add(createResourceInfoBoxPanel(result, task));
-    	add(createTaskInfoBoxPanel(result, task));
-
+		return new Model<>(infoBoxType);
 	}
 
-	private <F extends FocusType> InfoBoxPanel createFocusInfoBoxPanel(String id, Class<F> type, String bgColor,
-			String icon, String keyPrefix, Class<? extends IRequestablePage> linkPage, OperationResult result, Task task) {
+	protected void customizationResourceInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
+		
+	}
+	
+	protected Model<InfoBoxType> getTaskInfoBoxTypeModel(OperationResult result, Task task) {
+    	InfoBoxType infoBoxType = new InfoBoxType("object-task-bg", GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
+    			getString("PageDashboard.infobox.tasks.label"));
+    	Integer totalCount;
+		try {
+			totalCount = getModelService().countObjects(TaskType.class, null, null, task, result);
+			if (totalCount == null) {
+				totalCount = 0;
+			}
+			ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE)
+					.build();
+			Integer activeCount = getModelService().countObjects(TaskType.class, query, null, task, result);
+			if (activeCount == null) {
+				activeCount = 0;
+			}
+
+			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.tasks.number"));
+
+			int progress = 0;
+			if (totalCount != 0) {
+				progress = activeCount * 100 / totalCount;
+			}
+			infoBoxType.setProgress(progress);
+
+			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.tasks.total"));
+
+		} catch (Exception e) {
+			infoBoxType.setNumber("ERROR: "+e.getMessage());
+		}
+		
+		customizationTaskInfoBoxType(infoBoxType, result, task);
+
+		return new Model<>(infoBoxType);
+	}
+
+	protected void customizationTaskInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
+		
+	}
+	
+	protected <F extends FocusType> Model<InfoBoxType> getFocusInfoBoxType(Class<F> type, String bgColor,
+			String icon, String keyPrefix, OperationResult result, Task task) {
     	InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon, getString(keyPrefix + ".label"));
     	Integer allCount;
 		try {
@@ -173,115 +219,73 @@ public class PageDashboard extends PageAdminHome {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
 
-		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
+		customizationFocusInfoBoxType(infoBoxType, result, task);
 
-		return new InfoBoxPanel(id, boxModel, linkPage);
+		return new Model<>(infoBoxType);
     }
 
-    private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
-    	InfoBoxType infoBoxType = new InfoBoxType("object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
-    			getString("PageDashboard.infobox.resources.label"));
-    	Integer totalCount;
-		try {
-			totalCount = getModelService().countObjects(ResourceType.class, null, null, task, result);
-			if (totalCount == null) {
-				totalCount = 0;
-			}
-
-			ObjectQuery query = getPrismContext().queryFor(ResourceType.class)
-					.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
-					.build();
-			Integer activeCount = getModelService().countObjects(ResourceType.class, query, null, task, result);
-			if (activeCount == null) {
-				activeCount = 0;
-			}
-
-			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.resources.number"));
-
-			int progress = 0;
-			if (totalCount != 0) {
-				progress = activeCount * 100 / totalCount;
-			}
-			infoBoxType.setProgress(progress);
-
-			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.resources.total"));
-
-		} catch (Exception e) {
-			infoBoxType.setNumber("ERROR: "+e.getMessage());
-		}
-
-		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
-
-		return new InfoBoxPanel(ID_INFO_BOX_RESOURCES, boxModel, PageResources.class);
+	protected void customizationFocusInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
+		
 	}
-
-    private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
-    	InfoBoxType infoBoxType = new InfoBoxType("object-task-bg", GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
-    			getString("PageDashboard.infobox.tasks.label"));
-    	Integer totalCount;
-		try {
-			totalCount = getModelService().countObjects(TaskType.class, null, null, task, result);
-			if (totalCount == null) {
-				totalCount = 0;
-			}
-			ObjectQuery query = getPrismContext().queryFor(TaskType.class)
-					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE)
-					.build();
-			Integer activeCount = getModelService().countObjects(TaskType.class, query, null, task, result);
-			if (activeCount == null) {
-				activeCount = 0;
-			}
-
-			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.tasks.number"));
-
-			int progress = 0;
-			if (totalCount != 0) {
-				progress = activeCount * 100 / totalCount;
-			}
-			infoBoxType.setProgress(progress);
-
-			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.tasks.total"));
-
-		} catch (Exception e) {
-			infoBoxType.setNumber("ERROR: "+e.getMessage());
+	
+	protected List<AuditEventRecordType> listAuditRecords(Map<String, Object> parameters, List<String> conditions) {
+		
+		Date date = new Date(System.currentTimeMillis() - (24*3600000));
+		conditions.add("aer.timestamp >= :from");
+		parameters.put("from", XmlTypeConverter.createXMLGregorianCalendar(date));
+		conditions.add("aer.eventStage = :auditStageType");
+		parameters.put("auditStageType", AuditEventStageType.EXECUTION);
+		
+		String query = "from RAuditEventRecord as aer";
+		if (!conditions.isEmpty()) {
+			query += " where ";
 		}
+		
+		query += conditions.stream().collect(Collectors.joining(" and "));
+		query += " order by aer.timestamp desc";
 
-		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
-		return new InfoBoxPanel(ID_INFO_BOX_TASKS, boxModel, PageTasks.class);
+        List<AuditEventRecord> auditRecords;
+		auditRecords = getAuditService().listRecords(query, parameters);
+		
+		if (auditRecords == null) {
+			auditRecords = new ArrayList<>();
+		}
+		List<AuditEventRecordType> auditRecordList = new ArrayList<>();
+		for (AuditEventRecord record : auditRecords){
+			auditRecordList.add(record.createAuditEventRecordType());
+		}
+		return auditRecordList;
 	}
-
-
-    private void initPersonalInfo() {
-        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
-                createStringResource("PageDashboard.personalInfo"), GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES,
-                GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES) {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Component getMainComponent(String componentId) {
-                return new PersonalInfoPanel(componentId, PageDashboard.this);
-            }
-        };
-        add(personalInfo);
+    
+    protected String formatPercentage(int totalItems, int actualItems) {
+    	float percentage = (totalItems==0 ? 0 : actualItems*100.0f/totalItems);
+    	String format = "%.0f";
+    	
+    	if(percentage < 100.0f && percentage % 10 != 0 && ((percentage % 10) % 1) != 0) {
+    		format = "%.1f";
+    	}
+    	return String.format(format, percentage);
     }
-
-    private void initSystemInfo() {
-        DashboardPanel systemInfo = new DashboardPanel(ID_SYSTEM_INFO, null,
-                createStringResource("PageDashboard.systemInfo"),
-                GuiStyleConstants.CLASS_ICON_TACHOMETER, GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            protected Component getMainComponent(String componentId) {
-                return new SystemInfoPanel(componentId);
-            }
-        };
-        add(systemInfo);
-    }
-
-
-
-
+    
+    protected Model<InfoBoxType> getPercentageInfoBoxTypeModel(String bgColor, String icon, String keyPrefix,
+    		int totalItems, int actualItems) {
+    	InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon,
+    			getString(keyPrefix +".label"));
+    	
+		infoBoxType.setNumber(formatPercentage(totalItems, actualItems) + " %" + " " + getString(keyPrefix + ".number"));
+		
+		int progress = 0;
+		if (totalItems != 0) {
+			progress = actualItems * 100 / totalItems;
+		}
+		infoBoxType.setProgress(progress);
+		
+		StringBuilder descSb = new StringBuilder();
+		descSb.append(totalItems).append(" ").append(getString(keyPrefix + ".total"));
+		infoBoxType.setDescription(descSb.toString());
+		
+		return new Model<>(infoBoxType);
+	}
 
 }
