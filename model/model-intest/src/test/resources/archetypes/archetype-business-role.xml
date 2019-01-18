@@ -17,7 +17,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Business Role</name>
     <archetypePolicy>
     	<display>
@@ -29,4 +29,25 @@
     		</icon>
     	</display>
     </archetypePolicy>
+    <assignment>
+    	<assignmentRelation>
+    		<description>This archetype is applicable to roles.</description>
+    		<holderType>RoleType</holderType>
+    	</assignmentRelation>
+    </assignment>
+    <inducement>
+    	<assignmentRelation>
+    		<description>Any user can have business role (can be a member).</description>
+    		<holderType>UserType</holderType>
+    		<relation>org:default</relation>
+    	</assignmentRelation>
+    	<assignmentRelation>
+    		<description>Only employees may be owners/approvers for business role.</description>
+    		<holderType>UserType</holderType>
+    		<holderArchetypeRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6"/> <!-- Employee archetype -->
+    		<relation>org:approver</relation>
+    		<relation>org:owner</relation>
+    	</assignmentRelation>
+    </inducement>
+    <!-- TODO: policy rules for business role approval -->
 </archetype>

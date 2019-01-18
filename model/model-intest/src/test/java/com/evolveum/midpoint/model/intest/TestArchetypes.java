@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,11 +193,10 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         		.end()
         	.getObject();
         
-        assertArchetypeSpec(userAfter)
-	        .archetypePolicy()
-	        	.displayType()
-	        		.assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
-	        		.assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
+        assertArchetypePolicy(userAfter)
+        	.displayType()
+        		.assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
+        		.assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
     }
 	
 	@Test
@@ -320,7 +319,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         		.end()
         	.getObject();
         
-        assertArchetypeSpec(userAfter)
+        assertArchetypePolicy(userAfter)
         	.assertNull();
     }
 	
@@ -341,7 +340,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertUserAfter(USER_JACK_OID)
+        PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
         	.assignments()
         		.assertAssignments(1)
         		.assertRole(ROLE_EMPLOYEE_BASE_OID)
@@ -350,12 +349,37 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         	.roleMembershipRefs()
         		.assertRoleMemberhipRefs(2)
         		.assertArchetype(ARCHETYPE_EMPLOYEE_OID)
-        		.assertRole(ROLE_EMPLOYEE_BASE_OID);
+        		.assertRole(ROLE_EMPLOYEE_BASE_OID)
+        		.end()
+        	.getObject();
+        
+        assertArchetypePolicy(userAfter)
+        	.displayType()
+        		.assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
+        		.assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
+
+        assertAssignmentTargetRelations(userAfter)
+	        .assignmentTargetRelations()
+	        	.assertItems(2)
+	        	.by()
+	        		.targetType(RoleType.COMPLEX_TYPE)
+	        		.relation(SchemaConstants.ORG_DEFAULT)
+	        	.find()
+	        		.assertDescription("Any user can have business role (can be a member).")
+	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
+	        		.end()
+	        	.by()
+	        		.targetType(RoleType.COMPLEX_TYPE)
+	        		.relations(SchemaConstants.ORG_OWNER, SchemaConstants.ORG_APPROVER)
+	        	.find()
+		        	.assertDescription("Only employees may be owners/approvers for business role.")
+	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID);
+	        	
     }
 	
 	@Test
-    public void test119UnassignJackRoleEmployeeBase() throws Exception {
-		final String TEST_NAME = "test119UnassignJackRoleEmployeeBase";
+    public void test115UnassignJackRoleEmployeeBase() throws Exception {
+		final String TEST_NAME = "test115UnassignJackRoleEmployeeBase";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -370,14 +394,29 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertUserAfter(USER_JACK_OID)
+        PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
 	    	.assignments()
 	    		.assertAssignments(0)
 	    		.end()
 	    	.assertNoArchetypeRef()
 	    	.roleMembershipRefs()
-	    		.assertRoleMemberhipRefs(0);
-    }
+	    		.assertRoleMemberhipRefs(0)
+	    		.end()
+	    	.getObject();
+        
+        assertArchetypePolicy(userAfter)
+        	.assertNull();
+        
+    	assertAssignmentTargetRelations(userAfter)
+    		.assignmentTargetRelations()
+	        	.assertItems(1)
+	        	.by()
+	        		.targetType(RoleType.COMPLEX_TYPE)
+	        		.relation(SchemaConstants.ORG_DEFAULT)
+	        	.find()
+	        		.assertDescription("Any user can have business role (can be a member).")
+	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID);
+        }
 	
 	@Test
     public void test120AssignJackArchetypeTest() throws Exception {

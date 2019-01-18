@@ -55,6 +55,7 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 	public List<QName> targetTypes;
 	public List<ObjectReferenceType> archetypeRefs;
 	public List<QName> relations;
+	public String description;
 	
 	public List<QName> getTargetTypes() {
 		return targetTypes;
@@ -108,6 +109,17 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 		this.relations.addAll(newRelations);
 	}
 
+	/**
+	 * Just for diagnostic purposes (testability).
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	@Override
 	public void shortDump(StringBuilder sb) {
 		if (targetTypes == null) {
@@ -130,11 +142,22 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(AssignmentTargetRelation.class, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "description", description, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "targetTypes", targetTypes, indent + 1);
 		SchemaDebugUtil.debugDumpWithLabelLn(sb, "archetypeRefs", archetypeRefs, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "relations", relations, indent + 1);
 		return sb.toString();
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("AssignmentTargetRelation()");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	
 	
 	
 }

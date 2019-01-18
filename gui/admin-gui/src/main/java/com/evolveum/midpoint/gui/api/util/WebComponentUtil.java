@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
+import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
@@ -3055,7 +3055,7 @@ public final class WebComponentUtil {
 		return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
 	}
 
-	public static <O extends ObjectType> ArchetypeInteractionSpecification getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
+	public static <O extends ObjectType> ArchetypePolicyType getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
 		if (object == null || object.asObjectable() == null){
 			return null;
 		}
@@ -3064,9 +3064,9 @@ public final class WebComponentUtil {
 		if (!object.canRepresent(AssignmentHolderType.class)) {
 			return null;
 		}
-		ArchetypeInteractionSpecification spec = null;
+		ArchetypePolicyType spec = null;
 		try {
-			spec = locator.getModelInteractionService().getInteractionSpecification((PrismObject<? extends AssignmentHolderType>) object, result);
+			spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
 		} catch (SchemaException | ConfigurationException ex){
 			result.recordPartialError(ex.getLocalizedMessage());
 			LOGGER.error("Cannot load ArchetypeInteractionSpecification for object ", object, ex.getLocalizedMessage());
