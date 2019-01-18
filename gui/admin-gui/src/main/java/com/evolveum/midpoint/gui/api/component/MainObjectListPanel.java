@@ -156,6 +156,11 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             }
 
             @Override
+            protected String getAdditionalButtonTitle(S buttonObject){
+                return getNewObjectSpecificTitle(buttonObject);
+            }
+
+            @Override
             protected String getAdditionalButtonStyle(S buttonObject){
                 return getNewObjectSpecificStyle(buttonObject);
             }
@@ -263,6 +268,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
     }
 
     protected String getNewObjectSpecificStyle(S buttonObject){
+        return "";
+    }
+
+    protected String getNewObjectSpecificTitle(S buttonObject){
         return "";
     }
 

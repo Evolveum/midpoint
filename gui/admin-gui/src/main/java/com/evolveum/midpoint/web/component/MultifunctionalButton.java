@@ -80,7 +80,7 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
             additionalButtons.forEach(additionalButtonObject -> {
                 AjaxIconButton newObjectIcon = new AjaxIconButton(buttonsPanel.newChildId(),
                         new Model<>(getAdditionalButtonStyle(additionalButtonObject)),
-                        createStringResource("MainObjectListPanel.newObject")) {
+                        new Model<>(getAdditionalButtonTitle(additionalButtonObject))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -99,8 +99,12 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
             });
 
             CompositedIconBuilder defaultButtonBuilder = new CompositedIconBuilder();
+            defaultButtonBuilder.setBasicIcon(getDefaultButtonStyle(), IconCssStyle.IN_ROW_STYLE, "");
+            //TODO fix style for circle image
+//                    .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, "green");
+
             AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(),
-                    builder.build(),
+                    defaultButtonBuilder.build(),
                     createStringResource("MainObjectListPanel.newObject")) {
 
                 private static final long serialVersionUID = 1L;
@@ -122,6 +126,10 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
     }
 
     protected String getDefaultButtonStyle(){
+        return "";
+    }
+
+    protected String getAdditionalButtonTitle(S buttonObject){
         return "";
     }
 
