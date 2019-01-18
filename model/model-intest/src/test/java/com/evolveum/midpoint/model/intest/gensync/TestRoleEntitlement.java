@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -453,19 +454,19 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
         ObjectDelta<ShadowType> groupDelta = DeltaFactory.Object.createAddDelta(group);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(groupDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-        modelService.executeChanges(deltas, null, task, result);
+        displayWhen(TEST_NAME);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(groupDelta, null, task, result);
 
 		// THEN
-        result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
-        groupOid = groupDelta.getOid();
+        groupOid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, group);
         assertNotNull("No account OID in resulting delta", groupOid);
 		// Check linkRef (should be none)
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
@@ -512,14 +513,14 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
         ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationAdd(RoleType.F_LINK_REF, getUserDefinition(), groupOid);
 		roleDelta.addModification(linkDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+		displayWhen(TEST_NAME);
+		executeChanges(roleDelta, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         assertLinks(role, 1);

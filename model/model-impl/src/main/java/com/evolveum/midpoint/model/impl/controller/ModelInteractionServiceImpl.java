@@ -1680,7 +1680,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				newTask.asPrismObject().getExtension().add(extensionItem.clone());
 			}
 			ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
-			modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
+			Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
+			String newTaskOid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, newTask.asPrismObject());
+			newTask.setOid(newTaskOid);
+			newTask.setTaskIdentifier(newTaskOid);
 			result.computeStatus();
 			return newTask;
 		} catch (Throwable t) {
