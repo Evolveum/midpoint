@@ -32,6 +32,8 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathImpl;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -76,8 +78,7 @@ public class TestThresholds extends AbstractStoryTest {
 	private static final String ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID = "00000000-role-0000-0000-999111111223";
 
 	private PrismObject<ResourceType> resourceOpenDj;
-	
-	private RelationRegistry relationRegistry;
+
 	
 	private static int defaultLdapUsers = 3;
 	
@@ -121,30 +122,31 @@ public class TestThresholds extends AbstractStoryTest {
 		display("Task after:", taskAfter);
 		assertAssignments(taskAfter, 1);
 		assertAssigned(taskAfter, ROLE_POLICY_RULE_CREATE_OID, RoleType.COMPLEX_TYPE);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
 		
 	}
-	
-	@Test
-	public void test101startReconSimulateTask() throws Exception {
-		final String TEST_NAME = "test101startReconSimulateTask";
-		displayTestTitle(TEST_NAME);
-		
-		assertUsers(getNumberOfUsers());
-		
-		// WHEN
-        displayWhen(TEST_NAME);
-        PrismObject<TaskType> taskBefore = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);
-		display("Task before:", taskBefore);
-        
-        
-        // THEN
-		displayThen(TEST_NAME);
-		
-		waitForTaskStart(TASK_RECONCILE_OPENDJ_OID, true);
-		
-		assertUsers(getNumberOfUsers());
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
-	}
+//	
+//	@Test
+//	public void test101startReconSimulateTask() throws Exception {
+//		final String TEST_NAME = "test101startReconSimulateTask";
+//		displayTestTitle(TEST_NAME);
+//		
+//		assertUsers(getNumberOfUsers());
+//		
+//		// WHEN
+//        displayWhen(TEST_NAME);
+//        PrismObject<TaskType> taskBefore = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);
+//		display("Task before:", taskBefore);
+//        
+//        
+//        // THEN
+//		displayThen(TEST_NAME);
+//		
+//		
+//		
+//		assertUsers(getNumberOfUsers());
+//		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
+//	}
 	
 	@Test
 	public void test110importAccountsSimulate() throws Exception {
@@ -153,6 +155,13 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		
 		openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_FILE);
+		 
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+	    OperationResult result = task.getResult();
+		executeChanges(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+						.item(TaskType.F_EXECUTION_STATUS)
+							.replace(TaskExecutionStatusType.RUNNABLE)
+							.asObjectDelta(TASK_RECONCILE_OPENDJ_OID), null, task, result);
 		
 		assertUsers(getNumberOfUsers());
 		//WHEN
@@ -217,7 +226,7 @@ public class TestThresholds extends AbstractStoryTest {
 	}
 	
 	
-	@Test
+//	@Test
 	public void test520changeActivationThreeAccounts() throws Exception {
 		final String TEST_NAME = "test520changeActivationThreeAccounts";
 		displayTestTitle(TEST_NAME);
