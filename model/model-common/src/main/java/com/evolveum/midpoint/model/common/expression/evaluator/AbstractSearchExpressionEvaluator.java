@@ -42,6 +42,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -407,19 +408,20 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		LOGGER.debug("Creating object on demand from {}: {}", contextDescription, newObject);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Creating object on demand:\n{}", newObject.debugDump());
+			LOGGER.trace("Creating object on demand:\n{}", newObject.debugDump(1));
 		}
 
 		ObjectDelta<O> addDelta = newObject.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
+		Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges;
 		try {
-			modelService.executeChanges(deltas, null, task, result);
+			executedChanges = modelService.executeChanges(deltas, null, task, result);
 		} catch (ObjectAlreadyExistsException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
 			throw new ExpressionEvaluationException(e.getMessage(), e);
 		}
 
-		return addDelta.getOid();
+		return ObjectDeltaOperation.findAddDeltaOid(executedChanges, newObject);
 	}
 
 	private <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,

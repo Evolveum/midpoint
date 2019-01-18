@@ -534,6 +534,11 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
      */
     public ObjectDeltaImpl<O> clone() {
         ObjectDeltaImpl<O> clone = new ObjectDeltaImpl<>(this.objectTypeClass, this.changeType, this.prismContext);
+        copyValues(clone);
+        return clone;
+    }
+    
+    protected void copyValues(ObjectDeltaImpl<O> clone) {
         clone.oid = this.oid;
         for (ItemDelta<?,?> thisModification: this.modifications) {
         	((Collection)clone.modifications).add(thisModification.clone());
@@ -542,8 +547,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
             clone.objectToAdd = null;
         } else {
             clone.objectToAdd = this.objectToAdd.clone();
-        }
-        return clone;
+        }    	
     }
 
 	/**

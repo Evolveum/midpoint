@@ -79,7 +79,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     private void initTable(Form mainForm) {
         StringValue collectionNameParameter = getCollectionNameParameterValue();
-        MainObjectListPanel<O> userListPanel = new MainObjectListPanel<O>(ID_TABLE,
+        MainObjectListPanel<O, CompiledObjectCollectionView> userListPanel = new MainObjectListPanel<O, CompiledObjectCollectionView>(ID_TABLE,
                 getType(), collectionNameParameter == null || collectionNameParameter.isEmpty() ?
                 getTableId() : UserProfileStorage.TableId.COLLECTION_VIEW_TABLE, getQueryOptions(), this) {
             private static final long serialVersionUID = 1L;
@@ -100,8 +100,29 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target) {
-                newObjectActionPerformed(target);
+            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+                newObjectActionPerformed(target, collectionView);
+            }
+
+            @Override
+            protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
+                return getCompiledUserProfile().findAllApplicableObjectCollectionViews(getType());
+            }
+
+            @Override
+            protected String getNewObjectButtonStyle(){
+                return WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(PageAdminObjectList.this.getPrismContext(),
+                        getType()));
+            }
+
+            @Override
+            protected String getNewObjectSpecificStyle(CompiledObjectCollectionView collectionView){
+                if (collectionView == null || collectionView.getDisplay() == null ||
+                        collectionView.getDisplay().getIcon() == null){
+                    return "";
+                }
+
+                return collectionView.getDisplay().getIcon().getCssClass();
             }
 
             @Override
@@ -160,7 +181,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected void newObjectActionPerformed(AjaxRequestTarget target){}
+    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){}
 
     protected ObjectFilter getArchetypeViewFilter(){
         StringValue collectionNameParam = getCollectionNameParameterValue();
@@ -199,8 +220,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return (Form) get(ID_MAIN_FORM);
     }
 
-    public MainObjectListPanel<O> getObjectListPanel() {
-        return (MainObjectListPanel<O>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    public MainObjectListPanel<O, CompiledObjectCollectionView> getObjectListPanel() {
+        return (MainObjectListPanel<O, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
 

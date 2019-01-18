@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -399,8 +400,10 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 	}
 
 	@Override
-	protected void newObjectActionPerformed(AjaxRequestTarget target){
-    	navigateToNext(PageUser.class);
+	protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){
+    	//TODO
+    	navigateToNext(new PageUser(WebComponentUtil.createNewObjectWithCollectionRef(UserType.class,
+				PageUsers.this.getPrismContext(), collectionView.getCollection().getCollectionRef()).asPrismObject(), true));
 	}
 
 	@Override
@@ -413,8 +416,8 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 		return TableId.TABLE_USERS;
 	}
 
-	private MainObjectListPanel<UserType> getTable() {
-		return (MainObjectListPanel<UserType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+	private MainObjectListPanel<UserType, CompiledObjectCollectionView> getTable() {
+		return (MainObjectListPanel<UserType, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
 
 	private void deleteConfirmedPerformed(AjaxRequestTarget target, UserType userToDelete) {

@@ -877,7 +877,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	private void distributeResourceValue(PrismReferenceValue resourceRefVal, PrismObject<ResourceType> resource) {
 		if (resourceRefVal != null) {
+			boolean immutable = resourceRefVal.isImmutable();
+			if (immutable) {
+				resourceRefVal.setImmutable(false);
+			}
 			resourceRefVal.setObject(resource);
+			resourceRefVal.setImmutable(immutable);
 		}
 	}
 

@@ -230,17 +230,18 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         fillinUserAssignmentAccountConstruction(userCharles, RESOURCE_DUMMY_WHITE_OID);
 
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userCharles);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
+        displayWhen(TEST_NAME);
         //we do not expect this to throw an exception. instead the fatal error in the result is excpected
-		modelService.executeChanges(deltas, null, task, result);
+		Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(userDelta, null, task, result);
 
-        result.computeStatus();
-        TestUtil.assertFailure(result);
+		// THEN
+		displayThen(TEST_NAME);
+        assertFailure(result);
 
         // Even though the operation failed the addition of a user should be successful. Let's check if user was really added.
-        String userOid = userDelta.getOid();
+        String userOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedChanges);
         assertNotNull("No user OID in delta after operation", userOid);
 
         PrismObject<UserType> userAfter = getUser(userOid);

@@ -813,30 +813,31 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test120AddAccount() throws Exception {
-        TestUtil.displayTestTitle(this, "test120AddAccount");
+    	final String TEST_NAME = "test120AddAccount";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120AddAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         ObjectDelta<ShadowType> accountDelta = DeltaFactory.Object.createAddDelta(account);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-        modelService.executeChanges(deltas, null, task, result);
+        displayWhen(TEST_NAME);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges = executeChanges(accountDelta, null, task, result);
 
 		// THEN
-        result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-        accountJackOid = accountDelta.getOid();
-        assertNotNull("No account OID in resulting delta", accountJackOid);
+        accountJackOid = ObjectDeltaOperation.findProjectionDeltaOidInCollection(executeChanges);
+        assertNotNull("No account OID in executed deltas", accountJackOid);
 		// Check accountRef (should be none)
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
@@ -2367,10 +2368,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	 */
 	@Test
     public void test190ModifyUserJackAssignAccountAndModify() throws Exception {
-        TestUtil.displayTestTitle(this, "test190ModifyUserJackAssignAccountAndModify");
+		final String TEST_NAME = "test190ModifyUserJackAssignAccountAndModify";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test190ModifyUserJackAssignAccountAndModify");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2387,11 +2389,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        displayWhen(TEST_NAME);
+		executeChanges(deltas, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 

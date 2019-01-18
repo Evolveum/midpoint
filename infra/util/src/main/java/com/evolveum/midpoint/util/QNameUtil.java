@@ -246,6 +246,19 @@ public class QNameUtil {
 		}
 
 	}
+	
+	public static boolean unorderedCollectionMatch(Collection<QName> a, Collection<QName> b) {
+		return MiscUtil.unorderedCollectionCompare(a, b, new Comparator<QName>() {
+			@Override
+			public int compare(QName o1, QName o2) {
+				if (match(o1,o2)) {
+					return 0;
+				} else {
+					return 1;
+				}
+			}
+		});
+	}
 
 	/**
 	 * Matches QName with a URI representation. The URL may in fact be just the local

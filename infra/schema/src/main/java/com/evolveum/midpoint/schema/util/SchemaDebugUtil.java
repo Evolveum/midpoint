@@ -157,7 +157,7 @@ public class SchemaDebugUtil {
 	public static void debugDump(StringBuilder sb, ObjectReferenceType ref, int indent) {
 		indentDebugDump(sb, indent);
 		// TODO: Maybe more detailed dump later
-		prettyPrint(ref);
+		sb.append(prettyPrint(ref));
 	}
 	
 	public static void shortDumpReferenceCollectionOptionalBrackets(StringBuilder sb, List<ObjectReferenceType> refs) {

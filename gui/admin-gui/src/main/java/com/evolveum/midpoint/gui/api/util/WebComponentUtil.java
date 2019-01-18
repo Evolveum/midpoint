@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
+import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
@@ -72,6 +72,7 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -1924,6 +1925,18 @@ public final class WebComponentUtil {
 		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 	}
 
+	public static <AHT extends AssignmentHolderType> AHT createNewObjectWithCollectionRef(Class<AHT> type, PrismContext context,
+																						  ObjectReferenceType collectionRef){
+		if (UserType.class.equals(type) && collectionRef != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRef.getType())){
+			UserType user = new UserType(context);
+			AssignmentType assignment = new AssignmentType();
+			assignment.setTargetRef(collectionRef.clone());
+			user.getAssignment().add(assignment);
+			return (AHT) user;
+		}
+		return null;
+	}
+
 	public static String createUserIconTitle(PrismObject<UserType> object) {
 		UserType user = object.asObjectable();
 
@@ -2546,7 +2559,7 @@ public final class WebComponentUtil {
 	}
 
 	public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName,
-			ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
+			ColumnMenuAction action, MainObjectListPanel<AR, CompiledObjectCollectionView> abstractRoleTable, PageBase pageBase) {
 		List<AR> selectedRoles =  new ArrayList<>();
 		if (action.getRowModel() == null) {
 			selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
@@ -3042,7 +3055,7 @@ public final class WebComponentUtil {
 		return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
 	}
 
-	public static <O extends ObjectType> ArchetypeInteractionSpecification getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
+	public static <O extends ObjectType> ArchetypePolicyType getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
 		if (object == null || object.asObjectable() == null){
 			return null;
 		}
@@ -3051,9 +3064,9 @@ public final class WebComponentUtil {
 		if (!object.canRepresent(AssignmentHolderType.class)) {
 			return null;
 		}
-		ArchetypeInteractionSpecification spec = null;
+		ArchetypePolicyType spec = null;
 		try {
-			spec = locator.getModelInteractionService().getInteractionSpecification((PrismObject<? extends AssignmentHolderType>) object, result);
+			spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
 		} catch (SchemaException | ConfigurationException ex){
 			result.recordPartialError(ex.getLocalizedMessage());
 			LOGGER.error("Cannot load ArchetypeInteractionSpecification for object ", object, ex.getLocalizedMessage());

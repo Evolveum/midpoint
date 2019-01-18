@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,35 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.io.Serializable;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 
 /**
- * Data structure that contains information about all archetype-related interactions for a particular object.
- * This include archetype policies, assignments, relations, etc.
- * This data structure is supposed to hold all the archetype-related data that the user interface need to
- * display the object and to interact with the object. GUI should not need to to any other processing to
- * determine archetype-like information.
+ * Data structure that contains information about possible assignment targets for a particular object.
  * 
  * @author Radovan Semancik
  */
-public class ArchetypeInteractionSpecification implements DebugDumpable {
+public class AssignmentTargetSpecification implements DebugDumpable, Serializable {
+	private static final long serialVersionUID = 1L;
 	
-	private ArchetypePolicyType archetypePolicy;
+	private boolean supportGenericAssignment;
 	private List<AssignmentTargetRelation> assignmentTargetRelations;
 
-	public ArchetypePolicyType getArchetypePolicy() {
-		return archetypePolicy;
+	/**
+	 * If set to true then the holder object can support "generic" assignment.
+	 * This means that any object type can be assigned (constrained by authorizations).
+	 * This usually means that GUI should render "add assignment" button that is not
+	 * constrained to specific target type or archetype.
+	 */
+	public boolean isSupportGenericAssignment() {
+		return supportGenericAssignment;
 	}
 
-	public void setArchetypePolicy(ArchetypePolicyType archetypePolicy) {
-		this.archetypePolicy = archetypePolicy;
+	public void setSupportGenericAssignment(boolean supportGenericAssignment) {
+		this.supportGenericAssignment = supportGenericAssignment;
 	}
 
 	/**
@@ -51,13 +53,10 @@ public class ArchetypeInteractionSpecification implements DebugDumpable {
 	 * or "what are the valid targets for relations that I hold".
 	 * It is the reverse of assignmentRelation definition in AssignmentType in schema.
 	 *  
-	 * If null is returned then there is no applicable assignment target constraint.
-	 * That means any assignment with any target and any relation is allowed.
-	 * This is the default behavior.
-	 * 
 	 * If empty list is returned that means no assignments are allowed.
 	 * I.e. there is no valid combination of target type and relation that could
-	 * be applied. 
+	 * be applied. However, generic assignments may still be allowed.
+	 * See supportGenericAssignment.
 	 */
 	public List<AssignmentTargetRelation> getAssignmentTargetRelations() {
 		return assignmentTargetRelations;
@@ -69,8 +68,8 @@ public class ArchetypeInteractionSpecification implements DebugDumpable {
 
 	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(ArchetypeInteractionSpecification.class, indent);
-		PrismUtil.debugDumpWithLabelLn(sb, "archetypePolicy", archetypePolicy, indent + 1);
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(AssignmentTargetSpecification.class, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "supportGenericAssignment", supportGenericAssignment, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "assignmentTargetRelations", assignmentTargetRelations, indent + 1);
 		return sb.toString();
 	}
