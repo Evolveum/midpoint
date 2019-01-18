@@ -72,6 +72,7 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -1922,6 +1923,18 @@ public final class WebComponentUtil {
 		}
 
 		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
+	}
+
+	public static <AHT extends AssignmentHolderType> AHT createNewObjectWithCollectionRef(Class<AHT> type, PrismContext context,
+																						  ObjectReferenceType collectionRef){
+		if (UserType.class.equals(type) && collectionRef != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRef.getType())){
+			UserType user = new UserType(context);
+			AssignmentType assignment = new AssignmentType();
+			assignment.setTargetRef(collectionRef.clone());
+			user.getAssignment().add(assignment);
+			return (AHT) user;
+		}
+		return null;
 	}
 
 	public static String createUserIconTitle(PrismObject<UserType> object) {

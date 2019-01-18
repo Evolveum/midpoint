@@ -101,7 +101,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
             @Override
             protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-                newObjectActionPerformed(target);
+                newObjectActionPerformed(target, collectionView);
             }
 
             @Override
@@ -113,6 +113,16 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             protected String getNewObjectButtonStyle(){
                 return WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(PageAdminObjectList.this.getPrismContext(),
                         getType()));
+            }
+
+            @Override
+            protected String getNewObjectSpecificStyle(CompiledObjectCollectionView collectionView){
+                if (collectionView == null || collectionView.getDisplay() == null ||
+                        collectionView.getDisplay().getIcon() == null){
+                    return "";
+                }
+
+                return collectionView.getDisplay().getIcon().getCssClass();
             }
 
             @Override
@@ -171,7 +181,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected void newObjectActionPerformed(AjaxRequestTarget target){}
+    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){}
 
     protected ObjectFilter getArchetypeViewFilter(){
         StringValue collectionNameParam = getCollectionNameParameterValue();

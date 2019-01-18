@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -77,7 +78,8 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
 
         if (additionalButtons != null){
             additionalButtons.forEach(additionalButtonObject -> {
-                AjaxIconButton newObjectIcon = new AjaxIconButton(buttonsPanel.newChildId(), new Model<>(GuiStyleConstants.CLASS_ASSIGN),
+                AjaxIconButton newObjectIcon = new AjaxIconButton(buttonsPanel.newChildId(),
+                        new Model<>(getAdditionalButtonStyle(additionalButtonObject)),
                         createStringResource("MainObjectListPanel.newObject")) {
 
                     private static final long serialVersionUID = 1L;
@@ -92,10 +94,31 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
                         super.onComponentTagBody(markupStream, openTag);
                     }
                 };
-                newObjectIcon.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
+                newObjectIcon.add(AttributeAppender.append("class", "btn btn-success btn-sm buttons-panel-marging"));
                 buttonsPanel.add(newObjectIcon);
             });
+
+            CompositedIconBuilder defaultButtonBuilder = new CompositedIconBuilder();
+            AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(),
+                    builder.build(),
+                    createStringResource("MainObjectListPanel.newObject")) {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    if (!additionalButtonsExist()){
+                        buttonClickPerformed(target, null);
+                    }
+                }
+            };
+            defaultButton.add(AttributeAppender.append("class", "btn btn-success btn-sm buttons-panel-marging"));
+            buttonsPanel.add(defaultButton);
         }
+    }
+
+    protected String getAdditionalButtonStyle(S buttonObject){
+        return "";
     }
 
     protected String getDefaultButtonStyle(){

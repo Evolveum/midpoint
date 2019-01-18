@@ -154,6 +154,11 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             protected String getDefaultButtonStyle(){
                 return getNewObjectButtonStyle();
             }
+
+            @Override
+            protected String getAdditionalButtonStyle(S buttonObject){
+                return getNewObjectSpecificStyle(buttonObject);
+            }
         };
         buttonsList.add(createNewObjectButton);
 
@@ -255,6 +260,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
     protected String getNewObjectButtonStyle(){
         return GuiStyleConstants.CLASS_ADD_NEW_OBJECT;
+    }
+
+    protected String getNewObjectSpecificStyle(S buttonObject){
+        return "";
     }
 
     private static class ButtonBar extends Fragment {

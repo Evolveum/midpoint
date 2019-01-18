@@ -400,8 +400,10 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 	}
 
 	@Override
-	protected void newObjectActionPerformed(AjaxRequestTarget target){
-    	navigateToNext(PageUser.class);
+	protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){
+    	//TODO
+    	navigateToNext(new PageUser(WebComponentUtil.createNewObjectWithCollectionRef(UserType.class,
+				PageUsers.this.getPrismContext(), collectionView.getCollection().getCollectionRef()).asPrismObject(), true));
 	}
 
 	@Override
