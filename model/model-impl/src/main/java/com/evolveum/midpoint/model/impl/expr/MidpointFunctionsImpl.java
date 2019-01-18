@@ -963,7 +963,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		ObjectDelta<T> delta = DeltaFactory.Object.createAddDelta(newObject);
 		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(delta);
 		Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = modelService.executeChanges(deltaCollection, options, getCurrentTask(), getCurrentResult());
-		return ObjectDeltaOperation.findAddDeltaOid(executedChanges, newObject);
+		String oid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, newObject);
+		newObject.setOid(oid);
+		return oid;
 	}
 
 	@Override
