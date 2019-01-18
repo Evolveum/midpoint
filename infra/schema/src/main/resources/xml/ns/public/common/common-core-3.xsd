@@ -20189,7 +20189,6 @@
         </xsd:restriction>
     </xsd:simpleType>
     
-    
     <xsd:complexType name="ReportFieldConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -20207,30 +20206,6 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="reportFieldConfiguration" type="tns:ReportFieldConfigurationType"/>
-    
-    <!--<xsd:complexType name="ReportTemplateType">-->
-        <!--<xsd:sequence>-->
-            <!--<xsd:any namespace="##other" processContents="lax">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--&lt;!&ndash; TODO description &ndash;&gt;-->
-                    <!--</xsd:documentation>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:any>-->
-        <!--</xsd:sequence>-->
-    <!--</xsd:complexType>-->
-
-    <!--<xsd:complexType name="ReportTemplateStyleType">-->
-        <!--<xsd:sequence>-->
-            <!--<xsd:any namespace="##other" processContents="lax">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--&lt;!&ndash; TODO description &ndash;&gt;-->
-                    <!--</xsd:documentation>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:any>-->
-        <!--</xsd:sequence>-->
-    <!--</xsd:complexType>-->
     
     <xsd:complexType name="DataSourceType">
         <xsd:sequence>
@@ -20261,41 +20236,102 @@
 	<xsd:complexType name="ReportType">
 	    <xsd:annotation>
             <xsd:documentation>
-            	TODO
+            	Specification of midPoint report. This specification defines what the report should
+            	contain, how it should look like, output format and so on.
+            	
+            	This specificaiton does NOT define when the report is exectued. The report may be
+            	executed ad-hoc (e.g. by explicitly executing it in GUI), or the report may be
+            	scheduled by using a task.
+            	
+            	ReportType contains many elements that are specific to JasperRepors.
+            	In fact, such elements should not be top-level elements. They should rather be in
+            	their own Jasper-specific container. But due to various reasons (e.g. migration)
+            	these items are kept as they are. They will get sorted out eventually.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
-                    <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded"/>
+                	<xsd:element name="reportEngine" type="tns:ReportEngineSelectionType" default="jasper" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Selects which report engine should be used to render this report.
+                			</xsd:documentation>
+                			<xsd:appinfo>
+                				<a:since>4.0</a:since>
+                			</xsd:appinfo>
+                		</xsd:annotation>
+                	</xsd:element>
+                    <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Indicates whether this report is a parent report or subreport.
+                    			This item is specific to JasperRepors.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Reference to subreport.
+                    			This item is specific to JasperRepors.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                     
 
-                    <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1" />
-                    <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+	                    <xsd:annotation>
+                    		<xsd:documentation>
+                    			Report template. This is definition of base query, report structure and so on.
+                    			This item is specific to JasperRepors. But it may be reused for other report types.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                    		<xsd:documentation>
+                    			Report style template. This defines colors and similar look and feel properties.
+                    			This item is specific to JasperRepors. But it may be reused for other report types.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                        
-<!--                    	<xsd:element name="template" type="t:XmlAsStringType" minOccurs="0"/> -->
-<!--                 	<xsd:element name="templateStyle" type="t:XmlAsStringType" minOccurs="0"/> -->
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
     				    <xsd:annotation>
                             <xsd:documentation>
-                                Report page orientation.
+                                Report page orientation (portrait/landscape).
+                                This item is specific to JasperRepors. But it may be reused for other report types.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="export" type="tns:ExportType" minOccurs="0">
     				<xsd:annotation>
                             <xsd:documentation>
-                                File type which will be used during report export.
+                                Report output file format.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0"/>
-                    <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0"/>
+                    <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0">
+	                    <xsd:annotation>
+                    		<xsd:documentation>
+                    			This item is specific to JasperRepors.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0">
+	                    <xsd:annotation>
+                    		<xsd:documentation>
+                    			This item is specific to JasperRepors.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    
             		<xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Columns user definition. Name, type, report field, column name.
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -20307,6 +20343,7 @@
                                 <p>
                                     Optional name of Jasper virtualizer class.
                                 </p>
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational/>
@@ -20317,6 +20354,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Number of pages after Jasper virtualizer kicks on.
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -20324,6 +20362,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Number of pages after Jasper cancels report execution.
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -20331,6 +20370,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Timeout in [ms] after Jasper cancels report execution.
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -20351,6 +20391,37 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="report" type="tns:ReportType" substitutionGroup="c:object"/>
+    
+    <xsd:simpleType name="ReportEngineSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects which report engine should be used to render this report.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="jasper">
+                <xsd:annotation>
+                	<xsd:documentation>JasperReports engine</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JASPER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="dashboard">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Dashboard reports. The reports will be based on a dashboard.
+                		In fact, the report will be a static version of the dashboard
+                		at the time when the report runs.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DASHBOARD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: view-based report engine -->
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ReportConfigurationType">
         <xsd:annotation>
