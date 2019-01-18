@@ -56,8 +56,11 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	public static final File TEST_DIR = new File("src/test/resources/archetypes");
 	
 	public static final File SYSTEM_CONFIGURATION_ARCHETYPES_FILE = new File(TEST_DIR, "system-configuration-archetypes.xml");
+	
 	public static final String VIEW_ALL_EMPLOYEES_NAME = "All employees";
 	public static final String VIEW_ACTIVE_EMPLOYEES_NAME = "Active employees";
+	public static final String VIEW_BUSINESS_ROLES_NAME = "Business roles view";
+	public static final String VIEW_BUSINESS_ROLES_LABEL = "Business";
 	
 	public static final File ARCHETYPE_EMPLOYEE_FILE = new File(TEST_DIR, "archetype-employee.xml");
 	protected static final String ARCHETYPE_EMPLOYEE_OID = "7135e68c-ee53-11e8-8025-170b77da3fd6";
@@ -69,6 +72,8 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File ARCHETYPE_BUSINESS_ROLE_FILE = new File(TEST_DIR, "archetype-business-role.xml");
 	protected static final String ARCHETYPE_BUSINESS_ROLE_OID = "018e7340-199a-11e9-ad93-2b136d1c7ecf";
+	private static final String ARCHETYPE_BUSINESS_ROLE_ICON_CSS_CLASS = "fe fe-business";
+	private static final String ARCHETYPE_BUSINESS_ROLE_ICON_COLOR = "green";
 	
 	public static final File ROLE_EMPLOYEE_BASE_FILE = new File(TEST_DIR, "role-employee-base.xml");
 	protected static final String ROLE_EMPLOYEE_BASE_OID = "e869d6c4-f6ef-11e8-b51f-df3e51bba129";
@@ -85,6 +90,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	public static final File COLLECTION_ACTIVE_EMPLOYEES_FILE = new File(TEST_DIR, "collection-active-employees.xml");
 	protected static final String COLLECTION_ACTIVE_EMPLOYEES_OID = "f61bcb4a-f8ae-11e8-9f5c-c3e7f27ee878";
 
+	
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -262,12 +268,25 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 			.assertObjectForms(2)
 			.assertUserDashboardWidgets(0)
 			.objectCollectionViews()
-				.assertViews(2)
+				.assertViews(3)
 				.by()
 					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
 				.find()
 					.assertName(VIEW_ACTIVE_EMPLOYEES_NAME)
 					.assertFilter()
+					.end()
+				.by()
+					.name(VIEW_BUSINESS_ROLES_NAME)
+				.find()
+					.assertName(VIEW_BUSINESS_ROLES_NAME)
+					.assertFilter()
+					.displayType()
+						.assertLabel(VIEW_BUSINESS_ROLES_LABEL) // Overridden in view definition
+						.icon() // Inherited from archetype
+							.assertCssClass(ARCHETYPE_BUSINESS_ROLE_ICON_CSS_CLASS)
+							.assertColor(ARCHETYPE_BUSINESS_ROLE_ICON_COLOR)
+							.end()
+						.end()
 					.end()
 				.by()
 					.name(VIEW_ALL_EMPLOYEES_NAME)
@@ -530,7 +549,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 
 		ObjectFilter activeEmployeesViewFilter = assertCompiledUserProfile(compiledUserProfile)
 			.objectCollectionViews()
-				.assertViews(2)
+				.assertViews(3)
 				.by()
 					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
 				.find()
@@ -592,7 +611,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 
 		ObjectFilter activeEmployeesViewFilter = assertCompiledUserProfile(compiledUserProfile)
 			.objectCollectionViews()
-				.assertViews(2)
+				.assertViews(3)
 				.by()
 					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
 				.find()
