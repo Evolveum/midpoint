@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.wf.impl.engine;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -99,5 +103,17 @@ public class EngineInvocationContext implements DebugDumpable {
 
 	public String getCaseOid() {
 		return wfCase.getOid();
+	}
+
+	@NotNull
+	public CaseWorkItemType findWorkItemById(long id) {
+		//noinspection unchecked
+		PrismContainerValue<CaseWorkItemType> workItemPcv = (PrismContainerValue<CaseWorkItemType>)
+				wfCase.asPrismContainerValue().find(ItemPath.create(CaseType.F_WORK_ITEM, id));
+		if (workItemPcv == null) {
+			throw new IllegalStateException("No work item " + id + " in " + this);
+		} else {
+			return workItemPcv.asContainerable();
+		}
 	}
 }

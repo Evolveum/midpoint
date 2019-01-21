@@ -276,7 +276,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		// WHEN
 
 		clock.resetOverride();
-		clock.overrideDuration("P5DT20M");		// at 5D there's a deadline with auto-rejection
+		clock.overrideDuration("P8DT20M");		// at 5D there's a deadline with auto-rejection
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
 		// THEN
@@ -301,6 +301,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 				assertEquals("Wrong cause display name in "+c, "Automatic rejection at deadline", c.getCause().getDisplayName());
 			}
 		}
+		display("completion event map", eventMap);
 		assertEquals("Wrong # of completion events", 2, eventMap.size());
 
 		displayCollection("audit records", dummyAuditService.getRecords());

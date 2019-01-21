@@ -36,6 +36,7 @@ import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowInterface;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -81,6 +82,7 @@ public class WorkItemProvider {
 	    return toFullWorkItems(workItems, result);
     }
 
+    @NotNull
     public WorkItemType getWorkItem(String workItemId, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		return workflowEngine.getFullWorkItem(workItemId, result);
     }
@@ -100,17 +102,20 @@ public class WorkItemProvider {
     }
 
     // use version with the owner task, if known
+    @Contract("null, _ -> null; !null, _ -> !null")
     public WorkItemType toFullWorkItem(CaseWorkItemType workItem, OperationResult result) throws SchemaException {
 		Map<String, TaskType> ownerTasks = new HashMap<>();
 		return toFullWorkItem(workItem, ownerTasks, result);
     }
 
+	@Contract("null, _, _ -> null; !null, _, _ -> !null")
     public WorkItemType toFullWorkItem(CaseWorkItemType workItem, TaskType ownerTask, OperationResult result) throws SchemaException {
 		Map<String, TaskType> ownerTasks = new HashMap<>();
 		ownerTasks.put(ownerTask.getOid(), ownerTask);
 		return toFullWorkItem(workItem, ownerTasks, result);
     }
 
+    @Contract("null, _, _ -> null; !null, _, _ -> !null")
     private WorkItemType toFullWorkItem(CaseWorkItemType workItem, Map<String, TaskType> ownerTasks,
 		    OperationResult result) throws SchemaException {
     	if (workItem == null) {

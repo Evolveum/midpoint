@@ -1026,6 +1026,8 @@
 								is not changed (this is meaningful only if the delegation occurs before the original deadline).
 								TODO other time units, like business days?
 								TODO relative to original start time, original deadline, or current time?
+
+                                It will be relative to the original deadline (if specified); or to the current time otherwise.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:displayName>DelegateWorkItemActionType.duration</a:displayName>

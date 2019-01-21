@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -48,12 +46,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
 import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
+import com.evolveum.midpoint.wf.impl.engine.dao.CompleteAction;
 import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.engine.processes.ItemApprovalProcessOrchestrator;
 import com.evolveum.midpoint.wf.impl.engine.processes.ProcessOrchestrator;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
-import com.evolveum.midpoint.wf.impl.processes.common.WfTimedActionTriggerHandler;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
@@ -171,7 +169,7 @@ public class WorkflowEngine {
 				.filter(wi -> wi.getCloseTimestamp() == null)
 				.collect(Collectors.toList());
 		for (CaseWorkItemType workItem : openWorkItems) {
-			closeWorkItemBatched(ctx, workItem.getId(), now, caseModifications, result);
+			addWorkItemClosureModifications(ctx, workItem.getId(), now, caseModifications);
 		}
 		repositoryService.modifyObject(CaseType.class, ctx.wfCase.getOid(), caseModifications, result);
 
@@ -206,7 +204,7 @@ public class WorkflowEngine {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LOGGER.trace("+++ closeWorkItem ENTER: workItem={}, ctx={}", workItem, ctx);
 		List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-		closeWorkItemBatched(ctx, workItem.getId(), now, modifications, result);
+		addWorkItemClosureModifications(ctx, workItem.getId(), now, modifications);
 		repositoryService.modifyObject(CaseType.class, ctx.getCaseOid(), modifications, result);
 		// removes "workItem[n]" from the item path to be directly applicable to the specific work item
 		for (ItemDelta<?, ?> itemDelta : modifications) {
@@ -216,9 +214,8 @@ public class WorkflowEngine {
 		LOGGER.trace("--- closeWorkItem EXIT: workItem={}, ctx={}", workItem, ctx);
 	}
 
-	private void closeWorkItemBatched(EngineInvocationContext ctx, Long workItemId,
-			XMLGregorianCalendar now, List<ItemDelta<?, ?>> modifications,
-			OperationResult result) throws SchemaException {
+	private void addWorkItemClosureModifications(EngineInvocationContext ctx, Long workItemId,
+			XMLGregorianCalendar now, List<ItemDelta<?, ?>> modifications) throws SchemaException {
 		modifications.addAll(prismContext.deltaFor(CaseType.class)
 				.item(CaseType.F_WORK_ITEM, workItemId, CaseWorkItemType.F_CLOSE_TIMESTAMP).replace(now)
 				.asItemDeltas());
@@ -256,6 +253,7 @@ public class WorkflowEngine {
 		}
 	}
 
+	@NotNull
 	public WorkItemType getFullWorkItem(String workItemId, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		String caseOid = WorkflowInterface.getCaseOidFromWorkItemId(workItemId);
@@ -265,85 +263,124 @@ public class WorkflowEngine {
 		//noinspection unchecked
 		PrismContainerValue<CaseWorkItemType> pcv = (PrismContainerValue<CaseWorkItemType>) caseObject.find(ItemPath.create(CaseType.F_WORK_ITEM, id));
 		if (pcv == null) {
-			throw new IllegalStateException("No work item " + id + " in " + caseObject);
+			throw new ObjectNotFoundException("No work item " + id + " in " + caseObject);
 		}
 		CaseWorkItemType workItem = pcv.asContainerable();
-		return workItemProvider.toFullWorkItem(workItem, result);
+		WorkItemType fullWorkItem = workItemProvider.toFullWorkItem(workItem, result);
+		if (fullWorkItem.getExternalId() == null) {
+			fullWorkItem.setExternalId(workItemId);     // just in case we don't have parent Case object
+		}
+		return fullWorkItem;
 	}
 
-	// inStageClosure = we are calling this method as part of stage closure (when we detect timed action of COMPLETE)
+	// actions should have compatible causeInformation
 	// TODO orchestrator
-	public void completeWorkItem(String workItemId, WorkItemType workItem, String outcome, String comment,
-			ObjectDelta<? extends ObjectType> additionalDelta,
-			WorkItemEventCauseInformationType causeInformation, boolean inStageClosure, OperationResult result)
+	public void completeWorkItems(Collection<CompleteAction> actions, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-		LOGGER.trace("+++ completeWorkItem ENTER: workItem={}, outcome={}, inStageClosure={}", workItem, outcome, inStageClosure);
-		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		LOGGER.trace("+++ completeWorkItems ENTER: actions: {}", actions.size());
+		if (actions.isEmpty()) {
+			throw new IllegalArgumentException("No complete actions");
+		}
 
-		EngineInvocationContext ctx = createInvocationContext(workItemId, result);
+		List<WorkItemType> alreadyCompleted = new ArrayList<>();
+		for (Iterator<CompleteAction> iterator = actions.iterator(); iterator.hasNext(); ) {
+			CompleteAction action = iterator.next();
+			if (action.getWorkItem().getCloseTimestamp() != null) {
+				alreadyCompleted.add(action.getWorkItem());
+				iterator.remove();
+			}
+		}
+		if (!alreadyCompleted.isEmpty()) {
+			LOGGER.warn("The following work items were already completed: {}", alreadyCompleted);
+			if (alreadyCompleted.size() == 1) {
+				result.recordWarning("Work item " + alreadyCompleted.get(0).getExternalId() + " was already completed on " + alreadyCompleted.get(0).getCloseTimestamp());
+			} else {
+				result.recordWarning(alreadyCompleted.size() + " work items were already completed");
+			}
+			if (actions.isEmpty()) {
+				return;
+			}
+		}
 
+		EngineInvocationContext ctx = createInvocationContext(actions.iterator().next().getWorkItem().getExternalId(), result);
 		WfTask wfTask = getWfTask(ctx, result);
 		ApprovalStageDefinitionType stageDef = WfContextUtil.getCurrentStageDefinition(ctx.wfContext);
-
-		MidPointPrincipal user = getMidPointPrincipal();
-
-		LOGGER.trace("======================================== Recording individual decision of {}", user);
-
-		@NotNull WorkItemResultType itemResult = new WorkItemResultType(prismContext);
-		itemResult.setOutcome(outcome);
-		itemResult.setComment(comment);
-		boolean isApproved = ApprovalUtils.isApproved(itemResult);
-		if (isApproved && additionalDelta != null) {
-			ObjectDeltaType additionalDeltaBean = DeltaConvertor.toObjectDeltaType(additionalDelta);
-			ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
-			treeDeltas.setFocusPrimaryDelta(additionalDeltaBean);
-			itemResult.setAdditionalDeltas(treeDeltas);
-		}
-
 		LevelEvaluationStrategyType levelEvaluationStrategyType = stageDef.getEvaluationStrategy();
-		boolean stopTheStage;
-		if (levelEvaluationStrategyType == LevelEvaluationStrategyType.FIRST_DECIDES) {
-			LOGGER.trace("Setting " + LOOP_APPROVERS_IN_STAGE_STOP + " to true, because the stage evaluation strategy is 'firstDecides'.");
-			stopTheStage = true;
-		} else if ((levelEvaluationStrategyType == null || levelEvaluationStrategyType == LevelEvaluationStrategyType.ALL_MUST_AGREE) && !isApproved) {
-			LOGGER.trace("Setting " + LOOP_APPROVERS_IN_STAGE_STOP + " to true, because the stage eval strategy is 'allMustApprove' and the decision was 'reject'.");
-			stopTheStage = true;
-		} else {
-			stopTheStage = false;
+
+		boolean stopTheStage = false;
+
+		List<ItemDelta<?, ?>> caseModifications = new ArrayList<>();
+
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		MidPointPrincipal user = getMidPointPrincipal();
+		for (CompleteAction action : actions) {
+			WorkItemType workItem = action.getWorkItem();
+			String outcome = action.getOutcome();
+
+			String currentCaseOid = WorkflowInterface.getCaseOidFromWorkItemId(workItem.getExternalId());
+			if (!ctx.getCaseOid().equals(currentCaseOid)) {
+				throw new IllegalArgumentException("Trying to complete work items from unrelated cases: " + ctx.getCaseOid() + " vs " + currentCaseOid);
+			}
+
+			LOGGER.trace("+++ recordCompletionOfWorkItem ENTER: workItem={}, outcome={}", workItem, outcome);
+			LOGGER.trace("======================================== Recording individual decision of {}", user);
+
+			@NotNull WorkItemResultType itemResult = new WorkItemResultType(prismContext);
+			itemResult.setOutcome(outcome);
+			itemResult.setComment(action.getComment());
+			boolean isApproved = ApprovalUtils.isApproved(itemResult);
+			if (isApproved && action.getAdditionalDelta() != null) {
+				ObjectDeltaType additionalDeltaBean = DeltaConvertor.toObjectDeltaType(action.getAdditionalDelta());
+				ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
+				treeDeltas.setFocusPrimaryDelta(additionalDeltaBean);
+				itemResult.setAdditionalDeltas(treeDeltas);
+			}
+
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Recording decision for approval process instance {} (case oid {}), stage {}: decision: {}",
+						ctx.wfContext.getProcessInstanceName(), ctx.getCaseOid(),
+						WfContextUtil.getStageDiagName(stageDef), itemResult.getOutcome());
+			}
+
+			caseModifications.addAll(prismContext.deltaFor(CaseType.class)
+					.item(CaseType.F_WORK_ITEM, workItem.getId(), CaseWorkItemType.F_OUTPUT).replace(itemResult)
+					.asItemDeltas());
+			addWorkItemClosureModifications(ctx, workItem.getId(), now, caseModifications);
+
+			if (levelEvaluationStrategyType == LevelEvaluationStrategyType.FIRST_DECIDES) {
+				LOGGER.trace("Setting " + LOOP_APPROVERS_IN_STAGE_STOP + " to true, because the stage evaluation strategy is 'firstDecides'.");
+				stopTheStage = true;
+			} else if ((levelEvaluationStrategyType == null || levelEvaluationStrategyType == LevelEvaluationStrategyType.ALL_MUST_AGREE) && !isApproved) {
+				LOGGER.trace("Setting " + LOOP_APPROVERS_IN_STAGE_STOP + " to true, because the stage eval strategy is 'allMustApprove' and the decision was 'reject'.");
+				stopTheStage = true;
+			}
 		}
 
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Recording decision for approval process instance {} (case oid {}), stage {}: decision: {}; stage stops now: {}",
-					ctx.wfContext.getProcessInstanceName(), ctx.getCaseOid(),
-					WfContextUtil.getStageDiagName(stageDef), itemResult.getOutcome(), stopTheStage);
-		}
-
-		List<ItemDelta<?, ?>> resultModifications = prismContext.deltaFor(CaseType.class)
-				.item(CaseType.F_WORK_ITEM, workItem.getId(), CaseWorkItemType.F_OUTPUT).replace(itemResult)
-				.asItemDeltas();
-		repositoryService.modifyObject(CaseType.class, ctx.getCaseOid(), resultModifications, result);
-		workItem.setOutput(itemResult);
-
-		closeWorkItem(ctx, workItem, now, result);
-		onWorkItemClosure(ctx, workItem, wfTask, true, causeInformation, result);
+		repositoryService.modifyObject(CaseType.class, ctx.getCaseOid(), caseModifications, result);
 		refreshContext(ctx, result);
 
-		if (!inStageClosure) {
-			boolean keepStageOpen;
-			if (stopTheStage) {
-				closeOtherWorkItems(ctx, wfTask, causeInformation, now, result);
-				refreshContext(ctx, result);
-				keepStageOpen = false;
-			} else {
-				keepStageOpen = ctx.wfCase.getWorkItem().stream().anyMatch(wi -> wi.getCloseTimestamp() == null);
-			}
-			LOGGER.trace("computed keepStageOpen = {}", keepStageOpen);
-			if (!keepStageOpen) {
-				onStageClose(ctx, result);
-			}
+		for (CompleteAction action : actions) {
+			CaseWorkItemType workItem = ctx.findWorkItemById(action.getWorkItem().getId());
+			WorkItemType fullWorkItem = workItemProvider.toFullWorkItem(workItem, ctx.wfTask.getTaskType(), result);
+			onWorkItemClosure(ctx, fullWorkItem, wfTask, true, action.getCauseInformation(), result);
 		}
-		LOGGER.trace("--- completeWorkItem EXIT: workItem={}, inStageClosure={}", workItem, inStageClosure);
+
+		refreshContext(ctx, result);
+
+		boolean keepStageOpen;
+		if (stopTheStage) {
+			closeOtherWorkItems(ctx, wfTask, actions.iterator().next().getCauseInformation(), now, result);
+			refreshContext(ctx, result);
+			keepStageOpen = false;
+		} else {
+			keepStageOpen = ctx.wfCase.getWorkItem().stream().anyMatch(wi -> wi.getCloseTimestamp() == null);
+		}
+		LOGGER.trace("computed keepStageOpen = {}", keepStageOpen);
+		if (!keepStageOpen) {
+			onStageClose(ctx, result);
+		}
+		LOGGER.trace("--- completeWorkItems EXIT");
 	}
 
 	public void onStageClose(EngineInvocationContext ctx, OperationResult result)
@@ -468,17 +505,17 @@ public class WorkflowEngine {
 		LOGGER.trace("+++ closeOtherWorkItems ENTER: ctx={}, cause type={}", ctx, causeType);
 		for (CaseWorkItemType workItem : ctx.wfCase.getWorkItem()) {
 			if (workItem.getCloseTimestamp() == null) {
-				if (causeType == WorkItemEventCauseTypeType.TIMED_ACTION) {
-					String workItemId = WorkflowInterface.createWorkItemId(ctx.getCaseOid(), workItem.getId());
-					CompleteWorkItemActionType completeAction = willBeCompletedByTrigger(ctx, workItem, workItemId);
-					if (completeAction != null) {
-						LOGGER.trace("Sibling work item is being closed by triggered complete action: {}", completeAction);
-						WorkItemType fullWorkItem = workItemProvider.toFullWorkItem(workItem, ctx.wfTask.getTaskType(), result);
-						completeWorkItem(workItemId, fullWorkItem, completeAction.getOutcome(), null, null,
-								causeInformation, true, result);
-						continue;
-					}
-				}
+//				if (causeType == WorkItemEventCauseTypeType.TIMED_ACTION) {
+//					String workItemId = WorkflowInterface.createWorkItemId(ctx.getCaseOid(), workItem.getId());
+//					CompleteWorkItemActionType completeAction = willBeCompletedByTrigger(ctx, workItem, workItemId);
+//					if (completeAction != null) {
+//						LOGGER.trace("Sibling work item is being closed by triggered complete action: {}", completeAction);
+//						WorkItemType fullWorkItem = workItemProvider.toFullWorkItem(workItem, ctx.wfTask.getTaskType(), result);
+//						completeWorkItem(workItemId, fullWorkItem, completeAction.getOutcome(), null, null,
+//								causeInformation, true, result);
+//						continue;
+//					}
+//				}
 				closeWorkItem(ctx, workItem, now, result);
 				WorkItemType fullWorkItem = workItemProvider.toFullWorkItem(workItem, wfTask.getTask().getTaskType(), result);
 				onWorkItemClosure(ctx, fullWorkItem, wfTask, false, causeInformation, result);
@@ -487,22 +524,22 @@ public class WorkflowEngine {
 		LOGGER.trace("--- closeOtherWorkItems EXIT: ctx={}", ctx);
 	}
 
-	private CompleteWorkItemActionType willBeCompletedByTrigger(EngineInvocationContext ctx, CaseWorkItemType workItem,
-			String workItemId) {
-		LOGGER.trace("willBeCompletedByTrigger for {}", workItem);
-		for (TriggerType trigger : ctx.wfTask.getTaskType().getTrigger()) {
-			LOGGER.trace("considering trigger {}", trigger);
-			String triggerWorkItemId = ObjectTypeUtil.getExtensionItemRealValue(trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
-			WorkItemActionsType triggerActions = ObjectTypeUtil.getExtensionItemRealValue(trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTIONS);
-			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri())
-					&& workItemId.equals(triggerWorkItemId)
-					&& triggerActions != null && triggerActions.getComplete() != null
-					&& trigger.getTimestamp() != null && XmlTypeConverter.toMillis(trigger.getTimestamp()) <= clock.currentTimeMillis()) {
-				return triggerActions.getComplete();
-			}
-		}
-		return null;
-	}
+//	private CompleteWorkItemActionType willBeCompletedByTrigger(EngineInvocationContext ctx, CaseWorkItemType workItem,
+//			String workItemId) {
+//		LOGGER.trace("willBeCompletedByTrigger for {}", workItem);
+//		for (TriggerType trigger : ctx.wfTask.getTaskType().getTrigger()) {
+//			LOGGER.trace("considering trigger {}", trigger);
+//			String triggerWorkItemId = ObjectTypeUtil.getExtensionItemRealValue(trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
+//			WorkItemActionsType triggerActions = ObjectTypeUtil.getExtensionItemRealValue(trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTIONS);
+//			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri())
+//					&& workItemId.equals(triggerWorkItemId)
+//					&& triggerActions != null && triggerActions.getComplete() != null
+//					&& trigger.getTimestamp() != null && XmlTypeConverter.toMillis(trigger.getTimestamp()) <= clock.currentTimeMillis()) {
+//				return triggerActions.getComplete();
+//			}
+//		}
+//		return null;
+//	}
 
 	private void onWorkItemClosure(EngineInvocationContext ctx,
 			WorkItemType workItem, WfTask wfTask,
@@ -750,7 +787,12 @@ public class WorkflowEngine {
 				.item(CaseType.F_WORK_ITEM, itemId, CaseWorkItemType.F_ASSIGNEE_REF).replaceRealValues(newAssignees)
 				.asItemDeltas();
 		if (newDuration != null) {
-			XMLGregorianCalendar newDeadline = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+			XMLGregorianCalendar newDeadline;
+			if (workItem.getDeadline() != null) {
+				newDeadline = (XMLGregorianCalendar) workItem.getDeadline().clone();
+			} else {
+				newDeadline = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+			}
 			newDeadline.add(newDuration);
 			workItemDeltas.add(
 					prismContext.deltaFor(CaseType.class)

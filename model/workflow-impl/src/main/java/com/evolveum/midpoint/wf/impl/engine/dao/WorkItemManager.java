@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,6 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -60,6 +63,7 @@ public class WorkItemManager {
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_INTERFACE + "completeWorkItem";
+    private static final String OPERATION_COMPLETE_WORK_ITEMS = DOT_INTERFACE + "completeWorkItems";
     private static final String OPERATION_CLAIM_WORK_ITEM = DOT_INTERFACE + "claimWorkItem";
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_INTERFACE + "releaseWorkItem";
     private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_INTERFACE + "delegateWorkItem";
@@ -84,16 +88,7 @@ public class WorkItemManager {
 			WorkItemType workItem = workflowEngine.getFullWorkItem(workItemId, result);
 			// TODO: is this OK? Creating new task?
 			com.evolveum.midpoint.task.api.Task opTask = taskManager.createTaskInstance(OPERATION_COMPLETE_WORK_ITEM);
-			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE, opTask, result)) {
-				throw new SecurityViolationException("You are not authorized to complete this work item.");
-			}
-			if (workItem.getCloseTimestamp() == null) {
-				workflowEngine
-						.completeWorkItem(workItemId, workItem, outcome, comment, additionalDelta, causeInformation, false, result);
-			} else {
-				LOGGER.debug("Work item {} was already closed on {}", workItemId, workItem.getCloseTimestamp());
-				result.recordWarning("Work item was already closed on " + workItem.getCloseTimestamp());
-			}
+			completeWorkItemsInternal(Collections.singleton(new CompleteAction(workItem, outcome, comment, additionalDelta, causeInformation)), opTask, result);
 		} catch (SecurityViolationException | RuntimeException | CommunicationException | ConfigurationException | SchemaException | ObjectAlreadyExistsException e) {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
@@ -102,7 +97,36 @@ public class WorkItemManager {
 		}
     }
 
-    public void claimWorkItem(String workItemId, OperationResult parentResult)
+    // assuming the work items in actions are fresh enough
+    public void completeWorkItems(Collection<CompleteAction> actions, Task opTask, OperationResult parentResult)
+		    throws SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+		    ConfigurationException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEMS);
+		try {
+			final String userDescription = toShortString(securityContextManager.getPrincipal().getUser());
+			result.addContext("user", userDescription);
+			completeWorkItemsInternal(actions, opTask, result);
+		} catch (SecurityViolationException | RuntimeException | CommunicationException | ConfigurationException | SchemaException | ObjectAlreadyExistsException e) {
+			result.recordFatalError("Couldn't complete work items: " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+    }
+
+	private void completeWorkItemsInternal(Collection<CompleteAction> actions, Task opTask, OperationResult result)
+			throws SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SchemaException, ObjectAlreadyExistsException {
+		LOGGER.trace("Executing complete actions: {}", actions);
+		for (CompleteAction action : actions) {
+			if (!miscDataUtil.isAuthorized(action.getWorkItem(), MiscDataUtil.RequestedOperation.COMPLETE, opTask, result)) {
+				throw new SecurityViolationException("You are not authorized to complete the work item.");
+			}
+		}
+		workflowEngine.completeWorkItems(actions, result);
+	}
+
+	public void claimWorkItem(String workItemId, OperationResult parentResult)
 		    throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         OperationResult result = parentResult.createSubresult(OPERATION_CLAIM_WORK_ITEM);
         result.addParam("workItemId", workItemId);
