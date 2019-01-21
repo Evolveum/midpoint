@@ -282,7 +282,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 //				newItemPerformed(target);
 //			}
 //		};
-
+		newObjectIcon.add(AttributeModifier.append("class", "btn-group"));
 		newObjectIcon.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
