@@ -182,6 +182,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_4.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentSelectorType;

@@ -16,11 +16,11 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordListType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordListType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_4.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

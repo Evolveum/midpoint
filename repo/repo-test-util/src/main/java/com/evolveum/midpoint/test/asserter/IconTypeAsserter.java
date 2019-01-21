@@ -21,7 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.IconType;
 
 /**
  * @author semancik

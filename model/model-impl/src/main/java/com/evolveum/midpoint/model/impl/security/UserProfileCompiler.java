@@ -81,6 +81,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.AbstractObjectTypeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.AdminGuiConfigurationRoleManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.AssignmentType;
@@ -95,6 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectDetailsSetT
 import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectListViewAdditionalPanelsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.GuiObjectListViewsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectFormsType;

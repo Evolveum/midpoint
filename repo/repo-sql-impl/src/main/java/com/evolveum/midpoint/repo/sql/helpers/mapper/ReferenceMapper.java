@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.sql.helpers.mapper;
 
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 /**
  * Created by Viliam Repan (lazyman).
