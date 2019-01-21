@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.component.util;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
 
+import java.io.Serializable;
+
 /**
  * Common functionality for "focus list" pages or panels - e.g. roles, services; in the future also users and maybe orgs.
  * Intended to be used e.g. for FocusListInlineMenuHelper.
@@ -28,8 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.FocusType;
  * @author mederly
  */
 @FunctionalInterface
-public interface FocusListComponent<F extends FocusType> {
+public interface FocusListComponent<F extends FocusType, S extends Serializable> {
 
-	MainObjectListPanel<F> getObjectListPanel();
+	MainObjectListPanel<F, S> getObjectListPanel();
 
 }

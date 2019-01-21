@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,17 @@ package com.evolveum.midpoint.schema;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
 
 /**
  * @author Radovan Semancik
@@ -156,6 +160,73 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 		}
 		return clonedCollection;
 	}
+	
+	public static ObjectDeltaOperation<? extends ObjectType> findFocusDeltaInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
+		for (ObjectDeltaOperation<? extends ObjectType> odo : odos) {
+			Class<? extends ObjectType> objectTypeClass = odo.getObjectDelta().getObjectTypeClass();
+			if (!ShadowType.class.equals(objectTypeClass)) {
+				return odo;
+			}
+		}
+		return null;
+	}
+	
+	public static String findFocusDeltaOidInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
+		ObjectDeltaOperation<? extends ObjectType> odo = findFocusDeltaInCollection(odos);
+		if (odo == null) {
+			return null;
+		}
+		return odo.getObjectDelta().getOid();
+	}
+
+	public static List<ObjectDeltaOperation<ShadowType>> findProjectionDeltasInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> odos) {
+		List<ObjectDeltaOperation<ShadowType>> projectionDeltas = new ArrayList<>();
+		for (ObjectDeltaOperation<? extends ObjectType> odo : odos) {
+			Class<? extends ObjectType> objectTypeClass = odo.getObjectDelta().getObjectTypeClass();
+			if (ShadowType.class.equals(objectTypeClass)) {
+				projectionDeltas.add((ObjectDeltaOperation<ShadowType>) odo);
+			}
+		}
+		return projectionDeltas;
+	}
+	
+	public static List<String> findProjectionDeltaOidsInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges) {
+		return findProjectionDeltasInCollection(executeChanges).stream()
+				.map(odo -> odo.getObjectDelta().getOid())
+				.distinct()
+				.collect(Collectors.toList());
+	}
+	
+	public static <O extends ObjectType> ObjectDeltaOperation<O> findAddDelta(Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges, PrismObject<O> object) {
+		for (ObjectDeltaOperation<? extends ObjectType> odo : executedChanges) {
+			Class<? extends ObjectType> objectTypeClass = odo.getObjectDelta().getObjectTypeClass();
+			if (odo.getObjectDelta().isAdd() && object.getCompileTimeClass().equals(objectTypeClass)) {
+				return (ObjectDeltaOperation<O>) odo;
+			}
+		}
+		return null;
+	}
+	
+	public static <O extends ObjectType> String findAddDeltaOid(Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges, PrismObject<O> object) {
+		ObjectDeltaOperation<O> odo = findAddDelta(executedChanges, object);
+		if (odo == null) {
+			return null;
+		}
+		return odo.getObjectDelta().getOid();
+	}
+
+
+	// Mostly for use in tests.
+	public static String findProjectionDeltaOidInCollection(Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges) {
+		List<String> oids = findProjectionDeltaOidsInCollection(executeChanges);
+		if (oids.isEmpty()) {
+			return null;
+		}
+		if (oids.size() > 1) {
+			throw new IllegalStateException("More than one projection oid");
+		}
+		return oids.get(0);
+	}
 
 	@Override
 	public int hashCode() {
@@ -264,4 +335,5 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
     	sb.append("]");
 		return sb.toString();
 	}
+
 }

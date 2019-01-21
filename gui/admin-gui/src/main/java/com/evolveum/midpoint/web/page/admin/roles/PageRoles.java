@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -92,7 +93,7 @@ public class PageRoles extends PageAdminObjectList<RoleType> {
     }
 
     @Override
-    protected void newObjectActionPerformed(AjaxRequestTarget target) {
+    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
         navigateToNext(PageRole.class);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
@@ -59,24 +60,25 @@ public class OperationsHelper {
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private PrismContext prismContext;
 
-    public void applyDelta(ObjectDelta delta, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        applyDelta(delta, null, context, result);
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta delta, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+        return applyDelta(delta, null, context, result);
     }
 
-    public void applyDelta(ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
-            modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
+            return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
         } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
         }
     }
 
-    public void applyDelta(ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, boolean dryRun, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, boolean dryRun, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
             if (dryRun) {
                 modelInteractionService.previewChanges(Collections.singleton(delta), options, context.getTask(), result);
+                return null;
             } else {
-                modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
+                return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
             }
         } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);

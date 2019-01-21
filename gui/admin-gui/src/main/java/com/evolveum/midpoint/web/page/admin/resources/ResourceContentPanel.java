@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -244,7 +245,8 @@ public abstract class ResourceContentPanel extends Panel {
         add(totals);
         initShadowStatistics(totals);
 
-		MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE,
+		MainObjectListPanel<ShadowType, CompiledObjectCollectionView> shadowListPanel =
+				new MainObjectListPanel<ShadowType, CompiledObjectCollectionView>(ID_TABLE,
 				ShadowType.class, getTableId(), createSearchOptions(), pageBase) {
 			private static final long serialVersionUID = 1L;
 
@@ -261,12 +263,6 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ShadowType object) {
 				shadowDetailsPerformed(target, WebComponentUtil.getName(object), object.getOid());
-
-			}
-
-			@Override
-			protected void newObjectPerformed(AjaxRequestTarget target) {
-				// TODO Auto-generated method stub
 
 			}
 
@@ -1095,8 +1091,8 @@ public abstract class ResourceContentPanel extends Panel {
 				.findObjectDefinitionByCompileTimeClass(FocusType.class);
 	}
 
-	private MainObjectListPanel<ShadowType> getTable() {
-		return (MainObjectListPanel<ShadowType>) get(pageBase.createComponentPath(ID_TABLE));
+	private MainObjectListPanel<ShadowType, CompiledObjectCollectionView> getTable() {
+		return (MainObjectListPanel<ShadowType, CompiledObjectCollectionView>) get(pageBase.createComponentPath(ID_TABLE));
 	}
 
 	private void changeOwner(ShadowType selected, AjaxRequestTarget target, FocusType ownerToChange,

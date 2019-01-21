@@ -15,14 +15,18 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 
 /**
@@ -51,6 +55,7 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 	public List<QName> targetTypes;
 	public List<ObjectReferenceType> archetypeRefs;
 	public List<QName> relations;
+	public String description;
 	
 	public List<QName> getTargetTypes() {
 		return targetTypes;
@@ -60,12 +65,30 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 		this.targetTypes = targetTypes;
 	}
 	
+	public void addTargetTypes(List<QName> newTargetTypes) {
+		if (newTargetTypes == null) {
+			return;
+		}
+		if (this.targetTypes == null) {
+			this.targetTypes = new ArrayList<>();
+		}
+		this.targetTypes.addAll(newTargetTypes);
+	}
+	
 	public List<ObjectReferenceType> getArchetypeRefs() {
 		return archetypeRefs;
 	}
 
 	public void setArchetypeRefs(List<ObjectReferenceType> archetypeRefs) {
 		this.archetypeRefs = archetypeRefs;
+	}
+	
+	public void addArchetypeRef(PrismObject<ArchetypeType> archetype) {
+		if (archetypeRefs == null) {
+			archetypeRefs = new ArrayList<>();
+		}
+		ObjectReferenceType ref = MiscSchemaUtil.createObjectReference(archetype, ArchetypeType.class);
+		archetypeRefs.add(ref);
 	}
 
 	public List<QName> getRelations() {
@@ -74,6 +97,27 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 	
 	public void setRelations(List<QName> relations) {
 		this.relations = relations;
+	}
+	
+	public void addRelations(List<QName> newRelations) {
+		if (newRelations == null) {
+			return;
+		}
+		if (this.relations == null) {
+			this.relations = new ArrayList<>();
+		}
+		this.relations.addAll(newRelations);
+	}
+
+	/**
+	 * Just for diagnostic purposes (testability).
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	@Override
@@ -98,11 +142,22 @@ public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(AssignmentTargetRelation.class, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "description", description, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "targetTypes", targetTypes, indent + 1);
 		SchemaDebugUtil.debugDumpWithLabelLn(sb, "archetypeRefs", archetypeRefs, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "relations", relations, indent + 1);
 		return sb.toString();
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("AssignmentTargetRelation()");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	
 	
 	
 }

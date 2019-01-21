@@ -18,6 +18,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.fe-assign_horizontal_B_piece:before {
+  content: "\e90c";
+}
+.fe-assign_horizontal_A_piece:before {
+  content: "\e90d";
+}
+.fe-arrow:before {
+  content: "\e90e";
+}
 .fe-officer-cap-object:before {
   content: "\e90b";
 }
@@ -63,5 +72,3 @@
 .fe-assignment-thicker:before {
   content: "\e909";
 }
-
-

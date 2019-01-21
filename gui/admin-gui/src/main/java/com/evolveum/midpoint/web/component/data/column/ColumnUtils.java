@@ -23,8 +23,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
+import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -149,9 +149,9 @@ public class ColumnUtils {
 	private static <O extends ObjectType> DisplayType getDisplayTypeForRowObject(IModel<SelectableBean<O>> rowModel, PageBase pageBase){
 		O object = rowModel.getObject().getValue();
 		if (object != null) {
-			ArchetypeInteractionSpecification archetypeSpec = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
-			if (archetypeSpec != null && archetypeSpec.getArchetypePolicy() != null) {
-				return archetypeSpec.getArchetypePolicy().getDisplay();
+			ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
+			if (archetypePolicy != null) {
+				return archetypePolicy.getDisplay();
 			}
 		}
 		return null;

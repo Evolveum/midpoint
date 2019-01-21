@@ -397,9 +397,17 @@ public class ContextLoader {
 	}
 
 	private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) throws SchemaException, ObjectNotFoundException {
+		
 		if (ctx.getPrimaryDelta() != null && ctx.getObjectOld() != null && ctx.isModify()) {
+			boolean immutable = ctx.getPrimaryDelta().isImmutable();
+			if (immutable) {
+				ctx.getPrimaryDelta().setImmutable(false);
+			}
 			for (ItemDelta<?,?> itemDelta: ctx.getPrimaryDelta().getModifications()) {
 				LensUtil.setDeltaOldValue(ctx, itemDelta);
+			}
+			if (immutable) {
+				ctx.getPrimaryDelta().setImmutable(true);
 			}
 		}
 	}
@@ -754,12 +762,15 @@ public class ContextLoader {
 		// are in the context now and will be linked at the end of the process
 		// (it they survive the policy)
 		// We need to make sure this happens on the real primary user delta
-
+		
+		// TODO: review: not sure about this
+		focusPrimaryDelta.setImmutable(false);
 		if (focusPrimaryDelta.getChangeType() == ChangeType.ADD) {
 			focusPrimaryDelta.getObjectToAdd().removeReference(FocusType.F_LINK_REF);
 		} else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
 			focusPrimaryDelta.removeReferenceModification(FocusType.F_LINK_REF);
 		}
+		focusPrimaryDelta.setImmutable(true);
 
 	}
 

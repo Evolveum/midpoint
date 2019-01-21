@@ -126,7 +126,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			finishPreviewProcessing(target, result);
 			return;
 		}
-        if (result.isSuccess() && getDelta() != null  && getDelta().getOid().equals(SecurityUtils.getPrincipalUser().getOid())) {
+        if (result.isSuccess() && getDelta() != null  && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
             UserType user = null;
             if (getObjectWrapper().getObject().asObjectable() instanceof UserType){
                 user = (UserType) getObjectWrapper().getObject().asObjectable();

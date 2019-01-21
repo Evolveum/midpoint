@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -84,7 +85,8 @@ public class PageReports extends PageAdmin {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel table = new MainObjectListPanel<ReportType>(ID_REPORTS_TABLE, ReportType.class, UserProfileStorage.TableId.PAGE_REPORTS,
+        MainObjectListPanel<ReportType, CompiledObjectCollectionView> table =
+                new MainObjectListPanel<ReportType, CompiledObjectCollectionView>(ID_REPORTS_TABLE, ReportType.class, UserProfileStorage.TableId.PAGE_REPORTS,
                 null, this) {
 
             @Override
@@ -110,7 +112,7 @@ public class PageReports extends PageAdmin {
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target) {
+            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
                 navigateToNext(PageNewReport.class);
             }
         };

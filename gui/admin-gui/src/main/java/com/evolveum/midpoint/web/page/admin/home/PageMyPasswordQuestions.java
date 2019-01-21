@@ -491,7 +491,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 		if (user == null) {
 
-			throw new RestartResponseException(PageDashboard.class);
+			throw new RestartResponseException(PageDashboardInfo.class);
 		}
 
 		ContainerStatus status = ContainerStatus.MODIFYING;

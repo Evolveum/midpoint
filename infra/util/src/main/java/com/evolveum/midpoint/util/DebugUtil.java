@@ -317,7 +317,7 @@ public class DebugUtil {
 		} else {
 			sb.append(" (").append(values.size()).append(")");
 			sb.append("\n");
-			debugDump(sb, values, indent + 1, true);
+			debugDump(sb, values, indent + 1, false);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,14 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_4.ActionExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
 
 import javax.annotation.PostConstruct;
 
@@ -67,7 +70,9 @@ public class AddExecutor extends BaseActionExecutor {
                 long started = operationsHelper.recordStart(context, objectType);
                 Throwable exception = null;
                 try {
-                    operationsHelper.applyDelta(createAddDelta(objectType), executionOptions, dryRun, context, result);
+                    Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = operationsHelper.applyDelta(createAddDelta(objectType), executionOptions, dryRun, context, result);
+                    String newObjectOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, prismObject);
+                    prismObject.setOid(newObjectOid);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);

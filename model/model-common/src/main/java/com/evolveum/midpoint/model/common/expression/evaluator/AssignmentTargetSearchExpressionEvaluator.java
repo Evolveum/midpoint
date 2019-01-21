@@ -102,7 +102,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 	 */
 	@Override
 	public String shortDebugDump() {
-		return "assignmentExpression";
+		return "assignmentTargetSearchExpression";
 	}
 
 }

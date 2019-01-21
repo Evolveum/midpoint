@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.valuePolicy;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -74,7 +75,7 @@ public class PageValuePolicies extends PageAdminObjectList<ValuePolicyType> {
     }
 
     @Override
-    protected void newObjectActionPerformed(AjaxRequestTarget target) {
+    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
         navigateToNext(PageValuePolicy.class);
     }
 

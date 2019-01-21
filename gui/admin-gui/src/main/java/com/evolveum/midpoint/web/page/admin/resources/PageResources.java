@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_4.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -72,7 +74,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_4.ResourceType;
 
 /**
  * @author lazyman
@@ -154,8 +155,8 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 	}
 
 	@Override
-	protected void newObjectActionPerformed(AjaxRequestTarget target) {
-		navigateToNext(PageResourceWizard.class);
+	protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+    	navigateToNext(PageResourceWizard.class);
 
 	}
 
@@ -399,8 +400,8 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         ((PageBase)getPage()).showMainPopup(dialog, target);
     }
 
-	private MainObjectListPanel<ResourceType> getResourceTable() {
-		return (MainObjectListPanel<ResourceType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+	private MainObjectListPanel<ResourceType, CompiledObjectCollectionView> getResourceTable() {
+		return (MainObjectListPanel<ResourceType, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
 
 	/**

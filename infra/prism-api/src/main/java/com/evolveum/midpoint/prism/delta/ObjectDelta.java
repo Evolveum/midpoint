@@ -372,4 +372,8 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 	List<PrismValue> getDeletedValuesFor(ItemPath itemPath);
 
 	void clear();
+	
+	public boolean isImmutable();
+	
+	void setImmutable(boolean immutable);
 }

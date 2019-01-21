@@ -272,7 +272,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public ObjectDelta<O> getWaveExecutableDelta(int wave) throws SchemaException {
     	if (wave == 0) {
     		if (getFixedPrimaryDelta() != null && getFixedPrimaryDelta().isAdd()) {
-    			ObjectDelta delta = getFixedPrimaryDelta();
+    			ObjectDelta delta = getFixedPrimaryDelta().clone();
     			for (ObjectDelta<O> secondary : getSecondaryDeltas()) {
     				if (secondary != null) {
     					secondary.applyTo(delta.getObjectToAdd());

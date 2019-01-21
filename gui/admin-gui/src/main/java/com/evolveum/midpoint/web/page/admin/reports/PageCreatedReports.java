@@ -216,12 +216,6 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
     }
 
     @Override
-    protected void newObjectActionPerformed(AjaxRequestTarget target) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     protected boolean isNameColumnClickable(IModel<SelectableBean<ReportOutputType>> rowModel) {
         return false;
     }

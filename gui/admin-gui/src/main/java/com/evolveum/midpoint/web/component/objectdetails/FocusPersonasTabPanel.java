@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -67,7 +68,8 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
     }
 
     private void initLayout() {
-        MainObjectListPanel<F> userListPanel = new MainObjectListPanel<F>(ID_PERSONAS_TABLE,
+        MainObjectListPanel<F, CompiledObjectCollectionView> userListPanel =
+                new MainObjectListPanel<F, CompiledObjectCollectionView>(ID_PERSONAS_TABLE,
                 (Class<F>) FocusType.class, null, null, getPageBase()) {
             private static final long serialVersionUID = 1L;
 
@@ -121,7 +123,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target) {
+            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
             }
 
             @Override

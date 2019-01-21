@@ -454,7 +454,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      */
     public void setOid(String oid) {
         this.oid = oid;
-        if (primaryDelta != null) {
+        if (primaryDelta != null && !primaryDelta.isImmutable()) {
             primaryDelta.setOid(oid);
         }
         if (objectNew != null) {
@@ -601,7 +601,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		if (objectCurrent != null) {
 			objectCurrent.normalize();
 		}
-		if (primaryDelta != null) {
+		if (primaryDelta != null && !primaryDelta.isImmutable()) {
 			primaryDelta.normalize();
 		}
 	}
@@ -833,6 +833,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
 		if (objectNew != null) {
 			consumer.accept(objectNew);
+		}
+	}
+	
+	public void finishBuild() {
+		if (primaryDelta != null) {
+			primaryDelta.normalize();
+			primaryDelta.setImmutable(true);
 		}
 	}
 }

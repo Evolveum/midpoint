@@ -79,8 +79,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     private void initTable(Form mainForm) {
         StringValue collectionNameParameter = getCollectionNameParameterValue();
-        MainObjectListPanel<O> userListPanel = new MainObjectListPanel<O>(ID_TABLE,
-                getType(), collectionNameParameter == null || collectionNameParameter.isEmpty() ?
+        MainObjectListPanel<O, CompiledObjectCollectionView> userListPanel = new MainObjectListPanel<O, CompiledObjectCollectionView>(ID_TABLE,
+                getType(), !isCollectionViewPage() ?
                 getTableId() : UserProfileStorage.TableId.COLLECTION_VIEW_TABLE, getQueryOptions(), this) {
             private static final long serialVersionUID = 1L;
 
@@ -100,8 +100,41 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target) {
-                newObjectActionPerformed(target);
+            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+                newObjectActionPerformed(target, collectionView);
+            }
+
+            @Override
+            protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
+                if (isCollectionViewPage()){
+                    return new ArrayList<>();
+                }
+                return getCompiledUserProfile().findAllApplicableObjectCollectionViews(getType());
+            }
+
+            @Override
+            protected String getNewObjectButtonStyle(){
+                if (isCollectionViewPage()){
+                    return getCollectionViewIconClass(getCollectionViewObject());
+                } else {
+                    return WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(PageAdminObjectList.this.getPrismContext(),
+                            getType()));
+                }
+            }
+
+            @Override
+            protected String getNewObjectSpecificStyle(CompiledObjectCollectionView collectionView){
+                return getCollectionViewIconClass(collectionView);
+            }
+
+            @Override
+            protected String getNewObjectSpecificTitle(CompiledObjectCollectionView collectionView){
+                if (collectionView == null || collectionView.getDisplay() == null
+                        || collectionView.getDisplay().getLabel() == null){
+                    return "";
+                }
+
+                return collectionView.getDisplay().getLabel().getOrig();
             }
 
             @Override
@@ -134,14 +167,14 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
             @Override
             protected String getTableIdKeyValue(){
-                return collectionNameParameter == null || collectionNameParameter.isEmpty() ?
+                return !isCollectionViewPage() ?
                         super.getTableIdKeyValue() : super.getTableIdKeyValue() + "." + collectionNameParameter.toString();
             }
 
             @Override
             protected String getStorageKey() {
                 StringValue collectionName = getCollectionNameParameterValue();
-                String key = (collectionName != null && StringUtils.isNotEmpty(collectionName.toString()))?
+                String key = !isCollectionViewPage() ?
                         SessionStorage.KEY_OBJECT_LIST + "." + collectionName : SessionStorage.KEY_OBJECT_LIST + "." + getType().getSimpleName();
                 return key;
             }
@@ -160,16 +193,19 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected void newObjectActionPerformed(AjaxRequestTarget target){}
+    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){}
 
     protected ObjectFilter getArchetypeViewFilter(){
-        StringValue collectionNameParam = getCollectionNameParameterValue();
-        if (collectionNameParam == null || collectionNameParam.isEmpty()) {
+        CompiledObjectCollectionView view = getCollectionViewObject();
+        return view != null ? view.getFilter() : null;
+    }
+
+    protected CompiledObjectCollectionView getCollectionViewObject(){
+        if (!isCollectionViewPage()) {
             return null;
         }
-        String collectionName = collectionNameParam.toString();
-        CompiledObjectCollectionView view = getCompiledUserProfile().findObjectViewByViewName(getType(), collectionName);
-        return view != null ? view.getFilter() : null;
+        String collectionName = getCollectionNameParameterValue().toString();
+        return getCompiledUserProfile().findObjectViewByViewName(getType(), collectionName);
     }
 
     protected StringValue getCollectionNameParameterValue(){
@@ -199,9 +235,21 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return (Form) get(ID_MAIN_FORM);
     }
 
-    public MainObjectListPanel<O> getObjectListPanel() {
-        return (MainObjectListPanel<O>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    public MainObjectListPanel<O, CompiledObjectCollectionView> getObjectListPanel() {
+        return (MainObjectListPanel<O, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
+    private boolean isCollectionViewPage(){
+        StringValue collectionNameParam = getCollectionNameParameterValue();
+        return collectionNameParam != null && !collectionNameParam.isEmpty();
+    }
 
+    private String getCollectionViewIconClass(CompiledObjectCollectionView view){
+        if (view == null || view.getDisplay() == null ||
+                view.getDisplay().getIcon() == null){
+            return "";
+        }
+
+        return view.getDisplay().getIcon().getCssClass();
+    }
 }

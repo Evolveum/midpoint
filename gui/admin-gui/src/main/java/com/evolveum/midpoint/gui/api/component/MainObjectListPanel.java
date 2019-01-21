@@ -15,10 +15,12 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.io.Serializable;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_4.ShadowType;
+import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,11 +38,9 @@ import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -55,13 +55,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_4.ObjectType;
 /**
  * @author katkav
  */
-public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
+public abstract class MainObjectListPanel<O extends ObjectType, S extends Serializable> extends ObjectListPanel<O> {
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_REFRESH = "refresh";
-    private static final String ID_NEW_OBJECT = "newObject";
-    private static final String ID_IMPORT_OBJECT = "importObject";
-    private static final String ID_EXPORT_DATA = "exportData";
     private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
     private static final String ID_BUTTON = "button";
@@ -118,7 +114,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
 
-    protected abstract void newObjectPerformed(AjaxRequestTarget target);
+    protected void newObjectPerformed(AjaxRequestTarget target, S collectionView){}
 
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -127,18 +123,50 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     protected List<Component> createToolbarButtonsList(String buttonId){
         List<Component> buttonsList = new ArrayList<>();
-        AjaxIconButton newObjectIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
-                createStringResource("MainObjectListPanel.newObject")) {
+//        AjaxIconButton newObjectIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
+//                createStringResource("MainObjectListPanel.newObject")) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                newObjectPerformed(target);
+//            }
+//        };
+//        newObjectIcon.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
+//        buttonsList.add(newObjectIcon);
 
+        MultifunctionalButton<S> createNewObjectButton =
+                new MultifunctionalButton<S>(buttonId){
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                newObjectPerformed(target);
+            protected List<S> getAdditionalButtonsObjects(){
+                return getNewObjectInfluencesList();
+            }
+
+            @Override
+            protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject){
+                newObjectPerformed(target, influencingObject);
+            }
+
+            @Override
+            protected String getDefaultButtonStyle(){
+                return getNewObjectButtonStyle();
+            }
+
+            @Override
+            protected String getAdditionalButtonTitle(S buttonObject){
+                return getNewObjectSpecificTitle(buttonObject);
+            }
+
+            @Override
+            protected String getAdditionalButtonStyle(S buttonObject){
+                return getNewObjectSpecificStyle(buttonObject);
             }
         };
-        newObjectIcon.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
-        buttonsList.add(newObjectIcon);
+        buttonsList.add(createNewObjectButton);
+
 
         AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
                 createStringResource("MainObjectListPanel.refresh")) {
@@ -231,11 +259,27 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return false;
     }
 
+    protected List<S> getNewObjectInfluencesList(){
+        return new ArrayList<>();
+    }
+
+    protected String getNewObjectButtonStyle(){
+        return GuiStyleConstants.CLASS_ADD_NEW_OBJECT;
+    }
+
+    protected String getNewObjectSpecificStyle(S buttonObject){
+        return "";
+    }
+
+    protected String getNewObjectSpecificTitle(S buttonObject){
+        return "";
+    }
+
     private static class ButtonBar extends Fragment {
 
         private static final long serialVersionUID = 1L;
 
-        public <O extends ObjectType> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider, List<Component> buttonsList) {
+        public <O extends ObjectType, S extends Serializable> ButtonBar(String id, String markupId, MainObjectListPanel<O, S> markupProvider, List<Component> buttonsList) {
             super(id, markupId, markupProvider);
 
             initLayout(buttonsList);

@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -26,6 +27,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -58,7 +60,8 @@ public abstract class PageCases extends PageAdminCases {
         add(mainForm);
 
         LOGGER.trace("Creating casePanel");
-        MainObjectListPanel<CaseType> casePanel = new MainObjectListPanel<CaseType>(
+        MainObjectListPanel<CaseType, CompiledObjectCollectionView> casePanel =
+                new MainObjectListPanel<CaseType, CompiledObjectCollectionView>(
                 ID_CASES_TABLE,
                 CaseType.class,
                 UserProfileStorage.TableId.TABLE_CASES,
@@ -73,7 +76,7 @@ public abstract class PageCases extends PageAdminCases {
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target) {
+            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
                 navigateToNext(PageCase.class);
             }
 

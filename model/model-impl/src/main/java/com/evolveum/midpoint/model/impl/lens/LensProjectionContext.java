@@ -877,7 +877,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	private void distributeResourceValue(PrismReferenceValue resourceRefVal, PrismObject<ResourceType> resource) {
 		if (resourceRefVal != null) {
+			boolean immutable = resourceRefVal.isImmutable();
+			if (immutable) {
+				resourceRefVal.setImmutable(false);
+			}
 			resourceRefVal.setObject(resource);
+			resourceRefVal.setImmutable(immutable);
 		}
 	}
 
@@ -953,7 +958,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             // This is either UNLINK or null, both are in fact the same as KEEP
         	// Any delta is OK
         }
-		return origDelta;
+		if (origDelta != null && origDelta.isImmutable()) {
+			// E.g. locked primary delta.
+			// We need modifiable delta for execution, e.g. to set metadata, oid and so on.
+			return origDelta.clone();
+		} else {
+			return origDelta;
+		}
 	}
 
 	public void checkConsistence() {
