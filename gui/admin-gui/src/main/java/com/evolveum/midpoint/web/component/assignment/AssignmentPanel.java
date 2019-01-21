@@ -23,11 +23,14 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
+import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -83,6 +86,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
 	protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
 	protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
+	protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
 
 	protected int assignmentsRequestsLimit = -1;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
@@ -100,7 +104,8 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 	private void initLayout() {
 
-		MultivalueContainerListPanelWithDetailsPanel<AssignmentType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AssignmentType>(ID_ASSIGNMENTS, getModel(), getTableId(),
+		MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentTargetRelation> multivalueContainerListPanel =
+				new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentTargetRelation>(ID_ASSIGNMENTS, getModel(), getTableId(),
 				getAssignmentsTabStorage()) {
 
 			private static final long serialVersionUID = 1L;
@@ -137,8 +142,41 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 
 			@Override
-			protected void newItemPerformed(AjaxRequestTarget target) {
-				newAssignmentClickPerformed(target);
+			protected void newItemPerformed(AjaxRequestTarget target){
+				//todo clean up
+				newAssignmentClickPerformed(target, null);
+			}
+
+			@Override
+			protected void newItemPerformed(AjaxRequestTarget target, AssignmentTargetRelation assignmentTargetRelation) {
+				newAssignmentClickPerformed(target, assignmentTargetRelation);
+			}
+
+			protected List<AssignmentTargetRelation> getNewObjectInfluencesList() {
+				OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS);
+				List<AssignmentTargetRelation> assignmentTargetRelations = new ArrayList<>();
+				PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
+				try {
+					AssignmentTargetSpecification spec = AssignmentPanel.this.getPageBase().getModelInteractionService()
+							.determineAssignmentTargetSpecification(obj, result);
+					assignmentTargetRelations = spec != null ? spec.getAssignmentTargetRelations() : new ArrayList<>();
+				} catch (SchemaException | ConfigurationException ex){
+					result.recordPartialError(ex.getLocalizedMessage());
+					LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+				}
+				return assignmentTargetRelations;
+			}
+
+			protected String getNewObjectButtonStyle() {
+				return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
+			}
+
+			protected String getNewObjectSpecificStyle(AssignmentTargetSpecification buttonObject) {
+				return "";
+			}
+
+			protected String getNewObjectSpecificTitle(AssignmentTargetSpecification buttonObject) {
+				return "";
 			}
 
 			@Override
@@ -339,7 +377,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target){
 	}
 
-	protected void newAssignmentClickPerformed(AjaxRequestTarget target){
+	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentTargetRelation assignmentTargetRelation){
 		AssignmentPopup popupPanel = new AssignmentPopup(getPageBase().getMainPopupBodyId()) {
 
 			private static final long serialVersionUID = 1L;
@@ -721,8 +759,8 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		return menuItems;
 	}
 
-	protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType> getMultivalueContainerListPanel() {
-		return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType>)get(ID_ASSIGNMENTS));
+	protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentTargetSpecification> getMultivalueContainerListPanel() {
+		return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentTargetSpecification>)get(ID_ASSIGNMENTS));
 	}
 
 	public MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel() {

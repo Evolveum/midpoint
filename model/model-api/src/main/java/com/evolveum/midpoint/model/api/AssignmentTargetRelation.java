@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * @author semancik
  *
  */
-public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable {
+public class AssignmentTargetRelation implements DebugDumpable, ShortDumpable, Serializable {
 	
 	public List<QName> targetTypes;
 	public List<ObjectReferenceType> archetypeRefs;
