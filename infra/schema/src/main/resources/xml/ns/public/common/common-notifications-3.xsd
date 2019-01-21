@@ -674,6 +674,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="simpleReportNotifier" type="tns:SimpleReportNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="simplePolicyRuleNotifier" type="tns:SimplePolicyRuleNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1258,6 +1265,18 @@
     </xsd:complexType>
 
     <xsd:complexType name="SimpleTaskNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+	
+	<xsd:complexType name="SimpleReportNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO

@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
@@ -90,65 +92,69 @@ public abstract class PageDashboard extends PageAdminHome {
     
     protected abstract void initLayout();
     
-    protected Model<InfoBoxType> getResourceInfoBoxTypeModel(OperationResult result, Task task) {
-    	InfoBoxType infoBoxType = new InfoBoxType("object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
-    			getString("PageDashboard.infobox.resources.label"));
-    	Integer totalCount;
-		try {
-			totalCount = getModelService().countObjects(ResourceType.class, null, null, task, result);
-			if (totalCount == null) {
-				totalCount = 0;
-			}
+//    protected Model<InfoBoxType> getResourceInfoBoxTypeModel(OperationResult result, Task task) {
+//    	InfoBoxType infoBoxType = new InfoBoxType("object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
+//    			getString("PageDashboard.infobox.resources.label"));
+//    	Integer totalCount;
+//		try {
+//			totalCount = getModelService().countObjects(ResourceType.class, null, null, task, result);
+//			if (totalCount == null) {
+//				totalCount = 0;
+//			}
+//
+//			ObjectQuery query = getPrismContext().queryFor(ResourceType.class)
+//					.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
+//					.build();
+//			Integer activeCount = getModelService().countObjects(ResourceType.class, query, null, task, result);
+//			if (activeCount == null) {
+//				activeCount = 0;
+//			}
+//
+//			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.resources.number"));
+//
+//			int progress = 0;
+//			if (totalCount != 0) {
+//				progress = activeCount * 100 / totalCount;
+//			}
+//			infoBoxType.setProgress(progress);
+//
+//			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.resources.total"));
+//
+//		} catch (Exception e) {
+//			infoBoxType.setNumber("ERROR: "+e.getMessage());
+//		}
+//		
+//		customizationResourceInfoBoxType(infoBoxType, result, task);
+//
+//		return new Model<>(infoBoxType);
+//	}
 
-			ObjectQuery query = getPrismContext().queryFor(ResourceType.class)
-					.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
-					.build();
-			Integer activeCount = getModelService().countObjects(ResourceType.class, query, null, task, result);
-			if (activeCount == null) {
-				activeCount = 0;
-			}
-
-			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.resources.number"));
-
-			int progress = 0;
-			if (totalCount != 0) {
-				progress = activeCount * 100 / totalCount;
-			}
-			infoBoxType.setProgress(progress);
-
-			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.resources.total"));
-
-		} catch (Exception e) {
-			infoBoxType.setNumber("ERROR: "+e.getMessage());
-		}
-		
-		customizationResourceInfoBoxType(infoBoxType, result, task);
-
-		return new Model<>(infoBoxType);
-	}
-
-	protected void customizationResourceInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
-		
+	protected <O extends ObjectType> void customizationObjectInfoBoxType(InfoBoxType infoBoxType, Class<O> type,
+			List<QName> items, Object eqObject, String bgColor, String icon, String keyPrefix, Integer totalCount,
+			Integer activeCount, OperationResult result, Task task) {
 	}
 	
-	protected Model<InfoBoxType> getTaskInfoBoxTypeModel(OperationResult result, Task task) {
-    	InfoBoxType infoBoxType = new InfoBoxType("object-task-bg", GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
-    			getString("PageDashboard.infobox.tasks.label"));
-    	Integer totalCount;
+	protected <O extends ObjectType> Model<InfoBoxType> getObjectInfoBoxTypeModel(Class<O> type, List<QName> items,
+			Object eqObject, String bgColor, String icon, String keyPrefix, OperationResult result, Task task) {
+		
+    	InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon, getString(keyPrefix + ".label"));
+    	Integer totalCount = null;
+    	Integer activeCount = null;
 		try {
-			totalCount = getModelService().countObjects(TaskType.class, null, null, task, result);
+			totalCount = getModelService().countObjects(type, null, null, task, result);
 			if (totalCount == null) {
 				totalCount = 0;
 			}
-			ObjectQuery query = getPrismContext().queryFor(TaskType.class)
-					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE)
-					.build();
-			Integer activeCount = getModelService().countObjects(TaskType.class, query, null, task, result);
-			if (activeCount == null) {
+    		ObjectQuery query = getPrismContext().queryFor(type)
+				.item((QName[])items.toArray()).eq(eqObject)
+				.build();
+		
+    		activeCount = getModelService().countObjects(type, query, null, task, result);
+    		if (activeCount == null) {
 				activeCount = 0;
 			}
-
-			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.tasks.number"));
+			
+			infoBoxType.setNumber(activeCount + " " + getString(keyPrefix + ".number"));
 
 			int progress = 0;
 			if (totalCount != 0) {
@@ -156,20 +162,57 @@ public abstract class PageDashboard extends PageAdminHome {
 			}
 			infoBoxType.setProgress(progress);
 
-			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.tasks.total"));
+			infoBoxType.setDescription(totalCount + " " + getString(keyPrefix + ".total"));
 
 		} catch (Exception e) {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
 		
-		customizationTaskInfoBoxType(infoBoxType, result, task);
+		customizationObjectInfoBoxType(infoBoxType, type, items, eqObject, bgColor, icon,
+				keyPrefix, totalCount, activeCount, result, task);
 
 		return new Model<>(infoBoxType);
 	}
+	
+//	protected Model<InfoBoxType> getTaskInfoBoxTypeModel(OperationResult result, Task task) {
+//    	InfoBoxType infoBoxType = new InfoBoxType("object-task-bg", GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
+//    			getString("PageDashboard.infobox.tasks.label"));
+//    	Integer totalCount;
+//		try {
+//			totalCount = getModelService().countObjects(TaskType.class, null, null, task, result);
+//			if (totalCount == null) {
+//				totalCount = 0;
+//			}
+//			ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+//					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE)
+//					.build();
+//			Integer activeCount = getModelService().countObjects(TaskType.class, query, null, task, result);
+//			if (activeCount == null) {
+//				activeCount = 0;
+//			}
+//
+//			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.tasks.number"));
+//
+//			int progress = 0;
+//			if (totalCount != 0) {
+//				progress = activeCount * 100 / totalCount;
+//			}
+//			infoBoxType.setProgress(progress);
+//
+//			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.tasks.total"));
+//
+//		} catch (Exception e) {
+//			infoBoxType.setNumber("ERROR: "+e.getMessage());
+//		}
+//		
+//		customizationTaskInfoBoxType(infoBoxType, result, task);
+//
+//		return new Model<>(infoBoxType);
+//	}
 
-	protected void customizationTaskInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
-		
-	}
+//	protected void customizationTaskInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
+//		
+//	}
 	
 	protected <F extends FocusType> Model<InfoBoxType> getFocusInfoBoxType(Class<F> type, String bgColor,
 			String icon, String keyPrefix, OperationResult result, Task task) {
@@ -219,13 +262,13 @@ public abstract class PageDashboard extends PageAdminHome {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
 
-		customizationFocusInfoBoxType(infoBoxType, result, task);
+		customizationFocusInfoBoxType(infoBoxType, type, bgColor, icon, keyPrefix, result, task);
 
 		return new Model<>(infoBoxType);
     }
 
-	protected void customizationFocusInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
-		
+	protected <F extends FocusType> void customizationFocusInfoBoxType(InfoBoxType infoBoxType, Class<F> type, String bgColor,
+			String icon, String keyPrefix, OperationResult result, Task task) {
 	}
 	
 	protected List<AuditEventRecordType> listAuditRecords(Map<String, Object> parameters, List<String> conditions) {
@@ -268,8 +311,12 @@ public abstract class PageDashboard extends PageAdminHome {
     	return String.format(format, percentage);
     }
     
+    protected void customizationPercentageInfoBoxTypeModel(InfoBoxType infoBoxType, String bgColor, String icon, String keyPrefix,
+    		int totalItems, int actualItems, boolean zeroIsGood) {
+	}
+    
     protected Model<InfoBoxType> getPercentageInfoBoxTypeModel(String bgColor, String icon, String keyPrefix,
-    		int totalItems, int actualItems) {
+    		int totalItems, int actualItems, boolean zeroIsGood) {
     	InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon,
     			getString(keyPrefix +".label"));
     	
@@ -284,8 +331,8 @@ public abstract class PageDashboard extends PageAdminHome {
 		StringBuilder descSb = new StringBuilder();
 		descSb.append(totalItems).append(" ").append(getString(keyPrefix + ".total"));
 		infoBoxType.setDescription(descSb.toString());
+		customizationPercentageInfoBoxTypeModel(infoBoxType, bgColor, icon, keyPrefix, totalItems, actualItems, zeroIsGood);
 		
 		return new Model<>(infoBoxType);
 	}
-
 }

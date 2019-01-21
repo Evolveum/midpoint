@@ -24,10 +24,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.wicket.Component;
@@ -111,67 +114,44 @@ public class PageDashboardAdmin extends PageDashboard {
 
 	}
     
-    @Override
-    protected void customizationResourceInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
-    	Integer totalCount;
-		try {
-			totalCount = getModelService().countObjects(ResourceType.class, null, null, task, result);
-			if (totalCount == null) {
-				totalCount = 0;
-			}
-
-			ObjectQuery query = getPrismContext().queryFor(ResourceType.class)
-					.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
-					.build();
-			Integer activeCount = getModelService().countObjects(ResourceType.class, query, null, task, result);
-			if (activeCount == null) {
-				activeCount = 0;
-			}
-
-			infoBoxType.setNumber(activeCount + "/"+ totalCount + " " + getString("PageDashboard.infobox.resources.number"));
-
-		} catch (Exception e) {
-			infoBoxType.setNumber("ERROR: "+e.getMessage());
+	@Override
+	protected <O extends ObjectType> void customizationObjectInfoBoxType(InfoBoxType infoBoxType, Class<O> type,
+			List<QName> items, Object eqObject, String bgColor, String icon, String keyPrefix, Integer totalCount,
+			Integer activeCount, OperationResult result, Task task) {
+		
+		if(totalCount == null || activeCount == null) {
+			infoBoxType.setNumber("ERROR: Not found data.");
+			return;
 		}
-    }
-
-	private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
-		return new SmallInfoBoxPanel(ID_INFO_BOX_RESOURCES, getResourceInfoBoxTypeModel(result, task), PageResources.class, this);
+		setBoxBackgroundColor(totalCount, activeCount, false, infoBoxType);
+		infoBoxType.setNumber(activeCount + "/"+ totalCount + " " + getString("PageDashboard.infobox.tasks.number"));
 	}
 	
-	@Override
-	protected void customizationTaskInfoBoxType(InfoBoxType infoBoxType, OperationResult result, Task task) {
-		infoBoxType.setBoxBackgroundColor("object-task-bg-gray");
-		Integer totalCount;
-		try {
-			totalCount = getModelService().countObjects(TaskType.class, null, null, task, result);
-			if (totalCount == null) {
-				totalCount = 0;
-			}
-			ObjectQuery query = getPrismContext().queryFor(TaskType.class)
-					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE)
-					.build();
-			Integer activeCount = getModelService().countObjects(TaskType.class, query, null, task, result);
-			if (activeCount == null) {
-				activeCount = 0;
-			}
-
-			infoBoxType.setNumber(activeCount + "/"+ totalCount + " " + getString("PageDashboard.infobox.tasks.number"));
-
-		} catch (Exception e) {
-			infoBoxType.setNumber("ERROR: "+e.getMessage());
-		}
+	private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
+		return new SmallInfoBoxPanel(ID_INFO_BOX_RESOURCES, getObjectInfoBoxTypeModel(ResourceType.class,
+    			Arrays.asList(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
+    			AvailabilityStatusType.UP, "object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
+    			"PageDashboard.infobox.resources", result, task), PageResources.class, this);
 	}
-
+	
     private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
-		return new SmallInfoBoxPanel(ID_INFO_BOX_TASKS, getTaskInfoBoxTypeModel(result, task), PageTasks.class, this);
+		return new SmallInfoBoxPanel(ID_INFO_BOX_TASKS, getObjectInfoBoxTypeModel(TaskType.class,
+    			Arrays.asList(TaskType.F_EXECUTION_STATUS), TaskExecutionStatusType.RUNNABLE, "object-task-bg",
+    			GuiStyleConstants.CLASS_OBJECT_TASK_ICON, "PageDashboard.infobox.tasks", result, task),
+				PageTasks.class, this);
 	}
+    
+    @Override
+    protected void customizationPercentageInfoBoxTypeModel(InfoBoxType infoBoxType, String bgColor, String icon,
+    		String keyPrefix, int totalItems, int actualItems, boolean zeroIsGood) {
+    	setBoxBackgroundColor(totalItems, actualItems, zeroIsGood, infoBoxType);
+    }
     
     private Component createModificationsInfoBoxPanel() {
     	int totalItems = listModificationsRecords(false).size();
     	int actualItems = listModificationsRecords(true).size();
-    	IModel<InfoBoxType> model = getPercentageInfoBoxTypeModel("object-role-bg", "fa fa-cog",
-    			"PageDashboard.infobox.modifications", totalItems, actualItems);
+    	IModel<InfoBoxType> model = getPercentageInfoBoxTypeModel("", "fa fa-cog",
+    			"PageDashboard.infobox.modifications", totalItems, actualItems, false);
     	
 		return new SmallInfoBoxPanel(ID_INFO_BOX_MODIFICATIONS, model, PageAuditLogViewer.class, this){
 			private static final long serialVersionUID = 1L;
@@ -183,6 +163,7 @@ public class PageDashboardAdmin extends PageDashboard {
 				searchDto.setFrom(XmlTypeConverter.createXMLGregorianCalendar(date));
 				searchDto.setEventType(AuditEventTypeType.MODIFY_OBJECT);
 				searchDto.setEventStage(AuditEventStageType.EXECUTION);
+				searchDto.setOutcome(OperationResultStatusType.SUCCESS);
 				getSessionStorage().getAuditLog().setSearchDto(searchDto);
 			}
 		};
@@ -192,8 +173,8 @@ public class PageDashboardAdmin extends PageDashboard {
     	int totalItems = listAllOperationsRecords().size();
     	int actualItems = listErrorsRecords().size();
     	
-    	IModel<InfoBoxType> model = getPercentageInfoBoxTypeModel("object-user-bg", "fa fa-ban",
-    			"PageDashboard.infobox.errors", totalItems, actualItems);
+    	IModel<InfoBoxType> model = getPercentageInfoBoxTypeModel("", "fa fa-ban",
+    			"PageDashboard.infobox.errors", totalItems, actualItems, true);
 		
 		return new SmallInfoBoxPanel(ID_INFO_BOX_ERRORS, model, PageAuditLogViewer.class, this) {
 			private static final long serialVersionUID = 1L;
@@ -238,4 +219,12 @@ public class PageDashboardAdmin extends PageDashboard {
 		List<String> conditions = new ArrayList<>();
 		return listAuditRecords(parameters, conditions);
     }
+    
+    private void setBoxBackgroundColor(int totalCount, int activeCount, boolean zeroIsGood, InfoBoxType infoBoxType) {
+		if((zeroIsGood && activeCount == 0) || (totalCount == activeCount)) {
+			infoBoxType.setBoxBackgroundColor("object-access-bg");
+			return;
+		} 
+		infoBoxType.setBoxBackgroundColor("object-failed-bg");
+	}
 }

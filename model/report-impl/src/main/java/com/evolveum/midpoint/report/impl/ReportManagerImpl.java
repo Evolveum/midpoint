@@ -136,7 +136,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
     @Override
     public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) {
-        task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
+        task.setHandlerUri(ReportJasperCreateTaskHandler.REPORT_CREATE_TASK_URI);
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
         try {
         	if (paramContainer != null && !paramContainer.isEmpty()){
