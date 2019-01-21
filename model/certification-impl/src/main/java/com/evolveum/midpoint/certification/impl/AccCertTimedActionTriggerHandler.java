@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,7 +43,7 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class AccCertTimedActionTriggerHandler implements TriggerHandler {
+public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 
 	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/timed-action/handler-3";
 

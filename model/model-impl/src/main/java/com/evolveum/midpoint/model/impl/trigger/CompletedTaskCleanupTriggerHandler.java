@@ -41,7 +41,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *
  */
 @Component
-public class CompletedTaskCleanupTriggerHandler implements TriggerHandler {
+public class CompletedTaskCleanupTriggerHandler implements SingleTriggerHandler {
 
 	public static final String HANDLER_URI = SchemaConstants.COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 package com.evolveum.midpoint.model.intest.util;
 
-import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.MultipleTriggersHandler;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -26,19 +27,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author Radovan Semancik
  *
  */
-public class MockTriggerHandler implements SingleTriggerHandler {
+public class MockMultipleTriggersHandler implements MultipleTriggersHandler {
 
-	public static final String HANDLER_URI = SchemaConstants.NS_MIDPOINT_TEST + "/mock-trigger-handler";
+	public static final String HANDLER_URI = SchemaConstants.NS_MIDPOINT_TEST + "/mock-multiple-trigger-handler";
 
-	protected static final Trace LOGGER = TraceManager.getTrace(MockTriggerHandler.class);
+	protected static final Trace LOGGER = TraceManager.getTrace(MockMultipleTriggersHandler.class);
 
 	private PrismObject<?> lastObject;
+	private Collection<TriggerType> lastTriggers;
 	private AtomicInteger invocationCount = new AtomicInteger(0);
 	private long delay;
 	private boolean failOnNextInvocation;
@@ -67,12 +69,15 @@ public class MockTriggerHandler implements SingleTriggerHandler {
 		this.failOnNextInvocation = failOnNextInvocation;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.trigger.TriggerHandler#handle(com.evolveum.midpoint.prism.PrismObject)
-	 */
+	public Collection<TriggerType> getLastTriggers() {
+		return lastTriggers;
+	}
+
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result) {
-		IntegrationTestTools.display("Mock trigger handler called with " + object);
+	public <O extends ObjectType> Collection<TriggerType> handle(PrismObject<O> object, Collection<TriggerType> triggers, Task task,
+			OperationResult result) {
+		IntegrationTestTools.display("Mock multiple triggers handler called with " + object);
+		lastTriggers = CloneUtil.cloneCollectionMembers(triggers);
 		lastObject = object.clone();
 		invocationCount.incrementAndGet();
 		long start = System.currentTimeMillis();
@@ -87,10 +92,12 @@ public class MockTriggerHandler implements SingleTriggerHandler {
 			failOnNextInvocation = false;
 			throw new IllegalStateException("Failing as instructed");
 		}
+		return triggers;
 	}
 
 	public void reset() {
 		lastObject = null;
+		lastTriggers = null;
 		invocationCount.set(0);
 		delay = 0;
 		failOnNextInvocation = false;

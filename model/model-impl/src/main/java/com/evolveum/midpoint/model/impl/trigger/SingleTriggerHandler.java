@@ -15,25 +15,18 @@
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.stereotype.Component;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
  * @author Radovan Semancik
  *
  */
-@Component
-public class TriggerHandlerRegistry {
+public interface SingleTriggerHandler extends TriggerHandler {
 
-	private Map<String, TriggerHandler> triggerHandlerMap = new HashMap<>();
+	<O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result);
 
-	public void register(String uri, TriggerHandler handler) {
-		triggerHandlerMap.put(uri, handler);
-	}
-
-	public TriggerHandler getHandler(String uri) {
-		return triggerHandlerMap.get(uri);
-	}
 }

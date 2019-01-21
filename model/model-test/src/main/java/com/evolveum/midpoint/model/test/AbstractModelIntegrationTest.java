@@ -3658,11 +3658,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
 	}
 
-	protected void addTriggers(String oid, Collection<XMLGregorianCalendar> timestamps, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected void addTriggers(String oid, Collection<XMLGregorianCalendar> timestamps, String uri, boolean makeDistinct) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addTriggers");
         OperationResult result = task.getResult();
         Collection<TriggerType> triggers = timestamps.stream()
 		        .map(ts -> new TriggerType().timestamp(ts).handlerUri(uri))
+		        .map(ts -> makeDistinct ? addRandomValue(ts) : ts)
 		        .collect(Collectors.toList());
         ObjectDelta<ObjectType> delta = prismContext.deltaFor(ObjectType.class)
 		       .item(ObjectType.F_TRIGGER).addRealValues(triggers)
@@ -3670,6 +3671,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
+	}
+
+	private TriggerType addRandomValue(TriggerType trigger) {
+		//noinspection unchecked
+		@NotNull PrismPropertyDefinition<String> workItemIdDef =
+				prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
+		PrismProperty<String> workItemIdProp = workItemIdDef.instantiate();
+		workItemIdProp.addRealValue(String.valueOf(Math.random()));
+		try {
+			//noinspection unchecked
+			trigger.asPrismContainerValue().findOrCreateContainer(TriggerType.F_EXTENSION).add(workItemIdProp);
+		} catch (SchemaException e) {
+			throw new AssertionError(e);
+		}
+		return trigger;
 	}
 
 	protected void replaceTriggers(String oid, Collection<XMLGregorianCalendar> timestamps, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {

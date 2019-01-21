@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processes.common;
 
+import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
@@ -52,7 +53,7 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class WfTimedActionTriggerHandler implements TriggerHandler {
+public class WfTimedActionTriggerHandler implements SingleTriggerHandler {
 
 	public static final String HANDLER_URI = WorkflowConstants.NS_WORKFLOW_TRIGGER_PREFIX + "/timed-action/handler-3";
 
