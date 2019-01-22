@@ -42,6 +42,7 @@ import com.evolveum.midpoint.wf.impl.engine.dao.ProcessInstanceProvider;
 import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.tasks.WfNotificationHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.PerformerCommentsFormatterImpl;
@@ -72,6 +73,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 	@Autowired private ProcessInstanceProvider processInstanceProvider;
 	@Autowired private ProcessInstanceManager processInstanceManager;
 	@Autowired private WfTaskController wfTaskController;
+	@Autowired private WfNotificationHelper notificationHelper;
 	@Autowired private WorkItemProvider workItemProvider;
 	@Autowired private WorkItemManager workItemManager;
 	@Autowired private WfTaskUtil wfTaskUtil;
@@ -227,12 +229,12 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     @Override
     public void registerProcessListener(ProcessListener processListener) {
-        wfTaskController.registerProcessListener(processListener);
+        notificationHelper.registerProcessListener(processListener);
     }
 
     @Override
     public void registerWorkItemListener(WorkItemListener workItemListener) {
-        wfTaskController.registerWorkItemListener(workItemListener);
+	    notificationHelper.registerWorkItemListener(workItemListener);
     }
 
     @Override

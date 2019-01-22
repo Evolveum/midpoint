@@ -54,6 +54,8 @@ import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.impl.tasks.WfAuditHelper;
+import com.evolveum.midpoint.wf.impl.tasks.WfNotificationHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -91,6 +93,8 @@ public class WorkflowEngine {
 	@Autowired private WorkItemProvider workItemProvider;
 	@Autowired private AuditService auditService;
 	@Autowired private ItemApprovalProcessOrchestrator itemApprovalProcessOrchestrator;
+	@Autowired private WfAuditHelper auditHelper;
+	@Autowired private WfNotificationHelper notificationHelper;
 
 	public <CTX extends EngineInvocationContext> void startProcessInstance(CTX ctx, ProcessOrchestrator<CTX> orchestrator,
 			OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
@@ -114,8 +118,8 @@ public class WorkflowEngine {
 
 		// TODO clean this up (remove from WfTaskController, remove WfTask)
 		WfTask wfTask = getWfTask(ctx, result);
-		wfTaskController.auditProcessStart(wfTask, ctx.wfContext, result);
-		wfTaskController.notifyProcessStart(wfTask.getTask(), result);
+		auditHelper.auditProcessStart(wfTask, ctx.wfContext, result);
+		notificationHelper.notifyProcessStart(wfTask.getTask(), result);
 		orchestrator.startProcessInstance(ctx, result);
 
 		runTheProcess(ctx, orchestrator, result);
@@ -184,8 +188,8 @@ public class WorkflowEngine {
 		wfTask.getChangeProcessor().onProcessEnd(ctx, result);
 		wfTask.commitChanges(result);
 
-		wfTaskController.auditProcessEnd(wfTask, ctx.wfContext, result);
-		wfTaskController.notifyProcessEnd(wfTask, result);
+		auditHelper.auditProcessEnd(wfTask, ctx.wfContext, result);
+		notificationHelper.notifyProcessEnd(wfTask, result);
 
 		// passive tasks can be 'let go' at this point
 		// TODO clean this up!
@@ -620,13 +624,13 @@ public class WorkflowEngine {
 					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
 			WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(userRef, causeInformation, null);
 			if (workItem.getAssigneeRef().isEmpty()) {
-				wfTaskController.notifyWorkItemDeleted(null, workItem, operationInfo, sourceInfo, wfTask, result);
+				notificationHelper.notifyWorkItemDeleted(null, workItem, operationInfo, sourceInfo, wfTask, result);
 			} else {
 				for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
-					wfTaskController.notifyWorkItemDeleted(assigneeOrDeputy, workItem, operationInfo, sourceInfo, wfTask, result);
+					notificationHelper.notifyWorkItemDeleted(assigneeOrDeputy, workItem, operationInfo, sourceInfo, wfTask, result);
 				}
 			}
-			wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, null, wfTask.getTask(), result);
+			notificationHelper.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, null, wfTask.getTask(), result);
 		} catch (SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't audit work item complete event", e);
 		}
@@ -737,11 +741,11 @@ public class WorkflowEngine {
 			try {
 				List<ObjectReferenceType> assigneesAndDeputies = wfTaskController.getAssigneesAndDeputies(fullWorkItem, wfTask, result);
 				for (ObjectReferenceType assigneesOrDeputy : assigneesAndDeputies) {
-					wfTaskController.notifyWorkItemCreated(assigneesOrDeputy, fullWorkItem, wfTask, result);		// we assume originalAssigneeRef == assigneeRef in this case
+					notificationHelper.notifyWorkItemCreated(assigneesOrDeputy, fullWorkItem, wfTask, result);		// we assume originalAssigneeRef == assigneeRef in this case
 				}
 				WorkItemAllocationChangeOperationInfo operationInfo =
 						new WorkItemAllocationChangeOperationInfo(null, Collections.emptyList(), assigneesAndDeputies);
-				wfTaskController.notifyWorkItemAllocationChangeNewActors(fullWorkItem, operationInfo, null, wfTask.getTask(), result);
+				notificationHelper.notifyWorkItemAllocationChangeNewActors(fullWorkItem, operationInfo, null, wfTask.getTask(), result);
 			} catch (SchemaException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
 			}
@@ -773,7 +777,7 @@ public class WorkflowEngine {
 		WorkItemAllocationChangeOperationInfo operationInfoBefore =
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, null);
 		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
-		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfoBefore, sourceInfo, null, ctx.wfTask, result);
+		notificationHelper.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfoBefore, sourceInfo, null, ctx.wfTask, result);
 
 		if (method == null) {
 			method = WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
@@ -834,7 +838,7 @@ public class WorkflowEngine {
 		List<ObjectReferenceType> assigneesAndDeputiesAfter = wfTaskController.getAssigneesAndDeputies(workItemAfter, opTask, result);
 		WorkItemAllocationChangeOperationInfo operationInfoAfter =
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
-		wfTaskController.notifyWorkItemAllocationChangeNewActors(workItemAfter, operationInfoAfter, sourceInfo, wfTaskAfter, result);
+		notificationHelper.notifyWorkItemAllocationChangeNewActors(workItemAfter, operationInfoAfter, sourceInfo, wfTaskAfter, result);
 	}
 
 }

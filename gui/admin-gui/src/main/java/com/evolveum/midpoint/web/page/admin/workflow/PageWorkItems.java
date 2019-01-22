@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -264,7 +265,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             try {
                 workflowService.claimWorkItem(workItemDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
-            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException e) {
                 result.recordPartialError(createStringResource("pageWorkItems.message.partialError.claimed").getString(), e);
             }
         }
@@ -300,7 +301,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                 if (!result.isNotApplicable()) {
                     applicable++;
                 }
-            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException e) {
                 result.recordPartialError(createStringResource("pageWorkItems.message.partialError.released").getString(), e);
             }
         }

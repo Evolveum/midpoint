@@ -38,6 +38,7 @@ import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.engine.dao.CompleteAction;
 import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.impl.tasks.WfNotificationHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -67,6 +68,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 	@Autowired private WorkItemProvider workItemProvider;
 	@Autowired private WorkItemManager workItemManager;
 	@Autowired private WfTaskController wfTaskController;
+	@Autowired private WfNotificationHelper notificationHelper;
 	@Autowired private TaskManager taskManager;
 	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
 	@Autowired private WfStageComputeHelper stageComputeHelper;
@@ -182,7 +184,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		WorkItemAllocationChangeOperationInfo operationInfo =
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
 		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
-		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
+		notificationHelper.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, WorkItemType workItem, Task wfTask,
@@ -248,10 +250,10 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			List<ObjectReferenceType> assigneesAndDeputies = wfTaskController.getAssigneesAndDeputies(workItem, wfTask, result);
 			for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
-				wfTaskController.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, wfTask, notificationAction, result);
+				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, wfTask, notificationAction, result);
 			}
 		} else {
-			wfTaskController.notifyWorkItemCustom(null, workItem, cause, wfTask, notificationAction, result);
+			notificationHelper.notifyWorkItemCustom(null, workItem, cause, wfTask, notificationAction, result);
 		}
 
 	}
