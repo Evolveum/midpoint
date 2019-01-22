@@ -37,6 +37,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -140,6 +141,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                                 return AssignmentPopup.this.getAssignmentWrapperModel();
                             }
+
+                            @Override
+                            protected QName getPredefinedRelation() {
+                                return AssignmentPopup.this.getPredefinedRelation();
+                            }
                         };
                     }
 
@@ -180,6 +186,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                                 return AssignmentPopup.this.getAssignmentWrapperModel();
                             }
+
+                            @Override
+                            protected QName getPredefinedRelation() {
+                                return AssignmentPopup.this.getPredefinedRelation();
+                            }
                         };
                     }
 
@@ -215,6 +226,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                         return AssignmentPopup.this.getAssignmentWrapperModel();
                     }
+
+                    @Override
+                    protected QName getPredefinedRelation() {
+                        return AssignmentPopup.this.getPredefinedRelation();
+                    }
                 };
             }
 
@@ -248,6 +264,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             @Override
                             protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                             	return AssignmentPopup.this.getAssignmentWrapperModel();
+                            }
+
+                            @Override
+                            protected QName getPredefinedRelation() {
+                                return AssignmentPopup.this.getPredefinedRelation();
                             }
 
                         };
@@ -303,6 +324,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
     protected List<ObjectTypes> getAvailableObjectTypesList(){
         return WebComponentUtil.createAssignableTypesList();
+    }
+
+    protected QName getPredefinedRelation(){
+        return null;
     }
 
     protected boolean isEntitlementAssignment(){

@@ -450,8 +450,18 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected List<ObjectTypes> getAvailableObjectTypesList(){
-				return getObjectTypesList();
+				if (assignmentTargetRelation == null || CollectionUtils.isEmpty(assignmentTargetRelation.getTargetTypes())) {
+					return getObjectTypesList();
+				} else {
+					return mergeNewAssignmentTargetTypeLists(assignmentTargetRelation.getTargetTypes(), getObjectTypesList());
+				}
 			}
+
+			@Override
+			protected QName getPredefinedRelation(){
+				return !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ? assignmentTargetRelation.getRelations().get(0) : null;
+			}
+
 
 			@Override
 			protected boolean isEntitlementAssignment(){
@@ -622,6 +632,26 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		}
 
 		return ItemVisibility.AUTO;
+	}
+
+	private List<ObjectTypes> mergeNewAssignmentTargetTypeLists(List<QName> allowedByAssignmentTargetSpecification, List<ObjectTypes> availableTypesList){
+		if (CollectionUtils.isEmpty(allowedByAssignmentTargetSpecification)){
+			return availableTypesList;
+		}
+		if (CollectionUtils.isEmpty(availableTypesList)){
+			return availableTypesList;
+		}
+		List<ObjectTypes> mergedList = new ArrayList<>();
+		allowedByAssignmentTargetSpecification.forEach(qnameValue -> {
+			ObjectTypes objectTypes = ObjectTypes.getObjectTypeFromTypeQName(qnameValue);
+			for (ObjectTypes availableObjectTypes : availableTypesList) {
+				if (availableObjectTypes.getClassDefinition().equals(objectTypes.getClassDefinition())) {
+					mergedList.add(objectTypes);
+					break;
+				}
+			}
+		});
+		return mergedList;
 	}
 
 	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
