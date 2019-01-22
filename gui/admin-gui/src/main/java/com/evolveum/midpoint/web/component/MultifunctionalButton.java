@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
@@ -139,8 +140,7 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
     }
 
     private boolean additionalButtonsExist(){
-        List additionalButtons =  getAdditionalButtonsObjects();
-        return additionalButtons != null && additionalButtons.size() > 0;
+        return !CollectionUtils.isEmpty(getAdditionalButtonsObjects());
     }
 
     protected List<S> getAdditionalButtonsObjects(){

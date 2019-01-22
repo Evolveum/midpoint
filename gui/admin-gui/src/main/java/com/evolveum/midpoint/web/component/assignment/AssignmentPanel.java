@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -42,6 +43,8 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -152,30 +155,34 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 				newAssignmentClickPerformed(target, assignmentTargetRelation);
 			}
 
+			@Override
 			protected List<AssignmentTargetRelation> getNewObjectInfluencesList() {
-				OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS);
-				List<AssignmentTargetRelation> assignmentTargetRelations = new ArrayList<>();
-				PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
-				try {
-					AssignmentTargetSpecification spec = AssignmentPanel.this.getPageBase().getModelInteractionService()
-							.determineAssignmentTargetSpecification(obj, result);
-					assignmentTargetRelations = spec != null ? spec.getAssignmentTargetRelations() : new ArrayList<>();
-				} catch (SchemaException | ConfigurationException ex){
-					result.recordPartialError(ex.getLocalizedMessage());
-					LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
-				}
-				return assignmentTargetRelations;
+				//to define new object button for each available relation we combine a list of AssignmentTargetRelation objects
+				//in such way that each object in the list contains just one relation value with the list of target types and
+				//archetypeRef list
+				return getCombinedRelationsList(loadAssignmentTargetRelationsList());
 			}
 
+			@Override
 			protected String getNewObjectButtonStyle() {
 				return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
 			}
 
-			protected String getNewObjectSpecificStyle(AssignmentTargetSpecification buttonObject) {
+			@Override
+			protected String getNewObjectSpecificStyle(AssignmentTargetRelation assignmentTargetRelation) {
+				DisplayType display = getRelationDisplayType(assignmentTargetRelation);
+				if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())){
+					return display.getIcon().getCssClass();
+				}
 				return "";
 			}
 
-			protected String getNewObjectSpecificTitle(AssignmentTargetSpecification buttonObject) {
+			@Override
+			protected String getNewObjectSpecificTitle(AssignmentTargetRelation assignmentTargetRelation) {
+				DisplayType display = getRelationDisplayType(assignmentTargetRelation);
+				if (display != null && display.getTooltip() != null){
+					return display.getTooltip().getOrig();
+				}
 				return "";
 			}
 
@@ -299,6 +306,59 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target){
+	}
+
+	private List<AssignmentTargetRelation> loadAssignmentTargetRelationsList(){
+		OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS);
+		List<AssignmentTargetRelation> assignmentTargetRelations = new ArrayList<>();
+		PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
+		try {
+			AssignmentTargetSpecification spec = getPageBase().getModelInteractionService()
+					.determineAssignmentTargetSpecification(obj, result);
+			assignmentTargetRelations = spec != null ? spec.getAssignmentTargetRelations() : new ArrayList<>();
+		} catch (SchemaException | ConfigurationException ex){
+			result.recordPartialError(ex.getLocalizedMessage());
+			LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+		}
+		return assignmentTargetRelations;
+	}
+
+	private List<AssignmentTargetRelation> getCombinedRelationsList(List<AssignmentTargetRelation> initialRelationsList){
+		if (CollectionUtils.isEmpty(initialRelationsList)){
+			return initialRelationsList;
+		}
+		List<AssignmentTargetRelation> combinedRelationList =  new ArrayList<>();
+		initialRelationsList.forEach(assignmentTargetRelation -> {
+			if (CollectionUtils.isEmpty(assignmentTargetRelation.getTargetTypes()) &&
+					CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
+				return;
+			}
+			if (CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
+				combinedRelationList.add(assignmentTargetRelation);
+			} else {
+				assignmentTargetRelation.getRelations().forEach(relation -> {
+					AssignmentTargetRelation relationObj = new AssignmentTargetRelation();
+					relationObj.setTargetTypes(assignmentTargetRelation.getTargetTypes());
+					relationObj.setRelations(Arrays.asList(relation));
+					relationObj.setArchetypeRefs(assignmentTargetRelation.getArchetypeRefs());
+					relationObj.setDescription(assignmentTargetRelation.getDescription());
+					combinedRelationList.add(relationObj);
+				});
+			}
+		});
+		return combinedRelationList;
+	}
+
+	private DisplayType getRelationDisplayType(AssignmentTargetRelation assignmentTargetRelation){
+		QName relation = assignmentTargetRelation != null && !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
+				assignmentTargetRelation.getRelations().get(0) : null;
+		if (relation != null){
+			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
+			if (def != null){
+				return def.getDisplay();
+			}
+		}
+		return null;
 	}
 
 	private List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
