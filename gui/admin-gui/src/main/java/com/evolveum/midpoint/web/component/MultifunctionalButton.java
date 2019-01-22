@@ -70,13 +70,14 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
                 }
             }
         };
+        mainButton.add(AttributeAppender.append(" data-toggle", additionalButtonsExist() ? "dropdown" : ""));
         add(mainButton);
 
         RepeatingView buttonsPanel = new RepeatingView(ID_BUTTON);
         buttonsPanel.add(new VisibleBehaviour(() -> additionalButtonsExist()));
         add(buttonsPanel);
 
-        if (additionalButtons != null){
+        if (additionalButtonsExist()){
             additionalButtons.forEach(additionalButtonObject -> {
                 AjaxIconButton newObjectIcon = new AjaxIconButton(buttonsPanel.newChildId(),
                         new Model<>(getAdditionalButtonStyle(additionalButtonObject)),
