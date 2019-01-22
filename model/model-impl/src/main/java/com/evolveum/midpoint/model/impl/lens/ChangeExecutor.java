@@ -59,6 +59,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -1636,6 +1637,8 @@ public class ChangeExecutor {
 
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, discr,
 				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
+		// Having delta in provisioning scripts may be very useful. E.g. the script can optimize execution of expensive operations.
+		variables.addVariableDefinition(ExpressionConstants.VAR_DELTA, projectionCtx.getDelta());
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, (LensProjectionContext) objectContext, task, result));
 		try {
 			return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
