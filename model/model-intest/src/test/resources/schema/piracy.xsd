@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -77,6 +77,7 @@
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="mark" type="tns:MarkType" minOccurs="0" maxOccurs="1">
+            	<!-- Enumeration -->
             </xsd:element>
             <xsd:element name="key" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
@@ -156,6 +157,23 @@
                 </xsd:annotation>
             </xsd:element>
 			<xsd:element ref="tns:sea"/>
+			<xsd:element name="riskVector" type="tns:RiskVectorType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="RiskVectorType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Prism container in role extension.
+        		MID-5080
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="risk" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="value" type="xsd:int" minOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 

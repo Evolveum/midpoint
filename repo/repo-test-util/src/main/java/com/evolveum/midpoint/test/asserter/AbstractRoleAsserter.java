@@ -172,22 +172,17 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
 	}
 	
 	public AbstractRoleAsserter<F,RA> assertDisplayName(String expectedOrig) {
-		assertPolyStringProperty(OrgType.F_DISPLAY_NAME, expectedOrig);
+		assertPolyStringProperty(AbstractRoleType.F_DISPLAY_NAME, expectedOrig);
 		return this;
 	}
 	
 	public AbstractRoleAsserter<F,RA> assertIdentifier(String expectedOrig) {
-		assertPropertyEquals(OrgType.F_IDENTIFIER, expectedOrig);
+		assertPropertyEquals(AbstractRoleType.F_IDENTIFIER, expectedOrig);
 		return this;
 	}
-		
-	public AbstractRoleAsserter<F,RA> assertTenant(Boolean expected) {
-		assertPropertyEquals(OrgType.F_TENANT, expected);
-		return this;
-	}
-	
-	public AbstractRoleAsserter<F,RA> assertIsTenant() {
-		assertPropertyEquals(OrgType.F_TENANT, true);
+			
+	public AbstractRoleAsserter<F,RA> assertRiskLevel(String expected) {
+		assertPropertyEquals(AbstractRoleType.F_RISK_LEVEL, expected);
 		return this;
 	}
 	

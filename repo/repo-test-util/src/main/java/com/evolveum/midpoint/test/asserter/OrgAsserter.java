@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -189,6 +190,12 @@ public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
 	
 	public OrgAsserter<RA> assertIsTenant() {
 		assertPropertyEquals(OrgType.F_TENANT, true);
+		return this;
+	}
+	
+	@Override
+	public OrgAsserter<RA> assertRiskLevel(String expected) {
+		super.assertRiskLevel(expected);
 		return this;
 	}
 	
