@@ -592,6 +592,8 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			builder = builder.conditionMaskNew(false);
 		}
 
+		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, builder.getVariables());
+
 		MappingImpl<V, D> mapping = builder.build();
 		mappingEvaluator.evaluateMapping(mapping, getLensContext(), projectionContext, task, result);
 
