@@ -5583,6 +5583,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 	
+	protected RoleAsserter<Void> assertRoleBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		RoleAsserter<Void> asserter = assertRole(oid, "before");
+		return asserter;
+	}
+	
 	protected RoleAsserter<Void> assertRoleAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		RoleAsserter<Void> asserter = assertRole(oid, "after");
 		return asserter;

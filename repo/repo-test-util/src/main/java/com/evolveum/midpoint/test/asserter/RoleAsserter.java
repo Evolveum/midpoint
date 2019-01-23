@@ -108,6 +108,12 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
 	}
 	
 	@Override
+	public RoleAsserter<RA> assertRiskLevel(String expected) {
+		super.assertRiskLevel(expected);
+		return this;
+	}
+	
+	@Override
 	public RoleAsserter<RA> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;
