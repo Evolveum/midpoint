@@ -49,6 +49,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 	private static final String ID_ICON = "icon";
 	private static final String ID_LABEL = "label";
 
+	private static final String ID_DROPDOWN_MENU = "dropDownMenu";
 	private static String ID_MENU_ITEM = "menuItem";
     private static String ID_MENU_ITEM_BODY = "menuItemBody";
 
@@ -95,6 +96,11 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
         });
 		buttonContainer.add(icon);
 
+		WebMarkupContainer dropdownMenuContainer = new WebMarkupContainer(ID_DROPDOWN_MENU);
+		dropdownMenuContainer.setOutputMarkupId(true);
+		dropdownMenuContainer.add(AttributeAppender.append("class", getSpecialDropdownMenuClass()));
+		add(dropdownMenuContainer);
+		
 		ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(dropdownButtonDto.getMenuItems())) {
 			private static final long serialVersionUID = 1L;
 
@@ -104,7 +110,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
             }
         };
 
-        add(li);
+        dropdownMenuContainer.add(li);
 	}
 
 	public WebMarkupContainer getButtonContainer() {
@@ -120,6 +126,10 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 
     protected String getSpecialButtonClass() {
 		return "btn-app";
+	}
+    
+    protected String getSpecialDropdownMenuClass() {
+		return "pull-right";
 	}
 
 }
