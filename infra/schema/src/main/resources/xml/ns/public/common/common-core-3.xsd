@@ -15758,6 +15758,7 @@
         </xsd:annotation>
        		<xsd:sequence>
        			<xsd:element name="identifier" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
+       				<!-- TODO: make this optional (autogenerate) -->
            			<xsd:annotation>
            				<xsd:documentation>
            					Widget identifier. The feature specifications that come
@@ -15768,6 +15769,7 @@
 						</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
+           		<!-- TODO: add DisplayType here (optional) -->
            		<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
            		             minOccurs="0" maxOccurs="1" default="vacant">
            			<xsd:annotation>
@@ -20885,6 +20887,7 @@
                 <a:since>3.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
+        	<!-- TODO: should be subtype of UserInterfaceFeatureType? -->
        		<xsd:sequence>
            		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
@@ -20932,17 +20935,15 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:GuiObjectListPanelConfigurationType">
 	       		<xsd:sequence>
-	       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
-	       			           add name, label (display name) and menu label for this list.
-	       			           We will also need a reference to which menu section we want to display it. E.g. We would
-	       			           like to display role catalog under "roles", even though it is in fact org tree. -->
 	       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
 	       				<xsd:annotation>
+	       					<!-- TODO: should be replaced by "identifier" from UserInterfaceFeatureType? -->
 	       					<xsd:documentation>
 	       						<p>
-		       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
-		       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
-		       						e.g. if view defined in system configuraiton is overridden in the role.
+		       						Symbolic name for this view. It is used as a view identifier. Views with the same name will be merged together.
+		       						The name is used to detect whether a particular view is overriden, e.g. if view defined in system configuraiton
+		       						is overridden in the role. It may also be used by other system components (e.g. dashboard widgets, reports)
+		       						to refer to this view. It will also be used for diagnostics, logging and so on.
 	       						</p>
 	       						<p>
 	       							If no name is specified for a view then midPoint will internally generate a name. This internal name
