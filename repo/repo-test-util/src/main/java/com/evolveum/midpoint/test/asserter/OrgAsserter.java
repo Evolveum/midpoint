@@ -139,8 +139,8 @@ public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
 	}
 	
 	@Override
-	public ActivationAsserter<OrgType, OrgAsserter<RA>, RA> activation() {
-		ActivationAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
+	public ActivationAsserter<OrgAsserter<RA>> activation() {
+		ActivationAsserter<OrgAsserter<RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}

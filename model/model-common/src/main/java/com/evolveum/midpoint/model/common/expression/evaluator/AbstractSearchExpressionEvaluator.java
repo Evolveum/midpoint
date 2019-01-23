@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,10 +124,13 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-//		if (LOGGER.isTraceEnabled()) {
-//			LOGGER.trace("transformSingleValue in {}\nvariables:\n{}\nvalueDestination: {}\nuseNew: {}",
-//					new Object[]{contextDescription, variables.debugDump(1), valueDestination, useNew});
-//		}
+		// Too loud
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("transformSingleValue in {}\nvalueDestination: {}\nuseNew: {}",
+					contextDescription, valueDestination, useNew);
+			// Very very loud
+//			LOGGER.trace("variables:\n{}", variables.debugDump(1));
+		}
 
 		QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
 		if (targetTypeQName == null) {
@@ -196,7 +199,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
 		}
 
-		LOGGER.trace("Search expression got {} results for query {}", resultValues==null?"null":resultValues.size(), query);
+		LOGGER.trace("Search expression {} (valueDestination={}) got {} results for query {}", contextDescription, valueDestination, resultValues==null?"null":resultValues.size(), query);
 
 		return (List<V>) resultValues;
 	}
@@ -464,7 +467,12 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		context.setSkipEvaluationPlus(false);
 		context.setVariableProducer(params.getVariableProducer());
 		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(context);
-		LOGGER.trace("output triple: {}", outputTriple.debugDump());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("output triple:\n{}", outputTriple==null?null:outputTriple.debugDump(1));
+		}
+		if (outputTriple == null) {
+			return null;
+		}
 		Collection<IV> pvalues = outputTriple.getNonNegativeValues();
 
 		// Maybe not really clean but it works. TODO: refactor later
@@ -475,19 +483,21 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		ItemDelta<IV,ID> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
 		itemDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneCollection(pvalues));
 
-		LOGGER.trace("Item delta:\n{}", itemDelta.debugDump());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Item delta:\n{}", itemDelta.debugDump(1));
+		}
 
 		return itemDelta;
 	}
 
 	// Override the default in this case. It makes more sense like this.
 	@Override
-	protected Boolean isIncludeNullInputs() {
-		Boolean superValue = super.isIncludeNullInputs();
-		if (superValue != null) {
-			return superValue;
+	protected boolean isIncludeNullInputs() {
+		Boolean includeNullInputs = getExpressionEvaluatorType().isIncludeNullInputs();
+		if (includeNullInputs == null) {
+			return false;
 		}
-		return false;
+		return includeNullInputs;
 	}
 
 	/* (non-Javadoc)

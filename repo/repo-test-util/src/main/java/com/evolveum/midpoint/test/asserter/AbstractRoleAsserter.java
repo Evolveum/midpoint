@@ -139,8 +139,8 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
 	}
 	
 	@Override
-	public ActivationAsserter<F, ? extends AbstractRoleAsserter<F,RA>, RA> activation() {
-		ActivationAsserter<F, AbstractRoleAsserter<F,RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
+	public ActivationAsserter<? extends AbstractRoleAsserter<F,RA>> activation() {
+		ActivationAsserter<AbstractRoleAsserter<F,RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
