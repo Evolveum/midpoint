@@ -205,7 +205,7 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             protected boolean isFooterVisible(long providerSize, int pageSize){
-                                return true;
+                                return providerSize > pageSize;
                             }
                         };
                     }
