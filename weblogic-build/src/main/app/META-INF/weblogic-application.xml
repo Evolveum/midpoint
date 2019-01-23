@@ -117,7 +117,6 @@ http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.x
 		<package-name>javax.ws.rs.*</package-name>
     </prefer-application-packages>
     <prefer-application-resources>
-        <resource-name>META-INF/services/javax.ws.rs.ext.RuntimeDelegate</resource-name>
         <resource-name>META-INF/services/javax.xml.bind.JAXBContext</resource-name>
         <resource-name>META-INF/services/javax.xml.datatype.DatatypeFactory</resource-name>
         <resource-name>META-INF/services/javax.xml.parsers.DocumentBuilderFactory</resource-name>
@@ -141,5 +140,5 @@ http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.x
         <resource-name>META-INF/services/org.xml.sax.driver</resource-name>
         <!-- // geronimo (at present) has no service such declaration (glassfish and others do) - include for future reference -->
         <resource-name>META-INF/services/com.sun.xml.ws.spi.db.BindingContextFactory</resource-name>
-    </prefer-application-resources>   
+    </prefer-application-resources>
 </weblogic-application>
