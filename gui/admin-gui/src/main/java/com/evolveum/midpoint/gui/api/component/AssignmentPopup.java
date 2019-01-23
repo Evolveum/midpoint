@@ -146,6 +146,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected QName getPredefinedRelation() {
                                 return AssignmentPopup.this.getPredefinedRelation();
                             }
+
+                            @Override
+                            protected List<ObjectReferenceType> getArchetypeRefList(){
+                                return AssignmentPopup.this.getArchetypeRefList();
+                            }
                         };
                     }
 
@@ -191,6 +196,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected QName getPredefinedRelation() {
                                 return AssignmentPopup.this.getPredefinedRelation();
                             }
+
+                            @Override
+                            protected List<ObjectReferenceType> getArchetypeRefList(){
+                                return AssignmentPopup.this.getArchetypeRefList();
+                            }
                         };
                     }
 
@@ -230,6 +240,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     @Override
                     protected QName getPredefinedRelation() {
                         return AssignmentPopup.this.getPredefinedRelation();
+                    }
+
+                    @Override
+                    protected List<ObjectReferenceType> getArchetypeRefList(){
+                        return AssignmentPopup.this.getArchetypeRefList();
                     }
                 };
             }
@@ -271,6 +286,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                                 return AssignmentPopup.this.getPredefinedRelation();
                             }
 
+                            @Override
+                            protected List<ObjectReferenceType> getArchetypeRefList(){
+                                return AssignmentPopup.this.getArchetypeRefList();
+                            }
                         };
                     }
 
@@ -301,6 +320,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected boolean isEntitlementAssignment(){
                                 return AssignmentPopup.this.isEntitlementAssignment();
                             }
+
+                            @Override
+                            protected List<ObjectReferenceType> getArchetypeRefList(){
+                                return AssignmentPopup.this.getArchetypeRefList();
+                            }
                         };
                     }
 
@@ -314,6 +338,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel(){
+        return null;
+    }
+
+    protected List<ObjectReferenceType> getArchetypeRefList(){
         return null;
     }
 

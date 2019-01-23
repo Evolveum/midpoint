@@ -459,9 +459,16 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected QName getPredefinedRelation(){
+				if (assignmentTargetRelation == null){
+					return null;
+				}
 				return !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ? assignmentTargetRelation.getRelations().get(0) : null;
 			}
 
+			@Override
+			protected List<ObjectReferenceType> getArchetypeRefList(){
+				return assignmentTargetRelation != null ? assignmentTargetRelation.getArchetypeRefs() : null;
+			}
 
 			@Override
 			protected boolean isEntitlementAssignment(){
