@@ -374,14 +374,24 @@ public interface ModelInteractionService {
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 	
 	/**
-	 * Efficiently determines information about all archetype-related interactions for a particular object.
-	 * This include archetype policies, assignments, relations, etc. Returns null if no archetype policy is applicable.
-	 * This is a "one stop" method for archetype information in the GUI. The method returns archetype policy even
+	 * Efficiently determines information about archetype policy applicable for a particular object.
+	 * Returns null if no archetype policy is applicable.
+	 * This is a "one stop" method for archetype policy in the GUI. The method returns archetype policy even
 	 * for "legacy" situations, e.g. if the policy needs to be determined from system configuration using legacy subtype.
-	 * GUI should not need to to any other processing to determine archetype-like information.
+	 * GUI should not need to to any other processing to determine archetype information.
 	 * 
-	 * This method is supposed to be very efficient, it should be using caching as much as possible.
+	 * This method is invoked very often, usually when any object is displayed (including display of object lists
+	 * and search results). Therefore this method is supposed to be very efficient. 
+	 * It should be using caching as much as possible.
 	 */
-	<O extends ObjectType> ArchetypeInteractionSpecification getInteractionSpecification(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException;
+	<O extends AssignmentHolderType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
+
+	/**
+	 * Returns data structure that contains information about possible assignment targets for a particular object.
+	 * 
+	 * This method is not used that often. It is used when an object is edited. But is should be quite efficient anyway.
+	 * It should use cached archetype information.
+	 */
+	<O extends AssignmentHolderType> AssignmentTargetSpecification determineAssignmentTargetSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
 	
 }

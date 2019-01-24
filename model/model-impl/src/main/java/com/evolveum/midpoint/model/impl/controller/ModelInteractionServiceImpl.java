@@ -54,7 +54,8 @@ import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
+import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
+import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -109,6 +110,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -1678,7 +1680,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				newTask.asPrismObject().getExtension().add(extensionItem.clone());
 			}
 			ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
-			modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
+			Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
+			String newTaskOid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, newTask.asPrismObject());
+			newTask.setOid(newTaskOid);
+			newTask.setTaskIdentifier(newTaskOid);
 			result.computeStatus();
 			return newTask;
 		} catch (Throwable t) {
@@ -1699,19 +1704,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <O extends ObjectType> ArchetypeInteractionSpecification getInteractionSpecification(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-		if (object == null) {
+	public <O extends AssignmentHolderType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+		if (assignmentHolder == null) {
 			return null;
 		}
-		if (!object.canRepresent(AssignmentHolderType.class)) {
-			return getArchetypePolicyLegacy(object, result);
+		if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
+			return getArchetypePolicyLegacy(assignmentHolder, result);
 		}
-		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object.asObjectable()).getArchetypeRef();
+		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)assignmentHolder.asObjectable()).getArchetypeRef();
 		if (archetypeRefs == null || archetypeRefs.isEmpty()) {
-			return getArchetypePolicyLegacy(object, result);
+			return getArchetypePolicyLegacy(assignmentHolder, result);
 		}
 		if (archetypeRefs.size() > 1) {
-			throw new SchemaException("Only a single archetype for an object is supported: "+object);
+			throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
 		}
 		ObjectReferenceType archetypeRef = archetypeRefs.get(0);
 
@@ -1719,16 +1724,84 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		try {
 			archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
 		} catch (ObjectNotFoundException e) {
-			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), object);
-			return getArchetypePolicyLegacy(object, result);
+			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
+			return getArchetypePolicyLegacy(assignmentHolder, result);
 		}
-		ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
-		ArchetypeInteractionSpecification archetypeSpec = new ArchetypeInteractionSpecification();
-		archetypeSpec.setArchetypePolicy(archetypePolicy);
-		return archetypeSpec;
+		return archetype.asObjectable().getArchetypePolicy();
 	}
 
-	private <O extends ObjectType> ArchetypeInteractionSpecification getArchetypePolicyLegacy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+	@Override
+	public <O extends AssignmentHolderType> AssignmentTargetSpecification determineAssignmentTargetSpecification(PrismObject<O> object, OperationResult result) throws SchemaException {
+		SearchResultList<PrismObject<ArchetypeType>> archetypes = systemObjectCache.getAllArchetypes(result);
+		List<AssignmentTargetRelation> assignmentTargetRelations = new ArrayList<>();
+		for (PrismObject<ArchetypeType> archetype : archetypes) {
+			List<QName> archetypeFocusTypes = null;
+			for (AssignmentType inducement : archetype.asObjectable().getInducement()) {
+				for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
+					if (canBeAssignmentHolder(assignmentRelation, object)) {
+						if (archetypeFocusTypes == null) {
+							archetypeFocusTypes = determineArchetypeFocusTypes(archetype);
+						}
+						AssignmentTargetRelation targetRelation = new AssignmentTargetRelation();
+						targetRelation.addTargetTypes(archetypeFocusTypes);
+						targetRelation.addArchetypeRef(archetype);
+						targetRelation.addRelations(assignmentRelation.getRelation());
+						targetRelation.setDescription(assignmentRelation.getDescription());
+						assignmentTargetRelations.add(targetRelation);
+					}
+				}
+			}
+		}
+		
+		AssignmentTargetSpecification spec = new AssignmentTargetSpecification();
+		spec.setAssignmentTargetRelations(assignmentTargetRelations);
+		// TODO: empty list vs null: default setting
+		return spec;
+	}
+
+	private List<QName> determineArchetypeFocusTypes(PrismObject<ArchetypeType> archetype) {
+		List<QName> focusTypes = new ArrayList<>();
+		for (AssignmentType assignment : archetype.asObjectable().getAssignment()) {
+			for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
+				focusTypes.addAll(assignmentRelation.getHolderType());
+			}
+		}
+		if (focusTypes.isEmpty()) {
+			focusTypes.add(AssignmentHolderType.COMPLEX_TYPE);
+		}
+		return focusTypes;
+	}
+	
+	private <O extends AssignmentHolderType> boolean canBeAssignmentHolder(AssignmentRelationType assignmentRelation, PrismObject<O> holder) {
+		return isHolderType(assignmentRelation.getHolderType(), holder) && isHolderArchetype(assignmentRelation.getHolderArchetypeRef(), holder);
+	}
+
+	private <O extends AssignmentHolderType> boolean isHolderType(List<QName> requiredHolderTypes, PrismObject<O> holder) {
+		if (requiredHolderTypes.isEmpty()) {
+			return true;
+		}
+		for (QName requiredHolderType : requiredHolderTypes) {
+			if (MiscSchemaUtil.canBeAssignedFrom(requiredHolderType, holder.getCompileTimeClass())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private <O extends AssignmentHolderType> boolean isHolderArchetype(List<ObjectReferenceType> requiredHolderArchetypeRefs, PrismObject<O> holder) {
+		if (requiredHolderArchetypeRefs.isEmpty()) {
+			return true;
+		}
+		List<ObjectReferenceType> presentHolderArchetypeRefs = holder.asObjectable().getArchetypeRef();
+		for (ObjectReferenceType requiredHolderArchetypeRef : requiredHolderArchetypeRefs) {
+			if (MiscSchemaUtil.contains(presentHolderArchetypeRefs, requiredHolderArchetypeRef)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private <O extends ObjectType> ArchetypePolicyType getArchetypePolicyLegacy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
 		SystemConfigurationType systemConfiguration;
 		try {
 			systemConfiguration = getSystemConfiguration(result);
@@ -1740,9 +1813,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (objectPolicyConfiguration == null) {
 			return null;
 		}
-		ArchetypeInteractionSpecification archetypeSpec = new ArchetypeInteractionSpecification();
-		archetypeSpec.setArchetypePolicy(objectPolicyConfiguration);
-		return archetypeSpec;
+		return objectPolicyConfiguration;
 	}
 
 }

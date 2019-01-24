@@ -326,12 +326,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			Validate.notNull(applicableShadow, "No current nor old shadow present: ");
 			List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(applicableShadow, prismContext);
 			ShadowType applicableShadowType = applicableShadow.asObjectable();
-			if (applicableShadowType.getIntent() == null) {
+			if (applicableShadowType.getIntent() == null || SchemaConstants.INTENT_UNKNOWN.equals(applicableShadowType.getIntent())) {
 				PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_INTENT,
 						syncCtx.getApplicableShadow().getDefinition(), syncCtx.getIntent());
 				modifications.add(intentDelta);
 			}
-			if (applicableShadowType.getKind() == null) {
+			if (applicableShadowType.getKind() == null || ShadowKindType.UNKNOWN == applicableShadowType.getKind()) {
 				PropertyDelta<ShadowKindType> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_KIND,
 						syncCtx.getApplicableShadow().getDefinition(), syncCtx.getKind());
 				modifications.add(intentDelta);

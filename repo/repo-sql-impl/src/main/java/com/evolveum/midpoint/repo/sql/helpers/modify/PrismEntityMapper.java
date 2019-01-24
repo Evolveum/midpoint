@@ -24,9 +24,7 @@ import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
-import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
+import com.evolveum.midpoint.repo.sql.data.common.container.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
@@ -59,9 +57,11 @@ public class PrismEntityMapper {
         mappers.put(new Key(QName.class, String.class), new QNameMapper());
 
         mappers.put(new Key(Referencable.class, RObjectReference.class), new ObjectReferenceMapper());
+        mappers.put(new Key(Referencable.class, RCaseWorkItemReference.class), new CaseWorkItemReferenceMapper());
         mappers.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
         mappers.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());
         mappers.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
+        mappers.put(new Key(CaseWorkItemType.class, RCaseWorkItem.class), new CaseWorkItemMapper());
 
         mappers.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
         mappers.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());

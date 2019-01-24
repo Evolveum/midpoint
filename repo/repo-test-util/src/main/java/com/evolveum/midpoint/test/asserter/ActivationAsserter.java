@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,75 +46,68 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
  * @author semancik
  *
  */
-public class ActivationAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,RA> extends AbstractAsserter<FA> {
+public class ActivationAsserter<RA> extends AbstractAsserter<RA> {
 	
-	private FA focusAsserter;
 	private ActivationType activationType;
 
-	public ActivationAsserter(FA focusAsserter) {
-		super();
-		this.focusAsserter = focusAsserter;
-	}
-	
-	public ActivationAsserter(FA focusAsserter, String details) {
-		super(details);
-		this.focusAsserter = focusAsserter;
-	}
-	
-	public static <F extends FocusType> ActivationAsserter<F,FocusAsserter<F,Void>,Void> forFocus(PrismObject<F> focus) {
-		return new ActivationAsserter<>(FocusAsserter.forFocus(focus));
+	public ActivationAsserter(ActivationType activationType, RA returnAsserter, String details) {
+		super(returnAsserter, details);
+		this.activationType = activationType;
 	}
 	
 	ActivationType getActivation() {
-		if (activationType == null) {
-			activationType = getFocus().asObjectable().getActivation();
-			assertNotNull("No activation in "+desc());
-		}
 		return activationType;
 	}
 	
-	public ActivationAsserter<F, FA, RA> assertAdministrativeStatus(ActivationStatusType expected) {
+	public ActivationAsserter<RA> assertNone() {
+		assertNull("Unexpected "+desc(), activationType);
+		return this;
+	}
+	
+	public ActivationAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
 		assertEquals("Wrong administrative status in " + desc(), expected, getActivation().getAdministrativeStatus());
 		return this;
 	}
 	
-	public ActivationAsserter<F, FA, RA> assertValidFrom(XMLGregorianCalendar expected) {
+	public ActivationAsserter<RA> assertValidFrom(XMLGregorianCalendar expected) {
 		assertEquals("Wrong validFrom in " + desc(), expected, getActivation().getValidFrom());
 		return this;
 	}
 	
-	public ActivationAsserter<F, FA, RA> assertValidFrom(Date expected) {
+	public ActivationAsserter<RA> assertValidFrom(Date expected) {
 		assertEquals("Wrong validFrom in " + desc(), XmlTypeConverter.createXMLGregorianCalendar(expected), getActivation().getValidFrom());
 		return this;
 	}
 	
-	public ActivationAsserter<F, FA, RA> assertValidTo(XMLGregorianCalendar expected) {
+	public ActivationAsserter<RA> assertNoValidFrom() {
+		assertNull("Unexpected validFrom in " + desc() + ": " +  getActivation().getValidFrom(), getActivation().getValidFrom());
+		return this;
+	}
+
+	
+	public ActivationAsserter<RA> assertValidTo(XMLGregorianCalendar expected) {
 		assertEquals("Wrong validTo in " + desc(), expected, getActivation().getValidTo());
 		return this;
 	}
 	
-	public ActivationAsserter<F, FA, RA> assertValidTo(Date expected) {
+	public ActivationAsserter<RA> assertValidTo(Date expected) {
 		assertEquals("Wrong validTo in " + desc(), XmlTypeConverter.createXMLGregorianCalendar(expected), getActivation().getValidTo());
 		return this;
 	}
 	
-	public ActivationAsserter<F, FA, RA> assertEffectiveStatus(ActivationStatusType expected) {
+	public ActivationAsserter<RA> assertNoValidTo() {
+		assertNull("Unexpected validTo in " + desc() + ": " +  getActivation().getValidTo(), getActivation().getValidTo());
+		return this;
+	}
+	
+	public ActivationAsserter<RA> assertEffectiveStatus(ActivationStatusType expected) {
 		assertEquals("Wrong effective status in " + desc(), expected, getActivation().getEffectiveStatus());
 		return this;
 	}
 		
-	PrismObject<F> getFocus() {
-		return focusAsserter.getObject();
-	}
-	
-	@Override
-	public FA end() {
-		return focusAsserter;
-	}
-
 	@Override
 	protected String desc() {
-		return descWithDetails("activation of "+getFocus());
+		return descWithDetails("activation of "+getDetails());
 	}
 	
 }

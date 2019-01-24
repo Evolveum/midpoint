@@ -63,11 +63,16 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, getSupportedRelations(), false));
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null,
+                getPredefinedRelation() != null ? Arrays.asList(getPredefinedRelation()) : getSupportedRelations(), false));
     }
     
-    private List<QName> getSupportedRelations() {
+    protected List<QName> getSupportedRelations() {
     	return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
+    }
+
+    protected QName getPredefinedRelation(){
+        return null;
     }
 
     @Override

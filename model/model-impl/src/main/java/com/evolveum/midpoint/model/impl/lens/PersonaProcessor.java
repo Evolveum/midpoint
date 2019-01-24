@@ -37,6 +37,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProce
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -293,9 +294,10 @@ public class PersonaProcessor {
 			itemDelta.applyTo(target);
 		}
 
-		LOGGER.trace("Creating persona:\n{}", target.debugDumpLazily());
+		LOGGER.trace("Creating persona:\n{}", target.debugDumpLazily(1));
 
-		executePersonaDelta(targetDelta, focus.getOid(), task, result);
+		String targetOid = executePersonaDelta(targetDelta, focus.getOid(), task, result);
+		target.setOid(targetOid);
 
 		link(context, target.asObjectable(), result);
 	}
@@ -362,7 +364,7 @@ public class PersonaProcessor {
 		repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
 	}
 
-	private <O extends ObjectType> void executePersonaDelta(ObjectDelta<O> delta, String ownerOid, Task task, OperationResult result) 
+	private <O extends ObjectType> String executePersonaDelta(ObjectDelta<O> delta, String ownerOid, Task task, OperationResult result) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException, PreconditionViolationException {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
@@ -372,6 +374,7 @@ public class PersonaProcessor {
 		context.setExecutionPhaseOnly(true);
 		context.setOwnerOid(ownerOid);
 		clockwork.run(context, task, result);
+		return ObjectDeltaOperation.findFocusDeltaOidInCollection(context.getExecutedDeltas());
 	}
 
 	class PersonaKey implements HumanReadableDescribable {

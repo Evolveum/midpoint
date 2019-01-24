@@ -142,7 +142,8 @@ public class ObjectDeltaUpdater {
             while (segments.hasNext()) {
                 Object segment = segments.next();
                 if (!ItemPath.isName(segment)) {
-                    throw new SystemException("Segment '" + segment + "' in '" + path + "' is not a name item");
+                    LOGGER.trace("Segment {} in path {} is not name item, finishing entity update for delta", segment, path);
+                    break;
                 }
 
                 ItemName name = ItemPath.toName(segment);
@@ -749,7 +750,7 @@ public class ObjectDeltaUpdater {
 
             segment = segments.next();
             if (!ItemPath.isName(segment)) {
-                throw new SystemException("Segment '" + segment + "' in '" + path + "' is not a name item");
+                return null;
             }
             subPath = subPath.append(segment);
         }

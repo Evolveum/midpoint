@@ -317,7 +317,7 @@ public class DebugUtil {
 		} else {
 			sb.append(" (").append(values.size()).append(")");
 			sb.append("\n");
-			debugDump(sb, values, indent + 1, true);
+			debugDump(sb, values, indent + 1, false);
 		}
 	}
 
@@ -730,5 +730,29 @@ public class DebugUtil {
 		if (lastChar == ',') {
 			sb.setLength(sb.length() - 1);
 		}
+	}
+
+	public static <T> void shortDumpCollectionPrettyPrintOptionalBrackets(StringBuilder sb, List<T> values) {
+		if (values == null) {
+			sb.append("null");
+			return;
+		}
+		if (values.isEmpty()) {
+			return;
+		}
+		if (values.size() == 1) {
+			sb.append(PrettyPrinter.prettyPrint(values.get(0)));
+			return;
+		}
+		sb.append("[");
+		Iterator<T> iterator = values.iterator();
+		while (iterator.hasNext()) {
+			T value = iterator.next();
+			sb.append(PrettyPrinter.prettyPrint(value));
+			if (iterator.hasNext()) {
+				sb.append(",");
+			}
+		}
+		sb.append("]");
 	}
 }

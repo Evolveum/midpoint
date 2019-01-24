@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -72,7 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrapper<ObjectPolicyConfigurationType>> {
+public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends BasePanel<ContainerWrapper<ObjectPolicyConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -105,7 +106,8 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
     	TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
     	PageStorage pageStorage = getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage();
     	
-    	MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, getModel(),
+    	MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> multivalueContainerListPanel
+				= new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, getModel(),
     			tableId, pageStorage) {
 			
 			private static final long serialVersionUID = 1L;
@@ -192,8 +194,8 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 		return detailsPanel;
 	}
     
-	private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>)get(ID_OBJECTS_POLICY));
+	private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> getMultivalueContainerListPanel(){
+		return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>)get(ID_OBJECTS_POLICY));
 	}
     
     private ObjectQuery createQuery() {

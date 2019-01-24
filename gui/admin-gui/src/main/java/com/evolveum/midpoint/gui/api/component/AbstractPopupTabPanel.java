@@ -17,10 +17,14 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -83,7 +87,22 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                return AbstractPopupTabPanel.this.addFilterToContentQuery(query);
+                ObjectQuery queryWithFilters = AbstractPopupTabPanel.this.addFilterToContentQuery(query);
+                List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
+                if (!CollectionUtils.isEmpty(archetypeRefList)){
+                    if (queryWithFilters == null){
+                        queryWithFilters = getPrismContext().queryFactory().createQuery();
+                    }
+                    for (ObjectReferenceType archetypeRef : archetypeRefList){
+                        RefFilter filter = (RefFilter) AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFor(AssignmentHolderType.class)
+                                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRef.getOid())
+                                .buildFilter();
+                        filter.setTargetTypeNullAsAny(true);
+                        filter.setRelationNullAsAny(true);
+                        queryWithFilters.addFilter(filter);
+                    }
+                }
+                return queryWithFilters;
             }
 
         };
@@ -124,6 +143,10 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
     protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
         return query;
+    }
+
+    protected List<ObjectReferenceType> getArchetypeRefList(){
+        return null;
     }
 
     protected boolean isObjectListPanelVisible(){

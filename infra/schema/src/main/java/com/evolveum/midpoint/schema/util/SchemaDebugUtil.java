@@ -117,6 +117,88 @@ public class SchemaDebugUtil {
 		sb.append(getCollectionClosingSymbol(xsdAnyCollection));
 		return sb.toString();
 	}
+	
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, Collection<ObjectReferenceType> refs, int indent) {
+		debugDumpWithLabel(sb, label, refs, indent);
+		sb.append("\n");
+	}
+	
+	public static void debugDumpWithLabel(StringBuilder sb, String label, Collection<ObjectReferenceType> refs, int indent) {
+		DebugUtil.debugDumpLabel(sb, label, indent);
+		if (refs == null) {
+			sb.append(" null");
+		} else if (refs.isEmpty()) {
+			sb.append(" ");
+			sb.append(DebugUtil.getCollectionOpeningSymbol(refs));
+			sb.append(DebugUtil.getCollectionClosingSymbol(refs));
+		} else {
+			sb.append(" (").append(refs.size()).append(")");
+			sb.append("\n");
+			debugDump(sb, refs, indent + 1);
+		}
+	}
+
+	public static void debugDump(StringBuilder sb, Collection<ObjectReferenceType> refs, int indent) {
+		Iterator<ObjectReferenceType> iterator = refs.iterator();
+		while (iterator.hasNext()) {
+			ObjectReferenceType ref = iterator.next();
+			if (ref == null) {
+				indentDebugDump(sb, indent + 1);
+				sb.append("null");
+			} else {
+				debugDump(sb, ref, indent + 1);
+			}
+			if (iterator.hasNext()) {
+				sb.append("\n");
+			}
+		}
+	}
+	
+	public static void debugDump(StringBuilder sb, ObjectReferenceType ref, int indent) {
+		indentDebugDump(sb, indent);
+		// TODO: Maybe more detailed dump later
+		sb.append(prettyPrint(ref));
+	}
+	
+	public static void shortDumpReferenceCollectionOptionalBrackets(StringBuilder sb, List<ObjectReferenceType> refs) {
+		if (refs == null) {
+			sb.append("null");
+			return;
+		}
+		if (refs.isEmpty()) {
+			return;
+		}
+		if (refs.size() == 1) {
+			shortDump(sb, refs.get(0));
+			return;
+		}
+		sb.append("[");
+		Iterator<ObjectReferenceType> iterator = refs.iterator();
+		while (iterator.hasNext()) {
+			ObjectReferenceType ref = iterator.next();
+			shortDump(sb, ref);
+			if (iterator.hasNext()) {
+				sb.append(",");
+			}
+		}
+		sb.append("]");
+		
+	}
+
+	public static void shortDump(StringBuilder sb, ObjectReferenceType ref) {
+		if (ref == null) {
+			sb.append("null");
+		}
+		sb.append(ref.getOid());
+		if (ref.getTargetName() != null) {
+			sb.append(",name=");
+			sb.append(ref.getTargetName().getOrig());
+		}
+		if (ref.getType() != null) {
+			sb.append(",type=");
+			sb.append(prettyPrint(ref.getType()));
+		}
+	}
 
 	private static String prettyPrintElementAsProperty(Object element) {
 		if (element == null) {
@@ -1058,4 +1140,5 @@ public class SchemaDebugUtil {
 	public static void initialize() {
 		// nothing to do here, we just make sure static initialization will take place
 	}
+
 }

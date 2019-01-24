@@ -441,10 +441,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 			evaluateCondition(task, result);
 
-			boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
+			boolean conditionOutputOld = computeConditionResult(conditionOutputTriple==null ? null : conditionOutputTriple.getNonPositiveValues());
 			boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
 
-			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
+			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple==null ? null : conditionOutputTriple.getNonNegativeValues());
 			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 
 			if (!conditionResultOld && !conditionResultNew) {

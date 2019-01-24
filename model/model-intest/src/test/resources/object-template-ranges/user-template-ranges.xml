@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
     
     <item>
     	<ref>assignment</ref>
+    	
 		<mapping>
 			<expression>
 				<assignmentTargetSearch>
@@ -68,6 +69,67 @@
 				</script>
 			</condition>
 		</mapping>
+		
+		<!-- MID-5063 -->
+		<mapping>
+			<name>bloody-title-to-assignment</name>
+			<trace>true</trace>
+			<authoritative>true</authoritative>
+        	<strength>strong</strength>
+			<source>
+				<path>title</path>
+			</source>
+			<source>
+				<path>extension/funeralTimestamp</path>
+			</source>
+			<expression>
+				<assignmentTargetSearch>
+					<includeNullInputs>true</includeNullInputs>
+					<targetType>RoleType</targetType>
+					<filter>
+						<q:equal>
+							<q:path>name</q:path>
+							<expression>
+								<path>$title</path>
+							</expression>
+						</q:equal>
+					</filter>
+					<populate>
+						<populateItem>
+	                        <target>
+	                            <path>subtype</path>
+	                        </target>
+	                        <expression>
+	                            <value>bloody</value>
+	                        </expression>
+	                    </populateItem>
+	                    <populateItem>
+	                        <expression>
+	                            <path>$funeralTimestamp</path>
+	                        </expression>
+	                        <target>
+	                            <path>activation/validTo</path>
+	                        </target>
+	                    </populateItem>
+					</populate>
+				</assignmentTargetSearch>
+			</expression>
+			<target>
+				<set>
+					<condition>
+						<script>
+							<code>input.subtype.contains("bloody")</code>
+						</script>
+					</condition>
+				</set>
+			</target>
+			<condition>
+				<script>
+					<code>title?.startsWith("Bloody ")</code>
+				</script>
+			</condition>
+		</mapping>
+		
     </item>
 
 	<item>

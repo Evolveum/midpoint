@@ -23,11 +23,15 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
+import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,6 +43,8 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -83,6 +89,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
 	protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
 	protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
+	protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
 
 	protected int assignmentsRequestsLimit = -1;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
@@ -100,7 +107,8 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 	private void initLayout() {
 
-		MultivalueContainerListPanelWithDetailsPanel<AssignmentType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AssignmentType>(ID_ASSIGNMENTS, getModel(), getTableId(),
+		MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentTargetRelation> multivalueContainerListPanel =
+				new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentTargetRelation>(ID_ASSIGNMENTS, getModel(), getTableId(),
 				getAssignmentsTabStorage()) {
 
 			private static final long serialVersionUID = 1L;
@@ -137,8 +145,45 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 
 			@Override
-			protected void newItemPerformed(AjaxRequestTarget target) {
-				newAssignmentClickPerformed(target);
+			protected void newItemPerformed(AjaxRequestTarget target){
+				//todo clean up
+				newAssignmentClickPerformed(target, null);
+			}
+
+			@Override
+			protected void newItemPerformed(AjaxRequestTarget target, AssignmentTargetRelation assignmentTargetRelation) {
+				newAssignmentClickPerformed(target, assignmentTargetRelation);
+			}
+
+			@Override
+			protected List<AssignmentTargetRelation> getNewObjectInfluencesList() {
+				//to define new object button for each available relation we combine a list of AssignmentTargetRelation objects
+				//in such way that each object in the list contains just one relation value with the list of target types and
+				//archetypeRef list
+				return getCombinedRelationsList(loadAssignmentTargetRelationsList());
+			}
+
+			@Override
+			protected String getNewObjectButtonStyle() {
+				return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
+			}
+
+			@Override
+			protected String getNewObjectSpecificStyle(AssignmentTargetRelation assignmentTargetRelation) {
+				DisplayType display = getRelationDisplayType(assignmentTargetRelation);
+				if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())){
+					return display.getIcon().getCssClass();
+				}
+				return "";
+			}
+
+			@Override
+			protected String getNewObjectSpecificTitle(AssignmentTargetRelation assignmentTargetRelation) {
+				DisplayType display = getRelationDisplayType(assignmentTargetRelation);
+				if (display != null && display.getTooltip() != null){
+					return display.getTooltip().getOrig();
+				}
+				return "";
 			}
 
 			@Override
@@ -263,6 +308,59 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target){
 	}
 
+	private List<AssignmentTargetRelation> loadAssignmentTargetRelationsList(){
+		OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS);
+		List<AssignmentTargetRelation> assignmentTargetRelations = new ArrayList<>();
+		PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
+		try {
+			AssignmentTargetSpecification spec = getPageBase().getModelInteractionService()
+					.determineAssignmentTargetSpecification(obj, result);
+			assignmentTargetRelations = spec != null ? spec.getAssignmentTargetRelations() : new ArrayList<>();
+		} catch (SchemaException | ConfigurationException ex){
+			result.recordPartialError(ex.getLocalizedMessage());
+			LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+		}
+		return assignmentTargetRelations;
+	}
+
+	private List<AssignmentTargetRelation> getCombinedRelationsList(List<AssignmentTargetRelation> initialRelationsList){
+		if (CollectionUtils.isEmpty(initialRelationsList)){
+			return initialRelationsList;
+		}
+		List<AssignmentTargetRelation> combinedRelationList =  new ArrayList<>();
+		initialRelationsList.forEach(assignmentTargetRelation -> {
+			if (CollectionUtils.isEmpty(assignmentTargetRelation.getTargetTypes()) &&
+					CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
+				return;
+			}
+			if (CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
+				combinedRelationList.add(assignmentTargetRelation);
+			} else {
+				assignmentTargetRelation.getRelations().forEach(relation -> {
+					AssignmentTargetRelation relationObj = new AssignmentTargetRelation();
+					relationObj.setTargetTypes(assignmentTargetRelation.getTargetTypes());
+					relationObj.setRelations(Arrays.asList(relation));
+					relationObj.setArchetypeRefs(assignmentTargetRelation.getArchetypeRefs());
+					relationObj.setDescription(assignmentTargetRelation.getDescription());
+					combinedRelationList.add(relationObj);
+				});
+			}
+		});
+		return combinedRelationList;
+	}
+
+	private DisplayType getRelationDisplayType(AssignmentTargetRelation assignmentTargetRelation){
+		QName relation = assignmentTargetRelation != null && !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
+				assignmentTargetRelation.getRelations().get(0) : null;
+		if (relation != null){
+			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
+			if (def != null){
+				return def.getDisplay();
+			}
+		}
+		return null;
+	}
+
 	private List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -339,7 +437,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target){
 	}
 
-	protected void newAssignmentClickPerformed(AjaxRequestTarget target){
+	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentTargetRelation assignmentTargetRelation){
 		AssignmentPopup popupPanel = new AssignmentPopup(getPageBase().getMainPopupBodyId()) {
 
 			private static final long serialVersionUID = 1L;
@@ -352,7 +450,24 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected List<ObjectTypes> getAvailableObjectTypesList(){
-				return getObjectTypesList();
+				if (assignmentTargetRelation == null || CollectionUtils.isEmpty(assignmentTargetRelation.getTargetTypes())) {
+					return getObjectTypesList();
+				} else {
+					return mergeNewAssignmentTargetTypeLists(assignmentTargetRelation.getTargetTypes(), getObjectTypesList());
+				}
+			}
+
+			@Override
+			protected QName getPredefinedRelation(){
+				if (assignmentTargetRelation == null){
+					return null;
+				}
+				return !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ? assignmentTargetRelation.getRelations().get(0) : null;
+			}
+
+			@Override
+			protected List<ObjectReferenceType> getArchetypeRefList(){
+				return assignmentTargetRelation != null ? assignmentTargetRelation.getArchetypeRefs() : null;
 			}
 
 			@Override
@@ -524,6 +639,26 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		}
 
 		return ItemVisibility.AUTO;
+	}
+
+	private List<ObjectTypes> mergeNewAssignmentTargetTypeLists(List<QName> allowedByAssignmentTargetSpecification, List<ObjectTypes> availableTypesList){
+		if (CollectionUtils.isEmpty(allowedByAssignmentTargetSpecification)){
+			return availableTypesList;
+		}
+		if (CollectionUtils.isEmpty(availableTypesList)){
+			return availableTypesList;
+		}
+		List<ObjectTypes> mergedList = new ArrayList<>();
+		allowedByAssignmentTargetSpecification.forEach(qnameValue -> {
+			ObjectTypes objectTypes = ObjectTypes.getObjectTypeFromTypeQName(qnameValue);
+			for (ObjectTypes availableObjectTypes : availableTypesList) {
+				if (availableObjectTypes.getClassDefinition().equals(objectTypes.getClassDefinition())) {
+					mergedList.add(objectTypes);
+					break;
+				}
+			}
+		});
+		return mergedList;
 	}
 
 	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
@@ -721,8 +856,8 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		return menuItems;
 	}
 
-	protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType> getMultivalueContainerListPanel() {
-		return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType>)get(ID_ASSIGNMENTS));
+	protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentTargetSpecification> getMultivalueContainerListPanel() {
+		return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentTargetSpecification>)get(ID_ASSIGNMENTS));
 	}
 
 	public MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel() {

@@ -437,6 +437,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
+	// @pre: result is "error" or ex is not null
 	private boolean processError(PrismObject<O> object, Throwable ex, OperationResult result) {
 		int errorsCount = errors.incrementAndGet();
 		LOGGER.trace("Processing error, count: {}", errorsCount);
@@ -452,6 +453,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 		// We do not want to override the result set by handler. This is just a fallback case
 		if (result.isUnknown() || result.isInProgress()) {
+			assert ex != null;
 			result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
 		}
 		result.summarize();

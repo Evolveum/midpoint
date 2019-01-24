@@ -23,6 +23,8 @@ public class GuiStyleConstants {
 
 	public static final String CLASS_BOX = "box";
 	public static final String CLASS_BOX_DEFAULT = "box-default";
+	
+	public static final String CLASS_DASHBOARD_ICON = "fa fa-dashboard";
 
 	public static final String CLASS_OBJECT_USER_ICON = "fa fa-user";
 	public static final String CLASS_OBJECT_USER_ICON_COLORED = CLASS_OBJECT_USER_ICON + " object-user-color";
@@ -176,7 +178,10 @@ public class GuiStyleConstants {
 	public static final String CLASS_CREATE_FOCUS = "fa fa-user-plus";
 	
 	public static final String EVO_CROW_ICON = "fe fe-crown-object";
+	public static final String EVO_RIGHT_TOP_ARROW_ICON = "fe fe-arrow";
 	public static final String EVO_ASSIGNMENT_ICON = "fe fe-assignment";
+	public static final String EVO_ASSIGNMENT_ICON_A_PIECE = "fe fe-assign_horizontal_A_piece";
+	public static final String EVO_ASSIGNMENT_ICON_B_PIECE = "fe fe-assign_horizontal_B_piece";
 	public static final String EVO_OFFICER_CAP_ICON = "fe fe-officer-cap-object";
 	public static final String EVO_ASSIGNMENT_STRAIGHT_THICKER_ICON = "fe fe-assignment-straight-thicker-object";
 	public static final String EVO_ASSIGNMENT_STRAIGHT_ICON = "fe fe-assignment-straight-object";
@@ -190,5 +195,9 @@ public class GuiStyleConstants {
 	public static final String EVO_ROLE_TIE_ICON = "fe fe-role-tie";
 	public static final String EVO_ROLE_TOP_HAT_ICON = "fe fe-role-top-hat";
 	public static final String EVO_ASSIGNMENT_THICKER_ICON = "fe assignment-thicker";
+	
+	public static final String GREEN_COLOR = "color-green";
+	public static final String YELLOW_COLOR = "color-yellow";
+	public static final String RED_COLOR = "color-red";
 	
 }

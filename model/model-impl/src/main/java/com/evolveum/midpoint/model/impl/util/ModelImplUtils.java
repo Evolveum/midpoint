@@ -730,6 +730,9 @@ public class ModelImplUtils {
 	
 		if (affectedElementContext != null) {
 			variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, affectedElementContext.getOperation().getValue());
+			// We do not want to add delta to all expressions. The delta may be tricky. Is it focus delta? projection delta? Primary? Secondary?
+			// It is better to leave delta to be accessed from the model context. And in cases when it is clear which delta is meant
+			// (e.g. provisioning scripts) we can still add the delta explicitly.
 		}
 	}
 
