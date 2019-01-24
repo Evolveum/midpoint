@@ -317,6 +317,9 @@ public class UserProfileCompiler {
 		if (adminGuiConfiguration.getDefaultExportSettings() != null) {
 			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
 		}
+		if (adminGuiConfiguration.getDisplayFormats() != null){
+			composite.setDisplayFormats(adminGuiConfiguration.getDisplayFormats().clone());
+		}
 		
 		applyViews(composite, adminGuiConfiguration.getObjectLists(), task, result); // Compatibility, deprecated
 		applyViews(composite, adminGuiConfiguration.getObjectCollectionViews(), task, result);
