@@ -531,9 +531,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 				objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, stage, taskManager);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
-//		if (simulate) {
-//			handler.setStopOnError(true);
-//		}
 		handler.setEnableSynchronizationStatistics(true);
 		handler.setEnableActionsExecutedStatistics(true);
 		
