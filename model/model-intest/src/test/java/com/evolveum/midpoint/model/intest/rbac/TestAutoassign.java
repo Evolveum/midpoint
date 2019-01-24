@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.intest.rbac;
 
 import java.io.File;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,6 +28,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -62,6 +65,9 @@ public class TestAutoassign extends AbstractRbacTest {
 	protected static final String UNIT_SLEEPER = "sleeper";
 	protected static final String UNIT_WALKER = "walker";
 
+	private static final XMLGregorianCalendar ROLE_SLEEPER_AUTOASSIGN_VALID_TO = 
+			XmlTypeConverter.createXMLGregorianCalendar(2222, 1, 2, 3, 4, 5);
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -95,18 +101,19 @@ public class TestAutoassign extends AbstractRbacTest {
 		// THEN
 		assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATIONAL_UNIT, 
-				createPolyString(UNIT_WORKER));
-        assertAssignedRole(userAfter, ROLE_UNIT_WORKER_OID);
-        assertAssignments(userAfter, 1);
-        getSingleLinkRef(userAfter);
-
-        assertDummyAccount(null, USER_JACK_USERNAME);
-        assertDummyAccountAttribute(null, USER_JACK_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_UNIT_WORKER_TITLE);
+		assertUserAfter(USER_JACK_OID)
+			.assertOrganizationalUnit(UNIT_WORKER)
+			.assignments()
+				.single()
+					.assertTargetOid(ROLE_UNIT_WORKER_OID)
+					.assertTargetType(RoleType.COMPLEX_TYPE)
+					.end()
+				.end()
+			.links()
+				.single();
+		
+		assertDummyAccountByUsername(null, USER_JACK_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_UNIT_WORKER_TITLE);
 	}
 	
 	/**
@@ -126,13 +133,14 @@ public class TestAutoassign extends AbstractRbacTest {
 
 		// THEN
 		assertSuccess(result);
-
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-
-		PrismAsserts.assertNoItem(userAfter, UserType.F_ORGANIZATIONAL_UNIT);
-        assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+		
+		assertUserAfter(USER_JACK_OID)
+			.assertNoOrganizationalUnit()
+			.assignments()
+				.assertNone()
+				.end()
+			.links()
+				.assertNone();
 
         assertNoDummyAccount(null, USER_JACK_USERNAME);
 	}
@@ -155,21 +163,27 @@ public class TestAutoassign extends AbstractRbacTest {
 
 		// THEN
 		assertSuccess(result);
-
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATIONAL_UNIT, 
-				createPolyString(UNIT_SLEEPER), createPolyString(UNIT_WALKER));
-        assertAssignedRole(userAfter, ROLE_UNIT_SLEEPER_OID);
-        assertAssignedRole(userAfter, ROLE_UNIT_WALKER_OID);
-        assertAssignments(userAfter, 2);
-        getSingleLinkRef(userAfter);
-
-        assertDummyAccount(null, USER_JACK_USERNAME);
-        assertDummyAccountAttribute(null, USER_JACK_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, 
-        		ROLE_UNIT_SLEEPER_TITLE, ROLE_UNIT_WALKER_TITLE);
+		
+		assertUserAfter(USER_JACK_OID)
+			.assertOrganizationalUnits(UNIT_SLEEPER, UNIT_WALKER)
+			.assignments()
+				.assertAssignments(2)
+				.by()
+					.targetOid(ROLE_UNIT_SLEEPER_OID)
+				.find()
+					.assertTargetType(RoleType.COMPLEX_TYPE)
+					.activation()
+						.assertValidTo(ROLE_SLEEPER_AUTOASSIGN_VALID_TO)
+						.end()
+					.end()
+				.assertRole(ROLE_UNIT_WALKER_OID)
+				.end()
+			.links()
+				.single();
+		
+		assertDummyAccountByUsername(null, USER_JACK_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, 
+					ROLE_UNIT_SLEEPER_TITLE, ROLE_UNIT_WALKER_TITLE);
 	}
 	
 	/**
@@ -189,25 +203,24 @@ public class TestAutoassign extends AbstractRbacTest {
 		objectDelta.addModificationDeleteProperty(UserType.F_ORGANIZATIONAL_UNIT, createPolyString(UNIT_SLEEPER));
 		
 		// WHEN
-		modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
+		executeChanges(objectDelta, null, task, result);
 
 		// THEN
 		assertSuccess(result);
-
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATIONAL_UNIT, 
-				createPolyString(UNIT_WORKER), createPolyString(UNIT_WALKER));
-        assertAssignedRole(userAfter, ROLE_UNIT_WALKER_OID);
-        assertAssignedRole(userAfter, ROLE_UNIT_WORKER_OID);
-        assertAssignments(userAfter, 2);
-        getSingleLinkRef(userAfter);
-
-        assertDummyAccount(null, USER_JACK_USERNAME);
-        assertDummyAccountAttribute(null, USER_JACK_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, 
-        		ROLE_UNIT_WORKER_TITLE, ROLE_UNIT_WALKER_TITLE);
+		
+		assertUserAfter(USER_JACK_OID)
+			.assertOrganizationalUnits(UNIT_WORKER, UNIT_WALKER)
+			.assignments()
+				.assertAssignments(2)
+				.assertRole(ROLE_UNIT_WORKER_OID)
+				.assertRole(ROLE_UNIT_WALKER_OID)
+				.end()
+			.links()
+				.single();
+		
+		assertDummyAccountByUsername(null, USER_JACK_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, 
+					ROLE_UNIT_WORKER_TITLE, ROLE_UNIT_WALKER_TITLE);
 	}
 
 	/**
@@ -228,22 +241,21 @@ public class TestAutoassign extends AbstractRbacTest {
 
 		// THEN
 		assertSuccess(result);
-
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATIONAL_UNIT, 
-				createPolyString(UNIT_WORKER), createPolyString(UNIT_WALKER), createPolyString(UNIT_SLEEPER));
-        assertAssignedRole(userAfter, ROLE_UNIT_WALKER_OID);
-        assertAssignedRole(userAfter, ROLE_UNIT_WORKER_OID);
-        assertAssignedRole(userAfter, ROLE_UNIT_SLEEPER_OID);
-        assertAssignments(userAfter, 3);
-        getSingleLinkRef(userAfter);
-
-        assertDummyAccount(null, USER_JACK_USERNAME);
-        assertDummyAccountAttribute(null, USER_JACK_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, 
-        		ROLE_UNIT_WORKER_TITLE, ROLE_UNIT_WALKER_TITLE, ROLE_UNIT_SLEEPER_TITLE);
+		
+		assertUserAfter(USER_JACK_OID)
+			.assertOrganizationalUnits(UNIT_WORKER, UNIT_WALKER, UNIT_SLEEPER)
+			.assignments()
+				.assertAssignments(3)
+				.assertRole(ROLE_UNIT_WORKER_OID)
+				.assertRole(ROLE_UNIT_WALKER_OID)
+				.assertRole(ROLE_UNIT_SLEEPER_OID)
+				.end()
+			.links()
+				.single();
+		
+		assertDummyAccountByUsername(null, USER_JACK_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, 
+					ROLE_UNIT_WORKER_TITLE, ROLE_UNIT_WALKER_TITLE, ROLE_UNIT_SLEEPER_TITLE);
 	}
 
 	// TODO: org and relation

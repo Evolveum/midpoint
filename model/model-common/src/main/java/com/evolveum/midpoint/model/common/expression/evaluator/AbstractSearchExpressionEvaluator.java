@@ -28,8 +28,10 @@ import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.util.PopulatorUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
@@ -124,13 +127,13 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		// Too loud
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("transformSingleValue in {}\nvalueDestination: {}\nuseNew: {}",
-					contextDescription, valueDestination, useNew);
-			// Very very loud
-//			LOGGER.trace("variables:\n{}", variables.debugDump(1));
-		}
+//		// Too loud
+//		if (LOGGER.isTraceEnabled()) {
+//			LOGGER.trace("transformSingleValue in {}\nvalueDestination: {}\nuseNew: {}",
+//					contextDescription, valueDestination, useNew);
+//			// Very very loud
+////			LOGGER.trace("variables:\n{}", variables.debugDump(1));
+//		}
 
 		QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
 		if (targetTypeQName == null) {
@@ -152,7 +155,12 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		List<ItemDelta<V, D>> additionalAttributeDeltas = null;
 		PopulateType populateAssignmentType = getExpressionEvaluatorType().getPopulate();
 		if (populateAssignmentType != null) {
-			additionalAttributeDeltas = collectAdditionalAttributes(populateAssignmentType, outputDefinition, variables, context, contextDescription, task, result);
+			if (outputDefinition instanceof PrismContainerDefinition) {
+				additionalAttributeDeltas = PopulatorUtil.computePopulateItemDeltas(populateAssignmentType, 
+						(PrismContainerDefinition<?>)outputDefinition, variables, context, contextDescription, task, result);
+			} else {
+				LOGGER.warn("Search expression {} applied to non-container target, ignoring populate definition", contextDescription);
+			}
 		}
 
 		if (getExpressionEvaluatorType().getOid() != null) {
@@ -359,28 +367,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	}
 
 	// e.g parameters, activation for assignment etc.
-	protected <C extends Containerable> List<ItemDelta<V,D>> collectAdditionalAttributes(PopulateType fromPopulate,
-			D outputDefinition, ExpressionVariables variables, ExpressionEvaluationContext params,
-			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-		if (!(outputDefinition instanceof PrismContainerDefinition)) {
-			return null;
-		}
-
-		List<ItemDelta<V,D>> deltas = new ArrayList<>();
-
-		for (PopulateItemType populateItem: fromPopulate.getPopulateItem()) {
-
-			ItemDelta<V,D> itemDelta = evaluatePopulateExpression(populateItem, variables, params,
-					(PrismContainerDefinition<C>) outputDefinition, contextDescription, false, task, result);
-			if (itemDelta != null) {
-				deltas.add(itemDelta);
-			}
-
-		}
-
-		return deltas;
-	}
+	
 
 	protected abstract V createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<V, D>> additionalAttributeDeltas, ExpressionEvaluationContext params);
 
@@ -399,13 +386,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			LOGGER.warn("No populateObject in assignment expression in {}, "
 					+ "object created on demand will be empty. Subsequent operations will most likely fail", contextDescription);
 		} else {
-			for (PopulateItemType populateItem: populateObject.getPopulateItem()) {
-				ItemDelta<?,?> itemDelta = evaluatePopulateExpression(populateItem, variables, params,
-						objectDefinition, contextDescription, true, task, result);
-				if (itemDelta != null) {
-					itemDelta.applyTo(newObject);
-				}
-			}
+			
+			List<ItemDelta<V, D>> populateDeltas = PopulatorUtil.computePopulateItemDeltas(populateObject,
+					objectDefinition, variables, params, contextDescription, task, result);
+			ItemDeltaCollectionsUtil.applyTo(populateDeltas, newObject);
+			
 		}
 
 		LOGGER.debug("Creating object on demand from {}: {}", contextDescription, newObject);
@@ -427,68 +412,6 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		return ObjectDeltaOperation.findAddDeltaOid(executedChanges, newObject);
 	}
 
-	private <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
-			ExpressionVariables variables, ExpressionEvaluationContext params, PrismContainerDefinition<C> objectDefinition,
-			String contextDescription, boolean evaluateMinus, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ExpressionType expressionType = populateItem.getExpression();
-		if (expressionType == null) {
-			LOGGER.warn("No expression in populateObject in assignment expression in {}, "
-					+ "skipping. Subsequent operations will most likely fail", contextDescription);
-			return null;
-		}
-
-		VariableBindingDefinitionType targetType = populateItem.getTarget();
-		if (targetType == null) {
-			LOGGER.warn("No target in populateObject in assignment expression in {}, "
-					+ "skipping. Subsequent operations will most likely fail", contextDescription);
-			return null;
-		}
-        ItemPathType itemPathType = targetType.getPath();
-		if (itemPathType == null) {
-			throw new SchemaException("No path in target definition in "+contextDescription);
-		}
-		ItemPath targetPath = itemPathType.getItemPath();
-		ID propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables,
-				objectDefinition, "target definition in "+contextDescription);
-		if (propOutputDefinition == null) {
-			throw new SchemaException("No target item that would conform to the path "+targetPath+" in "+contextDescription);
-		}
-
-		String expressionDesc = "expression in assignment expression in "+contextDescription;
-		ExpressionFactory expressionFactory = params.getExpressionFactory();
-		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition,
-				expressionDesc, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables,
-				expressionDesc, task, result);
-		context.setExpressionFactory(expressionFactory);
-		context.setValuePolicyResolver(params.getValuePolicyResolver());
-		context.setDefaultTargetContext(params.getDefaultTargetContext());
-		context.setSkipEvaluationMinus(true);
-		context.setSkipEvaluationPlus(false);
-		context.setVariableProducer(params.getVariableProducer());
-		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(context);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("output triple:\n{}", outputTriple==null?null:outputTriple.debugDump(1));
-		}
-		if (outputTriple == null) {
-			return null;
-		}
-		Collection<IV> pvalues = outputTriple.getNonNegativeValues();
-
-		// Maybe not really clean but it works. TODO: refactor later
-		if (targetPath.startsWithVariable()) {
-			targetPath = targetPath.rest();
-		}
-
-		ItemDelta<IV,ID> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
-		itemDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneCollection(pvalues));
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Item delta:\n{}", itemDelta.debugDump(1));
-		}
-
-		return itemDelta;
-	}
 
 	// Override the default in this case. It makes more sense like this.
 	@Override

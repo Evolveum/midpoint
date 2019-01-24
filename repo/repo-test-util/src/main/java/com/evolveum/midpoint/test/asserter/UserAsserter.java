@@ -245,6 +245,16 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return this;
 	}
 	
+	public UserAsserter<RA> assertOrganizationalUnits(String... expectedOrig) {
+		assertPolyStringPropertyMulti(UserType.F_ORGANIZATIONAL_UNIT, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoOrganizationalUnit() {
+		assertNoItem(UserType.F_ORGANIZATIONAL_UNIT);
+		return this;
+	}
+	
 	@Override
 	public UserAsserter<RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		super.assertHasProjectionOnResource(resourceOid);
