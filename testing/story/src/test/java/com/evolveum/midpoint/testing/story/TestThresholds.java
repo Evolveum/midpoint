@@ -30,10 +30,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathImpl;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -125,28 +128,6 @@ public class TestThresholds extends AbstractStoryTest {
 		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
 		
 	}
-//	
-//	@Test
-//	public void test101startReconSimulateTask() throws Exception {
-//		final String TEST_NAME = "test101startReconSimulateTask";
-//		displayTestTitle(TEST_NAME);
-//		
-//		assertUsers(getNumberOfUsers());
-//		
-//		// WHEN
-//        displayWhen(TEST_NAME);
-//        PrismObject<TaskType> taskBefore = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);
-//		display("Task before:", taskBefore);
-//        
-//        
-//        // THEN
-//		displayThen(TEST_NAME);
-//		
-//		
-//		
-//		assertUsers(getNumberOfUsers());
-//		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
-//	}
 	
 	@Test
 	public void test110importAccountsSimulate() throws Exception {
@@ -171,7 +152,7 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		//THEN
 		assertUsers(getNumberOfUsers());
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
 	}
 	
 	
@@ -187,21 +168,31 @@ public class TestThresholds extends AbstractStoryTest {
         
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
-        ItemPath simulateBeforeExecutePath = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
-        modifyObjectReplaceProperty(TaskType.class, TASK_RECONCILE_OPENDJ_OID, simulateBeforeExecutePath, task, result, Boolean.FALSE);
+        PrismObject<TaskType> taskBefore = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);
+        TaskType taskTypeBefore = taskBefore.asObjectable();
+        List<TaskStageType> stages = taskTypeBefore.getStage();
+        TaskStageType simulateStage = null;
+        for (TaskStageType stage : stages) {
+        	if (ReconciliationTaskHandler.SIMULATE_URI.equals(stage.getStage())) {
+        		simulateStage  = stage;
+        		break;
+        	}
+        }
+        modifyObjectDeleteContainer(TaskType.class, TASK_RECONCILE_OPENDJ_OID, new ItemName(TaskType.F_STAGE), task, result, simulateStage);
 
 		// THEN
 		displayThen(TEST_NAME);
 		
-		PrismObject<TaskType> taskPrism = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);		
-		assertNotNull(taskPrism, "Task not found");
+		PrismObject<TaskType> taskAfter = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);		
+		assertNotNull(taskAfter, "Task not found");
 		
-		PrismProperty<Boolean> simulateBeforeExecute = taskPrism.findProperty(simulateBeforeExecutePath);
-		assertNotNull(simulateBeforeExecute, "No simulateBeforeExecute set.");
+		TaskType taskTypeAfter = taskAfter.asObjectable();
+		List<TaskStageType> stagesAfter = taskTypeAfter.getStage();
+		assertEquals(stagesAfter.size(), 1, "Unexpected number of stages");
 		
-		Boolean simulateBeforeExecuteValue = simulateBeforeExecute.getRealValue();
-		assertTrue(simulateBeforeExecuteValue == null || !simulateBeforeExecuteValue.booleanValue(), "Unexpected simulate value");
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
+		TaskStageType stageAfter = stagesAfter.iterator().next();
+		assertEquals(ReconciliationTaskHandler.EXECUTE_URI, stageAfter.getStage(), "Unexpected stage.");
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
 				
 				
 	}
@@ -223,6 +214,7 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		//THEN
 		assertUsers(getNumberOfUsers() + 4);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
 	}
 	
 	

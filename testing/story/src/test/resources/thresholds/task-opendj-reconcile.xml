@@ -31,10 +31,16 @@
 		<syncext:objectclass>ri:inetOrgPerson</syncext:objectclass>
 		<syncext:kind>account</syncext:kind>
         <syncext:intent>default</syncext:intent>
-        <syncext:simulateBeforeExecute>true</syncext:simulateBeforeExecute>
 	</extension>
 	
 	<stage>
+		<stage>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3#simulate</stage>
+		<errorCriticality>
+			<policy>fatal</policy>
+		</errorCriticality>
+	</stage>
+	<stage>
+		<stage>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3#execute</stage>
 		<errorCriticality>
 			<policy>fatal</policy>
 		</errorCriticality>

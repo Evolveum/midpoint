@@ -83,6 +83,7 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -811,11 +812,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					clockwork.run(lensContext, task, parentResult);
 				}
 
-			} catch (ConfigurationException | ObjectNotFoundException | SchemaException |
+			} catch (ConfigurationException | ObjectNotFoundException | SchemaException | 
 					PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
 					CommunicationException | SecurityViolationException | PreconditionViolationException | RuntimeException e) {
 				LOGGER.error("SYNCHRONIZATION: Error in synchronization on {} for situation {}: {}: {}. Change was {}",
 						syncCtx.getResource(), syncCtx.getSituation(), e.getClass().getSimpleName(), e.getMessage(), change, e);
+//				parentResult.recordFatalError("Error during sync", e);
 				// what to do here? We cannot throw the error back. All that the notifyChange method
 				// could do is to convert it to SystemException. But that indicates an internal error and it will
 				// break whatever code called the notifyChange in the first place. We do not want that.

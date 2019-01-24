@@ -27,11 +27,17 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.common.refinery.RefinedConnectorSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
@@ -84,6 +90,11 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
 			String contextDesc, TaskManager taskManager) {
+		this(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, null, taskManager);
+	}
+	
+	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
+			String contextDesc, TaskStageType taskStageType, TaskManager taskManager) {
 		super();
 		this.coordinatorTask = coordinatorTask;
 		this.taskOperationPrefix = taskOperationPrefix;
@@ -91,12 +102,13 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.contextDesc = contextDesc;
 		this.taskManager = taskManager;
 		
-		this.stageType = coordinatorTask.getTaskType().getStage();
+		this.stageType = taskStageType;
 		
 		stopOnError = true;
 		startTime = System.currentTimeMillis();
 	}
 
+	
 	protected String getProcessShortName() {
 		return processShortName;
 	}
@@ -346,7 +358,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 							null /* TODO */, object.getOid(), startTime, getException(result));
 				}
 				
-				cont = processError(object, result.getCause(), result);
+				cont = processError(object, getException(result), result);
 			} else {
 				if (isRecordIterationStatistics()) {
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
@@ -405,9 +417,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		if (!cont) {
 			stopRequestedByAnyWorker.set(true);
+//			workerTask.
 		}
 	}
-
+	
 	// may be overridden
 	protected String getDisplayName(PrismObject<O> object) {
 		return StatisticsUtil.getDisplayName(object);
@@ -417,6 +430,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	protected Throwable getException(OperationResult result) {
 		if (result.getCause() != null) {
 			return result.getCause();
+		} else if (result.getLastSubresult().getCause() != null) {
+			return result.getLastSubresult().getCause();
 		} else {
 			return new SystemException(result.getMessage());
 		}
@@ -454,11 +469,54 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			return stopOnError;
 		}
 		
-		if (stageType.getErrorCriticality().getPolicy() == null) {
-			return stopOnError;
+		if (PolicyViolationException.class.isAssignableFrom(ex.getClass())) {
+			if (stageType.getErrorCriticality().getPolicy() == null && stageType.getErrorCriticality().getPolicy() == CriticalityType.FATAL) {
+				throw new SystemException("Task stopped because " + ex + " was thrown.");
+			}
 		}
 		
-		return stageType.getErrorCriticality().getPolicy() == CriticalityType.FATAL;
+		if (ConfigurationException.class.isAssignableFrom(ex.getClass())) {
+			if (stageType.getErrorCriticality().getConfiguration() == null && stageType.getErrorCriticality().getConfiguration() == CriticalityType.FATAL) {
+				throw new SystemException("Task stopped because " + ex + " was thrown.");
+			}
+		}
+		
+		if (CommunicationException.class.isAssignableFrom(ex.getClass())) {
+			if (stageType.getErrorCriticality().getNetwork() == null && stageType.getErrorCriticality().getNetwork() == CriticalityType.FATAL) {
+				throw new SystemException("Task stopped because " + ex + " was thrown.");
+			}
+		}
+		
+		if (SchemaException.class.isAssignableFrom(ex.getClass())) {
+			if (stageType.getErrorCriticality().getSchema() == null && stageType.getErrorCriticality().getSchema() == CriticalityType.FATAL) {
+				throw new SystemException("Task stopped because " + ex + " was thrown.");
+			}
+		}
+		
+		if (SecurityViolationException.class.isAssignableFrom(ex.getClass())) {
+			if (stageType.getErrorCriticality().getSecurity() == null && stageType.getErrorCriticality().getSecurity() == CriticalityType.FATAL) {
+				throw new SystemException("Task stopped because " + ex + " was thrown.");
+			}
+		}
+		
+		if (UnsupportedOperationException.class.isAssignableFrom(ex.getClass())) {
+			if (stageType.getErrorCriticality().getUnsupported() == null && stageType.getErrorCriticality().getUnsupported() == CriticalityType.FATAL) {
+				throw new SystemException("Task stopped because " + ex + " was thrown.");
+			}
+		}
+		
+		if (stageType.getErrorCriticality().getGeneric() == null && stageType.getErrorCriticality().getGeneric() == CriticalityType.FATAL) {
+				throw new SystemException("Task stopped because " + ex + " was thrown.");
+		}
+		
+		return stopOnError;
+	}
+	
+	/**
+	 * @return the stageType
+	 */
+	public TaskStageType getStageType() {
+		return stageType;
 	}
 	
 	public long heartbeat() {

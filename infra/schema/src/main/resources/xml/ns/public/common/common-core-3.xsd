@@ -2709,7 +2709,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="stage" type="tns:TaskStageType" minOccurs="0">
+					<xsd:element name="stage" type="tns:TaskStageType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
 								Stage of the task. Some task can have different processing stages. E.g. reconciliation

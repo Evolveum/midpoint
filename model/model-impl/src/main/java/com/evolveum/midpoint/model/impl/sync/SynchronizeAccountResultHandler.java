@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
 
 /**
  * Iterative search result handler for account synchronization. Works both for
@@ -62,12 +63,10 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private QName sourceChannel;
 	private boolean forceAdd;
 	
-	private boolean simulate;
-	
 	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
 			String processShortName, Task coordinatorTask, ResourceObjectChangeListener objectChangeListener,
-			TaskManager taskManager) {
-		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, taskManager);
+			TaskStageType stageType, TaskManager taskManager) {
+		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, stageType, taskManager);
 		this.objectChangeListener = objectChangeListener;
 		this.resourceReadOnly = resource;
 		this.resourceOid = resource.getOid();
@@ -110,9 +109,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		return objectClassDef;
 	}
 
-	public void setSimulate(boolean simulate) {
-		this.simulate = simulate;
-	}
+	
 	/**
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account
@@ -169,7 +166,9 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
 		change.setResource(getResourceWorkingCopy().asPrismObject());
-		change.setSimulate(simulate);
+		if (getStageType() != null && ReconciliationTaskHandler.SIMULATE_URI.equals(getStageType().getStage())) {
+			change.setSimulate(true);
+		}
 
 		if (forceAdd) {
 			// We should provide shadow in the state before the change. But we are
