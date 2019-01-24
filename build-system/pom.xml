@@ -1585,7 +1585,8 @@
                                     <midpoint.home>target/midpoint-home</midpoint.home>
                                     <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
                                 </systemPropertyVariables>
-                                <argLine>-Xms1024m -Xmx4096m -Duser.language=en</argLine>
+                                <!--argLine>-Xms1024m -Xmx4096m -Duser.language=en</argLine-->
+                                <argLine>-Xms16g -Xmx16g -Duser.language=en</argLine>
                                 <suiteXmlFiles>
                                     <suiteXmlFile>testng-integration.xml</suiteXmlFile>
                                 </suiteXmlFiles>
