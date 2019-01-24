@@ -54,8 +54,8 @@ import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
-import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -105,6 +105,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -1708,12 +1709,23 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (assignmentHolder == null) {
 			return null;
 		}
-		if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
+		PrismObject<ArchetypeType> archetype = determineArchetype(assignmentHolder, result);
+		if (archetype == null) {
 			return getArchetypePolicyLegacy(assignmentHolder, result);
+		}
+		return archetype.asObjectable().getArchetypePolicy();
+	}
+	
+	private <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+		if (assignmentHolder == null) {
+			return null;
+		}
+		if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
+			return null;
 		}
 		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)assignmentHolder.asObjectable()).getArchetypeRef();
 		if (archetypeRefs == null || archetypeRefs.isEmpty()) {
-			return getArchetypePolicyLegacy(assignmentHolder, result);
+			return null;
 		}
 		if (archetypeRefs.size() > 1) {
 			throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
@@ -1725,15 +1737,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
 		} catch (ObjectNotFoundException e) {
 			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
-			return getArchetypePolicyLegacy(assignmentHolder, result);
+			return null;
 		}
-		return archetype.asObjectable().getArchetypePolicy();
+		return archetype;
 	}
-
+	
 	@Override
-	public <O extends AssignmentHolderType> AssignmentTargetSpecification determineAssignmentTargetSpecification(PrismObject<O> object, OperationResult result) throws SchemaException {
+	public <O extends AssignmentHolderType> AssignmentCandidatesSpecification determineAssignmentTargetSpecification(PrismObject<O> object, OperationResult result) throws SchemaException {
 		SearchResultList<PrismObject<ArchetypeType>> archetypes = systemObjectCache.getAllArchetypes(result);
-		List<AssignmentTargetRelation> assignmentTargetRelations = new ArrayList<>();
+		List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();
 		for (PrismObject<ArchetypeType> archetype : archetypes) {
 			List<QName> archetypeFocusTypes = null;
 			for (AssignmentType inducement : archetype.asObjectable().getInducement()) {
@@ -1742,8 +1754,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 						if (archetypeFocusTypes == null) {
 							archetypeFocusTypes = determineArchetypeFocusTypes(archetype);
 						}
-						AssignmentTargetRelation targetRelation = new AssignmentTargetRelation();
-						targetRelation.addTargetTypes(archetypeFocusTypes);
+						AssignmentObjectRelation targetRelation = new AssignmentObjectRelation();
+						targetRelation.addObjectTypes(archetypeFocusTypes);
 						targetRelation.addArchetypeRef(archetype);
 						targetRelation.addRelations(assignmentRelation.getRelation());
 						targetRelation.setDescription(assignmentRelation.getDescription());
@@ -1753,8 +1765,32 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			}
 		}
 		
-		AssignmentTargetSpecification spec = new AssignmentTargetSpecification();
-		spec.setAssignmentTargetRelations(assignmentTargetRelations);
+		AssignmentCandidatesSpecification spec = new AssignmentCandidatesSpecification();
+		spec.setAssignmentObjectRelations(assignmentTargetRelations);
+		// TODO: empty list vs null: default setting
+		return spec;
+	}
+	
+
+	@Override
+	public <O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result)
+			throws SchemaException, ConfigurationException {
+		PrismObject<ArchetypeType> targetArchetype = determineArchetype(assignmentTarget, result);
+		AssignmentCandidatesSpecification spec = new AssignmentCandidatesSpecification();
+		if (targetArchetype != null) {
+			List<AssignmentObjectRelation> assignmentHolderRelations = new ArrayList<>();
+			for (AssignmentType inducement : targetArchetype.asObjectable().getInducement()) {
+				for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
+					AssignmentObjectRelation holderRelation = new AssignmentObjectRelation();
+					holderRelation.addObjectTypes(ObjectTypes.canonizeObjectTypes(assignmentRelation.getHolderType()));
+					holderRelation.addArchetypeRefs(assignmentRelation.getHolderArchetypeRef());
+					holderRelation.addRelations(assignmentRelation.getRelation());
+					holderRelation.setDescription(assignmentRelation.getDescription());
+					assignmentHolderRelations.add(holderRelation);
+				}
+			}
+			spec.setAssignmentObjectRelations(assignmentHolderRelations);
+		}
 		// TODO: empty list vs null: default setting
 		return spec;
 	}
@@ -1763,7 +1799,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		List<QName> focusTypes = new ArrayList<>();
 		for (AssignmentType assignment : archetype.asObjectable().getAssignment()) {
 			for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
-				focusTypes.addAll(assignmentRelation.getHolderType());
+				focusTypes.addAll(ObjectTypes.canonizeObjectTypes(assignmentRelation.getHolderType()));
 			}
 		}
 		if (focusTypes.isEmpty()) {

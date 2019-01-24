@@ -387,11 +387,25 @@ public interface ModelInteractionService {
 	<O extends AssignmentHolderType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
 
 	/**
-	 * Returns data structure that contains information about possible assignment targets for a particular object.
+	 * Returns data structure that contains information about possible assignment targets for a particular holder object.
+	 * 
+	 * This method should be used when editing assignment holder (e.g. user) and looking for available assignment target.
+	 * The determineAssignmentHolderSpecification is a "reverse" version of this method.
 	 * 
 	 * This method is not used that often. It is used when an object is edited. But is should be quite efficient anyway.
 	 * It should use cached archetype information.
 	 */
-	<O extends AssignmentHolderType> AssignmentTargetSpecification determineAssignmentTargetSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
+	<O extends AssignmentHolderType> AssignmentCandidatesSpecification determineAssignmentTargetSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
+	
+	/**
+	 * Returns data structure that contains information about possible assignment holders for a particular target object.
+	 * 
+	 * This method should be used when editing assignment assignment target (role, org, service) and looking for object that
+	 * can be potential members. The determineAssignmentTargetSpecification is a "reverse" version of this method.
+	 * 
+	 * This method is not used that often. It is used when an object is edited. But is should be quite efficient anyway.
+	 * It should use cached archetype information.
+	 */
+	<O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result) throws SchemaException, ConfigurationException;
 	
 }
