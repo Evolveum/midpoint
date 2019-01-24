@@ -269,16 +269,22 @@ public class WfContextUtil {
 		return "pid: " + wfc.getCaseOid() + ", name: " + wfc.getProcessInstanceName() + ", stage: " + wfc.getStageNumber();
 	}
 
+	/**
+	 *  @pre !stageEvents.isEmpty()
+ 	 */
 	@NotNull
 	public static String getCurrentStageOutcome(WfContextType wfc, List<StageCompletionEventType> stageEvents) {
-		if (stageEvents.size() > 1) {
-			throw new IllegalStateException("More than one stage-level event in " + getBriefDiagInfo(wfc) + ": " + stageEvents);
-		}
-		StageCompletionEventType event = stageEvents.get(0);
-		if (event.getOutcome() == null) {
+		Set<String> outcomes = stageEvents.stream()
+				.filter(e -> e.getOutcome() != null)
+				.map(e -> e.getOutcome())
+				.collect(Collectors.toSet());
+		if (outcomes.size() > 1) {
+			throw new IllegalStateException("More than one stage outcome in " + getBriefDiagInfo(wfc) + ": " + outcomes + " (" + stageEvents + ")");
+		} else if (outcomes.isEmpty()) {
 			throw new IllegalStateException("No outcome for stage-level event in " + getBriefDiagInfo(wfc));
+		} else {
+			return outcomes.iterator().next();
 		}
-		return event.getOutcome();
 	}
 
 	// expects normalized definition
