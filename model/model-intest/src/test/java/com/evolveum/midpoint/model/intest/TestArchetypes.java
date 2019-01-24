@@ -146,13 +146,31 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertRoleAfter(ROLE_BUSINESS_CAPTAIN_OID)
-        	.assertArchetypeRef(ARCHETYPE_BUSINESS_ROLE_OID);
+        PrismObject<RoleType> roleBusinessCaptainAfter = assertRoleAfter(ROLE_BUSINESS_CAPTAIN_OID)
+        	.assertArchetypeRef(ARCHETYPE_BUSINESS_ROLE_OID)
+        	.getObject();
+        
+        assertAssignmentHolderSpecification(roleBusinessCaptainAfter)
+        	.assignmentObjectRelations()
+        		.assertItems(2)
+        		.by()
+        			.relations(SchemaConstants.ORG_APPROVER, SchemaConstants.ORG_OWNER)
+        		.find()
+        			.assertArchetypeOid(ARCHETYPE_EMPLOYEE_OID)
+        			.assertObjectType(UserType.COMPLEX_TYPE)
+        			.assertDescription("Only employees may be owners/approvers for business role.")
+        			.end()
+        		.by()
+        			.relation(SchemaConstants.ORG_DEFAULT)
+        		.find()
+        			.assertObjectType(UserType.COMPLEX_TYPE)
+        			.assertNoArchetype();
+        			
     }
     
     @Test
-    public void test060AssignGuybrushUserAdministrator() throws Exception {
-		final String TEST_NAME = "test060AssignGuybrushUserAdministrator";
+    public void test070AssignGuybrushUserAdministrator() throws Exception {
+		final String TEST_NAME = "test070AssignGuybrushUserAdministrator";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -377,8 +395,8 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         		.assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
         		.assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
 
-        assertAssignmentTargetRelations(userAfter)
-	        .assignmentTargetRelations()
+        assertAssignmentTargetSpecification(userAfter)
+	        .assignmentObjectRelations()
 	        	.assertItems(2)
 	        	.by()
 	        		.targetType(RoleType.COMPLEX_TYPE)
@@ -386,13 +404,15 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	        	.find()
 	        		.assertDescription("Any user can have business role (can be a member).")
 	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
+	        		.assertObjectType(RoleType.COMPLEX_TYPE)
 	        		.end()
 	        	.by()
 	        		.targetType(RoleType.COMPLEX_TYPE)
 	        		.relations(SchemaConstants.ORG_OWNER, SchemaConstants.ORG_APPROVER)
 	        	.find()
 		        	.assertDescription("Only employees may be owners/approvers for business role.")
-	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID);
+	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
+        			.assertObjectType(RoleType.COMPLEX_TYPE);
 	        	
     }
 	
@@ -426,15 +446,16 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         assertArchetypePolicy(userAfter)
         	.assertNull();
         
-    	assertAssignmentTargetRelations(userAfter)
-    		.assignmentTargetRelations()
+    	assertAssignmentTargetSpecification(userAfter)
+    		.assignmentObjectRelations()
 	        	.assertItems(1)
 	        	.by()
 	        		.targetType(RoleType.COMPLEX_TYPE)
 	        		.relation(SchemaConstants.ORG_DEFAULT)
 	        	.find()
 	        		.assertDescription("Any user can have business role (can be a member).")
-	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID);
+	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
+	        		.assertObjectType(RoleType.COMPLEX_TYPE);
         }
 	
 	@Test

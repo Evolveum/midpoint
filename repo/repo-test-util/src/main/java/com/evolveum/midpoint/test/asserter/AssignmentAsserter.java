@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -82,6 +84,24 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
 	public AssignmentAsserter<R> assertTargetOid(String expected) {
 		assertEquals("Wrong target OID in "+desc(), expected, getTargetOid());
 		return this;
+	}
+	
+	public AssignmentAsserter<R> assertSubtype(String expected) {
+		List<String> subtypes = assignment.getSubtype();
+		if (subtypes.isEmpty()) {
+			fail("No subtypes in "+desc()+", expected "+expected);
+		}
+		if (subtypes.size() > 1) {
+			fail("Too many subtypes in "+desc()+", expected "+expected+", was "+subtypes);
+		}
+		assertEquals("Wrong subtype in "+desc(), expected, subtypes.get(0));
+		return this;
+	}
+	
+	public ActivationAsserter<AssignmentAsserter<R>> activation() {
+		ActivationAsserter<AssignmentAsserter<R>> asserter = new ActivationAsserter<>(assignment.getActivation(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
 	}
 	
 	protected String desc() {

@@ -25,7 +25,7 @@ import javax.xml.namespace.QName;
 
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -36,11 +36,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class AssignmentTargetRelationFinder<RA> {
 	
-	private final AssignmentTargetRelationsAsserter<RA> collectionAsserter;
+	private final AssignmentObjectRelationsAsserter<RA> collectionAsserter;
 	private List<QName> targetTypes;
 	private List<QName> relations;
 	
-	public AssignmentTargetRelationFinder(AssignmentTargetRelationsAsserter<RA> collectionAsserter) {
+	public AssignmentTargetRelationFinder(AssignmentObjectRelationsAsserter<RA> collectionAsserter) {
 		this.collectionAsserter = collectionAsserter;
 	}
 	
@@ -61,9 +61,9 @@ public class AssignmentTargetRelationFinder<RA> {
 		return this;
 	}
 	
-	public AssignmentTargetRelationAsserter<AssignmentTargetRelationsAsserter<RA>> find() throws ObjectNotFoundException, SchemaException {
-		AssignmentTargetRelation found = null;
-		for (AssignmentTargetRelation item: collectionAsserter.getAssignmentTargetRelations()) {
+	public AssignmentTargetRelationAsserter<AssignmentObjectRelationsAsserter<RA>> find() throws ObjectNotFoundException, SchemaException {
+		AssignmentObjectRelation found = null;
+		for (AssignmentObjectRelation item: collectionAsserter.getAssignmentTargetRelations()) {
 			if (matches(item)) {
 				if (found == null) {
 					found = item;
@@ -78,9 +78,9 @@ public class AssignmentTargetRelationFinder<RA> {
 		return collectionAsserter.forAssignmentTargetRelation(found);
 	}
 	
-	public AssignmentTargetRelationsAsserter<RA> assertCount(int expectedCount) throws ObjectNotFoundException, SchemaException {
+	public AssignmentObjectRelationsAsserter<RA> assertCount(int expectedCount) throws ObjectNotFoundException, SchemaException {
 		int foundCount = 0;
-		for (AssignmentTargetRelation item: collectionAsserter.getAssignmentTargetRelations()) {
+		for (AssignmentObjectRelation item: collectionAsserter.getAssignmentTargetRelations()) {
 			if (matches(item)) {
 				foundCount++;
 			}
@@ -89,10 +89,10 @@ public class AssignmentTargetRelationFinder<RA> {
 		return collectionAsserter;
 	}
 	
-	private boolean matches(AssignmentTargetRelation item) throws ObjectNotFoundException, SchemaException {
+	private boolean matches(AssignmentObjectRelation item) throws ObjectNotFoundException, SchemaException {
 		
 		if (targetTypes != null) {
-			if (!QNameUtil.unorderedCollectionMatch(targetTypes, item.getTargetTypes())) {
+			if (!QNameUtil.unorderedCollectionMatch(targetTypes, item.getObjectTypes())) {
 				return false;
 			}
 		}

@@ -19,12 +19,17 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
 import com.evolveum.midpoint.task.api.UseThreadInterrupt;
+import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -114,6 +119,9 @@ public class TaskManagerConfiguration {
 	private static final int WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT = 7;
     private static final long WORK_ALLOCATION_INITIAL_DELAY_DEFAULT = 5000L;
     private static final long WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT = 20000L;
+
+    private static final String NODE_ID_SOURCE_RANDOM = "random";
+    private static final String NODE_ID_SOURCE_HOSTNAME = "hostname";
 
     private boolean stopOnInitializationFailure;
     private int threads;
@@ -238,6 +246,7 @@ public class TaskManagerConfiguration {
     }
 
     void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
+        Configuration root = masterConfig.getConfiguration();
         Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
         stopOnInitializationFailure = c.getBoolean(STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY, STOP_ON_INITIALIZATION_FAILURE_DEFAULT);
@@ -246,9 +255,15 @@ public class TaskManagerConfiguration {
         clustered = c.getBoolean(CLUSTERED_CONFIG_ENTRY, CLUSTERED_DEFAULT);
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
-        nodeId = System.getProperty(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY);
-        if (StringUtils.isEmpty(nodeId) && !clustered) {
-            nodeId = NODE_ID_DEFAULT;
+        nodeId = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY, null);
+        if (StringUtils.isEmpty(nodeId)) {
+            String source = root.getString(MidpointConfiguration.MIDPOINT_NODE_ID_SOURCE_PROPERTY, null);
+            if (StringUtils.isEmpty(source)) {
+                nodeId = clustered ? null : NODE_ID_DEFAULT;
+            } else {
+                nodeId = provideNodeId(source);
+                LOGGER.info("Using node ID of '{}' as determined by the '{}' source", nodeId, source);
+            }
         }
 
         jmxHostName = System.getProperty(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY);
@@ -310,6 +325,28 @@ public class TaskManagerConfiguration {
         workAllocationInitialDelay = c.getLong(WORK_ALLOCATION_INITIAL_DELAY_ENTRY, WORK_ALLOCATION_INITIAL_DELAY_DEFAULT);
         workAllocationDefaultFreeBucketWaitInterval = c.getLong(WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
                 WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT);
+    }
+
+    private String provideNodeId(@NotNull String source) {
+        switch (source) {
+            case NODE_ID_SOURCE_RANDOM:
+                return "node-" + Math.round(Math.random() * 1000000000.0);
+            case NODE_ID_SOURCE_HOSTNAME:
+                try {
+                    String hostName = NodeRegistrar.getLocalHostNameFromOperatingSystem();
+                    if (hostName != null) {
+                        return hostName;
+                    } else {
+                        LOGGER.error("Couldn't determine nodeId as host name couldn't be obtained from the operating system");
+                        throw new SystemException(
+                                "Couldn't determine nodeId as host name couldn't be obtained from the operating system");
+                    }
+                } catch (UnknownHostException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine nodeId as host name couldn't be obtained from the operating system", e);
+                }
+            default:
+                throw new IllegalArgumentException("Unsupported node ID source: " + source);
+        }
     }
 
     private static final Map<Database, String> schemas = new HashMap<>();

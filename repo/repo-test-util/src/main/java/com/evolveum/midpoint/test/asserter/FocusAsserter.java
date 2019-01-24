@@ -143,8 +143,8 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		return this;
 	}
 	
-	public ActivationAsserter<F, ? extends FocusAsserter<F,RA>, RA> activation() {
-		ActivationAsserter<F,FocusAsserter<F,RA>,RA> asserter = new ActivationAsserter<>(this, getDetails());
+	public ActivationAsserter<? extends FocusAsserter<F,RA>> activation() {
+		ActivationAsserter<FocusAsserter<F,RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}

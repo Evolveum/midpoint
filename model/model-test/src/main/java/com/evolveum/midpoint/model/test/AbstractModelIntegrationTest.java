@@ -88,8 +88,8 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
-import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
@@ -109,8 +109,8 @@ import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.test.asserter.AssignmentTargetRelationsAsserter;
-import com.evolveum.midpoint.model.test.asserter.AssignmentTargetSpecificationAsserter;
+import com.evolveum.midpoint.model.test.asserter.AssignmentObjectRelationsAsserter;
+import com.evolveum.midpoint.model.test.asserter.AssignmentCandidatesSpecificationAsserter;
 import com.evolveum.midpoint.model.test.asserter.CompiledUserProfileAsserter;
 import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
@@ -6177,10 +6177,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 
-	protected <O extends AssignmentHolderType> AssignmentTargetSpecificationAsserter<Void> assertAssignmentTargetRelations(PrismObject<O> object) throws SchemaException, ConfigurationException {
-		OperationResult result = new OperationResult("assertAssignmentTargetRelations");
-		AssignmentTargetSpecification targetSpec = modelInteractionService.determineAssignmentTargetSpecification(object, result);
-		AssignmentTargetSpecificationAsserter<Void> asserter = new AssignmentTargetSpecificationAsserter<>(targetSpec, null, "for "+object);
+	protected <O extends AssignmentHolderType> AssignmentCandidatesSpecificationAsserter<Void> assertAssignmentTargetSpecification(PrismObject<O> object) throws SchemaException, ConfigurationException {
+		OperationResult result = new OperationResult("assertAssignmentTargetSpecification");
+		AssignmentCandidatesSpecification targetSpec = modelInteractionService.determineAssignmentTargetSpecification(object, result);
+		AssignmentCandidatesSpecificationAsserter<Void> asserter = new AssignmentCandidatesSpecificationAsserter<>(targetSpec, null, "targets for "+object);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+	
+	protected <O extends AbstractRoleType> AssignmentCandidatesSpecificationAsserter<Void> assertAssignmentHolderSpecification(PrismObject<O> object) throws SchemaException, ConfigurationException {
+		OperationResult result = new OperationResult("assertAssignmentHolderSpecification");
+		AssignmentCandidatesSpecification targetSpec = modelInteractionService.determineAssignmentHolderSpecification(object, result);
+		AssignmentCandidatesSpecificationAsserter<Void> asserter = new AssignmentCandidatesSpecificationAsserter<>(targetSpec, null, "holders for "+object);
 		initializeAsserter(asserter);
 		asserter.display();
 		return asserter;
