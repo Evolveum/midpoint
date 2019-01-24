@@ -24,6 +24,7 @@ import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -252,7 +253,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 final Date created;
                 if (createdCal != null) {
                     created = createdCal.toGregorianCalendar().getTime();
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormatValue(created, PageCaseWorkItems.this)));
                     item.add(new TooltipBehavior());
                 } else {
                     created = null;
@@ -260,7 +261,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE);
+                        return WebComponentUtil.getShortDateTimeFormatValue(created, PageCaseWorkItems.this);
                     }
                 }));
             }
@@ -277,7 +278,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 final Date deadline;
                 if (deadlineCal != null) {
                     deadline = deadlineCal.toGregorianCalendar().getTime();
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(deadline, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormatValue(deadline, PageCaseWorkItems.this)));
                     item.add(new TooltipBehavior());
                 } else {
                     deadline = null;
@@ -285,7 +286,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getLocalizedDate(deadline, DateLabelComponent.LONG_MEDIUM_STYLE);
+                        return WebComponentUtil.getShortDateTimeFormatValue(deadline, PageCaseWorkItems.this);
                     }
                 }));
             }
@@ -302,7 +303,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 final Date closed;
                 if (closedCal != null) {
                     closed = closedCal.toGregorianCalendar().getTime();
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormatValue(closed, PageCaseWorkItems.this)));
                     item.add(new TooltipBehavior());
                 } else {
                     closed = null;
@@ -310,7 +311,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE);
+                        return WebComponentUtil.getShortDateTimeFormatValue(closed, PageCaseWorkItems.this);
                     }
                 }));
             }

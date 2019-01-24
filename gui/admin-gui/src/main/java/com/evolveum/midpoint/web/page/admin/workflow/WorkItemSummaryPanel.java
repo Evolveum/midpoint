@@ -128,7 +128,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			public String getObject() {
 				WorkItemType workItem = getModelObject();
 				return getString("TaskSummaryPanel.requestedOn",
-						WebComponentUtil.getLocalizedDate(WfContextUtil.getWorkflowContext(workItem).getStartTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE));
+						WebComponentUtil.getLongDateTimeFormatValue(WfContextUtil.getWorkflowContext(workItem).getStartTimestamp(),
+								WorkItemSummaryPanel.this.getPageBase()));
 			}
 		};
 	}

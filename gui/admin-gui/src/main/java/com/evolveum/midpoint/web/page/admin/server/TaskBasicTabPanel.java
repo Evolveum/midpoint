@@ -197,7 +197,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 								@Override
 								public String getObject() {
 									if (taskDtoModel.getObject().getCompletionTimestamp() != null) {
-										return WebComponentUtil.getLocalizedDate(new Date(taskDtoModel.getObject().getCompletionTimestamp()), DateLabelComponent.LONG_MEDIUM_STYLE);
+										return WebComponentUtil.getLongDateTimeFormatValue(new Date(taskDtoModel.getObject().getCompletionTimestamp()), parentPage);
 									} else {
 										return "?";
 									}

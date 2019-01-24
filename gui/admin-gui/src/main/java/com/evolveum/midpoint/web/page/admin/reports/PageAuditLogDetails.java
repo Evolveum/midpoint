@@ -227,7 +227,7 @@ public class PageAuditLogDetails extends PageBase {
             public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
                                      IModel<AuditEventRecordType> rowModel) {
                 XMLGregorianCalendar time = rowModel.getObject().getTimestamp();
-                item.add(new Label(componentId, WebComponentUtil.getLocalizedDate(time, DateLabelComponent.SHORT_SHORT_STYLE)));
+                item.add(new Label(componentId, WebComponentUtil.getShortDateTimeFormatValue(time, PageAuditLogDetails.this)));
             }
         };
         columns.add(timeColumn);

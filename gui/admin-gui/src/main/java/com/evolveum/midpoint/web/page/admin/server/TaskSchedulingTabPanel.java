@@ -135,7 +135,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				if (dto.getLastRunStartTimestampLong() == null) {
 					return "-";
 				} else {
-					return WebComponentUtil.getLocalizedDate(new Date(dto.getLastRunStartTimestampLong()), DateLabelComponent.LONG_MEDIUM_STYLE);
+					return WebComponentUtil.getLongDateTimeFormatValue(new Date(dto.getLastRunStartTimestampLong()), parentPage);
 				}
 			}
 		});
@@ -166,7 +166,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				if (dto.getLastRunFinishTimestampLong() == null) {
 					return "-";
 				} else {
-					return WebComponentUtil.getLocalizedDate(new Date(dto.getLastRunFinishTimestampLong()), DateLabelComponent.LONG_MEDIUM_STYLE);
+					return WebComponentUtil.getLongDateTimeFormatValue(new Date(dto.getLastRunFinishTimestampLong()), parentPage);
 				}
 			}
 		});

@@ -175,7 +175,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	public String getRequestedOn() {
-		return WebComponentUtil.getLocalizedDate(parentPage.getTaskDto().getRequestedOn(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+		return WebComponentUtil.getLongDateTimeFormatValue(parentPage.getTaskDto().getRequestedOn(), parentPage);
 	}
 
 	@Override

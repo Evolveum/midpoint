@@ -104,8 +104,7 @@ public class MetadataPanel extends BasePanel<MetadataType>{
                     PropertyModel<Object> tempModel = new PropertyModel<>(getModel(),
                         qname.getLocalPart());
                     if (tempModel.getObject() instanceof XMLGregorianCalendar){
-                        return WebComponentUtil.getLocalizedDate((XMLGregorianCalendar)tempModel.getObject(),
-                                DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+                        return WebComponentUtil.getLongDateTimeFormatValue((XMLGregorianCalendar)tempModel.getObject(), getPageBase());
                     } else if (tempModel.getObject() instanceof ObjectReferenceType){
                         ObjectReferenceType ref = (ObjectReferenceType) tempModel.getObject();
                         return WebComponentUtil.getName(ref, getPageBase(), OPERATION_LOAD_USER);

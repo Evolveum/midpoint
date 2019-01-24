@@ -322,7 +322,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 CertWorkItemDto dto = rowModel.getObject();
                 Date started = dto.getStageStarted();
                 if (started != null) {
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(started, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormatValue(started, PageCertDecisions.this)));
                     item.add(new TooltipBehavior());
                 }
             }
