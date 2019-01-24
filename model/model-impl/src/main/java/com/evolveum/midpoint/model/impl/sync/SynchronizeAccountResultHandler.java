@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -145,7 +147,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			return true;
 		}
 
-		if (objectClassDef != null && !objectClassDef.matches(newShadowType)) {
+		if (objectClassDef != null && !isShadowUnknown(newShadowType) && !objectClassDef.matches(newShadowType)) {
 			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent specified in {}",
 					getProcessShortNameCapitalized(), accountShadow, objectClassDef);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
@@ -201,4 +203,17 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 
 		return workerTask.canRun();
 	}
+	
+	private boolean isShadowUnknown(ShadowType shadowType) {
+		if (ShadowKindType.UNKNOWN == shadowType.getKind()) {
+			return true;
+		}
+		
+		if (SchemaConstants.INTENT_UNKNOWN.equals(shadowType.getIntent())) {
+			return true;
+		}
+		
+		return false;
+	}
+
 }
