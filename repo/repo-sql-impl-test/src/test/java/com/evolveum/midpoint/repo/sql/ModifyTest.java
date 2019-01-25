@@ -1172,7 +1172,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectReferenceType approver1 = new ObjectReferenceType()
                 .oid("approver1-oid").type(UserType.COMPLEX_TYPE).relation(SchemaConstants.ORG_DEFAULT);
 
-        List<ItemDelta<?, ?>> itemDeltas1 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas1 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approver1.clone())
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas1, getModifyOptions(), result);
@@ -1202,7 +1202,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         /*
          * Obviously suspicious request; but repo should deal with it correctly.
          */
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approver1.clone(), approver1AsUser.clone())
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas, getModifyOptions(), result);
@@ -1212,7 +1212,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, user.getOid(), null, result);
         display("user after", userAfter);
 
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).ref(approver1.getOid())
                 .build();
         SearchResultList<PrismObject<UserType>> users = repositoryService
