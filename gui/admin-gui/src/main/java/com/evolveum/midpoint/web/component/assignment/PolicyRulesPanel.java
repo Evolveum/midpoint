@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
-import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
-import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -140,7 +140,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	}
 
 	@Override
-	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentTargetRelation assignmentTargetRelation) {
+	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
         newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
         ContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModel());

@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,17 +48,17 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
  * @author semancik
  *
  */
-public class AssignmentTargetRelationsAsserter<RA> extends AbstractAsserter<RA> {
+public class AssignmentObjectRelationsAsserter<RA> extends AbstractAsserter<RA> {
 	
-	private final List<AssignmentTargetRelation> assignmentTargetRelations;
+	private final List<AssignmentObjectRelation> assignmentObjectRelations;
 
-	public AssignmentTargetRelationsAsserter(List<AssignmentTargetRelation> assignmentTargetRelations, RA returnAsserter, String details) {
+	public AssignmentObjectRelationsAsserter(List<AssignmentObjectRelation> assignmentObjectRelations, RA returnAsserter, String details) {
 		super(returnAsserter, details);
-		this.assignmentTargetRelations = assignmentTargetRelations;
+		this.assignmentObjectRelations = assignmentObjectRelations;
 	}
 		
-	AssignmentTargetRelationAsserter<AssignmentTargetRelationsAsserter<RA>> forAssignmentTargetRelation(AssignmentTargetRelation view) {
-		AssignmentTargetRelationAsserter<AssignmentTargetRelationsAsserter<RA>> asserter = new AssignmentTargetRelationAsserter<>(view, this, "assignment target relation in "+desc());
+	AssignmentTargetRelationAsserter<AssignmentObjectRelationsAsserter<RA>> forAssignmentTargetRelation(AssignmentObjectRelation view) {
+		AssignmentTargetRelationAsserter<AssignmentObjectRelationsAsserter<RA>> asserter = new AssignmentTargetRelationAsserter<>(view, this, "assignment target relation in "+desc());
 		copySetupTo(asserter);
 		return asserter;
 	}
@@ -67,33 +67,33 @@ public class AssignmentTargetRelationsAsserter<RA> extends AbstractAsserter<RA> 
 		return new  AssignmentTargetRelationFinder<>(this);
 	}
 
-	public List<AssignmentTargetRelation> getAssignmentTargetRelations() {
-		return assignmentTargetRelations;
+	public List<AssignmentObjectRelation> getAssignmentTargetRelations() {
+		return assignmentObjectRelations;
 	}
 	
-	public AssignmentTargetRelationsAsserter<RA> assertItems(int expected) {
-		assertEquals("Wrong number of assignment target relation in "+desc(), expected, getAssignmentTargetRelations().size());
+	public AssignmentObjectRelationsAsserter<RA> assertItems(int expected) {
+		assertEquals("Wrong number of assignment object relation in "+desc(), expected, getAssignmentTargetRelations().size());
 		return this;
 	}
 	
-	public AssignmentTargetRelationAsserter<AssignmentTargetRelationsAsserter<RA>> single() {
+	public AssignmentTargetRelationAsserter<AssignmentObjectRelationsAsserter<RA>> single() {
 		assertItems(1);
 		return forAssignmentTargetRelation(getAssignmentTargetRelations().get(0));
 	}
 	
-	public AssignmentTargetRelationsAsserter<RA> display() {
+	public AssignmentObjectRelationsAsserter<RA> display() {
 		display(desc());
 		return this;
 	}
 	
-	public AssignmentTargetRelationsAsserter<RA> display(String message) {
-		IntegrationTestTools.display(message, assignmentTargetRelations);
+	public AssignmentObjectRelationsAsserter<RA> display(String message) {
+		IntegrationTestTools.display(message, assignmentObjectRelations);
 		return this;
 	}
 	
 	@Override
 	protected String desc() {
-		return "assignment target relations of " + getDetails();
+		return "assignment object relations of " + getDetails();
 	}
 
 	

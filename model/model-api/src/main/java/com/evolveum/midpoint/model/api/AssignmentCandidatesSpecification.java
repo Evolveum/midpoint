@@ -22,16 +22,22 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
- * Data structure that contains information about possible assignment targets for a particular object.
+ * Data structure that contains information about possible assignment targets or holders for a particular object.
+ * 
+ * This data structure is used in two related, but slight distinct cases: looking for assignment targets
+ * and looking for assignment holders. In both cases this structure describes candidate objects on the
+ * "other side" of the assignment.
  * 
  * @author Radovan Semancik
  */
-public class AssignmentTargetSpecification implements DebugDumpable, Serializable {
+public class AssignmentCandidatesSpecification implements DebugDumpable, Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private boolean supportGenericAssignment;
-	private List<AssignmentTargetRelation> assignmentTargetRelations;
+	private List<AssignmentObjectRelation> assignmentObjectRelations;
 
+	// TODO: add properties from RoleSelectionSpecification here
+	
 	/**
 	 * If set to true then the holder object can support "generic" assignment.
 	 * This means that any object type can be assigned (constrained by authorizations).
@@ -58,19 +64,19 @@ public class AssignmentTargetSpecification implements DebugDumpable, Serializabl
 	 * be applied. However, generic assignments may still be allowed.
 	 * See supportGenericAssignment.
 	 */
-	public List<AssignmentTargetRelation> getAssignmentTargetRelations() {
-		return assignmentTargetRelations;
+	public List<AssignmentObjectRelation> getAssignmentObjectRelations() {
+		return assignmentObjectRelations;
 	}
 
-	public void setAssignmentTargetRelations(List<AssignmentTargetRelation> assignmentTargetRelations) {
-		this.assignmentTargetRelations = assignmentTargetRelations;
+	public void setAssignmentObjectRelations(List<AssignmentObjectRelation> assignmentTargetRelations) {
+		this.assignmentObjectRelations = assignmentTargetRelations;
 	}
 
 	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(AssignmentTargetSpecification.class, indent);
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(AssignmentCandidatesSpecification.class, indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "supportGenericAssignment", supportGenericAssignment, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "assignmentTargetRelations", assignmentTargetRelations, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "assignmentObjectRelations", assignmentObjectRelations, indent + 1);
 		return sb.toString();
 	}
 

@@ -9536,6 +9536,7 @@
                         If set to true (which is the default) the script will be evaluated with null value
                         as argument when the input is changed from or to an empty value. This generally works
                         well for most cases. It may be set to false as an optimization.
+                        Note: default setting for this property may be overridden in specific expression evaluators.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -9678,7 +9679,15 @@
 	<xsd:complexType name="SearchObjectExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
-                Create an expression based on search results.
+            	<p>
+	                Create an expression based on search results.
+                </p>
+                <p>
+	                Note: search expression evaluators have changed default for includeNullInputs.
+	                Null inputs are NOT processed by search expression evaluators by default.
+	                The reason is that null inputs are usually insignificant for search expression
+	                and skipping them results in fewer search operations.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -9785,7 +9794,15 @@
 	<xsd:complexType name="AssignmentTargetSearchExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
-                Create an expression that provides an assignment based on search results.
+            	<p>
+	                Create an expression that provides an assignment based on search results.
+                </p>
+                <p>
+	                Note: search expression evaluators have changed default for includeNullInputs.
+	                Null inputs are NOT processed by search expression evaluators by default.
+	                The reason is that null inputs are usually insignificant for search expression
+	                and skipping them results in fewer search operations.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -12211,6 +12228,16 @@
     						</xsd:documentation>
     					</xsd:annotation>
     				</xsd:element>
+    				<xsd:element name="populate" type="tns:PopulateType" minOccurs="0">
+		            	<xsd:annotation>
+		            		<xsd:documentation>
+		            			Populate the assignment with specific properties, e.g activation status, validTo, validFrom.
+		            		</xsd:documentation>
+		            		<xsd:appinfo>
+		            			<a:since>4.0</a:since>
+		            		</xsd:appinfo>
+		            	</xsd:annotation>
+		            </xsd:element>
     			</xsd:sequence>
     		</xsd:extension>
     	</xsd:complexContent>
