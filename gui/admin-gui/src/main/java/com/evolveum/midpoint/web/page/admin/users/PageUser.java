@@ -359,8 +359,8 @@ public class PageUser extends PageAdminFocus<UserType> {
         boolean isAnythingChanged = false;
         for (AssignmentEditorDto dto : delegationsModel.getObject()) {
             if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
-                UserType user = dto.getDelegationOwner();
                 if (!previewOnly) {
+                    UserType user = dto.getDelegationOwner();
                     saveDelegationToUser(user.asPrismObject(), dto);
                 }
                 isAnythingChanged = true;
@@ -401,6 +401,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private void saveDelegationToUser(PrismObject<UserType> user, AssignmentEditorDto assignmentDto) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
         try {
+            getPrismContext().adopt(user);
             Collection<ObjectDelta<? extends ObjectType>> deltas = prepareDelegationDelta(user, assignmentDto);
             getModelService().executeChanges(deltas, getOptions(false), createSimpleTask(OPERATION_SAVE), result);
 
