@@ -178,7 +178,7 @@ public class TestThresholds extends AbstractStoryTest {
         		break;
         	}
         }
-        modifyObjectDeleteContainer(TaskType.class, TASK_RECONCILE_OPENDJ_OID, new ItemName(TaskType.F_STAGE), task, result, simulateStage);
+        modifyObjectDeleteContainer(TaskType.class, TASK_RECONCILE_OPENDJ_OID, new ItemName(TaskType.F_STAGE), task, result, simulateStage.clone());
 
 		// THEN
 		displayThen(TEST_NAME);

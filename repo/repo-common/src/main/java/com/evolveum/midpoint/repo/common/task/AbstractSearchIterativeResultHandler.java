@@ -19,9 +19,11 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -35,6 +37,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -358,7 +363,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 							null /* TODO */, object.getOid(), startTime, getException(result));
 				}
 				
-				cont = processError(object, getException(result), result);
+				cont = processError(object, workerTask, getException(result), result);
 			} else {
 				if (isRecordIterationStatistics()) {
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
@@ -376,7 +381,14 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
 						null /* TODO */, object.getOid(), startTime, e);
 			}
-			cont = processError(object, e, result);
+			try {
+				cont = processError(object, workerTask, e, result);
+			} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
+					| SecurityViolationException | PolicyViolationException | ExpressionEvaluationException
+					| ObjectAlreadyExistsException | PreconditionViolationException e1) {
+				// TODO Auto-generated catch block
+				throw new SystemException(e1);
+			}
 		} finally {
 			RepositoryCache.exit();
 
@@ -438,7 +450,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 
 	// @pre: result is "error" or ex is not null
-	private boolean processError(PrismObject<O> object, Throwable ex, OperationResult result) {
+	private boolean processError(PrismObject<O> object, Task task, Throwable ex, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 		int errorsCount = errors.incrementAndGet();
 		LOGGER.trace("Processing error, count: {}", errorsCount);
 
@@ -457,59 +469,18 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
 		}
 		result.summarize();
-		LOGGER.info("stop on error return: {}", !isStopOnError(ex));
-		return !isStopOnError(ex);
+		LOGGER.info("stop on error return: {}", !isStopOnError(task, ex, result));
+		return !isStopOnError(task, ex, result);
 //		return !isStopOnError();
 	}
 
-	private boolean isStopOnError(Throwable ex) {
+	private boolean isStopOnError(Task task, Throwable ex, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 		if (stageType == null) {
 			return stopOnError;
 		}
 		
-		if (stageType.getErrorCriticality() == null) {
-			return stopOnError;
-		}
-		
-		if (PolicyViolationException.class.isAssignableFrom(ex.getClass())) {
-			if (stageType.getErrorCriticality().getPolicy() == null && stageType.getErrorCriticality().getPolicy() == CriticalityType.FATAL) {
-				throw new SystemException("Task stopped because " + ex + " was thrown.");
-			}
-		}
-		
-		if (ConfigurationException.class.isAssignableFrom(ex.getClass())) {
-			if (stageType.getErrorCriticality().getConfiguration() == null && stageType.getErrorCriticality().getConfiguration() == CriticalityType.FATAL) {
-				throw new SystemException("Task stopped because " + ex + " was thrown.");
-			}
-		}
-		
-		if (CommunicationException.class.isAssignableFrom(ex.getClass())) {
-			if (stageType.getErrorCriticality().getNetwork() == null && stageType.getErrorCriticality().getNetwork() == CriticalityType.FATAL) {
-				throw new SystemException("Task stopped because " + ex + " was thrown.");
-			}
-		}
-		
-		if (SchemaException.class.isAssignableFrom(ex.getClass())) {
-			if (stageType.getErrorCriticality().getSchema() == null && stageType.getErrorCriticality().getSchema() == CriticalityType.FATAL) {
-				throw new SystemException("Task stopped because " + ex + " was thrown.");
-			}
-		}
-		
-		if (SecurityViolationException.class.isAssignableFrom(ex.getClass())) {
-			if (stageType.getErrorCriticality().getSecurity() == null && stageType.getErrorCriticality().getSecurity() == CriticalityType.FATAL) {
-				throw new SystemException("Task stopped because " + ex + " was thrown.");
-			}
-		}
-		
-		if (UnsupportedOperationException.class.isAssignableFrom(ex.getClass())) {
-			if (stageType.getErrorCriticality().getUnsupported() == null && stageType.getErrorCriticality().getUnsupported() == CriticalityType.FATAL) {
-				throw new SystemException("Task stopped because " + ex + " was thrown.");
-			}
-		}
-		
-		if (stageType.getErrorCriticality().getGeneric() == null && stageType.getErrorCriticality().getGeneric() == CriticalityType.FATAL) {
-				throw new SystemException("Task stopped because " + ex + " was thrown.");
-		}
+		CriticalityType criticality = ExceptionUtil.getCriticality(stageType.getErrorCriticality(), ex, CriticalityType.PARTIAL);
+		RepoCommonUtils.processErrorCriticality(task.getTaskType(), criticality, ex, result);
 		
 		return stopOnError;
 	}
