@@ -188,13 +188,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			setupSituation(syncCtx, eventInfo, change);
 			
-			if (!checkDryRunAndUnrelatedChange(syncCtx, eventInfo, now)) {
+			if (!checkDryRun(syncCtx, eventInfo, change, now)) {
 				return;
 			}
 
 			// must be here, because when the reaction has no action, the
 			// situation won't be set.
-			PrismObject<ShadowType> newCurrentShadow = saveSyncMetadata(syncCtx, change, now);
+			PrismObject<ShadowType> newCurrentShadow = saveSyncMetadata(syncCtx, change, true, now);
 			if (newCurrentShadow != null) {
 				change.setCurrentShadow(newCurrentShadow);
 				syncCtx.setCurrentShadow(newCurrentShadow);
@@ -389,12 +389,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return true;
 	}
 	
-	private <F extends FocusType> boolean checkDryRunAndUnrelatedChange(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, XMLGregorianCalendar now) throws SchemaException {
+	private <F extends FocusType> boolean checkDryRun(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, ResourceObjectShadowChangeDescription change, XMLGregorianCalendar now) throws SchemaException {
 		OperationResult subResult = syncCtx.getResult();
 		Task task = syncCtx.getTask();
 		if (ModelImplUtils.isDryRun(task)) {
-			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
-			executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, subResult);
+			saveSyncMetadata(syncCtx, change, false, now);
 			subResult.recordSuccess();
 			eventInfo.record(task);
 			LOGGER.debug("SYNCHRONIZATION: DONE (dry run) for {}", syncCtx.getApplicableShadow());
@@ -978,7 +977,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	 * Saves situation, timestamps, kind and intent (if needed)
 	 */
 	private <F extends FocusType> PrismObject<ShadowType> saveSyncMetadata(SynchronizationContext<F> syncCtx, ResourceObjectShadowChangeDescription change,
-			XMLGregorianCalendar now) {
+			 boolean full, XMLGregorianCalendar now) {
 		PrismObject<ShadowType> shadow = syncCtx.getCurrentShadow();
 		if (shadow == null) {
 			return null;
@@ -992,15 +991,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			// new situation description
 			List<PropertyDelta<?>> deltas = SynchronizationUtils
 					.createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
-							change.getSourceChannel(), true, now);
+							change.getSourceChannel(), full, now);
 
-			if (shadowType.getKind() == null) {
+			if (shadowType.getKind() == null || ShadowKindType.UNKNOWN == shadowType.getKind()) {
 				PropertyDelta<ShadowKindType> kindDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
 						ShadowType.F_KIND, syncCtx.getKind());
 				deltas.add(kindDelta);
 			}
 
-			if (isNullIntentOrIsForceIntent(syncCtx)) {
+			if (shouldSaveIntent(syncCtx)) {
 				PropertyDelta<String> intentDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
 						ShadowType.F_INTENT, syncCtx.getIntent());
 				deltas.add(intentDelta);
@@ -1038,9 +1037,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return null;
 	}
 	
-	private <F extends FocusType> boolean isNullIntentOrIsForceIntent(SynchronizationContext<F> syncCtx) throws SchemaException {
+	private <F extends FocusType> boolean shouldSaveIntent(SynchronizationContext<F> syncCtx) throws SchemaException {
 		ShadowType shadow = syncCtx.getCurrentShadow().asObjectable();
 		if (shadow.getIntent() == null) {
+			return true;
+		}
+		
+		if (SchemaConstants.INTENT_UNKNOWN.equals(shadow.getIntent())) {
 			return true;
 		}
 		
