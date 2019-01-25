@@ -38,7 +38,7 @@ public class ObjectCollectionViewAsserter<RA> extends AbstractAsserter<RA> {
 	}
 
 	public ObjectCollectionViewAsserter<RA> assertName(String expected) {
-		assertEquals("Wrong view name in "+desc(), expected, view.getViewName());
+		assertEquals("Wrong view name in "+desc(), expected, view.getViewIdentifier());
 		return this;
 	}
 	

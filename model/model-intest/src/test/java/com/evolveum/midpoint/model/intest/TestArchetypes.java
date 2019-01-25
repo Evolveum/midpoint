@@ -57,9 +57,9 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File SYSTEM_CONFIGURATION_ARCHETYPES_FILE = new File(TEST_DIR, "system-configuration-archetypes.xml");
 	
-	public static final String VIEW_ALL_EMPLOYEES_NAME = "All employees";
-	public static final String VIEW_ACTIVE_EMPLOYEES_NAME = "Active employees";
-	public static final String VIEW_BUSINESS_ROLES_NAME = "Business roles view";
+	public static final String VIEW_ALL_EMPLOYEES_NAME = "all-employees";
+	public static final String VIEW_ACTIVE_EMPLOYEES_IDENTIFIER = "active-employees";
+	public static final String VIEW_BUSINESS_ROLES_IDENTIFIER = "business-roles-view";
 	public static final String VIEW_BUSINESS_ROLES_LABEL = "Business";
 	
 	public static final File ARCHETYPE_EMPLOYEE_FILE = new File(TEST_DIR, "archetype-employee.xml");
@@ -288,15 +288,15 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 			.objectCollectionViews()
 				.assertViews(3)
 				.by()
-					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.identifier(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 				.find()
-					.assertName(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.assertName(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 					.assertFilter()
 					.end()
 				.by()
-					.name(VIEW_BUSINESS_ROLES_NAME)
+					.identifier(VIEW_BUSINESS_ROLES_IDENTIFIER)
 				.find()
-					.assertName(VIEW_BUSINESS_ROLES_NAME)
+					.assertName(VIEW_BUSINESS_ROLES_IDENTIFIER)
 					.assertFilter()
 					.displayType()
 						.assertLabel(VIEW_BUSINESS_ROLES_LABEL) // Overridden in view definition
@@ -307,7 +307,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 						.end()
 					.end()
 				.by()
-					.name(VIEW_ALL_EMPLOYEES_NAME)
+					.identifier(VIEW_ALL_EMPLOYEES_NAME)
 				.find()
 					.assertName(VIEW_ALL_EMPLOYEES_NAME)
 					.assertFilter()
@@ -572,9 +572,9 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 			.objectCollectionViews()
 				.assertViews(3)
 				.by()
-					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.identifier(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 				.find()
-					.assertName(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.assertName(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 					.assertFilter()
 					.getFilter();
 		
@@ -634,9 +634,9 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 			.objectCollectionViews()
 				.assertViews(3)
 				.by()
-					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.identifier(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 				.find()
-					.assertName(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.assertName(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 					.assertFilter()
 					.getFilter();
 		
