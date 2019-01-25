@@ -1,0 +1,91 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<dashboard oid="e159a3ac-1d8a-11e9-83b6-e79f71fe88b7"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>System Status Dashboard</name>
+    <display>
+    	<!-- May be also given by archetype ... and display may be part of ObjectType later. -->
+    	<icon>...</icon>
+    </display>
+    <layout> <!-- TODO: dynamic grid, static grid, ... --></layout>
+    
+    <!-- Default visibility of all UI features is automatic, therefore we do not need to set it here. But we can change it if neeeded.
+    <defaultWidgetVisibility>automatic</defaultWidgetVisibility>
+    -->
+    
+    <widget>
+    	<display>
+    		<label>Errors</label>
+    		<icon>
+    			<cssClass>fa fa-ban</cssClass>
+    		</icon>
+    		TODO
+    	</display>
+    </widget>
+    
+    <widget>
+    	<!-- Identifier can be used to override widget specification in adminGuiConfig -->
+    	<!-- Some identifiers may even be hardcoded, e.g. end-user home widgets. -->
+    	<identifier>resources-up</<identifier>
+    	
+    	<display>
+    		<label>Resources</label>
+    		<color>green</color>
+    		<icon>
+    			<cssClass>fa fa-database</cssClass>
+    			<!-- No need to define default widget color here.
+    			     The widget points to ResourceType collection. Therefore system could provide default
+    			     color for ResourceType as a color here. But even that does not make sense here.
+    			     The thresholds control color of this widgets completely. Whatever color we would
+    			     set here would be overridden by thresholds. -->
+    		</icon>
+		</display>
+		
+		<!-- TODO: widget type? collection, object, assignment, projection, form ... or is this implicit from collectionRef below? -->
+		<!-- TODO: widget style: info-box-light, info-box-dark, small-box, ... -->
+		
+		<collection>
+			<collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="ObjectCollectionType"/> <!-- Collection: Resources Up -->
+		</collection>
+		<!-- "Resources Up" collection defines a domain. 
+		     Therefore we know that we need to count the resources that are up and compare that to the number of all resources.
+		     No need to define the domain here.
+		     -->
+		     
+		<!-- TODO: value presentation: percentage, object count (x of y). Or both. -->
+		
+		<!-- We do not need to define any explicit actions here. This is collection-based widget. Default action is to show the collection. -->
+		
+		<variation>
+			<condition>
+				<filter>
+					<equal>
+						<path>policySituation</path>
+						<value>#resourceHealthDanger</value>
+					</equal>
+				</filter>
+			</condition>
+			<action>
+				<display>
+					<color>red</color>
+				</display>
+			</action>
+		</variation>
+	</widget>    
+</dashboard>
