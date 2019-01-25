@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.api.transports;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageType;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +37,7 @@ public class Message implements DebugDumpable {
     private String subject;
     private String body;         // todo
     private String contentType;
+    @NotNull private List<NotificationMessageAttachmentType> attachments = new ArrayList<>();
 
 	public Message() {
 	}
@@ -48,6 +50,7 @@ public class Message implements DebugDumpable {
 		subject = message.getSubject();
 		body = message.getBody();
 		contentType = message.getContentType();
+		attachments.addAll(message.getAttachment());
 	}
 
 	public String getBody() {
@@ -109,7 +112,12 @@ public class Message implements DebugDumpable {
         this.from = from;
     }
 
-    @Override
+	@NotNull
+	public List<NotificationMessageAttachmentType> getAttachments() {
+		return attachments;
+	}
+
+	@Override
     public String toString() {
         return "Message{" +
         		"to='" + to + '\'' +
@@ -119,6 +127,7 @@ public class Message implements DebugDumpable {
                 ", subject='" + subject + '\'' +
                 ", contentType='" + contentType + '\'' +
                 ", body='" + body + '\'' +
+		        ", attachments: " + attachments.size() +        // TODO provide a short information here (the same as in debugDump below)
                 '}';
     }
 
@@ -152,6 +161,8 @@ public class Message implements DebugDumpable {
 		rv.append("\n");
 
 		DebugUtil.debugDumpWithLabel(rv, "Body", DebugUtil.fixIndentInMultiline(indent+1, DebugDumpable.INDENT_STRING, body), indent+1);
+
+		// TODO attachments (instead of content provide only information about e.g. its size in case of byte[] or length in case of String)
 		return rv.toString();
 	}
 }
