@@ -46,7 +46,8 @@ public class DateLabelComponent extends DateLabel {
     public static final String MEDIUM_FULL_STYLE = "MF";    //medium style for date, full style for time
     public static final String MEDIUM_NOTIME_STYLE = "M-";    //medium style for date, no time
     public static final String LONG_SHORT_STYLE = "LS";    //long style for date, short style for time
-    public static final String LONG_MEDIUM_STYLE = "LM";    //long style for date, medium style for time
+    public static final String LONG_MEDIUM_STYLE = "LM";    //long style for date, medium style for time TODO ? let it be default style
+                                                                                                         //if no other is specified
     public static final String LONG_FULL_STYLE = "LF";    //long style for date, full style for time
     public static final String LONG_NOTIME_STYLE = "L-";    //long style for date, no time
     public static final String FULL_SHORT_STYLE = "FS";    //full style for date, short style for time
@@ -58,31 +59,25 @@ public class DateLabelComponent extends DateLabel {
     public static final String NODATE_LONG_STYLE = "-L";    //no date, long style for time
     public static final String NODATE_FULL_STYLE = "-F";    //no date, full style for time
 
-    public DateLabelComponent(String id, IModel<Date> model){
-        this(id, model, (DateConverter) null);
-    }
+   public DateLabelComponent(String id, IModel<Date> model, String style){
+       super(id, model, new PatternDateConverter(WebComponentUtil.getLocalizedDatePattern(style == null ? LONG_MEDIUM_STYLE : style), true ));
 
-    public DateLabelComponent(String id, IModel<Date> model, DateConverter converter){
-        this(id, model, converter, null, "", "");
-    }
-
-    public DateLabelComponent(String id, IModel<Date> model, String style){
-        this(id, model, null, style, "", "");
-    }
-
-    public DateLabelComponent(String id, IModel<Date> model, DateConverter converter, String style,
-                              String beforeDateText, String afterDateText){
-        super(id, model, converter == null ?
-                new PatternDateConverter(WebComponentUtil.getLocalizedDatePattern(style == null ? LONG_LONG_STYLE : style), true ) : converter);
-
-        setBefore(beforeDateText);
-        setAfter(afterDateText);
+        setBefore(getBeforeDateText());
+        setAfter(getAfterDateText());
     }
 
     public void setBeforeTextOnDateNull(String nullDateText){
         if (getModel().getObject() == null){
             setBefore(nullDateText);
         }
+    }
+
+    protected String getBeforeDateText(){
+        return "";
+    }
+
+    protected String getAfterDateText(){
+        return "";
     }
 }
 

@@ -141,7 +141,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
             for (WorkItemType item : items) {
                 try {
-                    getAvailableData().add(new WorkItemDto(item));
+                    getAvailableData().add(new WorkItemDto(item, getPage()));
                 } catch (Exception e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing work item {}", e, item);
                     result.recordFatalError("Couldn't list work item.", e);

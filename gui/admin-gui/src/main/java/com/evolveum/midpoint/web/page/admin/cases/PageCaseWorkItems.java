@@ -24,7 +24,6 @@ import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -64,7 +63,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
@@ -253,7 +251,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 final Date created;
                 if (createdCal != null) {
                     created = createdCal.toGregorianCalendar().getTime();
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormatValue(created, PageCaseWorkItems.this)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormattedValue(created, PageCaseWorkItems.this)));
                     item.add(new TooltipBehavior());
                 } else {
                     created = null;
@@ -261,7 +259,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormatValue(created, PageCaseWorkItems.this);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(created, PageCaseWorkItems.this);
                     }
                 }));
             }
@@ -278,7 +276,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 final Date deadline;
                 if (deadlineCal != null) {
                     deadline = deadlineCal.toGregorianCalendar().getTime();
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormatValue(deadline, PageCaseWorkItems.this)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormattedValue(deadline, PageCaseWorkItems.this)));
                     item.add(new TooltipBehavior());
                 } else {
                     deadline = null;
@@ -286,7 +284,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormatValue(deadline, PageCaseWorkItems.this);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(deadline, PageCaseWorkItems.this);
                     }
                 }));
             }
@@ -303,7 +301,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 final Date closed;
                 if (closedCal != null) {
                     closed = closedCal.toGregorianCalendar().getTime();
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormatValue(closed, PageCaseWorkItems.this)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormattedValue(closed, PageCaseWorkItems.this)));
                     item.add(new TooltipBehavior());
                 } else {
                     closed = null;
@@ -311,7 +309,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormatValue(closed, PageCaseWorkItems.this);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(closed, PageCaseWorkItems.this);
                     }
                 }));
             }

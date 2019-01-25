@@ -4,7 +4,6 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -175,7 +174,7 @@ public abstract class PageCases extends PageAdminCases {
                 cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormatValue(created, PageCases.this);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(created, PageCases.this);
                     }
                 }));
             }
@@ -199,7 +198,7 @@ public abstract class PageCases extends PageAdminCases {
                 cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormatValue(closed, PageCases.this);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(closed, PageCases.this);
                     }
                 }));
             }

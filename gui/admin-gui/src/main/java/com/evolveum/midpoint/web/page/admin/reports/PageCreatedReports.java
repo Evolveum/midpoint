@@ -299,7 +299,7 @@ public class PageCreatedReports extends PageAdminReports {
                         }
 
                         return XmlTypeConverter.toDate(metadata.getCreateTimestamp());                   }
-                }, DateLabelComponent.LONG_MEDIUM_STYLE));
+                }, WebComponentUtil.getShortDateTimeFormat(PageCreatedReports.this)));
             }
         };
         columns.add(column);
