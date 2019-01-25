@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
 	private static final String ACCOUNT_BETTY_USERNAME = "betty";
 	private static final String ACCOUNT_BETTY_FULLNAME = "Betty Rubble";
 	private static final String ACCOUNT_ELIZABETH2_FULLNAME = "Her Majesty Queen Elizabeth II";
+	
+	protected static final File ACCOUNT_SHADOW_MURRAY_LEGACY_FILE = new File(TEST_DIR, "account-shadow-murray-legacy.xml");
+	protected static final String ACCOUNT_SHADOW_MURRAY_LEGACY_OID = "34132742-2085-11e9-a956-17770b09881b";
+	private static final String ACCOUNT_MURRAY_USERNAME = "murray";
+	private static final String ACCOUNT_MURRAY_FULL_NAME = "Murray";
 	
 	private XMLGregorianCalendar lastRequestStartTs;
 	private XMLGregorianCalendar lastRequestEndTs;
@@ -2124,6 +2129,38 @@ public class TestDummyConsistency extends AbstractDummyTest {
 	}
 	
 	// TODO: test no discovery options
+	
+	/**
+	 * Legacy consistency items.
+	 * MID-5076
+	 */
+	@Test
+	public void test900GetAccountMurrayLegacy() throws Exception {
+		final String TEST_NAME = "test900GetAccountMurrayLegacy";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();		
+		dummyResource.resetBreakMode();
+
+		dummyResourceCtl.addAccount(ACCOUNT_MURRAY_USERNAME, ACCOUNT_MURRAY_FULL_NAME);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_LEGACY_FILE, result);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> accountMurray = provisioningService.getObject(ShadowType.class, ACCOUNT_SHADOW_MURRAY_LEGACY_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		accountMurray.checkConsistence();
+
+		// TODO: assert Murray
+		
+		assertSteadyResources();
+	}
 	
 	private void assertUncreatedMorgan(int expectedAttemptNumber) throws Exception {
 		
