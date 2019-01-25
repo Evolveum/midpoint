@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,6 +131,15 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	private VariableProducer variableProducer;
 	
+	/**
+	 * Mapping pre-expression is invoked just before main mapping expression.
+	 * Pre expression will get the same expression context as the main expression.
+	 * This is an opportunity to manipulate the context just before evaluation.
+	 * Or maybe evaluate additional expressions that set up environment for
+	 * main expression.
+	 */
+	private MappingPreExpression mappingPreExpression;
+	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
 	private Expression<V,D> expression;
@@ -155,6 +164,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		filterManager = builder.filterManager;
 		stringPolicyResolver = builder.valuePolicyResolver;
 		variableProducer = builder.variableProducer;
+		mappingPreExpression = builder.mappingPreExpression;
 		conditionMaskOld = builder.conditionMaskOld;
 		conditionMaskNew = builder.conditionMaskNew;
 		defaultReferenceTime = builder.defaultReferenceTime;
@@ -226,6 +236,14 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	public MappingType getMappingType() {
 		return mappingType;
+	}
+
+	public MappingPreExpression getMappingPreExpression() {
+		return mappingPreExpression;
+	}
+
+	public void setMappingPreExpression(MappingPreExpression mappingPreExpression) {
+		this.mappingPreExpression = mappingPreExpression;
 	}
 
 	@Override
@@ -1077,6 +1095,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		context.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
 		context.setMappingQName(mappingQName);
 		context.setVariableProducer(variableProducer);
+		
+		if (mappingPreExpression != null) {
+			mappingPreExpression.mappingPreExpression(context);
+		}
+		
 		outputTriple = expression.evaluate(context);
 
 		if (outputTriple == null) {
@@ -1383,6 +1406,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		private FilterManager<Filter> filterManager;
 		private ValuePolicyResolver valuePolicyResolver;
 		private VariableProducer variableProducer;
+		private MappingPreExpression mappingPreExpression;
 		private boolean conditionMaskOld = true;
 		private boolean conditionMaskNew = true;
 		private XMLGregorianCalendar now;
@@ -1479,6 +1503,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			return this;
 		}
 
+		public Builder<V,D> mappingPreExpression(MappingPreExpression mappingPreExpression) {
+			this.mappingPreExpression = mappingPreExpression;
+			return this;
+		}
+		
 		public Builder<V,D> conditionMaskOld(boolean val) {
 			conditionMaskOld = val;
 			return this;

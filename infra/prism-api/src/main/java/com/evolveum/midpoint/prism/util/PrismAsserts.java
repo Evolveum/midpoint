@@ -632,6 +632,16 @@ public class PrismAsserts {
 		expected.recompute(PrismTestUtil.getPrismContext().getDefaultPolyStringNormalizer());
 		assertEquals(message, expected, actual);
 	}
+	
+	public static void assertEqualsPolyStringMulti(String message, Collection<PolyString> actual, String... expectedOrigs) {
+		List<PolyString> expectedPolystrings = new ArrayList<>(expectedOrigs.length);
+		for (String expectedOrig : expectedOrigs) {
+			PolyString expected = new PolyString(expectedOrig);
+			expected.recompute(PrismTestUtil.getPrismContext().getDefaultPolyStringNormalizer());
+			expectedPolystrings.add(expected);
+		}
+		assertEqualsCollectionUnordered(message, actual, expectedPolystrings);
+	}
 
 	public static void assertEqualsPolyString(String message, String expectedOrig, PolyStringType actual) {
 		if (expectedOrig == null && actual == null) {

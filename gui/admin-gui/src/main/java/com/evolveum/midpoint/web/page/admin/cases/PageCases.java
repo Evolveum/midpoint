@@ -177,7 +177,7 @@ public abstract class PageCases extends PageAdminCases {
                 cellItem.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE);
+                        return WebComponentUtil.getShortDateTimeFormatValue(created, PageCases.this);
                     }
                 }));
             }
@@ -201,7 +201,7 @@ public abstract class PageCases extends PageAdminCases {
                 cellItem.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE);
+                        return WebComponentUtil.getShortDateTimeFormatValue(closed, PageCases.this);
                     }
                 }));
             }

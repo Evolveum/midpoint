@@ -22,6 +22,7 @@ import java.util.function.BooleanSupplier;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,21 +31,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractObjectTypeConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationRoleManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardLayoutType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiExportSettingsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
 
 /**
  * Compiled user profile. This class contains information about configuration and customization
@@ -79,6 +65,7 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 	private FeedbackMessagesHookType feedbackMessagesHook;
 	private AdminGuiConfigurationRoleManagementType roleManagement;
 	private List<UserInterfaceFeatureType> features = new ArrayList<>();
+	private AdminGuiConfigurationDisplayFormatsType displayFormats;
 	
 	public String getDefaultTimezone() {
 		return defaultTimezone;
@@ -299,7 +286,15 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 		}
 		return null;
 	}
-	
+
+	public AdminGuiConfigurationDisplayFormatsType getDisplayFormats() {
+		return displayFormats;
+	}
+
+	public void setDisplayFormats(AdminGuiConfigurationDisplayFormatsType displayFormats) {
+		this.displayFormats = displayFormats;
+	}
+
 	public UserInterfaceElementVisibilityType getFeatureVisibility(String identifier) {
 		UserInterfaceFeatureType feature = findFeature(identifier);
 		if (feature == null) {

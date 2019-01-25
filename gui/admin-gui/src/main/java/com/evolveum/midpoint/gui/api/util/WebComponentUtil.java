@@ -65,6 +65,7 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -1536,6 +1537,38 @@ public final class WebComponentUtil {
 		}
 		PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true);
 		return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
+	}
+
+	public static String getShortDateTimeFormatValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getShortDateTimeFormatValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getShortDateTimeFormatValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getShortDateTimeFormat())){
+			return getLocalizedDate(date, DateLabelComponent.SHORT_MEDIUM_STYLE);
+		} else {
+			return getLocalizedDate(date, displayFormats.getShortDateTimeFormat());
+		}
+	}
+
+	public static String getLongDateTimeFormatValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getLongDateTimeFormatValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getLongDateTimeFormatValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getLongDateTimeFormat())){
+			return getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
+		} else {
+			return getLocalizedDate(date, displayFormats.getLongDateTimeFormat());
+		}
 	}
 
 	public static boolean isActivationEnabled(PrismObject object) {
