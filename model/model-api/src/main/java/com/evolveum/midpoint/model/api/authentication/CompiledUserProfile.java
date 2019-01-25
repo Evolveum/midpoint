@@ -173,7 +173,7 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 			return null;
 		}
 		for (CompiledObjectCollectionView view : objectViews){
-			if (viewName.equals(view.getViewName())){
+			if (viewName.equals(view.getViewIdentifier())){
 				return view;
 			}
 		}

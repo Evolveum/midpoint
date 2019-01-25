@@ -645,11 +645,14 @@ public class ObjectTemplateProcessor {
 			ObjectDeltaObject<F> updatedFocusOdo = getUpdatedFocusOdo(context, focusOdo, outputTripleMap, mappingSpec, mappingDesc);		// for mapping chaining
 
 			MappingImpl<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context, mappingSpec.getMappingType(), 
-					mappingSpec.getOriginObject(), updatedFocusOdo, mappingSpec.getDefaultSource(focusOdo), target,
+					mappingSpec.getOriginObject(), updatedFocusOdo, mappingSpec.constructDefaultSource(focusOdo), target,
 					null, iteration, iterationToken, context.getSystemConfiguration(), now, mappingDesc, task, result);
 			if (mapping == null) {
 				continue;
 			}
+			
+			// Used to populate autoassign assignments
+			mapping.setMappingPreExpression(mappingSpec);
 
 			Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
 

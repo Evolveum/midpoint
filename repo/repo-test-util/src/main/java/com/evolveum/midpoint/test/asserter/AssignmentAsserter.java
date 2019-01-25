@@ -86,6 +86,11 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
 		return this;
 	}
 	
+	public AssignmentAsserter<R> assertTargetType(QName expected) {
+		assertEquals("Wrong target type in "+desc(), expected, getAssignment().getTargetRef().getType());
+		return this;
+	}
+	
 	public AssignmentAsserter<R> assertSubtype(String expected) {
 		List<String> subtypes = assignment.getSubtype();
 		if (subtypes.isEmpty()) {

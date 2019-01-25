@@ -79,14 +79,14 @@
 		</objectForms>
     	<objectCollectionViews>
     		<objectCollectionView>
-    			<name>Active employees</name>
+    			<identifier>active-employees</identifier>
     			<type>UserType</type>
     			<collection>
     				<collectionRef oid="f61bcb4a-f8ae-11e8-9f5c-c3e7f27ee878" type="ObjectCollectionType"/> <!-- Active employees collection -->
     			</collection>
     		</objectCollectionView>
     		<objectCollectionView>
-    			<name>Business roles view</name>
+    			<identifier>business-roles-view</identifier>
     			<type>RoleType</type>
     			<collection>
     				<collectionRef oid="018e7340-199a-11e9-ad93-2b136d1c7ecf" type="ArchetypeType"/> <!-- Business role archetype -->
