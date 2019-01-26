@@ -165,19 +165,19 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getCreatedFormatted() {
-        return WebComponentUtil.getLocalizedDate(workItem.getCreateTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+        return WebComponentUtil.getShortDateTimeFormattedValue(workItem.getCreateTimestamp(), pageBase);
     }
 
     public String getDeadlineFormatted() {
-        return WebComponentUtil.getLocalizedDate(workItem.getDeadline(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+        return WebComponentUtil.getShortDateTimeFormattedValue(workItem.getDeadline(), pageBase);
     }
 
 	public String getCreatedFormattedFull() {
-		return WebComponentUtil.getLocalizedDate(workItem.getCreateTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
+		return WebComponentUtil.getLongDateTimeFormattedValue(workItem.getCreateTimestamp(), pageBase);
 	}
 
 	public String getDeadlineFormattedFull() {
-		return WebComponentUtil.getLocalizedDate(workItem.getDeadline(), DateLabelComponent.FULL_MEDIUM_STYLE);
+		return WebComponentUtil.getLongDateTimeFormattedValue(workItem.getDeadline(), pageBase);
 	}
 
 	public Date getCreatedDate() {
@@ -196,7 +196,7 @@ public class WorkItemDto extends Selectable {
     public String getStartedFormattedFull() {
 		WfContextType wfc = getWorkflowContext();
 		return wfc != null
-				? WebComponentUtil.getLocalizedDate(wfc.getStartTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE)
+				? WebComponentUtil.getLongDateTimeFormattedValue(wfc.getStartTimestamp(), pageBase)
 				: null;
     }
 
