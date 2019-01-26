@@ -1149,7 +1149,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println(workItems.get(0).asPrismContainerValue().debugDump());
     }
 
-    @Test(enabled = false)      // MID-5104
+    @Test   // MID-5104
     public void test350ReplaceAssignmentModifyApprover() throws Exception {
         final String TEST_NAME = "test350ReplaceAssignmentModifyApprover";
         TestUtil.displayTestTitle(TEST_NAME);
@@ -1180,7 +1180,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         // THEN
     }
 
-    @Test(enabled = false)      // MID-5105
+    @Test(enabled = false)   // MID-5105
     public void test360ReplaceModifyApprovers() throws Exception {
         final String TEST_NAME = "test360ReplaceModifyApprovers";
         TestUtil.displayTestTitle(TEST_NAME);
