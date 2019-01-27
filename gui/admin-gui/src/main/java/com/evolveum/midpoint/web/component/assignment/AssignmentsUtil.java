@@ -407,6 +407,9 @@ public class AssignmentsUtil {
         if (assignment.getPersonaConstruction() != null) {
             return PersonaConstructionType.COMPLEX_TYPE;
         }
+        if (assignment.getFocusMappings() != null){
+            return MappingType.COMPLEX_TYPE;
+        }
         // account assignment through account construction
         return ConstructionType.COMPLEX_TYPE;
 
