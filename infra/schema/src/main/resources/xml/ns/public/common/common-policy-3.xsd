@@ -235,6 +235,28 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="collectionStats" type="tns:CollectionStatsPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Constraints for collection stats (statistics). Can be used to trigger policy
+									rules on the number of objects in collection, percentage and so on.
+								</p>
+								<p>
+									Policy rules with this constraint are ignored during normal processing.
+									Evaluation of such policy rules require special handling (e.g. scanner task).
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.collectionStats</a:displayName>
+									<a:help>PolicyConstraintsType.collectionStats.help</a:help>
+									<a:since>4.0</a:since>
+									<a:experimental>true</a:experimental>
+								</xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -1125,6 +1147,47 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="situationPolicyConstraint" type="tns:PolicySituationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+	<xsd:complexType name="CollectionStatsPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+				<p>
+					Constraints for collection stats (statistics). Can be used to trigger policy
+					rules on the number of objects in collection, percentage and so on.
+				</p>
+				<p>
+					Policy rules with this constraint are ignored during normal processing.
+					Evaluation of such policy rules require special handling (e.g. scanner task).
+				</p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="collection" type="tns:CollectionSpecificationType"  minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Refers to "itself" as a collection. This means that it interprets the object
+                                to which the rule applies as a collection. And this element specifies the 
+                                details how the collection should be interpreted. E.g. whether we mean
+                                the list of objects that ObjectCollectionType refers to by filter. Or
+                                whether we mean assignees (owners/approvers) of that object.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>CollectionStatsPolicyConstraintType.collection</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
 
     <xsd:complexType name="TransitionPolicyConstraintType">
         <xsd:annotation>

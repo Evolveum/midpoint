@@ -33,13 +33,23 @@
     	<type>ResourceType</type>
     </domainCollection>
     <!-- TODO: maybe we would like to define default view here. E.g. default list of columns. -->
-    
+
+    <!-- We really like to define default thresholds here. 
+         We want to use thresholds in scanner tasks, notifications and so on.
+         We may want to send the notification when the widget turns red.
+         But the there may be also more specific thresholds. W.g. turn widget orange,
+         but do not send any notification about that.  -->    
     <assignment>
     	<policyRule>
     		<policyConstraints>
-    			<collection> <!-- or just <collection/> should be enough. Default interpretation should be explicit. -->
-    				<interpretation>explicit</interpretation>
-    			</collection>
+    			<!-- The thresholds are defined as policy rules with a special constraint.
+    			     The <collection> constraint means, the the rule should not look at the collection definition.
+    			     The rule should look at the collected objects. -->
+    			<collectionStats> <!-- or just <collectionStats/> should be enough. Default interpretation for ObjectCollectionType should be "explicit". -->
+    				<collection>
+    					<interpretation>explicit</interpretation>
+    				</collection>
+    			</collectionStats>
     		</policyConstraints>
     		<policyThreshold>
     			<lowerBound> <!-- lowWaterMark? -->
@@ -52,11 +62,4 @@
     	</policyRule>
     </assignment>
     
-    <!-- TODO: Maybe we would like to define default thresholds here. 
-         We want to use thresholds in scanner tasks, notifications and so on.
-         We may want to send the notification when the widget turns red.
-         But the there may be also more specific thresholds. W.g. turn widget orange,
-         but do not send any notification about that.  -->
-    <!-- Maybe align with policy rules?
-         Reaching a threshold may cause an action that may be the same or similar to policy rule actions. -->
 </objectCollection>

@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -151,10 +149,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-				//to define new object button for each available relation we combine a list of AssignmentTargetRelation objects
-				//in such way that each object in the list contains just one relation value with the list of target types and
-				//archetypeRef list
-				return getCombinedRelationsList(loadAssignmentTargetRelationsList());
+				return WebComponentUtil.getRelationsDividedList(loadAssignmentTargetRelationsList());
 			}
 
 			@Override
@@ -164,7 +159,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected String getNewObjectSpecificStyle(AssignmentObjectRelation assignmentTargetRelation) {
-				DisplayType display = getRelationDisplayType(assignmentTargetRelation);
+				DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
 				if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())){
 					return display.getIcon().getCssClass();
 				}
@@ -173,7 +168,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected String getNewObjectSpecificTitle(AssignmentObjectRelation assignmentTargetRelation) {
-				DisplayType display = getRelationDisplayType(assignmentTargetRelation);
+				DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
 				if (display != null && display.getTooltip() != null){
 					return display.getTooltip().getOrig();
 				}
@@ -325,44 +320,6 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
 		}
 		return assignmentTargetRelations;
-	}
-
-	private List<AssignmentObjectRelation> getCombinedRelationsList(List<AssignmentObjectRelation> initialRelationsList){
-		if (CollectionUtils.isEmpty(initialRelationsList)){
-			return initialRelationsList;
-		}
-		List<AssignmentObjectRelation> combinedRelationList =  new ArrayList<>();
-		initialRelationsList.forEach(assignmentTargetRelation -> {
-			if (CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) &&
-					CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
-				return;
-			}
-			if (CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
-				combinedRelationList.add(assignmentTargetRelation);
-			} else {
-				assignmentTargetRelation.getRelations().forEach(relation -> {
-					AssignmentObjectRelation relationObj = new AssignmentObjectRelation();
-					relationObj.setObjectTypes(assignmentTargetRelation.getObjectTypes());
-					relationObj.setRelations(Arrays.asList(relation));
-					relationObj.setArchetypeRefs(assignmentTargetRelation.getArchetypeRefs());
-					relationObj.setDescription(assignmentTargetRelation.getDescription());
-					combinedRelationList.add(relationObj);
-				});
-			}
-		});
-		return combinedRelationList;
-	}
-
-	private DisplayType getRelationDisplayType(AssignmentObjectRelation assignmentTargetRelation){
-		QName relation = assignmentTargetRelation != null && !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
-				assignmentTargetRelation.getRelations().get(0) : null;
-		if (relation != null){
-			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
-			if (def != null){
-				return def.getDisplay();
-			}
-		}
-		return null;
 	}
 
 	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
