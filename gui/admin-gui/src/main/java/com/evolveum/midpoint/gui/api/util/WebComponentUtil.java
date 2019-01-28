@@ -49,6 +49,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
@@ -3165,6 +3166,52 @@ public final class WebComponentUtil {
 		result.recomputeStatus();
 		pageBase.showResult(result);
 		target.add(pageBase.getFeedbackPanel());
+	}
+
+	/**
+	 * The idea is to divide the list of AssignmentObjectRelation objects in such way that each AssignmentObjectRelation
+	 * in the list will contain not more than 1 relation. This will simplify creating of a new_assignment_button
+	 * on some panels
+	 *
+	  * @param initialRelationsList
+	 * @return
+	 */
+	public static List<AssignmentObjectRelation> getRelationsDividedList(List<AssignmentObjectRelation> initialRelationsList){
+		if (org.apache.commons.collections.CollectionUtils.isEmpty(initialRelationsList)){
+			return initialRelationsList;
+		}
+		List<AssignmentObjectRelation> combinedRelationList =  new ArrayList<>();
+		initialRelationsList.forEach(assignmentTargetRelation -> {
+			if (org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) &&
+					org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
+				return;
+			}
+			if (org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
+				combinedRelationList.add(assignmentTargetRelation);
+			} else {
+				assignmentTargetRelation.getRelations().forEach(relation -> {
+					AssignmentObjectRelation relationObj = new AssignmentObjectRelation();
+					relationObj.setObjectTypes(assignmentTargetRelation.getObjectTypes());
+					relationObj.setRelations(Arrays.asList(relation));
+					relationObj.setArchetypeRefs(assignmentTargetRelation.getArchetypeRefs());
+					relationObj.setDescription(assignmentTargetRelation.getDescription());
+					combinedRelationList.add(relationObj);
+				});
+			}
+		});
+		return combinedRelationList;
+	}
+
+	public static DisplayType getAssignmentObjectRelationDisplayType(AssignmentObjectRelation assignmentTargetRelation){
+		QName relation = assignmentTargetRelation != null && !org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
+				assignmentTargetRelation.getRelations().get(0) : null;
+		if (relation != null){
+			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
+			if (def != null){
+				return def.getDisplay();
+			}
+		}
+		return null;
 	}
 
 	public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){
