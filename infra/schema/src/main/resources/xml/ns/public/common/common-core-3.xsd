@@ -15496,6 +15496,37 @@
 			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="AuditSearchType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specification of search criteria for audit trails.
+        		EXTREMELY EXPERIMENTAL. This is almost certain to change in the future.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="recordQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="domainQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: interval -->
+		</xsd:sequence>
+    </xsd:complexType>
 
 	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
@@ -15923,21 +15954,282 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:UserInterfaceFeatureType">
 	       		<xsd:sequence>
-	           		<!-- TODO: type
-	           		<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+	           		<xsd:element name="data" type="tns:DashboardWidgetDataType" minOccurs="0" maxOccurs="1">
 	           			<xsd:annotation>
 	           				<xsd:documentation>
-	           					Type of the widget. It is an identifier that specifies the content
-	           					of the widget (e.g. what will be inside the box).
-	           					THIS IS NOT USED YET. It is only for future use.
+	           					Specifies widget data source.
 	           				</xsd:documentation>
 	           			</xsd:annotation>
 	           		</xsd:element>
-	           		 -->
-	           		<!-- TODO: placement -->
+	           		<xsd:element name="presentation" type="tns:DashboardWidgetPresentationType" minOccurs="0" maxOccurs="1">
+	           			<xsd:annotation>
+	           				<xsd:documentation>
+	           					Specifies widget data source.
+	           				</xsd:documentation>
+	           			</xsd:annotation>
+	           		</xsd:element>
+	           		<!-- TODO: actions (what to do on click, extra buttons, etc.) -->
 	           	</xsd:sequence>	
         	</xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DashboardWidgetDataType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies widget data source.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+				<a:displayName>DashboardWidgetDataType.details</a:displayName>
+				<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+      		<xsd:element name="sourceType" type="tns:DashboardWidgetSourceTypeType" minOccurs="1" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Type of the widget. It is an identifier that specifies the type of the information (content)
+      					of the widget.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
+  				<xsd:annotation>
+  					<xsd:documentation>
+  						Specification of an explicit or implicit object collection that will be used as data source for the view.
+  					</xsd:documentation>
+  					<xsd:appinfo>
+						<a:displayName>DashboardWidgetDataType.collection</a:displayName>
+  					</xsd:appinfo>
+  				</xsd:annotation>
+  			</xsd:element>
+  			<xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of a single object as a widget data source.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DashboardWidgetDataType.objectRef</a:displayName>
+                        <a:help>DashboardWidgetDataType.objectRef.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+	      	<xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
+  				<xsd:annotation>
+  					<xsd:documentation>
+  						Specification of an explicit or implicit object collection that will be used as data source for the view.
+  						EXTREMELY EXPERIMENTAL. This is almost certain to change in the future.
+  					</xsd:documentation>
+  					<xsd:appinfo>
+						<a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
+						<a:experimental>true</a:experimental>
+  					</xsd:appinfo>
+  				</xsd:annotation>
+  			</xsd:element>
+      	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:simpleType name="DashboardWidgetSourceTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of widget content data source. It is an identifier that specifies the type of the information (content)
+				of the widget. This specifies type of data source for the widget content.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="objectCollection">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Content of widget is based on object collection. Widget will either provide summary of
+                        the collection (number of objects, percentage), small list of collected objects or collection
+                        charts and trends.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auditSearch">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUDIT_SEARCH"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Content of the widget will be based on data from audit trail search.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="object">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Content of the widget will be based on data from a single object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: assignment, projection -->
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:complexType name="DashboardWidgetPresentationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies widget presentation properties.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+				<a:displayName>DashboardWidgetPresentationType.details</a:displayName>
+				<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+  			<!-- TODO: widget presentation style: info-box-light, info-box-dark, small-box, list, form -->
+      		<xsd:element name="dataField" type="tns:DashboardWidgetDataFieldType" minOccurs="0" maxOccurs="unbounded">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Properties of a specific widget data field. Note that the order of dataField elements is
+      					NOT significant. The field order is given by specific presentation style.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<xsd:element name="variation" type="tns:DashboardWidgetVariationType" minOccurs="0" maxOccurs="unbounded">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Conditional variation in the way how the widget is displayed. Variations may change colors or icons
+      					of the widget based on a condition.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<!-- TODO: formRef (optional, for form-based widgets) -->
+      		<!-- TODO: view setting (optional, for list-based widgets) -->
+      	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DashboardWidgetDataFieldType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Properties of a specific widget data field.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+				<a:displayName>DashboardWidgetDataFieldType.details</a:displayName>
+				<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+      		<xsd:element name="fieldType" type="tns:DashboardWidgetDataFieldTypeType" minOccurs="1" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Type of the field.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Expression that produces value to display in the field.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<!-- TODO (later): condition? -->
+      	</xsd:sequence>	
+    </xsd:complexType>
+    
+        <xsd:simpleType name="DashboardWidgetDataFieldTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of the field.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="value">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Field that display the value. This is usually the main field of the widget (perhaps except label field).
+                        This field typicaly contains <b>the</b> value to be displayed.
+                        Examples: 12345, 50%, 123.45, running, suspended
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unit">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNIT"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Unit field. This is usually displayed right after or below value. But it may have different style, e.g. smaller font.
+                        Examples: requests, hits/second, km/h, resources up, tasks running
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- 
+            <xsd:enumeration value="details">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DETAILS"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Field to display additional information. Usually a field that can hold at least few words, e.g. by using smaller font.
+                        Examples: 34% increase in last 2 hours, 24h average
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+             -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="DashboardWidgetVariationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Conditional variation in the way how the widget is displayed. Variations may change colors or icons
+				of the widget based on a condition.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+				<a:displayName>DashboardWidgetVariationType.details</a:displayName>
+				<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+      		<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Condition for the variation. The variation will be active if the condition evaluates to true.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<xsd:element name="display" type="tns:DisplayType" minOccurs="1" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Display properties to apply in case that the condition is true.
+      					Those display properties specify only those presentation aspects that
+      					are different from the usual presenation. This is supposed to be merged
+      					with the primary display properties of the widget.
+      					E.g. if the variation only changes widget color, only color needs to be
+      					specified here. Icon and other styles are taken from the primary widget
+      					display properties.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      	</xsd:sequence>	
     </xsd:complexType>
     
 	<xsd:complexType name="UserInterfaceFeatureType">
@@ -15976,6 +16268,19 @@
        						<p>
        							Identifier may not be needed at all in some cases (e.g. additionalPanels in views).
        						</p>
+           				</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
+						</xsd:appinfo>
+           			</xsd:annotation>
+           		</xsd:element>
+           		<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					<p>
+	           					Free-form description (comment) intended for system administrator. Description will NOT be displayed as
+	           					any part of the UI feature. The purpose is to explain the purpose or configuraiton details.
+           					</p>
            				</xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
@@ -16199,13 +16504,24 @@
             <xsd:element name="color" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                    	Usual color used to render the icon. This color may be used in
-                    	situation when colorful presentation is appropriate. The color
-                    	may be used to color the icon itself, or it may also color the
-                    	background if icon is displayed with "inverted" color.
-                    	The color may also be ignored if monochrome presentation is
-                    	more appropriate.
-                    	Value of this element is HTML-like color name or code.
+                    	<p>
+	                    	Usual color used to render the icon. This color may be used in
+	                    	situation when colorful presentation of the icon is appropriate.
+	                    	The color may be used to color the icon itself, or it may also color the
+	                    	background if icon is displayed with "inverted" color.
+	                    	The color may also be ignored if monochrome presentation is
+	                    	more appropriate.
+                    	</p>
+                    	<p>
+                    		Value of this element is HTML-like color name or code.
+                    	</p>
+                    	<p>
+                    		Note: This color is different than icon color.
+                    		This is the color of the thing itself. E.g. color of form or widget.
+                    		Icon may have independent color. Some UI elements may be able
+                    		to display both the color of the element (e.g. widget) and color
+                    		of the icon.
+                    	</p>
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>IconType.color</a:displayName>
@@ -22221,8 +22537,33 @@
 					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
-            <!-- TODO: color. 
-            	This color is different than icon color. It is the color of the thing itself. E.g. color of form or widget. Icon may have independent color. -->
+            <xsd:element name="color" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+	                    	Usual color of the display element that this data structure describes.
+	                    	This color may be used in situation when colorful presentation 
+	                    	of the lement is appropriate. The color
+	                    	may be used to color the decorations, background, icon, etc.
+	                    	The color may also be ignored if monochrome presentation is
+	                    	more appropriate.
+	                    </p>
+	                    <p>
+	                    	Value of this element is HTML-like color name or code.
+                    	</p>
+                    	<p>
+                    		Note: This color is different than icon color.
+                    		This is the color of the thing itself. E.g. color of form or widget.
+                    		Icon may have independent color. Some UI elements may be able
+                    		to display both the color of the element (e.g. widget) and color
+                    		of the icon.
+                    	</p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>IconType.color</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- style properties -->
             <xsd:element name="cssStyle" type="xsd:string" minOccurs="0">
 				<xsd:annotation>
@@ -22524,6 +22865,35 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:element>
+	
+	<xsd:complexType name="DashboardType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    TODO
+                </p>
+                <p>
+                    TODO
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AssignmentHolderType">
+                <xsd:sequence>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <!-- This may be part of ObjectType later. -->
+                    </xsd:element>
+                    <!-- TODO: layout -->
+                    <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0">
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="dashboard" type="tns:DashboardType" />
 
     <xsd:complexType name="ObjectTreeDeltasType">
         <xsd:annotation>

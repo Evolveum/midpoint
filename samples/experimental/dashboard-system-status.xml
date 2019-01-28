@@ -43,9 +43,8 @@
     		</icon>
     	</display>
     	
-    	<widgetType>auditSearch</widgetType>
-    	
     	<data>
+    		<sourceType>auditSearch</sourceType>
     		<auditSearch> <!-- EXPERIMENTAL!!! Will be most likely moved to a separate object a la ObjectCollectionType -->
     			<search>
     				QUERY <!-- TODO: hql for now? change later? -->
@@ -60,53 +59,55 @@
     		</auditSearch>
     	</data>
     	
-    	<dataField>
-			<fieldType>value</fieldType>
-			<!-- field types: 
-					value: 12345, 50%, 123.45, running, suspended
-					units: requests, hits/second, up, down, running
-					details: 34% increase in last 2 hours, 24h average, ... (not used now)
-					
-				We want fixed data field type, as they must be processable by widgets but also widget-based reports.
-				Each widget should, in theory, have different fields. But the reports will pack all widgets into a single table.
-				And we want table columns to be fixed. Hence fixed dataField types.
-				We may add more field types in the future if needed.  -->
-			<expression>
-				<!-- Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
-				     But this is all experimental. Later it will probably get entire AuditSearchType object. -->
-				<proportional>
-					<!-- This expression evaluator may autodetect that input is a collection. TODO -->
-					<style>percentage</style>
-					<!-- proportional styles:
-						percentage: 42%    (default?)
-						value-only: 42
-						value-slash-domain: 42/100  (maybe allow to specify separator character)
-						value-of-domain: 42 of 100  (the "of" part should be localizable)-->
-				</proportional>
-			</expression>
-		</dataField>
-		<dataField>
-			<fieldType>units</fieldType>
-			<expression>
-				<value>failed operations</value> <!-- This can be later replaced by <localizedMessage> expression evaluator that specifies translation key. -->
-			</expression>
-		</dataField>
-		
-		<!-- Variations defined different styles of widget presentation under different conditions. -->
-		<variation>
-			<condition>
-				<!-- Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
-				     But this is all experimental. Later it will probably get entire AuditSearchType object.
-				     To be at least a bit future-proof, the value of PropoprtionalValueType is in variable "proportional".
-				     And we will still populate that variable with IntegerStatType later. Therefore this script should work even in the future. -->
-				<script>
-					<code>proportional.getPercentage() > 5</code>
-				</script>
-			</condition>
-			<display>
-				<color>red</color>
-			</display>
-		</variation>
+    	<presentation>
+	    	<dataField>
+				<fieldType>value</fieldType>
+				<!-- field types: 
+						value: 12345, 50%, 123.45, running, suspended
+						unit: requests, hits/second, up, down, running
+						details: 34% increase in last 2 hours, 24h average, ... (not used now)
+						
+					We want fixed data field type, as they must be processable by widgets but also widget-based reports.
+					Each widget should, in theory, have different fields. But the reports will pack all widgets into a single table.
+					And we want table columns to be fixed. Hence fixed dataField types.
+					We may add more field types in the future if needed.  -->
+				<expression>
+					<!-- Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
+					     But this is all experimental. Later it will probably get entire AuditSearchType object. -->
+					<proportional>
+						<!-- This expression evaluator may autodetect that input is a collection. TODO -->
+						<style>percentage</style>
+						<!-- proportional styles:
+							percentage: 42%    (default?)
+							value-only: 42
+							value-slash-domain: 42/100  (maybe allow to specify separator character)
+							value-of-domain: 42 of 100  (the "of" part should be localizable)-->
+					</proportional>
+				</expression>
+			</dataField>
+			<dataField>
+				<fieldType>unit</fieldType>
+				<expression>
+					<value>failed operations</value> <!-- This can be later replaced by <localizedMessage> expression evaluator that specifies translation key. -->
+				</expression>
+			</dataField>
+			
+			<!-- Variations defined different styles of widget presentation under different conditions. -->
+			<variation>
+				<condition>
+					<!-- Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
+					     But this is all experimental. Later it will probably get entire AuditSearchType object.
+					     To be at least a bit future-proof, the value of PropoprtionalValueType is in variable "proportional".
+					     And we will still populate that variable with IntegerStatType later. Therefore this script should work even in the future. -->
+					<script>
+						<code>proportional.getPercentage() > 5</code>
+					</script>
+				</condition>
+				<display>
+					<color>red</color>
+				</display>
+			</variation>
+		</presentation>
     	
     </widget>
     
@@ -132,12 +133,9 @@
     		</icon>
 		</display>
 		
-		<widgetType>objectCollection</widgetType>
-		<!-- Widget types: objectCollection, auditSearch, object, assignment, projection, form -->
-		
-		<!-- TODO (later): widget style: info-box-light, info-box-dark, small-box, ... -->
-		
 		<data>
+			<sourceType>objectCollection</sourceType>
+			<!-- types: objectCollection, auditSearch, object, assignment, projection -->
 			<collection>
 				<collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="ObjectCollectionType"/> <!-- Collection: Resources Up -->
 			</collection>
@@ -147,43 +145,48 @@
 			     -->
 		</data>
 		
-		<dataField>
-			<fieldType>value</fieldType>
-			<expression>
-				<!-- expression gets ObjectCollectionType as an input. That contains IntegerStatType - either computed or cached. -->
-				<proportional>
-					<!-- This expression evaluator may autodetect that input is a ObjectCollectionType and find IntegerStatType inside. -->
-					<!-- If used with other objects, we can always add explicit <path> specification here. -->
-					<style>percentage</style>
-				</proportional>
-			</expression>
-		</dataField>
-		<dataField>
-			<fieldType>units</fieldType>
-			<expression>
-				<value>resources up and running</value>
-			</expression>
-		</dataField>
-		<!-- In the default widget style, the value and units is combined into text "99% resources up and running". Label is automatically derived from DisplayType. -->
+		<presentation>
+			<!-- TODO (later): widget style: info-box-light, info-box-dark, small-box, form, ... -->
+			<!-- TODO: form reference might be here. -->
 		
-
-		<!-- Variations defined different styles of widget presentation under different conditions. -->
-		<variation>
-			<condition>
-				<!-- This condition relies on policySituation, as this is consistent with the policy rules.
-				     But we can have condition that directly queries IntegerStatType, e.g. to change color to yellow for warning. -->
-				<filter>
-					<equal>
-						<path>policySituation</path>
-						<value>#resourceHealthDanger</value>
-					</equal>
-				</filter>
-			</condition>
-			<display>
-				<color>red</color>
-			</display>
-		</variation>
-		<!-- For now the conditions should be mutually exclusive, so at most one variation is active. But we can perhaps improve on that later. -->
+			<dataField>
+				<fieldType>value</fieldType>
+				<expression>
+					<!-- expression gets ObjectCollectionType as an input. That contains IntegerStatType - either computed or cached. -->
+					<proportional>
+						<!-- This expression evaluator may autodetect that input is a ObjectCollectionType and find IntegerStatType inside. -->
+						<!-- If used with other objects, we can always add explicit <path> specification here. -->
+						<style>percentage</style>
+					</proportional>
+				</expression>
+			</dataField>
+			<dataField>
+				<fieldType>units</fieldType>
+				<expression>
+					<value>resources up and running</value>
+				</expression>
+			</dataField>
+			<!-- In the default widget style, the value and units is combined into text "99% resources up and running". Label is automatically derived from DisplayType. -->
+			
+	
+			<!-- Variations defined different styles of widget presentation under different conditions. -->
+			<variation>
+				<condition>
+					<!-- This condition relies on policySituation, as this is consistent with the policy rules.
+					     But we can have condition that directly queries IntegerStatType, e.g. to change color to yellow for warning. -->
+					<filter>
+						<equal>
+							<path>policySituation</path>
+							<value>#resourceHealthDanger</value>
+						</equal>
+					</filter>
+				</condition>
+				<display>
+					<color>red</color>
+				</display>
+			</variation>
+			<!-- For now the conditions should be mutually exclusive, so at most one variation is active. But we can perhaps improve on that later. -->
+		</presentation>
 		
 		<!-- We might want to define actions here. E.g. what to do when the widget is clicked. Or maybe some widgets may have small buttons to
 		     invoke actions, such as resume task, retry operations, refresh, etc. -->
@@ -247,9 +250,8 @@
     		<label>My assignments</label>
 		</display>
 		
-		<widgetType>assignments</widgetType>
-		
 		<data>
+			<sourceType>assignments</sourceType>
 			<!-- some kind of "filter" that will specify that we want to display all assignments of current user -->
 		</data>
 		     
