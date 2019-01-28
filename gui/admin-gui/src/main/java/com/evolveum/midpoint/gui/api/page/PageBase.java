@@ -2152,7 +2152,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return;
         }
         objectViews.forEach(objectView -> {
-        	CollectionSpecificationType collection = objectView.getCollection();
+        	CollectionRefSpecificationType collection = objectView.getCollection();
         	if (collection == null) {
         		return;
         	}

@@ -46,7 +46,9 @@
     			     The <collection> constraint means, the the rule should not look at the collection definition.
     			     The rule should look at the collected objects. -->
     			<collectionStats> <!-- or just <collectionStats/> should be enough. Default interpretation for ObjectCollectionType should be "explicit". -->
-    				<collectionInterpretation>explicit</collectionInterpretation>
+    				<collection>
+    					<interpretation>explicit</interpretation>
+    				</collection>
     			</collectionStats>
     		</policyConstraints>
     		<policyThreshold>
