@@ -317,6 +317,9 @@ public class UserProfileCompiler {
 		if (adminGuiConfiguration.getDefaultExportSettings() != null) {
 			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
 		}
+		if (adminGuiConfiguration.getDisplayFormats() != null){
+			composite.setDisplayFormats(adminGuiConfiguration.getDisplayFormats().clone());
+		}
 		
 		applyViews(composite, adminGuiConfiguration.getObjectLists(), task, result); // Compatibility, deprecated
 		applyViews(composite, adminGuiConfiguration.getObjectCollectionViews(), task, result);
@@ -404,18 +407,23 @@ public class UserProfileCompiler {
 	
 	private CompiledObjectCollectionView findOrCreateMatchingView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType) {
 		QName objectType = objectListViewType.getType();
-		String viewName = determineViewName(objectListViewType);
-		CompiledObjectCollectionView existingView = composite.findObjectCollectionView(objectType, viewName);
+		String viewIdentifier = determineViewIdentifier(objectListViewType);
+		CompiledObjectCollectionView existingView = composite.findObjectCollectionView(objectType, viewIdentifier);
 		if (existingView == null) {
-			existingView = new CompiledObjectCollectionView(objectType, viewName);
+			existingView = new CompiledObjectCollectionView(objectType, viewIdentifier);
 			composite.getObjectCollectionViews().add(existingView);
 		}
 		return existingView;
 	}
 
-	private String determineViewName(GuiObjectListViewType objectListViewType) {
+	private String determineViewIdentifier(GuiObjectListViewType objectListViewType) {
+		String viewIdentifier = objectListViewType.getIdentifier();
+		if (viewIdentifier != null) {
+			return viewIdentifier;
+		}
 		String viewName = objectListViewType.getName();
 		if (viewName != null) {
+			// legacy, deprecated
 			return viewName;
 		}
 		CollectionSpecificationType collection = objectListViewType.getCollection();
@@ -470,7 +478,7 @@ public class UserProfileCompiler {
 			collectionSpec.setCollectionRef(collectionRef.clone());
 		}
 		if (existingView.getCollection() != null) {
-			LOGGER.debug("Redefining collection in view {}", existingView.getViewName());
+			LOGGER.debug("Redefining collection in view {}", existingView.getViewIdentifier());
 		}
 		existingView.setCollection(collectionSpec);
 		
@@ -514,7 +522,7 @@ public class UserProfileCompiler {
 			} catch (ObjectNotFoundException e) {
 				// We do not want to throw exception here. This code takes place at login time.
 				// We do not want to stop all logins because of missing archetype.
-				LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRef.getOid(), existingView.getViewName());
+				LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRef.getOid(), existingView.getViewIdentifier());
 			}
 			
 			return;
@@ -524,7 +532,7 @@ public class UserProfileCompiler {
 			ObjectCollectionType objectCollectionType;
 			try {
 				// TODO: caching?
-				objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewName(), task, result);
+				objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewIdentifier(), task, result);
 			} catch (ObjectNotFoundException e) {
 				throw new ConfigurationException(e.getMessage(), e);
 			}

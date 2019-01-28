@@ -57,9 +57,9 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File SYSTEM_CONFIGURATION_ARCHETYPES_FILE = new File(TEST_DIR, "system-configuration-archetypes.xml");
 	
-	public static final String VIEW_ALL_EMPLOYEES_NAME = "All employees";
-	public static final String VIEW_ACTIVE_EMPLOYEES_NAME = "Active employees";
-	public static final String VIEW_BUSINESS_ROLES_NAME = "Business roles view";
+	public static final String VIEW_ALL_EMPLOYEES_NAME = "all-employees";
+	public static final String VIEW_ACTIVE_EMPLOYEES_IDENTIFIER = "active-employees";
+	public static final String VIEW_BUSINESS_ROLES_IDENTIFIER = "business-roles-view";
 	public static final String VIEW_BUSINESS_ROLES_LABEL = "Business";
 	
 	public static final File ARCHETYPE_EMPLOYEE_FILE = new File(TEST_DIR, "archetype-employee.xml");
@@ -146,13 +146,31 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertRoleAfter(ROLE_BUSINESS_CAPTAIN_OID)
-        	.assertArchetypeRef(ARCHETYPE_BUSINESS_ROLE_OID);
+        PrismObject<RoleType> roleBusinessCaptainAfter = assertRoleAfter(ROLE_BUSINESS_CAPTAIN_OID)
+        	.assertArchetypeRef(ARCHETYPE_BUSINESS_ROLE_OID)
+        	.getObject();
+        
+        assertAssignmentHolderSpecification(roleBusinessCaptainAfter)
+        	.assignmentObjectRelations()
+        		.assertItems(2)
+        		.by()
+        			.relations(SchemaConstants.ORG_APPROVER, SchemaConstants.ORG_OWNER)
+        		.find()
+        			.assertArchetypeOid(ARCHETYPE_EMPLOYEE_OID)
+        			.assertObjectType(UserType.COMPLEX_TYPE)
+        			.assertDescription("Only employees may be owners/approvers for business role.")
+        			.end()
+        		.by()
+        			.relation(SchemaConstants.ORG_DEFAULT)
+        		.find()
+        			.assertObjectType(UserType.COMPLEX_TYPE)
+        			.assertNoArchetype();
+        			
     }
     
     @Test
-    public void test060AssignGuybrushUserAdministrator() throws Exception {
-		final String TEST_NAME = "test060AssignGuybrushUserAdministrator";
+    public void test070AssignGuybrushUserAdministrator() throws Exception {
+		final String TEST_NAME = "test070AssignGuybrushUserAdministrator";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -270,15 +288,15 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 			.objectCollectionViews()
 				.assertViews(3)
 				.by()
-					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.identifier(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 				.find()
-					.assertName(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.assertName(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 					.assertFilter()
 					.end()
 				.by()
-					.name(VIEW_BUSINESS_ROLES_NAME)
+					.identifier(VIEW_BUSINESS_ROLES_IDENTIFIER)
 				.find()
-					.assertName(VIEW_BUSINESS_ROLES_NAME)
+					.assertName(VIEW_BUSINESS_ROLES_IDENTIFIER)
 					.assertFilter()
 					.displayType()
 						.assertLabel(VIEW_BUSINESS_ROLES_LABEL) // Overridden in view definition
@@ -289,7 +307,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 						.end()
 					.end()
 				.by()
-					.name(VIEW_ALL_EMPLOYEES_NAME)
+					.identifier(VIEW_ALL_EMPLOYEES_NAME)
 				.find()
 					.assertName(VIEW_ALL_EMPLOYEES_NAME)
 					.assertFilter()
@@ -377,8 +395,8 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         		.assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
         		.assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
 
-        assertAssignmentTargetRelations(userAfter)
-	        .assignmentTargetRelations()
+        assertAssignmentTargetSpecification(userAfter)
+	        .assignmentObjectRelations()
 	        	.assertItems(2)
 	        	.by()
 	        		.targetType(RoleType.COMPLEX_TYPE)
@@ -386,13 +404,15 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	        	.find()
 	        		.assertDescription("Any user can have business role (can be a member).")
 	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
+	        		.assertObjectType(RoleType.COMPLEX_TYPE)
 	        		.end()
 	        	.by()
 	        		.targetType(RoleType.COMPLEX_TYPE)
 	        		.relations(SchemaConstants.ORG_OWNER, SchemaConstants.ORG_APPROVER)
 	        	.find()
 		        	.assertDescription("Only employees may be owners/approvers for business role.")
-	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID);
+	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
+        			.assertObjectType(RoleType.COMPLEX_TYPE);
 	        	
     }
 	
@@ -426,15 +446,16 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         assertArchetypePolicy(userAfter)
         	.assertNull();
         
-    	assertAssignmentTargetRelations(userAfter)
-    		.assignmentTargetRelations()
+    	assertAssignmentTargetSpecification(userAfter)
+    		.assignmentObjectRelations()
 	        	.assertItems(1)
 	        	.by()
 	        		.targetType(RoleType.COMPLEX_TYPE)
 	        		.relation(SchemaConstants.ORG_DEFAULT)
 	        	.find()
 	        		.assertDescription("Any user can have business role (can be a member).")
-	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID);
+	        		.assertArchetypeOid(ARCHETYPE_BUSINESS_ROLE_OID)
+	        		.assertObjectType(RoleType.COMPLEX_TYPE);
         }
 	
 	@Test
@@ -551,9 +572,9 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 			.objectCollectionViews()
 				.assertViews(3)
 				.by()
-					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.identifier(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 				.find()
-					.assertName(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.assertName(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 					.assertFilter()
 					.getFilter();
 		
@@ -613,9 +634,9 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 			.objectCollectionViews()
 				.assertViews(3)
 				.by()
-					.name(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.identifier(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 				.find()
-					.assertName(VIEW_ACTIVE_EMPLOYEES_NAME)
+					.assertName(VIEW_ACTIVE_EMPLOYEES_IDENTIFIER)
 					.assertFilter()
 					.getFilter();
 		

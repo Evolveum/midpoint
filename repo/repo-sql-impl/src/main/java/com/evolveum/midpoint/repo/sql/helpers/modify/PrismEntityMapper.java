@@ -57,6 +57,7 @@ public class PrismEntityMapper {
         mappers.put(new Key(QName.class, String.class), new QNameMapper());
 
         mappers.put(new Key(Referencable.class, RObjectReference.class), new ObjectReferenceMapper());
+        mappers.put(new Key(Referencable.class, RAssignmentReference.class), new AssignmentReferenceMapper());
         mappers.put(new Key(Referencable.class, RCaseWorkItemReference.class), new CaseWorkItemReferenceMapper());
         mappers.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
         mappers.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());

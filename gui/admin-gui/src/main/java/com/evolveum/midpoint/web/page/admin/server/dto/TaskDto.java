@@ -167,6 +167,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private HandlerDto handlerDto;
 	private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
 
+	private PageBase pageBase;
     //region Construction
 
 	// parentTaskBean can be filled-in for optimization purposes (MID-4238); but take care to provide it in a suitable form
@@ -181,6 +182,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         Validate.notNull(parentResult);
         Validate.notNull(pageBase);
 
+        this.pageBase = pageBase;
         this.taskType = taskType;
 		this.currentEditableState.name = taskType.getName() != null ? taskType.getName().getOrig() : null;
 		this.currentEditableState.description = taskType.getDescription();
@@ -399,7 +401,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			final WfContextType subWfc = wfSubtask.getWorkflowContext();
 			if (subWfc != null && subWfc.getProcessInstanceId() != null) {
 				if (this.getOid() == null || !this.getOid().equals(wfSubtask.getOid())) {
-					workflowRequests.add(new ProcessInstanceDto(wfSubtask));
+					workflowRequests.add(new ProcessInstanceDto(wfSubtask, WebComponentUtil.getShortDateTimeFormat(pageBase)));
 				}
 			}
 		}
@@ -969,7 +971,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		List<WorkItemDto> rv = new ArrayList<>();
 		if (taskType.getWorkflowContext() != null) {
 			for (WorkItemType workItemType : taskType.getWorkflowContext().getWorkItem()) {
-				rv.add(new WorkItemDto(workItemType));
+				rv.add(new WorkItemDto(workItemType, pageBase));
 			}
 		}
 		return rv;

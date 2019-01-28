@@ -45,7 +45,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	private static final long serialVersionUID = 1L;
 	
 	private final QName objectType;
-	private final String viewName;
+	private final String viewIdentifier;
 	
 	private List<GuiActionType> actions = new ArrayList<>();
 	private CollectionSpecificationType collection;
@@ -61,21 +61,21 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	public CompiledObjectCollectionView() {
 		super();
 		objectType = null;
-		viewName = null;
+		viewIdentifier = null;
 	}
 
-	public CompiledObjectCollectionView(QName objectType, String viewName) {
+	public CompiledObjectCollectionView(QName objectType, String viewIdentifier) {
 		super();
 		this.objectType = objectType;
-		this.viewName = viewName;
+		this.viewIdentifier = viewIdentifier;
 	}
 
 	public QName getObjectType() {
 		return objectType;
 	}
 
-	public String getViewName() {
-		return viewName;
+	public String getViewIdentifier() {
+		return viewIdentifier;
 	}
 
 	@NotNull
@@ -151,18 +151,18 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		this.filter = filter;
 	}
 
-	public boolean match(QName expectedObjectType, String expectedViewName) {
+	public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
 		if (!QNameUtil.match(objectType, expectedObjectType)) {
 			return false;
 		}
-		if (expectedViewName == null) {
+		if (expectedViewIdentifier == null) {
 			if (isAllObjectsView()) {
 				return true;
 			} else {
 				return false;
 			}
 		}
-		return expectedViewName.equals(viewName);
+		return expectedViewIdentifier.equals(viewIdentifier);
 	}
 	
 	public boolean match(QName expectedObjectType) {
@@ -178,7 +178,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "objectType", objectType, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "viewName", viewName, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "viewIdentifier", viewIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "display", display, indent + 1);

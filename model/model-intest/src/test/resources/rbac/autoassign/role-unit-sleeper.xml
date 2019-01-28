@@ -47,6 +47,16 @@
     					<code>basic.stringify(organizationalUnit) == 'sleeper'</code>
     				</script>
     			</condition>
+    			<populate>
+    				<populateItem>
+    					<expression>
+    						<value>2222-01-02T03:04:05.000Z</value>
+    					</expression>
+    					<target>
+    						<path>activation/validTo</path>
+    					</target>
+    				</populateItem>
+    			</populate>
     		</mapping>
     	</focus>
     </autoassign>

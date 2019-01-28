@@ -12279,6 +12279,16 @@
     						</xsd:documentation>
     					</xsd:annotation>
     				</xsd:element>
+    				<xsd:element name="populate" type="tns:PopulateType" minOccurs="0">
+		            	<xsd:annotation>
+		            		<xsd:documentation>
+		            			Populate the assignment with specific properties, e.g activation status, validTo, validFrom.
+		            		</xsd:documentation>
+		            		<xsd:appinfo>
+		            			<a:since>4.0</a:since>
+		            		</xsd:appinfo>
+		            	</xsd:annotation>
+		            </xsd:element>
     			</xsd:sequence>
     		</xsd:extension>
     	</xsd:complexContent>
@@ -15825,24 +15835,67 @@
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
-       			<xsd:element name="identifier" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
-       				<!-- TODO: make this optional (autogenerate) -->
+       			<xsd:element name="identifier" type="xsd:string" minOccurs="0" maxOccurs="1">
            			<xsd:annotation>
            				<xsd:documentation>
-           					Widget identifier. The feature specifications that come
-           					from different roles will be merged if they have the same identifier.
+           					<p>
+	           					GUI feature identifier. E.g. idetifier for view or widget.
+	           					The feature specifications that come from different roles will be merged
+	           					if they have the same identifier. The identifier is also used for
+	           					diagnostics, e.g. used in the logfiles.
+           					</p>
+           					<p>
+           						Although identifier type is defined as string, it is strongly recommended
+           						to use URI for all customizations. The URI should be based on identifier
+           						that you own (e.g. DNS domain). Using non-URI forms may still work, but
+           						there is risk of conflicting with default midPoint configuration.
+           					</p>
+           					<p>
+       							If no identifer is specified for a view then midPoint will internally generate a value for the identifier.
+       							This internal identifier value is based on the GUI feature definition, e.g. object type and/or collection OID
+       							or other aspects of the view. The algorithm for identifier generation may change and the results are not
+       							guaranteed to be completely unique. Therefore it is strongly recommended to explictly set identifier for all 
+       							the UI features in any non-trivial midPoint configuration.
+       						</p>
+       						<p>
+       							Identifier may not be needed at all in some cases (e.g. additionalPanels in views).
+       						</p>
            				</xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
 						</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
-           		<!-- TODO: add DisplayType here (optional) -->
+           		<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Display properties of the UI feature. It is used to display the link in the menu and so on.
+       						Only some parts of display specification may be used. E.g. for views only label is used now.
+       						E.g. the CSS properties are ignored.
+       					</xsd:documentation>
+       					<!-- This might be determined from the collection in future midPoint versions.
+       					     In fact the entire definition of a view may be just a reference to collection. -->
+       					<xsd:appinfo>
+       						<a:since>3.9</a:since>
+							<a:displayName>UserInterfaceFeatureType.display</a:displayName>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
            		<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
-           		             minOccurs="0" maxOccurs="1" default="vacant">
+           		             minOccurs="0" maxOccurs="1" default="automatic">
            			<xsd:annotation>
            				<xsd:documentation>
-           					Defines, whether this feature will be visible or it will be hidden.
+           					<p>
+           						Defines, whether this feature will be visible or it will be hidden.
+           					</p>
+           					<p>
+           						The default (since 4.0) is 'automatic', which means that all defined
+           						features will be visible if possible, unless explicitly hidden.
+           						However, this can be changed, e.g. by setting default visibility
+           						in the dashboard definition. Also, some hardcoded dashboards have
+           						different defaults. E.g. the legacy 3.x end-user home page
+           						has default visibility of "vacant".
+           					</p>
            				</xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>UserInterfaceFeatureType.visibility</a:displayName>
@@ -20968,39 +21021,42 @@
                 <a:since>3.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        	<!-- TODO: should be subtype of UserInterfaceFeatureType? -->
-       		<xsd:sequence>
-           		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
-					<xsd:annotation>
-       					<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.searchBoxConfiguration</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-           		<xsd:element name="distinct" type="tns:DistinctSearchOptionType" minOccurs="0" maxOccurs="1" default="auto">
-					<xsd:annotation>
-       					<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.distinct</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-           		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded">
-					<xsd:annotation>
-       					<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.column</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-				<xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0">
-					<xsd:annotation>
-       					<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.disableSorting</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-           		<!-- TODO: number of results per page (MID-1931) -->
-           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
-           	</xsd:sequence>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:UserInterfaceFeatureType">
+	       		<xsd:sequence>
+	           		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.searchBoxConfiguration</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           		<xsd:element name="distinct" type="tns:DistinctSearchOptionType" minOccurs="0" maxOccurs="1" default="auto">
+						<xsd:annotation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.distinct</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.column</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+					<xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0">
+						<xsd:annotation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.disableSorting</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           		<!-- TODO: number of results per page (MID-1931) -->
+	           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
+	           	</xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     
     <xsd:complexType name="GuiObjectListViewType">
@@ -21027,15 +21083,13 @@
 		       						to refer to this view. It will also be used for diagnostics, logging and so on.
 	       						</p>
 	       						<p>
-	       							If no name is specified for a view then midPoint will internally generate a name. This internal name
-	       							is based on object type and/or collection OID or other aspects of the view. The algorithm for name
-	       							generation may change and the results are not guaranteed to be completely unique. Therefore it is 
-	       							strongly recommended to explictly name all the views in any non-trivial midPoint configuration.  
+	       							DEPRECATED. Use identifier instead.
 	       						</p>
 	       					</xsd:documentation>
 	       					<xsd:appinfo>
 	       						<a:since>3.9</a:since>
 								<a:displayName>GuiObjectListViewType.name</a:displayName>
+								<a:deprecated>true</a:deprecated>
 	       					</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
@@ -21076,20 +21130,6 @@
 	       						     here we will force everybody to specify it explicitly. So their configuraiton will work in
 	       						     future versions when we add support for implicit collections. -->
 								<a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
-	       					</xsd:appinfo>
-	       				</xsd:annotation>
-	       			</xsd:element>
-	       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
-	       				<xsd:annotation>
-	       					<xsd:documentation>
-	       						Display properties of the view. It is used to display the link in the menu and so on.
-	       						Only label is used now. E.g. the CSS properties are ignored.
-	       					</xsd:documentation>
-	       					<!-- This might be determined from the collection in future midPoint versions.
-	       					     In fact the entire definition of a view may be just a reference to collection. -->
-	       					<xsd:appinfo>
-	       						<a:since>3.9</a:since>
-								<a:displayName>GuiObjectListViewType.display</a:displayName>
 	       					</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>

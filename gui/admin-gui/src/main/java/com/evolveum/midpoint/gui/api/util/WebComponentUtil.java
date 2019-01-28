@@ -49,7 +49,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
-import com.evolveum.midpoint.model.api.AssignmentTargetSpecification;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
@@ -65,6 +64,7 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -72,7 +72,6 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -1538,6 +1537,48 @@ public final class WebComponentUtil {
 		return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
 	}
 
+	public static String getShortDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getShortDateTimeFormattedValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getShortDateTimeFormattedValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		String shortDateTimeFortam = getShortDateTimeFormat(pageBase);
+		return getLocalizedDate(date, shortDateTimeFortam);
+	}
+
+	public static String getLongDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getLongDateTimeFormattedValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getLongDateTimeFormattedValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		String longDateTimeFormat = getLongDateTimeFormat(pageBase);
+		return getLocalizedDate(date, longDateTimeFormat);
+	}
+
+	public static String getShortDateTimeFormat(PageBase pageBase){
+		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getShortDateTimeFormat())){
+			return DateLabelComponent.SHORT_MEDIUM_STYLE;
+		} else {
+			return displayFormats.getShortDateTimeFormat();
+		}
+	}
+
+	public static String getLongDateTimeFormat(PageBase pageBase){
+		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getLongDateTimeFormat())){
+			return DateLabelComponent.LONG_MEDIUM_STYLE;
+		} else {
+			return displayFormats.getLongDateTimeFormat();
+		}
+	}
+
 	public static boolean isActivationEnabled(PrismObject object) {
 		Validate.notNull(object);
 
@@ -1677,6 +1718,9 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON;
 		} else if (QNameUtil.match(SystemConfigurationType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
+		} else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
+			//TODO fix icon style for mapping type
+			return "";
 		} else {
 			return "";
 		}

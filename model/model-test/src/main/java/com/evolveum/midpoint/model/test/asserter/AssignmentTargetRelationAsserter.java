@@ -20,7 +20,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.AssignmentTargetRelation;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
@@ -32,15 +34,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  */
 public class AssignmentTargetRelationAsserter<RA> extends AbstractAsserter<RA> {
 	
-	private final AssignmentTargetRelation assignmentTargetRelation;
+	private final AssignmentObjectRelation assignmentTargetRelation;
 	
-	public AssignmentTargetRelationAsserter(AssignmentTargetRelation assignmentTargetRelation, RA returnAsserter, String desc) {
+	public AssignmentTargetRelationAsserter(AssignmentObjectRelation assignmentTargetRelation, RA returnAsserter, String desc) {
 		super(returnAsserter, desc);
 		this.assignmentTargetRelation = assignmentTargetRelation;
 	}
 
 	public AssignmentTargetRelationAsserter<RA> assertDescription(String expected) {
 		assertEquals("Wrong description in "+desc(), expected, assignmentTargetRelation.getDescription());
+		return this;
+	}
+	
+	public AssignmentTargetRelationAsserter<RA> assertObjectType(QName expected) {
+		List<QName> objectTypes = assignmentTargetRelation.getObjectTypes();
+		if (objectTypes == null || objectTypes.isEmpty()) {
+			fail("No object types in "+desc());
+		}
+		if (objectTypes.size() > 1) {
+			fail("Too many object types in "+desc());
+		}
+		assertEquals("Wrong object type in "+desc(), expected, objectTypes.get(0));
 		return this;
 	}
 	

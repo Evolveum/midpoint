@@ -65,6 +65,9 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -563,5 +566,17 @@ public final class RUtil {
         }
 
         return result;
+    }
+
+    public static void executeStatement(Connection connection, String sql) throws SQLException {
+        Statement stmt = null;
+        try {
+            stmt = connection.createStatement();
+            stmt.execute(sql);
+        } finally {
+            if (stmt != null && !stmt.isClosed()) {
+                stmt.close();
+            }
+        }
     }
 }
