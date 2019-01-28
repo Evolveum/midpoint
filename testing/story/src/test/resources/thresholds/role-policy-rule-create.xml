@@ -26,6 +26,7 @@
             </policyConstraints>
             <policyThreshold>
             	<count>4</count>
+            	<period>PT1H</period>
             </policyThreshold>
             <policyActions>
                 <suspendTask/>

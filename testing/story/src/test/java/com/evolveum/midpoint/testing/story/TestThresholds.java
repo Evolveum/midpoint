@@ -45,8 +45,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -125,7 +127,7 @@ public class TestThresholds extends AbstractStoryTest {
 		display("Task after:", taskAfter);
 		assertAssignments(taskAfter, 1);
 		assertAssigned(taskAfter, ROLE_POLICY_RULE_CREATE_OID, RoleType.COMPLEX_TYPE);
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);		
 		
 	}
 	
@@ -153,6 +155,15 @@ public class TestThresholds extends AbstractStoryTest {
 		//THEN
 		assertUsers(getNumberOfUsers());
 		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
+		
+		Task taskAfter = taskManager.getTaskWithResult(TASK_RECONCILE_OPENDJ_OID, result);
+		IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+		assertEquals(infoType.getTotalFailureCount(), 1);
+		
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 5);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 0);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
 	}
 	
 	
@@ -218,7 +229,7 @@ public class TestThresholds extends AbstractStoryTest {
 	}
 	
 	
-//	@Test
+	@Test
 	public void test520changeActivationThreeAccounts() throws Exception {
 		final String TEST_NAME = "test520changeActivationThreeAccounts";
 		displayTestTitle(TEST_NAME);
@@ -226,7 +237,7 @@ public class TestThresholds extends AbstractStoryTest {
 		//GIVEN
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
-		unassign(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CREATE_OID, task, result);
+		unassignRole(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CREATE_OID, task, result);
 		assignRole(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID, task, result);
 		
 		openDJController.executeLdifChange(LDIF_CHANGE_ACTIVATION_FILE);
@@ -238,9 +249,16 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		//THEN
 		
-		Task reconTask = taskManager.getTaskWithResult(TASK_RECONCILE_OPENDJ_OID, result);
+		Task taskAfter = taskManager.getTaskWithResult(TASK_RECONCILE_OPENDJ_OID, result);
+//		recotaskAfternTask.getStoredOperationStats().getSynchronizationInformation().getCountLinked();	
 		
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
+		assertUsers(getNumberOfUsers() + 4);
 		
+//		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 4);
+//		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
+//		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 0);
+//		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
 		
 	}
 	
