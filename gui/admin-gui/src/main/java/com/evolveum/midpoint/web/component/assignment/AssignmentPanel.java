@@ -120,13 +120,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected boolean enableActionNewObject() {
-				try {
-					return getParentPage().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,
-							AuthorizationPhaseType.REQUEST, getFocusObject(),
-							null, null, null);
-				} catch (Exception ex){
-					return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
-				}
+				return isNewObjectButtonVisible(getFocusObject());
 			}
 
 			@Override
@@ -295,6 +289,16 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		return assignments;
 	}
 
+	protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+		try {
+			return getParentPage().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,
+					AuthorizationPhaseType.REQUEST, focusObject,
+					null, null, null);
+		} catch (Exception ex){
+			return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
+		}
+	}
+
 	protected ObjectQuery createObjectQuery(){
 		Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
 				.getAllRelationsFor(RelationKindType.DELEGATION);
@@ -361,7 +365,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		return null;
 	}
 
-	private List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
+	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
@@ -842,7 +846,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 							PrismReferenceValue refValue = (PrismReferenceValue)refWrapper.getValue();
 							ObjectReferenceType ort = new ObjectReferenceType();
 							ort.setupReferenceValue(refValue);
-							WebComponentUtil.dispatchToObjectDetailsPage(ort, AssignmentPanel.this, false);
+							if (!StringUtils.isEmpty(ort.getOid())) {
+								WebComponentUtil.dispatchToObjectDetailsPage(ort, AssignmentPanel.this, false);
+							}
 						}
 					}
 				};

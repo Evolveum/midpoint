@@ -618,7 +618,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						}
 						return date;
 					}
-				}, DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+				}, WebComponentUtil.getShortDateTimeFormat(PageTasks.this));
 				item.add(dateLabel);
 			}
 
@@ -631,7 +631,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 					if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
 						displayValue =
 								createStringResource("pageTasks.task.closedAt").getString() +
-										WebComponentUtil.getShortDateTimeFormatValue(date, PageTasks.this);
+										WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasks.this);
 					} else {
 						displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this);
 					}

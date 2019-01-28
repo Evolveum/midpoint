@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskCurrentStateDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -373,7 +372,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         if (date == null) {
             return null;
         }
-        return WebComponentUtil.getLongDateTimeFormatValue(date, pageBase);
+        return WebComponentUtil.getLongDateTimeFormattedValue(date, pageBase);
     }
 
     protected boolean showAgo(TaskCurrentStateDto dto) {

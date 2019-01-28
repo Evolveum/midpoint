@@ -30,14 +30,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class ObjectCollectionViewFinder<RA> {
 	
 	private final ObjectCollectionViewsAsserter<RA> viewsAsserter;
-	private String name;
+	private String identifier;
 	
 	public ObjectCollectionViewFinder(ObjectCollectionViewsAsserter<RA> viewsAsserter) {
 		this.viewsAsserter = viewsAsserter;
 	}
 	
-	public ObjectCollectionViewFinder<RA> name(String name) {
-		this.name = name;
+	public ObjectCollectionViewFinder<RA> identifier(String identifier) {
+		this.identifier = identifier;
 		return this;
 	}
 	
@@ -71,8 +71,8 @@ public class ObjectCollectionViewFinder<RA> {
 	
 	private boolean matches(CompiledObjectCollectionView view) throws ObjectNotFoundException, SchemaException {
 		
-		if (name != null) {
-			if (!name.equals(view.getViewName())) {
+		if (identifier != null) {
+			if (!identifier.equals(view.getViewIdentifier())) {
 				return false;
 			}
 		}

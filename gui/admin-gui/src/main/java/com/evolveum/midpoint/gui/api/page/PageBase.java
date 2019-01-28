@@ -2176,7 +2176,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
-            pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewName());
+            pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewIdentifier());
 
             MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
@@ -2188,7 +2188,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     PageParameters params = getPageParameters();
                     if (params != null && params.get(PARAMETER_OBJECT_COLLECTION_NAME) != null){
                         StringValue collectionName = params.get(PARAMETER_OBJECT_COLLECTION_NAME);
-                        if (objectView.getViewName().equals(collectionName.toString())) {
+                        if (objectView.getViewIdentifier().equals(collectionName.toString())) {
                             return true;
                         }
                     }

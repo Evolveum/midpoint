@@ -5,7 +5,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -27,7 +26,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -177,7 +175,7 @@ public abstract class PageCases extends PageAdminCases {
                 cellItem.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormatValue(created, PageCases.this);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(created, PageCases.this);
                     }
                 }));
             }
@@ -201,7 +199,7 @@ public abstract class PageCases extends PageAdminCases {
                 cellItem.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormatValue(closed, PageCases.this);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(closed, PageCases.this);
                     }
                 }));
             }

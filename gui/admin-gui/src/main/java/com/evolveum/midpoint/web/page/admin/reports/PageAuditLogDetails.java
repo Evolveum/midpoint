@@ -19,7 +19,6 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValueDto;
@@ -226,7 +225,7 @@ public class PageAuditLogDetails extends PageBase {
             public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
                                      IModel<AuditEventRecordType> rowModel) {
                 XMLGregorianCalendar time = rowModel.getObject().getTimestamp();
-                item.add(new Label(componentId, WebComponentUtil.getShortDateTimeFormatValue(time, PageAuditLogDetails.this)));
+                item.add(new Label(componentId, WebComponentUtil.getShortDateTimeFormattedValue(time, PageAuditLogDetails.this)));
             }
         };
         columns.add(timeColumn);

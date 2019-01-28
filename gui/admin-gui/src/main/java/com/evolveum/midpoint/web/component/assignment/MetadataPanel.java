@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -103,7 +102,7 @@ public class MetadataPanel extends BasePanel<MetadataType>{
                     PropertyModel<Object> tempModel = new PropertyModel<>(getModel(),
                         qname.getLocalPart());
                     if (tempModel.getObject() instanceof XMLGregorianCalendar){
-                        return WebComponentUtil.getLongDateTimeFormatValue((XMLGregorianCalendar)tempModel.getObject(), getPageBase());
+                        return WebComponentUtil.getLongDateTimeFormattedValue((XMLGregorianCalendar)tempModel.getObject(), getPageBase());
                     } else if (tempModel.getObject() instanceof ObjectReferenceType){
                         ObjectReferenceType ref = (ObjectReferenceType) tempModel.getObject();
                         return WebComponentUtil.getName(ref, getPageBase(), OPERATION_LOAD_USER);
