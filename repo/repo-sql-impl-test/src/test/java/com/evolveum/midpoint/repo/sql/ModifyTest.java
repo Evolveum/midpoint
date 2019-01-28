@@ -1198,12 +1198,15 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         ObjectReferenceType approver1 = new ObjectReferenceType().oid("approver1-oid");
         ObjectReferenceType approver1AsUser = new ObjectReferenceType().oid("approver1-oid").type(UserType.COMPLEX_TYPE);
+        ObjectReferenceType approver2AsUser = new ObjectReferenceType().oid("approver2-oid").type(UserType.COMPLEX_TYPE);
 
-        /*
-         * Obviously suspicious request; but repo should deal with it correctly.
-         */
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approver1.clone(), approver1AsUser.clone())
+                .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approver1.clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas, getModifyOptions(), result);
+
+        itemDeltas = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approver1AsUser.clone(), approver2AsUser.clone())
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas, getModifyOptions(), result);
 
