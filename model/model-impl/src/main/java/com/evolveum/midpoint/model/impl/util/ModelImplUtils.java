@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -598,12 +600,25 @@ public class ModelImplUtils {
 		return dryRun != null ? dryRun : Boolean.FALSE;
 	}
 	
-	public static boolean isSimulateRun(Task task) throws SchemaException {
-		Boolean simulate = findItemValue(task, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
-		if (simulate == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
-			simulate = findItemValue(task.getParentForLightweightAsynchronousTask(), SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
+	public static boolean canPerformStage(String stageUri, Task task) throws SchemaException {
+		PrismObject<TaskType> taskType = task.getTaskPrismObject();
+		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
+		if (stageType == null) {
+			return false;
 		}
-		return simulate != null ? simulate : Boolean.FALSE;
+		
+		String stageTypeRealValue = stageType.getRealValue();
+		return stageUri.equals(stageTypeRealValue);
+	}
+	
+	public static String getStageUri(Task task) {
+		PrismObject<TaskType> taskType = task.getTaskPrismObject();
+		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
+		if (stageType == null) {
+			return ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
+		}
+		
+		return stageType.getRealValue();
 	}
 	
 	static Boolean findItemValue(Task task, QName path) throws SchemaException{
@@ -809,7 +824,7 @@ public class ModelImplUtils {
 	SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 		CriticalityType criticality;
 		if (resourceType == null) {
-			throwException(e, result);
+			RepoCommonUtils.throwException(e, result);
 			return CriticalityType.FATAL; // not reached
 		} else {
 			ErrorSelectorType errorSelector = ResourceTypeUtil.getConnectorErrorCriticality(resourceType);
@@ -828,62 +843,8 @@ public class ModelImplUtils {
 				criticality = ExceptionUtil.getCriticality(errorSelector, e, CriticalityType.FATAL);
 			}
 		}
-		switch (criticality) {
-			case FATAL:
-				LOGGER.debug("Exception {} criticality set as FATAL in {}, stopping evaluation; exception message: {}", e.getClass().getSimpleName(), resourceType, e.getMessage());
-				LOGGER.error("Fatal error while processing projection on {}: {}", resourceType, e.getMessage(), e);
-				throwException(e, result);
-				break; // not reached
-			case PARTIAL:
-				LOGGER.debug("Exception {} criticality set as PARTIAL in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), resourceType, e.getMessage());
-				if (result != null) {
-					result.recordPartialError(e);
-				}
-				LOGGER.warn("Partial error while processing projection on {}: {}", resourceType, e.getMessage(), e);
-				break;
-			case IGNORE:
-				LOGGER.debug("Exception {} criticality set as IGNORE in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), resourceType, e.getMessage());
-				if (result != null) {
-					result.recordHandledError(e);
-				}
-				LOGGER.debug("Ignored error while processing projection on {}: {}", resourceType, e.getMessage(), e);
-				break;
-		}
+		RepoCommonUtils.processErrorCriticality(resourceType, criticality, e, result);
 		return criticality;
 	}
-
-	static void throwException(Throwable e, OperationResult result) 
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
-				SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-				PreconditionViolationException {
-		if (result != null) {
-			result.recordFatalError(e);
-		}
-		if (e instanceof RuntimeException) {
-			throw (RuntimeException)e;
-		} else if (e instanceof Error) {
-			throw (Error)e;
-		} else if (e instanceof ObjectNotFoundException) {
-			throw (ObjectNotFoundException)e;
-		} else if (e instanceof CommunicationException) {
-			throw (CommunicationException)e;
-		} else if (e instanceof SchemaException) {
-			throw (SchemaException)e;
-		} else if (e instanceof ConfigurationException) {
-			throw (ConfigurationException)e;
-		} else if (e instanceof SecurityViolationException) {
-			throw (SecurityViolationException)e;
-		} else if (e instanceof PolicyViolationException) {
-			throw (PolicyViolationException)e;
-		} else if (e instanceof ExpressionEvaluationException) {
-			throw (ExpressionEvaluationException)e;
-		} else if (e instanceof ObjectAlreadyExistsException) {
-			throw (ObjectAlreadyExistsException)e;
-		} else if (e instanceof PreconditionViolationException) {
-			throw (PreconditionViolationException)e;
-		} else {
-			throw new SystemException(e.getMessage(), e);
-		}
-	}
-
+	
 }

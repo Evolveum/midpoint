@@ -37,7 +37,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -79,7 +79,7 @@ public class Projector {
 	private static final String OPERATION_PROJECT_PROJECTION = Projector.class.getName() + ".projectProjection";
 
 	@Autowired private ContextLoader contextLoader;
-	@Autowired private FocusProcessor focusProcessor;
+	@Autowired private AssignmentHolderProcessor focusProcessor;
     @Autowired private AssignmentProcessor assignmentProcessor;
     @Autowired private ProjectionValuesProcessor projectionValuesProcessor;
     @Autowired private ReconciliationProcessor reconciliationProcessor;

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPropertiesSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
@@ -98,11 +99,11 @@ public class FocalMappingSpec implements ShortDumpable, MappingPreExpression {
 		}
 	}
 	
-	public <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Source<V,D> constructDefaultSource(ObjectDeltaObject<F> focusOdo) throws SchemaException {
+	public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> Source<V,D> constructDefaultSource(ObjectDeltaObject<AH> focusOdo) throws SchemaException {
 		if (objectTemplateMappingType != null) {
 			return null;
 		}
-		PrismObject<F> focus = focusOdo.getAnyObject();
+		PrismObject<AH> focus = focusOdo.getAnyObject();
 		assignmentDef = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 		PrismContainer<AssignmentType> assignment = assignmentDef.instantiate();
 		assignmentType = assignment.createNewValue().asContainerable();

@@ -29,25 +29,31 @@ import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.repo.common.CounterSepcification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StopPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SuspendTaskPolicyActionType;
 
 /**
  * @author katka
  *
  */
 @Component
-public class PolicyRuleStopExecutor {
+public class PolicyRuleSuspendTaskExecutor {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleStopExecutor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleSuspendTaskExecutor.class);
 	
 	@Autowired private CounterManager counterManager;
+	@Autowired private TaskManager taskManager;
 	
-	public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) throws PolicyViolationException {
+	public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
 		ModelElementContext<O> focusCtx = context.getFocusContext();
 		CounterSepcification counterSpec = counterManager.getCounterSpec(task);
 
@@ -64,7 +70,7 @@ public class PolicyRuleStopExecutor {
 		
 		for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
 			LOGGER.info("focus policy rules: {}", policyRule);
-			counter = checkEvaluatedPolicyRule(policyRule, counter);
+			counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
 		}
 		
 		Collection<? extends ModelProjectionContext> projectionCtxs = context.getProjectionContexts();
@@ -72,7 +78,7 @@ public class PolicyRuleStopExecutor {
 			Collection<EvaluatedPolicyRule> evaluatedPolicyRules = projectionCtx.getPolicyRules();
 			for (EvaluatedPolicyRule policyRule : evaluatedPolicyRules) {
 				LOGGER.info("projction policy rules: {}", policyRule);
-				counter = checkEvaluatedPolicyRule(policyRule, counter);
+				counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
 			}
 			
 		}
@@ -84,16 +90,19 @@ public class PolicyRuleStopExecutor {
 		
 	}
 	
-	private synchronized int checkEvaluatedPolicyRule(EvaluatedPolicyRule policyRule, int counter) throws PolicyViolationException {
+	private synchronized int checkEvaluatedPolicyRule(Task task, EvaluatedPolicyRule policyRule, int counter, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
 		for (PolicyActionType action : policyRule.getEnabledActions()) {
 			LOGGER.info("action: {}", action);
 		}
-		if (policyRule.containsEnabledAction(StopPolicyActionType.class)) {
+		if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
 			LOGGER.info("counter increment: {}", policyRule);
 			counter++;
-			StopPolicyActionType stopAction = policyRule.getEnabledAction(StopPolicyActionType.class);
-			if (stopAction.getCount() != null && stopAction.getCount().intValue() < counter) {
-				throw new PolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
+//			SuspendTaskPolicyActionType stopAction = policyRule.getEnabledAction(SuspendTaskPolicyActionType.class);
+			
+			PolicyThresholdType thresholdSettings = policyRule.getPolicyThreshold();
+			if (thresholdSettings.getCount() != null && thresholdSettings.getCount().intValue() < counter) {
+//				taskManager.suspendTask(task, 10, result);
+				throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
 			}
 		}
 		

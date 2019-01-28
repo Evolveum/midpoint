@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -135,6 +136,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyRuleType.getPolicyConstraints();
 	}
 
+	@Override
+	public PolicyThresholdType getPolicyThreshold() {
+		return policyRuleType.getPolicyThreshold();
+	}
+	
 	@NotNull
 	@Override
 	public Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers() {
@@ -188,7 +194,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		}
 
 		if (!triggers.isEmpty()) {
-			EvaluatedPolicyRuleTrigger firstTrigger = triggers.iterator().next();
+			EvaluatedPolicyRuleTrigger<?> firstTrigger = triggers.iterator().next();
 			if (firstTrigger instanceof EvaluatedSituationTrigger) {
 				Collection<EvaluatedPolicyRule> sourceRules = ((EvaluatedSituationTrigger) firstTrigger).getSourceRules();
 				if (!sourceRules.isEmpty()) {	// should be always the case
@@ -372,13 +378,13 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return enabledActions;
 	}
 
-	private <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> rctx, PrismObject<F> object) {
+	private <AH extends AssignmentHolderType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object) {
 		ExpressionVariables var = new ExpressionVariables();
 		var.addVariableDefinition(ExpressionConstants.VAR_USER, object);
 		var.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
 		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
 		if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-			AssignmentPolicyRuleEvaluationContext actx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
+			AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
 			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget());
 			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment);
 			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE));
@@ -420,7 +426,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		}
 	}
 
-	public <F extends FocusType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<F> rctx, PrismObject<F> object,
+	public <AH extends AssignmentHolderType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object,
 			ExpressionFactory expressionFactory, PrismContext prismContext, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LOGGER.trace("$$$$COmpute enabled actions");

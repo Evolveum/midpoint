@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,28 +32,28 @@ import java.util.Collection;
 /**
  * @author mederly
  */
-public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends PolicyRuleEvaluationContext<F> {
+public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderType> extends PolicyRuleEvaluationContext<AH> {
 
-	@NotNull public final EvaluatedAssignmentImpl<F> evaluatedAssignment;
+	@NotNull public final EvaluatedAssignmentImpl<AH> evaluatedAssignment;
 	public final boolean inPlus;
 	public final boolean inZero;
 	public final boolean inMinus;
 	public final boolean isDirect;
-	public final DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple;
+	public final DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
 
 	AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
-			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
-			boolean inMinus, boolean isDirect, LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task,
+			@NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean inPlus, boolean inZero,
+			boolean inMinus, boolean isDirect, LensContext<AH> context,
+			DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task,
 			RulesEvaluationContext globalCtx) {
 		this(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, context, evaluatedAssignmentTriple,
 				task, ObjectState.AFTER, globalCtx);
 	}
 
 	private AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
-			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
-			boolean inMinus, boolean isDirect, LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, ObjectState state,
+			@NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean inPlus, boolean inZero,
+			boolean inMinus, boolean isDirect, LensContext<AH> context,
+			DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task, ObjectState state,
 			RulesEvaluationContext globalCtx) {
 		super(policyRule, context, task, globalCtx, state);
 		this.evaluatedAssignment = evaluatedAssignment;
@@ -64,7 +65,7 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 	}
 
 	@Override
-	public AssignmentPolicyRuleEvaluationContext<F> cloneWithStateConstraints(ObjectState state) {
+	public AssignmentPolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
 		return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, lensContext, evaluatedAssignmentTriple, task, state,
 				globalCtx);
 	}
@@ -100,7 +101,7 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 
 	@SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
 	@Override
-	public AssignmentPolicyRuleEvaluationContext<F> clone() {
+	public AssignmentPolicyRuleEvaluationContext<AH> clone() {
 		return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus,
 				isDirect, lensContext, evaluatedAssignmentTriple, task, globalCtx);
 	}

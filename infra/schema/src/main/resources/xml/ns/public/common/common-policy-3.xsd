@@ -1244,6 +1244,48 @@
     </xsd:complexType>
     <xsd:element name="transitionPolicyConstraint" type="tns:TransitionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
+ 	<xsd:complexType name="PolicyThresholdType">
+        <xsd:annotation>
+            <xsd:documentation>
+				Specifies limits when is the action executed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="count" type="xsd:int" minOccurs="0">
+            	<xsd:annotation>
+                	<xsd:documentation>
+                    	Expected inner constraint state before the operation.
+						True means the constraint must evaluate to true. False means the constraint must evaluate to false.
+						Unspecified means the constraint is not checked before the operation.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TransitionPolicyConstraintType.stateBefore</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="countRefresh" type="xsd:duration" minOccurs="0">
+            	<xsd:annotation>
+                	<xsd:documentation>
+                    	Expected inner constraint state after the operation.
+						True means the constraint must evaluate to true. False means the constraint must evaluate to false.
+						Unspecified means the constraint is not checked after the operation.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TransitionPolicyConstraintType.stateAfter</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+     	    </xsd:element>
+			<!--  later scope,... -->
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="policyThreshold" type="tns:PolicyThresholdType"/>
+
+
     <xsd:simpleType name="PolicyConstraintEnforcementType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1463,7 +1505,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="stop" type="tns:StopPolicyActionType" minOccurs="0">
+            <xsd:element name="suspendTask" type="tns:SuspendTaskPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Stop action. This action stops the operation after n executions and results with the error.
@@ -1530,19 +1572,6 @@
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-             <xsd:element name="count" type="xsd:integer" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Action is executed after reatching the limit
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:displayName>PolicyActionType.count</a:displayName>
-						<a:help>PolicyActionType.cunt.help</a:help>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
 		<xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -1568,7 +1597,7 @@
         </xsd:complexContent>
     </xsd:complexType>
     
-     <xsd:complexType name="StopPolicyActionType">
+     <xsd:complexType name="SuspendTaskPolicyActionType">
         <xsd:annotation>
             <xsd:documentation>
                 Stop action. This action stops the operation and results with the error.

@@ -2709,6 +2709,21 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="stage" type="tns:TaskStageType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Stage of the task. Some task can have different processing stages. E.g. reconciliation
+								task can have:
+									- situation stage in which only the situation for shadows is computed
+									- simulation stage in which all changes are computed but nothing is executed
+									- execution state in which the full reconciliation is run
+								Supported stages are defined per task type.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -3194,7 +3209,7 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
+    
     <xsd:complexType name="ScheduleType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3250,6 +3265,42 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>    
+
+    <xsd:complexType name="TaskStageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Stage type of the task.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>4.0</a:since>
+            	<a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="stage" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name identifying task stage.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="errorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines which errors are critical and should stop the task in the defined stage.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processingOption" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Define if the specified stage is executed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+         
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3601,6 +3652,30 @@
                         </xsd:annotation>
                     </xsd:element>
                     
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
+	                    <xsd:annotation>
+	                    	<xsd:documentation>
+	                    		Iteration number. Starts with 0. It is used to iteratively find unique identifier
+	                    		for the object.
+	                    	</xsd:documentation>
+	                    	<xsd:appinfo>
+	            				<a:operational>true</a:operational>
+	            			</xsd:appinfo>
+	                    </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+	                    <xsd:annotation>
+	                    	<xsd:documentation>
+	                    		Iteration token. String value that is usually a suffix to the identifier based
+	                    		on iteration number. E.g. ".007". It is used to iteratively find unique identifier
+	                    		for the object.
+	                    	</xsd:documentation>
+	                    	<xsd:appinfo>
+	            				<a:operational>true</a:operational>
+	            			</xsd:appinfo>
+            			</xsd:annotation>
+                    </xsd:element>
+                    
                     <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3794,30 +3869,6 @@
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
                     </xsd:element>
                     
-                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
-                    <xsd:annotation>
-                    	<xsd:documentation>
-                    		Iteration number. Starts with 0. It is used to iteratively find unique identifier
-                    		for the object.
-                    	</xsd:documentation>
-                    	<xsd:appinfo>
-            				<a:operational>true</a:operational>
-            			</xsd:appinfo>
-                    </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
-	                    <xsd:annotation>
-	                    	<xsd:documentation>
-	                    		Iteration token. String value that is usually a suffix to the identifier based
-	                    		on iteration number. E.g. ".007". It is used to iteratively find unique identifier
-	                    		for the object.
-	                    	</xsd:documentation>
-	                    	<xsd:appinfo>
-	            				<a:operational>true</a:operational>
-	            			</xsd:appinfo>
-            			</xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -13559,7 +13610,7 @@
                 			</xsd:appinfo>
                 		</xsd:annotation>
                 	</xsd:element>
-                	<xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
+                	<xsd:element name="iterationSpecification" type="tns:IterationSpecificationType" minOccurs="0"/>
                 	<xsd:element name="item" type="tns:ObjectTemplateItemDefinitionType" minOccurs="0"
                                  maxOccurs="unbounded"/>
                     <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0"
@@ -18155,6 +18206,19 @@
     					triggered. If the situation is not explicitly stated then
     					default situation will be selected instead. The situation
     					is determined by the constraint that triggered the rule.
+    				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyRuleType.policySituation</a:displayName>
+						<a:help>PolicyRuleType.policySituation.help</a:help>
+					</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="policyThreshold" type="tns:PolicyThresholdType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Policy threshold specification. It determines thresholds settings
+    					such as count after which the action is beeing executed, refresh
+    					interval for counter, ... 
     				</xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>PolicyRuleType.policySituation</a:displayName>

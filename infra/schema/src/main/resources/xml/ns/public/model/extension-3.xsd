@@ -83,21 +83,6 @@
         </xsd:annotation>
     </xsd:element>
     
-     <xsd:element name="simulateBeforeExecute" type="xsd:boolean">
-        <xsd:annotation>
-            <xsd:documentation>
-               Indicates if the reconciliation runs in default mode or firstly simulate and compute changes. If set to true, 
-               it means that the reconciliation will not perform any action, but it will run projection in preview mode.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:displayName>Simulation before execution</a:displayName>
-                <a:displayOrder>804</a:displayOrder>
-           	 	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
-    
     <xsd:element name="retryLiveSyncErrors" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -33,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author Radovan Semancik
  */
-public abstract class AbstractConstruction<F extends FocusType, T extends AbstractConstructionType> implements DebugDumpable, Serializable {
+public abstract class AbstractConstruction<F extends AssignmentHolderType, T extends AbstractConstructionType> implements DebugDumpable, Serializable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConstruction.class);
 
