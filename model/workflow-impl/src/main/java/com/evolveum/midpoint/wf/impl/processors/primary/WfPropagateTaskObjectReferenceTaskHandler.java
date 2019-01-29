@@ -80,7 +80,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
         TaskRunResult.TaskRunResultStatus status = TaskRunResult.TaskRunResultStatus.FINISHED;
 
-        OperationResult result = task.getResult().createSubresult(WfPropagateTaskObjectReferenceTaskHandler.class + ".run");
+        OperationResult result = WfTaskUtil.getResult(task).createSubresult(WfPropagateTaskObjectReferenceTaskHandler.class + ".run");
 
         WfTask wfTask = wfTaskController.recreateWfTask(task);
 
