@@ -250,6 +250,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void setResultTransient(OperationResult result) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public void setResult(OperationResult result) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
