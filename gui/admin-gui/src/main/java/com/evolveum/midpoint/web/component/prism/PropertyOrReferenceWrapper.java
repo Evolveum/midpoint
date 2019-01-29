@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
@@ -232,7 +234,60 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.showEmpty = showEmpty;
 		getValues().add(createAddedValue());
 	}
+	
+	@Override
+	public void removeValue(ValueWrapper<ValueWrapper> valueWrapper) throws SchemaException {
+		List<ValueWrapper> values = getValues();
+		
+		switch (valueWrapper.getStatus()) {
+			case ADDED:
+				values.remove(valueWrapper);
+				break;
+			case DELETED:
+				throw new SchemaException();
+			case NOT_CHANGED:
+				valueWrapper.setStatus(ValueStatus.DELETED);
+				break;
+		}
+		
+		int count = countUsableValues(this);
+		
+		if (count == 0 && !hasEmptyPlaceholder(this)) {
+			addValue(true);
+			
+		}
+	}
+	
+	private int countUsableValues(PropertyOrReferenceWrapper<I, ID> property) {
+		int count = 0;
+		for (ValueWrapper value : property.getValues()) {
+			value.normalize(property.getItemDefinition().getPrismContext());
 
+			if (ValueStatus.DELETED.equals(value.getStatus())) {
+				continue;
+			}
+
+			if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
+				continue;
+			}
+
+			count++;
+		}
+		return count;
+	}
+	
+	private boolean hasEmptyPlaceholder(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
+		for (ValueWrapper value : property.getValues()) {
+			value.normalize(property.getItemDefinition().getPrismContext());
+			if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	
 	public abstract ValueWrapper createAddedValue();
 
 	@Override

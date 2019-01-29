@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Priority;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 @Component
+@Priority(1000)
 public class ReferencablePanelFactory implements GuiComponentFactory {
 
 	@Autowired GuiComponentRegistry registry;
@@ -102,6 +104,12 @@ public class ReferencablePanelFactory implements GuiComponentFactory {
 		panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(panel));
 		return panel;
 		
+	}
+
+	@Override
+	public Integer getOrder() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	

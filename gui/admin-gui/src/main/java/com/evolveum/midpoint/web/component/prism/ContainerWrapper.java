@@ -537,12 +537,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			return false;
 		}
 
-		//TODO: is this correct place? shouldn't we restrict creation for multivalue containers
-		//dirrectly in factory? this can plausible cause problems while computing deltas.
-//		if (!getItem().isSingleValue() && (getValues() == null || getValues().size() == 0)){
-//			return false;
-//		}
-
 		switch (objectStatus) {
 			case MODIFYING:
 				return isNotEmptyAndCanReadAndModify(def) || showEmptyCanReadAndModify(def);
@@ -584,22 +578,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return getItemDefinition().getDeprecatedSince();
 	}
 
-//	public boolean isRemoveContainerButtonVisible() {
-//		return removeContainerButtonVisible;
-//	}
-//
-//	public void setRemoveContainerButtonVisible(boolean removeContainerButtonVisible) {
-//		this.removeContainerButtonVisible = removeContainerButtonVisible;
-//	}
-
-//	public boolean isAddContainerButtonVisible() {
-//		return addContainerButtonVisible;
-//	}
-
-//	public void setAddContainerButtonVisible(boolean addContainerButtonVisible) {
-//		this.addContainerButtonVisible = addContainerButtonVisible;
-//	}
-
 	@Override
 	public boolean isExperimental() {
 		return getItemDefinition().isExperimental();
@@ -617,5 +595,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	
 	public boolean isShowOnTopLevel() {
 		return isShowOnTopLevel;
+	}
+
+	@Override
+	public void removeValue(ValueWrapper<ContainerValueWrapper<C>> valueWrapper) throws SchemaException {
+		throw new UnsupportedOperationException("Not impelemtned yet");
 	}
 }

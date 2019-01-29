@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Priority;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  */
 @Component
+@Priority(1000)
 public class ItemPathPanelFactory extends AbstractGuiComponentFactory {
 
 	@Autowired private GuiComponentRegistry registry;

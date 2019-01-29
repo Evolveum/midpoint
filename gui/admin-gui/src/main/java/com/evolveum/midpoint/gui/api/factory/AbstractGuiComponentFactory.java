@@ -38,7 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public abstract class AbstractGuiComponentFactory implements GuiComponentFactory {
 
-	
 	@Override
 	public <T> Panel createPanel(PanelContext<T> panelCtx) {
 		Panel panel = getPanel(panelCtx);
@@ -49,6 +48,12 @@ public abstract class AbstractGuiComponentFactory implements GuiComponentFactory
 		return panel;
 	}
 		
+	@Override
+	public Integer getOrder() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	protected abstract <T> Panel getPanel(PanelContext<T> panelCtx);
 	
 	protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable) {

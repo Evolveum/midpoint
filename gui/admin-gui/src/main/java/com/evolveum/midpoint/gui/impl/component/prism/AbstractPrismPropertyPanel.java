@@ -105,7 +105,7 @@ public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapper> extends
     
     protected abstract WebMarkupContainer getHeader(String idComponent);
     
-    protected abstract WebMarkupContainer getValues(String idComponent, final IModel<IW> model, final Form form);
+    protected abstract <T> WebMarkupContainer getValues(String idComponent, final IModel<IW> model, final Form form);
 
     private void initLayout(final IModel<IW> model, final Form form) {
     	add(getHeader(ID_LABEL));

@@ -53,7 +53,7 @@ public class StaticItemWrapperColumnPanel<IW extends ItemWrapper> extends PrismP
 	}
 
     @Override
-    protected WebMarkupContainer getValues(String idComponent, IModel<IW> model, Form form) {
+    protected <T> WebMarkupContainer getValues(String idComponent, IModel<IW> model, Form form) {
     	
     	ListView<RealValuable> values = new ListView<RealValuable>(idComponent, new PropertyModel<>(model, "values")) {
     		private static final long serialVersionUID = 1L;

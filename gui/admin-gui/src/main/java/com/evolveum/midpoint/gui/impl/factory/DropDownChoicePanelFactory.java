@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.factory;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Priority;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.markup.html.panel.Panel;

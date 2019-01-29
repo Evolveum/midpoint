@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyC
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;

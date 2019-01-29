@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Priority;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -40,6 +41,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  *
  */
 @Component
+@Priority(1000)
 public class ModificationsPanelFactory extends AbstractGuiComponentFactory {
 
 	@Autowired private GuiComponentRegistry registry;

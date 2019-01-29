@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +99,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 //    ContainerValueWrapper getContainerValue();
 
     void addValue(boolean showEmpty);
+    
+    void removeValue(ValueWrapper<V> valueWrapper) throws SchemaException;
 
 	boolean checkRequired(PageBase pageBase);
 

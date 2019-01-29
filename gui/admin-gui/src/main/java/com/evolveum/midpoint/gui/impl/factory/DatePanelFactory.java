@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Priority;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;

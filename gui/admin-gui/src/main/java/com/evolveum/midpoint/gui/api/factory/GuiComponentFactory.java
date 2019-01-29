@@ -29,6 +29,8 @@ public interface GuiComponentFactory {
 	
 	<T> Panel createPanel(PanelContext<T> panelCtx);
 	
+	Integer getOrder();
+	
 //	Panel build(PanelContext panelContext);
 	
 }

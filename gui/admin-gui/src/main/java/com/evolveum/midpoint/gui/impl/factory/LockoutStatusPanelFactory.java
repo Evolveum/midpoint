@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Priority;
 
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -56,4 +57,12 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory {
 		return panel;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.factory.GuiComponentFactory#getOrder()
+	 */
+	@Override
+	public Integer getOrder() {
+		return 1000;
+	}
+	
 }
