@@ -17,6 +17,7 @@ package com.evolveum.midpoint.repo.common;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,7 @@ public class CounterManager {
 	
 	@Autowired private Clock clock;
 
-	private volatile Map<String, CounterSepcification> countersMap = new HashMap<>();
+	private Map<String, CounterSepcification> countersMap = new ConcurrentHashMap<>();
 	
 	public synchronized void registerCounter(Task task, boolean timeCounter) {
 		CounterSepcification counterSpec = countersMap.get(task.getOid());
@@ -63,6 +64,9 @@ public class CounterManager {
 	
 	
 	public CounterSepcification getCounterSpec(Task task) {
+		if (task.getOid() == null) {
+			return null;
+		}
 		return countersMap.get(task.getOid());
 	}
 }

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -62,14 +63,14 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 	private static final String CONSTRAINT_KEY_PREFIX = "assignmentModification.";
 
 	@Override
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
 		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 			return null;
 		}
-		AssignmentPolicyRuleEvaluationContext<F> ctx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
+		AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
 		if (!ctx.isDirect ||
 				!operationMatches(constraint, ctx.inPlus, ctx.inZero, ctx.inMinus) ||
 				!relationMatches(constraint, ctx) ||
@@ -83,8 +84,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 				createShortMessage(constraintElement, ctx, result));
 	}
 
-	private <F extends FocusType> LocalizableMessage createMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
-			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
+			AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
 		QName relation = ctx.evaluatedAssignment.getNormalizedRelation(relationRegistry);
@@ -97,7 +98,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 	}
 
 	@NotNull
-	private <F extends FocusType> String createOperationKey(AssignmentPolicyRuleEvaluationContext<F> ctx) {
+	private <AH extends AssignmentHolderType> String createOperationKey(AssignmentPolicyRuleEvaluationContext<AH> ctx) {
 		if (ctx.inPlus) {
 			return "Added";
 		} else if (ctx.inMinus) {
@@ -107,8 +108,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		}
 	}
 
-	private <F extends FocusType> LocalizableMessage createShortMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
-			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
+			AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
 		QName relation = ctx.evaluatedAssignment.getNormalizedRelation(relationRegistry);
@@ -131,8 +132,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 
-	private <F extends FocusType> boolean relationMatches(AssignmentModificationPolicyConstraintType constraint,
-			AssignmentPolicyRuleEvaluationContext<F> ctx) {
+	private <AH extends AssignmentHolderType> boolean relationMatches(AssignmentModificationPolicyConstraintType constraint,
+			AssignmentPolicyRuleEvaluationContext<AH> ctx) {
 		List<QName> relationsToCheck = constraint.getRelation().isEmpty() ?
 				singletonList(null) : constraint.getRelation();
 		for (QName constraintRelation : relationsToCheck) {
@@ -153,8 +154,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 
 	// TODO discriminate between primary and secondary changes (perhaps make it configurable)
 	// Primary changes are "approvable", secondary ones are not.
-	private <F extends FocusType> boolean pathsMatch(AssignmentModificationPolicyConstraintType constraint,
-			AssignmentPolicyRuleEvaluationContext<F> ctx) throws SchemaException {
+	private <AH extends AssignmentHolderType> boolean pathsMatch(AssignmentModificationPolicyConstraintType constraint,
+			AssignmentPolicyRuleEvaluationContext<AH> ctx) throws SchemaException {
 
 		boolean exactMatch = isTrue(constraint.isExactPathMatch());
 

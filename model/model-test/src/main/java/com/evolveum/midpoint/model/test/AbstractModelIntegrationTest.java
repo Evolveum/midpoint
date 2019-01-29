@@ -807,13 +807,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
 	}
 	
-	protected void unassignRole(Class<? extends FocusType> focusClass, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+	protected void unassignRole(Class<? extends AssignmentHolderType> focusClass, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 		PolicyViolationException, SecurityViolationException {
 		unassignRole(focusClass, focusOid, roleOid, (ActivationType) null, task, result);
 	}
 	
-	protected void unassignRole(Class<? extends FocusType> focusClass, String focusOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
+	protected void unassignRole(Class<? extends AssignmentHolderType> focusClass, String focusOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
 		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 		PolicyViolationException, SecurityViolationException {
 		modifyAssignmentHolderAssignment(focusClass, focusOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
@@ -2354,7 +2354,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		display(message, sb.toString());
 	}
 
-	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
+	protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedNumber);
 	}
 
@@ -2362,11 +2362,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertInducements(role, expectedNumber);
 	}
 
-	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
+	protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedType, expectedNumber);
 	}
 
-	protected <F extends FocusType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
+	protected <F extends AssignmentHolderType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		MidPointAsserts.assertAssigned(user, targetOid, refType);
 	}
 

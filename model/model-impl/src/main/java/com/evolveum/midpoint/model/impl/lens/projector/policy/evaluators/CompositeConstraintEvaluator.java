@@ -51,8 +51,8 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 
 	@Override
-	public <F extends FocusType> EvaluatedCompositeTrigger evaluate(JAXBElement<PolicyConstraintsType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+	public <AH extends AssignmentHolderType> EvaluatedCompositeTrigger evaluate(JAXBElement<PolicyConstraintsType> constraint,
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		boolean isAnd = QNameUtil.match(PolicyConstraintsType.F_AND, constraint.getName());

@@ -56,6 +56,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
@@ -144,8 +145,8 @@ public class ClockworkAuthorizationHelper {
 			if (isFocus) {
 				// Process assignments/inducements first. If the assignments/inducements are allowed then we
 				// have to ignore the assignment item in subsequent security checks
-				if (object.canRepresent(FocusType.class)) {
-					processAssignment(context, elementContext, primaryDeltaClone, deltaOperationUrl, FocusType.F_ASSIGNMENT, object, ownerResolver, securityConstraints, task, result);
+				if (object.canRepresent(AssignmentHolderType.class)) {
+					processAssignment(context, elementContext, primaryDeltaClone, deltaOperationUrl, AssignmentHolderType.F_ASSIGNMENT, object, ownerResolver, securityConstraints, task, result);
 				}
 				if (object.canRepresent(AbstractRoleType.class)) {
 					processAssignment(context, elementContext, primaryDeltaClone, deltaOperationUrl, AbstractRoleType.F_INDUCEMENT, object, ownerResolver, securityConstraints, task, result);

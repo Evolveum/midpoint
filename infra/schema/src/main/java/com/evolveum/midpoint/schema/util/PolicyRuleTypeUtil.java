@@ -377,7 +377,7 @@ public class PolicyRuleTypeUtil {
 		addIgnoreNull(rv, actions.getCertification());
 		addIgnoreNull(rv, actions.getPrune());
 		addIgnoreNull(rv, actions.getRemediation());
-		addIgnoreNull(rv, actions.getStop());
+		addIgnoreNull(rv, actions.getSuspendTask());
 		return rv;
 	}
 

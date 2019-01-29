@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
@@ -65,15 +66,15 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 	private static final String CONSTRAINT_KEY_PREFIX = "objectModification.";
 
 	@Override
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<ModificationPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<ModificationPolicyConstraintType> constraint,
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!(rctx instanceof ObjectPolicyRuleEvaluationContext)) {
 			LOGGER.trace("Policy rule evaluationo context is not of type ObjectPolicyRuleEvaluationContext. Skipping processing.");
 			return null;
 		}
-		ObjectPolicyRuleEvaluationContext<F> ctx = (ObjectPolicyRuleEvaluationContext<F>) rctx;
+		ObjectPolicyRuleEvaluationContext<AH> ctx = (ObjectPolicyRuleEvaluationContext<AH>) rctx;
 
 		if (modificationConstraintMatches(constraint, ctx, result)) {
 			LocalizableMessage message = createMessage(constraint, rctx, result);
@@ -86,8 +87,8 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		}
 	}
 
-	private <F extends FocusType> LocalizableMessage createMessage(JAXBElement<ModificationPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createMessage(JAXBElement<ModificationPolicyConstraintType> constraint,
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
@@ -97,8 +98,8 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		return evaluatorHelper.createLocalizableMessage(constraint, rctx, builtInMessage, result);
 	}
 
-	private <F extends FocusType> LocalizableMessage createShortMessage(JAXBElement<ModificationPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(JAXBElement<ModificationPolicyConstraintType> constraint,
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
@@ -109,7 +110,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 	}
 
 	@NotNull
-	private <F extends FocusType> String createOperationKey(PolicyRuleEvaluationContext<F> rctx) {
+	private <AH extends AssignmentHolderType> String createOperationKey(PolicyRuleEvaluationContext<AH> rctx) {
 		if (rctx.focusContext.isAdd()) {
 			return "Added";
 		} else if (rctx.focusContext.isDelete()) {
@@ -121,8 +122,8 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 
 	// TODO discriminate between primary and secondary changes (perhaps make it configurable)
 	// Primary changes are "approvable", secondary ones are not.
-	private <F extends FocusType> boolean modificationConstraintMatches(JAXBElement<ModificationPolicyConstraintType> constraintElement,
-			ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result)
+	private <AH extends AssignmentHolderType> boolean modificationConstraintMatches(JAXBElement<ModificationPolicyConstraintType> constraintElement,
+			ObjectPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		ModificationPolicyConstraintType constraint = constraintElement.getValue();
@@ -148,7 +149,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		return expressionPasses(constraintElement, ctx, result);
 	}
 
-	private <F extends FocusType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<F> objectOld, ItemPath path,
+	private <AH extends AssignmentHolderType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<AH> objectOld, ItemPath path,
 			boolean exactPathMatch) throws SchemaException {
 		if (delta.isAdd()) {
 			return delta.getObjectToAdd().containsItem(path, false);
@@ -159,7 +160,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		}
 	}
 
-	private <F extends FocusType> boolean operationMatches(LensFocusContext<F> focusContext, List<ChangeTypeType> operations) {
+	private <AH extends AssignmentHolderType> boolean operationMatches(LensFocusContext<AH> focusContext, List<ChangeTypeType> operations) {
 		if (operations.isEmpty()) {
 			return true;
 		}

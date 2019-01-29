@@ -50,7 +50,7 @@ public enum RReferenceOwner {
 
     INCLUDE(ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),           // 7
 
-    ROLE_MEMBER(FocusType.class, FocusType.F_ROLE_MEMBERSHIP_REF),        // 8
+    ROLE_MEMBER(AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),        // 8
 
     DELEGATED(FocusType.class, FocusType.F_DELEGATED_REF),                // 9
 

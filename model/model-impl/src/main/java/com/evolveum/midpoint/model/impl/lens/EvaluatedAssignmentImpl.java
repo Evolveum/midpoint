@@ -59,14 +59,14 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
  *
  * @author Radovan Semancik
  */
-public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAssignment<F>, ShortDumpable {
+public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment<AH>, ShortDumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
 	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private final boolean evaluatedOld;
-	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple;
-	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple;
+	@NotNull private final DeltaSetTriple<Construction<AH>> constructionTriple;
+	@NotNull private final DeltaSetTriple<PersonaConstruction<AH>> personaConstructionTriple;
 	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles;
 	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> archetypeRefVals = new ArrayList<>();
@@ -152,7 +152,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	public DeltaSetTriple<Construction<F>> getConstructionTriple() {
+	public DeltaSetTriple<Construction<AH>> getConstructionTriple() {
 		return constructionTriple;
 	}
 
@@ -167,9 +167,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		DeltaSetTriple<EvaluatedConstruction> rv = prismContext.deltaFactory().createDeltaSetTriple();
 		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
-			Collection<Construction<F>> constructionSet = constructionTriple.getSet(whichSet);
+			Collection<Construction<AH>> constructionSet = constructionTriple.getSet(whichSet);
 			if (constructionSet != null) {
-				for (Construction<F> construction : constructionSet) {
+				for (Construction<AH> construction : constructionSet) {
 					rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, task, result));
 				}
 			}
@@ -178,7 +178,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 
-	public Collection<Construction<F>> getConstructionSet(PlusMinusZero whichSet) {
+	public Collection<Construction<AH>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO: return getConstructionTriple().getZeroSet();
             case PLUS: return getConstructionTriple().getPlusSet();
@@ -187,7 +187,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
         }
     }
 
-	public void addConstruction(Construction<F> contruction, PlusMinusZero whichSet) {
+	public void addConstruction(Construction<AH> contruction, PlusMinusZero whichSet) {
 		switch (whichSet) {
             case ZERO:
             	constructionTriple.addToZeroSet(contruction);
@@ -204,11 +204,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	public DeltaSetTriple<PersonaConstruction<F>> getPersonaConstructionTriple() {
+	public DeltaSetTriple<PersonaConstruction<AH>> getPersonaConstructionTriple() {
 		return personaConstructionTriple;
 	}
 
-	public void addPersonaConstruction(PersonaConstruction<F> personaContruction, PlusMinusZero whichSet) {
+	public void addPersonaConstruction(PersonaConstruction<AH> personaContruction, PlusMinusZero whichSet) {
 		switch (whichSet) {
             case ZERO:
             	personaConstructionTriple.addToZeroSet(personaContruction);
@@ -356,15 +356,15 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public Collection<ResourceType> getResources(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<>();
-		for (Construction<F> acctConstr: constructionTriple.getAllValues()) {
+		for (Construction<AH> acctConstr: constructionTriple.getAllValues()) {
 			resources.add(acctConstr.getResource(task, result));
 		}
 		return resources;
 	}
 
 	// System configuration is used only to provide $configuration script variable (MID-2372)
-	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-		for (Construction<F> construction :constructionTriple.getAllValues()) {
+	public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+		for (Construction<AH> construction :constructionTriple.getAllValues()) {
 			construction.setFocusOdo(focusOdo);
 			construction.setSystemConfiguration(systemConfiguration);
 			construction.setWasValid(wasValid);
@@ -373,7 +373,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		}
 	}
 
-	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+	public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		evaluateConstructions(focusOdo, null, task, result);
 	}
 
@@ -463,7 +463,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 				EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
 				if (exclTrigger.getConflictingAssignment() != null) {
 					hasException =
-							hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) exclTrigger.getConflictingAssignment(),
+							hasException || processRuleExceptions((EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(),
 									rule, triggers);
 				}
 			}
@@ -480,7 +480,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		LensUtil.triggerConstraintLegacy(trigger, policySituations, localizationService);
 	}
 
-	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+	private boolean processRuleExceptions(EvaluatedAssignmentImpl<AH> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 		boolean hasException = false;
 		for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
 			if (policyException.getRuleName().equals(rule.getName())) {

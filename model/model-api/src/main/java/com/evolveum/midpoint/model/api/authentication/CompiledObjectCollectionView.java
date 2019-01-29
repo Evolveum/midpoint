@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
@@ -48,7 +48,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	private final String viewIdentifier;
 	
 	private List<GuiActionType> actions = new ArrayList<>();
-	private CollectionSpecificationType collection;
+	private CollectionRefSpecificationType collection;
 	private List<GuiObjectColumnType> columns = new ArrayList<>();
 	private DisplayType display;
 	private GuiObjectListViewAdditionalPanelsType additionalPanels;
@@ -83,11 +83,11 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		return actions;
 	}
 
-	public CollectionSpecificationType getCollection() {
+	public CollectionRefSpecificationType getCollection() {
 		return collection;
 	}
 
-	public void setCollection(CollectionSpecificationType collection) {
+	public void setCollection(CollectionRefSpecificationType collection) {
 		this.collection = collection;
 	}
 

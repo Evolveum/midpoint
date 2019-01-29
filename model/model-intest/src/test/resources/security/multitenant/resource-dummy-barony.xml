@@ -27,8 +27,6 @@
 
 	<name>Dummy Resource Barony</name>
 	
-	<parentOrgRef oid="00000000-8888-6666-a300-000000000000"/> <!-- House Harkonnen -->
-	
 	<connectorRef type="c:ConnectorType">
 		<!-- will be supplied by test code -->
 	</connectorRef>
@@ -40,5 +38,9 @@
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
+	
+	<assignment>
+		<targetRef oid="00000000-8888-6666-a300-000000000000" type="OrgType" /> <!-- House Harkonnen -->
+	</assignment>
 		
 </resource>
