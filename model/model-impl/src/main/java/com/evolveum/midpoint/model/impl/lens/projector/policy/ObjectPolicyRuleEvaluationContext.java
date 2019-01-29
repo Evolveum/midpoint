@@ -21,7 +21,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -29,21 +29,21 @@ import java.util.Collection;
 /**
  * @author mederly
  */
-public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends PolicyRuleEvaluationContext<F> {
+public class ObjectPolicyRuleEvaluationContext<AH extends AssignmentHolderType> extends PolicyRuleEvaluationContext<AH> {
 
 	ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
-			LensContext<F> context, Task task) {
+			LensContext<AH> context, Task task) {
 		this(policyRule, globalCtx, context, task, ObjectState.AFTER);
 	}
 
 	private ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
-			LensContext<F> context, Task task,
+			LensContext<AH> context, Task task,
 			ObjectState state) {
 		super(policyRule, context, task, globalCtx, state);
 	}
 
 	@Override
-	public PolicyRuleEvaluationContext<F> cloneWithStateConstraints(ObjectState state) {
+	public PolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
 		return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task, state);
 	}
 
@@ -59,7 +59,7 @@ public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends Poli
 
 	@SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
 	@Override
-	public ObjectPolicyRuleEvaluationContext<F> clone() {
+	public ObjectPolicyRuleEvaluationContext<AH> clone() {
 		return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task);
 	}
 }

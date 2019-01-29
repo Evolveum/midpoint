@@ -24,7 +24,7 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Iteration User Template: Unique email</name>
 
-    <iteration>
+    <iterationSpecification>
 		<maxIterations>5</maxIterations>
 		<tokenExpression>
 			<script>
@@ -50,7 +50,7 @@
 				</code>
 			</script>
 		</postIterationCondition>
-	</iteration>
+	</iterationSpecification>
 
 	<item>
 		<ref>emailAddress</ref>

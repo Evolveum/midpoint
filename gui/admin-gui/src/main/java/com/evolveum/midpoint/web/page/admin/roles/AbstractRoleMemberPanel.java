@@ -24,11 +24,19 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -100,7 +108,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
 	private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
-	protected static final String OPERATION_RELATION_DEFINITION_TYPE = DOT_CLASS + "loadRelationDefinitionTypes";
+	protected static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
 
 	protected static final String ID_FORM = "form";
 	
@@ -217,17 +225,56 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			@Override
 			protected List<Component> createToolbarButtonsList(String buttonId){
 				List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
-				AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ASSIGN), 	//TODO change icon class
-						createStringResource("TreeTablePanel.menu.addMembers")) {
-
+				MultifunctionalButton<AssignmentObjectRelation> assignButton = new MultifunctionalButton<AssignmentObjectRelation>(buttonId) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onClick(AjaxRequestTarget target) {
-						AbstractRoleMemberPanel.this.assignMembers(target, getSupportedRelations());
+					protected List<AssignmentObjectRelation> getAdditionalButtonsObjects() {
+						return WebComponentUtil.getRelationsDividedList(loadMemberRelationsList());
+					}
+
+					@Override
+					protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
+						AbstractRoleMemberPanel.this.assignMembers(target, relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
+								Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations());
+					}
+
+					@Override
+					protected String getDefaultButtonStyle() {
+						return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
+					}
+
+					@Override
+					protected String getAdditionalButtonStyle(AssignmentObjectRelation assignmentTargetRelation) {
+						DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
+						if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())) {
+							return display.getIcon().getCssClass();
+						}
+						return "";
+					}
+
+					@Override
+					protected String getAdditionalButtonTitle(AssignmentObjectRelation assignmentTargetRelation) {
+						DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
+						if (display != null && display.getTooltip() != null) {
+							return display.getTooltip().getOrig();
+						}
+						return "";
 					}
 				};
-				assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+
+
+//				AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ASSIGN), 	//TODO change icon class
+//						createStringResource("TreeTablePanel.menu.addMembers")) {
+//
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						AbstractRoleMemberPanel.this.assignMembers(target, getSupportedRelations());
+//					}
+//				};
+//				assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
 				buttonsList.add(1, assignButton);
 				return buttonsList;
 			}
@@ -414,7 +461,22 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		Map<String, String> memeberAuthz = getAuthorizations(getComplexTypeQName());
 		return WebComponentUtil.isAuthorized(memeberAuthz.get(action));
 	}
-	
+
+	private List<AssignmentObjectRelation> loadMemberRelationsList(){
+		OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATIONS);
+		List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();
+		PrismObject obj = getModelObject().asPrismObject();
+		try {
+			AssignmentCandidatesSpecification spec = getPageBase().getModelInteractionService()
+					.determineAssignmentTargetSpecification(obj, result);
+			assignmentTargetRelations = spec != null ? spec.getAssignmentObjectRelations() : new ArrayList<>();
+		} catch (SchemaException | ConfigurationException ex){
+			result.recordPartialError(ex.getLocalizedMessage());
+			LOGGER.error("Couldn't load member relations list for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+		}
+		return assignmentTargetRelations;
+	}
+
 	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
 		MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, availableRelationList);
 	}

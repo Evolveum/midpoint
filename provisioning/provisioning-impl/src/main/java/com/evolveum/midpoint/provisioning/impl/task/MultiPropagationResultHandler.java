@@ -46,7 +46,7 @@ public class MultiPropagationResultHandler extends AbstractSearchIterativeResult
 	private final ShadowCache shadowCache;
 
 	public MultiPropagationResultHandler(Task coordinatorTask, String taskOperationPrefix, TaskManager taskManager, RepositoryService repositoryService, ShadowCache shadowCache) {
-		super(coordinatorTask, taskOperationPrefix, "propagation", "multipropagation", taskManager);
+		super(coordinatorTask, taskOperationPrefix, "propagation", "multipropagation", null, taskManager);
 		this.repositoryService = repositoryService;
 		this.shadowCache = shadowCache;
 	}

@@ -87,6 +87,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocalAutoassignSpecificationType;
@@ -139,10 +140,10 @@ public class ObjectTemplateProcessor {
 	/**
 	 * Process focus template: application of object template where focus is both source and target.
 	 */
-	public <F extends FocusType> void processTemplate(LensContext<F> context, ObjectTemplateMappingEvaluationPhaseType phase,
+	public <AH extends AssignmentHolderType> void processTemplate(LensContext<AH> context, ObjectTemplateMappingEvaluationPhaseType phase,
 			XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ObjectAlreadyExistsException, SecurityViolationException, ConfigurationException, CommunicationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
+		LensFocusContext<AH> focusContext = context.getFocusContext();
     	if (focusContext.isDelete()) {
     		LOGGER.trace("Skipping processing of object template: focus delete");
     		return;
@@ -156,8 +157,8 @@ public class ObjectTemplateProcessor {
 
 		int iteration = focusContext.getIteration();
 		String iterationToken = focusContext.getIterationToken();
-		ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
-		PrismObjectDefinition<F> focusDefinition = getObjectDefinition(focusContext.getObjectTypeClass());
+		ObjectDeltaObject<AH> focusOdo = focusContext.getObjectDeltaObject();
+		PrismObjectDefinition<AH> focusDefinition = getObjectDefinition(focusContext.getObjectTypeClass());
 
 		LOGGER.trace("Applying object template {} to {}, iteration {} ({}), phase {}",
 				objectTemplate, focusContext.getObjectNew(), iteration, iterationToken, phase);
@@ -186,7 +187,7 @@ public class ObjectTemplateProcessor {
 		if (nextRecomputeTime != null) {
 
 			boolean alreadyHasTrigger = false;
-			PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+			PrismObject<AH> objectCurrent = focusContext.getObjectCurrent();
 			if (objectCurrent != null) {
 				for (TriggerType trigger: objectCurrent.asObjectable().getTrigger()) {
 					if (RecomputeTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri()) &&
@@ -198,7 +199,7 @@ public class ObjectTemplateProcessor {
 			}
 
 			if (!alreadyHasTrigger) {
-				PrismObjectDefinition<F> objectDefinition = focusContext.getObjectDefinition();
+				PrismObjectDefinition<AH> objectDefinition = focusContext.getObjectDefinition();
 				PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
 				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(ObjectType.F_TRIGGER);
 				PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
@@ -314,9 +315,9 @@ public class ObjectTemplateProcessor {
 		return definitions;
 	}
 	
-	<F extends FocusType, T extends FocusType> Collection<ItemDelta<?,?>> computeItemDeltas(Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
+	<AH extends AssignmentHolderType, T extends AssignmentHolderType> Collection<ItemDelta<?,?>> computeItemDeltas(Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			@Nullable Map<UniformItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap,
-			ObjectDelta<T> targetObjectAPrioriDelta, PrismObject<T> targetObject, PrismObjectDefinition<F> focusDefinition, String contextDesc) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+			ObjectDelta<T> targetObjectAPrioriDelta, PrismObject<T> targetObject, PrismObjectDefinition<AH> focusDefinition, String contextDesc) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
 
 		Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 
@@ -443,12 +444,12 @@ public class ObjectTemplateProcessor {
 		return itemDeltas;
 	}
 
-	private <F extends FocusType> ItemDelta getAprioriItemDelta(ObjectDelta<F> focusDelta, ItemPath itemPath) {
+	private <AH extends AssignmentHolderType> ItemDelta getAprioriItemDelta(ObjectDelta<AH> focusDelta, ItemPath itemPath) {
 		return focusDelta != null ? focusDelta.findItemDelta(itemPath) : null;
 	}
 
 	
-	private <F extends FocusType, T extends FocusType> void collectMappingsFromTemplate(LensContext<F> context,
+	private <AH extends AssignmentHolderType, T extends AssignmentHolderType> void collectMappingsFromTemplate(LensContext<AH> context,
 			List<FocalMappingSpec> mappings, ObjectTemplateType objectTemplateType, String contextDesc, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		if (objectTemplateType == null) {
@@ -487,7 +488,7 @@ public class ObjectTemplateProcessor {
 		}
 	}
 	
-	private <F extends FocusType, T extends FocusType> void collectAutoassignMappings(LensContext<F> context,
+	private <AH extends AssignmentHolderType, T extends FocusType> void collectAutoassignMappings(LensContext<AH> context,
 			List<FocalMappingSpec> mappings, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
@@ -623,9 +624,9 @@ public class ObjectTemplateProcessor {
 		}
 	}
 
-	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType, T extends FocusType> XMLGregorianCalendar collectTripleFromMappings(
-			LensContext<F> context, List<FocalMappingSpec> mappings, ObjectTemplateMappingEvaluationPhaseType phase,
-			ObjectDeltaObject<F> focusOdo, PrismObject<T> target,
+	private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType> XMLGregorianCalendar collectTripleFromMappings(
+			LensContext<AH> context, List<FocalMappingSpec> mappings, ObjectTemplateMappingEvaluationPhaseType phase,
+			ObjectDeltaObject<AH> focusOdo, PrismObject<T> target,
 			Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			int iteration, String iterationToken,
 			XMLGregorianCalendar now, Task task, OperationResult result)
@@ -642,7 +643,7 @@ public class ObjectTemplateProcessor {
 			}
 			String mappingDesc = mappingSpec.shortDump();
 			LOGGER.trace("Starting evaluation of {}", mappingDesc);
-			ObjectDeltaObject<F> updatedFocusOdo = getUpdatedFocusOdo(context, focusOdo, outputTripleMap, mappingSpec, mappingDesc);		// for mapping chaining
+			ObjectDeltaObject<AH> updatedFocusOdo = getUpdatedFocusOdo(context, focusOdo, outputTripleMap, mappingSpec, mappingDesc);		// for mapping chaining
 
 			MappingImpl<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context, mappingSpec.getMappingType(), 
 					mappingSpec.getOriginObject(), updatedFocusOdo, mappingSpec.constructDefaultSource(focusOdo), target,
@@ -693,11 +694,11 @@ public class ObjectTemplateProcessor {
 		return nextRecomputeTime;
 	}
 
-	private <F extends FocusType> ObjectDeltaObject<F> getUpdatedFocusOdo(LensContext<F> context, ObjectDeltaObject<F> focusOdo,
+	private <AH extends AssignmentHolderType> ObjectDeltaObject<AH> getUpdatedFocusOdo(LensContext<AH> context, ObjectDeltaObject<AH> focusOdo,
 			Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
 			FocalMappingSpec mappingSpec, String contextDesc) throws ExpressionEvaluationException,
 			PolicyViolationException, SchemaException {
-		ObjectDeltaObject<F> focusOdoCloned = null;
+		ObjectDeltaObject<AH> focusOdoCloned = null;
 		for (VariableBindingDefinitionType source : mappingSpec.getMappingType().getSource()) {
 			if (source.getPath() == null) {
 				continue;
@@ -716,7 +717,7 @@ public class ObjectTemplateProcessor {
 			} else {
 				LOGGER.trace("Updating focusOdo because of chained mappings; chained source path: {}", path);
 			}
-			Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
+			Class<AH> focusClass = context.getFocusContext().getObjectTypeClass();
 			ItemDefinition<?> itemDefinition = getObjectDefinition(focusClass).findItemDefinition(path);
 			
 			// TODO not much sure about the parameters

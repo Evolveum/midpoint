@@ -46,14 +46,14 @@ public class PolicyStateRecorder {
 
 	@Autowired private PrismContext prismContext;
 
-	public <F extends FocusType> void applyObjectState(LensContext<F> context, List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
+	public <AH extends AssignmentHolderType> void applyObjectState(LensContext<AH> context, List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
 		// compute policySituation and triggeredPolicyRules and compare it with the expected state
 		// note that we use the new state for the comparison, because if values match we do not need to do anything
-		LensFocusContext<F> focusContext = context.getFocusContext();
+		LensFocusContext<AH> focusContext = context.getFocusContext();
 		if (focusContext.isDelete()) {
 			return;
 		}
-		F objectNew = focusContext.getObjectNew().asObjectable();
+		AH objectNew = focusContext.getObjectNew().asObjectable();
 		ComputationResult cr = compute(rulesToRecord, objectNew.getPolicySituation(), objectNew.getTriggeredPolicyRule());
 		if (cr.situationsNeedUpdate) {
 			focusContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
@@ -71,7 +71,7 @@ public class PolicyStateRecorder {
 		}
 	}
 
-	public <F extends FocusType> void applyAssignmentState(LensContext<F> context,
+	public <F extends AssignmentHolderType> void applyAssignmentState(LensContext<F> context,
 			EvaluatedAssignmentImpl<F> evaluatedAssignment, PlusMinusZero mode, List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext.isDelete()) {

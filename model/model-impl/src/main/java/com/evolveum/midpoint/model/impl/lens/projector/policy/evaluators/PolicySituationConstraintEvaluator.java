@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,8 +56,8 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 
 	@Override
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<PolicySituationPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<PolicySituationPolicyConstraintType> constraint,
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		// For assignments we consider only directly attached "situation" policy rules. In the future, we might configure this.
@@ -116,11 +117,11 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 	}
 
 
-	private <F extends FocusType> Collection<EvaluatedPolicyRule> selectTriggeredRules(
-			PolicyRuleEvaluationContext<F> rctx, List<String> situations) {
+	private <AH extends AssignmentHolderType> Collection<EvaluatedPolicyRule> selectTriggeredRules(
+			PolicyRuleEvaluationContext<AH> rctx, List<String> situations) {
 		Collection<EvaluatedPolicyRule> rules;
 		if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-			EvaluatedAssignmentImpl<F> evaluatedAssignment = ((AssignmentPolicyRuleEvaluationContext<F>) rctx).evaluatedAssignment;
+			EvaluatedAssignmentImpl<AH> evaluatedAssignment = ((AssignmentPolicyRuleEvaluationContext<AH>) rctx).evaluatedAssignment;
 			// We consider all rules here, i.e. also those that are triggered on targets induced by this one.
 			// Decision whether to trigger such rules lies on "primary" policy constraints. (E.g. approvals would
 			// not trigger, whereas exclusions probably would.) Overall, our responsibility is simply to collect

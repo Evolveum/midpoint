@@ -85,6 +85,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -426,7 +427,7 @@ public class UserProfileCompiler {
 			// legacy, deprecated
 			return viewName;
 		}
-		CollectionSpecificationType collection = objectListViewType.getCollection();
+		CollectionRefSpecificationType collection = objectListViewType.getCollection();
 		if (collection == null) {
 			return objectListViewType.getType().getLocalPart();
 		}
@@ -467,14 +468,14 @@ public class UserProfileCompiler {
 	}
 
 	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		CollectionSpecificationType collectionSpec = objectListViewType.getCollection();
+		CollectionRefSpecificationType collectionSpec = objectListViewType.getCollection();
 		if (collectionSpec == null) {
 			ObjectReferenceType collectionRef = objectListViewType.getCollectionRef();
 			if (collectionRef == null) {
 				return;
 			}
 			// Legacy, deprecated
-			collectionSpec = new CollectionSpecificationType();
+			collectionSpec = new CollectionRefSpecificationType();
 			collectionSpec.setCollectionRef(collectionRef.clone());
 		}
 		if (existingView.getCollection() != null) {
@@ -485,7 +486,7 @@ public class UserProfileCompiler {
 		compileCollection(existingView, collectionSpec, task, result);
 	}
 		
-	private void compileCollection(CompiledObjectCollectionView existingView, CollectionSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
 		
 		QName targetObjectType = existingView.getObjectType();
@@ -541,7 +542,7 @@ public class UserProfileCompiler {
 			if (collectionFilterType != null) {
 				collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
 			}
-			CollectionSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
+			CollectionRefSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
 			if (baseCollectionSpec == null) {
 				existingView.setFilter(collectionFilter);
 			} else {

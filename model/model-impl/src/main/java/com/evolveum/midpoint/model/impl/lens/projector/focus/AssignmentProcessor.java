@@ -145,15 +145,15 @@ public class AssignmentProcessor {
      * Generic method for all projection types (theoretically).
      */
     @SuppressWarnings("unchecked")
-	public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
+	public <O extends ObjectType, AH extends AssignmentHolderType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
             Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
     	}
-    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-    		// We can do this only for FocusType.
+    	if (!AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		// We can do this only for AssignmentHolerType.
     		return;
     	}
 //    	if (ModelExecuteOptions.isLimitPropagation(context.getOptions()) && SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))){
@@ -164,7 +164,7 @@ public class AssignmentProcessor {
     	OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignmentsProjections");
 
     	try {
-    		processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
+    		processAssignmentsProjectionsWithFocus((LensContext<AH>)context, now, task, result);
     	} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
     			CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
     		result.recordFatalError(e);
@@ -194,14 +194,14 @@ public class AssignmentProcessor {
      * Processing focus-projection assignments (including roles).
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private <F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<F> context, XMLGregorianCalendar now,
+	private <AH extends AssignmentHolderType, F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<AH> context, XMLGregorianCalendar now,
     		Task task, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
     	// PREPARE ASSIGNMENT DELTA
 
-    	LensFocusContext<F> focusContext = context.getFocusContext();
-        ObjectDelta<F> focusDelta = focusContext.getDelta();
+    	LensFocusContext<AH> focusContext = context.getFocusContext();
+        ObjectDelta<AH> focusDelta = focusContext.getDelta();
 
     	if (focusDelta != null && focusDelta.isDelete()) {
 			processFocusDelete(context, result);
@@ -215,10 +215,10 @@ public class AssignmentProcessor {
 
         // Initializing assignment evaluator. This will be used later to process all the assignments including the nested
         // assignments (roles).
-        AssignmentEvaluator<F> assignmentEvaluator = createAssignmentEvaluator(context, now);
+        AssignmentEvaluator<AH> assignmentEvaluator = createAssignmentEvaluator(context, now);
         ObjectType source = determineSource(focusContext);
 
-        AssignmentTripleEvaluator<F> assignmentTripleEvaluator = new AssignmentTripleEvaluator<>();
+        AssignmentTripleEvaluator<AH> assignmentTripleEvaluator = new AssignmentTripleEvaluator<>();
         assignmentTripleEvaluator.setActivationComputer(activationComputer);
         assignmentTripleEvaluator.setAssignmentEvaluator(assignmentEvaluator);
         assignmentTripleEvaluator.setContext(context);
@@ -234,7 +234,7 @@ public class AssignmentProcessor {
 
         // Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
         // This is where most of the assignment-level action happens.
-        DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+        DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
         policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
@@ -271,7 +271,7 @@ public class AssignmentProcessor {
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getPlusSet(), focusOutputTripleMap, PlusMinusZero.PLUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
-        ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
+        ObjectDeltaObject<AH> focusOdo = focusContext.getObjectDeltaObject();
 		Collection<ItemDelta<?,?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap, null,
 				focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(),
 				"focus mappings in assignments of "+focusContext.getHumanReadableName());
@@ -281,6 +281,11 @@ public class AssignmentProcessor {
 
 		if (context.getPartialProcessingOptions().getProjection() != PartialProcessingTypeType.SKIP) {
 
+			if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+				LOGGER.trace("Skipping evaluating constructions. Not a focus.");
+				return;
+			}
+			
 			// PROCESSING PROJECTIONS
 
 			if (LOGGER.isTraceEnabled()) {
@@ -292,176 +297,8 @@ public class AssignmentProcessor {
 			// Now we have complete focus with all the focusMappings so we can evaluate the constructions
 			evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
 
-			ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>> consumer = new ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>>() {
-
-				private boolean processOnlyExistingProjCxts;
-
-				@Override
-				public boolean before(ResourceShadowDiscriminator rat) {
-					if (rat.getResourceOid() == null) {
-						throw new IllegalStateException("Resource OID null in ResourceAccountType during assignment processing");
-					}
-					if (rat.getIntent() == null) {
-						throw new IllegalStateException(
-								"Account type is null in ResourceAccountType during assignment processing");
-					}
-
-					processOnlyExistingProjCxts = false;
-					if (ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
-						if (context.getTriggeredResourceOid() != null
-								&& !rat.getResourceOid().equals(context.getTriggeredResourceOid())) {
-							LOGGER.trace(
-									"Skipping processing construction for shadow identified by {} because of limitation to propagate changes only for resource {}",
-									rat, context.getTriggeredResourceOid());
-							return false;
-						}
-
-						if (context.getChannel() != null && SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))) {
-							LOGGER.trace(
-									"Processing of shadow identified by {} will be skipped because of limitation for discovery channel.", context.getChannel());    // TODO is this message OK? [med]
-							processOnlyExistingProjCxts = true;
-						}
-					}
-
-					return true;
-				}
-
-				@Override
-				public void onAssigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-					LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
-					projectionContext.setAssigned(true);
-					projectionContext.setAssignedOld(false);
-					projectionContext.setLegalOld(false);
-					if (projectionContext.getAssignmentPolicyEnforcementType() != AssignmentPolicyEnforcementType.NONE) {
-						LOGGER.trace("Projection {} legal: assigned (valid)", desc);
-						projectionContext.setLegal(true);
-					} else {
-						LOGGER.trace("Projection {} skip: assigned (valid), NONE enforcement", desc);
-					}
-				}
-
-				@Override
-				public void onUnchangedValid(ResourceShadowDiscriminator key, String desc) throws SchemaException {
-					LensProjectionContext projectionContext = context.findProjectionContext(key);
-					if (projectionContext == null) {
-						if (processOnlyExistingProjCxts) {
-							LOGGER.trace("Projection {} skip: unchanged (valid), processOnlyExistingProjCxts", desc);
-							return;
-						}
-						// The projection should exist before the change but it does not
-						// This happens during reconciliation if there is an inconsistency.
-						// Pretend that the assignment was just added. That should do.
-						projectionContext = LensUtil.getOrCreateProjectionContext(context, key);
-					}
-					LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
-					projectionContext.setAssigned(true);
-					projectionContext.setAssignedOld(true);
-					if (projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.NONE) {
-						projectionContext.setLegalOld(null);
-						projectionContext.setLegal(null);
-					} else {
-						projectionContext.setLegalOld(true);
-						projectionContext.setLegal(true);
-					}
-				}
-
-				@Override
-				public void onUnchangedInvalid(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-					LensProjectionContext projectionContext = context.findProjectionContext(rat);
-					if (projectionContext == null) {
-						if (processOnlyExistingProjCxts) {
-							LOGGER.trace("Projection {} skip: unchanged (invalid), processOnlyExistingProjCxts", desc);
-						} else {
-							LOGGER.trace("Projection {} skip: unchanged (invalid) and does not exist in current lens context", desc);
-						}
-						return;
-					}
-					LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
-					projectionContext.setLegal(false);
-					projectionContext.setLegalOld(false);
-					projectionContext.setAssigned(false);
-					projectionContext.setAssignedOld(false);
-					if (projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.NONE
-							|| projectionContext.getAssignmentPolicyEnforcementType()
-							== AssignmentPolicyEnforcementType.POSITIVE) {
-						projectionContext.setLegalOld(null);
-						projectionContext.setLegal(null);
-					} else {
-						projectionContext.setLegalOld(false);
-						projectionContext.setLegal(false);
-					}
-				}
-
-				@Override
-				public void onUnassigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-					if (accountExists(context, rat)) {
-						LensProjectionContext projectionContext = context.findProjectionContext(rat);
-						if (projectionContext == null) {
-							if (processOnlyExistingProjCxts) {
-								LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjCxts", desc);
-								return;
-							}
-							projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
-						}
-						projectionContext.setAssigned(false);
-						projectionContext.setAssignedOld(true);
-						projectionContext.setLegalOld(true);
-
-						AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext
-								.getAssignmentPolicyEnforcementType();
-						// TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
-						if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL
-								|| assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
-							LOGGER.trace("Projection {} illegal: unassigned", desc);
-							projectionContext.setLegal(false);
-						} else if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.POSITIVE) {
-							LOGGER.trace("Projection {} legal: unassigned, but allowed by policy ({})", desc,
-									assignmentPolicyEnforcement);
-							projectionContext.setLegal(true);
-						} else {
-							LOGGER.trace("Projection {} legal: unassigned, policy decision postponed ({})", desc,
-									assignmentPolicyEnforcement);
-							projectionContext.setLegal(null);
-						}
-					} else {
-
-						LOGGER.trace("Projection {} nothing: unassigned (valid->invalid) but not there", desc);
-						// We have to delete something that is not there. Nothing to do.
-					}
-				}
-
-				@Override
-				public void after(ResourceShadowDiscriminator rat, String desc,
-						DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack<Construction<F>>> constructionMapTriple) {
-					PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
-							prismContext.deltaFactory().createPrismValueDeltaSetTriple(
-									getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
-									getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
-									getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
-					LensProjectionContext projectionContext = context.findProjectionContext(rat);
-					if (projectionContext != null) {
-						// This can be null in a exotic case if we delete already deleted account
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("Construction delta set triple for {}:\n{}", rat,
-									projectionConstructionDeltaSetTriple.debugDump(1));
-						}
-						projectionContext.setConstructionDeltaSetTriple(projectionConstructionDeltaSetTriple);
-						if (isForceRecon(constructionMapTriple.getZeroMap().get(rat)) || isForceRecon(
-								constructionMapTriple.getPlusMap().get(rat)) || isForceRecon(
-								constructionMapTriple.getMinusMap().get(rat))) {
-							projectionContext.setDoReconciliation(true);
-						}
-					}
-				}
-
-			};
-
-			constructionProcessor.processConstructions(context, evaluatedAssignmentTriple,
-					evaluatedAssignment -> evaluatedAssignment.getConstructionTriple(),
-					construction -> getConstructionMapKey(context, construction, task, result),
-					consumer,
-					task, result);
-
+			proccessProjections((LensContext<F>) context, (DeltaSetTriple) evaluatedAssignmentTriple, task, result);
+			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Projection processing done");
 			}
@@ -471,6 +308,178 @@ public class AssignmentProcessor {
 		}
     }
 
+    private <F extends FocusType> void proccessProjections(LensContext<F> context, DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    	ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>> consumer = new ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>>() {
+
+			private boolean processOnlyExistingProjCxts;
+
+			@Override
+			public boolean before(ResourceShadowDiscriminator rat) {
+				if (rat.getResourceOid() == null) {
+					throw new IllegalStateException("Resource OID null in ResourceAccountType during assignment processing");
+				}
+				if (rat.getIntent() == null) {
+					throw new IllegalStateException(
+							"Account type is null in ResourceAccountType during assignment processing");
+				}
+
+				processOnlyExistingProjCxts = false;
+				if (ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
+					if (context.getTriggeredResourceOid() != null
+							&& !rat.getResourceOid().equals(context.getTriggeredResourceOid())) {
+						LOGGER.trace(
+								"Skipping processing construction for shadow identified by {} because of limitation to propagate changes only for resource {}",
+								rat, context.getTriggeredResourceOid());
+						return false;
+					}
+
+					if (context.getChannel() != null && SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))) {
+						LOGGER.trace(
+								"Processing of shadow identified by {} will be skipped because of limitation for discovery channel.", context.getChannel());    // TODO is this message OK? [med]
+						processOnlyExistingProjCxts = true;
+					}
+				}
+
+				return true;
+			}
+
+			@Override
+			public void onAssigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
+				LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+				projectionContext.setAssigned(true);
+				projectionContext.setAssignedOld(false);
+				projectionContext.setLegalOld(false);
+				if (projectionContext.getAssignmentPolicyEnforcementType() != AssignmentPolicyEnforcementType.NONE) {
+					LOGGER.trace("Projection {} legal: assigned (valid)", desc);
+					projectionContext.setLegal(true);
+				} else {
+					LOGGER.trace("Projection {} skip: assigned (valid), NONE enforcement", desc);
+				}
+			}
+
+			@Override
+			public void onUnchangedValid(ResourceShadowDiscriminator key, String desc) throws SchemaException {
+				LensProjectionContext projectionContext = context.findProjectionContext(key);
+				if (projectionContext == null) {
+					if (processOnlyExistingProjCxts) {
+						LOGGER.trace("Projection {} skip: unchanged (valid), processOnlyExistingProjCxts", desc);
+						return;
+					}
+					// The projection should exist before the change but it does not
+					// This happens during reconciliation if there is an inconsistency.
+					// Pretend that the assignment was just added. That should do.
+					projectionContext = LensUtil.getOrCreateProjectionContext(context, key);
+				}
+				LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
+				projectionContext.setAssigned(true);
+				projectionContext.setAssignedOld(true);
+				if (projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.NONE) {
+					projectionContext.setLegalOld(null);
+					projectionContext.setLegal(null);
+				} else {
+					projectionContext.setLegalOld(true);
+					projectionContext.setLegal(true);
+				}
+			}
+
+			@Override
+			public void onUnchangedInvalid(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
+				LensProjectionContext projectionContext = context.findProjectionContext(rat);
+				if (projectionContext == null) {
+					if (processOnlyExistingProjCxts) {
+						LOGGER.trace("Projection {} skip: unchanged (invalid), processOnlyExistingProjCxts", desc);
+					} else {
+						LOGGER.trace("Projection {} skip: unchanged (invalid) and does not exist in current lens context", desc);
+					}
+					return;
+				}
+				LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
+				projectionContext.setLegal(false);
+				projectionContext.setLegalOld(false);
+				projectionContext.setAssigned(false);
+				projectionContext.setAssignedOld(false);
+				if (projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.NONE
+						|| projectionContext.getAssignmentPolicyEnforcementType()
+						== AssignmentPolicyEnforcementType.POSITIVE) {
+					projectionContext.setLegalOld(null);
+					projectionContext.setLegal(null);
+				} else {
+					projectionContext.setLegalOld(false);
+					projectionContext.setLegal(false);
+				}
+			}
+
+			@Override
+			public void onUnassigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
+				if (accountExists(context, rat)) {
+					LensProjectionContext projectionContext = context.findProjectionContext(rat);
+					if (projectionContext == null) {
+						if (processOnlyExistingProjCxts) {
+							LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjCxts", desc);
+							return;
+						}
+						projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+					}
+					projectionContext.setAssigned(false);
+					projectionContext.setAssignedOld(true);
+					projectionContext.setLegalOld(true);
+
+					AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext
+							.getAssignmentPolicyEnforcementType();
+					// TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
+					if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL
+							|| assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
+						LOGGER.trace("Projection {} illegal: unassigned", desc);
+						projectionContext.setLegal(false);
+					} else if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.POSITIVE) {
+						LOGGER.trace("Projection {} legal: unassigned, but allowed by policy ({})", desc,
+								assignmentPolicyEnforcement);
+						projectionContext.setLegal(true);
+					} else {
+						LOGGER.trace("Projection {} legal: unassigned, policy decision postponed ({})", desc,
+								assignmentPolicyEnforcement);
+						projectionContext.setLegal(null);
+					}
+				} else {
+
+					LOGGER.trace("Projection {} nothing: unassigned (valid->invalid) but not there", desc);
+					// We have to delete something that is not there. Nothing to do.
+				}
+			}
+
+			@Override
+			public void after(ResourceShadowDiscriminator rat, String desc,
+					DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack<Construction<F>>> constructionMapTriple) {
+				PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
+						prismContext.deltaFactory().createPrismValueDeltaSetTriple(
+								getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
+								getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
+								getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
+				LensProjectionContext projectionContext = context.findProjectionContext(rat);
+				if (projectionContext != null) {
+					// This can be null in a exotic case if we delete already deleted account
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Construction delta set triple for {}:\n{}", rat,
+								projectionConstructionDeltaSetTriple.debugDump(1));
+					}
+					projectionContext.setConstructionDeltaSetTriple(projectionConstructionDeltaSetTriple);
+					if (isForceRecon(constructionMapTriple.getZeroMap().get(rat)) || isForceRecon(
+							constructionMapTriple.getPlusMap().get(rat)) || isForceRecon(
+							constructionMapTriple.getMinusMap().get(rat))) {
+						projectionContext.setDoReconciliation(true);
+					}
+				}
+			}
+
+		};
+
+		constructionProcessor.processConstructions(context, evaluatedAssignmentTriple,
+				evaluatedAssignment -> evaluatedAssignment.getConstructionTriple(),
+				construction -> getConstructionMapKey(context, construction, task, result),
+				consumer,
+				task, result);
+
+    }
 
 
 	private <F extends FocusType> ResourceShadowDiscriminator getConstructionMapKey(LensContext<F> context, Construction<F> construction, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -490,7 +499,7 @@ public class AssignmentProcessor {
      * @param <F>
      * @throws SchemaException
      */
-    private <F extends FocusType> void checkAssignmentDeltaSanity(LensContext<F> context) throws SchemaException {
+    private <F extends AssignmentHolderType> void checkAssignmentDeltaSanity(LensContext<F> context) throws SchemaException {
         ObjectDelta<F> focusDelta = context.getFocusContext().getDelta();
         if (focusDelta == null || !focusDelta.isModify() || focusDelta.getModifications() == null) {
             return;
@@ -527,14 +536,14 @@ public class AssignmentProcessor {
 
 
 
-    private <F extends FocusType> void evaluateConstructions(LensContext<F> context,
-    		DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+    private <AH extends AssignmentHolderType> void evaluateConstructions(LensContext<AH> context,
+    		DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
     	evaluateConstructions(context, evaluatedAssignmentTriple.getZeroSet(), task, result);
     	evaluateConstructions(context, evaluatedAssignmentTriple.getPlusSet(), task, result);
     	evaluateConstructions(context, evaluatedAssignmentTriple.getMinusSet(), task, result);
     }
 
-    private <F extends FocusType> void evaluateConstructions(LensContext<F> context,
+    private <F extends AssignmentHolderType> void evaluateConstructions(LensContext<F> context,
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
     	if (evaluatedAssignments == null) {
     		return;
@@ -582,7 +591,7 @@ public class AssignmentProcessor {
 	/**
 	 * Simply mark all projections as illegal - except those that are being unliked
 	 */
-	private <F extends FocusType> void processFocusDelete(LensContext<F> context, OperationResult result) {
+	private <F extends AssignmentHolderType> void processFocusDelete(LensContext<F> context, OperationResult result) {
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
 				// We do not want to affect unliked projections
@@ -614,7 +623,7 @@ public class AssignmentProcessor {
 	/**
 	 * Set 'legal' flag for the accounts that does not have it already
 	 */
-	private <F extends FocusType> void finishLegalDecisions(LensContext<F> context) throws PolicyViolationException, SchemaException {
+	private <F extends AssignmentHolderType> void finishLegalDecisions(LensContext<F> context) throws PolicyViolationException, SchemaException {
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 
 			String desc = projectionContext.toHumanReadableString();
@@ -708,16 +717,16 @@ public class AssignmentProcessor {
 		}
 	}
 
-	private <F extends FocusType> void createAssignmentDelta(LensContext<F> context, LensProjectionContext accountContext) throws SchemaException{
+	private <F extends AssignmentHolderType> void createAssignmentDelta(LensContext<F> context, LensProjectionContext accountContext) throws SchemaException{
         Class<F> focusClass = context.getFocusClass();
         ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
-		        .createDelta(FocusType.F_ASSIGNMENT, focusClass);
+		        .createDelta(AssignmentHolderType.F_ASSIGNMENT, focusClass);
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource(), prismContext));
 		assignment.setConstruction(constructionType);
 		assignmentDelta.addValueToAdd(assignment.asPrismContainerValue());
-		PrismContainerDefinition<AssignmentType> containerDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass).findContainerDefinition(FocusType.F_ASSIGNMENT);
+		PrismContainerDefinition<AssignmentType> containerDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
 		assignmentDelta.applyDefinition(containerDefinition);
 		context.getFocusContext().swallowToProjectionWaveSecondaryDelta(assignmentDelta);
 
@@ -959,7 +968,7 @@ public class AssignmentProcessor {
 		}
 	}
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> XMLGregorianCalendar collectFocusTripleFromMappings(
+    private <V extends PrismValue, D extends ItemDefinition, F extends AssignmentHolderType> XMLGregorianCalendar collectFocusTripleFromMappings(
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
     		Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
     		PlusMinusZero plusMinusZero) throws SchemaException {
@@ -1090,7 +1099,7 @@ public class AssignmentProcessor {
 		}
 	}
 
-	private <F extends FocusType> AssignmentEvaluator<F> createAssignmentEvaluator(LensContext<F> context,
+	private <F extends AssignmentHolderType> AssignmentEvaluator<F> createAssignmentEvaluator(LensContext<F> context,
 			XMLGregorianCalendar now) throws SchemaException {
 		return new AssignmentEvaluator.Builder<F>()
 				.repository(repositoryService)

@@ -23,7 +23,7 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Random Iteration User Template</name>
-    <iteration>
+    <iterationSpecification>
 		<maxIterations>5</maxIterations>
 		<tokenExpression>
 			<script>
@@ -55,7 +55,7 @@
 				<code>name != 'herman'</code>
 			</script>
 		</postIterationCondition>
-	</iteration>
+	</iterationSpecification>
     <mapping>
     	<source>
     		<path>nickName</path>

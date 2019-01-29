@@ -2005,7 +2005,7 @@ public class ShadowCache {
 						continue;
 					}
 					throw new SchemaException("Cannot combine on-resource and off-resource properties in a shadow search query. Encountered property " +
-							((EqualFilter) f).getFullPath());
+							((PropertyValueFilter) f).getFullPath());
 				}
 				attributeFilter.add(f);
 			} else if (f instanceof NaryLogicalFilter) {
