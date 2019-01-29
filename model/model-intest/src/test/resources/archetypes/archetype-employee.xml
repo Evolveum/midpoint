@@ -17,7 +17,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Employee</name>
     <archetypePolicy>
     	<display>
@@ -29,4 +29,9 @@
     		</icon>
     	</display>
     </archetypePolicy>
+    <assignment>
+    	<assignmentRelation>
+    		<holderType>UserType</holderType>
+    	</assignmentRelation>
+    </assignment>
 </archetype>

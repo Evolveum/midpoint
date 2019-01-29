@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
@@ -65,6 +67,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 
 	private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
+	
+	private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptEvaluator.class);
 
 	private final ScriptEngine scriptEngine;
 	private final PrismContext prismContext;
@@ -130,12 +134,19 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		if (javaReturnType == null) {
 			javaReturnType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdReturnType);
 		}
+		
+		if (javaReturnType == null && (outputDefinition instanceof PrismContainerDefinition<?>)) {
+			// This is the case when we need a container, but we do not have compile-time class for that
+			// E.g. this may be container in object extension (MID-5080)
+			javaReturnType = (Class<T>) PrismContainerValue.class;
+		}
 
 		if (javaReturnType == null) {
 			// TODO quick and dirty hack - because this could be because of enums defined in schema extension (MID-2399)
 			// ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
-			javaReturnType = (Class) String.class;
+			javaReturnType = (Class<T>) String.class;
 		}
+		LOGGER.trace("expected return type: XSD={}, Java={}", xsdReturnType, javaReturnType);
 
 		List<V> pvals = new ArrayList<>();
 

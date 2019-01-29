@@ -75,7 +75,7 @@ public class FocusLifecycleProcessor {
     	if (focusContext == null) {
     		return;
     	}
-    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    	if (!AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
     		// We can do this only for FocusType.
     		return;
     	}
@@ -83,7 +83,7 @@ public class FocusLifecycleProcessor {
     	OperationResult result = parentResult.createSubresult(FocusLifecycleProcessor.class.getName() + ".processLifecycle");
 
     	try {
-    		processLifecycleWithFocus((LensContext<? extends FocusType>)context, now, task, result);
+    		processLifecycleWithFocus((LensContext<? extends AssignmentHolderType>)context, now, task, result);
     	} catch (Throwable e) {
     		result.recordFatalError(e);
     		throw e;
@@ -93,7 +93,7 @@ public class FocusLifecycleProcessor {
     	result.recordSuccessIfUnknown();
     }
 
-	private <F extends FocusType> void processLifecycleWithFocus(LensContext<F> context, XMLGregorianCalendar now,
+	private <F extends AssignmentHolderType> void processLifecycleWithFocus(LensContext<F> context, XMLGregorianCalendar now,
     		Task task, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
@@ -136,7 +136,7 @@ public class FocusLifecycleProcessor {
 		}
     }
 
-	private <F extends FocusType> boolean shouldTransition(LensContext<F> context, LifecycleStateTransitionType transitionType, String targetLifecycleState, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <F extends AssignmentHolderType> boolean shouldTransition(LensContext<F> context, LifecycleStateTransitionType transitionType, String targetLifecycleState, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType conditionExpressionType = transitionType.getCondition();
 		if (conditionExpressionType == null) {
 			return false;
@@ -156,14 +156,14 @@ public class FocusLifecycleProcessor {
 		return ExpressionUtil.getBooleanConditionOutput(expressionOutputValue);
 	}
 
-	private <F extends FocusType> void recordLifecycleTransitionDelta(LensFocusContext<F> focusContext, String targetLifecycleState) throws SchemaException {
+	private <F extends AssignmentHolderType> void recordLifecycleTransitionDelta(LensFocusContext<F> focusContext, String targetLifecycleState) throws SchemaException {
 		PropertyDelta<String> lifecycleDelta = focusContext.getPrismContext().deltaFactory().property()
 				.createModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, focusContext.getObjectDefinition(),
 				targetLifecycleState);
 		focusContext.swallowToSecondaryDelta(lifecycleDelta);
 	}
 
-	private <F extends FocusType> void executeEntryActions(LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
+	private <F extends AssignmentHolderType> void executeEntryActions(LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
 			String targetLifecycleState, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 		LifecycleStateType stateType = LifecycleUtil.findStateDefinition(lifecycleStateModel, targetLifecycleState);
 		if (stateType == null) {
@@ -172,7 +172,7 @@ public class FocusLifecycleProcessor {
 		executeStateActions(context, targetLifecycleState, stateType.getEntryAction(), "entry", now, task, result);
 	}
 	
-	private <F extends FocusType> void executeExitActions(LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
+	private <F extends AssignmentHolderType> void executeExitActions(LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
 			String targetLifecycleState, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 		LifecycleStateType stateType = LifecycleUtil.findStateDefinition(lifecycleStateModel, targetLifecycleState);
 		if (stateType == null) {
@@ -181,7 +181,7 @@ public class FocusLifecycleProcessor {
 		executeStateActions(context, targetLifecycleState, stateType.getExitAction(), "exit", now, task, result);
 	}
 
-	private <F extends FocusType> void executeStateActions(LensContext<F> context, String targetLifecycleState,
+	private <F extends AssignmentHolderType> void executeStateActions(LensContext<F> context, String targetLifecycleState,
 			List<LifecycleStateActionType> actions, String actionTypeDesc, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 		for (LifecycleStateActionType action: actions) {
 			LOGGER.trace("Execute {} action {} for state {} of {}", actionTypeDesc, action.getName(), targetLifecycleState, context.getFocusContext().getObjectNew());
@@ -189,7 +189,7 @@ public class FocusLifecycleProcessor {
 		}
 	}
 
-	private <F extends FocusType> void executeDataReduction(LensContext<F> context, LifecycleStateActionDataReductionType dataReduction, 
+	private <F extends AssignmentHolderType> void executeDataReduction(LensContext<F> context, LifecycleStateActionDataReductionType dataReduction, 
 			XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 		if (dataReduction == null) {
 			return;

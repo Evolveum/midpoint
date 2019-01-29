@@ -19,8 +19,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
 
@@ -263,6 +266,17 @@ public class MiscSchemaUtil {
         ref.setType(type);
         return ref;
     }
+    
+	public static <O extends ObjectType> ObjectReferenceType createObjectReference(PrismObject<O> object, Class<? extends ObjectType> implicitReferenceTargetType) {
+		ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(object.getOid());
+        if (implicitReferenceTargetType == null || !implicitReferenceTargetType.equals(object.getCompileTimeClass())) {
+        	ref.setType(ObjectTypes.getObjectType(object.getCompileTimeClass()).getTypeQName());
+        }
+        ref.setTargetName(PolyString.toPolyStringType(object.getName()));
+        return ref;
+	}
+
 
     public static boolean equalsIntent(String intent1, String intent2) {
 		if (intent1 == null) {
@@ -335,6 +349,25 @@ public class MiscSchemaUtil {
 			}
 		}
 		return layers.contains(layer);
+	}
+	
+	public static boolean contains(Collection<ObjectReferenceType> collection, ObjectReferenceType item) {
+		for (ObjectReferenceType collectionItem: collection) {
+			if (matches(collectionItem, item)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean matches(ObjectReferenceType a, ObjectReferenceType b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		return MiscUtil.equals(a.getOid(), b.getOid());
 	}
 
 	// Some searches may return duplicate objects. This is an utility method to remove the duplicates.
@@ -450,4 +483,10 @@ public class MiscSchemaUtil {
 				throw new IllegalArgumentException("Unknown processing "+type);
 		}
 	}
+	
+	public static <O extends ObjectType> boolean canBeAssignedFrom(QName requiredTypeQName, Class<O> providedTypeClass) {
+		Class<? extends ObjectType> requiredTypeClass = ObjectTypes.getObjectTypeFromTypeQName(requiredTypeQName).getClassDefinition();
+		return requiredTypeClass.isAssignableFrom(providedTypeClass);
+	}
+
 }

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -230,7 +231,7 @@ public class ResourceDetailsTabPanel extends Panel {
 		((PageBase) getPage()).navigateToNext(PageTaskEdit.class, parameters);
 	}
 
-	private InfoBoxPanel createSourceTargetInfo(ResourceType resource) {
+	private BasicInfoBoxPanel createSourceTargetInfo(ResourceType resource) {
 
 		String backgroundColor = "bg-aqua";
 		SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
@@ -263,7 +264,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
 		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
-		return new InfoBoxPanel(ID_SOURCE_TARGET, boxModel);
+		return new BasicInfoBoxPanel(ID_SOURCE_TARGET, boxModel);
 
 	}
 
@@ -310,7 +311,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
 		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
-		InfoBoxPanel lastAvailabilityStatus = new InfoBoxPanel(ID_LAST_AVAILABILITY_STATUS, boxModel);
+		InfoBoxPanel lastAvailabilityStatus = new BasicInfoBoxPanel(ID_LAST_AVAILABILITY_STATUS, boxModel);
 		lastAvailabilityStatus.setOutputMarkupId(true);
 
 		return lastAvailabilityStatus;
@@ -365,7 +366,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
 		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
-		return new InfoBoxPanel(ID_SCHEMA_STATUS, boxModel);
+		return new BasicInfoBoxPanel(ID_SCHEMA_STATUS, boxModel);
 
 	}
 

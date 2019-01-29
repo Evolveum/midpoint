@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.services;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -99,7 +100,7 @@ public class PageServices extends PageAdminObjectList<ServiceType> {
 	}
 
 	@Override
-	protected void newObjectActionPerformed(AjaxRequestTarget target) {
+	protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
 		navigateToNext(PageService.class);
 	}
 

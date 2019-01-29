@@ -216,12 +216,6 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
     }
 
     @Override
-    protected void newObjectActionPerformed(AjaxRequestTarget target) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     protected boolean isNameColumnClickable(IModel<SelectableBean<ReportOutputType>> rowModel) {
         return false;
     }
@@ -291,7 +285,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
                         }
 
                         return XmlTypeConverter.toDate(metadata.getCreateTimestamp());                   }
-                }, DateLabelComponent.LONG_MEDIUM_STYLE));
+                }, WebComponentUtil.getShortDateTimeFormat(PageCreatedReports.this)));
             }
         };
         columns.add(column);

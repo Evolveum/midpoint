@@ -92,12 +92,12 @@ public class EntityRegistry {
 
             for (Attribute attribute : (Set<Attribute>) entity.getAttributes()) {
                 Class jType = attribute.getJavaType();
-                JaxbPath path = (JaxbPath) jType.getAnnotation(JaxbPath.class);
-                if (path == null) {
-                    path = ((Method) attribute.getJavaMember()).getAnnotation(JaxbPath.class);
+                JaxbPath[] paths = (JaxbPath[]) jType.getAnnotationsByType(JaxbPath.class);
+                if (paths == null || paths.length == 0) {
+                    paths = ((Method) attribute.getJavaMember()).getAnnotationsByType(JaxbPath.class);
                 }
 
-                if (path == null) {
+                if (paths == null || paths.length == 0) {
                     JaxbName name = ((Method) attribute.getJavaMember()).getAnnotation(JaxbName.class);
                     if (name != null) {
                         overrides.put(name.localPart(), attribute);
@@ -105,15 +105,17 @@ public class EntityRegistry {
                     continue;
                 }
 
-                JaxbName[] names = path.itemPath();
-                if (names.length == 1) {
-                    overrides.put(names[0].localPart(), attribute);
-                } else {
-                    UniformItemPath customPath = prismContext.emptyPath();
-                    for (JaxbName name : path.itemPath()) {
-                        customPath = customPath.append(new QName(name.namespace(), name.localPart()));
+                for (JaxbPath path : paths) {
+                    JaxbName[] names = path.itemPath();
+                    if (names.length == 1) {
+                        overrides.put(names[0].localPart(), attribute);
+                    } else {
+                        UniformItemPath customPath = prismContext.emptyPath();
+                        for (JaxbName name : path.itemPath()) {
+                            customPath = customPath.append(new QName(name.namespace(), name.localPart()));
+                        }
+                        pathOverrides.put(customPath, attribute);
                     }
-                    pathOverrides.put(customPath, attribute);
                 }
             }
 

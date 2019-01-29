@@ -197,7 +197,8 @@ public class ItemPathImpl implements ItemPath {
 		if (fromClipped >= toClipped) {
 			return EMPTY_PATH;
 		} else {
-			return new ItemPathImpl(segments.subList(fromClipped, toClipped));
+			// TODO ... the problem is that subList is not serializable; but this creates one object more
+			return new ItemPathImpl(new ArrayList<>(segments.subList(fromClipped, toClipped)));
 		}
 	}
 

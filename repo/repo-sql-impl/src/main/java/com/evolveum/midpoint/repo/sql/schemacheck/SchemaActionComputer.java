@@ -34,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Determines the action that should be done against the database (none, stop, warn, create, upgrade)
@@ -56,6 +58,8 @@ class SchemaActionComputer {
 
 	private static final String RELEASE_NOTES_URL_PREFIX = "https://wiki.evolveum.com/display/midPoint/Release+";
 	private static final String SQL_SCHEMA_SCRIPTS_URL = "https://wiki.evolveum.com/display/midPoint/SQL+Schema+Scripts";
+	
+	private static final Pattern VERSION_SUFFIX_PATTERN = Pattern.compile("(.*)-[^.]+");
 
 	@Autowired private LocalizationService localizationService;
 	@Autowired private BaseHelper baseHelper;
@@ -287,7 +291,7 @@ class SchemaActionComputer {
 	private String getMajorMidPointVersion() {
 		String version = localizationService
 				.translate(LocalizableMessageBuilder.buildKey("midPointVersion"), Locale.getDefault());
-		String noSnapshot = StringUtils.removeEnd(version, "-SNAPSHOT");
+		String noSnapshot = removeSuffix(version);
 		int firstDot = noSnapshot.indexOf('.');
 		if (firstDot < 0) {
 			throw new SystemException("Couldn't determine midPoint version from '" + version + "'");
@@ -298,6 +302,14 @@ class SchemaActionComputer {
 		} else {
 			return noSnapshot.substring(0, secondDot);
 		}
+	}
+
+	private String removeSuffix(String version) {
+		Matcher matcher = VERSION_SUFFIX_PATTERN.matcher(version);
+		if (matcher.find()) {
+			return matcher.group(1);
+		}
+		return version;
 	}
 
 	private String determineUpgradeScriptFileName(@NotNull String from, @NotNull String to) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
@@ -65,6 +65,7 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -1577,6 +1578,48 @@ public final class WebComponentUtil {
 		return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
 	}
 
+	public static String getShortDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getShortDateTimeFormattedValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getShortDateTimeFormattedValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		String shortDateTimeFortam = getShortDateTimeFormat(pageBase);
+		return getLocalizedDate(date, shortDateTimeFortam);
+	}
+
+	public static String getLongDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getLongDateTimeFormattedValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getLongDateTimeFormattedValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		String longDateTimeFormat = getLongDateTimeFormat(pageBase);
+		return getLocalizedDate(date, longDateTimeFormat);
+	}
+
+	public static String getShortDateTimeFormat(PageBase pageBase){
+		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getShortDateTimeFormat())){
+			return DateLabelComponent.SHORT_MEDIUM_STYLE;
+		} else {
+			return displayFormats.getShortDateTimeFormat();
+		}
+	}
+
+	public static String getLongDateTimeFormat(PageBase pageBase){
+		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getCompiledUserProfile().getDisplayFormats();
+		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getLongDateTimeFormat())){
+			return DateLabelComponent.LONG_MEDIUM_STYLE;
+		} else {
+			return displayFormats.getLongDateTimeFormat();
+		}
+	}
+
 	public static boolean isActivationEnabled(PrismObject object) {
 		Validate.notNull(object);
 
@@ -1716,6 +1759,9 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON;
 		} else if (QNameUtil.match(SystemConfigurationType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
+		} else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
+			//TODO fix icon style for mapping type
+			return "";
 		} else {
 			return "";
 		}
@@ -1962,6 +2008,18 @@ public final class WebComponentUtil {
 		}
 
 		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
+	}
+
+	public static <AHT extends AssignmentHolderType> AHT createNewObjectWithCollectionRef(Class<AHT> type, PrismContext context,
+																						  ObjectReferenceType collectionRef){
+		if (UserType.class.equals(type) && collectionRef != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRef.getType())){
+			UserType user = new UserType(context);
+			AssignmentType assignment = new AssignmentType();
+			assignment.setTargetRef(collectionRef.clone());
+			user.getAssignment().add(assignment);
+			return (AHT) user;
+		}
+		return null;
 	}
 
 	public static String createUserIconTitle(PrismObject<UserType> object) {
@@ -2586,7 +2644,7 @@ public final class WebComponentUtil {
 	}
 
 	public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName,
-			ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
+			ColumnMenuAction action, MainObjectListPanel<AR, CompiledObjectCollectionView> abstractRoleTable, PageBase pageBase) {
 		List<AR> selectedRoles =  new ArrayList<>();
 		if (action.getRowModel() == null) {
 			selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
@@ -3131,15 +3189,18 @@ public final class WebComponentUtil {
 		return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
 	}
 
-	public static <O extends ObjectType> ArchetypeInteractionSpecification getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
+	public static <O extends ObjectType> ArchetypePolicyType getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
 		if (object == null || object.asObjectable() == null){
 			return null;
 		}
 		String objectName = object.asObjectable().getName() != null ? object.asObjectable().getName().getOrig() : "Unknown";
 		OperationResult result = new OperationResult("loadArchetypeSpecificationFor" + objectName);
-		ArchetypeInteractionSpecification spec = null;
+		if (!object.canRepresent(AssignmentHolderType.class)) {
+			return null;
+		}
+		ArchetypePolicyType spec = null;
 		try {
-			spec = locator.getModelInteractionService().getInteractionSpecification(object, result);
+			spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
 		} catch (SchemaException | ConfigurationException ex){
 			result.recordPartialError(ex.getLocalizedMessage());
 			LOGGER.error("Cannot load ArchetypeInteractionSpecification for object ", object, ex.getLocalizedMessage());
@@ -3194,6 +3255,52 @@ public final class WebComponentUtil {
 		result.recomputeStatus();
 		pageBase.showResult(result);
 		target.add(pageBase.getFeedbackPanel());
+	}
+
+	/**
+	 * The idea is to divide the list of AssignmentObjectRelation objects in such way that each AssignmentObjectRelation
+	 * in the list will contain not more than 1 relation. This will simplify creating of a new_assignment_button
+	 * on some panels
+	 *
+	  * @param initialRelationsList
+	 * @return
+	 */
+	public static List<AssignmentObjectRelation> getRelationsDividedList(List<AssignmentObjectRelation> initialRelationsList){
+		if (org.apache.commons.collections.CollectionUtils.isEmpty(initialRelationsList)){
+			return initialRelationsList;
+		}
+		List<AssignmentObjectRelation> combinedRelationList =  new ArrayList<>();
+		initialRelationsList.forEach(assignmentTargetRelation -> {
+			if (org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) &&
+					org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
+				return;
+			}
+			if (org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())){
+				combinedRelationList.add(assignmentTargetRelation);
+			} else {
+				assignmentTargetRelation.getRelations().forEach(relation -> {
+					AssignmentObjectRelation relationObj = new AssignmentObjectRelation();
+					relationObj.setObjectTypes(assignmentTargetRelation.getObjectTypes());
+					relationObj.setRelations(Arrays.asList(relation));
+					relationObj.setArchetypeRefs(assignmentTargetRelation.getArchetypeRefs());
+					relationObj.setDescription(assignmentTargetRelation.getDescription());
+					combinedRelationList.add(relationObj);
+				});
+			}
+		});
+		return combinedRelationList;
+	}
+
+	public static DisplayType getAssignmentObjectRelationDisplayType(AssignmentObjectRelation assignmentTargetRelation){
+		QName relation = assignmentTargetRelation != null && !org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
+				assignmentTargetRelation.getRelations().get(0) : null;
+		if (relation != null){
+			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
+			if (def != null){
+				return def.getDisplay();
+			}
+		}
+		return null;
 	}
 
 	public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){

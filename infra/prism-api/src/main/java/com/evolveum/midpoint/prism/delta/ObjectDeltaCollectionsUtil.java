@@ -97,7 +97,7 @@ public class ObjectDeltaCollectionsUtil {
 	            return null;
 	        }
 	        if (modifyDeltas.size() == 1) {
-	            return modifyDeltas.get(0);
+	            return modifyDeltas.get(0).clone();
 	        }
 	        return mergeToDelta(modifyDeltas.get(0), modifyDeltas.subList(1, modifyDeltas.size()));
 	    }

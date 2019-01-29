@@ -559,6 +559,7 @@ public abstract class SchemaConstants {
 	public static final String OBJECT_TYPE_LOWERCASE_KEY_PREFIX = "ObjectTypeLowercase.";
 	public static final String DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX = "DefaultPolicyConstraint.";
 	public static final String DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX = "DefaultPolicyConstraint.Short.";
+	public static final String DEFAULT_POLICY_CONSTRAINT_SHORT_REL_MESSAGE_KEY_PREFIX = "DefaultPolicyConstraint.ShortWithRelation.";
 	public static final String POLICY_CONSTRAINT_KEY_PREFIX = "PolicyConstraint.";
 	public static final String POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX = "PolicyConstraint.Short.";
 	public static final String POLICY_CONSTRAINTS_BEFORE_KEY = "PolicyConstraints.before";
@@ -601,4 +602,11 @@ public abstract class SchemaConstants {
 
 	public static final ItemPath PATH_PARENT = ItemPath.create(PrismConstants.T_PARENT);
 	public static final ItemPath PATH_OBJECT_REFERENCE = ItemPath.create(PrismConstants.T_OBJECT_REFERENCE);
+	
+	//task stages
+	private static final String RECON_HANDLER = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3";
+	public static final String DRY_RUN_URI = RECON_HANDLER + "#dryRun";
+	public static final String SIMULATE_URI = RECON_HANDLER + "#simulate";
+	public static final String EXECUTE_URI = RECON_HANDLER + "#execute";
+	
 }

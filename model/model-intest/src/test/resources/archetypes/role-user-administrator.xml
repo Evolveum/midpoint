@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -79,11 +79,22 @@
 		</objectForms>
     	<objectCollectionViews>
     		<objectCollectionView>
-    			<name>Active employees</name>
+    			<identifier>active-employees</identifier>
     			<type>UserType</type>
     			<collection>
     				<collectionRef oid="f61bcb4a-f8ae-11e8-9f5c-c3e7f27ee878" type="ObjectCollectionType"/> <!-- Active employees collection -->
     			</collection>
+    		</objectCollectionView>
+    		<objectCollectionView>
+    			<identifier>business-roles-view</identifier>
+    			<type>RoleType</type>
+    			<collection>
+    				<collectionRef oid="018e7340-199a-11e9-ad93-2b136d1c7ecf" type="ArchetypeType"/> <!-- Business role archetype -->
+    			</collection>
+    			<display>
+    				<label>Business</label>
+    				<!-- icon and color should be "inherited" from archetype -->
+    			</display>
     		</objectCollectionView>
     	</objectCollectionViews>
     </adminGuiConfiguration>

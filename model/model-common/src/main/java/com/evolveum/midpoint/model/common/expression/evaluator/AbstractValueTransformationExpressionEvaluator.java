@@ -92,6 +92,9 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
         	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context,
         			context.getContextDescription(), context.getTask(), context.getResult());
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Evaluated absolute expression {}, output triple:\n{}", context.getContextDescription(), outputTriple==null?null:outputTriple.debugDump(1));
+        	}
 
         } else if (expressionEvaluatorType.getRelativityMode() == null || expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.RELATIVE) {
 
@@ -99,11 +102,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         		// Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
         		outputTriple = evaluateAbsoluteExpression(null, context.getVariables(), context,
         				context.getContextDescription(), context.getTask(), context.getResult());
+        		LOGGER.trace("Evaluated relative sourceless expression {}, output triple:\n{}", context.getContextDescription(), outputTriple==null?null:outputTriple.debugDump(1));
         	} else {
-        		List<SourceTriple<?,?>> sourceTriples = processSources(context.getSources(),
-        				isIncludeNullInputs(), context);
+        		List<SourceTriple<?,?>> sourceTriples = processSources(context.getSources(), context);
         		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isSkipEvaluationMinus(), context.isSkipEvaluationPlus(),
-        				isIncludeNullInputs(), context, context.getContextDescription(), context.getTask(), context.getResult());
+        				context, context.getContextDescription(), context.getTask(), context.getResult());
+        		LOGGER.trace("Evaluated relative expression {}, output triple:\n{}", context.getContextDescription(), outputTriple==null?null:outputTriple.debugDump(1));
         	}
 
         } else {
@@ -114,15 +118,19 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         return outputTriple;
     }
 
-	protected Boolean isIncludeNullInputs() {
-		return expressionEvaluatorType.isIncludeNullInputs();
+	protected boolean isIncludeNullInputs() {
+		Boolean includeNullInputs = expressionEvaluatorType.isIncludeNullInputs();
+		if (includeNullInputs == null) {
+			return true;
+		}
+		return includeNullInputs;
 	}
 
 	protected boolean isRelative() {
 		return expressionEvaluatorType.getRelativityMode() != TransformExpressionRelativityModeType.ABSOLUTE;
 	}
 
-	private List<SourceTriple<?,?>> processSources(Collection<Source<?,?>> sources, Boolean includeNulls,
+	private List<SourceTriple<?,?>> processSources(Collection<Source<?,?>> sources,
 			ExpressionEvaluationContext params) {
 		List<SourceTriple<?,?>> sourceTriples =
             new ArrayList<>(sources == null ? 0 : sources.size());
@@ -139,7 +147,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 					sourceTriple.addAllToZeroSet((Collection)source.getItemOld().getValues());
 				}
 			}
-			if (includeNulls == null || includeNulls) {
+			if (isIncludeNullInputs()) {
 				// Make sure that we properly handle the "null" states, i.e. the states when we enter
 				// "empty" value and exit "empty" value for a property
 				// We need this to properly handle "negative" expressions, i.e. expressions that return non-null
@@ -166,7 +174,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			}
 			sourceTriples.add(sourceTriple);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Processes source triple\n{}",sourceTriple.debugDump());
+				LOGGER.trace("Processed source {} triple\n{}", source.getName().getLocalPart(), sourceTriple.debugDump(1));
 			}
 		}
 		return sourceTriples;
@@ -320,7 +328,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<?,?>> sourceTriples,
 			final ExpressionVariables variables, final boolean skipEvaluationMinus, final boolean skipEvaluationPlus,
-			final Boolean includeNulls, final ExpressionEvaluationContext evaluationContext, final String contextDescription,
+			final ExpressionEvaluationContext evaluationContext, final String contextDescription,
 			final Task task, final OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -346,7 +354,10 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		}
 
 		Processor<Collection<? extends PrismValue>> processor = pvalues -> {
-			if (includeNulls != null && !includeNulls && MiscUtil.isAllNull(pvalues)) {
+			// This lambda will be called for all combination of all values in the sources
+			// The pvalues parameter is a list of values, each values comes from a difference source
+			
+			if (!isIncludeNullInputs() && MiscUtil.isAllNull(pvalues)) {
 				// The case that all the sources are null. There is no point executing the expression.
 				return;
 			}
@@ -356,6 +367,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			boolean hasZero = false;
 			boolean hasPlus = false;
 			for (PrismValue pval: pvalues) {
+				// This may look strange, but it actually makes sense.
+				// The carthesian method below will select values from valueCollections, which is collection of lists
+				// The pvalues parameter to this lambda is one particular selection from valueCollections.
+				// The carthesian method will select first value in pvalues from the first source, second values from second source and so on.
+				// Therefore this strange construction will match the value with the source that it came from
+				// TODO: maybe refactor for readibility
 				SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
 				QName name = sourceTriple.getName();
 				sourceVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()));
@@ -363,7 +380,6 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				// with the same value. We pretend that this is the same as ADD case.
 				// TODO: maybe we will need better handling in the future. Maybe we would need
 				// to execute the script twice?
-				LOGGER.trace("source triple: {}", sourceTriple);
 				if (sourceTriple.presentInPlusSet(pval)) {
 					hasPlus = true;
 				} else if (sourceTriple.presentInZeroSet(pval)) {
@@ -371,11 +387,21 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				} else if (sourceTriple.presentInMinusSet(pval)) {
 					hasMinus = true;
 				}
+//				if (LOGGER.isTraceEnabled()) {
+//					LOGGER.trace("source {}, pval {}\n   hasPlus={}, hasZero={}, hasMinus={}, skipEvaluationPlus={}, skipEvaluationMinus={}", 
+//							sourceTriple.getName().getLocalPart(), pval, hasPlus, hasZero, hasMinus, skipEvaluationPlus, skipEvaluationMinus);
+//				}
 				if (evaluationContext != null && evaluationContext.getVariableProducer() != null) {
-					LOGGER.trace("$$$$$$$$$variable producer for {}", pval);
+//					LOGGER.trace("Variable producer for {}", pval);
 					evaluationContext.getVariableProducer().produce(pval, variables);
 				}
 			}
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Processing value combination {} in {}\n   hasPlus={}, hasZero={}, hasMinus={}, skipEvaluationPlus={}, skipEvaluationMinus={}",
+						dumpValueCombination(pvalues, sourceTriples), contextDescription, hasPlus, hasZero, hasMinus, skipEvaluationPlus, skipEvaluationMinus);
+			}
+			
 			if (!hasPlus && !hasMinus && !hasZero && !MiscUtil.isAllNull(pvalues)) {
 				throw new IllegalStateException("Internal error! The impossible has happened! pvalues="+pvalues+"; source triples: "+sourceTriples+"; in "+contextDescription);
 			}
@@ -389,8 +415,6 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				return;
 			}
 			
-			LOGGER.trace("hasPlus= {}, hasMinus={}, hasZero={}, skipEvaluationPlus={}, skipEvaluationMinus={}", hasPlus, hasMinus, hasZero, skipEvaluationPlus);
-
 			if (hasPlus && skipEvaluationPlus) {
 				// The results will end up in the plus set, therefore we can skip it
 				return;
@@ -464,8 +488,14 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
 			}
 
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Processed value combination {} in {}\n  valueDestination: {}\n  scriptResults:{}",
+						dumpValueCombination(pvalues, sourceTriples), contextDescription, valueDestination, scriptResults);
+			}
+			
 			outputTriple.addAllToSet(valueDestination, scriptResults);
 		};
+		
 		try {
 			MiscUtil.carthesian((Collection)valueCollections, (Processor)processor);
 		} catch (TunnelException e) {
@@ -492,6 +522,20 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		cleanupTriple(outputTriple);
 
 		return outputTriple;
+	}
+
+	private String dumpValueCombination(Collection<? extends PrismValue> pvalues, List<SourceTriple<?, ?>> sourceTriples) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<SourceTriple<PrismValue,?>> sourceTriplesIterator = (Iterator)sourceTriples.iterator();
+		for (PrismValue pval: pvalues) {
+			SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
+			sb.append(sourceTriple.getName().getLocalPart()).append('=');
+			sb.append(pval==null?null:(Object)pval.getRealValue());
+			if (sourceTriplesIterator.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		return sb.toString();
 	}
 
 	private void cleanupTriple(PrismValueDeltaSetTriple<V> triple) {

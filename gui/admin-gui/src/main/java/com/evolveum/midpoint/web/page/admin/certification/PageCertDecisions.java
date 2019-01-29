@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -321,7 +320,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 CertWorkItemDto dto = rowModel.getObject();
                 Date started = dto.getStageStarted();
                 if (started != null) {
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(started, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getShortDateTimeFormattedValue(started, PageCertDecisions.this)));
                     item.add(new TooltipBehavior());
                 }
             }

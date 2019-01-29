@@ -498,6 +498,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final ItemName PIRACY_MARK = new ItemName(NS_PIRACY, "mark");
 	protected static final ItemName PIRACY_KEY = new ItemName(NS_PIRACY, "key");
 	protected static final ItemName PIRACY_BINARY_ID = new ItemName(NS_PIRACY, "binaryId");
+	protected static final ItemName PIRACY_COST_CENTER = new ItemName(NS_PIRACY, "costCenter");
+	protected static final ItemName PIRACY_RISK_VECTOR = new ItemName(NS_PIRACY, "riskVector");
+	protected static final ItemName PIRACY_RISK_VECTOR_RISK = new ItemName(NS_PIRACY, "risk");
+	protected static final ItemName PIRACY_RISK_VECTOR_VALUE = new ItemName(NS_PIRACY, "value");
 	protected static final ItemName RELATION_PIRACY_CAPTAIN = new ItemName(NS_PIRACY, "captain");
 
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = ItemPath

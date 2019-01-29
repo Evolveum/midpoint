@@ -11,6 +11,7 @@ rebel.xml
 samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/bin
 samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/obj
 velocity.log
+.java-version
 
 dependency-reduced-pom.xml
 /nb-configuration.xml

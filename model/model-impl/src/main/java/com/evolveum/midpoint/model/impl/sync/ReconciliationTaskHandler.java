@@ -26,7 +26,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleStopExecutor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -63,8 +63,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,6 +98,10 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	private static final String SECOND_STAGE_HANDLER_URI = ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2;
 	private static final String THIRD_STAGE_HANDLER_URI = ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3;
 
+	public static final String DRY_RUN_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#dryRun";
+	public static final String SIMULATE_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#simulate";
+	public static final String EXECUTE_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
+	
 	/**
 	 * Just for testability. Used in tests. Injected by explicit call to a
 	 * setter.
@@ -157,6 +164,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		Stage stage = getStage(handlerUri);
 		LOGGER.trace("ReconciliationTaskHandler.run starting (stage: {})", stage);
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
+		
+		LOGGER.info("Recon task: {}", localCoordinatorTask.getTaskPrismObject().debugDump());
 
 		if (BooleanUtils.isTrue(localCoordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY))) {
 			if (stage == Stage.ALL) {
@@ -247,7 +256,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		auditService.audit(requestRecord, localCoordinatorTask);
 
 		try {
-			if (!ModelImplUtils.isSimulateRun(localCoordinatorTask) && isStage(stage, Stage.FIRST) && !scanForUnfinishedOperations(localCoordinatorTask, resourceOid, reconResult, opResult)) {
+			if (isStage(stage, Stage.FIRST) && !scanForUnfinishedOperations(localCoordinatorTask, resourceOid, reconResult, opResult)) {
                 processInterruption(runResult, resource, localCoordinatorTask, opResult);			// appends also "last N failures" (TODO refactor)
                 return runResult;
             }
@@ -483,49 +492,30 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 	
-		if (ModelImplUtils.isSimulateRun(localCoordinatorTask)) {
-			boolean canContinue = performResourceReconciliationInternal(resource, objectclassDef, ModelImplUtils.isSimulateRun(localCoordinatorTask), 
+		List<TaskStageType> stages = localCoordinatorTask.getTaskType().getStage();
+		if (CollectionUtils.isEmpty(stages)) {
+			TaskStageType defaultStage = new TaskStageType(prismContext);
+			defaultStage.setStage(EXECUTE_URI);
+			return performResourceReconciliationInternal(resource, objectclassDef, defaultStage, 
 					reconResult, localCoordinatorTask, workBucket, result);
-			TaskRunResult runResult = reconResult.getRunResult();
-			TaskRunResultStatus runStatus = null;
-			if (runResult != null) {
-				runStatus = runResult.getRunResultStatus();
+		}
+		
+		boolean canContinue = true;
+		for (TaskStageType stage : stages) {
+			canContinue = performResourceReconciliationInternal(resource, objectclassDef, stage, 
+					reconResult, localCoordinatorTask, workBucket, result);
+			if (!canContinue) {
+				break;
 			}
-			
-			if (canContinue && isAcceptable(runStatus)) {
-				canContinue = performResourceReconciliationInternal(resource, objectclassDef, false, 
-						reconResult, localCoordinatorTask, workBucket, result);
-			}
-			
-			return canContinue;
 		}
 		
-		return performResourceReconciliationInternal(resource, objectclassDef, false, reconResult, localCoordinatorTask, workBucket, result);
+		return canContinue;
 	
-	}
-	
-	private boolean isAcceptable(TaskRunResultStatus runStatus) {
-		if (runStatus == null) {
-			return true;
-		}
-		if (TaskRunResultStatus.INTERRUPTED == runStatus) {
-			return false;
-		}
-		
-		if (TaskRunResultStatus.PERMANENT_ERROR == runStatus) {
-			return false;
-		}
-		
-		if (TaskRunResultStatus.TEMPORARY_ERROR == runStatus) {
-			return false;
-		}
-		
-		return true;
 	}
 	
 	// returns false in case of execution interruption
 	private boolean performResourceReconciliationInternal(PrismObject<ResourceType> resource,
-			ObjectClassComplexTypeDefinition objectclassDef, boolean simulate,
+			ObjectClassComplexTypeDefinition objectclassDef, TaskStageType stage,
 			ReconciliationTaskResult reconResult, Task localCoordinatorTask,
 			WorkBucketType workBucket, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -538,15 +528,11 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		// Instantiate result handler. This will be called with every search
 		// result in the following iterative search
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
-				objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, taskManager);
+				objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, stage, taskManager);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
-		if (simulate) {
-			handler.setStopOnError(true);
-		}
 		handler.setEnableSynchronizationStatistics(true);
 		handler.setEnableActionsExecutedStatistics(true);
-		handler.setSimulate(simulate);
 		
 		localCoordinatorTask.setExpectedTotal(null);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
  *
  */
 public class ShadowDiscriminatorObjectDeltaImpl<T extends Objectable> extends ObjectDeltaImpl<T> implements ShadowDiscriminatorObjectDelta<T> {
+	private static final long serialVersionUID = 1L;
 
 	private ResourceShadowDiscriminator discriminator;
 
@@ -59,5 +60,16 @@ public class ShadowDiscriminatorObjectDeltaImpl<T extends Objectable> extends Ob
 	protected String debugIdentifiers() {
 		return discriminator == null ? "null" : discriminator.toString();
 	}
-
+	
+	@Override
+	public ShadowDiscriminatorObjectDeltaImpl<T> clone() {
+		ShadowDiscriminatorObjectDeltaImpl<T> clone = new ShadowDiscriminatorObjectDeltaImpl<>(this.getObjectTypeClass(), this.getChangeType(), this.getPrismContext());
+        copyValues(clone);
+        return clone;
+    }
+    
+    protected void copyValues(ShadowDiscriminatorObjectDeltaImpl<T> clone) {
+		super.copyValues(clone);
+        clone.discriminator = this.discriminator;
+    }
 }

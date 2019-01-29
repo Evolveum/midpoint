@@ -40,7 +40,7 @@ import java.util.List;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
-    private static final long C3P0_CLOSE_WAIT = 500L;
+    private static final long POOL_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
 	private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
 	private boolean initialized;
@@ -70,9 +70,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             return;
         }
 
-        LOGGER.info("Waiting " + C3P0_CLOSE_WAIT + " ms for the connection pool to be closed.");
+        LOGGER.info("Waiting " + POOL_CLOSE_WAIT + " ms for the connection pool to be closed.");
         try {
-            Thread.sleep(C3P0_CLOSE_WAIT);
+            Thread.sleep(POOL_CLOSE_WAIT);
         } catch (InterruptedException e) {
             // just ignore
         }

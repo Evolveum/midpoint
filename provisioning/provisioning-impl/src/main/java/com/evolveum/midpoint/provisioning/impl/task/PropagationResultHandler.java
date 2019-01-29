@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
 
 /**
  * @author semancik
@@ -43,11 +44,11 @@ public class PropagationResultHandler extends AbstractSearchIterativeResultHandl
 	private final PrismObject<ResourceType> resource;
 
 	public PropagationResultHandler(Task coordinatorTask, String taskOperationPrefix, TaskManager taskManager, ShadowCache shadowCache, PrismObject<ResourceType> resource) {
-		super(coordinatorTask, taskOperationPrefix, "propagation", "to "+resource, taskManager);
+		super(coordinatorTask, taskOperationPrefix, "propagation", "to "+resource, null, taskManager);
 		this.shadowCache = shadowCache;
 		this.resource = resource;
 	}
-
+	
 	protected PrismObject<ResourceType> getResource() {
 		return resource;
 	}

@@ -24,10 +24,12 @@
             		<operation>add</operation>
             	</modification>
             </policyConstraints>
+            <policyThreshold>
+            	<count>4</count>
+            	<period>PT1H</period>
+            </policyThreshold>
             <policyActions>
-                <stop>
-                	<count>4</count>
-                </stop>
+                <suspendTask/>
             </policyActions>
         </policyRule>
         <order>2</order>

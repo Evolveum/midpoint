@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -88,7 +89,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  *         implements Serializable interface only to be storable in the
  *         PrismPropertyValue.
  */
-public class Construction<F extends FocusType> extends AbstractConstruction<F,ConstructionType> {
+public class Construction<AH extends AssignmentHolderType> extends AbstractConstruction<AH,ConstructionType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 

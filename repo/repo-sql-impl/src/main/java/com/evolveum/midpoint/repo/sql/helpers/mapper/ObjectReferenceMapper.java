@@ -30,17 +30,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ObjectReferenceMapper implements Mapper<Referencable, RObjectReference> {
+public class ObjectReferenceMapper extends ReferenceMapper<RObjectReference> {
 
     @Override
     public RObjectReference map(Referencable input, MapperContext context) {
-        ObjectReferenceType objectRef;
-        if (input instanceof ObjectReferenceType) {
-            objectRef = (ObjectReferenceType) input;
-        } else {
-            objectRef = new ObjectReferenceType();
-            objectRef.setupReferenceValue(input.asReferenceValue());
-        }
+        ObjectReferenceType objectRef = buildReference(input);
 
         ObjectTypeUtil.normalizeRelation(objectRef, context.getRelationRegistry());
 

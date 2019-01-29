@@ -34,8 +34,6 @@ It fakes JNDI context with simple H2 file DataSource.
 
         <property name="minimumIdle" value="3"/>
         <property name="maximumPoolSize" value="8"/>
-        <!--<property name="connectionTesterClassName"-->
-                  <!--value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester"/>-->
     </bean>
 
 
@@ -48,8 +46,6 @@ It fakes JNDI context with simple H2 file DataSource.
 
         <property name="minimumIdle" value="3"/>
         <property name="maximumPoolSize" value="8"/>
-        <!--<property name="connectionTesterClassName"-->
-                  <!--value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester"/>-->
     </bean>
 
     <bean id="jndiMock" class="com.evolveum.midpoint.repo.sql.util.JNDIMock" lazy-init="false">

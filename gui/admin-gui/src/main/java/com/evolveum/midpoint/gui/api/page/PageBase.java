@@ -105,6 +105,8 @@ import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardAdmin;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.admin.resources.*;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
@@ -1944,11 +1946,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createHomeItems() {
-        MainMenuItem item = new MainMenuItem("fa fa-dashboard",
-                createStringResource("PageAdmin.menu.dashboard"), PageDashboard.class);
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_DASHBOARD_ICON,
+				createStringResource("PageAdmin.menu.dashboard"), null);
 
-        return item;
-    }
+		addMenuItem(item, "PageAdmin.menu.dashboard.info", PageDashboardInfo.class);
+		addMenuItem(item, "PageAdmin.menu.dashboard.admin", PageDashboardAdmin.class);
+
+		return item;
+	}
 
     private MainMenuItem createUsersItems() {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
@@ -2156,10 +2161,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return;
         }
         objectViews.forEach(objectView -> {
-            //objectlistView.getType() might be null - from documentation:
-            // It may not be present in case that the type is defined in a referenced object colleciton.
-
-        	CollectionSpecificationType collection = objectView.getCollection();
+        	CollectionRefSpecificationType collection = objectView.getCollection();
         	if (collection == null) {
         		return;
         	}
@@ -2177,13 +2179,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return;
             }
             ObjectType objectType = collectionObject.asObjectable();
-            if (!(objectType instanceof ArchetypeType)) {
+            if (!(objectType instanceof ArchetypeType) && !(objectType instanceof ObjectCollectionType)) {
                 return;
             }
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
-            pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewName());
+            pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewIdentifier());
 
             MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
@@ -2195,7 +2197,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     PageParameters params = getPageParameters();
                     if (params != null && params.get(PARAMETER_OBJECT_COLLECTION_NAME) != null){
                         StringValue collectionName = params.get(PARAMETER_OBJECT_COLLECTION_NAME);
-                        if (objectView.getViewName().equals(collectionName.toString())) {
+                        if (objectView.getViewIdentifier().equals(collectionName.toString())) {
                             return true;
                         }
                     }

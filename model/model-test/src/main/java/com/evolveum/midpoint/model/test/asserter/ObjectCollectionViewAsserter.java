@@ -21,6 +21,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+import com.evolveum.midpoint.test.asserter.ArchetypePolicyAsserter;
+import com.evolveum.midpoint.test.asserter.DisplayTypeAsserter;
 
 /**
  * @author semancik
@@ -36,7 +38,7 @@ public class ObjectCollectionViewAsserter<RA> extends AbstractAsserter<RA> {
 	}
 
 	public ObjectCollectionViewAsserter<RA> assertName(String expected) {
-		assertEquals("Wrong view name in "+desc(), expected, view.getViewName());
+		assertEquals("Wrong view name in "+desc(), expected, view.getViewIdentifier());
 		return this;
 	}
 	
@@ -44,6 +46,13 @@ public class ObjectCollectionViewAsserter<RA> extends AbstractAsserter<RA> {
 		assertNotNull("Null filter in "+desc(), view.getFilter());
 		return this;
 	}
+	
+	public DisplayTypeAsserter<ObjectCollectionViewAsserter<RA>> displayType() {
+		DisplayTypeAsserter<ObjectCollectionViewAsserter<RA>> displayAsserter = new DisplayTypeAsserter<>(view.getDisplay(), this, "in " + desc());
+		copySetupTo(displayAsserter);
+		return displayAsserter;
+	}
+	
 	// TODO
 	
 	public ObjectFilter getFilter() {

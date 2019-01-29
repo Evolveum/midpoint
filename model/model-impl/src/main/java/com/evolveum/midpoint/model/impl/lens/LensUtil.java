@@ -553,7 +553,7 @@ public class LensUtil {
     /**
      * Used for assignments and similar objects that do not have separate lifecycle.
      */
-    public static boolean isAssignmentValid(FocusType focus, AssignmentType assignmentType, XMLGregorianCalendar now, 
+    public static boolean isAssignmentValid(AssignmentHolderType focus, AssignmentType assignmentType, XMLGregorianCalendar now, 
     		ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
     	String focusLifecycleState = focus.getLifecycleState();
     
@@ -585,7 +585,7 @@ public class LensUtil {
     }
     
 	public static boolean isFocusValid(AssignmentHolderType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
-		if (focus instanceof FocusType) {
+		if (FocusType.class.isAssignableFrom(focus.getClass())) {
 			return isValid(focus.getLifecycleState(),  ((FocusType) focus).getActivation(), now, activationComputer, focusStateModel);
 		}
 		return isValid(focus.getLifecycleState(),  null, now, activationComputer, focusStateModel);
@@ -1095,4 +1095,69 @@ public class LensUtil {
 			}
 		}
 	}
+	
+	public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType, PrismContext prismContext) throws SchemaException, ConfigurationException {
+		if (objectPolicyConfigurationType == null) {
+			return;
+		}
+
+		final PrismObject<AH> focusNew = focusContext.getObjectNew();
+		if (focusNew == null) {
+			// This is delete. Nothing to do.
+			return;
+		}
+
+		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+			if (propertyConstraintType.getPath() == null) {
+				LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", objectPolicyConfigurationType);
+				throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + objectPolicyConfigurationType + " defined in system configuration.");
+			}
+			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
+			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
+				PrismProperty<Object> prop = focusNew.findProperty(itemPath);
+				if (prop == null || prop.isEmpty()) {
+					String newValue = focusNew.getOid();
+					if (newValue == null) {
+						newValue = OidUtil.generateOid();
+					}
+					LOGGER.trace("Generating new OID-bound value for {}: {}", itemPath, newValue);
+					PrismObjectDefinition<AH> focusDefinition = focusContext.getObjectDefinition();
+					PrismPropertyDefinition<Object> propDef = focusDefinition.findPropertyDefinition(itemPath);
+					if (propDef == null) {
+						throw new SchemaException("No definition for property "+itemPath+" in "+focusDefinition+" as specified in object policy");
+					}
+					PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
+					if (String.class.isAssignableFrom(propDef.getTypeClass())) {
+						propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(newValue, OriginType.USER_POLICY, null));
+					} else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
+						propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
+					} else {
+						throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
+					}
+					focusContext.swallowToSecondaryDelta(propDelta);
+					focusContext.recompute();
+				}
+			}
+		}
+
+		// Deprecated
+		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+			// Generate the name now - unless it is already present
+			PolyStringType focusNewName = focusNew.asObjectable().getName();
+			if (focusNewName == null) {
+				String newValue = focusNew.getOid();
+				if (newValue == null) {
+					newValue = OidUtil.generateOid();
+				}
+				LOGGER.trace("Generating new name (bound to OID): {}", newValue);
+				PrismObjectDefinition<AH> focusDefinition = focusContext.getObjectDefinition();
+				PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
+				PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(FocusType.F_NAME);
+				nameDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
+				focusContext.swallowToSecondaryDelta(nameDelta);
+				focusContext.recompute();
+			}
+		}
+	}
+
 }

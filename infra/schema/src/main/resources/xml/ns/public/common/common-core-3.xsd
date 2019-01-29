@@ -2709,6 +2709,21 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="stage" type="tns:TaskStageType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Stage of the task. Some task can have different processing stages. E.g. reconciliation
+								task can have:
+									- situation stage in which only the situation for shadows is computed
+									- simulation stage in which all changes are computed but nothing is executed
+									- execution state in which the full reconciliation is run
+								Supported stages are defined per task type.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -3194,7 +3209,7 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
+    
     <xsd:complexType name="ScheduleType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3250,6 +3265,42 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>    
+
+    <xsd:complexType name="TaskStageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Stage type of the task.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>4.0</a:since>
+            	<a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="stage" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name identifying task stage.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="errorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines which errors are critical and should stop the task in the defined stage.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processingOption" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Define if the specified stage is executed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+         
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3601,6 +3652,30 @@
                         </xsd:annotation>
                     </xsd:element>
                     
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
+	                    <xsd:annotation>
+	                    	<xsd:documentation>
+	                    		Iteration number. Starts with 0. It is used to iteratively find unique identifier
+	                    		for the object.
+	                    	</xsd:documentation>
+	                    	<xsd:appinfo>
+	            				<a:operational>true</a:operational>
+	            			</xsd:appinfo>
+	                    </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+	                    <xsd:annotation>
+	                    	<xsd:documentation>
+	                    		Iteration token. String value that is usually a suffix to the identifier based
+	                    		on iteration number. E.g. ".007". It is used to iteratively find unique identifier
+	                    		for the object.
+	                    	</xsd:documentation>
+	                    	<xsd:appinfo>
+	            				<a:operational>true</a:operational>
+	            			</xsd:appinfo>
+            			</xsd:annotation>
+                    </xsd:element>
+                    
                     <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3794,30 +3869,6 @@
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
                     </xsd:element>
                     
-                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
-                    <xsd:annotation>
-                    	<xsd:documentation>
-                    		Iteration number. Starts with 0. It is used to iteratively find unique identifier
-                    		for the object.
-                    	</xsd:documentation>
-                    	<xsd:appinfo>
-            				<a:operational>true</a:operational>
-            			</xsd:appinfo>
-                    </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
-	                    <xsd:annotation>
-	                    	<xsd:documentation>
-	                    		Iteration token. String value that is usually a suffix to the identifier based
-	                    		on iteration number. E.g. ".007". It is used to iteratively find unique identifier
-	                    		for the object.
-	                    	</xsd:documentation>
-	                    	<xsd:appinfo>
-	            				<a:operational>true</a:operational>
-	            			</xsd:appinfo>
-            			</xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -5019,6 +5070,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            
+            <xsd:element name="assignmentRelation" type="tns:AssignmentRelationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies what types of assignments can be made to the focal object when it is a target of an assignment.
+                        This specifies possible relations of the assignment, type of assignment holder and so on.
+                        Simply speaking, this specifies "who can have assignment to me" or "who can hold assignment with me as a target".
+                        Limitations: assignmentRelation can appear only in archetype. It can appear in assignment or inducements, but 
+                        it must not have any order specification (i.e. it must be order 0 or 1).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -5073,6 +5139,55 @@
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Relation to which the order constraints apply. If none present, summary (i.e. non-delegation) order is considered.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+       </xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="AssignmentRelationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies what types of assignments can be made to the focal object when it is a target of an assignment.
+                This specifies possible relations of the assignment, type of assignment holder and so on.
+                Simply speaking, this specifies "who can have assignment to me" or "who can hold assignment with me as a target".
+                Limitations: assignmentRelation can appear only in archetype. It can appear in assignment or inducements, but 
+                it must not have any order specification (i.e. it must be order 0 or 1).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       	<xsd:sequence>
+       		<xsd:element name="description" type="xsd:string" minOccurs="0">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					Free-form description (comment)
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+       		<xsd:element name="holderType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					TODO
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="holderArchetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+   			<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					TODO
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
@@ -9472,6 +9587,7 @@
                         If set to true (which is the default) the script will be evaluated with null value
                         as argument when the input is changed from or to an empty value. This generally works
                         well for most cases. It may be set to false as an optimization.
+                        Note: default setting for this property may be overridden in specific expression evaluators.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -9614,7 +9730,15 @@
 	<xsd:complexType name="SearchObjectExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
-                Create an expression based on search results.
+            	<p>
+	                Create an expression based on search results.
+                </p>
+                <p>
+	                Note: search expression evaluators have changed default for includeNullInputs.
+	                Null inputs are NOT processed by search expression evaluators by default.
+	                The reason is that null inputs are usually insignificant for search expression
+	                and skipping them results in fewer search operations.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -9721,7 +9845,15 @@
 	<xsd:complexType name="AssignmentTargetSearchExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
-                Create an expression that provides an assignment based on search results.
+            	<p>
+	                Create an expression that provides an assignment based on search results.
+                </p>
+                <p>
+	                Note: search expression evaluators have changed default for includeNullInputs.
+	                Null inputs are NOT processed by search expression evaluators by default.
+	                The reason is that null inputs are usually insignificant for search expression
+	                and skipping them results in fewer search operations.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -12147,6 +12279,16 @@
     						</xsd:documentation>
     					</xsd:annotation>
     				</xsd:element>
+    				<xsd:element name="populate" type="tns:PopulateType" minOccurs="0">
+		            	<xsd:annotation>
+		            		<xsd:documentation>
+		            			Populate the assignment with specific properties, e.g activation status, validTo, validFrom.
+		            		</xsd:documentation>
+		            		<xsd:appinfo>
+		            			<a:since>4.0</a:since>
+		            		</xsd:appinfo>
+		            	</xsd:annotation>
+		            </xsd:element>
     			</xsd:sequence>
     		</xsd:extension>
     	</xsd:complexContent>
@@ -13468,7 +13610,7 @@
                 			</xsd:appinfo>
                 		</xsd:annotation>
                 	</xsd:element>
-                	<xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
+                	<xsd:element name="iterationSpecification" type="tns:IterationSpecificationType" minOccurs="0"/>
                 	<xsd:element name="item" type="tns:ObjectTemplateItemDefinitionType" minOccurs="0"
                                  maxOccurs="unbounded"/>
                     <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0"
@@ -15051,7 +15193,7 @@
 					        </xsd:documentation>
 					    </xsd:annotation>
 		            </xsd:element>
-		            <xsd:element name="baseCollection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="1">
+		            <xsd:element name="baseCollection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
 					    <xsd:annotation>
 					        <xsd:documentation>
 					        	<p>
@@ -15071,10 +15213,39 @@
 							</xsd:appinfo>
 					    </xsd:annotation>
 		            </xsd:element>
+		            <xsd:element name="domain" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					        	<p>
+						        	Domain for this collection. Domain is a set of object that is "all the things" for this collection.
+						        	For example collection of "active employees" will have a domain "all employees". Collection
+						        	"failed resources" will have domain collection "all resources" and so on.
+					        	</p>
+					        	<p>
+					        		The purpose of domain is mostly to evaluate percentages. E.g. what percentage of employees are active.
+					        		Domain does not affect the collection itself. E.g. it has no meaning when collection is used in authorizations.
+					        		Domain just adds some kind of perspective when collection is presented to the user.
+					        		The domain may also be important for policy rules. E.g. policy rules that trigger a notificaiton when percentage of
+					        		active employees gets too low.
+					        	</p>
+					        </xsd:documentation>
+						    <xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+					    </xsd:annotation>
+		            </xsd:element>
 		            <!-- Note: collection references such as domanin or baseCollection may point to collection or archetype. Maybe even to org or role. -->
-		            <!-- TODO: domain (filter or reference to another collection) -->
-		            <!-- TODO: tresholds (actions should be performed by policy rules) -->
+		            
 		            <!-- TODO(maybe): default view specification, e.g. default set of columns, search, etc. -->
+		            
+		            <xsd:element name="stats" type="tns:CollectionStatsType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+						    <xsd:appinfo>
+								<a:since>4.0</a:since>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
+					    </xsd:annotation>
+		            </xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -15084,7 +15255,8 @@
     <xsd:complexType name="CollectionSpecificationType">
         <xsd:annotation>
         	<xsd:documentation>
-        		Specification of an explicit or implicit object collection.
+        		Specification of an explicit or implicit object collection, withough reference to the collection.
+        		This data structure expects that the collection is referenced implicitly (e.g. from policy rules).
         	</xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -15092,18 +15264,6 @@
             </xsd:appinfo>
         </xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="1" maxOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						Referrence to an object that defines the base of implicit or explicit collection.
-						This may be ObjectCollectionType or any subclass of AbstractRoleType.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>4.0</a:since>
-						<a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
 			<xsd:element name="interpretation" type="tns:CollectionSpecificationInterpretationType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -15149,6 +15309,36 @@
 			</xsd:element>
 			<!-- TODO: Status may be added here later: all/active/active+delegated -->
 		</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="CollectionRefSpecificationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specification of an explicit or implicit object collection (including reference to the collection).
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:CollectionSpecificationType">
+				<xsd:sequence>
+					<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Referrence to an object that defines the base of implicit or explicit collection.
+								This may be ObjectCollectionType or any subclass of AbstractRoleType.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+								<a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     
     <xsd:simpleType name="CollectionSpecificationInterpretationType">
@@ -15238,6 +15428,156 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<xsd:complexType name="CollectionStatsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		<p>
+	        		Stats (statistics) setting and entries. This contains stats entries for collections.
+	        		Simply speaking, it contains data about number of objects in collection.
+        		</p>
+        		<p>
+	        		While counting collections is usually quite easy, we do not want to do that every
+	        		millisecond. Therefore we count the collection and keep the data in this structure
+	        		for a while. The data may not necessarily be persistent. This may be purely vitual data
+	        		that never get stored in the repository. Ot it may be cached data. Or some combination.
+	        		We also may want to store historical data about the collection for informational purposes.
+        		</p>
+        		<p>
+        			EXPERIMENTAL. Do not rely on this data structure.
+        		</p>
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<!-- TODO (later): configuration of stats collection: virtual/cached, caching freshness, number of stats, intervals, etc. -->
+			<xsd:element name="statEntry" type="tns:IntegerStatType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Stat (statistic) entry. This entry contains stat value, together with domain value.
+							The purpose is that both absolute values and percentages can be determined.
+						</p>
+						<p>
+							Single-valued now. This represents the latest known value. 
+							Will be changed to multi-valued later. Multi-valued stat entries
+							may contain historical values for informational purposes, e.g. displaying "trends"
+							in widgets and reports.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:operational>true</a:operational>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="IntegerStatType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Integer stat (statistic) entry. This entry contains stat value, together with domain value.
+				The purpose is that both absolute values and percentages can be determined. The entry contains
+				(optional) timestamp to determine freshness of the data and/or sort and plot them.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="value" type="xsd:int" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Primary (absolute) value of that stat. This is the value that we are interested in.
+							E.g. this is the number of objects in collection.
+						</p>
+						<p>
+							Even though this is a primary value, it is optional. There may be rare cases
+							when we do not have primary value, we only have percentage data.
+						</p>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="domain" type="xsd:int" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Size of the domain. This is the value of "all things" used to compute percentage.
+							E.g. this is the number of object in collection domain.
+						</p>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="percentage" type="xsd:float" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Percentage value. This is usually not present, as it may be easily computed
+							from value and domain. But for rare cases there may be just the percentage and
+							the primary value may be missing.
+						</p>
+						<p>
+							Implementation note: Having percentage here also makes it easier for implementation.
+							The code can use the same data structure to store intermediate values, e.g.
+							stat with computed percentage. The collection-processing code can also fill
+							in the percentage value automatically, even if it is not stored in repository.
+							This is somehow simimar to the way provisioning code fills in the attributes
+							into the shadow.
+						</p>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Sampling timestamp. The timestamp of the moment when the value was
+							retrieved or computed.
+						</p>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="AuditSearchType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specification of search criteria for audit trails.
+        		EXTREMELY EXPERIMENTAL. This is almost certain to change in the future.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="recordQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="domainQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: interval -->
+		</xsd:sequence>
+    </xsd:complexType>
 
 	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
@@ -15665,21 +16005,282 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:UserInterfaceFeatureType">
 	       		<xsd:sequence>
-	           		<!-- TODO: type
-	           		<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+	           		<xsd:element name="data" type="tns:DashboardWidgetDataType" minOccurs="0" maxOccurs="1">
 	           			<xsd:annotation>
 	           				<xsd:documentation>
-	           					Type of the widget. It is an identifier that specifies the content
-	           					of the widget (e.g. what will be inside the box).
-	           					THIS IS NOT USED YET. It is only for future use.
+	           					Specifies widget data source.
 	           				</xsd:documentation>
 	           			</xsd:annotation>
 	           		</xsd:element>
-	           		 -->
-	           		<!-- TODO: placement -->
+	           		<xsd:element name="presentation" type="tns:DashboardWidgetPresentationType" minOccurs="0" maxOccurs="1">
+	           			<xsd:annotation>
+	           				<xsd:documentation>
+	           					Specifies widget data source.
+	           				</xsd:documentation>
+	           			</xsd:annotation>
+	           		</xsd:element>
+	           		<!-- TODO: actions (what to do on click, extra buttons, etc.) -->
 	           	</xsd:sequence>	
         	</xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DashboardWidgetDataType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies widget data source.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+				<a:displayName>DashboardWidgetDataType.details</a:displayName>
+				<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+      		<xsd:element name="sourceType" type="tns:DashboardWidgetSourceTypeType" minOccurs="1" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Type of the widget. It is an identifier that specifies the type of the information (content)
+      					of the widget.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
+  				<xsd:annotation>
+  					<xsd:documentation>
+  						Specification of an explicit or implicit object collection that will be used as data source for the view.
+  					</xsd:documentation>
+  					<xsd:appinfo>
+						<a:displayName>DashboardWidgetDataType.collection</a:displayName>
+  					</xsd:appinfo>
+  				</xsd:annotation>
+  			</xsd:element>
+  			<xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of a single object as a widget data source.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DashboardWidgetDataType.objectRef</a:displayName>
+                        <a:help>DashboardWidgetDataType.objectRef.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+	      	<xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
+  				<xsd:annotation>
+  					<xsd:documentation>
+  						Specification of an explicit or implicit object collection that will be used as data source for the view.
+  						EXTREMELY EXPERIMENTAL. This is almost certain to change in the future.
+  					</xsd:documentation>
+  					<xsd:appinfo>
+						<a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
+						<a:experimental>true</a:experimental>
+  					</xsd:appinfo>
+  				</xsd:annotation>
+  			</xsd:element>
+      	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:simpleType name="DashboardWidgetSourceTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of widget content data source. It is an identifier that specifies the type of the information (content)
+				of the widget. This specifies type of data source for the widget content.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="objectCollection">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Content of widget is based on object collection. Widget will either provide summary of
+                        the collection (number of objects, percentage), small list of collected objects or collection
+                        charts and trends.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auditSearch">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUDIT_SEARCH"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Content of the widget will be based on data from audit trail search.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="object">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Content of the widget will be based on data from a single object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: assignment, projection -->
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:complexType name="DashboardWidgetPresentationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies widget presentation properties.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+				<a:displayName>DashboardWidgetPresentationType.details</a:displayName>
+				<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+  			<!-- TODO: widget presentation style: info-box-light, info-box-dark, small-box, list, form -->
+      		<xsd:element name="dataField" type="tns:DashboardWidgetDataFieldType" minOccurs="0" maxOccurs="unbounded">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Properties of a specific widget data field. Note that the order of dataField elements is
+      					NOT significant. The field order is given by specific presentation style.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<xsd:element name="variation" type="tns:DashboardWidgetVariationType" minOccurs="0" maxOccurs="unbounded">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Conditional variation in the way how the widget is displayed. Variations may change colors or icons
+      					of the widget based on a condition.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<!-- TODO: formRef (optional, for form-based widgets) -->
+      		<!-- TODO: view setting (optional, for list-based widgets) -->
+      	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DashboardWidgetDataFieldType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Properties of a specific widget data field.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+				<a:displayName>DashboardWidgetDataFieldType.details</a:displayName>
+				<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+      		<xsd:element name="fieldType" type="tns:DashboardWidgetDataFieldTypeType" minOccurs="1" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Type of the field.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Expression that produces value to display in the field.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<!-- TODO (later): condition? -->
+      	</xsd:sequence>	
+    </xsd:complexType>
+    
+        <xsd:simpleType name="DashboardWidgetDataFieldTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of the field.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="value">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Field that display the value. This is usually the main field of the widget (perhaps except label field).
+                        This field typicaly contains <b>the</b> value to be displayed.
+                        Examples: 12345, 50%, 123.45, running, suspended
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unit">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNIT"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Unit field. This is usually displayed right after or below value. But it may have different style, e.g. smaller font.
+                        Examples: requests, hits/second, km/h, resources up, tasks running
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- 
+            <xsd:enumeration value="details">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DETAILS"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Field to display additional information. Usually a field that can hold at least few words, e.g. by using smaller font.
+                        Examples: 34% increase in last 2 hours, 24h average
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+             -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="DashboardWidgetVariationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Conditional variation in the way how the widget is displayed. Variations may change colors or icons
+				of the widget based on a condition.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+				<a:displayName>DashboardWidgetVariationType.details</a:displayName>
+				<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+      		<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Condition for the variation. The variation will be active if the condition evaluates to true.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      		<xsd:element name="display" type="tns:DisplayType" minOccurs="1" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Display properties to apply in case that the condition is true.
+      					Those display properties specify only those presentation aspects that
+      					are different from the usual presenation. This is supposed to be merged
+      					with the primary display properties of the widget.
+      					E.g. if the variation only changes widget color, only color needs to be
+      					specified here. Icon and other styles are taken from the primary widget
+      					display properties.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
+      	</xsd:sequence>	
     </xsd:complexType>
     
 	<xsd:complexType name="UserInterfaceFeatureType">
@@ -15693,22 +16294,80 @@
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
-       			<xsd:element name="identifier" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
+       			<xsd:element name="identifier" type="xsd:string" minOccurs="0" maxOccurs="1">
            			<xsd:annotation>
            				<xsd:documentation>
-           					Widget identifier. The feature specifications that come
-           					from different roles will be merged if they have the same identifier.
+           					<p>
+	           					GUI feature identifier. E.g. idetifier for view or widget.
+	           					The feature specifications that come from different roles will be merged
+	           					if they have the same identifier. The identifier is also used for
+	           					diagnostics, e.g. used in the logfiles.
+           					</p>
+           					<p>
+           						Although identifier type is defined as string, it is strongly recommended
+           						to use URI for all customizations. The URI should be based on identifier
+           						that you own (e.g. DNS domain). Using non-URI forms may still work, but
+           						there is risk of conflicting with default midPoint configuration.
+           					</p>
+           					<p>
+       							If no identifer is specified for a view then midPoint will internally generate a value for the identifier.
+       							This internal identifier value is based on the GUI feature definition, e.g. object type and/or collection OID
+       							or other aspects of the view. The algorithm for identifier generation may change and the results are not
+       							guaranteed to be completely unique. Therefore it is strongly recommended to explictly set identifier for all 
+       							the UI features in any non-trivial midPoint configuration.
+       						</p>
+       						<p>
+       							Identifier may not be needed at all in some cases (e.g. additionalPanels in views).
+       						</p>
            				</xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
 						</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
-           		<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
-           		             minOccurs="0" maxOccurs="1" default="vacant">
+           		<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
            			<xsd:annotation>
            				<xsd:documentation>
-           					Defines, whether this feature will be visible or it will be hidden.
+           					<p>
+	           					Free-form description (comment) intended for system administrator. Description will NOT be displayed as
+	           					any part of the UI feature. The purpose is to explain the purpose or configuraiton details.
+           					</p>
+           				</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>UserInterfaceFeatureType.identifier</a:displayName>
+						</xsd:appinfo>
+           			</xsd:annotation>
+           		</xsd:element>
+           		<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Display properties of the UI feature. It is used to display the link in the menu and so on.
+       						Only some parts of display specification may be used. E.g. for views only label is used now.
+       						E.g. the CSS properties are ignored.
+       					</xsd:documentation>
+       					<!-- This might be determined from the collection in future midPoint versions.
+       					     In fact the entire definition of a view may be just a reference to collection. -->
+       					<xsd:appinfo>
+       						<a:since>3.9</a:since>
+							<a:displayName>UserInterfaceFeatureType.display</a:displayName>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+           		<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
+           		             minOccurs="0" maxOccurs="1" default="automatic">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					<p>
+           						Defines, whether this feature will be visible or it will be hidden.
+           					</p>
+           					<p>
+           						The default (since 4.0) is 'automatic', which means that all defined
+           						features will be visible if possible, unless explicitly hidden.
+           						However, this can be changed, e.g. by setting default visibility
+           						in the dashboard definition. Also, some hardcoded dashboards have
+           						different defaults. E.g. the legacy 3.x end-user home page
+           						has default visibility of "vacant".
+           					</p>
            				</xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>UserInterfaceFeatureType.visibility</a:displayName>
@@ -15896,13 +16555,24 @@
             <xsd:element name="color" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                    	Usual color used to render the icon. This color may be used in
-                    	situation when colorful presentation is appropriate. The color
-                    	may be used to color the icon itself, or it may also color the
-                    	background if icon is displayed with "inverted" color.
-                    	The color may also be ignored if monochrome presentation is
-                    	more appropriate.
-                    	Value of this element is HTML-like color name or code.
+                    	<p>
+	                    	Usual color used to render the icon. This color may be used in
+	                    	situation when colorful presentation of the icon is appropriate.
+	                    	The color may be used to color the icon itself, or it may also color the
+	                    	background if icon is displayed with "inverted" color.
+	                    	The color may also be ignored if monochrome presentation is
+	                    	more appropriate.
+                    	</p>
+                    	<p>
+                    		Value of this element is HTML-like color name or code.
+                    	</p>
+                    	<p>
+                    		Note: This color is different than icon color.
+                    		This is the color of the thing itself. E.g. color of form or widget.
+                    		Icon may have independent color. Some UI elements may be able
+                    		to display both the color of the element (e.g. widget) and color
+                    		of the icon.
+                    	</p>
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>IconType.color</a:displayName>
@@ -17536,6 +18206,19 @@
     					triggered. If the situation is not explicitly stated then
     					default situation will be selected instead. The situation
     					is determined by the constraint that triggered the rule.
+    				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyRuleType.policySituation</a:displayName>
+						<a:help>PolicyRuleType.policySituation.help</a:help>
+					</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="policyThreshold" type="tns:PolicyThresholdType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Policy threshold specification. It determines thresholds settings
+    					such as count after which the action is beeing executed, refresh
+    					interval for counter, ... 
     				</xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>PolicyRuleType.policySituation</a:displayName>
@@ -20125,7 +20808,6 @@
         </xsd:restriction>
     </xsd:simpleType>
     
-    
     <xsd:complexType name="ReportFieldConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -20143,30 +20825,6 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="reportFieldConfiguration" type="tns:ReportFieldConfigurationType"/>
-    
-    <!--<xsd:complexType name="ReportTemplateType">-->
-        <!--<xsd:sequence>-->
-            <!--<xsd:any namespace="##other" processContents="lax">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--&lt;!&ndash; TODO description &ndash;&gt;-->
-                    <!--</xsd:documentation>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:any>-->
-        <!--</xsd:sequence>-->
-    <!--</xsd:complexType>-->
-
-    <!--<xsd:complexType name="ReportTemplateStyleType">-->
-        <!--<xsd:sequence>-->
-            <!--<xsd:any namespace="##other" processContents="lax">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--&lt;!&ndash; TODO description &ndash;&gt;-->
-                    <!--</xsd:documentation>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:any>-->
-        <!--</xsd:sequence>-->
-    <!--</xsd:complexType>-->
     
     <xsd:complexType name="DataSourceType">
         <xsd:sequence>
@@ -20197,41 +20855,102 @@
 	<xsd:complexType name="ReportType">
 	    <xsd:annotation>
             <xsd:documentation>
-            	TODO
+            	Specification of midPoint report. This specification defines what the report should
+            	contain, how it should look like, output format and so on.
+            	
+            	This specificaiton does NOT define when the report is exectued. The report may be
+            	executed ad-hoc (e.g. by explicitly executing it in GUI), or the report may be
+            	scheduled by using a task.
+            	
+            	ReportType contains many elements that are specific to JasperRepors.
+            	In fact, such elements should not be top-level elements. They should rather be in
+            	their own Jasper-specific container. But due to various reasons (e.g. migration)
+            	these items are kept as they are. They will get sorted out eventually.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
-                    <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded"/>
+                	<xsd:element name="reportEngine" type="tns:ReportEngineSelectionType" default="jasper" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Selects which report engine should be used to render this report.
+                			</xsd:documentation>
+                			<xsd:appinfo>
+                				<a:since>4.0</a:since>
+                			</xsd:appinfo>
+                		</xsd:annotation>
+                	</xsd:element>
+                    <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Indicates whether this report is a parent report or subreport.
+                    			This item is specific to JasperRepors.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Reference to subreport.
+                    			This item is specific to JasperRepors.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                     
 
-                    <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1" />
-                    <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+	                    <xsd:annotation>
+                    		<xsd:documentation>
+                    			Report template. This is definition of base query, report structure and so on.
+                    			This item is specific to JasperRepors. But it may be reused for other report types.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                    		<xsd:documentation>
+                    			Report style template. This defines colors and similar look and feel properties.
+                    			This item is specific to JasperRepors. But it may be reused for other report types.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                        
-<!--                    	<xsd:element name="template" type="t:XmlAsStringType" minOccurs="0"/> -->
-<!--                 	<xsd:element name="templateStyle" type="t:XmlAsStringType" minOccurs="0"/> -->
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
     				    <xsd:annotation>
                             <xsd:documentation>
-                                Report page orientation.
+                                Report page orientation (portrait/landscape).
+                                This item is specific to JasperRepors. But it may be reused for other report types.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="export" type="tns:ExportType" minOccurs="0">
     				<xsd:annotation>
                             <xsd:documentation>
-                                File type which will be used during report export.
+                                Report output file format.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0"/>
-                    <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0"/>
+                    <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0">
+	                    <xsd:annotation>
+                    		<xsd:documentation>
+                    			This item is specific to JasperRepors.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0">
+	                    <xsd:annotation>
+                    		<xsd:documentation>
+                    			This item is specific to JasperRepors.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    
             		<xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Columns user definition. Name, type, report field, column name.
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -20243,6 +20962,7 @@
                                 <p>
                                     Optional name of Jasper virtualizer class.
                                 </p>
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational/>
@@ -20253,6 +20973,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Number of pages after Jasper virtualizer kicks on.
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -20260,6 +20981,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Number of pages after Jasper cancels report execution.
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -20267,6 +20989,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Timeout in [ms] after Jasper cancels report execution.
+                                This item is specific to JasperRepors.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -20287,6 +21010,37 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="report" type="tns:ReportType" substitutionGroup="c:object"/>
+    
+    <xsd:simpleType name="ReportEngineSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects which report engine should be used to render this report.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="jasper">
+                <xsd:annotation>
+                	<xsd:documentation>JasperReports engine</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JASPER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="dashboard">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Dashboard reports. The reports will be based on a dashboard.
+                		In fact, the report will be a static version of the dashboard
+                		at the time when the report runs.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DASHBOARD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: view-based report engine -->
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ReportConfigurationType">
         <xsd:annotation>
@@ -20750,38 +21504,42 @@
                 <a:since>3.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-       		<xsd:sequence>
-           		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
-					<xsd:annotation>
-       					<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.searchBoxConfiguration</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-           		<xsd:element name="distinct" type="tns:DistinctSearchOptionType" minOccurs="0" maxOccurs="1" default="auto">
-					<xsd:annotation>
-       					<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.distinct</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-           		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded">
-					<xsd:annotation>
-       					<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.column</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-				<xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0">
-					<xsd:annotation>
-       					<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.disableSorting</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-           		<!-- TODO: number of results per page (MID-1931) -->
-           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
-           	</xsd:sequence>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:UserInterfaceFeatureType">
+	       		<xsd:sequence>
+	           		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.searchBoxConfiguration</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           		<xsd:element name="distinct" type="tns:DistinctSearchOptionType" minOccurs="0" maxOccurs="1" default="auto">
+						<xsd:annotation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.distinct</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.column</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+					<xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0">
+						<xsd:annotation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.disableSorting</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           		<!-- TODO: number of results per page (MID-1931) -->
+	           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
+	           	</xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     
     <xsd:complexType name="GuiObjectListViewType">
@@ -20797,28 +21555,24 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:GuiObjectListPanelConfigurationType">
 	       		<xsd:sequence>
-	       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
-	       			           add name, label (display name) and menu label for this list.
-	       			           We will also need a reference to which menu section we want to display it. E.g. We would
-	       			           like to display role catalog under "roles", even though it is in fact org tree. -->
 	       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
 	       				<xsd:annotation>
+	       					<!-- TODO: should be replaced by "identifier" from UserInterfaceFeatureType? -->
 	       					<xsd:documentation>
 	       						<p>
-		       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
-		       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
-		       						e.g. if view defined in system configuraiton is overridden in the role.
+		       						Symbolic name for this view. It is used as a view identifier. Views with the same name will be merged together.
+		       						The name is used to detect whether a particular view is overriden, e.g. if view defined in system configuraiton
+		       						is overridden in the role. It may also be used by other system components (e.g. dashboard widgets, reports)
+		       						to refer to this view. It will also be used for diagnostics, logging and so on.
 	       						</p>
 	       						<p>
-	       							If no name is specified for a view then midPoint will internally generate a name. This internal name
-	       							is based on object type and/or collection OID or other aspects of the view. The algorithm for name
-	       							generation may change and the results are not guaranteed to be completely unique. Therefore it is 
-	       							strongly recommended to explictly name all the views in any non-trivial midPoint configuration.  
+	       							DEPRECATED. Use identifier instead.
 	       						</p>
 	       					</xsd:documentation>
 	       					<xsd:appinfo>
 	       						<a:since>3.9</a:since>
 								<a:displayName>GuiObjectListViewType.name</a:displayName>
+								<a:deprecated>true</a:deprecated>
 	       					</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
@@ -20832,7 +21586,7 @@
 							</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
-	       			<xsd:element name="collection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="1">
+	       			<xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
 	       				<xsd:annotation>
 	       					<xsd:documentation>
 	       						Specification of an explicit or implicit object collection that will be used to select objects in this view.
@@ -20859,20 +21613,6 @@
 	       						     here we will force everybody to specify it explicitly. So their configuraiton will work in
 	       						     future versions when we add support for implicit collections. -->
 								<a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
-	       					</xsd:appinfo>
-	       				</xsd:annotation>
-	       			</xsd:element>
-	       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
-	       				<xsd:annotation>
-	       					<xsd:documentation>
-	       						Display properties of the view. It is used to display the link in the menu and so on.
-	       						Only label is used now. E.g. the CSS properties are ignored.
-	       					</xsd:documentation>
-	       					<!-- This might be determined from the collection in future midPoint versions.
-	       					     In fact the entire definition of a view may be just a reference to collection. -->
-	       					<xsd:appinfo>
-	       						<a:since>3.9</a:since>
-								<a:displayName>GuiObjectListViewType.display</a:displayName>
 	       					</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
@@ -21861,6 +22601,33 @@
 					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
+            <xsd:element name="color" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+	                    	Usual color of the display element that this data structure describes.
+	                    	This color may be used in situation when colorful presentation 
+	                    	of the lement is appropriate. The color
+	                    	may be used to color the decorations, background, icon, etc.
+	                    	The color may also be ignored if monochrome presentation is
+	                    	more appropriate.
+	                    </p>
+	                    <p>
+	                    	Value of this element is HTML-like color name or code.
+                    	</p>
+                    	<p>
+                    		Note: This color is different than icon color.
+                    		This is the color of the thing itself. E.g. color of form or widget.
+                    		Icon may have independent color. Some UI elements may be able
+                    		to display both the color of the element (e.g. widget) and color
+                    		of the icon.
+                    	</p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>IconType.color</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- style properties -->
             <xsd:element name="cssStyle" type="xsd:string" minOccurs="0">
 				<xsd:annotation>
@@ -22162,6 +22929,35 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:element>
+	
+	<xsd:complexType name="DashboardType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    TODO
+                </p>
+                <p>
+                    TODO
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AssignmentHolderType">
+                <xsd:sequence>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <!-- This may be part of ObjectType later. -->
+                    </xsd:element>
+                    <!-- TODO: layout -->
+                    <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0">
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="dashboard" type="tns:DashboardType" />
 
     <xsd:complexType name="ObjectTreeDeltasType">
         <xsd:annotation>

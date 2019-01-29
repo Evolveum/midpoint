@@ -19,11 +19,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -953,7 +953,7 @@ public class OrgClosureManager {
                     "PRIMARY KEY (descendant_oid, ancestor_oid))";
 //            NativeQuery createTableQuery = session.createNativeQuery(createTableSql);
 //            createTableQuery.executeUpdate();  <--- this does not work because the temporary table gets deleted when the command terminates (preparedStatement issue - maybe something like this: https://support.microsoft.com/en-us/kb/280134 ?)
-            session.doWork(connection -> connection.createStatement().execute(createTableSql));
+            session.doWork(connection -> RUtil.executeStatement(connection, createTableSql));
             LOGGER.trace("Empty delta table created in {} ms", System.currentTimeMillis() - start);
 
             NativeQuery insertQuery = session.createNativeQuery("insert into " + deltaTempTableName + " " + selectClause);

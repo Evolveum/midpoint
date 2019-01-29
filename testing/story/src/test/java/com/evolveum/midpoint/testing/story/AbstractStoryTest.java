@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -157,13 +158,17 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue();
 	}
 
-	protected PrismReference ref(List<ObjectReferenceType> orts) {
+	protected PrismReference ref(List<ObjectReferenceType> orts) throws SchemaException {
 		PrismReference rv = prismContext.itemFactory().createReference(new QName("dummy"));
-		orts.forEach(ort -> rv.add(ort.asReferenceValue().clone()));
+		
+		for (ObjectReferenceType ort : orts) {
+			rv.add(ort.asReferenceValue().clone());
+		}
+		
 		return rv;
 	}
 
-	protected PrismReference ref(ObjectReferenceType ort) {
+	protected PrismReference ref(ObjectReferenceType ort) throws SchemaException {
 		return ref(Collections.singletonList(ort));
 	}
 

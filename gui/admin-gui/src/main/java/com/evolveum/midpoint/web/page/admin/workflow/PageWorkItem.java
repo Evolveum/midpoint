@@ -180,7 +180,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 					relatedTasks.add(relatedObject.asObjectable());
 				}
 			}
-			workItemDto = new WorkItemDto(workItem, taskType, relatedTasks);
+			workItemDto = new WorkItemDto(workItem, taskType, relatedTasks, PageWorkItem.this);
 			workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task,
 					result);
 			result.recordSuccessIfUnknown();
@@ -312,6 +312,10 @@ public class PageWorkItem extends PageAdminWorkItems {
 				}
 			}
 			ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
+			if (delta != null) {
+				//noinspection unchecked
+				getPrismContext().adopt(delta);
+			}
 			try {
 				assumePowerOfAttorneyIfRequested(result);
 				getWorkflowService().completeWorkItem(dto.getWorkItemId(), approved, dto.getApproverComment(), delta, result);

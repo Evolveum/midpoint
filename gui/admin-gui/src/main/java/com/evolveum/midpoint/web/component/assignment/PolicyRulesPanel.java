@@ -24,6 +24,9 @@ import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyC
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -55,7 +58,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 public class PolicyRulesPanel extends AssignmentPanel {
 
     private static final long serialVersionUID = 1L;
-    
+
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRulesPanel.class);
 
     public PolicyRulesPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
@@ -65,8 +68,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-        
-        
+
+
         columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()) {
 					private static final long serialVersionUID = 1L;
 
@@ -84,7 +87,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 		                });
 					}
         });
-        
+
         columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_SITUATION, getPageBase()) {
 			private static final long serialVersionUID = 1L;
 
@@ -102,7 +105,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
                 });
 			}
         });
-        
+
         columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_ACTIONS, getPageBase()) {
 			private static final long serialVersionUID = 1L;
 
@@ -120,9 +123,9 @@ public class PolicyRulesPanel extends AssignmentPanel {
                 });
 			}
         });
-        
+
         columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_ORDER, getPageBase()));
-        
+
         return columns;
     }
 
@@ -139,7 +142,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	}
 
 	@Override
-	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
+	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
         newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
         ContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModel());
@@ -164,16 +167,16 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	@Override
 	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
 		List<SearchItemDefinition> defs = new ArrayList<>();
-		
+
 		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
 		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
 		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
 		SearchFactory.addSearchRefDef(containerDef,
 				ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
 						PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
-		
+
 		defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-		
+
 		return defs;
 	}
 

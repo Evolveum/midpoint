@@ -114,7 +114,7 @@ public class WorkItemsPanel extends BasePanel {
 							public Date getObject() {
 								return rowModel.getObject().getStartedDate();
 							}
-						}, DateLabelComponent.LONG_MEDIUM_STYLE));
+						}, WebComponentUtil.getShortDateTimeFormat(WorkItemsPanel.this.getPageBase())));
 					}
 				});
 			}
@@ -130,7 +130,7 @@ public class WorkItemsPanel extends BasePanel {
                             public Date getObject() {
                                 return rowModel.getObject().getCreatedDate();
                             }
-                        }, DateLabelComponent.LONG_MEDIUM_STYLE));
+                        }, WebComponentUtil.getShortDateTimeFormat(WorkItemsPanel.this.getPageBase())));
                     }
             });
 			columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.deadline")){
@@ -145,7 +145,7 @@ public class WorkItemsPanel extends BasePanel {
                             public Date getObject() {
                                 return rowModel.getObject().getDeadlineDate();
                             }
-                        }, DateLabelComponent.LONG_MEDIUM_STYLE));
+                        }, WebComponentUtil.getShortDateTimeFormat(WorkItemsPanel.this.getPageBase())));
                     }
             });
 			columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.escalationLevel"),
@@ -168,7 +168,7 @@ public class WorkItemsPanel extends BasePanel {
 
 			@Override
 			protected boolean isFooterVisible(long providerSize, int pageSize){
-				return providerSize > pageSize;
+				return WorkItemsPanel.this.isFooterVisible(providerSize, pageSize);
 			}
 		};
 		workItemsTable.setAdditionalBoxCssClasses("without-box-header-top-border");
@@ -350,4 +350,7 @@ public class WorkItemsPanel extends BasePanel {
 		};
 	}
 
+	protected boolean isFooterVisible(long providerSize, int pageSize){
+		return true;
+	}
 }

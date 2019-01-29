@@ -41,8 +41,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -381,50 +383,53 @@ public class NodeRegistrar {
     }
 
     private String getMyHostname() {
-
         if (taskManager.getConfiguration().getJmxHostName() != null) {
             return taskManager.getConfiguration().getJmxHostName();
         } else {
             try {
-            	// Not entirely correct. But we have no other option here
-            	// other than go native or execute a "hostname" shell command.
-            	// We do not want to do neither.
-            	InetAddress localHost = InetAddress.getLocalHost();
-            	
-            	if (localHost == null) {
-            		// Unix
-                	String hostname = System.getenv("HOSTNAME");
-                	if (hostname != null && !hostname.isEmpty()) {
-                		return hostname;
-                	}
-                	
-                	// Windows
-                	hostname = System.getenv("COMPUTERNAME");
-                	if (hostname != null && !hostname.isEmpty()) {
-                		return hostname;
-                	}
-                	
-            		LOGGER.error("Cannot get local IP address");
+                String hostName = getLocalHostNameFromOperatingSystem();
+                if (hostName != null) {
+                    return hostName;
+                } else {
+            		LOGGER.error("Cannot get local host name");
             		// Make sure this has special characters so it cannot be interpreted as valid hostname
                     return "(unknown-host)";
             	}
-            	
-            	String hostname = localHost.getCanonicalHostName();
-            	if (hostname != null && !hostname.isEmpty()) {
-            		return hostname;
-            	}
-            	
-            	hostname = localHost.getHostName();
-            	if (hostname != null && !hostname.isEmpty()) {
-            		return hostname;
-            	}
-                return localHost.getHostAddress();
             } catch (UnknownHostException e) {
                 LoggingUtils.logException(LOGGER, "Cannot get local hostname address", e);
                 // Make sure this has special characters so it cannot be interpreted as valid hostname
                 return "(unknown-host)";
             }
         }
+    }
+
+    @Nullable
+    public static String getLocalHostNameFromOperatingSystem() throws UnknownHostException {
+        // Not entirely correct. But we have no other option here
+        // other than go native or execute a "hostname" shell command.
+        // We do not want to do neither.
+        InetAddress localHost = InetAddress.getLocalHost();
+        if (localHost == null) {
+            String hostname = System.getenv("HOSTNAME");        // Unix
+            if (StringUtils.isNotEmpty(hostname)) {
+                return hostname;
+            }
+            hostname = System.getenv("COMPUTERNAME");           // Windows
+            if (StringUtils.isNotEmpty(hostname)) {
+                return hostname;
+            }
+            return null;
+        }
+
+        String hostname = localHost.getCanonicalHostName();
+        if (StringUtils.isNotEmpty(hostname)) {
+            return hostname;
+        }
+        hostname = localHost.getHostName();
+        if (StringUtils.isNotEmpty(hostname)) {
+            return hostname;
+        }
+        return localHost.getHostAddress();
     }
     
     private List<String> getMyIpAddresses() {
