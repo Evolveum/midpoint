@@ -106,7 +106,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             public boolean isVisible(){
-                boolean isShadowRefValueNull =  ExpressionUtil.getShadowRefValue(getModelObject()) == null;
+                boolean isShadowRefValueNull =  ExpressionUtil.getShadowRefValue(getModelObject(), pageBase.getPrismContext()) == null;
 
                 MapXNode associationTargetSearchNode = ExpressionUtil.getAssociationTargetSearchFilterValuesMap(getModelObject());
                 boolean isAssociationTargetSearchNull = associationTargetSearchNode == null || associationTargetSearchNode.isEmpty();
@@ -199,7 +199,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             public boolean isVisible(){
-                return ExpressionUtil.getShadowRefValue(getModelObject()) != null;
+                return ExpressionUtil.getShadowRefValue(getModelObject(), pageBase.getPrismContext()) != null;
             }
         });
         add(shadowRefValueContainer);
@@ -207,7 +207,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         shadowsListModel = new LoadableModel<List<ShadowType>>() {
             @Override
             protected List<ShadowType> load() {
-                return WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(ExpressionValuePanel.this.getModelObject()),
+                return WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(ExpressionValuePanel.this.getModelObject(),
+                        pageBase.getPrismContext()),
                         OPERATION_LOAD_SHADOW, pageBase);
             }
         };

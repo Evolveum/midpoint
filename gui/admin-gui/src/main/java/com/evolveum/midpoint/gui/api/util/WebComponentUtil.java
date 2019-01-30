@@ -3046,7 +3046,7 @@ public final class WebComponentUtil {
 		if (assignmentValueWrapper == null){
 			return null;
 		}
-		if (createIfNotExist && prismContext != null) {
+		if (createIfNotExist && prismContext == null) {
 			throw new IllegalArgumentException("createIfNotExist is set but prismContext is null");
 		}
 		ContainerWrapper<ConstructionType> construction = assignmentValueWrapper
