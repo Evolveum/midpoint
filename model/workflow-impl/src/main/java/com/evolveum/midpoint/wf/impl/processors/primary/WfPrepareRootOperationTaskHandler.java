@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -75,7 +76,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
         try {
 
-            OperationResult result = task.getResult();
+            OperationResult result = WfTaskUtil.getResult(task);
 
             WfTask rootWfTask = wfTaskController.recreateRootWfTask(task);
             List<WfTask> children = rootWfTask.listChildren(result);

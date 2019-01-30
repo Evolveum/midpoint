@@ -418,7 +418,12 @@ public abstract class ResourceContentPanel extends Panel {
 		items.add(item);
 
 		DropdownButtonPanel button = new DropdownButtonPanel(id,
-				new DropdownButtonDto(String.valueOf(tasks.size()), icon, label, items));
+				new DropdownButtonDto(String.valueOf(tasks.size()), icon, label, items)) {
+			@Override
+			protected String getSpecialDropdownMenuClass() {
+				return "pull-left";
+			}
+		};
 		add(button);
 
 	}

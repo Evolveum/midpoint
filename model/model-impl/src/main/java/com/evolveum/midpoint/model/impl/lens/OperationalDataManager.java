@@ -136,7 +136,7 @@ public class OperationalDataManager {
 		List<String> approverComments = new ArrayList<>();
 		if (workflowManager != null) {
 			for (ObjectReferenceType approverRef : workflowManager.getApprovedBy(task, result)) {
-				approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid()));
+				approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid(), UserType.COMPLEX_TYPE));
 			}
 			approverComments.addAll(workflowManager.getApproverComments(task, result));
 		}
