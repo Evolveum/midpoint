@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,6 +126,44 @@ public class NotificationExpressionHelper {
 
 		List<String> retval = new ArrayList<>();
 		for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
+			retval.add(item.getValue());
+		}
+		return retval;
+	}
+	
+	public List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+			String shortDesc, Task task, OperationResult result) {
+
+		Throwable failReason;
+		try {
+			return evaluateNotificationMessageAttachmentTypeExpression(expressionType, expressionVariables, shortDesc, task, result);
+		} catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+			failReason = e;
+		}
+
+		LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", failReason, shortDesc, expressionType);
+		result.recordFatalError("Couldn't evaluate " + shortDesc, failReason);
+		throw new SystemException(failReason);
+	}
+
+	public List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+		QName resultName = new QName(SchemaConstants.NS_C, "result");
+		PrismPropertyDefinition<NotificationMessageAttachmentType> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
+		Expression<PrismPropertyValue<NotificationMessageAttachmentType>,PrismPropertyDefinition<NotificationMessageAttachmentType>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
+
+		PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageAttachmentType>> exprResultTriple = ModelExpressionThreadLocalHolder
+				.evaluateExpressionInContext(expression, params, task, result);
+
+		Collection<PrismPropertyValue<NotificationMessageAttachmentType>> exprResult = exprResultTriple.getZeroSet();
+		if (exprResult.size() == 0) {
+			return null;
+		} 
+		
+		List<NotificationMessageAttachmentType> retval = new ArrayList<>();
+		for (PrismPropertyValue<NotificationMessageAttachmentType> item : exprResult) {
 			retval.add(item.getValue());
 		}
 		return retval;
