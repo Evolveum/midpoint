@@ -38,6 +38,13 @@
                     <collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee -->
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+            	<identifier>externs</identifier>
+            	<type>UserType</type>
+                <collection>
+                    <collectionRef oid="b97490e6-24aa-11e9-923a-cbe17394eff9" type="ArchetypeType"/> <!-- Externs -->
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
     </adminGuiConfiguration>
     

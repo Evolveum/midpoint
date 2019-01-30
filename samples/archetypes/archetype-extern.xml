@@ -24,6 +24,7 @@
     	<display>
     		<label>Extern</label>
     		<pluralLabel>Externs</pluralLabel>
+    		<tooltip>External worker</tooltip>
     		<icon>
     			<cssClass>fa fa-male</cssClass>
     			<!-- Same icon as employee, just different color. -->
