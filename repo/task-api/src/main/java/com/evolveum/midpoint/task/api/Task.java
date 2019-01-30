@@ -743,7 +743,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     OperationResult getResult();
 
-    /**
+	void setResultTransient(OperationResult result);
+
+	/**
      * Returns the status of top-level OperationResult stored in the task.
      *
      * @return task operation result status

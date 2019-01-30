@@ -1907,7 +1907,7 @@ public final class WebComponentUtil {
 		}
 	}
 
-	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object) {
+	public static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object) {
 		ActivationType activation = object.asObjectable().getActivation();
 		if (activation != null) {
 			if (ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {

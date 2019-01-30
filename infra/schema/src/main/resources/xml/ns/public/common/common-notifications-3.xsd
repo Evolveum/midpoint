@@ -1412,6 +1412,9 @@
                         <xsd:documentation>
                             Content of the attachment.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:rawType/>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="contentFromFile" type="xsd:string">
