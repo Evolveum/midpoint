@@ -27,6 +27,9 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -600,5 +603,22 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	@Override
 	public void removeValue(ValueWrapper<ContainerValueWrapper<C>> valueWrapper) throws SchemaException {
 		throw new UnsupportedOperationException("Not impelemtned yet");
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.web.component.prism.ItemWrapper#isRequired()
+	 */
+	@Override
+	public boolean isRequired() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.web.component.prism.ItemWrapper#createPanel(java.lang.String, org.apache.wicket.markup.html.form.Form, com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler)
+	 */
+	@Override
+	public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
+		return new PrismContainerPanel<>(id, Model.of(this), form, visibilityHandler, isShowOnTopLevel);
 	}
 }

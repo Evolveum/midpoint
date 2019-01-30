@@ -253,7 +253,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
                 cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(getqNameOfItem())),
-                		new Form("form"), null, getPageBase()) {
+                		new Form("form"), null) {
                 	@Override
                 	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
                 		ItemRealValueModel value = new ItemRealValueModel(object);
@@ -274,7 +274,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
                 cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(getqNameOfItem())),
-                		new Form("form"), null, getPageBase()) {
+                		new Form("form"), null) {
                 	@Override
                 	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
                 		ItemRealValueModel value = new ItemRealValueModel(object);

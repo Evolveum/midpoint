@@ -48,7 +48,8 @@ public class StaticPrismPropertyColumn<C extends Containerable> extends Abstract
 	public void populateItem(Item<ICellPopulator<ContainerValueWrapper<C>>> cellItem, String componentId,
 			IModel<ContainerValueWrapper<C>> rowModel) {
 		PropertyOrReferenceWrapperFromContainerModel property = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), getqNameOfItem());
-		cellItem.add(new StaticItemWrapperColumnPanel(componentId, property, new Form("form"), null, getPageBase()));
+//		property.getObject().createPanel(componentId, new Form("form"), null);
+		cellItem.add(new StaticItemWrapperColumnPanel(componentId, property, new Form("form"), null));
 	}
 	
 }

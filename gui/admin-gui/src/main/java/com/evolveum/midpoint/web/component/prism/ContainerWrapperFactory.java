@@ -401,11 +401,11 @@ public class ContainerWrapperFactory {
 		}
 		if (ExpressionType.COMPLEX_TYPE.equals(def.getTypeName())){
 			if (property == null) {
-				PrismProperty newProperty = def.instantiate();
-				return new ExpressionWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()),
+				PrismProperty<ExpressionType> newProperty = (PrismProperty<ExpressionType>) def.instantiate();
+				return (PropertyWrapper<T>) new ExpressionWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()),
 						modelServiceLocator.getPrismContext());
 			} else {
-				return new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath(),
+				return (PropertyWrapper<T>) new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath(),
 						modelServiceLocator.getPrismContext());
 			}
 		}

@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -92,6 +94,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 	
 	boolean isExperimental();
 	
+	boolean isRequired();
+	
 	String getDeprecatedSince();
 
     void setStripe(boolean isStripe);
@@ -118,5 +122,7 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 	void setShowEmpty(boolean isShowEmpty, boolean recursive);
 	
 	ExpressionType getFormItemValidator();
+	
+	Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler);
 
 }

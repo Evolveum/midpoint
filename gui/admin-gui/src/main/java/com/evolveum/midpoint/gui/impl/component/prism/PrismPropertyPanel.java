@@ -16,53 +16,15 @@
 
 package com.evolveum.midpoint.gui.impl.component.prism;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.PanelContext;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
-import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ExpressionWrapper;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.ExpressionValidator;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -70,10 +32,36 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.factory.PanelContext;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.ExpressionValidator;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author lazyman
@@ -94,12 +82,16 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
 	
     private boolean labelContainerVisible = true;
     
-    public PrismPropertyPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler,
-			PageBase pageBase) {
-		super(id, model, form, visibilityHandler, pageBase);
+    public PrismPropertyPanel(String id, IW model, Form form, ItemVisibilityHandler visibilityHandler) {
+		super(id, Model.of(model), form, visibilityHandler);
+	}
+    
+    public PrismPropertyPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
+		super(id, model, form, visibilityHandler);
 	}
     
     protected WebMarkupContainer getHeader(String idComponent) {
+    	
     	PrismPropertyHeaderPanel<IW> headerLabel = new PrismPropertyHeaderPanel<IW>(idComponent, getModel(), getPageBase()) {
 			private static final long serialVersionUID = 1L;
 
@@ -137,7 +129,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
         		feedback.setOutputMarkupId(true);
         		item.add(feedback);
             	
-            	Component panel = createPropertyPanel("value", item.getModel(), feedback, form);
+            	Component panel = createValuePanel(item.getModel(), feedback, form);
             	panel.add(new AttributeModifier("class", getInputCssClass()));
             	valueContainer.add(panel);
 
@@ -181,29 +173,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
         		});
         		buttonContainer.add(removeButton);
             	
-//                ItemWrapper itemWrapper = item.getModelObject().getItem();
-//                if ((itemWrapper.getPath().containsNameExactly(ConstructionType.F_ASSOCIATION) ||
-//                                itemWrapper.getPath().containsNameExactly(ConstructionType.F_ATTRIBUTE))&&
-//                        itemWrapper.getPath().containsNameExactly(ResourceObjectAssociationType.F_OUTBOUND) &&
-//                        itemWrapper.getPath().containsNameExactly(MappingType.F_EXPRESSION)){
-//                    ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
-//                    panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
-//                            expressionWrapper.getConstruction(), getPageBase()){
-//                        private static final long serialVersionUID = 1L;
-//
-//                        @Override
-//                        protected boolean isAssociationExpression(){
-//                            return itemWrapper.getPath().containsNameExactly(ConstructionType.F_ASSOCIATION);
-//                        }
-//                    };
-//                } else {
-////                    panel = new PrismValuePanel2("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass(), getButtonsCssClass());
-//                }
-            	
-            	
-            	
-            	
-//                item.add(panel);
+
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
 
                 item.add(new VisibleEnableBehaviour() {
@@ -223,13 +193,10 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
     
     //VALUE REGION
     
-    private <T> Component createPropertyPanel(String id, IModel<ValueWrapper<T>> valueWrapperModel, FeedbackPanel feedback, Form form) {
+    protected <T> Component createValuePanel(IModel<ValueWrapper<T>> valueWrapperModel, FeedbackPanel feedback, Form form) {
     		
-		ItemWrapper iw = getModel().getObject();
+		IW iw = getModel().getObject();
 
-		ItemDefinition definition = iw.getItemDefinition();
-		boolean required = definition.getMinOccurs() > 0;
-		boolean enforceRequiredFields = iw.isEnforceRequiredFields();
 		LOGGER.trace("createInputComponent: {}", iw);
 
 		Panel component = null;
@@ -273,15 +240,17 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
 			}
 
 			final List<FormComponent> formComponents = inputPanel.getFormComponents();
-			for (FormComponent formComponent : formComponents) {
-				IModel<String> label = WebComponentUtil.getDisplayName((IModel<ItemWrapper>) getModel(), PrismPropertyPanel.this);
+			for (FormComponent<T> formComponent : formComponents) {
+				IModel<String> label = WebComponentUtil.getDisplayName(getModel(), PrismPropertyPanel.this);
 				formComponent.setLabel(label);
-				formComponent.setRequired(required && enforceRequiredFields);
+				formComponent.setRequired(iw.isRequired());
 
 				if (formComponent instanceof TextField) {
 					formComponent.add(new AttributeModifier("size", "42"));
 				}
 				formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
+					
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected void onUpdate(AjaxRequestTarget target) {
@@ -299,8 +268,11 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
 			}
 		}
 		if (component == null) {
-			throw new RuntimeException(
-					"Cannot create input component for item " + iw + " (" + valueWrapperModel.getObject() + ")");
+//			throw new RuntimeException(
+//					"Cannot create input component for item " + iw + " (" + valueWrapperModel.getObject() + ")");
+			WebMarkupContainer cont = new WebMarkupContainer(ID_INPUT);
+			cont.setOutputMarkupId(true);
+			return cont;
 		}
 		return component;
 

@@ -53,17 +53,19 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
     private static final String ID_HEADER = "header";
     private static final String STRIPED_CLASS = "striped";
-
-    private PageBase pageBase;
     
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, boolean showHeader, Form form, ItemVisibilityHandler isPanelVisible, PageBase pageBase) {
-    	this(id, model, showHeader, form, isPanelVisible, pageBase, true);
+    private ItemVisibilityHandler itemVisibility = null;
+    private Form form;
+    
+    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, Form form, ItemVisibilityHandler isPanelVisible) {
+    	this(id, model, form, isPanelVisible, true);
     }
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, boolean showHeader, Form form, ItemVisibilityHandler isPanelVisible, PageBase pageBase, boolean isModelOnTopLevel) {
+    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, Form form, ItemVisibilityHandler isPanelVisible, boolean isModelOnTopLevel) {
         super(id, model);
         setOutputMarkupId(true); 
-		this.pageBase = pageBase;
+		this.itemVisibility = isPanelVisible;
+		this.form = form;
 		
         if(model.getObject() != null) {
 			model.getObject().setShowOnTopLevel(isModelOnTopLevel);
@@ -81,12 +83,21 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         	}
         });
         
-        initLayout(model, form, isPanelVisible, showHeader);
+       
         
         if(model.getObject() != null && model.getObject().getItemDefinition() != null && model.getObject().getItemDefinition().isMultiValue()) {
         	add(AttributeModifier.append("class", "prism-multivalue-container"));
         }
         
+    }
+    
+    /* (non-Javadoc)
+     * @see org.apache.wicket.MarkupContainer#onInitialize()
+     */
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	 initLayout(form, itemVisibility);
     }
     
     @Override
@@ -167,7 +178,8 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         return model.getObject() != null && model.getObject().isVisible();
     }
     
-    private void initLayout(final IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
+    private void initLayout(final Form form, ItemVisibilityHandler isPanelVisible) {
+    	final IModel<ContainerWrapper<C>> model = getModel();
     	PrismContainerHeaderPanel<C> header = new PrismContainerHeaderPanel<C>(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
 
@@ -193,9 +205,9 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         addOrReplaceProperties(model, form, isPanelVisible, false);
     }
 
-    public PageBase getPageBase(){
-        return pageBase;
-    }
+//    public PageBase getPageBase(){
+//        return (PageBase) getPage();
+//    }
 
     private IModel<String> createStyleClassModel(final IModel<ItemWrapper> wrapper) {
         return new IModel<String>() {
@@ -216,7 +228,7 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
 
 			@Override
 			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
-                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
+                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, getPageBase());
                     containerPanel.setOutputMarkupId(true);
                     item.add(new VisibleEnableBehaviour() {
                     	@Override

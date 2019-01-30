@@ -532,7 +532,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 				ItemPath assignmentPath = item.getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
 				ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType>(((PageAdminObjectDetails<FocusType>)getPageBase()).getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
+				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
 				specificContainers.add(acitvationContainer);
 
 				return specificContainers;
@@ -635,8 +635,8 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		Form form = new Form<>("form");
 		ItemPath assignmentPath = modelObject.getPath();
 		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER,
-				getSpecificContainerModel(modelObject), false, form,
-				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), getPageBase());
+				getSpecificContainerModel(modelObject), form,
+				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
 		constraintsContainerPanel.setOutputMarkupId(true);
 		return constraintsContainerPanel;
 	}

@@ -41,13 +41,13 @@ public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapper> extends
 
     private IModel<IW> model;
 
-    private PageBase pageBase;
+    private Form form;
 
-    public AbstractPrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase) {
+    public AbstractPrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
         super(id, model);
         Validate.notNull(model, "no model");
         this.model = model;
-        this.pageBase = pageBase;
+        this.form = form;
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
 
@@ -69,7 +69,15 @@ public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapper> extends
             }
         });
 
-        initLayout(model, form);
+    }
+    
+    /* (non-Javadoc)
+     * @see org.apache.wicket.MarkupContainer#onInitialize()
+     */
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout(model, form);
     }
     
     protected boolean isPanelEnabled() {
@@ -95,9 +103,6 @@ public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapper> extends
         return propertyWrapper.isVisible();
     }
     
-    protected PageBase getPageBase() {
-		return pageBase;
-	}
     
     public IModel<IW> getModel() {
         return model;
@@ -110,5 +115,9 @@ public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapper> extends
     private void initLayout(final IModel<IW> model, final Form form) {
     	add(getHeader(ID_LABEL));
         add(getValues("values", model, form));
+    }
+    
+    protected PageBase getPageBase() {
+    	return (PageBase) getPage();
     }
 }

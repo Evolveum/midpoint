@@ -85,7 +85,7 @@ public class PrismPanel<C extends Containerable> extends Panel {
     }
     
     protected PrismContainerPanel createContainerPanel(ListItem<ContainerWrapper<C>> item, ItemVisibilityHandler isPanelVisible, Form form){
-        PrismContainerPanel panel = new PrismContainerPanel(ID_CONTAINER, item.getModel(), false, form, isPanelVisible, pageBase);
+        PrismContainerPanel panel = new PrismContainerPanel(ID_CONTAINER, item.getModel(), form, isPanelVisible);
         panel.setOutputMarkupPlaceholderTag(true);
         item.add(panel);
         return panel;

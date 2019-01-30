@@ -98,12 +98,12 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 				//noinspection unchecked
 				ContainerWrapper<Containerable> containerWrapper = (ContainerWrapper<Containerable>) itemWrapper;
 				PrismContainerPanel<?> containerPanel = new PrismContainerPanel<>(itemView.newChildId(),
-						Model.of(containerWrapper), true, mainForm, w -> ItemVisibility.AUTO, getPageBase());
+						Model.of(containerWrapper), mainForm, w -> ItemVisibility.AUTO);
 				containerPanel.setOutputMarkupId(true);
 				itemView.add(containerPanel);
 			} else {
 				PrismPropertyPanel<?> propertyPanel = new PrismPropertyPanel<>(itemView.newChildId(),
-						Model.of(itemWrapper), mainForm, null, getPageBase());
+						Model.of(itemWrapper), mainForm, null);
 				propertyPanel.setOutputMarkupId(true);
 				propertyPanel.add(AttributeModifier.append("class", ((i % 2) == 0) ? "" : "stripe"));
 				itemView.add(propertyPanel);

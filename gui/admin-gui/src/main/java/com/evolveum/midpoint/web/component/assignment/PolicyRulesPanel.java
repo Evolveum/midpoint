@@ -76,7 +76,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
 							String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 						cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
-		                		new Form("form"), null, getPageBase()) {
+		                		new Form("form"), null) {
 		                	@Override
 		                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
 		                		ItemRealValueModel value = new ItemRealValueModel(object);
@@ -94,7 +94,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
 					String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 				cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
-                		new Form("form"), null, getPageBase()) {
+                		new Form("form"), null) {
                 	@Override
                 	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
                 		ItemRealValueModel value = new ItemRealValueModel(object);
@@ -112,7 +112,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
 					String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 				cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
-                		new Form("form"), null, getPageBase()) {
+                		new Form("form"), null) {
                 	@Override
                 	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
                 		ItemRealValueModel value = new ItemRealValueModel(object);

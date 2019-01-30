@@ -211,7 +211,8 @@ public class ConfigurationStep extends WizardStep {
 			tabs.add(new AbstractTab(new Model<>(tabName)) {
 				@Override
 				public WebMarkupContainer getPanel(String panelId) {
-					return new PrismContainerPanel(panelId, new Model<>(wrapper), true, form, null, parentPage);
+					return wrapper.createPanel(panelId, getForm(), null);
+//					return new PrismContainerPanel(panelId, new Model<>(wrapper), true, form, null, parentPage);
 				}
 			});
 		}

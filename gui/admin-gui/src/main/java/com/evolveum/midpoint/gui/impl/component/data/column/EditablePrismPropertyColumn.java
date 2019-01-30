@@ -48,7 +48,7 @@ public class EditablePrismPropertyColumn<C extends Containerable> extends Abstra
 	public void populateItem(Item<ICellPopulator<ContainerValueWrapper<C>>> cellItem, String componentId,
 			IModel<ContainerValueWrapper<C>> rowModel) {
 		PropertyOrReferenceWrapperFromContainerModel property = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), getqNameOfItem());
-		cellItem.add(new PrismPropertyColumnPanel(componentId, property, new Form("form"), null, getPageBase()));
+		cellItem.add(new PrismPropertyColumnPanel(componentId, property, new Form("form"), null));
 	}
 	
 }

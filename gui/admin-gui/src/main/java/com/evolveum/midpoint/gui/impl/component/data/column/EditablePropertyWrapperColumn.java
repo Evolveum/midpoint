@@ -79,7 +79,7 @@ public class EditablePropertyWrapperColumn<C extends Containerable, S> extends A
     protected Component createInputPanel(String componentId, IModel<ContainerValueWrapper<C>> rowModel) {
     	Form form= new Form("form");
     	PropertyOrReferenceWrapperFromContainerModel model = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), qNameOfProperty);
-    	PrismPropertyColumnPanel panel = new PrismPropertyColumnPanel(componentId, model, form, null, getPageBase());
+    	PrismPropertyColumnPanel panel = new PrismPropertyColumnPanel(componentId, model, form, null);
     	return panel;
     }
 
@@ -95,7 +95,7 @@ public class EditablePropertyWrapperColumn<C extends Containerable, S> extends A
 			}
     	}
     	
-    	StaticItemWrapperColumnPanel panel = new StaticItemWrapperColumnPanel(componentId, model, form, null, getPageBase());
+    	StaticItemWrapperColumnPanel panel = new StaticItemWrapperColumnPanel(componentId, model, form, null);
     	panel.setEnabled(false);
     	return panel;
     }

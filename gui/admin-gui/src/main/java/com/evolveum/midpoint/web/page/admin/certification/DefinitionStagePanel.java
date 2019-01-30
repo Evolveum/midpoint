@@ -160,14 +160,14 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 
 		PrismPropertyPanel defaultOwnerRefPanel = new NoOffsetPrismReferencePanel(ID_DEFAULT_REVIEWER_REF,
                 new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS),
-                null, pageBase);
+                null);
         defaultOwnerRefPanel.setLabelContainerVisible(false);
         add(defaultOwnerRefPanel);
 		add(WebComponentUtil.createHelp(ID_DEFAULT_REVIEWER_REF_HELP));
 
 		PrismPropertyPanel additionalOwnerRefPanel = new NoOffsetPrismReferencePanel(ID_ADDITIONAL_REVIEWER_REF,
                 new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_ADDITIONAL_REVIEWERS),
-                null, pageBase);
+                null);
         additionalOwnerRefPanel.setLabelContainerVisible(false);
         add(additionalOwnerRefPanel);
 		add(WebComponentUtil.createHelp(ID_ADDITIONAL_REVIEWER_REF_HELP));
@@ -201,8 +201,8 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 
 
 	private static class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
-		public NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form, PageBase pageBase) {
-			super(id, propertyModel, form, null, pageBase);
+		public NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form) {
+			super(id, propertyModel, form, null);
 		}
 		// quite a hack, to get rid of col-md-offset-2 style
 		@Override

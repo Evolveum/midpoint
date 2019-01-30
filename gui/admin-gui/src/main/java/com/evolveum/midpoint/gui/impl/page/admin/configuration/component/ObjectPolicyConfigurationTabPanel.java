@@ -274,7 +274,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 					if (lifecycleState == null || lifecycleState.getValues() == null || lifecycleState.getValues().isEmpty()) {
 						item.add(new Label(componentId, ""));
 					} else {
-						item.add(new StaticItemWrapperColumnPanel(componentId, new PropertyModel(lifecycleState, ""), new Form("form"), null, getPageBase()) {
+						item.add(new StaticItemWrapperColumnPanel(componentId, new PropertyModel(lifecycleState, ""), new Form("form"), null) {
 							protected IModel populateContainerItem(ContainerValueWrapper object) {
 								return Model.of(object != null ? WebComponentUtil.getDisplayName(object.getContainerValue()) : "");
 							};

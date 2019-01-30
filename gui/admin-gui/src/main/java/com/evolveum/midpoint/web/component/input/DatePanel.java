@@ -30,7 +30,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 public class DatePanel extends InputPanel {
 
-    private static final String ID_INPUT = "input";
+    private static final long serialVersionUID = 1L;
+	private static final String ID_INPUT = "input";
 
     public DatePanel(String id, IModel<XMLGregorianCalendar> model) {
         super(id);
@@ -38,6 +39,7 @@ public class DatePanel extends InputPanel {
         DateInput date = new DateInput(ID_INPUT, new XmlGregorianCalendarModel(model));
         add(date);
     }
+    
     @Override
     public FormComponent getBaseFormComponent() {
         return (FormComponent) get(ID_INPUT);

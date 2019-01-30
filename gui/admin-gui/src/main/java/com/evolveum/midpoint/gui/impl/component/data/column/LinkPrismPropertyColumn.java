@@ -56,7 +56,7 @@ public class LinkPrismPropertyColumn<T,C extends Containerable> extends Abstract
 	public void populateItem(Item<ICellPopulator<ContainerValueWrapper<C>>> cellItem, String componentId,
 			IModel<ContainerValueWrapper<C>> rowModel) {
 		PropertyOrReferenceWrapperFromContainerModel property = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), getqNameOfItem());
-		cellItem.add(new StaticItemWrapperColumnPanel(componentId, property, new Form("form"), null, getPageBase()) {
+		cellItem.add(new StaticItemWrapperColumnPanel(componentId, property, new Form("form"), null) {
 			@Override
 			protected Component getDisplayComponent(String componentId, IModel model) {
 				return new LinkPanel(componentId, model) {

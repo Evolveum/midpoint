@@ -111,6 +111,10 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable, RealValuabl
         this.oldValue = oldValue;
     }
     
+    private void createValuePanel() {
+    	
+    }
+    
     public void setEditEnabled(boolean isEditEnabled) {
 		this.isEditEnabled = isEditEnabled;
 	}
@@ -242,6 +246,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable, RealValuabl
 
 	@Override
 	public void setRealValue(T object) {
+		
 		if(getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
 			setValue(((Referencable) object).asReferenceValue());
 		} else if(getItem().getItemDefinition() instanceof PrismPropertyDefinition){

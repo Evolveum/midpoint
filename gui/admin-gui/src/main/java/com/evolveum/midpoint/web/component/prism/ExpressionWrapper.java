@@ -1,25 +1,31 @@
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.impl.component.prism.ExpressionPropertyPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by honchar
  */
-public class ExpressionWrapper<T> extends PropertyWrapper<T> {
+public class ExpressionWrapper extends PropertyWrapper<ExpressionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionWrapper.class);
     private ConstructionType construction;
 
-    public ExpressionWrapper(@Nullable ContainerValueWrapper container, PrismProperty property, boolean readonly,
+    public ExpressionWrapper(@Nullable ContainerValueWrapper container, PrismProperty<ExpressionType> property, boolean readonly,
             ValueStatus status, ItemPath path, PrismContext prismContext) {
         super(container, property, readonly, status, path, prismContext);
 
@@ -75,4 +81,9 @@ public class ExpressionWrapper<T> extends PropertyWrapper<T> {
 
         return false;
     }
+    
+    public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
+    	return new ExpressionPropertyPanel(id, this, form, visibilityHandler);
+    };
+    
 }

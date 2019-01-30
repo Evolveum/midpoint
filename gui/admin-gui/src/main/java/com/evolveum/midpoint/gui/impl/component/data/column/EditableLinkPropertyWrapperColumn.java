@@ -80,7 +80,7 @@ public class EditableLinkPropertyWrapperColumn<C extends Containerable> extends 
     protected Component createInputPanel(String componentId, IModel<ContainerValueWrapper<C>> rowModel) {
     	Form form= new Form("form");
     	PropertyOrReferenceWrapperFromContainerModel model = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), qNameOfProperty);
-    	PrismPropertyColumnPanel panel = new PrismPropertyColumnPanel(componentId, model, form, null, getPageBase());
+    	PrismPropertyColumnPanel panel = new PrismPropertyColumnPanel(componentId, model, form, null);
     	return panel;
     }
     

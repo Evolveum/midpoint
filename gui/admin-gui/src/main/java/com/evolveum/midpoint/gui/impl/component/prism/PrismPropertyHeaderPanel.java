@@ -90,7 +90,7 @@ public class PrismPropertyHeaderPanel<IW extends ItemWrapper> extends Panel {
         labelContainer.add(new AttributeModifier("class", getContainerLabelCssClass()));
         add(labelContainer);
 
-        final IModel<String> label = WebComponentUtil.getDisplayName((IModel<ItemWrapper>)model, PrismPropertyHeaderPanel.this);
+        final IModel<String> label = WebComponentUtil.getDisplayName(model, PrismPropertyHeaderPanel.this);
         Label displayName = new Label(ID_LABEL, label);
         displayName.add(new AttributeModifier("style", new IModel<String>() {
         	
@@ -192,11 +192,11 @@ public class PrismPropertyHeaderPanel<IW extends ItemWrapper> extends Panel {
                 IW wrapper = model.getObject();
                 ItemDefinition def = wrapper.getItemDefinition();
 
-                if (ObjectType.F_NAME.equals(def.getName()) && model.getObject().getParent() != null &&
-                        model.getObject().getParent().isMain()) {
-                    //fix for "name as required" MID-789
-                    return true;
-                }
+//                if (ObjectType.F_NAME.equals(def.getName()) && model.getObject().getParent() != null &&
+//                        model.getObject().getParent().isMain()) {
+//                    //fix for "name as required" MID-789
+//                    return true;
+//                }
 
                 return def.isMandatory();
             }

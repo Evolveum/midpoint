@@ -34,9 +34,8 @@ public class PrismPropertyColumnPanel<IW extends ItemWrapper> extends PrismPrope
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyColumnPanel.class);
 
-    public PrismPropertyColumnPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler,
-			PageBase pageBase) {
-		super(id, model, form, visibilityHandler, pageBase);
+    public PrismPropertyColumnPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
+		super(id, model, form, visibilityHandler);
 	}
     
     protected WebMarkupContainer getHeader(String idComponent) {

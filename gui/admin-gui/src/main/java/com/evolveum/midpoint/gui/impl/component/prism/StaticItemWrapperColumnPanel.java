@@ -47,9 +47,8 @@ public class StaticItemWrapperColumnPanel<IW extends ItemWrapper> extends PrismP
 
 	private static final Trace LOGGER = TraceManager.getTrace(StaticItemWrapperColumnPanel.class);
 
-    public StaticItemWrapperColumnPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler,
-			PageBase pageBase) {
-		super(id, model, form, visibilityHandler, pageBase);
+    public StaticItemWrapperColumnPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
+		super(id, model, form, visibilityHandler);
 	}
 
     @Override

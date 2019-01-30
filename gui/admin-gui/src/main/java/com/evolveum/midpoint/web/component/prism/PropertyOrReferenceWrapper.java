@@ -24,9 +24,12 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
@@ -236,6 +239,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 	
 	@Override
+	public boolean isRequired() {
+		return getItemDefinition().isMandatory() && isEnforceRequiredFields();
+	}
+	
+	@Override
 	public void removeValue(ValueWrapper<ValueWrapper> valueWrapper) throws SchemaException {
 		List<ValueWrapper> values = getValues();
 		
@@ -412,5 +420,9 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		}
 		
 		return null;
+	}
+	
+	public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
+		return new PrismPropertyPanel<>(id, this, form, visibilityHandler);
 	}
 }

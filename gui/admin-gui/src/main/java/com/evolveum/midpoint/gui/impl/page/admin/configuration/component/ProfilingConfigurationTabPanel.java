@@ -97,7 +97,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	});
 		add(profilingEnabledNote);
     	
-    	PrismContainerPanel<ProfilingConfigurationType> profilingPanel = new PrismContainerPanel<ProfilingConfigurationType>(ID_PROFILING, getProfilingModel(), true, new Form<>("form"), null, getPageBase());
+    	PrismContainerPanel<ProfilingConfigurationType> profilingPanel = new PrismContainerPanel<ProfilingConfigurationType>(ID_PROFILING, getProfilingModel(), new Form<>("form"), null);
     	add(profilingPanel);
     	
     	IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = new Model<>(getLoggingModel().getObject()
@@ -145,7 +145,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
         PropertyWrapper appenders = (PropertyWrapper)profilingLogger.findPropertyWrapperByName(ClassLoggerConfigurationType.F_APPENDER);
         appenders.setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
         
-        PrismPropertyPanel<PropertyWrapper> profilingLoggerLevel = new PrismPropertyPanel<PropertyWrapper>(ID_PROFILING_LOGGER_APPENDERS, new Model(appenders), new Form<>("form"), itemWrapper -> getAppendersPanelVisibility(itemWrapper.getPath()), getPageBase());
+        PrismPropertyPanel<PropertyWrapper> profilingLoggerLevel = new PrismPropertyPanel<PropertyWrapper>(ID_PROFILING_LOGGER_APPENDERS, new Model(appenders), new Form<>("form"), itemWrapper -> getAppendersPanelVisibility(itemWrapper.getPath()));
         
     	add(profilingLoggerLevel);
     	

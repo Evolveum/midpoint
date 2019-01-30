@@ -120,7 +120,8 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     }
     
     protected void initLayout() {
-    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = new PrismContainerPanel<LoggingConfigurationType>(ID_LOGGING, getModel(), true, new Form<>("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()), getPageBase());
+    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = (PrismContainerPanel<LoggingConfigurationType>) getModelObject().createPanel(ID_LOGGING, new Form("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
+//    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = new PrismContainerPanel<LoggingConfigurationType>(ID_LOGGING, getModel(), true, new Form<>("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()), getPageBase());
     	add(loggingPanel);
     	
 
@@ -308,8 +309,9 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 		IModel<ContainerWrapper<AuditingConfigurationType>> auditModel =
     			new ContainerWrapperFromObjectWrapperModel<AuditingConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()),
     					ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
-		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel, true,
-				new Form<>("form"), null, getPageBase());
+		PrismContainerPanel<AuditingConfigurationType> auditPanel = (PrismContainerPanel<AuditingConfigurationType>) auditModel.getObject().createPanel(ID_AUDITING, new Form("form"), null);
+//		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel, true,
+//				new Form<>("form"), null, getPageBase());
     	add(auditPanel);
 		setOutputMarkupId(true);
 	}

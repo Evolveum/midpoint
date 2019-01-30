@@ -197,7 +197,8 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
             protected void populateItem(final ListItem<IW> item) {
 				item.setOutputMarkupId(true);
 				if (item.getModelObject() instanceof PropertyOrReferenceWrapper) {
-					PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, isPanalVisible, getPageBase());
+					PrismPropertyPanel propertyPanel = (PrismPropertyPanel) item.getModelObject().createPanel("property", form, isPanalVisible);
+//					PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, isPanalVisible);
 					propertyPanel.setOutputMarkupId(true);
 					propertyPanel.add(new VisibleEnableBehaviour() {
 						
@@ -249,7 +250,8 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
                 protected void populateItem(final ListItem<IW> item) {
     				item.setOutputMarkupId(true);
     				if (item.getModel().getObject() instanceof ContainerWrapper) {
-    					PrismContainerPanel<C> containerPanel = new PrismContainerPanel<C>("container", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanalVisible, pageBase, false);
+    					PrismContainerPanel<C> containerPanel = (PrismContainerPanel<C>) item.getModelObject().createPanel("container", form, isPanalVisible);
+//    					PrismContainerPanel<C> containerPanel = new PrismContainerPanel<C>("container", (IModel<ContainerWrapper<C>>) item.getModel(), form, isPanalVisible, false);
     					containerPanel.setOutputMarkupId(true);
     					item.add(containerPanel);
     					item.add(new VisibleEnableBehaviour() {

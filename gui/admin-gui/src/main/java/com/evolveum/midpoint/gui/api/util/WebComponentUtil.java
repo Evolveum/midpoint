@@ -3069,7 +3069,7 @@ public final class WebComponentUtil {
 		return duration;
 	}
 	
-	public static IModel<String> getDisplayName(final IModel<ItemWrapper> model, Component component) {
+	public static <IW extends ItemWrapper> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
         return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 

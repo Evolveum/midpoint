@@ -133,7 +133,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
 
 		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel, true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), pageBase);
+		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
 		add(acitvationContainer);
 		
 		initContainersPanel(form, pageBase);
@@ -141,9 +141,10 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
     protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase) {
 		ItemPath assignmentPath = getModelObject().getPath();
-		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINERS,
-				getSpecificContainerModel(), false, form,
-				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), pageBase);
+		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = (PrismContainerPanel<PolicyRuleType>) getSpecificContainerModel().getObject().createPanel(ID_SPECIFIC_CONTAINERS, form, itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
+//		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINERS,
+//				getSpecificContainerModel(), false, form,
+//				);
 		constraintsContainerPanel.setOutputMarkupId(true);
 		add(constraintsContainerPanel);
 	}

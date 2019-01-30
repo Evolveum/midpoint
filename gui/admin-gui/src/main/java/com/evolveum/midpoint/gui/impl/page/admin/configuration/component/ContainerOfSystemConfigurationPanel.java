@@ -65,7 +65,7 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     	Form form = new Form<>("form");
     	
     	ContainerWrapperFromObjectWrapperModel<C, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getModel(), qNameContainer);
-		PrismContainerPanel<C> panel = new PrismContainerPanel<>(ID_CONTAINER, model, true, form, itemWrapper -> getVisibity(itemWrapper.getPath()), getPageBase());
+		PrismContainerPanel<C> panel = new PrismContainerPanel<>(ID_CONTAINER, model, form, itemWrapper -> getVisibity(itemWrapper.getPath()));
 		add(panel);
 		
 	}
