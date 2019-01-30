@@ -57,7 +57,7 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
 
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(getDefaultButtonStyle(), IconCssStyle.IN_ROW_STYLE, "")
-                .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, "green");
+                .appendLayerIcon(GuiStyleConstants.CLASS_BUTTON_OVERLAY_PLUS, IconCssStyle.BOTTOM_RIGHT_STYLE, "green");
 
         AjaxCompositedIconButton mainButton = new AjaxCompositedIconButton(ID_MAIN_BUTTON, builder.build(),
                 createStringResource("MainObjectListPanel.newObject")) {

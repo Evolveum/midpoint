@@ -137,7 +137,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 	
 	public ShadowAttributesAsserter<R> assertNoSecondaryIdentifier() {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
-		assertTrue("Unexpected secpndary identifiers in "+desc()+": "+secondaryIdentifiers, secondaryIdentifiers.isEmpty());
+		assertTrue("Unexpected secondary identifiers in "+desc()+": "+secondaryIdentifiers, secondaryIdentifiers.isEmpty());
 		return this;
 	}
 	
@@ -162,6 +162,12 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 			raws[i] = new RawType(prismContext.itemFactory().createPropertyValue(expectedValues[i]), attrName, prismContext);
 		}
 		return raws;
+	}
+	
+	public <T> T getValue(QName attrName) {
+		PrismProperty<T> property = findAttribute(attrName);
+		assertNotNull("No attribute "+attrName+" in "+desc(), property);
+		return property.getRealValue();
 	}
 	
 	public <T> ShadowAttributesAsserter<R> assertNoAttribute(QName attrName) {

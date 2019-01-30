@@ -160,6 +160,7 @@ import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.OrgAsserter;
+import com.evolveum.midpoint.test.asserter.ResourceAsserter;
 import com.evolveum.midpoint.test.asserter.RoleAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
@@ -3873,11 +3874,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return account;
 	}
 
-	protected void assertDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException, InterruptedException {
-		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
-		assertNotNull("No dummy("+dummyInstanceName+") account for id "+id, account);
+	protected DummyAccountAsserter<Void> assertDummyAccountById(String dummyResourceName, String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		return getDummyResourceController(dummyResourceName).assertAccountById(id);
 	}
-
+	
 	protected void assertNoDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
 		assertNull("Dummy(" + dummyInstanceName + ") account for id " + id + " exists while not expecting it", account);
@@ -5494,12 +5494,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return null;
 	}
 	
-	protected void initializeAsserter(AbstractAsserter<?> asserter) {
-		asserter.setPrismContext(prismContext);
-		asserter.setObjectResolver(repoSimpleObjectResolver);
-		asserter.setProtector(protector);
-	}
-
 	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = assertUser(oid, "after");
 		asserter.assertOid(oid);
@@ -5697,6 +5691,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			// Expected
 			assertFailure(result);
 		}
+	}
+	
+	protected ResourceAsserter<Void> assertResource(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ResourceType> resource = getObject(ResourceType.class, oid);
+		return assertResource(resource, message);
+	}
+	
+	protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> user, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ResourceAsserter<Void> asserter = ResourceAsserter.forResource(user, message);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+	
+	protected ResourceAsserter<Void> assertResourceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ResourceAsserter<Void> asserter = assertResource(oid, "after");
+		asserter.assertOid(oid);
+		return asserter;
 	}
 	
 	protected <O extends ObjectType> ModelContextAsserter<O,Void> assertPreviewContext(ModelContext<O> previewContext) {

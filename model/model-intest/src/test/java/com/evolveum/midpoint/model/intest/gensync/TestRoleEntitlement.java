@@ -87,7 +87,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 	}
 
 	protected void assertRolePirate(PrismObject<RoleType> role) {
-		assertObject(role);
+		assertObjectSanity(role);
 		assertEquals("Wrong "+role+" OID (prism)", ROLE_PIRATE_OID, role.getOid());
 		RoleType roleType = role.asObjectable();
 		assertEquals("Wrong "+role+" OID (jaxb)", ROLE_PIRATE_OID, roleType.getOid());

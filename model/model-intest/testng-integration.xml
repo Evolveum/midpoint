@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
             <class name="com.evolveum.midpoint.model.intest.TestConnectorDummyFake"/>
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
-            <class name="com.evolveum.midpoint.model.intest.TestMisc"/>
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMapping"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
@@ -71,6 +70,8 @@
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersonaPassword"/>
             <class name="com.evolveum.midpoint.model.intest.TestLifecycle"/>
             <class name="com.evolveum.midpoint.model.intest.TestArchetypes"/>
+            <class name="com.evolveum.midpoint.model.intest.misc.TestMisc"/>
+            <class name="com.evolveum.midpoint.model.intest.misc.TestUuidNonUniqueName"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
