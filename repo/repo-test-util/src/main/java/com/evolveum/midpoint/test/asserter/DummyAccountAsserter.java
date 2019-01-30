@@ -61,6 +61,12 @@ public class DummyAccountAsserter<R> extends DummyObjectAsserter<DummyAccount,R>
 	}
 	
 	@Override
+	public DummyAccountAsserter<R> assertId(String expected) {
+		super.assertId(expected);
+		return this;
+	}
+	
+	@Override
 	public <T> DummyAccountAsserter<R> assertAttribute(String attrName, T... expected) {
 		super.assertAttribute(attrName, expected);
 		return this;

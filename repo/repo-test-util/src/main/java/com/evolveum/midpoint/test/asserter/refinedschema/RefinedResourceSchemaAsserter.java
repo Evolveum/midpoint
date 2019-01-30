@@ -1,0 +1,130 @@
+/**
+ * Copyright (c) 2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.test.asserter.refinedschema;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.prism.PrismSchemaAsserter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+/**
+ * @author Radovan Semancik
+ *
+ */
+public class RefinedResourceSchemaAsserter<RA> extends PrismSchemaAsserter<RA> {
+	
+	public RefinedResourceSchemaAsserter(RefinedResourceSchema schema) {
+		super(schema);
+	}
+	
+	public RefinedResourceSchemaAsserter(RefinedResourceSchema schema, String detail) {
+		super(schema, detail);
+	}
+	
+	public RefinedResourceSchemaAsserter(RefinedResourceSchema schema, RA returnAsserter, String detail) {
+		super(schema, returnAsserter, detail);
+	}
+	
+	public static RefinedResourceSchemaAsserter<Void> forRefinedResourceSchema(RefinedResourceSchema schema) {
+		return new RefinedResourceSchemaAsserter<>(schema);
+	}
+	
+	public static RefinedResourceSchemaAsserter<Void> forResource(PrismObject<ResourceType> resource) throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, resource.getPrismContext());
+		assertNotNull("No refined schema for "+resource, refinedSchema);
+		return new RefinedResourceSchemaAsserter<>(refinedSchema, resource.toString());
+	}
+	
+	public static RefinedResourceSchemaAsserter<Void> forResource(PrismObject<ResourceType> resource, String details) throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, resource.getPrismContext());
+		assertNotNull("No refined schema for "+resource+" ("+details+")", refinedSchema);
+		return new RefinedResourceSchemaAsserter<>(refinedSchema, resource.toString()+" ("+details+")");
+	}
+	
+	public RefinedResourceSchema getSchema() {
+		return (RefinedResourceSchema) super.getSchema();
+	}
+	
+	public RefinedResourceSchemaAsserter<RA> assertNamespace(String expected) {
+		super.assertNamespace(expected);
+		return this;
+	}
+
+	public ObjectClassComplexTypeDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> objectClass(QName ocQname) {
+		ObjectClassComplexTypeDefinition objectClassDefinition = getSchema().findObjectClassDefinition(ocQname);
+		ObjectClassComplexTypeDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter = new ObjectClassComplexTypeDefinitionAsserter<>(objectClassDefinition, this, desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public ObjectClassComplexTypeDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> objectClass(String ocName) {
+		ObjectClassComplexTypeDefinition objectClassDefinition = getSchema().findObjectClassDefinition(ocName);
+		ObjectClassComplexTypeDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter = new ObjectClassComplexTypeDefinitionAsserter<>(objectClassDefinition, this, desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public ObjectClassComplexTypeDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> defaultDefinition(ShadowKindType kind) {
+		RefinedObjectClassDefinition objectClassDefinition = getSchema().getDefaultRefinedDefinition(kind);
+		ObjectClassComplexTypeDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter = new ObjectClassComplexTypeDefinitionAsserter<>(objectClassDefinition, this, "default definition for kind " + kind + " in " + desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public ObjectClassComplexTypeDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> defaultAccountDefinition() {
+		RefinedObjectClassDefinition objectClassDefinition = getSchema().getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+		ObjectClassComplexTypeDefinitionAsserter<RefinedResourceSchemaAsserter<RA>> asserter = new ObjectClassComplexTypeDefinitionAsserter<>(objectClassDefinition, this, "default account definition in " + desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	protected String desc() {
+		return descWithDetails("refined schema");
+	}
+
+	public RefinedResourceSchemaAsserter<RA> display() {
+		display(desc());
+		return this;
+	}
+	
+	public RefinedResourceSchemaAsserter<RA> display(String message) {
+		IntegrationTestTools.display(message, getSchema());
+		return this;
+	}
+}

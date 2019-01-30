@@ -217,7 +217,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		assertSuccess(result);
 
 		PrismObject<RoleType> role = getObject(RoleType.class, ROLE_STUPID_ASSIGNMENT_OID);
-		assertObject(role);
+		assertObjectSanity(role);
 	}
 
 	/**

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.test.asserter;
+package com.evolveum.midpoint.test.asserter.prism;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
