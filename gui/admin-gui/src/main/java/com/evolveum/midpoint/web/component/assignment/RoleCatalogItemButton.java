@@ -104,7 +104,8 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
 
             @Override
             public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(RoleCatalogItemButton.this.getModelObject());
+                return isAuthorizedForTargetObjectDetailsPage(getModelObject())
+                        && (isMultiUserRequest() || canAssign(RoleCatalogItemButton.this.getModelObject()));
             }
         });
         inner.add(new AttributeAppender("title", getModelObject().getName()));
@@ -282,6 +283,20 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         } else {
             plusIconClicked = false;
         }
+    }
+
+    private boolean isAuthorizedForTargetObjectDetailsPage(AssignmentEditorDto assignment){
+        if (assignment.getTargetRef() == null || assignment.getTargetRef().getOid() == null){
+            return false;
+        }
+        if (AssignmentEditorDtoType.ORG_UNIT.equals(assignment.getType())){
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL);
+        } else if (AssignmentEditorDtoType.ROLE.equals(assignment.getType())){
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_UI_ROLE_URL, AuthorizationConstants.AUTZ_UI_ROLE_DETAILS_URL);
+        } else if (AssignmentEditorDtoType.SERVICE.equals(assignment.getType())){
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_UI_SERVICE_URL);
+        }
+        return false;
     }
 
     private void targetObjectDetailsPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
