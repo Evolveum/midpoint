@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
@@ -84,6 +85,20 @@ public class WfTaskUtil {
             throw new IllegalStateException("No workflow context in " + task);
         } else {
             return task.getWorkflowContext();
+        }
+    }
+
+    public static OperationResult getResult(Task task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Null task");
+        } else if (task.getResult() != null) {
+            return task.getResult();
+        } else {
+            LOGGER.warn("No operation result in task {}, returning a newly created one (status = {})", task, task.getResultStatus());
+            OperationResultStatusType status = task.getResultStatus() != null ? task.getResultStatus() : OperationResultStatusType.UNKNOWN;
+            OperationResult result = new OperationResult("run", OperationResultStatus.parseStatusType(status), (String) null);
+            task.setResultTransient(result);
+            return result;
         }
     }
 

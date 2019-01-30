@@ -150,7 +150,7 @@ public class WfTask {
     }
 
     public void computeTaskResultIfUnknown(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        OperationResult taskResult = task.getResult();
+        OperationResult taskResult = WfTaskUtil.getResult(task);
         if (result.isUnknown()) {
             result.computeStatus();
         }
