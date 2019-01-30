@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,6 +161,11 @@ public class GuiStyleConstants {
 	public static final String CLASS_MINUS_CIRCLE_DANGER = CLASS_MINUS_CIRCLE + " text-danger";
 	public static final String CLASS_CIRCLE_FULL = "fa fa-circle";
 
+	/**
+	 * Plus icon used for overlaid buttons (button with + or - in the bottom-right corner)
+	 */
+	public static final String CLASS_BUTTON_OVERLAY_PLUS = "fa fa-plus";
+	
 	public static final String CLASS_FILE_TEXT = "fa fa-file-text-o";
 	public static final String CLASS_POLICY_RULES_ICON = "fa fa-balance-scale";
 	public static final String CLASS_POLICY_RULES_ICON_COLORED = "fa fa-balance-scale"; //TODO
