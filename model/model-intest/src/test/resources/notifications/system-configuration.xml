@@ -17,7 +17,8 @@
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <name>SystemConfiguration</name>
     <logging>
     	<rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -290,6 +291,30 @@ Channel: $!event.channel</code>
                 <transport>dummy:check-variables</transport>
             </customNotifier>
         </handler>
+        <handler>
+            <simpleUserNotifier>
+                <expressionFilter>
+                    <script>
+                        <code>
+                            log.info('Checking requestee name: {}', requestee.name)
+                            basic.stringify(requestee.name) == 'testStringAttachmentUser'
+                        </code>
+                    </script>
+                </expressionFilter>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <attachment>
+                    <contentType>text/plain</contentType>
+                    <content xsi:type="xsd:string">Hello world</content>
+                    <fileName>plain.txt</fileName>
+                </attachment>
+                <transport>dummy:string-attachment</transport>
+            </simpleUserNotifier>
+        </handler>
+        <!-- todo binary attachment -->
+        <!-- todo attachment from file (probably in the local directory that we can assume is writable) -->
+        <!-- todo attachment from expression -->
         <mail>
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
