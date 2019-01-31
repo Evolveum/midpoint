@@ -296,8 +296,7 @@ Channel: $!event.channel</code>
                 <expressionFilter>
                     <script>
                         <code>
-                            log.info('Checking requestee name: {}', requestee.name)
-                            basic.stringify(requestee.name) == 'testStringAttachmentUser'
+                            basic.stringify(requestee?.name) == 'testStringAttachmentUser'
                         </code>
                     </script>
                 </expressionFilter>
