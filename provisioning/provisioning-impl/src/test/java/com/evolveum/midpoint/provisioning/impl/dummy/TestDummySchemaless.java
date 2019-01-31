@@ -620,7 +620,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 		
 		ResourceAttributeDefinition uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
 		assertNotNull("No definition for attribute "+SchemaTestConstants.ICFS_UID, uidAttributeDefinition);
-		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not an identifier",uidAttributeDefinition.isIdentifier(accountDefinition));
+		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not an identifier",uidAttributeDefinition.isPrimaryIdentifier(accountDefinition));
 		assertTrue("Attribute "+SchemaTestConstants.ICFS_UID+" in not in identifiers list",identifiers.contains(uidAttributeDefinition));
 		assertEquals("Wrong displayName for attribute "+SchemaTestConstants.ICFS_UID, "Modified ConnId UID", uidAttributeDefinition.getDisplayName());
 		assertEquals("Wrong displayOrder for attribute "+SchemaTestConstants.ICFS_UID, (Integer)100, uidAttributeDefinition.getDisplayOrder());

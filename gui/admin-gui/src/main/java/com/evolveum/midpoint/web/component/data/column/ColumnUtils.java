@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -122,6 +123,15 @@ public class ColumnUtils {
 			public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId, IModel<SelectableBean<O>> rowModel) {
 				DisplayType displayType = getDisplayTypeForRowObject(rowModel, pageBase);
 				if (displayType != null){
+					String disabledStyle = "";
+					if (rowModel.getObject().getValue() instanceof FocusType) {
+						disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)rowModel.getObject().getValue()).asPrismObject());
+						if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
+								disabledStyle != null){
+							displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
+							displayType.getIcon().setColor("");
+						}
+					}
 					cellItem.add(new ImagePanel(componentId, displayType));
 				} else {
 					super.populateItem(cellItem, componentId, rowModel);
@@ -159,6 +169,9 @@ public class ColumnUtils {
 
 	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel){
 		T object = rowModel.getObject().getValue();
+		if (object == null){
+			return "";
+		}
 		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
 		if (object == null && !ShadowType.class.equals(type)){
 			return null;

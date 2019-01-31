@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     private String description;
     private boolean tolerant = true;
     private boolean isExclusiveStrong = false;
-	protected boolean secondaryIdentifier = false;
+	protected Boolean secondaryIdentifierOverride = null;
 	private boolean isDisplayNameAttribute = false;
     private List<String> intolerantValuePattern;
     private List<String> tolerantValuePattern;
@@ -94,12 +94,12 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 	}
 
 	@Override
-	public boolean isSecondaryIdentifier() {
-		return secondaryIdentifier;
+	public Boolean isSecondaryIdentifierOverride() {
+		return secondaryIdentifierOverride;
 	}
 
-	public void setSecondaryIdentifier(boolean secondaryIdentifier) {
-		this.secondaryIdentifier = secondaryIdentifier;
+	public void setSecondaryIdentifierOverride(Boolean secondaryIdentifier) {
+		this.secondaryIdentifierOverride = secondaryIdentifier;
 	}
 
 	@Override
@@ -428,11 +428,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
                 rAttrDef.tolerant = schemaHandlingAttrDefType.isTolerant();
             }
 
-            if (schemaHandlingAttrDefType.isSecondaryIdentifier() == null) {
-                rAttrDef.secondaryIdentifier = false;
-            } else {
-                rAttrDef.secondaryIdentifier = schemaHandlingAttrDefType.isSecondaryIdentifier();
-            }
+            rAttrDef.secondaryIdentifierOverride = schemaHandlingAttrDefType.isSecondaryIdentifier();
 
             rAttrDef.tolerantValuePattern = schemaHandlingAttrDefType.getTolerantValuePattern();
             rAttrDef.intolerantValuePattern = schemaHandlingAttrDefType.getIntolerantValuePattern();
@@ -568,7 +564,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 		clone.modificationPriority = this.modificationPriority;
 		clone.outboundMappingType = this.outboundMappingType;
 		clone.readReplaceMode = this.readReplaceMode;
-		clone.secondaryIdentifier = this.secondaryIdentifier;
+		clone.secondaryIdentifierOverride = this.secondaryIdentifierOverride;
 		clone.tolerant = this.tolerant;
 		clone.tolerantValuePattern = this.tolerantValuePattern;
 	}

@@ -1947,7 +1947,7 @@ public final class WebComponentUtil {
 		}
 	}
 
-	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object) {
+	public static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object) {
 		ActivationType activation = object.asObjectable().getActivation();
 		if (activation != null) {
 			if (ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
@@ -3135,7 +3135,7 @@ public final class WebComponentUtil {
 		if (assignmentValueWrapper == null){
 			return null;
 		}
-		if (createIfNotExist && prismContext != null) {
+		if (createIfNotExist && prismContext == null) {
 			throw new IllegalArgumentException("createIfNotExist is set but prismContext is null");
 		}
 		ContainerWrapper<ConstructionType> construction = assignmentValueWrapper

@@ -1,0 +1,14 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+systemConfiguration:
+  oid: "0978a754-9224-4afe-993a-ea1528012822"
+  name: "sysconfig"
+  notificationConfiguration:
+    handler:
+      simpleUserNotifier:
+        - attachment:
+            - content: "untyped"
+            - content: !<http://www.w3.org/2001/XMLSchema/string> "ABC"
+            - content: !!binary |-
+                REVG
+            - content: !<http://www.w3.org/2001/XMLSchema/integer> '1234567890123456789012345678901234567890'

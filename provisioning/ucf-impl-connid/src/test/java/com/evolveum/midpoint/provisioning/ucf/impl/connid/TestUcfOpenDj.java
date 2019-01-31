@@ -230,7 +230,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeDefinition<String> idPrimaryDef = accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
 		assertNotNull("No definition for attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef);
-		assertTrue("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" in not an identifier",idPrimaryDef.isIdentifier(accountDefinition));
+		assertTrue("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" in not an identifier",idPrimaryDef.isPrimaryIdentifier(accountDefinition));
 		assertTrue("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" in not in identifiers list",identifiers.contains(idPrimaryDef));
 		assertEquals("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" has wrong native name", OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef.getNativeAttributeName());
 		assertEquals("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" has wrong framework name", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());

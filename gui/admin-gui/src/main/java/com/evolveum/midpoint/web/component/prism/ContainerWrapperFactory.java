@@ -160,28 +160,6 @@ public class ContainerWrapperFactory {
 						itemPath = associationValue.getPath();
 						shadowAss.add(associationValue.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
 					}
-				} else if (association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)){
-					//for now Induced entitlements gui should support only targetRef expression value
-					//that is why no need to look for another expression types within association
-					ResourceObjectAssociationType resourceAssociation = (ResourceObjectAssociationType) associationValue.asContainerable();
-					if (resourceAssociation.getRef() == null) {
-						continue;
-					}
-					if (resourceAssociation.getRef().getItemPath().asSingleName().equals(refinedAssocationDefinition.getName())){
-						itemPath = associationValue.getPath();
-						MappingType outbound = ((ResourceObjectAssociationType)association.getRealValue()).getOutbound();
-						if (outbound == null){
-							continue;
-						}
-						ExpressionType expression = outbound.getExpression();
-						if (expression == null){
-							continue;
-						}
-						List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(expression);
-						if (shadowRefList != null && shadowRefList.size() > 0) {
-							shadowAss.add(shadowRefList.get(0).asReferenceValue().clone());
-						}
-					}
 				}
 			}
 			

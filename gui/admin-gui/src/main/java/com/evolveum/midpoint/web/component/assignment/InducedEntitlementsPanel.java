@@ -136,7 +136,8 @@ public class InducedEntitlementsPanel extends InducementsPanel{
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
                 List<ShadowType> shadowsList =
-                        WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(WebComponentUtil.getAssociationExpression(rowModel.getObject())),
+                        WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(WebComponentUtil.getAssociationExpression(rowModel.getObject()),
+                                InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
                                 OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
                 MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<ShadowType>(componentId,
                         Model.ofList(shadowsList), Arrays.asList(ShadowType.class), false){
@@ -161,7 +162,8 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                     protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
                         ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
                         if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
-                            ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject(), true, getPrismContext());
+                            ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject(), true,
+                                    InducedEntitlementsPanel.this.getPageBase().getPrismContext());
                             ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid(),
                                     InducedEntitlementsPanel.this.getPageBase().getPrismContext());
                         }
