@@ -82,6 +82,11 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
 		return this;
 	}
 	
+	public DummyObjectAsserter<D,R> assertId(String expected) {
+		assertEquals("Wrong id in "+desc(), expected, getDummyObjectAssertExists().getId());
+		return this;
+	}
+	
 	public <T> DummyObjectAsserter<D,R> assertAttribute(String attributeName, T... expectedAttributeValues) {
 		
 		Set<Object> values = getDummyObjectAssertExists().getAttributeValues(attributeName, Object.class);

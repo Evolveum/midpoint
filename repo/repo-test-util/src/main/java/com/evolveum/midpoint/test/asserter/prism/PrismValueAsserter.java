@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.test.asserter;
+package com.evolveum.midpoint.test.asserter.prism;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 
 
 /**

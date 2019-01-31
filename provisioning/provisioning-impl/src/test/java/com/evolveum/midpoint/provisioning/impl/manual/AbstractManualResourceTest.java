@@ -1417,7 +1417,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadow(shadowProvisioningFuture);
+		assertShadowSanity(shadowProvisioningFuture);
 
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 

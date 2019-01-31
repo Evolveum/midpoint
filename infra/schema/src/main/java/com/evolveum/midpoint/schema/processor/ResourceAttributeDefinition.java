@@ -37,9 +37,9 @@ public interface ResourceAttributeDefinition<T> extends PrismPropertyDefinition<
 
 	boolean isReturnedByDefault();
 
-	boolean isIdentifier(ResourceAttributeContainerDefinition objectDefinition);
+	boolean isPrimaryIdentifier(ResourceAttributeContainerDefinition objectDefinition);
 
-	boolean isIdentifier(ObjectClassComplexTypeDefinition objectDefinition);
+	boolean isPrimaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition);
 
 	boolean isSecondaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition);
 

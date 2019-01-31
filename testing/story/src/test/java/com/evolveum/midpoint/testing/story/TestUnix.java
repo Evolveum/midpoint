@@ -1093,7 +1093,7 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObject(roleAfter);
+        assertObjectSanity(roleAfter);
         roleMonkeyIslandOid = roleAfter.getOid();
         groupMonkeyIslandOid = getSingleLinkOid(roleAfter);
 
@@ -1151,7 +1151,7 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObject(roleAfter);
+        assertObjectSanity(roleAfter);
         roleVillainsOid = roleAfter.getOid();
         String ldapGroupOid = getSingleLinkOid(roleAfter);
 
@@ -1297,7 +1297,7 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObject(roleAfter);
+        assertObjectSanity(roleAfter);
         roleRangersOid = roleAfter.getOid();
         groupRangersOid = getSingleLinkOid(roleAfter);
 
@@ -1326,7 +1326,7 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObject(roleAfter);
+        assertObjectSanity(roleAfter);
         roleSealsOid = roleAfter.getOid();
         groupSealsOid = getSingleLinkOid(roleAfter);
 
@@ -1539,7 +1539,7 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, roleSealsOid);
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
-        assertObject(roleAfter);
+        assertObjectSanity(roleAfter);
         assertEquals("link OID changed", groupSealsOid, getSingleLinkOid(roleAfter));
 
         PrismObject<ShadowType> shadow = getShadowModel(groupSealsOid);
