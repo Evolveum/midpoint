@@ -316,8 +316,7 @@ Channel: $!event.channel</code>
                 <expressionFilter>
                     <script>
                         <code>
-                            log.info('Checking requestee name: {}', requestee.name)
-                            basic.stringify(requestee.name) == 'testByteAttachmentUser'
+                            basic.stringify(requestee?.name) == 'testByteAttachmentUser'
                         </code>
                     </script>
                 </expressionFilter>
@@ -337,8 +336,7 @@ Channel: $!event.channel</code>
                 <expressionFilter>
                     <script>
                         <code>
-                            log.info('Checking requestee name: {}', requestee.name)
-                            basic.stringify(requestee.name) == 'testAttachmentFromFileUser'
+                            basic.stringify(requestee?.name) == 'testAttachmentFromFileUser'
                         </code>
                     </script>
                 </expressionFilter>
@@ -358,8 +356,7 @@ Channel: $!event.channel</code>
                 <expressionFilter>
                     <script>
                         <code>
-                            log.info('Checking requestee name: {}', requestee.name)
-                            basic.stringify(requestee.name) == 'testExpressionAttachmentUser'
+                            basic.stringify(requestee?.name) == 'testExpressionAttachmentUser'
                         </code>
                     </script>
                 </expressionFilter>
