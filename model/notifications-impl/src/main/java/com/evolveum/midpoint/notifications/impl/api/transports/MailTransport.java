@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeTypeUtils;
 
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
@@ -58,6 +59,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -68,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
 
@@ -234,7 +237,22 @@ public class MailTransport implements Transport {
                 		String fileName = null;
                 		BodyPart attachmentBody = new MimeBodyPart();
                 		if(attachment.getContent() != null) {
-                			attachmentBody.setContent(attachment.getContent(), attachment.getContentType());
+                			Object content = null;
+                			if(attachment.getContent() instanceof RawType) {
+								try {
+									content = TransportUtil.getStringOrByteArrayFromRawType((RawType)attachment.getContent());
+									if(content == null) {
+										LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
+										return;
+									}
+								} catch (SchemaException e) {
+									LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
+									return;
+								}
+                			} else {
+                				content = attachment.getContent();
+                			}
+                			attachmentBody.setContent(content, attachment.getContentType());
                 			if(StringUtils.isBlank(attachment.getFileName())) {
                             	fileName = "attachment";
                             } else {
