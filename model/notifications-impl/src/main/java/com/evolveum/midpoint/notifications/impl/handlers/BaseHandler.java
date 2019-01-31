@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -103,6 +104,11 @@ public abstract class BaseHandler implements EventHandler {
 	protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
 			String shortDesc, Task task, OperationResult result) {
 		return expressionHelper.evaluateExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
+	}
+	
+	protected List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+			String shortDesc, Task task, OperationResult result) {
+		return expressionHelper.evaluateNotificationMessageAttachmentTypeExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
 	}
 
 	protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {

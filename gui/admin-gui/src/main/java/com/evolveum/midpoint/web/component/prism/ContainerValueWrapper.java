@@ -106,7 +106,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	public PrismContainerDefinition<C> getDefinition() {
-		return containerValue.getParent().getDefinition();
+		return containerValue.getParent() != null ? containerValue.getParent().getDefinition() : null;
 	}
 
 	public void revive(PrismContext prismContext) throws SchemaException {

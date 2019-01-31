@@ -57,11 +57,11 @@ public class ExpressionWrapper<T> extends PropertyWrapper<T> {
                         return true;
                     case ADDED:
                     case NOT_CHANGED:
-                        if (ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue) && ExpressionUtil.areAllExpressionValuesEmpty(expression)) {
+                        if (ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue, prismContext) && ExpressionUtil.areAllExpressionValuesEmpty(expression, prismContext)) {
                             return false;
-                        } else if (!ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue) && ExpressionUtil.areAllExpressionValuesEmpty(expression)) {
+                        } else if (!ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue, prismContext) && ExpressionUtil.areAllExpressionValuesEmpty(expression, prismContext)) {
                             return true;
-                        } else if (ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue) && !ExpressionUtil.areAllExpressionValuesEmpty(expression)) {
+                        } else if (ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue, prismContext) && !ExpressionUtil.areAllExpressionValuesEmpty(expression, prismContext)) {
                             return true;
                         } else if (valueWrapper.hasValueChanged()) {
                             return true;
