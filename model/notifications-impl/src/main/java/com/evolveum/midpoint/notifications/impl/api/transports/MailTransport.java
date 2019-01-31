@@ -16,39 +16,61 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Properties;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.activation.FileTypeMap;
+import javax.activation.MimeType;
+import javax.activation.MimeTypeParseException;
+import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.PostConstruct;
+import javax.mail.BodyPart;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
 import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.asn1.dvcs.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MimeTypeUtils;
 
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.util.MimeTypeUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
 
@@ -205,7 +227,68 @@ public class MailTransport implements Transport {
                 if (StringUtils.isEmpty(contentType)) {
                     contentType = "text/plain; charset=UTF-8";
                 }
-                mimeMessage.setContent(mailMessage.getBody(), contentType);
+                BodyPart messageBody = new MimeBodyPart();
+                messageBody.setContent(mailMessage.getBody(), contentType);
+                Multipart multipart = new MimeMultipart();
+                multipart.addBodyPart(messageBody);
+                for(NotificationMessageAttachmentType attachment : mailMessage.getAttachments()) {
+                	
+                	if(attachment.getContent() != null || attachment.getContentFromFile() != null) {
+                		String fileName = null;
+                		BodyPart attachmentBody = new MimeBodyPart();
+                		if(attachment.getContent() != null) {
+                			Object content = null;
+                			if(attachment.getContent() instanceof RawType) {
+								try {
+									content = TransportUtil.getStringOrByteArrayFromRawType((RawType)attachment.getContent());
+									if(content == null) {
+										LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
+										return;
+									}
+								} catch (SchemaException e) {
+									LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
+									return;
+								}
+                			} else {
+                				content = attachment.getContent();
+                			}
+                			attachmentBody.setContent(content, attachment.getContentType());
+                			if(StringUtils.isBlank(attachment.getFileName())) {
+                            	fileName = "attachment";
+                            } else {
+                            	fileName = attachment.getFileName();
+                            }
+                		} else {
+                			if(!Files.isReadable(Paths.get(attachment.getContentFromFile()))) {
+                				LOGGER.warn("File " + attachment.getContentFromFile() + " non exist or isn't readable.");
+                				return;
+                			}
+                			
+                            DataSource source = new FileDataSource(attachment.getContentFromFile()) {
+                            	@Override
+                            	public String getContentType() {
+                            		return attachment.getContentType();
+                            	}
+                            };
+                            attachmentBody.setDataHandler(new DataHandler(source));
+                            if(StringUtils.isBlank(attachment.getFileName())) {
+                            	fileName = source.getName();
+                            } else {
+                            	fileName = attachment.getFileName();
+                            }
+                		}
+                		
+                		if(!fileName.contains(".")) {
+                			fileName +=	MimeTypeUtil.getDefaultExt(attachment.getContentType());
+                		}
+                		attachmentBody.setFileName(fileName);
+                		multipart.addBodyPart(attachmentBody);
+                	} else {
+                		LOGGER.warn("NotificationMessageAttachmentType doesn't contain content.");
+                	}
+                }
+                
+                mimeMessage.setContent(multipart);
                 javax.mail.Transport t = session.getTransport("smtp");
                 if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
                     ProtectedStringType passwordProtected = mailServerConfigurationType.getPassword();
