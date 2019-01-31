@@ -659,6 +659,41 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		assertSingleDummyTransportMessage("check-variables", "variables ok");
 	}
 
+	@Test(enabled = false)
+	public void test400StringAttachment() throws Exception {
+		final String TEST_NAME = "test400StringAttachment";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<UserType> user = new UserType(prismContext)
+				.name("testStringAttachmentUser")
+				.asPrismObject();
+		addObject(user);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("addObject result", result);
+
+		// Check notifications
+		display("Notifications", dummyTransport);
+
+		notificationManager.setDisabled(true);
+		checkDummyTransportMessages("string-attachment", 1);
+
+		Message message = dummyTransport.getMessages("dummy:string-attachment").get(0);
+		assertEquals("Wrong # of attachments", 1, message.getAttachments().size());
+		// TODO check contentType, content, file name, etc.
+	}
+
+	// TODO binary attachment, attachment from file, attachment from expression
+
 	@SuppressWarnings("Duplicates")
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(enforcementPolicy);

@@ -18,6 +18,7 @@ package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -92,6 +93,47 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 
 	public static RawType fromPropertyRealValue(Object realValue, QName explicitTypeName, @NotNull PrismContext prismContext) {
 		return new RawType(prismContext.itemFactory().createPropertyValue(realValue), explicitTypeName, prismContext);
+	}
+
+	/**
+	 * Extracts a "real value" from a potential RawType object without expecting any specific type beforehand.
+	 * (Useful e.g. for determining value of xsd:anyType XML property.)
+	 */
+	public static Object getValue(Object value) throws SchemaException {
+		if (value instanceof RawType) {
+			return ((RawType) value).getValue();
+		} else {
+			return value;
+		}
+	}
+
+	/**
+	 * Extracts a "real value" from RawType object without expecting any specific type beforehand.
+	 * If no explicit type is present, assumes xsd:string (and fails if the content is structured).
+	 */
+	public Object getValue() throws SchemaException {
+		if (parsed != null) {
+			return parsed.getRealValue();
+		}
+		if (xnode == null) {
+			return null;
+		}
+		if (xnode.getTypeQName() != null) {
+			TypeDefinition typeDefinition = prismContext.getSchemaRegistry().findTypeDefinitionByType(xnode.getTypeQName());
+			if (typeDefinition != null && typeDefinition.getCompileTimeClass() != null) {
+				return getParsedRealValue(typeDefinition.getCompileTimeClass());
+			}
+			Class<?> javaClass = XsdTypeMapper.getXsdToJavaMapping(xnode.getTypeQName());
+			if (javaClass != null) {
+				return getParsedRealValue(javaClass);
+			}
+		}
+		// unknown or null type -- try parsing as string
+		if (!(xnode instanceof PrimitiveXNode<?>)) {
+			throw new SchemaException("Trying to parse non-primitive XNode as type '" + xnode.getTypeQName() + "'");
+		} else {
+			return ((PrimitiveXNode) xnode).getStringValue();
+		}
 	}
 
 	/**

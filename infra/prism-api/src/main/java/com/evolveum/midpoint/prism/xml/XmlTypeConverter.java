@@ -347,7 +347,7 @@ public class XmlTypeConverter {
 	}
 
 	@SuppressWarnings("unchecked")
-		public static <T> T toJavaValue(String stringContent, Class<T> type, boolean exceptionOnUnknown) {
+	public static <T> T toJavaValue(String stringContent, Class<T> type, boolean exceptionOnUnknown) {
 	    if (type.equals(String.class)) {
 	        return (T) stringContent;
 	    } else if (type.equals(char.class)) {
