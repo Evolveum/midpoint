@@ -450,7 +450,7 @@ public class ExpressionUtil {
         if (expressionType == null) {
             return null;
         }
-        List<ObjectReferenceType> shadowRefList = new ArrayList<>();
+        List<ObjectReferenceType> shadowRefList = null;
         ListXNode shadowRefNodes = getShadowRefNodesList(expressionType, false, prismContext);
 
         if (shadowRefNodes != null) {
@@ -463,6 +463,9 @@ public class ExpressionUtil {
                                 (shadowOidNode != null && shadowOidNode.getValue() != null ? (String) shadowOidNode.getValue() : null);
                         shadowRef.setOid(oid);
                         shadowRef.setType(ShadowType.COMPLEX_TYPE);
+                        if (shadowRefList == null){
+                            shadowRefList =  new ArrayList<>();
+                        }
                         shadowRefList.add(shadowRef);
                     }
                 }
