@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.test.asserter;
+package com.evolveum.midpoint.test.asserter.prism;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -37,6 +37,10 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+import com.evolveum.midpoint.test.asserter.ExtensionAsserter;
+import com.evolveum.midpoint.test.asserter.ParentOrgRefsAsserter;
+import com.evolveum.midpoint.test.asserter.TriggersAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -153,6 +157,16 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 	
+	public PrismObjectAsserter<O,RA> displayXml() throws SchemaException {
+		displayXml(desc());
+		return this;
+	}
+	
+	public PrismObjectAsserter<O,RA> displayXml(String message) throws SchemaException {
+		IntegrationTestTools.displayXml(message, object);
+		return this;
+	}
+	
 	protected void assertPolyStringProperty(QName propName, String expectedOrig) {
 		PrismProperty<PolyString> prop = getObject().findProperty(ItemName.fromQName(propName));
 		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
@@ -197,7 +211,7 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 
-	<CO extends ObjectType> PrismObject<CO> getCachedObject(Class<CO> type, String oid) throws ObjectNotFoundException, SchemaException {
+	public <CO extends ObjectType> PrismObject<CO> getCachedObject(Class<CO> type, String oid) throws ObjectNotFoundException, SchemaException {
 		PrismObject<CO> object = (PrismObject<CO>) objectCache.get(oid);
 		if (object == null) {
 			object = resolveObject(type, oid);

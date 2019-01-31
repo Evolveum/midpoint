@@ -18,6 +18,8 @@ package com.evolveum.midpoint.test.asserter;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;

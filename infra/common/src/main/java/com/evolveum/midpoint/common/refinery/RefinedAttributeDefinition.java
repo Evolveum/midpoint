@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import java.util.function.Consumer;
 public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T> {
 	boolean isTolerant();
 
-	boolean isSecondaryIdentifier();
+	Boolean isSecondaryIdentifierOverride();
 
 	boolean canAdd(LayerType layer);
 

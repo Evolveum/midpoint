@@ -26,6 +26,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueSetAsserter;
 
 /**
  * @author semancik

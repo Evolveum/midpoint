@@ -372,7 +372,7 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 			if (def instanceof ResourceAttributeDefinition) {
 				ResourceAttributeDefinition attrDef = (ResourceAttributeDefinition)def;
 				sb.append(attrDef.debugDump(indent+1));
-				if (attrDef.isIdentifier(this)) {
+				if (attrDef.isPrimaryIdentifier(this)) {
 					sb.deleteCharAt(sb.length()-1);
 					sb.append(" id");
 				}

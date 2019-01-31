@@ -2028,7 +2028,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals("Unexpected number of search results", expectedUids.length, searchResults.size());
 		int i = 0;
 		for (PrismObject<ShadowType> searchResult: searchResults) {
-			assertShadow(searchResult);
+			assertShadowSanity(searchResult);
 			ResourceAttribute<String> uidAttr = ShadowUtil.getAttribute(searchResult, new QName(RESOURCE_NS, "uid"));
 			String uid = uidAttr.getRealValues().iterator().next();
 			display("found uid", uid);
