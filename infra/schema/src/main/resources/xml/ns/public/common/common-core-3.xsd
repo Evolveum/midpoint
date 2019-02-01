@@ -9507,7 +9507,7 @@
 	                    Reference to the value policy that should be used to generate the value.
 	                </xsd:documentation>
 	                <xsd:appinfo>
-	        			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+	        			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
         	</xsd:element>
@@ -22551,7 +22551,7 @@
             			</p>
             		</xsd:documentation>
 					<xsd:appinfo>
-						<a:displayName>DisplayType.label</a:displayName>
+						<a:displayName>DisplayType.pluralLabel</a:displayName>
 					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
