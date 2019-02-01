@@ -387,7 +387,7 @@ public class LocalNodeManager {
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".stopLocalTaskRun");
         result.addParam("task", oid);
 
-        LOGGER.info("Stopping local task " + oid + " run");
+        LOGGER.info("Stopping local task {} run", oid);
 
         try {
             getQuartzScheduler().interrupt(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));

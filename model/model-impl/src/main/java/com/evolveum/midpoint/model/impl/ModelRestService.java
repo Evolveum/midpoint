@@ -105,6 +105,10 @@ public class ModelRestService {
 	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
 	public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
 	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterEvent";
+	public static final String OPERATION_GET_LOCAL_SCHEDULER_INFORMATION = CLASS_DOT + "getLocalSchedulerInformation";
+	public static final String OPERATION_STOP_LOCAL_SCHEDULER = CLASS_DOT + "stopScheduler";
+	public static final String OPERATION_START_LOCAL_SCHEDULER = CLASS_DOT + "startScheduler";
+	public static final String OPERATION_STOP_LOCAL_TASK = CLASS_DOT + "stopLocalTask";
 
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
@@ -118,6 +122,7 @@ public class ModelRestService {
 	@Autowired private SecurityHelper securityHelper;
 	@Autowired private ValuePolicyProcessor policyProcessor;
 	@Autowired private TaskManager taskManager;
+	@Autowired private TaskService taskService;
 	@Autowired private Protector protector;
 	@Autowired private ResourceValidator resourceValidator;
 	
@@ -1068,6 +1073,86 @@ public class ModelRestService {
 		finishRequest(task);
 		return response;
 
+	}
+
+	@GET
+	@Path("/scheduler/information")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	public Response getLocalSchedulerInformation(@Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = new OperationResult(OPERATION_GET_LOCAL_SCHEDULER_INFORMATION);
+
+		Response response;
+		try {
+			SchedulerInformationType schedulerInformation = taskService.getLocalSchedulerInformation(task, result);
+			response = RestServiceUtil.createResponse(Response.Status.OK, schedulerInformation, result);
+		} catch (Throwable t) {
+			response = RestServiceUtil.handleException(result, t);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@POST
+	@Path("/scheduler/stop")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	public Response stopLocalScheduler(@Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = new OperationResult(OPERATION_STOP_LOCAL_SCHEDULER);
+
+		Response response;
+		try {
+			taskService.stopLocalScheduler(task, result);
+			response = RestServiceUtil.createResponse(Response.Status.OK, result);
+		} catch (Throwable t) {
+			response = RestServiceUtil.handleException(result, t);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@POST
+	@Path("/scheduler/start")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	public Response startLocalScheduler(@Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = new OperationResult(OPERATION_START_LOCAL_SCHEDULER);
+
+		Response response;
+		try {
+			taskService.startLocalScheduler(task, result);
+			response = RestServiceUtil.createResponse(Response.Status.OK, result);
+		} catch (Throwable t) {
+			response = RestServiceUtil.handleException(result, t);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@POST
+	@Path("/tasks/{oid}/stop")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	public Response stopLocalTask(@PathParam("oid") String oid, @Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = new OperationResult(OPERATION_STOP_LOCAL_TASK);
+
+		Response response;
+		try {
+			taskService.stopLocalTask(oid, task, result);
+			response = RestServiceUtil.createResponse(Response.Status.OK, result);
+		} catch (Throwable t) {
+			response = RestServiceUtil.handleException(result, t);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
 	}
 
 	//    @GET

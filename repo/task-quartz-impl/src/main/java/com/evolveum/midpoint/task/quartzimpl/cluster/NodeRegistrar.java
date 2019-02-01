@@ -19,11 +19,13 @@ package com.evolveum.midpoint.task.quartzimpl.cluster;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -41,13 +43,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -63,6 +65,8 @@ import java.util.*;
 public class NodeRegistrar {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
+    private static final int SECRET_LENGTH = 20;
+    private static final long SECRET_RENEWAL_PERIOD = 86400L * 1000L * 10L;
 
     private TaskManagerQuartzImpl taskManager;
     private ClusterManager clusterManager;
@@ -90,7 +94,9 @@ public class NodeRegistrar {
      */
     NodeType createOrUpdateNodeInRepo(OperationResult result) throws TaskManagerInitializationException {
 
-        NodeType nodeToBe = createLocalNodeObject(taskManager.getConfiguration());
+        TaskManagerConfiguration configuration = taskManager.getConfiguration();
+
+        NodeType nodeToBe = createLocalNodeObject(configuration);
         LOGGER.info("Registering this node in the repository as " + nodeToBe.getNodeIdentifier() + " at " + nodeToBe.getHostname() + ":" + nodeToBe.getJmxPort());
 
         List<PrismObject<NodeType>> nodesInRepo;
@@ -104,7 +110,14 @@ public class NodeRegistrar {
             PrismObject<NodeType> nodeInRepo = nodesInRepo.get(0);
             // copy all information that need to be preserved from the repository
             nodeToBe.setTaskExecutionLimitations(nodeInRepo.asObjectable().getTaskExecutionLimitations());
-            nodeToBe.setUrl(nodeInRepo.asObjectable().getUrl());
+            nodeToBe.setUrl(applyDefault(nodeInRepo.asObjectable().getUrl(), configuration.getDefaultUrl()));
+            nodeToBe.setRestPort(applyDefault(nodeInRepo.asObjectable().getRestPort(), configuration.getDefaultRestPort()));
+            if (shouldRenewSecret(nodeInRepo.asObjectable())) {
+                LOGGER.info("Renewing node secret for the current node");
+            } else {
+                nodeToBe.setSecret(nodeInRepo.asObjectable().getSecret());
+                nodeToBe.setSecretUpdateTimestamp(nodeInRepo.asObjectable().getSecretUpdateTimestamp());
+            }
             ObjectDelta<NodeType> nodeDelta = nodeInRepo.diff(nodeToBe.asPrismObject(), EquivalenceStrategy.LITERAL);
             LOGGER.debug("Applying delta to existing node object:\n{}", nodeDelta.debugDumpLazily());
             try {
@@ -150,18 +163,30 @@ public class NodeRegistrar {
         return nodeToBe;
     }
 
+    private boolean shouldRenewSecret(NodeType nodeInRepo) {
+        return nodeInRepo.getSecret() == null || nodeInRepo.getSecretUpdateTimestamp() == null ||
+                XmlTypeConverter.toMillis(nodeInRepo.getSecretUpdateTimestamp()) <= System.currentTimeMillis() + SECRET_RENEWAL_PERIOD;
+    }
+
+    private <T> T applyDefault(T oldValue, T defaultValue) {
+        return oldValue != null ? oldValue : defaultValue;
+    }
+
     @NotNull
     private NodeType createLocalNodeObject(TaskManagerConfiguration configuration) {
+        XMLGregorianCalendar currentTime = getCurrentTime();
         NodeType node = getPrismContext().createKnownObjectable(NodeType.class);
 	    String nodeId = configuration.getNodeId();
 	    node.setNodeIdentifier(nodeId);
         node.setName(new PolyStringType(nodeId));
         node.setHostname(getMyHostname());
         node.getIpAddress().addAll(getMyIpAddresses());
+        node.setUrl(configuration.getDefaultUrl());                 // overridden later (if already exists in repo)
+        node.setRestPort(configuration.getDefaultRestPort());       // overridden later (if already exists in repo)
         node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());
         node.setRunning(true);
-        node.setLastCheckInTime(getCurrentTime());
+        node.setLastCheckInTime(currentTime);
         node.setBuild(getBuildInformation());
         node.setTaskExecutionLimitations(
         		new TaskExecutionLimitationsType()
@@ -169,7 +194,20 @@ public class NodeRegistrar {
                     .groupLimitation(new TaskGroupExecutionLimitationType().groupName(nodeId).limit(null))
                     .groupLimitation(new TaskGroupExecutionLimitationType().groupName(TaskConstants.LIMIT_FOR_OTHER_GROUPS).limit(0)));
         generateInternalNodeIdentifier(node);
+        node.setSecretUpdateTimestamp(currentTime);                 // overridden later (if already exists in repo)
+        node.setSecret(generateNodeSecret());                       // overridden later (if already exists in repo)
         return node;
+    }
+
+    private ProtectedStringType generateNodeSecret() {
+        ProtectedStringType secret;
+        try {
+            String plain = RandomStringUtils.randomAlphanumeric(SECRET_LENGTH);
+            secret = taskManager.getProtector().encryptString(plain);
+        } catch (EncryptionException e) {
+            throw new SystemException("Couldn't encrypt node secret: " + e.getMessage(), e);
+        }
+        return secret;
     }
 
     private BuildInformationType getBuildInformation() {
@@ -192,13 +230,7 @@ public class NodeRegistrar {
     }
 
     private XMLGregorianCalendar getCurrentTime() {
-        try {
-            // AFAIK the DatatypeFactory is not thread safe, so we have to create an instance every time
-            return DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar());
-        } catch (DatatypeConfigurationException e) {
-            // this should not happen
-            throw new SystemException("Cannot create DatatypeFactory (to create XMLGregorianCalendar instance).", e);
-        }
+        return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
     }
 
     /**
@@ -233,13 +265,21 @@ public class NodeRegistrar {
         String nodeName = taskManager.getNodeId();
         LOGGER.trace("Updating this node registration:\n{}", cachedLocalNodeObject.debugDumpLazily());
         try {
+            XMLGregorianCalendar currentTime = getCurrentTime();
             List<ItemDelta<?, ?>> modifications = getPrismContext().deltaFor(NodeType.class)
                     .item(NodeType.F_HOSTNAME).replace(getMyHostname())
                     .item(NodeType.F_IP_ADDRESS).replaceRealValues(getMyIpAddresses())
-                    .item(NodeType.F_LAST_CHECK_IN_TIME).replace(getCurrentTime())
+                    .item(NodeType.F_LAST_CHECK_IN_TIME).replace(currentTime)
                     .asItemDeltas();
+            if (shouldRenewSecret(cachedLocalNodeObject.asObjectable())) {
+                modifications.addAll(getPrismContext().deltaFor(NodeType.class)
+                        .item(NodeType.F_SECRET).replace(generateNodeSecret())
+                        .item(NodeType.F_SECRET_UPDATE_TIMESTAMP).replace(currentTime)
+                        .asItemDeltas());
+            }
             getRepositoryService().modifyObject(NodeType.class, nodeOid, modifications, result);
             LOGGER.trace("Node registration successfully updated.");
+            cachedLocalNodeObject = getRepositoryService().getObject(NodeType.class, nodeOid, null, result);
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}), because it "
                             + "does not exist in repository. It is probably caused by cluster misconfiguration (other "

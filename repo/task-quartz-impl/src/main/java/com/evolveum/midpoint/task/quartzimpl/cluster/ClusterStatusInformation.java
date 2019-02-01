@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.io.Serializable;
 import java.util.*;
@@ -113,6 +115,18 @@ public class ClusterStatusInformation implements Serializable {
 
     public void addNodeAndTaskInfo(NodeType node, List<TaskInfo> taskInfoList) {
         tasks.put(node, taskInfoList);
+    }
+
+    public void addNodeAndTaskInfo(SchedulerInformationType info) {
+        tasks.put(info.getNode(), getTaskInfoList(info));
+    }
+
+    private List<TaskInfo> getTaskInfoList(SchedulerInformationType info) {
+        List<TaskInfo> rv = new ArrayList<>();
+        for (TaskType taskBean : info.getExecutingTask()) {
+            rv.add(new TaskInfo(taskBean.getOid()));
+        }
+        return rv;
     }
 
     public NodeType findNodeById(String nodeIdentifier) {
