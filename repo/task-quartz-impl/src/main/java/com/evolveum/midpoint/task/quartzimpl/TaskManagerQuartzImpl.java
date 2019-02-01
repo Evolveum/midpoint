@@ -125,7 +125,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private LocalizationService localizationService;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
-    @Autowired private RemoteExecutionHelper remoteExecutionHelper;
+    @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired private Protector protector;
 
     // instances of all the helper classes (see their definitions for their description)
@@ -2371,8 +2371,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		return systemConfigurationChangeDispatcher;
 	}
 
-	public RemoteExecutionHelper getRemoteExecutionHelper() {
-		return remoteExecutionHelper;
+	public ClusterExecutionHelper getClusterExecutionHelper() {
+		return clusterExecutionHelper;
 	}
 
 	public Protector getProtector() {

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RemoteExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,7 +41,7 @@ public class ClusterCacheListener implements CacheListener {
 	
 	@Autowired private TaskManager taskManager;
 	@Autowired private CacheDispatcher cacheDispatcher;
-	@Autowired private RemoteExecutionHelper remoteExecutionHelper;
+	@Autowired private ClusterExecutionHelper clusterExecutionHelper;
 	
 	@PostConstruct
 	public void addListener() {
@@ -65,7 +65,7 @@ public class ClusterCacheListener implements CacheListener {
 		Task task = taskManager.createTaskInstance("invalidateCache");
 		OperationResult result = task.getResult();
 
-		remoteExecutionHelper.execute((client, result1) -> {
+		clusterExecutionHelper.execute((client, result1) -> {
 			client.path("/event/" + ObjectTypes.getRestTypeFromClass(type));
 			Response response = client.post(null);
 			LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),

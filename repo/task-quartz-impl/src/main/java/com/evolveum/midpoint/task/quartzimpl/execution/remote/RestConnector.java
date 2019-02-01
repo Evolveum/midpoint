@@ -17,13 +17,10 @@
 package com.evolveum.midpoint.task.quartzimpl.execution.remote;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RemoteExecutionHelper;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.TaskConstants;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
-import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -46,17 +43,17 @@ public class RestConnector {
         this.taskManager = taskManager;
     }
 
-    public void addNodeStatus(ClusterStatusInformation info, NodeType nodeInfo, OperationResult result) {
-        RemoteExecutionHelper remoteExecutionHelper = taskManager.getRemoteExecutionHelper();
-        remoteExecutionHelper.execute(nodeInfo, (client, result1) -> {
-            client.path("/scheduler/information");
+    public void addNodeStatus(ClusterStatusInformation info, NodeType nodeInfo, OperationResult result) throws SchemaException {
+        ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
+        clusterExecutionHelper.execute(nodeInfo, (client, result1) -> {
+            client.path(TaskConstants.GET_LOCAL_SCHEDULER_INFORMATION_REST_PATH);
             Response response = client.get();
             Response.StatusType statusInfo = response.getStatusInfo();
             LOGGER.debug("Querying remote scheduler information on {} finished with status {}: {}", nodeInfo.getNodeIdentifier(),
                     statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
             if (statusInfo.getFamily() == Response.Status.Family.SUCCESSFUL) {
                 try {
-                    SchedulerInformationType schedulerInfo = remoteExecutionHelper
+                    SchedulerInformationType schedulerInfo = clusterExecutionHelper
                             .extractResult(response, SchedulerInformationType.class);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Received from {}:\n{}", nodeInfo.getNodeIdentifier(),
@@ -74,19 +71,10 @@ public class RestConnector {
         }, "get scheduler information", result);
     }
 
-    private NodeType getNode(String nodeIdentifier, OperationResult result) {
-        try {
-            return taskManager.getClusterManager().getNodeById(nodeIdentifier, result).asObjectable();
-        } catch (ObjectNotFoundException e) {
-            result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
-            return null;
-        }
-    }
-
-    public void stopRemoteScheduler(NodeType node, OperationResult result) {
-        RemoteExecutionHelper remoteExecutionHelper = taskManager.getRemoteExecutionHelper();
-        remoteExecutionHelper.execute(node, (client, result1) -> {
-            client.path("/scheduler/stop");
+    public void stopRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
+        ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
+        clusterExecutionHelper.execute(node, (client, result1) -> {
+            client.path(TaskConstants.STOP_LOCAL_SCHEDULER_REST_PATH);
             Response response = client.post(null);
             Response.StatusType statusInfo = response.getStatusInfo();
             LOGGER.debug("Stopping remote scheduler on {} finished with status {}: {}", node.getNodeIdentifier(),
@@ -100,10 +88,10 @@ public class RestConnector {
         }, "stop scheduler", result);
     }
 
-    public void startRemoteScheduler(NodeType node, OperationResult result) {
-        RemoteExecutionHelper remoteExecutionHelper = taskManager.getRemoteExecutionHelper();
-        remoteExecutionHelper.execute(node, (client, result1) -> {
-            client.path("/scheduler/start");
+    public void startRemoteScheduler(NodeType node, OperationResult result) throws SchemaException {
+        ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
+        clusterExecutionHelper.execute(node, (client, result1) -> {
+            client.path(TaskConstants.START_LOCAL_SCHEDULER_REST_PATH);
             Response response = client.post(null);
             Response.StatusType statusInfo = response.getStatusInfo();
             LOGGER.debug("Starting remote scheduler on {} finished with status {}: {}", node.getNodeIdentifier(),
@@ -117,10 +105,10 @@ public class RestConnector {
         }, "start scheduler", result);
     }
 
-    public void stopRemoteTask(String oid, NodeType node, OperationResult result) {
-        RemoteExecutionHelper remoteExecutionHelper = taskManager.getRemoteExecutionHelper();
-        remoteExecutionHelper.execute(node, (client, result1) -> {
-            client.path("/tasks/" + oid + "/stop");
+    public void stopRemoteTask(String oid, NodeType node, OperationResult result) throws SchemaException {
+        ClusterExecutionHelper clusterExecutionHelper = taskManager.getClusterExecutionHelper();
+        clusterExecutionHelper.execute(node, (client, result1) -> {
+            client.path(TaskConstants.STOP_LOCAL_TASK_REST_PATH_PREFIX + oid + TaskConstants.STOP_LOCAL_TASK_REST_PATH_SUFFIX);
             Response response = client.post(null);
             Response.StatusType statusInfo = response.getStatusInfo();
             LOGGER.debug("Stopping task {} on {} finished with status {}: {}", oid, node.getNodeIdentifier(),
@@ -133,17 +121,4 @@ public class RestConnector {
             response.close();
         }, "stop task", result);
     }
-
-    private TaskManagerConfiguration getConfiguration() {
-        return taskManager.getConfiguration();
-    }
-
-    private ExecutionManager getGlobalExecutionManager() {
-        return taskManager.getExecutionManager();
-    }
-
-    private ClusterManager getClusterManager() {
-        return taskManager.getClusterManager();
-    }
-
 }
