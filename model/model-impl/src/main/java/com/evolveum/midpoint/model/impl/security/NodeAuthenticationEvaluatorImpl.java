@@ -19,7 +19,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,12 +49,13 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
 	private RepositoryService repositoryService;
 	@Autowired private TaskManager taskManager;
 	@Autowired private SecurityHelper securityHelper;
+	@Autowired private Protector protector;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(NodeAuthenticationEvaluatorImpl.class);
 	
 	private static final String OPERATION_SEARCH_NODE = NodeAuthenticationEvaluatorImpl.class.getName() + ".searchNode";
 	
-	public boolean authenticate(String remoteName, String remoteAddress, String operation) {
+	public boolean authenticate(@Nullable String remoteName, String remoteAddress, @Nullable String credentials, String operation) {
 		LOGGER.debug("Checking if {} ({}) is a known node", remoteName, remoteAddress);
 		OperationResult result = new OperationResult(OPERATION_SEARCH_NODE);
 		
@@ -61,15 +66,40 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
 			List<PrismObject<NodeType>> matchingNodes = getMatchingNodes(allNodes, remoteName, remoteAddress, operation);
 			
 			if (matchingNodes.size() == 1 || matchingNodes.size() >= 1 && taskManager.isLocalNodeClusteringEnabled()) {
-				PrismObject<NodeType> actualNode = allNodes.iterator().next();
 				LOGGER.trace(
-						"Matching result: The node {} was recognized as a known node (remote host name {} or IP address {} matched). Attempting to execute the requested operation: {}",
-						actualNode.asObjectable().getName(), actualNode.asObjectable().getHostname(), remoteAddress, operation);
-				NodeAuthenticationToken authNtoken = new NodeAuthenticationToken(actualNode, remoteAddress,
-						Collections.emptyList());
-				SecurityContextHolder.getContext().setAuthentication(authNtoken);
-				securityHelper.auditLoginSuccess(actualNode.asObjectable(), connEnv);
-				return true;
+						"Matching result: Node(s) {} recognized as known (remote host name {} or IP address {} matched). Attempting to execute the requested operation: {}",
+						allNodes, remoteName, remoteAddress, operation);
+				PrismObject<NodeType> actualNode = null;
+				if (credentials != null) {
+					for (PrismObject<NodeType> matchingNode : matchingNodes) {
+						ProtectedStringType encryptedSecret = matchingNode.asObjectable().getSecret();
+						if (encryptedSecret != null) {
+							String plainSecret;
+							try {
+								plainSecret = protector.decryptString(encryptedSecret);
+							} catch (EncryptionException e) {
+								LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt node secret for {}", e, matchingNode);
+								continue;
+							}
+							if (credentials.equals(plainSecret)) {
+								LOGGER.debug("Node secret matches for {}", matchingNode);
+								actualNode = matchingNode;
+								break;
+							} else {
+								LOGGER.debug("Node secret does not match for {}", matchingNode);
+							}
+						}
+					}
+				} else {
+					actualNode = matchingNodes.get(0);
+				}
+				if (actualNode != null) {
+					NodeAuthenticationToken authNtoken = new NodeAuthenticationToken(actualNode, remoteAddress,
+							Collections.emptyList());
+					SecurityContextHolder.getContext().setAuthentication(authNtoken);
+					securityHelper.auditLoginSuccess(actualNode.asObjectable(), connEnv);
+					return true;
+				}
 			}
 			
 		} catch (RuntimeException | SchemaException e) {

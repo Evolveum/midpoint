@@ -35,6 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -124,6 +125,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private LocalizationService localizationService;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+    @Autowired private RemoteExecutionHelper remoteExecutionHelper;
+    @Autowired private Protector protector;
 
     // instances of all the helper classes (see their definitions for their description)
     private ExecutionManager executionManager = new ExecutionManager(this);
@@ -1876,7 +1879,27 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return executionManager.getLocallyRunningTasks(parentResult);
     }
 
-    @Override
+	@Override
+	public SchedulerInformationType getLocalSchedulerInformation(OperationResult parentResult) {
+		return executionManager.getLocalSchedulerInformation(parentResult);
+	}
+
+	@Override
+	public void stopLocalScheduler(OperationResult parentResult) {
+		executionManager.stopLocalScheduler(parentResult);
+	}
+
+	@Override
+	public void startLocalScheduler(OperationResult parentResult) {
+		executionManager.startLocalScheduler(parentResult);
+	}
+
+	@Override
+	public void stopLocalTask(String oid, OperationResult parentResult) {
+		executionManager.stopLocalTask(oid, parentResult);
+	}
+
+	@Override
     public Task getLocallyRunningTaskByIdentifier(String lightweightIdentifier) {
         synchronized (locallyRunningTaskInstancesMap) {
             return locallyRunningTaskInstancesMap.get(lightweightIdentifier);
@@ -2346,5 +2369,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	public SystemConfigurationChangeDispatcher getSystemConfigurationChangeDispatcher() {
 		return systemConfigurationChangeDispatcher;
+	}
+
+	public RemoteExecutionHelper getRemoteExecutionHelper() {
+		return remoteExecutionHelper;
+	}
+
+	public Protector getProtector() {
+		return protector;
 	}
 }

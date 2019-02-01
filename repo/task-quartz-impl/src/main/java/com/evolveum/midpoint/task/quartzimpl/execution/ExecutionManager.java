@@ -30,12 +30,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.quartz.*;
 
 import java.util.*;
@@ -181,15 +179,19 @@ public class ExecutionManager {
 
             LOGGER.trace("Getting node and task info from the current node ({})", node.asObjectable().getNodeIdentifier());
 
-            List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<>();
-            Set<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
-            for (Task task : tasks) {
-                taskInfoList.add(new ClusterStatusInformation.TaskInfo(task.getOid()));
-            }
-            node.asObjectable().setExecutionStatus(localNodeManager.getLocalNodeExecutionStatus());
-            node.asObjectable().setErrorStatus(taskManager.getLocalNodeErrorStatus());
+//            List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<>();
+//            Set<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
+//            for (Task task : tasks) {
+//                taskInfoList.add(new ClusterStatusInformation.TaskInfo(task.getOid()));
+//            }
+//            node.asObjectable().setExecutionStatus(localNodeManager.getLocalNodeExecutionStatus());
+//            node.asObjectable().setErrorStatus(taskManager.getLocalNodeErrorStatus());
 
-            info.addNodeAndTaskInfo(node.asObjectable(), taskInfoList);
+            SchedulerInformationType schedulerInformation = getLocalSchedulerInformation(result);
+            if (schedulerInformation.getNode() == null) {   // shouldn't occur
+                schedulerInformation.setNode(node.asObjectable());
+            }
+            info.addNodeAndTaskInfo(schedulerInformation);
 
         } else {    // if remote
 
@@ -537,7 +539,74 @@ public class ExecutionManager {
 
     public Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
         return localNodeManager.getLocallyRunningTasks(parentResult);
+    }
 
+    public SchedulerInformationType getLocalSchedulerInformation(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "getLocalSchedulerInformation");
+        try {
+            SchedulerInformationType info = new SchedulerInformationType();
+            info.setNode(getLocalNode());
+            for (Task task : getLocallyRunningTasks(result)) {
+                info.getExecutingTask().add(task.getTaskType().clone());
+            }
+            result.computeStatus();
+            return info;
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't get scheduler information: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    public void stopLocalScheduler(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "stopLocalScheduler");
+        try {
+            localNodeManager.stopScheduler(result);
+            result.computeStatus();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't stop local scheduler: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    public void startLocalScheduler(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "stopLocalScheduler");
+        try {
+            localNodeManager.startScheduler(result);
+            result.computeStatus();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't start local scheduler: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    public void stopLocalTask(String oid, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "stopLocalTask");
+        try {
+            localNodeManager.stopLocalTaskRun(oid, result);
+            // TODO if interrupting is set to WHEN_NECESSARY we should check if the task stops within 5 seconds
+            //  and if not, interrupt the thread. However, what if the task was stopped and then restarted? We
+            //  should check for that situation. So let's ignore conditional interruption for now.
+            result.computeStatus();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't interrupt local task: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    /**
+     * @return current local node information, updated with local node execution and error status.
+     * Returned value is fresh, so it can be modified as needed.
+     */
+    @Nullable
+    public NodeType getLocalNode() {
+        PrismObject<NodeType> localNode = taskManager.getClusterManager().getLocalNodeObject();
+        if (localNode == null) {
+            return null;
+        }
+        NodeType node = localNode.clone().asObjectable();
+        node.setExecutionStatus(localNodeManager.getLocalNodeExecutionStatus());
+        node.setErrorStatus(taskManager.getLocalNodeErrorStatus());
+        return node;
     }
 
     public void initializeLocalScheduler() throws TaskManagerInitializationException {
@@ -628,11 +697,6 @@ public class ExecutionManager {
             result.recordFatalError(message, e);
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
         }
-    }
-
-    // nodeId should not be the current node
-    void redirectTaskToNode(@NotNull Task task, @NotNull NodeType node, @NotNull OperationResult result) {
-        remoteNodesManager.redirectTaskToNode(task, node, result);
     }
 
     public void pauseTaskJob(Task task, OperationResult parentResult) {

@@ -2002,7 +2002,7 @@
 								infrastructure/intraClusterHttpUrlPattern system configuration property.
 
 								Use only if really necessary. Support for this item is currently limited
-								to clusterwide cache invalidation.
+								to clusterwide cache invalidation and managing node task scheduler.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2011,6 +2011,16 @@
                             <xsd:documentation>
                                 IP addresses of the node (both IPv4 and IPv6 addresses in textual notation)
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="restPort" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Port at which this node can be contacted via REST.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="jmxPort" type="xsd:int" minOccurs="0">
@@ -2082,6 +2092,26 @@
 							<xsd:documentation>
 								Information about midPoint build running on this node.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="secret" type="t:ProtectedStringType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								The secret used for intra-cluster authentication.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="secretUpdateTimestamp" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								When was the secret created or last changed.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="taskExecutionLimitations" type="tns:TaskExecutionLimitationsType" minOccurs="0">
@@ -3565,6 +3595,34 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:complexType name="SchedulerInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes the state of the (local) scheduler.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="node" type="tns:NodeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Information on the current node.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="executingTask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Locally executing tasks.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="schedulerInformation" type="tns:SchedulerInformationType"/>
 
 	<xsd:complexType name="AssignmentHolderType" abstract="true">
         <xsd:annotation>

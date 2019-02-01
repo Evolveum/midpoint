@@ -33,7 +33,7 @@ import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.security.RestAuthenticationMethod;
+import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,14 +67,14 @@ public class RestServiceUtil {
 
 	public static final String APPLICATION_YAML = "application/yaml";
 
-	public static Response handleException(OperationResult result, Exception ex) {
-		LoggingUtils.logUnexpectedException(LOGGER, "Got exception while servicing REST request: {}", ex,
+	public static Response handleException(OperationResult result, Throwable t) {
+		LoggingUtils.logUnexpectedException(LOGGER, "Got exception while servicing REST request: {}", t,
 				result != null ? result.getOperation() : "(null)");
-		return handleExceptionNoLog(result, ex);
+		return handleExceptionNoLog(result, t);
 	}
 
-	public static Response handleExceptionNoLog(OperationResult result, Exception ex) {
-		return createErrorResponseBuilder(result, ex).build();
+	public static Response handleExceptionNoLog(OperationResult result, Throwable t) {
+		return createErrorResponseBuilder(result, t).build();
 	}
 
 	public static <T> Response createResponse(Response.Status statusCode, OperationResult result) {
@@ -124,32 +124,32 @@ public class RestServiceUtil {
 
 
 
-	public static Response.ResponseBuilder createErrorResponseBuilder(OperationResult result, Exception ex) {
-		if (ex instanceof ObjectNotFoundException) {
+	public static Response.ResponseBuilder createErrorResponseBuilder(OperationResult result, Throwable t) {
+		if (t instanceof ObjectNotFoundException) {
 			return createErrorResponseBuilder(Response.Status.NOT_FOUND, result);
 		}
 
-		if (ex instanceof CommunicationException || ex instanceof TunnelException) {
+		if (t instanceof CommunicationException || t instanceof TunnelException) {
 			return createErrorResponseBuilder(Response.Status.GATEWAY_TIMEOUT, result);
 		}
 
-		if (ex instanceof SecurityViolationException || ex instanceof AuthorizationException) {
+		if (t instanceof SecurityViolationException || t instanceof AuthorizationException) {
 			return createErrorResponseBuilder(Response.Status.FORBIDDEN, result);
 		}
 
-		if (ex instanceof ConfigurationException) {
+		if (t instanceof ConfigurationException) {
 			return createErrorResponseBuilder(Response.Status.BAD_GATEWAY, result);
 		}
 
-		if (ex instanceof SchemaException
-				|| ex instanceof NoFocusNameSchemaException
-				|| ex instanceof ExpressionEvaluationException) {
+		if (t instanceof SchemaException
+				|| t instanceof NoFocusNameSchemaException
+				|| t instanceof ExpressionEvaluationException) {
 			return createErrorResponseBuilder(Response.Status.BAD_REQUEST, result);
 		}
 
-		if (ex instanceof PolicyViolationException
-				|| ex instanceof ObjectAlreadyExistsException
-				|| ex instanceof ConcurrencyException) {
+		if (t instanceof PolicyViolationException
+				|| t instanceof ObjectAlreadyExistsException
+				|| t instanceof ConcurrencyException) {
 			return createErrorResponseBuilder(Response.Status.CONFLICT, result);
 		}
 

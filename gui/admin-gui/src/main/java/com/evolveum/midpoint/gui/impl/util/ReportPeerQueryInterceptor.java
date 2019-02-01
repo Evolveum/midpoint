@@ -141,7 +141,8 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
 			return false;
 		}
 
-		if (!nodeAuthenticator.authenticate(request.getRemoteHost(), request.getRemoteAddr(), operation)) {
+		// we temporarily allow authentication without credentials
+		if (!nodeAuthenticator.authenticate(request.getRemoteHost(), request.getRemoteAddr(), null, operation)) {
 			LOGGER.debug("Unknown node, host: {} ", request.getRemoteHost());
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 			return false;

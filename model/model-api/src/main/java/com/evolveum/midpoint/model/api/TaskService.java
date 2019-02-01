@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.util.Collection;
@@ -101,6 +102,9 @@ public interface TaskService {
      * @return  
      */
     PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, Task operationTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException;
+
+    SchedulerInformationType getLocalSchedulerInformation(Task operationTask, OperationResult parentResult) throws CommunicationException,
+		    ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException;
     //endregion
 
     //region Node-level operations
@@ -142,6 +146,8 @@ public interface TaskService {
      */
     void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
+    void stopLocalScheduler(Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
     /**
      * Stops a set of schedulers (on their nodes) and tasks that are executing on these nodes.
      *
@@ -163,6 +169,10 @@ public interface TaskService {
      * @return true if the operation succeeded; false otherwise. 
      */
     void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    void startLocalScheduler(Task operationTask, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    void stopLocalTask(String oid, Task operationTask, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
     //endregion
 
     //region Miscellaneous
