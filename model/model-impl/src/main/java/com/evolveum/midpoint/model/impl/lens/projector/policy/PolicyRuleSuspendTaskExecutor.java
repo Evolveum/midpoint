@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SuspendTaskPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
 
 /**
  * @author katka
@@ -100,7 +101,7 @@ public class PolicyRuleSuspendTaskExecutor {
 //			SuspendTaskPolicyActionType stopAction = policyRule.getEnabledAction(SuspendTaskPolicyActionType.class);
 			
 			PolicyThresholdType thresholdSettings = policyRule.getPolicyThreshold();
-			if (thresholdSettings.getCount() != null && thresholdSettings.getCount().intValue() < counter) {
+			if (isOverThreshold(thresholdSettings, counter)) {
 //				taskManager.suspendTask(task, 10, result);
 				throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
 			}
@@ -108,4 +109,19 @@ public class PolicyRuleSuspendTaskExecutor {
 		
 		return counter;
 	}
+		
+	private boolean isOverThreshold(PolicyThresholdType thresholdSettings, int counter) throws SchemaException {
+		// TODO: better implementation that takes hight water mark into account
+		WaterMarkType lowWaterMark = thresholdSettings.getLowWaterMark();
+		if (lowWaterMark == null) {
+			return true;
+		}
+		Integer lowWaterCount = lowWaterMark.getCount();
+		if (lowWaterCount == null) {
+			throw new SchemaException("No count in low water mark in a policy rule");
+		}
+		return (counter >= lowWaterCount);
+	}
 }
+
+	
