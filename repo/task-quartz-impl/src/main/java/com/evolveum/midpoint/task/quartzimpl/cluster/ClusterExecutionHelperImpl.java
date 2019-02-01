@@ -18,14 +18,16 @@ package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
-import com.evolveum.midpoint.task.api.RemoteExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,16 +52,17 @@ import java.util.function.BiConsumer;
  *  Helps with the intra-cluster remote code execution.
  */
 @Component
-public class RemoteExecutionHelperImpl implements RemoteExecutionHelper, SystemConfigurationChangeListener {
+public class ClusterExecutionHelperImpl implements ClusterExecutionHelper, SystemConfigurationChangeListener {
 
-	private static final Trace LOGGER = TraceManager.getTrace(RemoteExecutionHelperImpl.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ClusterExecutionHelperImpl.class);
 
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
+	@Autowired private RepositoryService repositoryService;
 	@Autowired private Protector protector;
 	@Autowired private SystemConfigurationChangeDispatcher configurationChangeDispatcher;
 
-	private static final String DOT_CLASS = RemoteExecutionHelperImpl.class.getName() + ".";
+	private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
 
 	private InfrastructureConfigurationType infrastructureConfiguration;
 
@@ -74,7 +78,7 @@ public class RemoteExecutionHelperImpl implements RemoteExecutionHelper, SystemC
 	}
 
 	@Override
-	public void execute(BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult) {
+	public void execute(@NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult) {
 
 		OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute");
 		String nodeId = taskManager.getNodeId();
@@ -90,13 +94,25 @@ public class RemoteExecutionHelperImpl implements RemoteExecutionHelper, SystemC
 		}
 
 		for (PrismObject<NodeType> node : otherClusterNodes.getList()) {
-			execute(node.asObjectable(), code, context, result);
+			try {
+				execute(node.asObjectable(), code, context, result);
+			} catch (SchemaException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute operation ({}) on node {}", e, context, node);
+			}
 		}
 		result.computeStatus();
 	}
 
 	@Override
-	public void execute(NodeType node, BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult) {
+	public void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code, String context,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+		PrismObject<NodeType> node = repositoryService.getObject(NodeType.class, nodeOid, null, parentResult);
+		execute(node.asObjectable(), code, context, parentResult);
+	}
+
+	@Override
+	public void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
+			throws SchemaException {
 		OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute.node");
 		String nodeIdentifier = node.getNodeIdentifier();
 		result.addParam("node", nodeIdentifier);
@@ -120,19 +136,24 @@ public class RemoteExecutionHelperImpl implements RemoteExecutionHelper, SystemC
 						.replace("$port", String.valueOf(node.getRestPort()));
 			}
 
-			String url = baseUrl + "/ws/rest";
+			String url = baseUrl + "/ws/cluster";
 			LOGGER.debug("Going to execute '{}' on '{}'", context, url);
 			WebClient client = WebClient.create(url);
 			if (node.getSecret() == null) {
 				throw new SchemaException("No secret known for target node " + node.getNodeIdentifier());
 			}
-			String secret = protector.decryptString(node.getSecret());
+			String secret;
+			try {
+				secret = protector.decryptString(node.getSecret());
+			} catch (EncryptionException e) {
+				throw new SystemException("Couldn't decrypt node secret: " + e.getMessage(), e);
+			}
 			client.header("Authorization", RestAuthenticationMethod.CLUSTER.getMethod() + " " + Base64Utility.encode(secret.getBytes()));
 			code.accept(client, result);
 			result.computeStatusIfUnknown();
-		} catch (Throwable t) {
+		} catch (SchemaException | RuntimeException t) {
 			result.recordFatalError("Couldn't invoke operation (" + context + ") on node " + nodeIdentifier + ": " + t.getMessage(), t);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't invoke operation ({}) on node {}", t, context, nodeIdentifier);
+			throw t;
 		}
 	}
 

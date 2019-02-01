@@ -133,7 +133,7 @@ public class RestServiceUtil {
 			return createErrorResponseBuilder(Response.Status.GATEWAY_TIMEOUT, result);
 		}
 
-		if (t instanceof SecurityViolationException || t instanceof AuthorizationException) {
+		if (t instanceof SecurityViolationException) {
 			return createErrorResponseBuilder(Response.Status.FORBIDDEN, result);
 		}
 
@@ -141,9 +141,7 @@ public class RestServiceUtil {
 			return createErrorResponseBuilder(Response.Status.BAD_GATEWAY, result);
 		}
 
-		if (t instanceof SchemaException
-				|| t instanceof NoFocusNameSchemaException
-				|| t instanceof ExpressionEvaluationException) {
+		if (t instanceof SchemaException || t instanceof ExpressionEvaluationException) {
 			return createErrorResponseBuilder(Response.Status.BAD_REQUEST, result);
 		}
 
@@ -157,8 +155,14 @@ public class RestServiceUtil {
 	}
 
 	public static Response.ResponseBuilder createErrorResponseBuilder(Response.Status status, OperationResult result) {
-		result.computeStatusIfUnknown();
-		return createErrorResponseBuilder(status, result.createOperationResultType());
+		OperationResultType resultBean;
+		if (result != null) {
+			result.computeStatusIfUnknown();
+			resultBean = result.createOperationResultType();
+		} else {
+			resultBean = null;
+		}
+		return createErrorResponseBuilder(status, resultBean);
 	}
 
 	public static Response.ResponseBuilder createErrorResponseBuilder(Response.Status status, OperationResultType message) {

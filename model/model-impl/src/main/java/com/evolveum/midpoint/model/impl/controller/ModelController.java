@@ -1931,57 +1931,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
 	@Override
-	public SchedulerInformationType getLocalSchedulerInformation(Task operationTask, OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-
-		checkNodeAuthentication();
-
-		//securityEnforcer.authorize(ModelAuthorizationAction.GET_SCHEDULER_INFORMATION.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-		return taskManager.getLocalSchedulerInformation(parentResult);
-	}
-
-	private void checkNodeAuthentication() throws SecurityViolationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (!(authentication instanceof NodeAuthenticationToken)) {
-			throw new SecurityViolationException("Node authentication is expected but not present");
-		}
-	}
-
-	@Override
-	public void stopLocalScheduler(Task operationTask, OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-
-		checkNodeAuthentication();
-
-		//securityEnforcer.authorize(ModelAuthorizationAction.GET_SCHEDULER_INFORMATION.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-		taskManager.stopLocalScheduler(parentResult);
-	}
-
-	@Override
-	public void startLocalScheduler(Task operationTask, OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-
-		checkNodeAuthentication();
-
-		//securityEnforcer.authorize(ModelAuthorizationAction.GET_SCHEDULER_INFORMATION.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-		taskManager.startLocalScheduler(parentResult);
-	}
-
-	@Override
-	public void stopLocalTask(String oid, Task operationTask, OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-
-		checkNodeAuthentication();
-
-		//securityEnforcer.authorize(ModelAuthorizationAction.GET_SCHEDULER_INFORMATION.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-		taskManager.stopLocalTask(oid, parentResult);
-	}
-
-	@Override
     public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
         return taskManager.deactivateServiceThreads(timeToWait, parentResult);

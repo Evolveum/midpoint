@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.model.impl.ClusterRestService;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,8 +38,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,10 +56,12 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.core.Response;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.ByteArrayInputStream;
@@ -85,18 +90,11 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     private static final String DELETE_REPORT_OUTPUT = CLASS_NAME_WITH_DOT + "deleteReportOutput";
     private static final String REPORT_OUTPUT_DATA = CLASS_NAME_WITH_DOT + "getReportOutputData";
 
-	@Autowired
-    private HookRegistry hookRegistry;
-
-	@Autowired
-    private TaskManager taskManager;
-
-	@Autowired
-	private PrismContext prismContext;
-
-	@Autowired
-	private ModelService modelService;
-
+	@Autowired private HookRegistry hookRegistry;
+	@Autowired private TaskManager taskManager;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ModelService modelService;
+	@Autowired private ClusterExecutionHelper clusterExecutionHelper;
 
 	@PostConstruct
     public void init() {
@@ -292,18 +290,18 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(),
         			reportOutput.getFilePath());
         	boolean problem = false;
-        	try {
-                    deleteReportOutput(reportOutput, result);
-                } catch (Exception e) {
-                	LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a exception", e, reportOutput);
-                    problem = true;
-                }
+	        try {
+		        deleteReportOutput(reportOutput, result);
+	        } catch (Exception e) {
+		        LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a exception", e, reportOutput);
+		        problem = true;
+	        }
 
-                if (problem) {
-                    problems++;
-                } else {
-                    deleted++;
-            }
+	        if (problem) {
+		        problems++;
+	        } else {
+		        deleted++;
+	        }
         }
         result.computeStatusIfUnknown();
 
@@ -329,43 +327,47 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     	parentResult.addSubresult(task.getResult());
     	OperationResult result = parentResult.createSubresult(DELETE_REPORT_OUTPUT);
 
-
         String filePath = reportOutput.getFilePath();
         result.addParam("oid", oid);
         try {
-			File reportFile = new File(filePath);
+			File file = new File(filePath);
 
-			if (reportFile.exists()) {
-				reportFile.delete();
+			if (file.exists()) {
+				file.delete();
 			} else {
-				// TODO deduplicate this code
-				ObjectReferenceType nodeRef = reportOutput.getNodeRef();
-				String nodeOid = nodeRef.getOid();
-				NodeType node = modelService.getObject(NodeType.class, nodeOid, null, null, parentResult).asObjectable();
-				String hostName = node.getHostname();
-				SystemConfigurationType systemConfig = modelService
-						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
-								result).asObjectable();
-				String icUrlPattern = systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
-				String[] splitted = filePath.split("/");
-				String filename = splitted[splitted.length - 1];
-				ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "DELETE");
+				String fileName = checkNodeAndFileName(file, reportOutput, result);
+				if (fileName == null) {
+					return;
+				}
+				clusterExecutionHelper.execute(reportOutput.getNodeRef().getOid(), (client, result1) -> {
+					client.path(ClusterRestService.REPORT_FILE_PATH);
+					client.query(ClusterRestService.REPORT_FILE_FILENAME_PARAMETER, fileName);
+					Response response = client.delete();
+					Response.StatusType statusInfo = response.getStatusInfo();
+					LOGGER.debug("Deleting report output file ({}) from {} finished with status {}: {}",
+							fileName, reportOutput.getNodeRef().getOid(), statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
+					if (statusInfo.getFamily() != Response.Status.Family.SUCCESSFUL) {
+						LOGGER.warn("Deleting report output file ({}) from {} finished with status {}: {}",
+								fileName, reportOutput.getNodeRef().getOid(), statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
+						result1.recordFatalError("Could not delete report output file: Got " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
+					}
+					response.close();
+				}, "get report output", result);
+				result.computeStatusIfUnknown();
 			}
 
 			ObjectDelta<ReportOutputType> delta = prismContext.deltaFactory().object()
 					.createDeleteDelta(ReportOutputType.class, oid);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-
 			modelService.executeChanges(deltas, null, task, result);
 
-            result.recordSuccessIfUnknown();
+            result.computeStatusIfUnknown();
         }
         catch (Exception e) {
         	result.recordFatalError("Cannot delete the report output because of a exception.", e);
             throw e;
         }
     }
-
 
     //TODO re-throw exceptions?
     @Override
@@ -375,34 +377,51 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     	OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);
         result.addParam("oid", reportOutputOid);
 
-    	InputStream reportData = null;
         try {
-        	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null,
-				        task, result).asObjectable();
+        	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, task,
+			        result).asObjectable();
 
             String filePath = reportOutput.getFilePath();
             if (StringUtils.isEmpty(filePath)) {
-                parentResult.recordFatalError("Report output file path is not defined.");
+                result.recordFatalError("Report output file path is not defined.");
                 return null;
             }
             File file = new File(filePath);
             if (file.exists()) {
-                reportData = FileUtils.openInputStream(file);
+                return FileUtils.openInputStream(file);
             } else {
-            	// TODO deduplicate this code
-				ObjectReferenceType nodeRef = reportOutput.getNodeRef();
-				String nodeOid = nodeRef.getOid();
-				NodeType node = modelService.getObject(NodeType.class, nodeOid, null, null, parentResult).asObjectable();
-				String hostName = node.getHostname();
-				SystemConfigurationType systemConfig = modelService
-						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
-								result).asObjectable();
-				String icUrlPattern = systemConfig.getInfrastructure() != null ? systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern() : null;
-				String[] splitted = filePath.split("/");
-				String filename = splitted[splitted.length - 1];
-				reportData = ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "GET");
+	            String fileName = checkNodeAndFileName(file, reportOutput, result);
+	            if (fileName == null) {
+		            return null;
+	            }
+	            Holder<InputStream> inputStreamHolder = new Holder<>();
+            	clusterExecutionHelper.execute(reportOutput.getNodeRef().getOid(), (client, result1) -> {
+		            client.path(ClusterRestService.REPORT_FILE_PATH);
+		            client.query(ClusterRestService.REPORT_FILE_FILENAME_PARAMETER, fileName);
+		            Response response = client.get();
+		            Response.StatusType statusInfo = response.getStatusInfo();
+		            LOGGER.debug("Retrieving report output file ({}) from {} finished with status {}: {}",
+				            fileName, reportOutput.getNodeRef().getOid(), statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
+		            if (statusInfo.getFamily() == Response.Status.Family.SUCCESSFUL) {
+			            Object entity = response.getEntity();
+			            if (entity == null || entity instanceof InputStream) {
+				            inputStreamHolder.setValue((InputStream) entity);
+				            // do NOT close the response; input stream will be closed later by the caller(s)
+			            } else {
+			            	LOGGER.error("Content of the report output file retrieved from the remote node is not an InputStream; "
+						            + "it is {} instead -- this is not currently supported", entity.getClass());
+			            	response.close();
+			            }
+		            } else {
+			            LOGGER.warn("Retrieving report output file ({}) from {} finished with status {}: {}",
+					            fileName, reportOutput.getNodeRef().getOid(), statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
+			            result1.recordFatalError("Could not retrieve report output file: Got " + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
+			            response.close();
+		            }
+	            }, "get report output", result);
+	            result.computeStatusIfUnknown();
+            	return inputStreamHolder.getValue();
 			}
-            result.recordSuccessIfUnknown();
         } catch (IOException ex) {
         	LoggingUtils.logException(LOGGER, "Error while fetching file. File might not exist on the corresponding file system", ex);
         	result.recordPartialError("Error while fetching file. File might not exist on the corresponding file system. Reason: " + ex.getMessage(), ex);
@@ -414,7 +433,19 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         } finally {
             result.computeStatusIfUnknown();
         }
-
-        return reportData;
     }
+
+	@Nullable
+	private String checkNodeAndFileName(File file, ReportOutputType reportOutput, OperationResult result) {
+		if (reportOutput.getNodeRef() == null || reportOutput.getNodeRef().getOid() == null) {
+			result.recordFatalError("Report output node OID is not defined.");
+			return null;
+		}
+		String fileName = file.getName();
+		if (StringUtils.isEmpty(fileName)) {
+			result.recordFatalError("Report output file name is empty.");
+			return null;
+		}
+		return fileName;
+	}
 }
