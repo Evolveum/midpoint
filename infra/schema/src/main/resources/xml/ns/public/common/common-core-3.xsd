@@ -20881,6 +20881,8 @@
                 			</xsd:appinfo>
                 		</xsd:annotation>
                 	</xsd:element>
+                	
+                	<!-- Following elements are jasper-specific. -->
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
@@ -20897,8 +20899,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                    
-
                     <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
 	                    <xsd:annotation>
                     		<xsd:documentation>
@@ -20915,7 +20915,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                       
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
     				    <xsd:annotation>
                             <xsd:documentation>
@@ -20945,7 +20944,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                    
             		<xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -20993,6 +20991,19 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- End of jasper-specific elements. -->
+                    
+                    <xsd:element name="dashboard" type="tns:DashboardReportEngineConfigurationType" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Configuration for dashboard-based reports. Only applicable if reportEngine=dashboard.
+                			</xsd:documentation>
+                			<xsd:appinfo>
+                				<a:since>4.0</a:since>
+                			</xsd:appinfo>
+                		</xsd:annotation>
+                	</xsd:element>
+                    
 					<xsd:element name="postReportScript" type="tns:CommandLineScriptType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -21060,6 +21071,31 @@
         <xsd:sequence>
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
             </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DashboardReportEngineConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuraiton of dashboard-based reports.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container>true</a:container>
+            	<a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="dashboardRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Referrence to dashboard definition that should be used as a basis for the report.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:objectReferenceTargetType>tns:DashboardType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: other elements to configure the report -->
         </xsd:sequence>
     </xsd:complexType>
 
