@@ -43,6 +43,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Manages task threads on the local node. Concerned mainly with stopping threads and querying their state.
@@ -444,6 +445,21 @@ public class LocalNodeManager {
         return false;
     }
 
+    Set<String> getLocallyRunningTasksOids(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasksOids");
+        try {
+            List<JobExecutionContext> jobs = getQuartzScheduler().getCurrentlyExecutingJobs();
+            Set<String> oids = jobs.stream().map(ec -> ec.getJobDetail().getKey().getName()).collect(Collectors.toSet());
+            result.recordSuccess();
+            return oids;
+        } catch (Throwable t) {
+            String message = "Cannot get the list of currently executing jobs on local node.";
+            result.recordFatalError(message, t);
+            LoggingUtils.logUnexpectedException(LOGGER, message, t);
+            return Collections.emptySet();      // todo or throw an exception?
+        }
+    }
+
     /**
      * Returns all the currently executing tasks.
      *
@@ -455,18 +471,7 @@ public class LocalNodeManager {
 
         Set<Task> retval = new HashSet<>();
 
-        List<JobExecutionContext> jecs;
-        try {
-            jecs = getQuartzScheduler().getCurrentlyExecutingJobs();
-        } catch (SchedulerException e1) {
-            String message = "Cannot get the list of currently executing jobs on local node.";
-            result.recordFatalError(message, e1);
-            LoggingUtils.logUnexpectedException(LOGGER, message, e1);
-            return retval;
-        }
-
-        for (JobExecutionContext jec : jecs) {
-            String oid = jec.getJobDetail().getKey().getName();
+        for (String oid : getLocallyRunningTasksOids(result)) {
             OperationResult result1 = result.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTask");
             try {
                 retval.add(taskManager.getTask(oid, result1));
