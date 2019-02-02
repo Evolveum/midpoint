@@ -113,28 +113,17 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected String getNewObjectButtonStyle(){
+            protected DisplayType getNewObjectButtonStandardDisplayType(){
                 if (isCollectionViewPage()){
-                    return getCollectionViewIconClass(getCollectionViewObject());
+                    return getCollectionViewDisplayType(getCollectionViewObject());
                 } else {
-                    return WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(PageAdminObjectList.this.getPrismContext(),
-                            getType()));
+                    return super.getNewObjectButtonStandardDisplayType();
                 }
             }
 
             @Override
-            protected String getNewObjectSpecificStyle(CompiledObjectCollectionView collectionView){
-                return getCollectionViewIconClass(collectionView);
-            }
-
-            @Override
-            protected String getNewObjectSpecificTitle(CompiledObjectCollectionView collectionView){
-                if (collectionView == null || collectionView.getDisplay() == null
-                        || collectionView.getDisplay().getLabel() == null){
-                    return "";
-                }
-
-                return collectionView.getDisplay().getLabel().getOrig();
+            protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView collectionView){
+                return getCollectionViewDisplayType(collectionView);
             }
 
             @Override
@@ -244,12 +233,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return collectionNameParam != null && !collectionNameParam.isEmpty();
     }
 
-    private String getCollectionViewIconClass(CompiledObjectCollectionView view){
-        if (view == null || view.getDisplay() == null ||
-                view.getDisplay().getIcon() == null){
-            return "";
-        }
-
-        return view.getDisplay().getIcon().getCssClass();
+    private DisplayType getCollectionViewDisplayType(CompiledObjectCollectionView view){
+       return view != null ? view.getDisplay() : null;
     }
 }

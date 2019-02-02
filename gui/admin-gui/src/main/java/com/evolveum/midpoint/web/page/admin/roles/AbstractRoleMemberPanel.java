@@ -240,26 +240,18 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 					}
 
 					@Override
-					protected String getDefaultButtonStyle() {
-						return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
+					protected DisplayType getMainButtonDisplayType(){
+						return getAssignMemberButtonDisplayType();
 					}
 
 					@Override
-					protected String getAdditionalButtonStyle(AssignmentObjectRelation assignmentTargetRelation) {
-						DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-						if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())) {
-							return display.getIcon().getCssClass();
-						}
-						return "";
+					protected DisplayType getAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation){
+						return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
 					}
 
 					@Override
-					protected String getAdditionalButtonTitle(AssignmentObjectRelation assignmentTargetRelation) {
-						DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-						if (display != null && display.getTooltip() != null) {
-							return display.getTooltip().getOrig();
-						}
-						return "";
+					protected DisplayType getDefaultObjectButtonDisplayType(){
+						return getAssignMemberButtonDisplayType();
 					}
 				};
 
@@ -337,6 +329,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	
 	protected QName getComplexTypeQName() {
 		return getModelObject().asPrismObject().getComplexTypeDefinition().getTypeName();
+	}
+
+	private DisplayType getAssignMemberButtonDisplayType(){
+		return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+				AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember").getString());
 	}
 
     private List<InlineMenuItem> createRowActions() {

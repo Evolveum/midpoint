@@ -2178,8 +2178,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewIdentifier());
 
-            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
-                    ? createStringResource(viewDisplayType.getLabel())
+            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getPluralLabel())
+                    ? createStringResource(viewDisplayType.getPluralLabel())
                     : createStringResource("MenuItem.noName"), redirectToPage, pageParameters, null){
                 private static final long serialVersionUID = 1L;
 

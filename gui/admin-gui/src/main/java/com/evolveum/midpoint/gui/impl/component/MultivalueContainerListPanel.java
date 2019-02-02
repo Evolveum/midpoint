@@ -20,9 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -239,18 +242,18 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	
 	public MultifunctionalButton<S> getNewItemButton(String id) {
 		MultifunctionalButton<S> newObjectIcon =
-				new MultifunctionalButton<S>(id){
+				new MultifunctionalButton<S>(id) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected List<S> getAdditionalButtonsObjects(){
+					protected List<S> getAdditionalButtonsObjects() {
 						return getNewObjectInfluencesList();
 					}
 
 					@Override
-					protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject){
+					protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject) {
 						List<S> additionalButtonObjects = getNewObjectInfluencesList();
-						if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)){
+						if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)) {
 							newItemPerformed(target);
 						} else {
 							newItemPerformed(target, influencingObject);
@@ -258,30 +261,20 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 					}
 
 					@Override
-					protected String getDefaultButtonStyle(){
-						return getNewObjectButtonStyle();
+					protected DisplayType getMainButtonDisplayType() {
+						return getNewObjectButtonDisplayType();
 					}
 
 					@Override
-					protected String getAdditionalButtonTitle(S buttonObject){
-						return getNewObjectSpecificTitle(buttonObject);
+					protected DisplayType getAdditionalButtonDisplayType(S buttonObject) {
+						return getNewObjectAdditionalButtonDisplayType(buttonObject);
 					}
 
 					@Override
-					protected String getAdditionalButtonStyle(S buttonObject){
-						return getNewObjectSpecificStyle(buttonObject);
+					protected DisplayType getDefaultObjectButtonDisplayType() {
+						return getNewObjectButtonDisplayType();
 					}
 				};
-//		AjaxIconButton newObjectIcon = new AjaxIconButton(id, new Model<>("fa fa-plus"),
-//				getNewObjectButtonTitleModel()) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				newItemPerformed(target);
-//			}
-//		};
 		newObjectIcon.add(AttributeModifier.append("class", "btn-group"));
 		newObjectIcon.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -304,24 +297,16 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		return true;
 	}
 
-	protected IModel<String> getNewObjectButtonTitleModel(){
-		return createStringResource("MainObjectListPanel.newObject");
-	}
-
 	protected List<S> getNewObjectInfluencesList(){
 		return new ArrayList<>();
 	}
 
-	protected String getNewObjectButtonStyle(){
-		return GuiStyleConstants.CLASS_ADD_NEW_OBJECT;
+	protected DisplayType getNewObjectButtonDisplayType(){
+		return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
 	}
 
-	protected String getNewObjectSpecificStyle(S buttonObject){
-		return "";
-	}
-
-	protected String getNewObjectSpecificTitle(S buttonObject){
-		return "";
+	protected DisplayType getNewObjectAdditionalButtonDisplayType(S buttonObject){
+		return null;
 	}
 
 	protected WebMarkupContainer initSearch(String headerId) {

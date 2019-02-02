@@ -3119,6 +3119,38 @@ public final class WebComponentUtil {
 		return spec;
 	}
 
+	public static String getIconCssClass(DisplayType displayType){
+		if (displayType == null || displayType.getIcon() == null){
+			return null;
+		}
+		return displayType.getIcon().getCssClass();
+	}
+
+	public static String getIconColor(DisplayType displayType){
+		if (displayType == null || displayType.getIcon() == null){
+			return null;
+		}
+		return displayType.getIcon().getColor();
+	}
+
+	public static String getDisplayTypeTitle(DisplayType displayType){
+		if (displayType == null || displayType.getTooltip() == null){
+			return null;
+		}
+		return displayType.getTooltip().getOrig();
+	}
+
+	public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title){
+		DisplayType displayType = new DisplayType();
+		IconType icon = new IconType();
+		icon.setCssClass(iconCssClass);
+		icon.setColor(iconColor);
+		displayType.setIcon(icon);
+
+		displayType.setTooltip(createPolyFromOrigString(title));
+		return displayType;
+	}
+
 	public static IModel<String> getIconUrlModel(IconType icon){
 		if (icon == null || StringUtils.isEmpty(icon.getImageUrl())){
 			return Model.of();
