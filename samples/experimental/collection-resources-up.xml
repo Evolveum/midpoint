@@ -52,10 +52,10 @@
     			</collectionStats>
     		</policyConstraints>
     		<policyThreshold>
-    			<lowerBound> <!-- lowWaterMark? -->
+    			<lowWaterMark> <!-- lowWaterMark? -->
     				<percentage>90</percentage>
 	            	<!-- <count>4</count>  -->
-    			</lowerBound>
+    			</lowWaterMark>
             	<!-- <period>PT1H</period>  -->
             </policyThreshold>
     		<policySituation>#resourceHealthDanger</policySituation>

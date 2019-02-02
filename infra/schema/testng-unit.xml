@@ -96,7 +96,7 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
-            <!--<class name="com.evolveum.midpoint.schema.parser.TestParseSystemConfiguration"/> temporarily disabled-->
+            <class name="com.evolveum.midpoint.schema.parser.TestParseSystemConfiguration"/>
         </classes>
     </test>
     <test name="Parsing YAML without namespaces" preserve-order="false" verbose="1">
@@ -111,7 +111,7 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
-            <!--<class name="com.evolveum.midpoint.schema.parser.TestParseSystemConfiguration"/> temporarily disabled-->
+            <class name="com.evolveum.midpoint.schema.parser.TestParseSystemConfiguration"/>
         </classes>
     </test>
     <test name="Schema" preserve-order="false" verbose="1">

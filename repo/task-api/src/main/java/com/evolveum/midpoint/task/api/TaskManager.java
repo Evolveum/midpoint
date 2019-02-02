@@ -357,7 +357,18 @@ public interface TaskManager {
      *
      * @return tasks that currently run on this node.
      */
-    Set<Task> getLocallyRunningTasks(OperationResult parentResult) throws TaskManagerException;
+    Set<Task> getLocallyRunningTasks(OperationResult parentResult);
+
+	/**
+	 * Returns the local scheduler information.
+	 */
+	SchedulerInformationType getLocalSchedulerInformation(OperationResult parentResult);
+
+	void stopLocalScheduler(OperationResult parentResult);
+
+	void startLocalScheduler(OperationResult parentResult);
+
+	void stopLocalTask(String oid, OperationResult parentResult);
 
     /**
      * Returns locally-run task by identifier. Returned instance is the same as is being used to carrying out

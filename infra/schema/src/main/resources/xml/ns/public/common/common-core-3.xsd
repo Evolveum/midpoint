@@ -2002,7 +2002,7 @@
 								infrastructure/intraClusterHttpUrlPattern system configuration property.
 
 								Use only if really necessary. Support for this item is currently limited
-								to clusterwide cache invalidation.
+								to clusterwide cache invalidation and managing node task scheduler.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2011,6 +2011,16 @@
                             <xsd:documentation>
                                 IP addresses of the node (both IPv4 and IPv6 addresses in textual notation)
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="restPort" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Port at which this node can be contacted via REST.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="jmxPort" type="xsd:int" minOccurs="0">
@@ -2082,6 +2092,26 @@
 							<xsd:documentation>
 								Information about midPoint build running on this node.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="secret" type="t:ProtectedStringType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								The secret used for intra-cluster authentication.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="secretUpdateTimestamp" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								When was the secret created or last changed.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="taskExecutionLimitations" type="tns:TaskExecutionLimitationsType" minOccurs="0">
@@ -3616,6 +3646,36 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:complexType name="SchedulerInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes the state of the (local) scheduler.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="node" type="tns:NodeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Information on the current node. Some security-sensitive or potentially large items might be omitted.
+						(Currently this means secret, secret update timestamp, and task execution limitations.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="executingTask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Locally executing tasks. Currently only task OIDs are filled-in here due to performance optimization.
+						But later we may provide more information.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="schedulerInformation" type="tns:SchedulerInformationType"/>
 
 	<xsd:complexType name="AssignmentHolderType" abstract="true">
         <xsd:annotation>
@@ -9507,7 +9567,7 @@
 	                    Reference to the value policy that should be used to generate the value.
 	                </xsd:documentation>
 	                <xsd:appinfo>
-	        			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+	        			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
         	</xsd:element>
@@ -20881,6 +20941,8 @@
                 			</xsd:appinfo>
                 		</xsd:annotation>
                 	</xsd:element>
+                	
+                	<!-- Following elements are jasper-specific. -->
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
@@ -20897,8 +20959,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                    
-
                     <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
 	                    <xsd:annotation>
                     		<xsd:documentation>
@@ -20915,7 +20975,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                       
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
     				    <xsd:annotation>
                             <xsd:documentation>
@@ -20945,7 +21004,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                    
             		<xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -20993,6 +21051,19 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- End of jasper-specific elements. -->
+                    
+                    <xsd:element name="dashboard" type="tns:DashboardReportEngineConfigurationType" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Configuration for dashboard-based reports. Only applicable if reportEngine=dashboard.
+                			</xsd:documentation>
+                			<xsd:appinfo>
+                				<a:since>4.0</a:since>
+                			</xsd:appinfo>
+                		</xsd:annotation>
+                	</xsd:element>
+                    
 					<xsd:element name="postReportScript" type="tns:CommandLineScriptType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -21060,6 +21131,31 @@
         <xsd:sequence>
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
             </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DashboardReportEngineConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuraiton of dashboard-based reports.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container>true</a:container>
+            	<a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="dashboardRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Referrence to dashboard definition that should be used as a basis for the report.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:objectReferenceTargetType>tns:DashboardType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: other elements to configure the report -->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -22551,7 +22647,7 @@
             			</p>
             		</xsd:documentation>
 					<xsd:appinfo>
-						<a:displayName>DisplayType.label</a:displayName>
+						<a:displayName>DisplayType.pluralLabel</a:displayName>
 					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>

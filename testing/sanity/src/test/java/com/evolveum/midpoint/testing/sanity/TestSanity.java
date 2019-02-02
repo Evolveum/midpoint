@@ -3975,12 +3975,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         taskManager.shutdown();
         waitFor("waiting for task manager shutdown", new Checker() {
             @Override
-            public boolean check() throws CommonException {
-				try {
-					return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
-				} catch (TaskManagerException e) {
-					throw new SystemException(e);
-				}
+            public boolean check() {
+	            return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
 			}
 
             @Override

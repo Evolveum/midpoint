@@ -73,6 +73,9 @@ public class TaskManagerConfiguration {
     private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
+    private static final String DEFAULT_URL_CONFIG_ENTRY = "defaultUrl";
+    private static final String DEFAULT_REST_PORT_CONFIG_ENTRY = "defaultRestPort";
+    private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
     private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
     private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
     private static final String TEST_MODE_CONFIG_ENTRY = "testMode";
@@ -106,6 +109,7 @@ public class TaskManagerConfiguration {
     private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_TIMEOUT_DEFAULT = 30;
+    private static final boolean USE_JMX_DEFAULT = false;
     private static final String JMX_USERNAME_DEFAULT = "midpoint";
     private static final String JMX_PASSWORD_DEFAULT = "secret";
     private static final int WAITING_TASKS_CHECK_INTERVAL_DEFAULT = 600;
@@ -128,6 +132,8 @@ public class TaskManagerConfiguration {
     private boolean jdbcJobStore;
     private boolean clustered;
     private String nodeId;
+    private String defaultUrl;
+    private Integer defaultRestPort;
     private String jmxHostName;
     private int jmxPort;
     private int jmxConnectTimeout;
@@ -149,6 +155,7 @@ public class TaskManagerConfiguration {
     private long workAllocationInitialDelay;
     private long workAllocationDefaultFreeBucketWaitInterval;
 
+    private boolean useJmx;
     // JMX credentials for connecting to remote nodes
     private String jmxUsername;
     private String jmxPassword;
@@ -202,6 +209,9 @@ public class TaskManagerConfiguration {
             QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             NODE_TIMEOUT_CONFIG_ENTRY,
+            DEFAULT_URL_CONFIG_ENTRY,
+            DEFAULT_REST_PORT_CONFIG_ENTRY,
+            USE_JMX_CONFIG_ENTRY,
             JMX_USERNAME_CONFIG_ENTRY,
             JMX_PASSWORD_CONFIG_ENTRY,
             TEST_MODE_CONFIG_ENTRY,
@@ -307,6 +317,9 @@ public class TaskManagerConfiguration {
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
 
+        defaultUrl = c.getString(DEFAULT_URL_CONFIG_ENTRY, null);
+        defaultRestPort = c.getInteger(DEFAULT_REST_PORT_CONFIG_ENTRY, null);
+        useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
         jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
         jmxPassword = c.getString(JMX_PASSWORD_CONFIG_ENTRY, JMX_PASSWORD_DEFAULT);
 
@@ -553,6 +566,18 @@ public class TaskManagerConfiguration {
     @SuppressWarnings("unused")
     public int getQuartzNodeRegistrationCycleTime() {
         return quartzNodeRegistrationCycleTime;
+    }
+
+    public String getDefaultUrl() {
+        return defaultUrl;
+    }
+
+    public Integer getDefaultRestPort() {
+        return defaultRestPort;
+    }
+
+    public boolean isUseJmx() {
+        return useJmx;
     }
 
     public String getJmxUsername() {
