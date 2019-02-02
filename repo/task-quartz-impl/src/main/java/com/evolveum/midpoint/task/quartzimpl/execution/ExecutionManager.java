@@ -537,6 +537,10 @@ public class ExecutionManager {
         return taskSynchronizer.synchronizeJobStores(result);
     }
 
+    public Set<String> getLocallyRunningTasksOids(OperationResult parentResult) {
+        return localNodeManager.getLocallyRunningTasksOids(parentResult);
+    }
+
     public Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
         return localNodeManager.getLocallyRunningTasks(parentResult);
     }
@@ -545,9 +549,16 @@ public class ExecutionManager {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "getLocalSchedulerInformation");
         try {
             SchedulerInformationType info = new SchedulerInformationType();
-            info.setNode(getLocalNode());
-            for (Task task : getLocallyRunningTasks(result)) {
-                info.getExecutingTask().add(task.getTaskType().clone());
+            NodeType localNode = getLocalNode();
+            if (localNode != null) {
+                localNode.setSecret(null);
+                localNode.setSecretUpdateTimestamp(null);
+                localNode.setTaskExecutionLimitations(null);
+            }
+            info.setNode(localNode);
+            for (String oid: getLocallyRunningTasksOids(result)) {
+                TaskType task = new TaskType(taskManager.getPrismContext()).oid(oid);
+                info.getExecutingTask().add(task);
             }
             result.computeStatus();
             return info;

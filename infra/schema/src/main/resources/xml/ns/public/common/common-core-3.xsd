@@ -3660,14 +3660,16 @@
 			<xsd:element name="node" type="tns:NodeType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Information on the current node.
+						Information on the current node. Some security-sensitive or potentially large items might be omitted.
+						(Currently this means secret, secret update timestamp, and task execution limitations.)
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="executingTask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Locally executing tasks.
+						Locally executing tasks. Currently only task OIDs are filled-in here due to performance optimization.
+						But later we may provide more information.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
