@@ -253,8 +253,12 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
     }
 
     protected DisplayType getNewObjectButtonStandardDisplayType(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(createStringResource("MainObjectListPanel.newObject").getString());
+        sb.append(" ");
+        sb.append(createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString());
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
-                createStringResource("MainObjectListPanel.newObject").getString());
+                sb.toString());
     }
 
     protected DisplayType getNewObjectButtonSpecialDisplayType(){

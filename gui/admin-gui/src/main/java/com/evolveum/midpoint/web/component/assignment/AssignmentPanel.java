@@ -160,7 +160,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
-				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
+				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation, AssignmentPanel.this.getPageBase());
 			}
 
 			@Override

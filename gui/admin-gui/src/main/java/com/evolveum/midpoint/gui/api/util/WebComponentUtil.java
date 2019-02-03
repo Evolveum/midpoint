@@ -3234,13 +3234,25 @@ public final class WebComponentUtil {
 		return combinedRelationList;
 	}
 
-	public static DisplayType getAssignmentObjectRelationDisplayType(AssignmentObjectRelation assignmentTargetRelation){
+	public static DisplayType getAssignmentObjectRelationDisplayType(AssignmentObjectRelation assignmentTargetRelation, PageBase pageBase){
 		QName relation = assignmentTargetRelation != null && !org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
 				assignmentTargetRelation.getRelations().get(0) : null;
 		if (relation != null){
 			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
 			if (def != null){
-				return def.getDisplay();
+				DisplayType displayType = def.getDisplay();
+				if (displayType == null){
+					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+							pageBase.createStringResource("assignment.details.newValue").getString());
+				}
+				if (PolyStringUtils.isEmpty(displayType.getTooltip())){
+					StringBuilder sb = new StringBuilder();
+					sb.append(pageBase.createStringResource("MainObjectListPanel.newObject").getString());
+					sb.append(" ");
+					sb.append(relation.getLocalPart());
+					displayType.setTooltip(createPolyFromOrigString(sb.toString()));
+				}
+				return displayType;
 			}
 		}
 		return null;

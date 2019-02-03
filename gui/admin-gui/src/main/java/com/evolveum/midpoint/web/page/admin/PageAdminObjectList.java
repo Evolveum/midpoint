@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -234,6 +235,17 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     }
 
     private DisplayType getCollectionViewDisplayType(CompiledObjectCollectionView view){
+        DisplayType displayType = view != null ? view.getDisplay() : null;
+        if (displayType == null){
+            displayType = WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
+        }
+        if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())){
+            StringBuilder sb = new StringBuilder();
+            sb.append(createStringResource("MainObjectListPanel.newObject").getString());
+            sb.append(" ");
+            sb.append(displayType.getLabel().getOrig().toLowerCase());
+            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb.toString()));
+        }
        return view != null ? view.getDisplay() : null;
     }
 }
