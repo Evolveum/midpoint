@@ -275,7 +275,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 						return getNewObjectButtonDisplayType();
 					}
 				};
-		newObjectIcon.add(AttributeModifier.append("class", "btn-group"));
+		newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
 		newObjectIcon.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 

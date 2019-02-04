@@ -254,6 +254,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 						return getAssignMemberButtonDisplayType();
 					}
 				};
+				assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
 
 
 //				AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ASSIGN), 	//TODO change icon class

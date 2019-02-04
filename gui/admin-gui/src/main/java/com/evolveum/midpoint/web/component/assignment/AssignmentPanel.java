@@ -154,7 +154,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected DisplayType getNewObjectButtonDisplayType() {
-				return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "",
+				return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
 						AssignmentPanel.this.createStringResource("assignment.details.newValue").getString());
 			}
 

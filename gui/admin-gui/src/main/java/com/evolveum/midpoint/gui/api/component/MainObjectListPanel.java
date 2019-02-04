@@ -154,6 +154,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return getNewObjectButtonAdditionalDisplayType(buttonObject);
             }
         };
+        createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(createNewObjectButton);
 
 
