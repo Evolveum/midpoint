@@ -91,7 +91,8 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 		try {
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
 			if (workItem == null) {
-				throw new ObjectNotFoundException("No work item with ID " + workItemId);
+				LOGGER.warn("No work item with ID " + workItemId + ", ignoring this trigger: " + trigger);
+				return;
 			}
 			Task wfTask = taskManager.createTaskInstance(wfTaskType.asPrismObject(), result);
 			Duration timeBeforeAction = ObjectTypeUtil.getExtensionItemRealValue(trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_TIME_BEFORE_ACTION);

@@ -567,6 +567,7 @@ public class TaskQuartzImpl implements Task {
 		setResultImmediate(getResult(), new OperationResult("dummy"));
 	}
 
+	@Override
 	public void setResultTransient(OperationResult result) {
 		this.taskResult = result;
 		this.taskPrism.asObjectable().setResult(result != null ? result.createOperationResultType() : null);

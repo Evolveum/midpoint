@@ -314,6 +314,10 @@ public class PageWorkItem extends PageAdminWorkItems {
 				}
 			}
 			ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
+			if (delta != null) {
+				//noinspection unchecked
+				getPrismContext().adopt(delta);
+			}
 			try {
 				assumePowerOfAttorneyIfRequested(result);
 				getWorkflowService().completeWorkItem(dto.getWorkItemId(), approved, dto.getApproverComment(), delta, result);

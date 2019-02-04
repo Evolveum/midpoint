@@ -89,7 +89,9 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 
-        if (wfConfiguration.isEnabled()) {
+		OperationResult taskResult = WfTaskUtil.getResult(task);
+
+		if (wfConfiguration.isEnabled()) {
 
 		    // is this task already closed? (this flag is set by activiti2midpoint when it gets information about wf process termination)
             // todo: fixme this is a bit weird
@@ -100,7 +102,7 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
                 String id = wfTaskUtil.getProcessId(task);
                 if (id != null) {
 					LOGGER.debug("Task {}: requesting status for wf process id {}", task, id);
-                    queryProcessInstance(id, task, task.getResult());
+                    queryProcessInstance(id, task, taskResult);
                 }
             }
         } else {
@@ -116,7 +118,7 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
             runResultStatus = TaskRunResultStatus.FINISHED;             // finished means this run has finished, not the whole task
         }
 
-        result.setOperationResult(task.getResult());            // todo fix this
+        result.setOperationResult(taskResult);            // todo fix this
 		result.setRunResultStatus(runResultStatus);
 		return result;
 	}

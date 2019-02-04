@@ -307,14 +307,6 @@ public class ShadowCache {
 
 			resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(),
 					AvailabilityStatusType.UP, parentResult);
-			// try to apply changes to the account only if the resource if UP
-			if (isCompensate(rootOptions) && repositoryShadow.asObjectable().getObjectChange() != null
-					&& repositoryShadow.asObjectable().getFailedOperationType() != null
-					&& resource.getOperationalState() != null && resource.getOperationalState()
-							.getLastAvailabilityStatus() == AvailabilityStatusType.UP) {
-				throw new GenericConnectorException(
-						"Found changes that have been not applied to the resource object yet. Trying to apply them now.");
-			}
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
