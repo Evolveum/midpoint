@@ -26,11 +26,20 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 public class MenuItem extends BaseMenuItem {
 
     public MenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass) {
-        this(nameModel, pageClass, null, null);
+        this(nameModel, "", pageClass);
+    }
+
+    public MenuItem(IModel<String> nameModel, String iconClass, Class<? extends WebPage> pageClass) {
+        this(nameModel, iconClass, pageClass, null, null);
     }
 
     public MenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass,
                     PageParameters params, VisibleEnableBehaviour visibleEnable, Class<? extends WebPage>... aliases) {
-        super(nameModel, pageClass, params, visibleEnable, aliases);
+        this(nameModel, "", pageClass, params, visibleEnable, aliases);
+    }
+
+    public MenuItem(IModel<String> nameModel, String iconClass, Class<? extends WebPage> pageClass,
+                    PageParameters params, VisibleEnableBehaviour visibleEnable, Class<? extends WebPage>... aliases) {
+        super(nameModel, iconClass, pageClass, params, visibleEnable, aliases);
     }
 }
