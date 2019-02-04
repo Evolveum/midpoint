@@ -79,22 +79,9 @@ public class MemberOperationsHelper {
 	
 	public static void deleteMembersPerformed(PageBase pageBase, QueryScope scope, ObjectQuery query, QName type, AjaxRequestTarget target) {
 		Task operationalTask = pageBase.createSimpleTask(getTaskName("Delete", scope));
-		OperationResult parentResult = operationalTask.getResult();
-		try {
-			TaskType taskType = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type, query, null, null, TaskCategory.UTIL, pageBase);
-			taskType.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
-			
-			WebModelServiceUtils.runTask(taskType, operationalTask, operationalTask.getResult(), pageBase);
-		} catch (SchemaException e) {
-			parentResult.recordFatalError(parentResult.getOperation(), e);
-			LoggingUtils.logUnexpectedException(LOGGER,
-					"Failed to execute operation " + parentResult.getOperation(), e);
-			target.add(pageBase.getFeedbackPanel());
-		}
-		target.add(pageBase.getFeedbackPanel());
-		//FIXME: temporary hack
-		
-		
+		ObjectDelta delta = ObjectDelta.createDeleteDelta( ObjectType.class, "fakeOid", pageBase.getPrismContext());
+		executeMemberOperation(pageBase, operationalTask, ObjectType.COMPLEX_TYPE, query, delta,
+				TaskCategory.EXECUTE_CHANGES, target);
 	}
 	
 	public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target, List<QName> availableRelationList) {
