@@ -37,9 +37,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
@@ -71,7 +69,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -115,7 +112,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @Service(value = "taskManager")
 @DependsOn(value="repositoryService")
-public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
+public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, SystemConfigurationChangeListener {
 
     private static final String DOT_INTERFACE = TaskManager.class.getName() + ".";
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
@@ -128,7 +125,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired private Protector protector;
 
-    // instances of all the helper classes (see their definitions for their description)
+	private InfrastructureConfigurationType infrastructureConfiguration;
+	private String webContextPath;
+
+	// instances of all the helper classes (see their definitions for their description)
     private ExecutionManager executionManager = new ExecutionManager(this);
     private ClusterManager clusterManager = new ClusterManager(this);
     private StalledTasksWatcher stalledTasksWatcher = new StalledTasksWatcher(this);
@@ -231,6 +231,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot initialize TaskManager due to the following exception: ", e);
             throw new SystemException("Cannot initialize TaskManager", e);
         }
+
+	    systemConfigurationChangeDispatcher.registerListener(this);
 
         // if running in test mode, the postInit will not be executed... so we have to start scheduler here
         if (configuration.isTestMode()) {
@@ -2254,7 +2256,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return getNextStartTimes(oid, true, false, parentResult).nextScheduledRun;
     }
 
-    public static class NextStartTimes {
+	public String getIntraClusterHttpUrlPattern() {
+		return infrastructureConfiguration != null ? infrastructureConfiguration.getIntraClusterHttpUrlPattern() : null;
+	}
+
+	public static class NextStartTimes {
     	final Long nextScheduledRun;
     	final Long nextRetry;
 		public NextStartTimes(Trigger standardTrigger, Trigger nextRetryTrigger) {
@@ -2377,5 +2383,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	public Protector getProtector() {
 		return protector;
+	}
+
+	@Override
+	public void setWebContextPath(String path) {
+		LOGGER.debug("setting webContextPath to '{}'", path);
+		webContextPath = path;
+	}
+
+	public String getWebContextPath() {
+		return webContextPath;
+	}
+
+	@Override
+	public boolean update(@Nullable SystemConfigurationType value) {
+		infrastructureConfiguration = value != null ? value.getInfrastructure() : null;
+		return true;
 	}
 }
