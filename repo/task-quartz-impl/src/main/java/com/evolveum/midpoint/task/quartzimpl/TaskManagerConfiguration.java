@@ -51,6 +51,7 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
  *
  * @author Pavol Mederly
  */
+@SuppressWarnings("DeprecatedIsStillUsed")
 @Component
 public class TaskManagerConfiguration {
 
@@ -69,15 +70,13 @@ public class TaskManagerConfiguration {
     private static final String CREATE_QUARTZ_TABLES_CONFIG_ENTRY = "createQuartzTables";
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
-    private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
+    @Deprecated private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
     private static final String QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "quartzNodeRegistrationInterval";
     private static final String NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY = "nodeRegistrationInterval";
     private static final String NODE_TIMEOUT_CONFIG_ENTRY = "nodeTimeout";
-    private static final String DEFAULT_URL_CONFIG_ENTRY = "defaultUrl";
-    private static final String DEFAULT_REST_PORT_CONFIG_ENTRY = "defaultRestPort";
     private static final String USE_JMX_CONFIG_ENTRY = "useJmx";
-    private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
-    private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
+    @Deprecated private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
+    @Deprecated private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
     private static final String TEST_MODE_CONFIG_ENTRY = "testMode";
     private static final String WAITING_TASKS_CHECK_INTERVAL_CONFIG_ENTRY = "waitingTasksCheckInterval";
     private static final String STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY = "stalledTasksCheckInterval";
@@ -95,7 +94,7 @@ public class TaskManagerConfiguration {
     private static final String WORK_ALLOCATION_INITIAL_DELAY_ENTRY = "workAllocationInitialDelay";
     private static final String WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY = "workAllocationDefaultFreeBucketWaitInterval";
 
-    private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
+    @Deprecated private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 
     private static final boolean STOP_ON_INITIALIZATION_FAILURE_DEFAULT = true;
@@ -103,15 +102,15 @@ public class TaskManagerConfiguration {
     private static final boolean CLUSTERED_DEFAULT = false;             // do not change this value!
     private static final boolean CREATE_QUARTZ_TABLES_DEFAULT = true;
     private static final String NODE_ID_DEFAULT = "DefaultNode";
-    private static final int JMX_PORT_DEFAULT = 20001;
-    private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
+    @Deprecated private static final int JMX_PORT_DEFAULT = 20001;
+    @Deprecated private static final int JMX_CONNECT_TIMEOUT_DEFAULT = 5;
     private static final String USE_THREAD_INTERRUPT_DEFAULT = "whenNecessary";
     private static final int QUARTZ_NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_REGISTRATION_CYCLE_TIME_DEFAULT = 10;
     private static final int NODE_TIMEOUT_DEFAULT = 30;
     private static final boolean USE_JMX_DEFAULT = false;
-    private static final String JMX_USERNAME_DEFAULT = "midpoint";
-    private static final String JMX_PASSWORD_DEFAULT = "secret";
+    @Deprecated private static final String JMX_USERNAME_DEFAULT = "midpoint";
+    @Deprecated private static final String JMX_PASSWORD_DEFAULT = "secret";
     private static final int WAITING_TASKS_CHECK_INTERVAL_DEFAULT = 600;
     private static final int STALLED_TASKS_CHECK_INTERVAL_DEFAULT = 600;
     private static final int STALLED_TASKS_THRESHOLD_DEFAULT = 600;             // if a task does not advance its progress for 10 minutes, it is considered stalled
@@ -132,11 +131,13 @@ public class TaskManagerConfiguration {
     private boolean jdbcJobStore;
     private boolean clustered;
     private String nodeId;
-    private String defaultUrl;
-    private Integer defaultRestPort;
-    private String jmxHostName;
-    private int jmxPort;
-    private int jmxConnectTimeout;
+    private String url;
+    private String hostName;
+    private Integer httpPort;
+
+    @Deprecated private String jmxHostName;
+    @Deprecated private int jmxPort;
+    @Deprecated private int jmxConnectTimeout;
     private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
     private int nodeRegistrationCycleTime, nodeTimeout;
     private UseThreadInterrupt useThreadInterrupt;
@@ -157,8 +158,8 @@ public class TaskManagerConfiguration {
 
     private boolean useJmx;
     // JMX credentials for connecting to remote nodes
-    private String jmxUsername;
-    private String jmxPassword;
+    @Deprecated private String jmxUsername;
+    @Deprecated private String jmxPassword;
 
     // quartz jdbc job store specific information
     private String sqlSchemaFile;
@@ -209,8 +210,6 @@ public class TaskManagerConfiguration {
             QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
             NODE_TIMEOUT_CONFIG_ENTRY,
-            DEFAULT_URL_CONFIG_ENTRY,
-            DEFAULT_REST_PORT_CONFIG_ENTRY,
             USE_JMX_CONFIG_ENTRY,
             JMX_USERNAME_CONFIG_ENTRY,
             JMX_PASSWORD_CONFIG_ENTRY,
@@ -276,18 +275,21 @@ public class TaskManagerConfiguration {
             }
         }
 
-        jmxHostName = System.getProperty(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY);
+        hostName = root.getString(MidpointConfiguration.MIDPOINT_HOST_NAME_PROPERTY, null);
+        jmxHostName = root.getString(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY, null);
 
-        String portString = System.getProperty(JMX_PORT_PROPERTY);
-        if (StringUtils.isEmpty(portString)) {
+        String jmxPortString = System.getProperty(JMX_PORT_PROPERTY);
+        if (StringUtils.isEmpty(jmxPortString)) {
             jmxPort = JMX_PORT_DEFAULT;
         } else {
             try {
-                jmxPort = Integer.parseInt(portString);
+                jmxPort = Integer.parseInt(jmxPortString);
             } catch(NumberFormatException nfe) {
-                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + portString, nfe);
+                throw new TaskManagerConfigurationException("Cannot get JMX management port - invalid integer value of " + jmxPortString, nfe);
             }
         }
+        httpPort = root.getInteger(MidpointConfiguration.MIDPOINT_HTTP_PORT_PROPERTY, null);
+        url = root.getString(MidpointConfiguration.MIDPOINT_URL_PROPERTY, null);
 
         jmxConnectTimeout = c.getInt(JMX_CONNECT_TIMEOUT_CONFIG_ENTRY, JMX_CONNECT_TIMEOUT_DEFAULT);
 
@@ -317,8 +319,6 @@ public class TaskManagerConfiguration {
         nodeRegistrationCycleTime = c.getInt(NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY, NODE_REGISTRATION_CYCLE_TIME_DEFAULT);
         nodeTimeout = c.getInt(NODE_TIMEOUT_CONFIG_ENTRY, NODE_TIMEOUT_DEFAULT);
 
-        defaultUrl = c.getString(DEFAULT_URL_CONFIG_ENTRY, null);
-        defaultRestPort = c.getInteger(DEFAULT_REST_PORT_CONFIG_ENTRY, null);
         useJmx = c.getBoolean(USE_JMX_CONFIG_ENTRY, USE_JMX_DEFAULT);
         jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
         jmxPassword = c.getString(JMX_PASSWORD_CONFIG_ENTRY, JMX_PASSWORD_DEFAULT);
@@ -568,12 +568,16 @@ public class TaskManagerConfiguration {
         return quartzNodeRegistrationCycleTime;
     }
 
-    public String getDefaultUrl() {
-        return defaultUrl;
+    public String getUrl() {
+        return url;
     }
 
-    public Integer getDefaultRestPort() {
-        return defaultRestPort;
+    public Integer getHttpPort() {
+        return httpPort;
+    }
+
+    public String getHostName() {
+        return hostName;
     }
 
     public boolean isUseJmx() {
