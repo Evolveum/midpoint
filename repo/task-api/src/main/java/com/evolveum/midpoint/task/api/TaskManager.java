@@ -711,4 +711,9 @@ public interface TaskManager {
 	 * To be used for demonstration/testing only. Avoid using in production environments.
 	 */
 	boolean isLocalNodeClusteringEnabled();
+
+	/**
+	 * EXPERIMENTAL. Used to provide midPoint URL path (typically "/midpoint") when determined by the web layer.
+	 */
+	void setWebContextPath(String path);
 }

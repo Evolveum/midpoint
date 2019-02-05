@@ -38,10 +38,15 @@ import java.util.List;
  */
 public class NodeDto extends Selectable implements InlineMenuable {
 
+    public static final String F_CONTACT = "contact";
+    public static final String F_NAME = "name";
+    public static final String F_EXECUTION_STATUS = "executionStatus";
+    public static final String F_CLUSTERED = "clustered";
+    public static final String F_STATUS_MESSAGE = "statusMessage";
     private String oid;
     private String name;
     private String nodeIdentifier;
-    private String managementPort;
+    private String contact;
     private Long lastCheckInTime;
     private boolean clustered;
 
@@ -65,7 +70,7 @@ public class NodeDto extends Selectable implements InlineMenuable {
 
         nodeIdentifier = node.getNodeIdentifier();
         clustered = node.isClustered();
-        managementPort = node.getHostname() + ":" + node.getJmxPort();
+        contact = node.getUrl() != null ? node.getUrl() : node.getHostname();
 
         executionStatus = node.getExecutionStatus();
         errorStatus = node.getErrorStatus();
@@ -122,8 +127,8 @@ public class NodeDto extends Selectable implements InlineMenuable {
         return executionStatus;
     }
 
-    public String getManagementPort() {
-        return managementPort;
+    public String getContact() {
+        return contact;
     }
 
     public static List<String> getNodeIdentifiers(List<NodeDto> nodeDtoList) {

@@ -61,7 +61,6 @@ import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.*;
@@ -98,6 +97,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
 
+import javax.servlet.ServletContext;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -320,6 +320,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         // for schrodinger selenide library
         initializeSchrodinger();
+
+        ServletContext servletContext = getServletContext();
+        if (servletContext != null) {
+            taskManager.setWebContextPath(servletContext.getContextPath());
+        }
     }
 
     public DeploymentInformationType getDeploymentInfo() {

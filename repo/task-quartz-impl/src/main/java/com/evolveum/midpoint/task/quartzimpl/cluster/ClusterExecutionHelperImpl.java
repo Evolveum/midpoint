@@ -22,29 +22,24 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InfrastructureConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 import java.util.function.BiConsumer;
 
@@ -52,7 +47,7 @@ import java.util.function.BiConsumer;
  *  Helps with the intra-cluster remote code execution.
  */
 @Component
-public class ClusterExecutionHelperImpl implements ClusterExecutionHelper, SystemConfigurationChangeListener {
+public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
 
 	private static final Trace LOGGER = TraceManager.getTrace(ClusterExecutionHelperImpl.class);
 
@@ -60,22 +55,8 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper, Syste
 	@Autowired private TaskManager taskManager;
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private Protector protector;
-	@Autowired private SystemConfigurationChangeDispatcher configurationChangeDispatcher;
 
 	private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
-
-	private InfrastructureConfigurationType infrastructureConfiguration;
-
-	@PostConstruct
-	public void init() {
-		configurationChangeDispatcher.registerListener(this);
-	}
-
-	@Override
-	public boolean update(@Nullable SystemConfigurationType value) {
-		infrastructureConfiguration = value != null ? value.getInfrastructure() : null;
-		return true;
-	}
 
 	@Override
 	public void execute(@NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult) {
@@ -96,7 +77,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper, Syste
 		for (PrismObject<NodeType> node : otherClusterNodes.getList()) {
 			try {
 				execute(node.asObjectable(), code, context, result);
-			} catch (SchemaException e) {
+			} catch (SchemaException|RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute operation ({}) on node {}", e, context, node);
 			}
 		}
@@ -117,23 +98,13 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper, Syste
 		String nodeIdentifier = node.getNodeIdentifier();
 		result.addParam("node", nodeIdentifier);
 
-		String httpUrlPattern = infrastructureConfiguration != null
-				? infrastructureConfiguration.getIntraClusterHttpUrlPattern()
-				: null;
-
 		try {
 			String baseUrl;
 			if (node.getUrl() != null) {
 				baseUrl = node.getUrl();
 			} else {
-				if (StringUtils.isBlank(httpUrlPattern)) {
-					LOGGER.warn("Node URL nor intra-cluster URL pattern specified, skipping remote execution ({}) for node {}",
-							context, node.getNodeIdentifier());
-					return;
-				}
-				baseUrl = httpUrlPattern
-						.replace("$host", node.getHostname())
-						.replace("$port", String.valueOf(node.getRestPort()));
+				LOGGER.warn("Node URL is not known, skipping remote execution ({}) for node {}", context, node.getNodeIdentifier());
+				return;
 			}
 
 			String url = baseUrl + "/ws/cluster";

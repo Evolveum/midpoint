@@ -1997,13 +1997,24 @@
                     <xsd:element name="url" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                URL of midPoint that can be used by other nodes to contact this node over the
-                                network. It is manually configured. If not present, it is automatically derived by
-								infrastructure/intraClusterHttpUrlPattern system configuration property.
-
-								Use only if really necessary. Support for this item is currently limited
-								to clusterwide cache invalidation and managing node task scheduler.
+                                URL of midPoint that can be used by other nodes to contact this node over the network.
+								It is either provided manually (see urlOverride), constructed using
+								infrastructure/intraClusterHttpUrlPattern configuration property, or determined
+								automatically.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="urlOverride" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value to override constructed or determined URL.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ipAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -2013,21 +2024,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="restPort" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Port at which this node can be contacted via REST.
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:since>4.0</a:since>
-							</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="jmxPort" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Port at which this node can be contacted via JMX.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>4.0</a:deprecatedSince>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastCheckInTime" type="xsd:dateTime" minOccurs="0">
