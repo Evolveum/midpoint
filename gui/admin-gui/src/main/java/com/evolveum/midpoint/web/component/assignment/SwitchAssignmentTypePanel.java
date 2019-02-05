@@ -363,6 +363,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                                 return false;
                             }
 
+                            @Override
+                            protected QName getAssignmentType() {
+                                return AssignmentType.F_FOCUS_MAPPINGS;
+                            }
+
                         };
                 assignmentPanel.setOutputMarkupId(true);
                 switchAssignmentTypePerformed(target, assignmentPanel, ID_FOCUS_MAPPING_ASSIGNMENTS);

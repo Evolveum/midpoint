@@ -118,9 +118,7 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    if (!additionalButtonsExist()){
-                        buttonClickPerformed(target, null);
-                    }
+                    buttonClickPerformed(target, null);
                 }
             };
             defaultButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));

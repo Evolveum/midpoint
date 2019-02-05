@@ -3241,7 +3241,7 @@ public final class WebComponentUtil {
 			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
 			if (def != null){
 				DisplayType displayType = def.getDisplay();
-				if (displayType == null){
+				if (displayType == null || displayType.getIcon() == null){
 					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
 							pageBase.createStringResource("assignment.details.newValue").getString());
 				}
@@ -3255,7 +3255,7 @@ public final class WebComponentUtil {
 				return displayType;
 			}
 		}
-		return null;
+		return createDisplayType("", "", "");
 	}
 
 	public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){
