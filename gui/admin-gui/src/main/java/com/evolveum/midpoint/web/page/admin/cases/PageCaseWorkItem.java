@@ -329,7 +329,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 			CaseManagementService cms = getCaseManagementService();
 			AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
 					.comment(dto.getComment())
-					.outcome("SUCCESS");
+					.outcome(OperationResultStatusType.SUCCESS.value());
 			FileUploadField evidenceUploadField = (FileUploadField) get(ID_MAIN_FORM).get(ID_CASE_WORK_ITEM_FORM).get(ID_CASE_WORK_ITEM_FORM_EVIDENCE);
 			if (evidenceUploadField != null) {
 				FileUpload evidence = evidenceUploadField.getFileUpload();
