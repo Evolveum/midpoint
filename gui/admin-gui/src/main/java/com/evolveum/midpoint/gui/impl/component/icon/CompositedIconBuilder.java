@@ -31,10 +31,11 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 public class CompositedIconBuilder {
 	
 	private String basicIcon = "";
-	private List<String> layerIcons = new ArrayList<String>(); 
+	private List<String> layerIcons = new ArrayList<String>();
+	private String colorHtmlValue = "";
 	
 	public CompositedIcon build() {
-		return new CompositedIcon(basicIcon, layerIcons);
+		return new CompositedIcon(basicIcon, layerIcons, colorHtmlValue);
 	}
 	
 	private void setBasicIcon(String icon, String style) {
@@ -74,6 +75,11 @@ public class CompositedIconBuilder {
 			sb.append(" ").append(additionalCssClass);
 		}
 		appendLayerIcon(0, sb.toString());
+		return this;
+	}
+
+	public CompositedIconBuilder appendColorHtmlValue(String colorHtmlValue){
+		this.colorHtmlValue = colorHtmlValue;
 		return this;
 	}
 	

@@ -74,6 +74,9 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         CompositedIcon icon = this.icon;
         if(icon.hasBasicIcon()) {
         	sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
+        	if (icon.hasBasicIconHtmlColor()){
+        	    sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
+            }
         	sb.append("></i> ");
         }
 

@@ -23,11 +23,13 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -58,6 +60,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private static final String ID_SUB_ITEM = "subItem";
     private static final String ID_SUB_LINK = "subLink";
     private static final String ID_SUB_LABEL = "subLabel";
+    private static final String ID_SUB_LINK_ICON = "subLinkIcon";
 
     private static final Trace LOGGER = TraceManager.getTrace(MainMenuPanel.class);
 
@@ -200,6 +203,14 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
             }
         };
         listItem.add(subLink);
+
+        WebMarkupContainer subLinkIcon = new WebMarkupContainer(ID_SUB_LINK_ICON);
+        if (StringUtils.isNotEmpty(menuItem.getIconClass())) {
+            subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));
+        } else {
+            subLinkIcon.add(AttributeAppender.append("class", "fa fa-circle-o"));
+        }
+        subLink.add(subLinkIcon);
 
         Label subLabel = new Label(ID_SUB_LABEL, menuItem.getNameModel());
         subLink.add(subLabel);

@@ -153,36 +153,19 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 
 			@Override
-			protected String getNewObjectButtonStyle() {
-				return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
+			protected DisplayType getNewObjectButtonDisplayType() {
+				return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+						AssignmentPanel.this.createStringResource("assignment.details.newValue").getString());
 			}
 
 			@Override
-			protected String getNewObjectSpecificStyle(AssignmentObjectRelation assignmentTargetRelation) {
-				DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-				if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())){
-					return display.getIcon().getCssClass();
-				}
-				return "";
-			}
-
-			@Override
-			protected String getNewObjectSpecificTitle(AssignmentObjectRelation assignmentTargetRelation) {
-				DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-				if (display != null && display.getTooltip() != null){
-					return display.getTooltip().getOrig();
-				}
-				return "";
+			protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
+				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation, AssignmentPanel.this.getPageBase());
 			}
 
 			@Override
 			protected boolean isNewObjectButtonEnabled(){
 				return !isAssignmentsLimitReached();
-			}
-
-			@Override
-			protected IModel<String> getNewObjectButtonTitleModel(){
-				return getAssignmentsLimitReachedTitleModel("MainObjectListPanel.newObject");
 			}
 
 			@Override
