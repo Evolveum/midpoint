@@ -2263,11 +2263,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		waitFor("waiting for task manager shutdown", new Checker() {
 			@Override
 			public boolean check() throws CommonException {
-				try {
-					return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
-				} catch (TaskManagerException e) {
-					throw new SystemException(e);
-				}
+				return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
 			}
 
 			@Override
