@@ -403,7 +403,15 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     };
                 }
 
-            });
+                @Override
+				public IModel<String> getConfirmationMessageModel() {
+					if (CollectionUtils.isNotEmpty(getMemberTable().getSelectedObjects())) {
+						return AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.deleteSelectedMembersConfirmationLabel");
+					}
+					return null;
+				}
+
+			});
         }
         return menu;
 	}
@@ -456,35 +464,46 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 	
 	private void deleteMembersPerformed(AjaxRequestTarget target) {
-		QueryScope scope = getQueryScope(false);
-		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
+		if (CollectionUtils.isNotEmpty(getMemberTable().getSelectedObjects())) {
+			deleteMembersPerformed(ObjectType.COMPLEX_TYPE, QueryScope.SELECTED, null, target);
+		} else {
+
+			QueryScope scope = getQueryScope(false);
+			ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
 					createStringResource("abstractRoleMemberPanel.deleteAllMembersConfirmationLabel")) {
-			private static final long serialVersionUID = 1L;
+				private static final long serialVersionUID = 1L;
 
-			@Override
-			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getSupportedObjectTypes(true);
-			}
+				@Override
+				protected List<QName> getSupportedObjectTypes() {
+					return AbstractRoleMemberPanel.this.getSupportedObjectTypes(true);
+				}
 
-			@Override
-			protected List<QName> getSupportedRelations() {
-				return AbstractRoleMemberPanel.this.getSupportedRelations();
-			}
+				@Override
+				protected List<QName> getSupportedRelations() {
+					return AbstractRoleMemberPanel.this.getSupportedRelations();
+				}
 
-			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-				deleteMembersPerformed(type, scope, relations, target);
+				protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+					if (relations == null || relations.isEmpty()) {
+						getSession().warn("No relation was selected. Cannot perform delete members");
+						target.add(this);
+						target.add(getPageBase().getFeedbackPanel());
+						return;
+					}
 
-			}
+					deleteMembersPerformed(type, scope, relations, target);
 
-			@Override
-			protected boolean isFocusTypeSelectorVisible() {
-				return !QueryScope.SELECTED.equals(scope);
-			}
+				}
 
-		};
+				@Override
+				protected boolean isFocusTypeSelectorVisible() {
+					return !QueryScope.SELECTED.equals(scope);
+				}
 
-		getPageBase().showMainPopup(chooseTypePopupContent, target);
-		
+			};
+
+			getPageBase().showMainPopup(chooseTypePopupContent, target);
+		}
 	}
 	
 	protected void createFocusMemberPerformed(AjaxRequestTarget target) {
@@ -524,12 +543,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 	
 	protected void deleteMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-		if (relations == null || relations.isEmpty()) {
-			getSession().warn("No relation was selected. Cannot perform delete members");
-			target.add(this);
-			target.add(getPageBase().getFeedbackPanel());
-			return;
-		}
 		MemberOperationsHelper.deleteMembersPerformed(getPageBase(), scope, getActionQuery(scope, relations), type, target);
 	}
 
