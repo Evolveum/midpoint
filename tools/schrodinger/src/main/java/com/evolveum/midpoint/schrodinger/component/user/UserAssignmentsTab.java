@@ -75,7 +75,7 @@ public class UserAssignmentsTab extends Component<UserPage> {
     }
 
     public FocusSetAssignmentsModal<UserAssignmentsTab> clickAddAssignemnt() {
-        $(Schrodinger.byElementAttributeValue("i", "class", "fa fa-plus"))
+        $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))

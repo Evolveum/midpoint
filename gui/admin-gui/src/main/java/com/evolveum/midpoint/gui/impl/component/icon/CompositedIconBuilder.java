@@ -40,7 +40,10 @@ public class CompositedIconBuilder {
 	
 	private void setBasicIcon(String icon, String style) {
 		StringBuilder sb = new StringBuilder(icon);
-		sb.append(" ").append(style);
+		if (StringUtils.isNotEmpty(basicIcon)) {
+			sb.append(" ");
+		}
+		sb.append(style);
 		basicIcon = sb.toString();
 	}
 	
@@ -58,7 +61,11 @@ public class CompositedIconBuilder {
 	
 	public CompositedIconBuilder setBasicIcon(String icon, IconCssStyle style, String additionalCssClass) {
 		additionalCssClass = additionalCssClass + " " + validateInput(icon, style, true);
-		setBasicIcon(icon, style.getBasicCssClass() + " " + additionalCssClass);
+		if (additionalCssClass == null || StringUtils.isEmpty(additionalCssClass.trim())){
+			setBasicIcon(icon, style.getBasicCssClass());
+		} else {
+			setBasicIcon(icon, style.getBasicCssClass() + " " + additionalCssClass);
+		}
 		return this;
 	}
 	
