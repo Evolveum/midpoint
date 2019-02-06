@@ -384,18 +384,18 @@ public class ObjectUpdater {
                 //
                 // So the first step is to retrieve the current value of photo - we obviously do this only if the modifications
                 // deal with the jpegPhoto property.
-                Collection<SelectorOptions<GetOperationOptions>> options;
+                GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder();
                 boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
                 if (containsFocusPhotoModification) {
-                    options = schemaHelper.getOperationOptionsBuilder()
-                            .item(FocusType.F_JPEG_PHOTO).retrieve()
-                            .build();
-                } else {
-                    options = null;
+                    optionsBuilder = optionsBuilder.item(FocusType.F_JPEG_PHOTO).retrieve();
+                }
+                if (reindex) {
+                    LOGGER.trace("Setting 'raw' option for object fetching because reindex is being applied");
+                    optionsBuilder = optionsBuilder.root().raw();
                 }
 
                 // get object
-                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
+                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, optionsBuilder.build(), true, result);
                 if (precondition != null && !precondition.holds(prismObject)) {
                 	throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
                 }
