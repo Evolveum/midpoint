@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.testing.story;
 
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
@@ -108,8 +107,6 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	private static final String LDAP_OU_INTENT = "ou";
 	private static final String LDAP_OU_VIP_INTENT = "ou-vip";
 
-
-	private ResourceType resourceOpenDjType;
 	private PrismObject<ResourceType> resourceOpenDj;
 
 
@@ -158,8 +155,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 
 
 		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
+		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);	
 		openDJController.setResource(resourceOpenDj);
 
 		// Org
@@ -174,7 +170,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -187,8 +183,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test100AddOrgIT() throws Exception {
 		final String TEST_NAME = "test100AddOrgIT";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_IT_NAME, ORG_TOP_OID);
@@ -216,8 +212,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test150AssignFunctionalRoleToITOrg() throws Exception {
 		final String TEST_NAME = "test150AssignFunctionalRoleToITOrg";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
@@ -247,8 +243,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test170UnassignFunctionalRoleFromITOrg() throws Exception {
 		final String TEST_NAME = "test170UnassignFunctionalRoleFromITOrg";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
@@ -279,8 +275,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test200AddOrgHR() throws Exception {
 		final String TEST_NAME = "test200AddOrgHR";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_HR_NAME, ORG_TOP_OID);
@@ -308,8 +304,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test250AssignFunctionalAndVipRoleToHROrg() throws Exception {
 		final String TEST_NAME = "test250AssignFunctionalAndVipRoleToHROrg";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
@@ -342,8 +338,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test270UnassignVipRoleFromHROrg() throws Exception {
 		final String TEST_NAME = "test270UnassignVipRoleFromHROrg";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
@@ -376,8 +372,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test280AssignVipAndSuperVipRoleToHROrg() throws Exception {
 		final String TEST_NAME = "test280AssignVipAndSuperVipRoleToHROrg";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
@@ -411,8 +407,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	@Test
     public void test290UnassignVipRoleFromHROrg() throws Exception {
 		final String TEST_NAME = "test290UnassignVipRoleFromHROrg";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestLdapDependency.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);

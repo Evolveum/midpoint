@@ -75,14 +75,14 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	@Autowired private LocalizationService localizationService;
 
 	@Override
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<ExclusionPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<ExclusionPolicyConstraintType> constraint,
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 			return null;
 		}
-		AssignmentPolicyRuleEvaluationContext<F> ctx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
+		AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
 		if (!ctx.inPlus && !ctx.inZero) {
 			return null;
 		}
@@ -117,7 +117,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
 		List<EvaluatedAssignmentTargetImpl> nonNegativeTargetsA = ctx.evaluatedAssignment.getNonNegativeTargets();
 
-		for (EvaluatedAssignmentImpl<F> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) {
+		for (EvaluatedAssignmentImpl<AH> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) {
 			if (assignmentB.equals(ctx.evaluatedAssignment)) {      // TODO (value instead of reference equality?)
 				continue;
 			}
@@ -191,10 +191,10 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 		}
 	}
 
-	private <F extends FocusType> EvaluatedExclusionTrigger createTrigger(EvaluatedAssignmentImpl<F> assignmentA,
-			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl targetB,
+	private <AH extends AssignmentHolderType> EvaluatedExclusionTrigger createTrigger(EvaluatedAssignmentImpl<AH> assignmentA,
+			@NotNull EvaluatedAssignmentImpl<AH> assignmentB, EvaluatedAssignmentTargetImpl targetB,
 			JAXBElement<ExclusionPolicyConstraintType> constraintElement, EvaluatedPolicyRule policyRule,
-			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		AssignmentPath pathA = policyRule.getAssignmentPath();
@@ -210,8 +210,8 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 	}
 
 	@NotNull
-	private <F extends FocusType> LocalizableMessage createMessage(LocalizableMessage infoA, LocalizableMessage infoB,
-			JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createMessage(LocalizableMessage infoA, LocalizableMessage infoB,
+			JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
@@ -221,8 +221,8 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 	}
 
 	@NotNull
-	private <F extends FocusType> LocalizableMessage createShortMessage(LocalizableMessage infoA, LocalizableMessage infoB,
-			JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(LocalizableMessage infoA, LocalizableMessage infoB,
+			JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
@@ -260,7 +260,7 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 
 	// ================== legacy
 
-	public <F extends FocusType> void checkExclusionsLegacy(LensContext<F> context, Collection<EvaluatedAssignmentImpl<F>> assignmentsA,
+	public <F extends AssignmentHolderType> void checkExclusionsLegacy(LensContext<F> context, Collection<EvaluatedAssignmentImpl<F>> assignmentsA,
 			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
 		for (EvaluatedAssignmentImpl<F> assignmentA: assignmentsA) {
 			for (EvaluatedAssignmentImpl<F> assignmentB: assignmentsB) {
@@ -280,20 +280,20 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 		}
 	}
 
-	private <F extends FocusType> void checkExclusionLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
+	private <F extends AssignmentHolderType> void checkExclusionLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
 			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleA, roleB);
 		checkExclusionOneWayLegacy(assignmentB, assignmentA, roleB, roleA);
 	}
 
-	private <F extends FocusType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
+	private <F extends AssignmentHolderType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
 			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
 			checkAndTriggerExclusionConstraintViolationLegacy(assignmentA, assignmentB, roleA, roleB, exclusionA);
 		}
 	}
 
-	private <F extends FocusType> void checkAndTriggerExclusionConstraintViolationLegacy(EvaluatedAssignmentImpl<F> assignmentA,
+	private <F extends AssignmentHolderType> void checkAndTriggerExclusionConstraintViolationLegacy(EvaluatedAssignmentImpl<F> assignmentA,
 			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB,
 			ExclusionPolicyConstraintType constraint)
 			throws PolicyViolationException {

@@ -27,7 +27,7 @@
 
 	<name>Dummy Resource Castle Caladan</name>
 	
-	<parentOrgRef oid="00000000-8888-6666-a200-000000000000"/> <!-- House Atreides -->
+<!-- 	<parentOrgRef oid="00000000-8888-6666-a200-000000000000"/> House Atreides -->
 	
 	<connectorRef type="c:ConnectorType">
 		<!-- will be supplied by test code -->
@@ -40,5 +40,9 @@
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
+	
+	<assignment>
+		<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/>
+	</assignment>
 		
 </resource>

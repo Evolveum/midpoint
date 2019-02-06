@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
@@ -80,7 +81,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected Fragment initCustomButtonToolbar(String contentAreaId){
         Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
 
-        AjaxIconButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
+        MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
         searchContainer.add(newObjectIcon);
 
         AjaxIconButton showAllAssignmentsButton = new AjaxIconButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON, new Model<>("fa fa-address-card"),
@@ -266,31 +267,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 //	protected List<ObjectTypes> getObjectTypesList(){
 //        return WebComponentUtil.createAssignableTypesList();
 //    }
-
-	@Override
-	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
-		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
-		specificContainers.add(getSpecificContainerPanel(modelObject));
-		return specificContainers;
-	}
-	
-	@Override
-	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
-		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-			ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-					AssignmentType.F_CONSTRUCTION));
-
-			return Model.of(constructionWrapper);
-		}
-
-		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-			ContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-					AssignmentType.F_PERSONA_CONSTRUCTION));
-
-			return Model.of(personasWrapper);
-		}
-		return Model.of();
-	}
 
 	@Override
 	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {

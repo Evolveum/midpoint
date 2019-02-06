@@ -22,6 +22,10 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 
+import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
@@ -45,7 +49,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  */
 public class MidpointRestAuthenticationHandler implements ContainerRequestFilter, ContainerResponseFilter {
 
-//	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
 
 	@Autowired private MidpointRestPasswordAuthenticator passwordAuthenticator;
 
@@ -84,43 +88,8 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 		String[] parts = authorization.split(" ");
 		String authenticationType = parts[0];
 
-		if (parts.length == 1) {
-			if (RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType)) {
-				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
-				return;
-			}
-			
-			//TODO: audit login/logout?
-			
-			if (RestAuthenticationMethod.CLUSTER.equals(authenticationType)) {
-				HttpConnectionInformation connectionInfo = SecurityUtil.getCurrentConnectionInformation();
-				String remoteAddress = connectionInfo.getRemoteHostAddress();
-
-				if (!nodeAuthenticator.authenticate(null, remoteAddress, "invalidateCache")) {
-					RestServiceUtil.createAbortMessage(requestCtx);
-					return;
-				}
-				Task task = taskManager.createTaskInstance();
-				m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
-//				try {
-//					decodedCredentials = new String(Base64Utility.decode(base64Credentials));
-//					ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).contains(decodedCredentials).build();
-//					OperationResult result = new OperationResult("authenticate node");
-//					SearchResultList<PrismObject<NodeType>> nodes = repository.searchObjects(NodeType.class, query, null, result);
-//					if (nodes.size() != 1) {
-//						RestServiceUtil.createAbortMessage(requestCtx);
-//						return;
-//					}
-//					//TODO: http header
-//					
-//					PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(nodes.iterator().next(), null);
-//					 SecurityContext securityContext = SecurityContextHolder.getContext();
-//				     securityContext.setAuthentication(authentication);
-//				} catch (Base64Exception | SchemaException e) {
-//					RestServiceUtil.createAbortMessage(requestCtx);
-//					return;
-//				}
-			}
+		if (parts.length == 1 && RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod().equals(authenticationType)) {
+			RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
 			return;
 		}
 
@@ -128,24 +97,37 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 			RestServiceUtil.createAbortMessage(requestCtx);
 			return;
 		}
-		String base64Credentials = (parts.length == 2) ? parts[1] : null;
+			
+		String base64Credentials = parts[1];
 		
-		if (RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType)) {
+		if (RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod().equals(authenticationType)) {
 			try {
 				String decodedCredentials = new String(Base64Utility.decode(base64Credentials));
 				policy = new AuthorizationPolicy();
 				policy.setAuthorizationType(RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod());
 				policy.setAuthorization(decodedCredentials);
 				securityQuestionAuthenticator.handleRequest(policy, m, requestCtx);
-				
 			} catch (Base64Exception e) {
 				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
+			}
+		} else if (RestAuthenticationMethod.CLUSTER.getMethod().equals(authenticationType)) {
+			HttpConnectionInformation connectionInfo = SecurityUtil.getCurrentConnectionInformation();
+			String remoteAddress = connectionInfo != null ? connectionInfo.getRemoteHostAddress() : null;
+			String decodedCredentials;
+			try {
+				decodedCredentials = new String(Base64Utility.decode(base64Credentials));
+			} catch (Base64Exception e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decode base64-encoded credentials", e);
+				RestServiceUtil.createAbortMessage(requestCtx);
 				return;
 			}
+			if (!nodeAuthenticator.authenticate(null, remoteAddress, decodedCredentials, "?")) {
+				RestServiceUtil.createAbortMessage(requestCtx);
+				return;
+			}
+			Task task = taskManager.createTaskInstance();
+			m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
 		}
-		
-		
-		
 	}
 
 

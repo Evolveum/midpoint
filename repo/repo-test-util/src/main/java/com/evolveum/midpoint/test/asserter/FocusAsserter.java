@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -143,8 +144,8 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		return this;
 	}
 	
-	public ActivationAsserter<F, ? extends FocusAsserter<F,RA>, RA> activation() {
-		ActivationAsserter<F,FocusAsserter<F,RA>,RA> asserter = new ActivationAsserter<>(this, getDetails());
+	public ActivationAsserter<? extends FocusAsserter<F,RA>> activation() {
+		ActivationAsserter<FocusAsserter<F,RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}

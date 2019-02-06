@@ -25,10 +25,11 @@
             		<item>activation/administrativeStatus</item>
             	</modification>
             </policyConstraints>
+            <policyThreshold>
+            	<count>3</count>
+            </policyThreshold>
             <policyActions>
-                <stop>
-                	<count>3</count>
-                </stop>
+                <suspendTask/>
             </policyActions>
         </policyRule>
         <order>2</order>

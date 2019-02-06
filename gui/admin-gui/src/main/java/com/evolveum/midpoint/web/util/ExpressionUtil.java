@@ -251,8 +251,8 @@ public class ExpressionUtil {
 		return expression == null || expression.getExpressionEvaluator().isEmpty();
 	}
 
-	public static boolean isShadowRefNotEmpty(ExpressionType expression) {
-        List<ObjectReferenceType> shadowRefValueList = getShadowRefValue(expression);
+	public static boolean isShadowRefNotEmpty(ExpressionType expression, PrismContext prismContext) {
+        List<ObjectReferenceType> shadowRefValueList = getShadowRefValue(expression, prismContext);
 		return !isEmpty(expression) && shadowRefValueList != null && shadowRefValueList.size() > 0;
 	}
 
@@ -267,8 +267,8 @@ public class ExpressionUtil {
 		return values != null && values.size() > 0;
 	}
 
-	public static boolean areAllExpressionValuesEmpty(ExpressionType expression) throws SchemaException {
-        return !isShadowRefNotEmpty(expression) && !isLiteralExpressionValueNotEmpty(expression) && !isAssociationTargetSearchNotEmpty(expression);
+	public static boolean areAllExpressionValuesEmpty(ExpressionType expression, PrismContext prismContext) throws SchemaException {
+        return !isShadowRefNotEmpty(expression, prismContext) && !isLiteralExpressionValueNotEmpty(expression) && !isAssociationTargetSearchNotEmpty(expression);
     }
 
 	public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
@@ -446,12 +446,12 @@ public class ExpressionUtil {
         expression.getExpressionEvaluator().add(evaluator);
     }
 
-    public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType) {
+    public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType, PrismContext prismContext) {
         if (expressionType == null) {
             return null;
         }
-        List<ObjectReferenceType> shadowRefList = new ArrayList<>();
-        ListXNode shadowRefNodes = getShadowRefNodesList(expressionType, false, null);
+        List<ObjectReferenceType> shadowRefList = null;
+        ListXNode shadowRefNodes = getShadowRefNodesList(expressionType, false, prismContext);
 
         if (shadowRefNodes != null) {
             for (XNode shadowRefNode : shadowRefNodes.asList()) {
@@ -463,6 +463,9 @@ public class ExpressionUtil {
                                 (shadowOidNode != null && shadowOidNode.getValue() != null ? (String) shadowOidNode.getValue() : null);
                         shadowRef.setOid(oid);
                         shadowRef.setType(ShadowType.COMPLEX_TYPE);
+                        if (shadowRefList == null){
+                            shadowRefList =  new ArrayList<>();
+                        }
                         shadowRefList.add(shadowRef);
                     }
                 }
@@ -496,7 +499,7 @@ public class ExpressionUtil {
                 if (((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
                     if (((MapXNode) node).get(SHADOW_REF_KEY) instanceof ListXNode) {
                         shadowRefNodes = (ListXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
-                    } else if (createIfNotExist && ((MapXNode) node).get(SHADOW_REF_KEY) instanceof MapXNode) {
+                    } else if (((MapXNode) node).get(SHADOW_REF_KEY) instanceof MapXNode) {
                         MapXNode shadowRef = (MapXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
                         shadowRefNodes = prismContext.xnodeFactory().list(shadowRef);
                         prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);

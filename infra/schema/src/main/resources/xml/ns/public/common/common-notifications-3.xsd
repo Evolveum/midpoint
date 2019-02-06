@@ -1019,6 +1019,27 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Message attachment(s) to be sent out.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="attachmentExpression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                An expression that returns message attachment(s) to be sent out. Returned objects should be
+                                of type NotificationMessageAttachmentType.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="watchAuxiliaryAttributes" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1381,7 +1402,57 @@
 			<xsd:element name="subject" type="xsd:string" minOccurs="0" />
 			<xsd:element name="body" type="xsd:string" minOccurs="0" />
 			<xsd:element name="contentType" type="xsd:string" minOccurs="0" />
+			<xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="NotificationMessageAttachmentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Message attachment for notifications. The content might be provided either directly (as arbitrary object)
+                or by referencing a file.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+            <xsd:element name="contentType" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Content type for the attachment, e.g. image/png or text/html.
+                        It is required.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="content" type="xsd:anyType">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Content of the attachment.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:rawType/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="contentFromFile" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Name of the file that provides the content for this attachment.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <!-- TODO some other option like referencing a library of objects? -->
+            </xsd:choice>
+            <xsd:element name="fileName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        File name for the attachment. E.g. in the case of the mail transport it should be put into Content-Disposition header field.
+                        If omitted and if contentFromFile is used, it should be derived from the name of that file.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 </xsd:schema>

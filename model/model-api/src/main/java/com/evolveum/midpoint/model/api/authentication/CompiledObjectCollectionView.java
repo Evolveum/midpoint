@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
@@ -45,10 +45,10 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	private static final long serialVersionUID = 1L;
 	
 	private final QName objectType;
-	private final String viewName;
+	private final String viewIdentifier;
 	
 	private List<GuiActionType> actions = new ArrayList<>();
-	private CollectionSpecificationType collection;
+	private CollectionRefSpecificationType collection;
 	private List<GuiObjectColumnType> columns = new ArrayList<>();
 	private DisplayType display;
 	private GuiObjectListViewAdditionalPanelsType additionalPanels;
@@ -61,21 +61,21 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	public CompiledObjectCollectionView() {
 		super();
 		objectType = null;
-		viewName = null;
+		viewIdentifier = null;
 	}
 
-	public CompiledObjectCollectionView(QName objectType, String viewName) {
+	public CompiledObjectCollectionView(QName objectType, String viewIdentifier) {
 		super();
 		this.objectType = objectType;
-		this.viewName = viewName;
+		this.viewIdentifier = viewIdentifier;
 	}
 
 	public QName getObjectType() {
 		return objectType;
 	}
 
-	public String getViewName() {
-		return viewName;
+	public String getViewIdentifier() {
+		return viewIdentifier;
 	}
 
 	@NotNull
@@ -83,11 +83,11 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		return actions;
 	}
 
-	public CollectionSpecificationType getCollection() {
+	public CollectionRefSpecificationType getCollection() {
 		return collection;
 	}
 
-	public void setCollection(CollectionSpecificationType collection) {
+	public void setCollection(CollectionRefSpecificationType collection) {
 		this.collection = collection;
 	}
 
@@ -151,18 +151,18 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		this.filter = filter;
 	}
 
-	public boolean match(QName expectedObjectType, String expectedViewName) {
+	public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
 		if (!QNameUtil.match(objectType, expectedObjectType)) {
 			return false;
 		}
-		if (expectedViewName == null) {
+		if (expectedViewIdentifier == null) {
 			if (isAllObjectsView()) {
 				return true;
 			} else {
 				return false;
 			}
 		}
-		return expectedViewName.equals(viewName);
+		return expectedViewIdentifier.equals(viewIdentifier);
 	}
 	
 	public boolean match(QName expectedObjectType) {
@@ -178,7 +178,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "objectType", objectType, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "viewName", viewName, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "viewIdentifier", viewIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "display", display, indent + 1);

@@ -56,6 +56,12 @@ public class DisplayTypeAsserter<RA> extends AbstractAsserter<RA> {
 		return this;
 	}
 	
+	public IconTypeAsserter<DisplayTypeAsserter<RA>> icon() {
+		IconTypeAsserter<DisplayTypeAsserter<RA>> displayAsserter = new IconTypeAsserter<>(displayType.getIcon(), this, "in " + desc());
+		copySetupTo(displayAsserter);
+		return displayAsserter;
+	}
+	
 	public DisplayTypeAsserter<RA> display(String message) {
 		IntegrationTestTools.display(message, displayType);
 		return this;

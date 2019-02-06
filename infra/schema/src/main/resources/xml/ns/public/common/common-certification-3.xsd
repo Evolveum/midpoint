@@ -491,7 +491,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                    <xsd:element name="repetition" type="xsd:int" minOccurs="0" default="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Which iteration this campaign is in. 1 means the regular (first) run;

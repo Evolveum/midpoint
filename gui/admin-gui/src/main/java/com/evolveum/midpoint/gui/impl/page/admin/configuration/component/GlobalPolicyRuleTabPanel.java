@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalPolicyRuleType>> {
+public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<ContainerWrapper<GlobalPolicyRuleType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -95,7 +96,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
     	TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
     	PageStorage pageStorage = ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
     	
-    	MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, getModel(),
+    	MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> multivalueContainerListPanel =
+				new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, getModel(),
     			tableId, pageStorage) {
 			
 			private static final long serialVersionUID = 1L;
@@ -173,7 +175,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
     
     private MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
 			ListItem<ContainerValueWrapper<GlobalPolicyRuleType>> item) {
-    	MultivalueContainerDetailsPanel<GlobalPolicyRuleType> detailsPanel = new  MultivalueContainerDetailsPanel<GlobalPolicyRuleType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+    	MultivalueContainerDetailsPanel<GlobalPolicyRuleType> detailsPanel =
+				new  MultivalueContainerDetailsPanel<GlobalPolicyRuleType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -188,8 +191,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 		return detailsPanel;
 	}
     
-	private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>)get(ID_GLOBAL_POLICY_RULE));
+	private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> getMultivalueContainerListPanel(){
+		return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>)get(ID_GLOBAL_POLICY_RULE));
 	}
     
     private ObjectQuery createQuery() {

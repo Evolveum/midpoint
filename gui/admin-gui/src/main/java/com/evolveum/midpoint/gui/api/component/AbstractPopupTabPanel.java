@@ -16,11 +16,18 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -29,6 +36,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -83,7 +91,29 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                return AbstractPopupTabPanel.this.addFilterToContentQuery(query);
+                ObjectQuery queryWithFilters = AbstractPopupTabPanel.this.addFilterToContentQuery(query);
+                List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
+                if (!CollectionUtils.isEmpty(archetypeRefList)){
+                    List<ObjectFilter> archetypeRefFilterList = new ArrayList<>();
+
+                    for (ObjectReferenceType archetypeRef : archetypeRefList){
+                        ObjectFilter filter = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFor(AssignmentHolderType.class)
+                                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRef.getOid())
+                                .buildFilter();
+                        ((RefFilter)filter).setTargetTypeNullAsAny(true);
+                        ((RefFilter)filter).setRelationNullAsAny(true);
+                        archetypeRefFilterList.add(filter);
+                    }
+                    if (!CollectionUtils.isEmpty(archetypeRefFilterList)){
+                        if (queryWithFilters == null){
+                            queryWithFilters = getPrismContext().queryFactory().createQuery();
+                        }
+                        OrFilter archetypeRefOrFilter =
+                                AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createOr(archetypeRefFilterList);
+                        queryWithFilters.addFilter(archetypeRefOrFilter);
+                    }
+                }
+                return queryWithFilters;
             }
 
         };
@@ -124,6 +154,10 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
     protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
         return query;
+    }
+
+    protected List<ObjectReferenceType> getArchetypeRefList(){
+        return null;
     }
 
     protected boolean isObjectListPanelVisible(){

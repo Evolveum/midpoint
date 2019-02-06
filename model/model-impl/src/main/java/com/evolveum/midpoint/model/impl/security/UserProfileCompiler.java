@@ -81,9 +81,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractObjectTypeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationRoleManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -95,6 +97,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
@@ -315,6 +318,9 @@ public class UserProfileCompiler {
 		if (adminGuiConfiguration.getDefaultExportSettings() != null) {
 			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
 		}
+		if (adminGuiConfiguration.getDisplayFormats() != null){
+			composite.setDisplayFormats(adminGuiConfiguration.getDisplayFormats().clone());
+		}
 		
 		applyViews(composite, adminGuiConfiguration.getObjectLists(), task, result); // Compatibility, deprecated
 		applyViews(composite, adminGuiConfiguration.getObjectCollectionViews(), task, result);
@@ -402,21 +408,26 @@ public class UserProfileCompiler {
 	
 	private CompiledObjectCollectionView findOrCreateMatchingView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType) {
 		QName objectType = objectListViewType.getType();
-		String viewName = determineViewName(objectListViewType);
-		CompiledObjectCollectionView existingView = composite.findObjectCollectionView(objectType, viewName);
+		String viewIdentifier = determineViewIdentifier(objectListViewType);
+		CompiledObjectCollectionView existingView = composite.findObjectCollectionView(objectType, viewIdentifier);
 		if (existingView == null) {
-			existingView = new CompiledObjectCollectionView(objectType, viewName);
+			existingView = new CompiledObjectCollectionView(objectType, viewIdentifier);
 			composite.getObjectCollectionViews().add(existingView);
 		}
 		return existingView;
 	}
 
-	private String determineViewName(GuiObjectListViewType objectListViewType) {
+	private String determineViewIdentifier(GuiObjectListViewType objectListViewType) {
+		String viewIdentifier = objectListViewType.getIdentifier();
+		if (viewIdentifier != null) {
+			return viewIdentifier;
+		}
 		String viewName = objectListViewType.getName();
 		if (viewName != null) {
+			// legacy, deprecated
 			return viewName;
 		}
-		CollectionSpecificationType collection = objectListViewType.getCollection();
+		CollectionRefSpecificationType collection = objectListViewType.getCollection();
 		if (collection == null) {
 			return objectListViewType.getType().getLocalPart();
 		}
@@ -430,12 +441,12 @@ public class UserProfileCompiler {
 	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		compileActions(existingView, objectListViewType);
 		compileAdditionalPanels(existingView, objectListViewType);
-		compileCollection(existingView, objectListViewType, task, result);
 		compileColumns(existingView, objectListViewType);
 		compileDisplay(existingView, objectListViewType);
 		compileDistinct(existingView, objectListViewType);
 		compileSorting(existingView, objectListViewType);
 		compileSearchBox(existingView, objectListViewType);
+		compileCollection(existingView, objectListViewType, task, result);
 	}
 	
 	private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -457,29 +468,25 @@ public class UserProfileCompiler {
 	}
 
 	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		CollectionSpecificationType collectionSpec = objectListViewType.getCollection();
+		CollectionRefSpecificationType collectionSpec = objectListViewType.getCollection();
 		if (collectionSpec == null) {
 			ObjectReferenceType collectionRef = objectListViewType.getCollectionRef();
 			if (collectionRef == null) {
 				return;
 			}
 			// Legacy, deprecated
-			collectionSpec = new CollectionSpecificationType();
+			collectionSpec = new CollectionRefSpecificationType();
 			collectionSpec.setCollectionRef(collectionRef.clone());
 		}
 		if (existingView.getCollection() != null) {
-			LOGGER.debug("Redefining collection in view {}", existingView.getViewName());
+			LOGGER.debug("Redefining collection in view {}", existingView.getViewIdentifier());
 		}
 		existingView.setCollection(collectionSpec);
 		
-		// Compute and apply filter
-		ObjectFilter filter = compileCollectionFilter(existingView, collectionSpec, task, result);
-		
-		// TODO: resolve (read) collection if needed
-		existingView.setFilter(filter);
+		compileCollection(existingView, collectionSpec, task, result);
 	}
 		
-	private ObjectFilter compileCollectionFilter(CompiledObjectCollectionView existingView, CollectionSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
 		
 		QName targetObjectType = existingView.getObjectType();
@@ -497,13 +504,36 @@ public class UserProfileCompiler {
 				.buildFilter();
 			filter.setTargetTypeNullAsAny(true);
 			filter.setRelationNullAsAny(true);
-			return filter;
+			existingView.setFilter(filter);
+			
+			try {
+				PrismObject<ArchetypeType> archetype = systemObjectCache.getArchetype(collectionRef.getOid(), result);
+				ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
+				if (archetypePolicy != null) {
+					DisplayType archetypeDisplay = archetypePolicy.getDisplay();
+					if (archetypeDisplay != null) {
+						DisplayType viewDisplay = existingView.getDisplay();
+						if (viewDisplay == null) {
+							viewDisplay = new DisplayType();
+							existingView.setDisplay(viewDisplay);
+						}
+						mergeDisplay(viewDisplay, archetypeDisplay);
+					}
+				}
+			} catch (ObjectNotFoundException e) {
+				// We do not want to throw exception here. This code takes place at login time.
+				// We do not want to stop all logins because of missing archetype.
+				LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRef.getOid(), existingView.getViewIdentifier());
+			}
+			
+			return;
 		}
 		
 		if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionRefType)) {
 			ObjectCollectionType objectCollectionType;
 			try {
-				objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewName(), task, result);
+				// TODO: caching?
+				objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewIdentifier(), task, result);
 			} catch (ObjectNotFoundException e) {
 				throw new ConfigurationException(e.getMessage(), e);
 			}
@@ -512,19 +542,45 @@ public class UserProfileCompiler {
 			if (collectionFilterType != null) {
 				collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
 			}
-			CollectionSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
+			CollectionRefSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
 			if (baseCollectionSpec == null) {
-				return collectionFilter;
+				existingView.setFilter(collectionFilter);
 			} else {
-				ObjectFilter baseFilter =  compileCollectionFilter(existingView, baseCollectionSpec, task, result);
-				return ObjectQueryUtil.filterAnd(baseFilter, collectionFilter, prismContext);
+				compileCollection(existingView, baseCollectionSpec, task, result);
+				ObjectFilter baseFilter = existingView.getFilter();
+				ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, collectionFilter, prismContext);
+				existingView.setFilter(combinedFilter);
 			}
+			return;
 		}
 		
 		// TODO
-		throw new UnsupportedOperationException("TODO");
+		throw new UnsupportedOperationException("Unsupported collection type: " + collectionRefType);
 	}
 	
+	private void mergeDisplay(DisplayType viewDisplay, DisplayType archetypeDisplay) {
+		if (viewDisplay.getLabel() == null) {
+			viewDisplay.setLabel(archetypeDisplay.getLabel());
+		}
+		if (viewDisplay.getPluralLabel() == null) {
+			viewDisplay.setPluralLabel(archetypeDisplay.getPluralLabel());
+		}
+		IconType archetypeIcon = archetypeDisplay.getIcon();
+		if (archetypeIcon != null) {
+			IconType viewIcon = viewDisplay.getIcon();
+			if (viewIcon == null) {
+				viewIcon = new IconType();
+				viewDisplay.setIcon(viewIcon);
+			}
+			if (viewIcon.getCssClass() == null) {
+				viewIcon.setCssClass(archetypeIcon.getCssClass());
+			}
+			if (viewIcon.getColor() == null) {
+				viewIcon.setColor(archetypeIcon.getColor());
+			}
+		}
+	}
+
 	private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
 		List<GuiObjectColumnType> newColumns = objectListViewType.getColumn();
 		if (newColumns == null || newColumns.isEmpty()) {
@@ -543,8 +599,10 @@ public class UserProfileCompiler {
 		if (newDisplay == null) {
 			return;
 		}
-		// TODO: later: merge display definitions (e.g. keep icon for user, but apply color change)
-		existingView.setDisplay(newDisplay);
+		if (existingView.getDisplay() == null) {
+			existingView.setDisplay(newDisplay);
+		}
+		mergeDisplay(existingView.getDisplay(), newDisplay);
 	}
 
 	private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {

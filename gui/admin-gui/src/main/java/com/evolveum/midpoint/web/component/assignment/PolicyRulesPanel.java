@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -138,7 +140,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	}
 
 	@Override
-	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
+	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
         newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
         ContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModel());
@@ -153,12 +155,6 @@ public class PolicyRulesPanel extends AssignmentPanel {
                 .exists(AssignmentType.F_POLICY_RULE)
                 .build();
     }
-
-	@Override
-	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
-		ContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
-		return Model.of(policyRuleWrapper);
-	}
 
 	@Override
 	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {

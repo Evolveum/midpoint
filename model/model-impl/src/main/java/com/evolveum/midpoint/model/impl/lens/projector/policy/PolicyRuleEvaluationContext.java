@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,16 +31,16 @@ import java.util.Collection;
 /**
  * @author mederly
  */
-public abstract class PolicyRuleEvaluationContext<F extends FocusType> implements Cloneable {
+public abstract class PolicyRuleEvaluationContext<AH extends AssignmentHolderType> implements Cloneable {
 
 	@NotNull public final EvaluatedPolicyRule policyRule;
-	@NotNull public final LensContext<F> lensContext;
-	@NotNull public final LensFocusContext<F> focusContext;
+	@NotNull public final LensContext<AH> lensContext;
+	@NotNull public final LensFocusContext<AH> focusContext;
 	@NotNull public final Task task;
 	@NotNull public final ObjectState state;
 	@NotNull public final RulesEvaluationContext globalCtx;
 
-	protected PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context,
+	protected PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<AH> context,
 			@NotNull Task task, @NotNull RulesEvaluationContext globalCtx, @NotNull ObjectState state) {
 		this.policyRule = policyRule;
 		this.lensContext = context;
@@ -52,11 +53,11 @@ public abstract class PolicyRuleEvaluationContext<F extends FocusType> implement
 		this.state = state;
 	}
 
-	public abstract PolicyRuleEvaluationContext<F> cloneWithStateConstraints(ObjectState state);
+	public abstract PolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state);
 
 	public abstract void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
-	public PrismObject<F> getObject() {
+	public PrismObject<AH> getObject() {
 		if (state == ObjectState.BEFORE) {
 			return focusContext.getObjectOld();
 		} else {

@@ -108,6 +108,12 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
 	}
 	
 	@Override
+	public RoleAsserter<RA> assertRiskLevel(String expected) {
+		super.assertRiskLevel(expected);
+		return this;
+	}
+	
+	@Override
 	public RoleAsserter<RA> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;
@@ -138,8 +144,8 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
 	}
 	
 	@Override
-	public ActivationAsserter<RoleType, RoleAsserter<RA>, RA> activation() {
-		ActivationAsserter<RoleType, RoleAsserter<RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
+	public ActivationAsserter<RoleAsserter<RA>> activation() {
+		ActivationAsserter<RoleAsserter<RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}

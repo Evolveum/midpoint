@@ -1450,4 +1450,19 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setPreview(boolean preview) {
 		this.preview = preview;
 	}
+
+	/**
+	 * Finish all building activities and prepare context for regular use.
+	 * This should lock all values that should not be changed during recompute,
+	 * such as primary deltas.
+	 * This method is invoked by context factories when context build is finished.
+	 */
+	public void finishBuild() {
+		if (focusContext != null) {
+			focusContext.finishBuild();
+		}
+		for (LensProjectionContext projectionContext : projectionContexts) {
+			projectionContext.finishBuild();
+		}
+	}
 }

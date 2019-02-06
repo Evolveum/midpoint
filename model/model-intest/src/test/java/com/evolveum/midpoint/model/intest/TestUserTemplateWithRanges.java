@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,6 +32,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 
@@ -48,10 +50,22 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 	public static final QName MANAGER_ID_QNAME = new QName("http://sample.evolveum.com/xml/ns/sample-idm/extension", "managerId");
 
+	protected static final File ROLE_BLOODY_NOSE_FILE = new File(TEST_DIR, "role-bloody-nose.xml");
+	protected static final String ROLE_BLOODY_NOSE_OID = "ed34d3fe-1f0b-11e9-8e31-b3cfa585868a";
+	protected static final String ROLE_BLOODY_NOSE_NAME = "Bloody Nose";
+	
 	protected static final File ORG_MONKEY_ISLAND_LOCAL_FILE = new File(TEST_DIR, "org-monkey-island-local.xml");
 
 	protected static final File USER_TEMPLATE_RANGES_FILE = new File(TEST_DIR, "user-template-ranges.xml");
 	protected static final String USER_TEMPLATE_RANGES_OID = "f486e3a7-6970-416e-8fe2-995358f59c46";
+
+	private static final String BLOODY_ASSIGNMENT_SUBTYPE = "bloody";
+
+	private static final XMLGregorianCalendar GUYBRUSH_FUNERAL_DATE_123456_CAL =
+			XmlTypeConverter.createXMLGregorianCalendar(2222, 1, 2, 3, 4, 5);
+	
+	private static final XMLGregorianCalendar GUYBRUSH_FUNERAL_DATE_22222_CAL =
+			XmlTypeConverter.createXMLGregorianCalendar(2222, 2, 2, 22, 22, 22);
 
 	@Override
 	protected boolean doAddOrgstruct() {
@@ -66,6 +80,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_LOCAL_FILE, OrgType.class, initResult);
 
         repoAddObjectFromFile(USER_TEMPLATE_RANGES_FILE, initResult);
+        repoAddObjectFromFile(ROLE_BLOODY_NOSE_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_RANGES_OID, initResult);
 
 		changeEmployeeIdRaw("EM100", initTask, initResult);
@@ -197,15 +212,15 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test200SimpleOrgUnitAddition() throws Exception {
 		final String TEST_NAME = "test200SimpleOrgUnitAddition";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
 		executeChanges(
-				(ObjectDelta) prismContext.deltaFor(UserType.class)
+				deltaFor(UserType.class)
 						.item(UserType.F_ORGANIZATIONAL_UNIT).add(
 								PolyString.fromOrig("U1"),
 								PolyString.fromOrig("U2"),
@@ -216,8 +231,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 				null, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("jack", userJack);
@@ -241,15 +255,15 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test210RemoveUnit1() throws Exception {
 		final String TEST_NAME = "test210RemoveUnit1";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
 		executeChanges(
-				(ObjectDelta) prismContext.deltaFor(UserType.class)
+				deltaFor(UserType.class)
 						.item(UserType.F_ORGANIZATIONAL_UNIT).delete(PolyString.fromOrig("U1"))
 						.asObjectDelta(USER_JACK_OID),
 				ModelExecuteOptions.createRaw(), task, result);
@@ -257,8 +271,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 		recomputeUser(USER_JACK_OID, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("jack", userJack);
@@ -285,25 +298,24 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
 		executeChanges(
-				(ObjectDelta) prismContext.deltaFor(UserType.class)
+				deltaFor(UserType.class)
 						.item(UserType.F_ORGANIZATIONAL_UNIT).delete(PolyString.fromOrig("U2"))
 						.asObjectDelta(USER_JACK_OID),
 				ModelExecuteOptions.createRaw(), task, result);
 
 		executeChanges(
-				(ObjectDelta) prismContext.deltaFor(UserType.class)
+				deltaFor(UserType.class)
 						.item(UserType.F_EMPLOYEE_NUMBER).replace()
 						.asObjectDelta(USER_JACK_OID),
 				null, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("jack", userJack);
@@ -323,28 +335,27 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test230RestoreNumber() throws Exception {
 		final String TEST_NAME = "test230RestoreNumber";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
 		executeChanges(
-				(ObjectDelta) prismContext.deltaFor(UserType.class)
+				deltaFor(UserType.class)
 						.item(UserType.F_ORGANIZATION).add(PolyString.fromOrig("OU: nonsense"))
 						.asObjectDelta(USER_JACK_OID),
 				ModelExecuteOptions.createRaw(), task, result);
 
 		executeChanges(
-				(ObjectDelta) prismContext.deltaFor(UserType.class)
+				deltaFor(UserType.class)
 						.item(UserType.F_EMPLOYEE_NUMBER).replace("emp1234")
 						.asObjectDelta(USER_JACK_OID),
 				null, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("jack", userJack);
@@ -355,6 +366,280 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 				new PolyString("O1", "o1"),
 				new PolyString("OU: U3 emp1234", "ou u3 emp1234"),
 				new PolyString("OU: U4 emp1234", "ou u4 emp1234"));
+	}
+	
+	@Test
+	public void test300GuybrushBloodyNose() throws Exception {
+		final String TEST_NAME = "test300GuybrushBloodyNose";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(
+				deltaFor(UserType.class)
+						.item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
+						.asObjectDelta(USER_GUYBRUSH_OID),
+				null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertTitle(ROLE_BLOODY_NOSE_NAME)
+			.assignments()
+				.single()
+					.assertTargetOid(ROLE_BLOODY_NOSE_OID)
+					.assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+					.activation()
+						.assertNoValidTo();
+		
+	}
+	
+	@Test
+	public void test309GuybrushNotBloody() throws Exception {
+		final String TEST_NAME = "test309GuybrushNotBloody";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(
+				deltaFor(UserType.class)
+						.item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
+						.asObjectDelta(USER_GUYBRUSH_OID),
+				null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertNoTitle()
+			.assignments()
+				.assertNone();
+		
+	}
+	
+	@Test
+	public void test310GuybrushBloodyNoseFuneral() throws Exception {
+		final String TEST_NAME = "test310GuybrushBloodyNoseFuneral";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
+				GUYBRUSH_FUNERAL_DATE_123456_CAL);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(
+				deltaFor(UserType.class)
+						.item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
+						.asObjectDelta(USER_GUYBRUSH_OID),
+				null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertTitle(ROLE_BLOODY_NOSE_NAME)
+			.assignments()
+				.single()
+					.assertTargetOid(ROLE_BLOODY_NOSE_OID)
+					.assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+					.activation()
+						.assertValidTo(GUYBRUSH_FUNERAL_DATE_123456_CAL);
+		
+	}
+	
+	@Test
+	public void test319GuybrushNoBloodyNoseFuneral() throws Exception {
+		final String TEST_NAME = "test319GuybrushNoBloodyNoseFuneral";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(
+				deltaFor(UserType.class)
+						.item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
+						.asObjectDelta(USER_GUYBRUSH_OID),
+				null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertNoTitle()
+			.assignments()
+				.assertNone();
+		
+	}
+	
+	@Test
+	public void test320GuybrushBloodyNose() throws Exception {
+		final String TEST_NAME = "test320GuybrushBloodyNose";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result
+				/* no value */);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(
+				deltaFor(UserType.class)
+						.item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
+						.asObjectDelta(USER_GUYBRUSH_OID),
+				null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertTitle(ROLE_BLOODY_NOSE_NAME)
+			.assignments()
+				.single()
+					.assertTargetOid(ROLE_BLOODY_NOSE_OID)
+					.assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+					.activation()
+						.assertNoValidTo();
+		
+	}
+	
+	@Test
+	public void test322GuybrushSetFuneral() throws Exception {
+		final String TEST_NAME = "test322GuybrushSetFuneral";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
+				GUYBRUSH_FUNERAL_DATE_123456_CAL);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertTitle(ROLE_BLOODY_NOSE_NAME)
+			.assignments()
+				.single()
+					.assertTargetOid(ROLE_BLOODY_NOSE_OID)
+					.assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+					.activation()
+						.assertValidTo(GUYBRUSH_FUNERAL_DATE_123456_CAL);
+		
+	}
+	
+	@Test
+	public void test324GuybrushSetFuneral22222() throws Exception {
+		final String TEST_NAME = "test324GuybrushSetFuneral22222";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
+				GUYBRUSH_FUNERAL_DATE_22222_CAL);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertTitle(ROLE_BLOODY_NOSE_NAME)
+			.assignments()
+				.single()
+					.assertTargetOid(ROLE_BLOODY_NOSE_OID)
+					.assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+					.activation()
+						.assertValidTo(GUYBRUSH_FUNERAL_DATE_22222_CAL);
+	}
+	
+	/**
+	 * MID-5063
+	 */
+	@Test
+	public void test326GuybrushNoFuneral() throws Exception {
+		final String TEST_NAME = "test326GuybrushNoFuneral";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result
+				/* no value */);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertTitle(ROLE_BLOODY_NOSE_NAME)
+			.assignments()
+				.single()
+					.assertTargetOid(ROLE_BLOODY_NOSE_OID)
+					.assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+					.activation()
+						.assertNoValidTo();
+	}
+	
+	@Test
+	public void test329GuybrushNoBloodyNose() throws Exception {
+		final String TEST_NAME = "test329GuybrushNoBloodyNose";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(
+				deltaFor(UserType.class)
+						.item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
+						.asObjectDelta(USER_GUYBRUSH_OID),
+				null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_GUYBRUSH_OID)
+			.assertNoTitle()
+			.assignments()
+				.assertNone();
+		
 	}
 
 	private void changeManagerRaw(String id, Task task, OperationResult result) throws CommonException {

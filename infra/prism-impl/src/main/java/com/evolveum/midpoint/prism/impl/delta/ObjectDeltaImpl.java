@@ -80,6 +80,8 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
      * Class of the object that we describe.
      */
     private Class<O> objectTypeClass;
+    
+    private boolean immutable;
 
     transient private PrismContext prismContext;
 
@@ -157,6 +159,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     }
 
 	public void setOid(String oid) {
+		checkMutability();
         this.oid = oid;
         if (objectToAdd != null) {
         	objectToAdd.setOid(oid);
@@ -185,6 +188,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     }
 
     public void setObjectToAdd(PrismObject<O> objectToAdd) {
+    	checkMutability();
     	if (getChangeType() != ChangeType.ADD) {
     		throw new IllegalStateException("Cannot set object to "+getChangeType()+" delta");
     	}
@@ -201,6 +205,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 
     @SuppressWarnings("unchecked")
     public <D extends ItemDelta> D addModification(D itemDelta) {
+    	checkMutability();
     	if (getChangeType() != ChangeType.MODIFY) {
     		throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
     	}
@@ -367,6 +372,36 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     public void setObjectTypeClass(Class<O> objectTypeClass) {
         this.objectTypeClass = objectTypeClass;
     }
+    
+    @Override
+    public boolean isImmutable() {
+		return immutable;
+	}
+
+    @Override
+	public void setImmutable(boolean immutable) {
+		this.immutable = immutable;
+		if (objectToAdd != null) {
+			objectToAdd.setImmutable(immutable);
+		}
+		if (modifications != null) {
+			for (ItemDelta<?, ?> modification : modifications) {
+				modification.setImmutable(immutable);
+			}
+		}
+	}
+
+	protected void checkMutability() {
+		if (immutable) {
+			throw new IllegalStateException("An attempt to modify an immutable delta: " + toString());
+		}
+	}
+
+	public void checkImmutability() {
+		if (!immutable) {
+			throw new IllegalStateException("Item is not immutable even if it should be: " + this);
+		}
+	}
 
     /**
      * Top-level path is assumed.
@@ -414,11 +449,13 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 
 
     private <D extends ItemDelta> void removeModification(ItemPath propertyPath, Class<D> deltaType) {
+    	checkMutability();
     	ItemDeltaCollectionsUtil.removeItemDelta(modifications, propertyPath, deltaType);
     }
 
     @Override
     public <D extends ItemDelta> void removeModification(ItemDelta<?, ?> itemDelta) {
+    	checkMutability();
     	ItemDeltaCollectionsUtil.removeItemDelta(modifications, itemDelta);
     }
 
@@ -454,6 +491,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     }
 
     public void normalize() {
+    	checkMutability();
     	if (objectToAdd != null) {
     		objectToAdd.normalize();
     	}
@@ -468,6 +506,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	}
     
     public ObjectDeltaImpl<O> narrow(PrismObject<O> existingObject) {
+    	checkMutability();
     	if (!isModify()) {
     		throw new UnsupportedOperationException("Narrow is supported only for modify deltas");
     	}
@@ -495,6 +534,11 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
      */
     public ObjectDeltaImpl<O> clone() {
         ObjectDeltaImpl<O> clone = new ObjectDeltaImpl<>(this.objectTypeClass, this.changeType, this.prismContext);
+        copyValues(clone);
+        return clone;
+    }
+    
+    protected void copyValues(ObjectDeltaImpl<O> clone) {
         clone.oid = this.oid;
         for (ItemDelta<?,?> thisModification: this.modifications) {
         	((Collection)clone.modifications).add(thisModification.clone());
@@ -503,8 +547,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
             clone.objectToAdd = null;
         } else {
             clone.objectToAdd = this.objectToAdd.clone();
-        }
-        return clone;
+        }    	
     }
 
 	/**
@@ -513,6 +556,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
      */
 	@Override
     public void merge(ObjectDelta<O> deltaToMerge) throws SchemaException {
+		checkMutability();
         if (deltaToMerge == null) {
             return;
         }
@@ -627,6 +671,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
      * (regardless of the change type).
      */
     public void swallow(ItemDelta<?,?> newItemDelta) throws SchemaException {
+    	checkMutability();
         if (changeType == ChangeType.MODIFY) {
             // TODO: check for conflict
             addModification(newItemDelta);
@@ -1052,6 +1097,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * So consider this method highly experimental.
 	 */
 	public ObjectDeltaImpl<O> subtract(@NotNull Collection<ItemPath> paths) {
+		checkMutability();
 		if (!isModify()) {
 			throw new UnsupportedOperationException("Only for MODIFY deltas, not for " + this);
 		}
@@ -1100,6 +1146,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
 	 */
 	private FactorOutResultSingle<O> factorOutForModifyDelta(Collection<? extends ItemPath> paths, boolean cloneDelta) {
+		checkMutability();
 		ObjectDeltaImpl<O> remainder = cloneIfRequested(cloneDelta);
 		ObjectDeltaImpl<O> offspring = null;
 		List<ItemDelta<?, ?>> modificationsFound = new ArrayList<>();
@@ -1151,6 +1198,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
 	 */
 	private FactorOutResultMulti<O> factorOutValuesForModifyDelta(ItemPath path, boolean cloneDelta) throws SchemaException {
+		checkMutability();
 		ObjectDeltaImpl<O> remainder = cloneIfRequested(cloneDelta);
 		FactorOutResultMulti<O> rv = new FactorOutResultMulti<>(remainder);
 
@@ -1236,6 +1284,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
 	 */
     public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
+    	checkMutability();
 		if (isAdd()) {
 			return !fromMinusSet && subtractFromObject(objectToAdd, itemPath, value, dryRun);
 		} else {
@@ -1354,6 +1403,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	}
 
 	public void clear() {
+		checkMutability();
 		if (isAdd()) {
 			setObjectToAdd(null);
 		} else if (isModify()) {

@@ -128,7 +128,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 		if (tag == null) {
 			return null;
 		} if (TAG_BINARY.equals(tag)) {
-			return DOMUtil.XSD_STRING;          // base64-encoded string: we store it as string, leaving interpretation to upper layers
+			return DOMUtil.XSD_BASE64BINARY;
 		} if (TAG_STRING.equals(tag)) {
 			return DOMUtil.XSD_STRING;
 		} else if (TAG_BOOL.equals(tag)) {

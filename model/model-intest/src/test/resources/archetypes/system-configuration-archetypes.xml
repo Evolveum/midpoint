@@ -203,7 +203,7 @@
 		</objectForms>
     	<objectCollectionViews>
     		<objectCollectionView>
-    			<name>All employees</name>
+    			<identifier>all-employees</identifier>
     			<type>UserType</type>
     			<collection>
     				<collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->

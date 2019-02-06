@@ -124,6 +124,7 @@ public class GeneralNotifier extends BaseHandler {
                                 String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
                                 String from = getFromFromExpression(event, generalNotifierType, variables, task, result);
                                 String contentType = getContentTypeFromExpression(event, generalNotifierType, variables, task, result);
+                                List<NotificationMessageAttachmentType> attachments = getAttachementsFromExpression(event, generalNotifierType, variables, task, result);
 
                                 if (body == null) {
                                     body = getBody(event, generalNotifierType, transportName, task, result);
@@ -131,6 +132,15 @@ public class GeneralNotifier extends BaseHandler {
                                 if (subject == null) {
                                     subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
                                     subject += getSubject(event, generalNotifierType, transportName, task, result);
+                                }
+                                
+                                if (attachments == null) {
+                                	attachments = generalNotifierType.getAttachment();
+                                	if(attachments == null) {
+                                		attachments = getAttachment(event, generalNotifierType, transportName, task, result);
+                                	}
+                                } else if(generalNotifierType.getAttachment() != null) {
+                                	attachments.addAll(generalNotifierType.getAttachment());
                                 }
 
                                 Message message = new Message();
@@ -149,6 +159,10 @@ public class GeneralNotifier extends BaseHandler {
                                 message.setCc(getCcBccAddresses(generalNotifierType.getCcExpression(), variables, "notification cc-expression", task, result));
 								message.setBcc(getCcBccAddresses(generalNotifierType.getBccExpression(), variables, "notification bcc-expression", task, result));
 
+								if (attachments != null) {
+									message.setAttachments(attachments);
+								}
+								
                                 getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
                                 transport.send(message, transportName, event, task, result);
                             } else {
@@ -169,7 +183,7 @@ public class GeneralNotifier extends BaseHandler {
         return true;            // not-applicable notifiers do not stop processing of other notifiers
     }
 
-    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         return true;
     }
 
@@ -184,6 +198,11 @@ public class GeneralNotifier extends BaseHandler {
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
         return null;
     }
+    
+    protected List<NotificationMessageAttachmentType> getAttachment(Event event, GeneralNotifierType generalNotifierType,
+			String transportName, Task task, OperationResult result) {
+		return null;
+	}
 
     protected UserType getDefaultRecipient(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         ObjectType objectType = functions.getObjectType(event.getRequestee(), true, result);
@@ -239,58 +258,37 @@ public class GeneralNotifier extends BaseHandler {
 
     protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
     		Task task, OperationResult result) {
-        if (generalNotifierType.getSubjectExpression() != null) {
-            List<String> subjectList = evaluateExpressionChecked(generalNotifierType.getSubjectExpression(), variables, "subject expression",
-            		task, result);
-            if (subjectList == null || subjectList.isEmpty()) {
-                getLogger().warn("Subject expression for event " + event.getId() + " returned nothing.");
-                return "";
-            }
-            if (subjectList.size() > 1) {
-                getLogger().warn("Subject expression for event " + event.getId() + " returned more than 1 item.");
-            }
-            return subjectList.get(0);
-        } else {
-            return null;
-        }
+    	return getStringFromExpression(event, variables, task, result, generalNotifierType.getSubjectExpression(), "subject", false);
     }
 
     protected String getFromFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
     		Task task, OperationResult result) {
-        if (generalNotifierType.getFromExpression() != null) {
-            List<String> fromList = evaluateExpressionChecked(generalNotifierType.getFromExpression(), variables, "from expression",
-            		task, result);
-            if (fromList == null || fromList.isEmpty()) {
-                getLogger().info("from expression for event " + event.getId() + " returned nothing.");
-                return null;
-            }
-            if (fromList.size() > 1) {
-                getLogger().warn("from expression for event " + event.getId() + " returned more than 1 item.");
-            }
-            return fromList.get(0);
-        } else {
-            return null;
-        }
+    	return getStringFromExpression(event, variables, task, result, generalNotifierType.getFromExpression(), "from", true);
     }
 
     protected String getContentTypeFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
     		Task task, OperationResult result) {
-        if (generalNotifierType.getContentTypeExpression() != null) {
-            List<String> contentTypeList = evaluateExpressionChecked(generalNotifierType.getContentTypeExpression(), variables, "contentType expression",
+    	return getStringFromExpression(event, variables, task, result, generalNotifierType.getContentTypeExpression(), "contentType", true);
+    }
+    
+    protected String getStringFromExpression(Event event, ExpressionVariables variables,
+    		Task task, OperationResult result, ExpressionType expression, String expressionTypeName, boolean canBeNull) {
+        if (expression != null) {
+        	List<String> contentTypeList = evaluateExpressionChecked(expression, variables, expressionTypeName + " expression",
             		task, result);
             if (contentTypeList == null || contentTypeList.isEmpty()) {
-                getLogger().info("contentType expression for event " + event.getId() + " returned nothing.");
-                return null;
+                getLogger().info(expressionTypeName + " expression for event " + event.getId() + " returned nothing.");
+                return canBeNull ? null : "";
             }
             if (contentTypeList.size() > 1) {
-                getLogger().warn("contentType expression for event " + event.getId() + " returned more than 1 item.");
+                getLogger().warn(expressionTypeName + " expression for event " + event.getId() + " returned more than 1 item.");
             }
             return contentTypeList.get(0);
         } else {
             return null;
         }
     }
-
+    
     protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
     		Task task, OperationResult result) {
         if (generalNotifierType.getBodyExpression() != null) {
@@ -309,7 +307,22 @@ public class GeneralNotifier extends BaseHandler {
             return null;
         }
     }
-
+    
+    protected List<NotificationMessageAttachmentType> getAttachementsFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
+    		Task task, OperationResult result) {
+        if (generalNotifierType.getAttachmentExpression() != null) {
+        	List<NotificationMessageAttachmentType> attachment = evaluateNotificationMessageAttachmentTypeExpressionChecked(generalNotifierType.getAttachmentExpression(), variables, "contentType expression",
+            		task, result);
+            if (attachment == null) {
+                getLogger().info("attachment expression for event " + event.getId() + " returned nothing.");
+                return null;
+            }
+            return attachment;
+        } else {
+            return null;
+        }
+    }
+    
     // TODO implement more efficiently
     // precondition: delta is MODIFY delta
     protected boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {

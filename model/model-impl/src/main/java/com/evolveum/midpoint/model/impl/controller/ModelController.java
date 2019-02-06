@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -83,6 +85,8 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -1927,7 +1931,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return task;
     }
 
-    @Override
+	@Override
     public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
         return taskManager.deactivateServiceThreads(timeToWait, parentResult);
@@ -2262,7 +2266,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 			XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 			ObjectDelta<CaseType> delta = prismContext.deltaFor(CaseType.class)
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT).replace(output)
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).replace(output.getOutcome())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT).replace(output.getComment())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE).replace(output.getEvidence())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_CONTENT_TYPE).replace(output.getEvidenceContentType())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_FILENAME).replace(output.getEvidenceFilename())
 					.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
 					.item(CaseType.F_OUTCOME).replace(output != null ? output.getOutcome() : null)
 					.item(CaseType.F_CLOSE_TIMESTAMP).replace(now)

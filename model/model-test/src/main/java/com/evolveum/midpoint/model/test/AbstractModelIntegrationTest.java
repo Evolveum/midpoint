@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,8 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
@@ -104,10 +105,12 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.test.asserter.ArchetypeInteractionSpecificationAsserter;
+import com.evolveum.midpoint.model.test.asserter.AssignmentObjectRelationsAsserter;
+import com.evolveum.midpoint.model.test.asserter.AssignmentCandidatesSpecificationAsserter;
 import com.evolveum.midpoint.model.test.asserter.CompiledUserProfileAsserter;
 import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
@@ -152,10 +155,12 @@ import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+import com.evolveum.midpoint.test.asserter.ArchetypePolicyAsserter;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.OrgAsserter;
+import com.evolveum.midpoint.test.asserter.ResourceAsserter;
 import com.evolveum.midpoint.test.asserter.RoleAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
@@ -178,6 +183,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
@@ -802,13 +808,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
 	}
 	
-	protected void unassignRole(Class<? extends FocusType> focusClass, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+	protected void unassignRole(Class<? extends AssignmentHolderType> focusClass, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 		PolicyViolationException, SecurityViolationException {
 		unassignRole(focusClass, focusOid, roleOid, (ActivationType) null, task, result);
 	}
 	
-	protected void unassignRole(Class<? extends FocusType> focusClass, String focusOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
+	protected void unassignRole(Class<? extends AssignmentHolderType> focusClass, String focusOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
 		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 		PolicyViolationException, SecurityViolationException {
 		modifyAssignmentHolderAssignment(focusClass, focusOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
@@ -1578,6 +1584,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		return modelService.executeChanges(deltas, options, task, result);
 	}
+	
+	protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		display("Executing deltas", deltas);
+		return modelService.executeChanges(deltas, options, task, result);
+	}
 
 	protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChangesAssertSuccess(ObjectDelta<O> objectDelta, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Collection<ObjectDeltaOperation<? extends ObjectType>> rv = executeChanges(objectDelta, options, task, result);
@@ -2344,7 +2355,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		display(message, sb.toString());
 	}
 
-	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
+	protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedNumber);
 	}
 
@@ -2352,11 +2363,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertInducements(role, expectedNumber);
 	}
 
-	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
+	protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedType, expectedNumber);
 	}
 
-	protected <F extends FocusType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
+	protected <F extends AssignmentHolderType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		MidPointAsserts.assertAssigned(user, targetOid, refType);
 	}
 
@@ -3596,9 +3607,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected <O extends ObjectType> String addObject(PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> addDelta = object.createAddDelta();
-        modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), options, task, result);
-        object.setOid(addDelta.getOid());
-        return addDelta.getOid();
+        assertFalse("Immutable object provided?",addDelta.getObjectToAdd().isImmutable());
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(addDelta, options, task, result);
+        object.setOid(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas));
+        return object.getOid();
 	}
 
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -3862,11 +3874,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return account;
 	}
 
-	protected void assertDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException, InterruptedException {
-		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
-		assertNotNull("No dummy("+dummyInstanceName+") account for id "+id, account);
+	protected DummyAccountAsserter<Void> assertDummyAccountById(String dummyResourceName, String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		return getDummyResourceController(dummyResourceName).assertAccountById(id);
 	}
-
+	
 	protected void assertNoDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
 		assertNull("Dummy(" + dummyInstanceName + ") account for id " + id + " exists while not expecting it", account);
@@ -5483,12 +5494,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return null;
 	}
 	
-	protected void initializeAsserter(AbstractAsserter<?> asserter) {
-		asserter.setPrismContext(prismContext);
-		asserter.setObjectResolver(repoSimpleObjectResolver);
-		asserter.setProtector(protector);
-	}
-
 	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = assertUser(oid, "after");
 		asserter.assertOid(oid);
@@ -5569,6 +5574,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		RoleAsserter<Void> asserter = RoleAsserter.forRole(role, message);
 		initializeAsserter(asserter);
 		asserter.display();
+		return asserter;
+	}
+	
+	protected RoleAsserter<Void> assertRoleBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		RoleAsserter<Void> asserter = assertRole(oid, "before");
 		return asserter;
 	}
 	
@@ -5681,6 +5691,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			// Expected
 			assertFailure(result);
 		}
+	}
+	
+	protected ResourceAsserter<Void> assertResource(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ResourceType> resource = getObject(ResourceType.class, oid);
+		return assertResource(resource, message);
+	}
+	
+	protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> user, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ResourceAsserter<Void> asserter = ResourceAsserter.forResource(user, message);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+	
+	protected ResourceAsserter<Void> assertResourceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ResourceAsserter<Void> asserter = assertResource(oid, "after");
+		asserter.assertOid(oid);
+		return asserter;
 	}
 	
 	protected <O extends ObjectType> ModelContextAsserter<O,Void> assertPreviewContext(ModelContext<O> previewContext) {
@@ -6151,11 +6179,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			AssertJUnit.fail(msg);
 		}
 	}
+		
+	protected <O extends AssignmentHolderType> ArchetypePolicyAsserter<Void> assertArchetypePolicy(PrismObject<O> object) throws SchemaException, ConfigurationException {
+		OperationResult result = new OperationResult("assertArchetypePolicy");
+		ArchetypePolicyType archetypePolicy = modelInteractionService.determineArchetypePolicy(object, result);
+		ArchetypePolicyAsserter<Void> asserter = new ArchetypePolicyAsserter<>(archetypePolicy, null, "for "+object);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+
+	protected <O extends AssignmentHolderType> AssignmentCandidatesSpecificationAsserter<Void> assertAssignmentTargetSpecification(PrismObject<O> object) throws SchemaException, ConfigurationException {
+		OperationResult result = new OperationResult("assertAssignmentTargetSpecification");
+		AssignmentCandidatesSpecification targetSpec = modelInteractionService.determineAssignmentTargetSpecification(object, result);
+		AssignmentCandidatesSpecificationAsserter<Void> asserter = new AssignmentCandidatesSpecificationAsserter<>(targetSpec, null, "targets for "+object);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
 	
-	protected <O extends ObjectType> ArchetypeInteractionSpecificationAsserter<Void> assertArchetypeSpec(PrismObject<O> object) throws SchemaException, ConfigurationException {
-		OperationResult result = new OperationResult("assertArchetypeSpec");
-		ArchetypeInteractionSpecification archetypeSpec = modelInteractionService.getInteractionSpecification(object, result);
-		ArchetypeInteractionSpecificationAsserter<Void> asserter = new ArchetypeInteractionSpecificationAsserter<>(archetypeSpec, null, "for "+object);
+	protected <O extends AbstractRoleType> AssignmentCandidatesSpecificationAsserter<Void> assertAssignmentHolderSpecification(PrismObject<O> object) throws SchemaException, ConfigurationException {
+		OperationResult result = new OperationResult("assertAssignmentHolderSpecification");
+		AssignmentCandidatesSpecification targetSpec = modelInteractionService.determineAssignmentHolderSpecification(object, result);
+		AssignmentCandidatesSpecificationAsserter<Void> asserter = new AssignmentCandidatesSpecificationAsserter<>(targetSpec, null, "holders for "+object);
 		initializeAsserter(asserter);
 		asserter.display();
 		return asserter;

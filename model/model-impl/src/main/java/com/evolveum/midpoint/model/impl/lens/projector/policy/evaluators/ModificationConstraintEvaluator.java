@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +47,7 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
 	@Autowired protected RelationRegistry relationRegistry;
 
 	@NotNull
-	protected <F extends FocusType> String createStateKey(PolicyRuleEvaluationContext<F> rctx) {
+	protected <AH extends AssignmentHolderType> String createStateKey(PolicyRuleEvaluationContext<AH> rctx) {
 		ModelState state = rctx.lensContext.getState();
 		String stateKey;
 		if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {

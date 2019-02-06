@@ -161,10 +161,12 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                                     PrismContainerValue associationValue = ((ContainerValueWrapper) associationValueWrapper).getContainerValue();
                                     ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
                                     if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null ||
-                                            ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null) {
+                                            ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(),
+                                                    ConstructionAssociationPanel.this.getPageBase().getPrismContext()) == null) {
                                         return;
                                     }
-                                    List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression());
+                                    List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(),
+                                            ConstructionAssociationPanel.this.getPageBase().getPrismContext());
                                     shadowRefList.forEach(shadowRef -> {
                                         if (shadowRef.equals(removedShadowRef)) {
                                             ((ContainerValueWrapper) associationValueWrapper).setStatus(ValueStatus.DELETED);
@@ -201,14 +203,16 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                     PrismContainerValue associationValue = ((ContainerValueWrapper) associationValueWrapper).getContainerValue();
                     ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
                     if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
-                            || (ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null
+                            || (ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(),
+                            ConstructionAssociationPanel.this.getPageBase().getPrismContext()) == null
                             && !ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         return;
                     }
                     QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                     if ((defName != null && defName.equals(assocRef))
                             || (assocRef == null && ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
-                        shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                        shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(),
+                                ConstructionAssociationPanel.this.getPageBase().getPrismContext()));
                     }
                 });
                 return shadowsList;
@@ -226,16 +230,16 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
             PrismContainerValue associationValue = ((ContainerValueWrapper) associationValueWrapper).getContainerValue();
             ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
             if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
-                    || ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null) {
+                    || ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(), getPageBase().getPrismContext()) == null) {
                 return;
             }
             if (compareName) {
                 QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                 if (name != null && name.equals(assocRef)) {
-                    shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                    shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(), getPageBase().getPrismContext()));
                 }
             } else {
-                shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(), getPageBase().getPrismContext()));
             }
         });
         return shadowsList;

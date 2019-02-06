@@ -90,18 +90,24 @@ public class ContextFactory {
                 if (focusDelta != null) {
                     throw new IllegalStateException("More than one focus delta used in model operation");
                 }
-				focusDelta = (ObjectDelta<F>) delta;
+                // Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
+                // And we do not want to touch request delta. It may even be immutable.
+				focusDelta = (ObjectDelta<F>) delta.clone();
 			} else if (isProjectionClass(typeClass)) {
 				if (confDelta != null) {
 					throw new IllegalArgumentException("Mixed configuration and projection deltas in one executeChanges invocation");
 				}
-
-				projectionDeltas.add((ObjectDelta<ShadowType>) delta);
+				// Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
+                // And we do not want to touch request delta. It may even be immutable.
+				ObjectDelta<ShadowType> projectionDelta = (ObjectDelta<ShadowType>) delta.clone();
+				projectionDeltas.add(projectionDelta);
 			} else {
 				if (confDelta != null) {
 					throw new IllegalArgumentException("More than one configuration delta in a single executeChanges invovation");
 				}
-				confDelta = delta;
+				// Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
+                // And we do not want to touch request delta. It may even be immutable.
+				confDelta = delta.clone();
 			}
 		}
 
@@ -157,6 +163,7 @@ public class ContextFactory {
 
 		if (InternalsConfig.consistencyChecks) context.checkConsistence();
 
+		context.finishBuild();
 		return context;
 	}
 

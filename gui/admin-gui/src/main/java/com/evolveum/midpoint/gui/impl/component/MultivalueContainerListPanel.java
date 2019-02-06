@@ -15,12 +15,17 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -66,7 +71,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
  * @author skublik
  */
 
-public abstract class MultivalueContainerListPanel<C extends Containerable> extends BasePanel<ContainerWrapper<C>> {
+public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends BasePanel<ContainerWrapper<C>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -235,18 +240,42 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		return getNewItemButton(id);
 	}
 	
-	public AjaxIconButton getNewItemButton(String id) {
-		AjaxIconButton newObjectIcon = new AjaxIconButton(id, new Model<>("fa fa-plus"),
-				getNewObjectButtonTitleModel()) {
+	public MultifunctionalButton<S> getNewItemButton(String id) {
+		MultifunctionalButton<S> newObjectIcon =
+				new MultifunctionalButton<S>(id) {
+					private static final long serialVersionUID = 1L;
 
-			private static final long serialVersionUID = 1L;
+					@Override
+					protected List<S> getAdditionalButtonsObjects() {
+						return getNewObjectInfluencesList();
+					}
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				newItemPerformed(target);
-			}
-		};
+					@Override
+					protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject) {
+						List<S> additionalButtonObjects = getNewObjectInfluencesList();
+						if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)) {
+							newItemPerformed(target);
+						} else {
+							newItemPerformed(target, influencingObject);
+						}
+					}
 
+					@Override
+					protected DisplayType getMainButtonDisplayType() {
+						return getNewObjectButtonDisplayType();
+					}
+
+					@Override
+					protected DisplayType getAdditionalButtonDisplayType(S buttonObject) {
+						return getNewObjectAdditionalButtonDisplayType(buttonObject);
+					}
+
+					@Override
+					protected DisplayType getDefaultObjectButtonDisplayType() {
+						return getNewObjectButtonDisplayType();
+					}
+				};
+		newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
 		newObjectIcon.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -260,7 +289,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 				return isNewObjectButtonEnabled();
 			}
 		});
-		newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
+//		newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
 		return newObjectIcon;
 	}
 
@@ -268,8 +297,16 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		return true;
 	}
 
-	protected IModel<String> getNewObjectButtonTitleModel(){
-		return createStringResource("MainObjectListPanel.newObject");
+	protected List<S> getNewObjectInfluencesList(){
+		return new ArrayList<>();
+	}
+
+	protected DisplayType getNewObjectButtonDisplayType(){
+		return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
+	}
+
+	protected DisplayType getNewObjectAdditionalButtonDisplayType(S buttonObject){
+		return null;
 	}
 
 	protected WebMarkupContainer initSearch(String headerId) {
@@ -366,8 +403,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 	protected abstract List<IColumn<ContainerValueWrapper<C>, String>> createColumns();
 	
-	protected abstract void newItemPerformed(AjaxRequestTarget target);
+	protected void newItemPerformed(AjaxRequestTarget target){}
 	
+	protected void newItemPerformed(AjaxRequestTarget target, S influencingObject){}
+
 	public BoxedTablePanel<ContainerValueWrapper<C>> getItemTable() {
 		return (BoxedTablePanel<ContainerValueWrapper<C>>) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
 	}

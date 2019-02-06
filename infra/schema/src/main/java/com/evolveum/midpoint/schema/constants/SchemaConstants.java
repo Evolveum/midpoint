@@ -602,4 +602,11 @@ public abstract class SchemaConstants {
 
 	public static final ItemPath PATH_PARENT = ItemPath.create(PrismConstants.T_PARENT);
 	public static final ItemPath PATH_OBJECT_REFERENCE = ItemPath.create(PrismConstants.T_OBJECT_REFERENCE);
+	
+	//task stages
+	private static final String RECON_HANDLER = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3";
+	public static final String DRY_RUN_URI = RECON_HANDLER + "#dryRun";
+	public static final String SIMULATE_URI = RECON_HANDLER + "#simulate";
+	public static final String EXECUTE_URI = RECON_HANDLER + "#execute";
+	
 }

@@ -29,11 +29,15 @@ public interface MidpointConfiguration {
 	String MIDPOINT_LOGGING_ALT_ENABLED_PROPERTY = "midpoint.logging.alt.enabled";
 	String MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY = "midpoint.logging.alt.filename";
 	String MIDPOINT_LOGGING_ALT_PREFIX_PROPERTY = "midpoint.logging.alt.prefix";
+	String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
+	String MIDPOINT_NODE_ID_SOURCE_PROPERTY = "midpoint.nodeIdSource";
+	@Deprecated String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
+	String MIDPOINT_URL_PROPERTY = "midpoint.url";
+	String MIDPOINT_HOST_NAME_PROPERTY = "midpoint.hostName";
+	String MIDPOINT_HTTP_PORT_PROPERTY = "midpoint.httpPort";
 
 	// TODO read these from the MidpointConfiguration instead of system properties.
 	// It will provide greater flexibility, as the administrator will be able to set them permanently in config.xml.
-	String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
-	String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
 	String MIDPOINT_SCHRODINGER_PROPERTY = "midpoint.schrodinger";
 
 	// names of configuration sections

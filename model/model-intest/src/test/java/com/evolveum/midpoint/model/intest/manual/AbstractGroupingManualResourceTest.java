@@ -340,7 +340,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadow(shadowProvisioningFuture);
+		assertShadowSanity(shadowProvisioningFuture);
 
 		assertNull("Unexpected async reference in result", willSecondLastCaseOid);
 	}
@@ -467,7 +467,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadow(shadowProvisioningFuture);
+		assertShadowSanity(shadowProvisioningFuture);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		

@@ -46,6 +46,7 @@ import java.util.function.Function;
 public class SecurityUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
+	private static final long GET_LOCAL_NAME_THRESHOLD = 2000;
 
 	@NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
 
@@ -300,15 +301,19 @@ public class SecurityUtil {
 		}
 		ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) attr;
 		HttpServletRequest request = servletRequestAttributes.getRequest();
-		if (request == null) {
-			return null;
-		}
 		HttpConnectionInformation rv = new HttpConnectionInformation();
 		HttpSession session = request.getSession(false);
 		if (session != null) {
 			rv.setSessionId(session.getId());
 		}
+		long start = System.currentTimeMillis();
 		rv.setLocalHostName(request.getLocalName());
+		long delta = System.currentTimeMillis() - start;
+		if (delta > GET_LOCAL_NAME_THRESHOLD) {
+			LOGGER.warn("getLocalName() on HTTP request took {} milliseconds that is too long; "
+							+ "please check your DNS configuration. Local name = {}, local address = {}", delta,
+					request.getLocalName(), request.getLocalAddr());
+		}
 		rv.setRemoteHostAddress(getRemoteHostAddress(request));
 		return rv;
 	}

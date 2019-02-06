@@ -62,8 +62,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
 	@Override
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+			PolicyRuleEvaluationContext<AH> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		boolean shouldExist = QNameUtil.match(constraintElement.getName(), PolicyConstraintsType.F_HAS_ASSIGNMENT);
 		HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();
@@ -124,8 +124,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 		return createTriggerIfShouldNotExist(shouldExist, constraintElement, ctx, result);
 	}
 
-	private <F extends FocusType> LocalizableMessage createPositiveMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> ctx, PrismObject<?> target, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createPositiveMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+			PolicyRuleEvaluationContext<AH> ctx, PrismObject<?> target, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
@@ -135,8 +135,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
-	private <F extends FocusType> LocalizableMessage createPositiveShortMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> ctx, PrismObject<?> target, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createPositiveShortMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+			PolicyRuleEvaluationContext<AH> ctx, PrismObject<?> target, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
@@ -146,8 +146,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 		return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
-	private <F extends FocusType> LocalizableMessage createNegativeMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> ctx, QName targetType, String targetOid, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createNegativeMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+			PolicyRuleEvaluationContext<AH> ctx, QName targetType, String targetOid, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
@@ -158,8 +158,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
-	private <F extends FocusType> LocalizableMessage createNegativeShortMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> ctx, QName targetType, String targetOid, OperationResult result)
+	private <AH extends AssignmentHolderType> LocalizableMessage createNegativeShortMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+			PolicyRuleEvaluationContext<AH> ctx, QName targetType, String targetOid, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)

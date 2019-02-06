@@ -22,19 +22,19 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,7 +46,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -105,7 +104,8 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
 
             @Override
             public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(RoleCatalogItemButton.this.getModelObject());
+                return isAuthorizedForTargetObjectDetailsPage(getModelObject())
+                        && (isMultiUserRequest() || canAssign(RoleCatalogItemButton.this.getModelObject()));
             }
         });
         inner.add(new AttributeAppender("title", getModelObject().getName()));
@@ -127,7 +127,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
                 assignmentDetailsPerformed(RoleCatalogItemButton.this.getModelObject(), ajaxRequestTarget);
             }
         };
-        detailsLink.add(getFooterLinksEnableBehaviour());
+        detailsLink.add(getAssignmentDetailsLinkVisibleBehavior());
         detailsLink.add(AttributeAppender.append("title",
                 AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(getPageBase())));
         detailsLink.add(AttributeAppender.append("class", new LoadableModel<String>() {
@@ -150,7 +150,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             }
 
         };
-        detailsLinkIcon.add(getFooterLinksEnableBehaviour());
+        detailsLinkIcon.add(getAssignmentDetailsLinkVisibleBehavior());
         detailsLink.add(detailsLinkIcon);
 
         AjaxLink addToCartLink = new AjaxLink(ID_ADD_TO_CART_LINK) {
@@ -265,6 +265,15 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         };
     }
 
+    private VisibleBehaviour getAssignmentDetailsLinkVisibleBehavior(){
+        return new VisibleBehaviour(() -> {
+            int assignmentsLimit = getRoleCatalogStorage().getAssignmentRequestLimit();
+            boolean isAuthorized = WebComponentUtil.isAuthorized(PageSelf.AUTH_SELF_ALL_URI, AuthorizationConstants.AUTZ_UI_SELF_ASSIGNMENT_DETAILS_URL);
+            return isAuthorized && !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, RoleCatalogItemButton.this.getPageBase())
+                    && (isMultiUserRequest() || canAssign(getModelObject()));
+        });
+    }
+
     private void assignmentDetailsPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
         if (!plusIconClicked) {
             assignment.setMinimized(false);
@@ -274,6 +283,20 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         } else {
             plusIconClicked = false;
         }
+    }
+
+    private boolean isAuthorizedForTargetObjectDetailsPage(AssignmentEditorDto assignment){
+        if (assignment.getTargetRef() == null || assignment.getTargetRef().getOid() == null){
+            return false;
+        }
+        if (AssignmentEditorDtoType.ORG_UNIT.equals(assignment.getType())){
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL);
+        } else if (AssignmentEditorDtoType.ROLE.equals(assignment.getType())){
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_UI_ROLE_URL, AuthorizationConstants.AUTZ_UI_ROLE_DETAILS_URL);
+        } else if (AssignmentEditorDtoType.SERVICE.equals(assignment.getType())){
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_UI_SERVICE_URL);
+        }
+        return false;
     }
 
     private void targetObjectDetailsPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){

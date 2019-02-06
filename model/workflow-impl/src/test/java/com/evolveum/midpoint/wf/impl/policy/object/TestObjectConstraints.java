@@ -158,7 +158,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 
 					@Override
 					protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-						assertObject(employee);
+						assertObjectSanity(employee);
 					}
 
 					@Override

@@ -2,9 +2,9 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -58,7 +58,8 @@ public abstract class PageCases extends PageAdminCases {
         add(mainForm);
 
         LOGGER.trace("Creating casePanel");
-        MainObjectListPanel<CaseType> casePanel = new MainObjectListPanel<CaseType>(
+        MainObjectListPanel<CaseType, CompiledObjectCollectionView> casePanel =
+                new MainObjectListPanel<CaseType, CompiledObjectCollectionView>(
                 ID_CASES_TABLE,
                 CaseType.class,
                 UserProfileStorage.TableId.TABLE_CASES,
@@ -73,7 +74,7 @@ public abstract class PageCases extends PageAdminCases {
             }
 
             @Override
-            protected void newObjectPerformed(AjaxRequestTarget target) {
+            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
                 navigateToNext(PageCase.class);
             }
 
@@ -174,7 +175,7 @@ public abstract class PageCases extends PageAdminCases {
                 cellItem.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(created, PageCases.this);
                     }
                 }));
             }
@@ -198,7 +199,7 @@ public abstract class PageCases extends PageAdminCases {
                 cellItem.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
-                        return WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE);
+                        return WebComponentUtil.getShortDateTimeFormattedValue(closed, PageCases.this);
                     }
                 }));
             }

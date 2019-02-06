@@ -1108,4 +1108,119 @@ public class ModifyTest extends BaseSQLRepoTest {
         display("case fetched from repository", cases.get(0));
     }
 
+    @Test
+    public void test310ModifyCaseWorkItemAssignee() throws Exception {
+        final String TEST_NAME = "test310ModifyCaseWorkItemAssignee";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        final String OLD_OID = "f3285c65-a4fa-4bf3-bd78-3008bcf99d3c";
+        final String NEW_OID = "4cbdc40b-5693-4174-8634-acd3e0b96168";
+
+        PrismObject<CaseType> caseObject = prismContext.createObjectable(CaseType.class)
+                .name("testcase2")
+                .oid("7d0c37f8-26e5-4213-af95-cfde175f3ff7")
+                .state("open")
+                .beginWorkItem()
+                    .id(1L)
+                    .assigneeRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))
+                .<CaseType>end()
+                .asPrismObject();
+        repositoryService.addObject(caseObject, null, result);
+
+        // WHEN
+
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
+                .item(CaseType.F_WORK_ITEM, 1L, CaseWorkItemType.F_ASSIGNEE_REF)
+                    .replace(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
+                .asItemDeltas();
+        repositoryService.modifyObject(CaseType.class, caseObject.getOid(), itemDeltas, getModifyOptions(), result);
+
+        // THEN
+
+        ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+                .item(CaseWorkItemType.F_ASSIGNEE_REF).ref(NEW_OID)
+                .build();
+        List<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
+        assertEquals("Wrong # of work items found", 1, workItems.size());
+
+        System.out.println(workItems.get(0).asPrismContainerValue().debugDump());
+    }
+
+    @Test   // MID-5104
+    public void test350ReplaceAssignmentModifyApprover() throws Exception {
+        final String TEST_NAME = "test350ReplaceAssignmentModifyApprover";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
+                .name("test350")
+                .oid("oid-350")
+                .beginAssignment()
+                    .id(123L)
+                    .targetRef("oid0", RoleType.COMPLEX_TYPE)
+                .<UserType>end()
+                .asPrismObject();
+        repositoryService.addObject(user, null, result);
+
+        // WHEN
+
+        ObjectReferenceType approver1 = new ObjectReferenceType()
+                .oid("approver1-oid").type(UserType.COMPLEX_TYPE).relation(SchemaConstants.ORG_DEFAULT);
+
+        List<ItemDelta<?, ?>> itemDeltas1 = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approver1.clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas1, getModifyOptions(), result);
+
+        // THEN
+    }
+
+    @Test(enabled = false)   // MID-5105
+    public void test360ReplaceModifyApprovers() throws Exception {
+        final String TEST_NAME = "test360ReplaceModifyApprovers";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
+                .name("test360")
+                .oid("oid-360")
+                .asPrismObject();
+        repositoryService.addObject(user, null, result);
+
+        // WHEN
+
+        ObjectReferenceType approver1 = new ObjectReferenceType().oid("approver1-oid");
+        ObjectReferenceType approver1AsUser = new ObjectReferenceType().oid("approver1-oid").type(UserType.COMPLEX_TYPE);
+        ObjectReferenceType approver2AsUser = new ObjectReferenceType().oid("approver2-oid").type(UserType.COMPLEX_TYPE);
+
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approver1.clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas, getModifyOptions(), result);
+
+        itemDeltas = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approver1AsUser.clone(), approver2AsUser.clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas, getModifyOptions(), result);
+
+        // THEN
+
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, user.getOid(), null, result);
+        display("user after", userAfter);
+
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).ref(approver1.getOid())
+                .build();
+        SearchResultList<PrismObject<UserType>> users = repositoryService
+                .searchObjects(UserType.class, query, null, result);
+        assertEquals("Wrong # of users found", 1, users.size());
+    }
+
 }
