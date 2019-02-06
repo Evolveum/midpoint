@@ -165,11 +165,8 @@ public class ShadowManager {
 			OperationResult parentResult) 
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, resourceShadow, prismContext,
-				parentResult);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter:\n{}", query.debugDump());
-		}
+		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, resourceShadow, prismContext, parentResult);
+		LOGGER.trace("Searching for shadow using filter:\n{}", DebugUtil.debugDumpLazily(query));
 
 		 List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 		 MiscSchemaUtil.reduceSearchResult(foundShadows);
@@ -206,8 +203,7 @@ public class ShadowManager {
 		
 		PrismObject<ShadowType> liveShadow = null;
 		for (PrismObject<ShadowType> shadow: shadows) {
-			ShadowType shadowType = shadow.asObjectable();
-			if (!ShadowUtil.isDead(shadowType)) {
+			if (!ShadowUtil.isDead(shadow)) {
 				if (liveShadow == null) {
 					liveShadow = shadow;
 				} else {
@@ -424,23 +420,23 @@ public class ShadowManager {
 	}
 
     // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
-	public PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
-			OperationResult parentResult) throws SchemaException, CommunicationException,
-			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
+    PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
+		    OperationResult parentResult) throws SchemaException, CommunicationException,
+			ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
 
 		// Try to locate existing shadow in the repository
-		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(ctx, change, parentResult);
+		List<PrismObject<ShadowType>> accountList = searchShadowByIdentifiers(ctx, change, parentResult);
 
 		// We normally do not want dead shadows here. Normally we should not receive any change notifications about dead
 		// shadows anyway. And dead shadows may get into the way. E.g. account is deleted and then it is quickly re-created.
 		// In that case we will get ADD change notification and there is a dead shadow in repo. But we do not want to use that
 		// dead shadow. The notification is about a new (re-create) account. We want to create new shadow.
-		PrismObject<ShadowType> foundShadow = eliminateDeadShadows(accountList, parentResult);
+		PrismObject<ShadowType> foundLiveShadow = eliminateDeadShadows(accountList, parentResult);
 
-		if (foundShadow == null) {
+		if (foundLiveShadow == null) {
 			// account was not found in the repository, create it now
 
-			if ((change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
+			if (change.isDelete()) {
 				if (accountList.isEmpty()) {
 					// Delete. No shadow is OK here.
 					return null;
@@ -451,133 +447,97 @@ public class ShadowManager {
 				
 			} else {
 
-				foundShadow = createNewShadowFromChange(ctx, change, parentResult);
+				foundLiveShadow = createNewShadowFromChange(ctx, change, parentResult);
 
 				try {
-					ConstraintsChecker.onShadowAddOperation(foundShadow.asObjectable());
-					String oid = repositoryService.addObject(foundShadow, null, parentResult);
-					foundShadow.setOid(oid);
+					ConstraintsChecker.onShadowAddOperation(foundLiveShadow.asObjectable());
+					String oid = repositoryService.addObject(foundLiveShadow, null, parentResult);
+					foundLiveShadow.setOid(oid);
 					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
 						change.getObjectDelta().setOid(oid);
 					}
 				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add " + foundShadow + " to the repository. Reason: " + e.getMessage(), e);
+					parentResult.recordFatalError("Can't add " + foundLiveShadow + " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}
-				LOGGER.debug("Added new shadow (from change): {}", foundShadow);
+				LOGGER.debug("Added new shadow (from change): {}", foundLiveShadow);
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Added new shadow (from change):\n{}", foundShadow.debugDump(1));
+					LOGGER.trace("Added new shadow (from change):\n{}", foundLiveShadow.debugDump(1));
 				}
 			}
 
+		} else {
+			// TODO in the case of delete: should we do here the same as in findOrAddShadowFromChangeOnDelete, i.e. mark the shadow as dead?
+			// (probably not; it looks like the same is executed in preProcessChange by calling markAsTombstone)
 		}
 
-		return foundShadow;
+		return foundLiveShadow;
 	}
 	
-	// This is really invoked only for delete case. It is mostly copy&paste with findOrAddShadowFromChange.
+	// This is really invoked only for delete case. It is partially copy&paste with findOrAddShadowFromChange.
 	// TODO: not very elegant, cleanup
-	public PrismObject<ShadowType> findOrAddShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change change,
+	PrismObject<ShadowType> findOrAddShadowFromChangeOnDelete(ProvisioningContext globalCtx, Change change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
-			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
+			ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		// Try to locate existing shadow in the repository
-		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(globalCtx, change, parentResult);
+		List<PrismObject<ShadowType>> accountList = searchShadowByIdentifiers(globalCtx, change, parentResult);
 		
 		// We normally do not want dead shadows here. Normally we should not receive any change notifications about dead
 		// shadows anyway. And dead shadows may get into the way. E.g. account is deleted and then it is quickly re-created.
 		// In that case we will get ADD change notification and there is a dead shadow in repo. But we do not want to use that
 		// dead shadow. The notification is about a new (re-create) account. We want to create new shadow.
 		PrismObject<ShadowType> newShadow = eliminateDeadShadows(accountList, parentResult);
-		
+
+		assert change.isDelete();
 		if (newShadow == null) {
-			
-			if ((change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
-				if (accountList.isEmpty()) {
-					// Delete. No shadow is OK here.
-					return null;
-				} else {
-					// Delete of shadow that is already dead.
-					return accountList.get(0);
-				}
-				
+			if (accountList.isEmpty()) {
+				// Delete. No shadow is OK here.
+				return null;
 			} else {
-				// All situations except delete: create new shadow
-				newShadow = createNewShadowFromChange(globalCtx, change, parentResult);
-
-				try {
-					ConstraintsChecker.onShadowAddOperation(newShadow.asObjectable());
-					String oid = repositoryService.addObject(newShadow, null, parentResult);
-					newShadow.setOid(oid);
-					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-						change.getObjectDelta().setOid(oid);
-					}
-				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
-							+ " to the repository. Reason: " + e.getMessage(), e);
-					throw new IllegalStateException(e.getMessage(), e);
-				}
-				LOGGER.debug("Added new shadow (from global change): {}", newShadow);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Added new shadow (from global change):\n{}", newShadow.debugDump());
-				}
+				// Delete of shadow that is already dead.
+				return accountList.get(0);
 			}
-
 		} else {
 			// Live shadow was found in repository
-			
-            if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-            		List<ItemDelta<?, ?>> deadDeltas = prismContext.deltaFor(ShadowType.class)
-            			.item(ShadowType.F_DEAD).replace(true)
-            			.item(ShadowType.F_EXISTS).replace(false)
-            			.asItemDeltas();
-					try {
-						ConstraintsChecker.onShadowModifyOperation(deadDeltas);
-						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas, parentResult);
-					} catch (ObjectAlreadyExistsException e) {
-						parentResult.recordFatalError(
-								"Can't add " + newShadow + " to the repository. Reason: " + e.getMessage(), e);
-						throw new IllegalStateException(e.getMessage(), e);
-					} catch (ObjectNotFoundException e) {
-						parentResult.recordWarning("Shadow " + newShadow + " was probably deleted from the repository in the meantime. Exception: "
-								+ e.getMessage(), e);
-						return null;
-					}
-					
-					ObjectDeltaUtil.applyTo(newShadow, deadDeltas);
-				} 
-		}
+			// TODO consider eliminating this, as it is covered by call to markAsTombstone in preProcessChange
 
+			List<ItemDelta<?, ?>> deadDeltas = prismContext.deltaFor(ShadowType.class)
+					.item(ShadowType.F_DEAD).replace(true)
+					.item(ShadowType.F_EXISTS).replace(false)
+					.asItemDeltas();
+			try {
+				ConstraintsChecker.onShadowModifyOperation(deadDeltas);
+				repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas, parentResult);
+			} catch (ObjectAlreadyExistsException e) {
+				parentResult.recordFatalError(
+						"Can't add " + newShadow + " to the repository. Reason: " + e.getMessage(), e);
+				throw new IllegalStateException(e.getMessage(), e);
+			} catch (ObjectNotFoundException e) {
+				parentResult.recordWarning("Shadow " + newShadow + " was probably deleted from the repository in the meantime. Exception: "
+						+ e.getMessage(), e);
+				return null;
+			}
+			ObjectDeltaUtil.applyTo(newShadow, deadDeltas);
+		}
 		return newShadow;
 	}
 	
 	private PrismObject<ShadowType> createNewShadowFromChange(ProvisioningContext ctx, Change change,
-			OperationResult parentResult) throws SchemaException,
-			CommunicationException, ConfigurationException,
-			SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
+			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
+			ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
+
+		assert !change.isDelete();
 
 		PrismObject<ShadowType> shadow = change.getCurrentShadow();
 		
-		if (shadow == null){
-			//try to look in the delta, if there exists some account to be added
-			if (change.getObjectDelta() != null) {
-				if (change.getObjectDelta().isAdd()) {
-					shadow = (PrismObject<ShadowType>) change.getObjectDelta().getObjectToAdd();
-				} else if (change.getObjectDelta().isDelete()) {
-					// Sanity checks. We can remove them later when entire sync code is cleaned up.
-					ShadowType shadowType = shadow.asObjectable();
-					if (!ShadowUtil.isDead(shadowType)) {
-						throw new IllegalStateException("Deleted "+shadow+" not dead");
-					}
-					if (ShadowUtil.isExists(shadowType)) {
-						throw new IllegalStateException("Deleted "+shadow+" exists");
-					}
-				}
+		if (shadow == null) {
+			if (change.isAdd()) {
+				shadow = change.getObjectDelta().getObjectToAdd();
+				assert shadow != null;
+			} else {
+				throw new IllegalStateException("Could not create shadow from change description. Neither current shadow, nor delta containing shadow exists.");
 			}
-		}
-		
-		if (shadow == null){
-			throw new IllegalStateException("Could not create shadow from change description. Neither current shadow, nor delta containing shadow exits.");
 		}
 		
 		try {
@@ -593,13 +553,13 @@ public class ShadowManager {
 		return shadow;
 	}
 	
-	private List<PrismObject<ShadowType>> searchShadowByIdenifiers(ProvisioningContext ctx, Change change, OperationResult parentResult)
+	private List<PrismObject<ShadowType>> searchShadowByIdentifiers(ProvisioningContext ctx, Change change, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
 		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
 		ObjectQuery query = createSearchShadowQuery(ctx, identifiers, true, prismContext, parentResult);
 
-		List<PrismObject<ShadowType>> accountList = null;
+		List<PrismObject<ShadowType>> accountList;
 		try {
 			accountList = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 		} catch (SchemaException ex) {
@@ -1998,7 +1958,7 @@ public class ShadowManager {
 			repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
 		} catch (ObjectAlreadyExistsException e) {
 			// Should not happen, this is not a rename
-			new SystemException(e.getMessage(), e);
+			throw new SystemException(e.getMessage(), e);
 		} catch (ObjectNotFoundException e) {
 			// Cannot be more dead
 			LOGGER.trace("Attempt to mark shadow {} as tombstone found that no such shadow exists", repoShadow);

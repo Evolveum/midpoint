@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 public interface ResourceEventListener extends ProvisioningListener {
 
-	public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult)  throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+	void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult)  throws SchemaException,
+			CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException,
+			GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
 }

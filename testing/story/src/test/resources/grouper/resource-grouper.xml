@@ -53,6 +53,22 @@
 			<intent>subject</intent>
 			<objectClass>ri:AccountObjectClass</objectClass>
 			<default>true</default>
+			<attribute>
+				<ref>icfs:name</ref>
+				<inbound>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:privileges</ref>
+				<inbound>
+					<target>
+						<path>organizationalUnit</path>
+					</target>
+				</inbound>
+			</attribute>
 		</objectType>
 		<objectType>
 			<kind>entitlement</kind>
@@ -103,6 +119,9 @@
 			</reaction>
 			<reaction>
 				<situation>unmatched</situation>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+				</action>
 			</reaction>
 		</objectSynchronization>
 		<objectSynchronization>
@@ -144,4 +163,14 @@
 			</reaction>
 		</objectSynchronization>
 	</synchronization>
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+		<configured>
+			<cap:read>
+				<cap:cachingOnly>true</cap:cachingOnly>
+			</cap:read>
+		</configured>
+	</capabilities>
+	<caching>
+		<cachingStategy>passive</cachingStategy>
+	</caching>
 </resource>

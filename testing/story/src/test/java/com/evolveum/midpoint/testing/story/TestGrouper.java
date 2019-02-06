@@ -18,13 +18,26 @@ package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,6 +52,8 @@ import java.io.File;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestGrouper extends AbstractStoryTest {
 
+	@Autowired private ModelCrudService modelCrudService;
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "grouper");
 
 	protected static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper.xml");
@@ -48,10 +63,26 @@ public class TestGrouper extends AbstractStoryTest {
 	public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 	public static final String ORG_TOP_OID = "8fe3acc3-c689-4f77-9512-3d06b5d00dc2";
 
+	public static final String BANDERSON_USERNAME = "banderson";
+	public static final String JLEWIS685_USERNAME = "jlewis685";
+	public static final String ALUMNI_NAME = "ref:alumni";
+	public static final String STAFF_NAME = "ref:staff";
+
+	public static final String GROUPER_USER_INTENT = "subject";
+	public static final String GROUPER_GROUP_INTENT = "group";
+
 	protected static DummyResource dummyResourceGrouper;
 	protected static DummyResourceContoller dummyResourceCtlGrouper;
 	protected ResourceType resourceDummyGrouperType;
 	protected PrismObject<ResourceType> resourceDummyGrouper;
+
+	protected static final File SHADOW_BANDERSON_FILE = new File(TEST_DIR, "shadow-banderson.xml");
+	protected static final File SHADOW_BANDERSON_WITH_GROUPS_FILE = new File(TEST_DIR, "shadow-banderson-with-groups.xml");
+	protected static final File SHADOW_JLEWIS685_FILE = new File(TEST_DIR, "shadow-jlewis685.xml");
+	protected static final File SHADOW_ALUMNI_FILE = new File(TEST_DIR, "shadow-alumni.xml");
+	protected static final File SHADOW_STAFF_FILE = new File(TEST_DIR, "shadow-staff.xml");
+
+	private String lewisShadowOid;
 
 	@Override
 	protected String getTopOrgOid() {
@@ -65,10 +96,12 @@ public class TestGrouper extends AbstractStoryTest {
 		// Resources
 		dummyResourceCtlGrouper = DummyResourceContoller.create(RESOURCE_GROUPER_ID, resourceDummyGrouper);
 		dummyResourceGrouper = dummyResourceCtlGrouper.getDummyResource();
+		dummyResourceGrouper.setSyncStyle(DummySyncStyle.SMART);
+		dummyResourceGrouper.populateWithDefaultSchema();
+
 		resourceDummyGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID, initTask, initResult);
 		resourceDummyGrouperType = resourceDummyGrouper.asObjectable();
 		dummyResourceCtlGrouper.setResource(resourceDummyGrouper);
-		dummyResourceGrouper.setSyncStyle(DummySyncStyle.SMART);
 
 		// Org
 		importObjectFromFile(ORG_TOP_FILE, initResult);
@@ -84,6 +117,242 @@ public class TestGrouper extends AbstractStoryTest {
         TestUtil.assertSuccess(testResultGrouper);
 
         dumpOrgTree();
+	}
+
+	/**
+	 * MEMBER_ADD event for banderson.
+	 */
+	@Test
+    public void test100AddAnderson() throws Exception {
+		final String TEST_NAME = "test100AddAnderson";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // GIVEN
+
+        PrismObject<ShadowType> bandersonShadow = prismContext.parseObject(SHADOW_BANDERSON_FILE);
+		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
+		ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(bandersonShadow);
+		change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
+		change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+
+		// WHEN
+
+        modelCrudService.notifyChange(change, result, task);
+
+        // THEN
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+		assertUserAfterByUsername(BANDERSON_USERNAME)
+				.displayWithProjections()
+				.links()
+					.single()
+					.resolveTarget()
+						.assertKind(ShadowKindType.ACCOUNT)
+						.assertIntent(GROUPER_USER_INTENT)
+						.assertResource(RESOURCE_GROUPER_OID);
+	}
+
+	/**
+	 * MEMBER_ADD event for jlewis685.
+	 */
+	@Test
+    public void test105AddLewis() throws Exception {
+		final String TEST_NAME = "test105AddLewis";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // GIVEN
+
+        PrismObject<ShadowType> lewisShadow = prismContext.parseObject(SHADOW_JLEWIS685_FILE);
+		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
+		ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(lewisShadow);
+		change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
+		change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+
+		// WHEN
+
+        modelCrudService.notifyChange(change, result, task);
+
+        // THEN
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+		lewisShadowOid = assertUserAfterByUsername(JLEWIS685_USERNAME)
+				.displayWithProjections()
+				.links()
+					.single()
+					.resolveTarget()
+						.assertKind(ShadowKindType.ACCOUNT)
+						.assertIntent(GROUPER_USER_INTENT)
+						.assertResource(RESOURCE_GROUPER_OID)
+					.end()
+					.getOid();
+		System.out.println("lewis shadow OID = " + lewisShadowOid);
+	}
+
+	/**
+	 * GROUP_ADD event for ref:alumni.
+	 */
+	@Test
+    public void test110AddAlumni() throws Exception {
+		final String TEST_NAME = "test110AddAlumni";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // GIVEN
+
+        PrismObject<ShadowType> alumniShadow = prismContext.parseObject(SHADOW_ALUMNI_FILE);
+		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
+		ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(alumniShadow);
+		change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
+		change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+
+		// WHEN
+
+        modelCrudService.notifyChange(change, result, task);
+
+        // THEN
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+		assertOrgByName(ALUMNI_NAME, "after")
+				.displayWithProjections()
+				.links()
+					.single()
+					.resolveTarget()
+						.assertKind(ShadowKindType.ENTITLEMENT)
+						.assertIntent(GROUPER_GROUP_INTENT)
+						.assertResource(RESOURCE_GROUPER_OID);
+	}
+
+	/**
+	 * GROUP_ADD event for ref:staff.
+	 */
+	@Test
+    public void test120AddStaff() throws Exception {
+		final String TEST_NAME = "test120AddStaff";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // GIVEN
+
+        PrismObject<ShadowType> staffShadow = prismContext.parseObject(SHADOW_STAFF_FILE);
+		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
+		ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(staffShadow);
+		change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
+		change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+
+		// WHEN
+
+        modelCrudService.notifyChange(change, result, task);
+
+        // THEN
+
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+		assertOrgByName(STAFF_NAME, "after")
+				.displayWithProjections()
+				.links()
+					.single()
+					.resolveTarget()
+						.assertKind(ShadowKindType.ENTITLEMENT)
+						.assertIntent(GROUPER_GROUP_INTENT)
+						.assertResource(RESOURCE_GROUPER_OID);
+	}
+
+	/**
+	 * Adding ref:alumni and ref:staff membership for banderson "the old way" (i.e. by providing full current shadow).
+	 */
+	@Test
+	public void test200AddGroupsForAnderson() throws Exception {
+		final String TEST_NAME = "test200AddGroupsForAnderson";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+
+		PrismObject<ShadowType> bandersonShadow = prismContext.parseObject(SHADOW_BANDERSON_WITH_GROUPS_FILE);
+		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
+		change.setCurrentShadow(bandersonShadow.asObjectable());
+		change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+
+		// WHEN
+
+		modelCrudService.notifyChange(change, result, task);
+
+		// THEN
+
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertUserAfterByUsername(BANDERSON_USERNAME)
+				.displayWithProjections()
+				.assertOrganizationalUnits(ALUMNI_NAME, STAFF_NAME)
+				.links()
+					.single()
+						.resolveTarget()
+							.assertKind(ShadowKindType.ACCOUNT)
+							.assertIntent(GROUPER_USER_INTENT)
+							.assertResource(RESOURCE_GROUPER_OID)
+							.display("shadow after");
+	}
+
+	/**
+	 * Adding ref:alumni membership for jlewis685 "the new way" (i.e. by a delta).
+	 */
+	@Test
+	public void test210AddGroupsForLewis() throws Exception {
+		final String TEST_NAME = "test210AddGroupsForLewis";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+
+		ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyGrouper, prismContext);
+		assert schema != null;
+		ResourceAttributeDefinition<String> privilegeDefinition = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT)
+				.findAttributeDefinition(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+				.item(ItemPath.create(ShadowType.F_ATTRIBUTES, DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME), privilegeDefinition)
+				.add(ALUMNI_NAME)
+				.asObjectDeltaCast(lewisShadowOid);
+
+		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
+		change.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta));
+		change.setOldShadowOid(lewisShadowOid);
+		change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+
+		// WHEN
+
+		modelCrudService.notifyChange(change, result, task);
+
+		// THEN
+
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertUserAfterByUsername(JLEWIS685_USERNAME)
+				.displayWithProjections()
+				.assertOrganizationalUnits(ALUMNI_NAME)
+				.links()
+					.single()
+						.resolveTarget()
+							.assertKind(ShadowKindType.ACCOUNT)
+							.assertIntent(GROUPER_USER_INTENT)
+							.assertResource(RESOURCE_GROUPER_OID)
+							.display("shadow after");
 	}
 
 }

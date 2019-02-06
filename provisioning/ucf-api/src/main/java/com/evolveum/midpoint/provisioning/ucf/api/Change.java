@@ -118,6 +118,14 @@ public final class Change implements DebugDumpable {
 		return identifiers == null && objectDelta == null && currentShadow == null && token != null;
 	}
 
+	public boolean isDelete() {
+		return objectDelta != null && objectDelta.isDelete();
+	}
+
+	// todo what if delta is null, oldShadow is null, current is not null?
+	public boolean isAdd() {
+		return objectDelta != null && objectDelta.isAdd();
+	}
 
 	@Override
 	public String toString() {
