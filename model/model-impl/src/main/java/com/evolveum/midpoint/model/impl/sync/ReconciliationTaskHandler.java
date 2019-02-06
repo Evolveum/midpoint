@@ -24,8 +24,13 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelConstants;
+import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -54,6 +59,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -64,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -77,7 +84,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The task handler for reconciliation.
@@ -119,6 +128,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	private RepositoryService repositoryService;
 	
 	@Autowired private CounterManager counterManager;
+	@Autowired private AssignmentCollector assignmentCollector;
+	@Autowired private SystemObjectCache systemObjectCache;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
@@ -158,7 +169,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	public TaskWorkBucketProcessingResult run(Task localCoordinatorTask, WorkBucketType workBucket,
 			TaskWorkBucketProcessingResult previousRunResult) {
 		
-		counterManager.registerCounter(localCoordinatorTask, false);
+//		counterManager.registerCounter(localCoordinatorTask, false);
 		
 		String handlerUri = localCoordinatorTask.getHandlerUri();
 		Stage stage = getStage(handlerUri);
@@ -187,6 +198,28 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
 		String resourceOid = localCoordinatorTask.getObjectOid();
 		opResult.addContext("resourceOid", resourceOid);
+		
+		try {
+			
+			Collection<EvaluatedAssignment<TaskType>> evaluatedAssignments = assignmentCollector.collect(localCoordinatorTask.getTaskPrismObject(), systemObjectCache.getSystemConfiguration(opResult), false, localCoordinatorTask, opResult);
+			Set<EvaluatedPolicyRule> evaluatedPolicyRules = new HashSet<>(); 
+			
+			LOGGER.info("Evaluated assignments for task: {}", DebugUtil.debugDumpLazily(evaluatedAssignments));
+			
+			for (EvaluatedAssignment<TaskType> evaluatedAssignment : evaluatedAssignments) {
+				LOGGER.info("Evaluated other policy rules for task: {}", DebugUtil.debugDumpLazily(evaluatedAssignment.getOtherTargetsPolicyRules()));
+				evaluatedPolicyRules.addAll(evaluatedAssignment.getOtherTargetsPolicyRules());
+				
+				LOGGER.info("Evaluated focus policy rules for task: {}", DebugUtil.debugDumpLazily(evaluatedAssignment.getFocusPolicyRules()));
+				evaluatedPolicyRules.addAll(evaluatedAssignment.getFocusPolicyRules());
+				
+				LOGGER.info("Evaluated this policy rules for task: {}", DebugUtil.debugDumpLazily(evaluatedAssignment.getThisTargetPolicyRules()));
+				evaluatedPolicyRules.addAll(evaluatedAssignment.getThisTargetPolicyRules());
+			}
+			evaluatedPolicyRules.forEach(policyRule -> counterManager.registerCounter(localCoordinatorTask, policyRule.getPolicyRule()));
+		} catch (SchemaException e) {
+			throw new SystemException("Cannot collect task thresholds.");
+		}
 
 		if (localCoordinatorTask.getChannel() == null) {
 			localCoordinatorTask.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON_URI);

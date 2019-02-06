@@ -442,11 +442,16 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			}
 			if (assignmentType.getPolicyRule() != null && !loginMode) {
 				// We can ignore "reallyValid" for the same reason as for focus mappings.
+				LOGGER.info("###policy rule");
 				if (isNonNegative(relativeMode)) {
+					LOGGER.info("##### is non negative");
 					if (segment.isMatchingOrder()) {
+						LOGGER.info("##### collect focus rules");
 						collectPolicyRule(true, segment, ctx);
 					}
 					if (segment.isMatchingOrderForTarget()) {
+						collectPolicyRule(false, segment, ctx);
+					} else {
 						collectPolicyRule(false, segment, ctx);
 					}
 				}

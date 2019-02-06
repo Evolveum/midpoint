@@ -175,7 +175,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	    LOGGER.trace("{} run starting: local coordinator task {}, bucket {}, previous run result {}", taskName,
 			    localCoordinatorTask, workBucket, previousRunResult);
 	    
-	    counterManager.registerCounter(localCoordinatorTask, false);
+//	    counterManager.registerCounter(localCoordinatorTask, false);
 
 		if (localCoordinatorTask.getOid() == null) {
 			throw new IllegalArgumentException(

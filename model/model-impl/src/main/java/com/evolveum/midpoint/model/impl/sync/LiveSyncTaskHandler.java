@@ -87,7 +87,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	public TaskRunResult run(Task task) {
 		LOGGER.trace("LiveSyncTaskHandler.run starting");
 		
-		counterManager.registerCounter(task, true);
+//		counterManager.registerCounter(task, true);
 
 		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
 		TaskRunResult runResult = new TaskRunResult();

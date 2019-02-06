@@ -80,10 +80,15 @@
 	<logger name="com.evolveum.midpoint.model.impl.controller.SystemConfigurationHandler" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
 	
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector.policy" level="TRACE" />
+	
 	<logger name="org.identityconnectors.framework" level="TRACE" />
 	<logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />
 	
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
+	
+	<logger name="com.evolveum.midpoint.repo.common" level="TRACE" />
+	
 	<logger name="com.evolveum.midpoint.wf" level="TRACE" />
 
 	<root level="INFO">
