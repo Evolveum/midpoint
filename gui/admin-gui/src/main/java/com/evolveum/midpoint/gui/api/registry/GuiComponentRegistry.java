@@ -16,14 +16,16 @@
 
 package com.evolveum.midpoint.gui.api.registry;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 
-public interface GuiComponentRegistry {
+public interface GuiComponentRegistry extends Serializable {
 
 	public void addToRegistry(GuiComponentFactory factory);
 	
-	public <T> GuiComponentFactory findFactory(ItemWrapper itemWrapper);
+	public <T> GuiComponentFactory findFactory(ItemWrapperOld itemWrapper);
 	
 }

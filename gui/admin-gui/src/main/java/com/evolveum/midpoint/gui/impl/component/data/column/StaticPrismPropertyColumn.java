@@ -23,11 +23,11 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 
 /**
@@ -35,7 +35,7 @@ import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
  */
 public class StaticPrismPropertyColumn<C extends Containerable> extends AbstractItemWrapperColumn<C> {
 
-	public StaticPrismPropertyColumn(final IModel<ContainerWrapper<Containerable>> headerModel, ItemName name, PageBase pageBase) {
+	public StaticPrismPropertyColumn(final IModel<ContainerWrapperImpl<Containerable>> headerModel, ItemName name, PageBase pageBase) {
 		super(headerModel == null ? null : getPropertyOrReferenceForHeaderWrapper(headerModel, name, pageBase),
 				pageBase);
 	}

@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 
@@ -27,10 +29,10 @@ import java.util.Comparator;
 /**
  * @author lazyman
  */
-public class ItemWrapperComparator implements Comparator<ItemWrapper>, Serializable {
+public class ItemWrapperComparator implements Comparator<ItemWrapperOld>, Serializable {
 
     @Override
-    public int compare(ItemWrapper p1, ItemWrapper p2) {
+    public int compare(ItemWrapperOld p1, ItemWrapperOld p2) {
         ItemDefinition def1 = p1.getItemDefinition();
         ItemDefinition def2 = p2.getItemDefinition();
 
@@ -78,12 +80,12 @@ public class ItemWrapperComparator implements Comparator<ItemWrapper>, Serializa
         return def.getName().getLocalPart();
     }
 
-    private boolean isMainContainer(ItemWrapper wrapper) {
-        if (!(wrapper instanceof ContainerWrapper)) {
+    private boolean isMainContainer(ItemWrapperOld wrapper) {
+        if (!(wrapper instanceof ContainerWrapperImpl)) {
             return false;
         }
 
-        ContainerWrapper container = (ContainerWrapper) wrapper;
+        ContainerWrapperImpl container = (ContainerWrapperImpl) wrapper;
         return container.isMain();
     }
 }

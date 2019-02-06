@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import org.apache.wicket.model.IModel;
 
@@ -13,7 +13,7 @@ public class PolicyRuleConstraintsExpandablePanel<P extends AbstractPolicyConstr
     private static final String ID_REMOVE_BUTTON = "removeButton";
     private static final String ID_PROPERTIES_CONTAINER = "propertiesContainer";
 
-    private ContainerWrapper policyRuleConstraintsContainerWrapper;
+    private ContainerWrapperImpl policyRuleConstraintsContainerWrapper;
 
     public PolicyRuleConstraintsExpandablePanel(String id, IModel<P> model){
         super(id, model);

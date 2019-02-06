@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.component.prism;
 
 import com.evolveum.midpoint.gui.api.factory.RealValuable;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 
 import org.apache.wicket.AttributeModifier;
@@ -42,7 +42,7 @@ import org.apache.wicket.model.*;
 /**
  * @author lazyman
  */
-public class StaticItemWrapperColumnPanel<IW extends ItemWrapper> extends PrismPropertyColumnPanel<IW> {
+public class StaticItemWrapperColumnPanel<IW extends ItemWrapperOld> extends PrismPropertyColumnPanel<IW> {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(StaticItemWrapperColumnPanel.class);

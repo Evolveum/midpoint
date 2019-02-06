@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.IModel;
@@ -35,7 +35,7 @@ import java.util.List;
  *
  * @author katkav
  */
-public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<List<ContainerWrapper<C>> ,O> {
+public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<List<ContainerWrapperImpl<C>> ,O> {
 
    private static final long serialVersionUID = 1L;
 
@@ -44,7 +44,7 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
     private List<ItemPath> paths;
 
    
-    public ContainerWrapperListFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, List<ItemPath> paths) {
+    public ContainerWrapperListFromObjectWrapperModel(IModel<ObjectWrapperImpl<O>> model, List<ItemPath> paths) {
     	super(model);
 //        Validate.notNull(paths, "Item path must not be null.");
         this.paths = paths;
@@ -56,13 +56,13 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
     }
 
 	@Override
-	public List<ContainerWrapper<C>> getObject() {
-		List<ContainerWrapper<C>> wrappers = new ArrayList<>();
+	public List<ContainerWrapperImpl<C>> getObject() {
+		List<ContainerWrapperImpl<C>> wrappers = new ArrayList<>();
 		if (paths == null) {
 			return (List) getWrapper().getContainers();
 		}
 		for (ItemPath path : paths) {
-			ContainerWrapper<C> containerWrapper = getWrapper().findContainerWrapper(path);
+			ContainerWrapperImpl<C> containerWrapper = getWrapper().findContainerWrapper(path);
 			if (containerWrapper != null) {
 				containerWrapper.setShowEmpty(true, false);
 				wrappers.add(containerWrapper);
@@ -72,7 +72,7 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
 	}
 
 	@Override
-	public void setObject(List<ContainerWrapper<C>> arg0) {
+	public void setObject(List<ContainerWrapperImpl<C>> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
 	}

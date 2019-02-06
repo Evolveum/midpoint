@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
@@ -92,7 +92,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private String taskOid;
 	private IModel<TaskDto> taskDtoModel;
-	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
+	private LoadableModel<ObjectWrapperImpl<TaskType>> objectWrapperModel;
 	private boolean edit = false;
 
 	private TaskDto currentTaskDto, previousTaskDto;
@@ -125,9 +125,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 				}
 			}
 		};
-		objectWrapperModel = new LoadableModel<ObjectWrapper<TaskType>>() {
+		objectWrapperModel = new LoadableModel<ObjectWrapperImpl<TaskType>>() {
 			@Override
-			protected ObjectWrapper<TaskType> load() {
+			protected ObjectWrapperImpl<TaskType> load() {
 				final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
 				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), operationTask, new OperationResult("loadObjectWrapper"));
 			}
@@ -313,7 +313,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			LOGGER.debug("Refreshing task {}", oldTaskDto);
 			TaskType taskType = loadTaskType(oldTaskDto.getOid(), operationTask, result);
 			TaskDto newTaskDto = prepareTaskDto(taskType, true, operationTask, result);
-			final ObjectWrapper<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), operationTask, result);
+			final ObjectWrapperImpl<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), operationTask, result);
 			previousTaskDto = currentTaskDto;
 			currentTaskDto = newTaskDto;
 			taskDtoModel.setObject(newTaskDto);
@@ -328,8 +328,8 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		}
 	}
 
-	protected ObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> object, Task task, OperationResult result) {
-		ObjectWrapper<TaskType> wrapper;
+	protected ObjectWrapperImpl<TaskType> loadObjectWrapper(PrismObject<TaskType> object, Task task, OperationResult result) {
+		ObjectWrapperImpl<TaskType> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
 			object.revive(getPrismContext());		// just to be sure (after deserialization the context is missing in this object)
@@ -360,7 +360,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return taskDtoModel;
 	}
 
-	public LoadableModel<ObjectWrapper<TaskType>> getObjectWrapperModel() {
+	public LoadableModel<ObjectWrapperImpl<TaskType>> getObjectWrapperModel() {
 		return objectWrapperModel;
 	}
 

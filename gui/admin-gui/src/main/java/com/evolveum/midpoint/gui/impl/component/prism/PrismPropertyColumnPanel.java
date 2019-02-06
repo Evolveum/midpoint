@@ -21,15 +21,15 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 
 /**
  * @author lazyman
  */
-public class PrismPropertyColumnPanel<IW extends ItemWrapper> extends PrismPropertyPanel<IW> {
+public class PrismPropertyColumnPanel<IW extends ItemWrapperOld> extends PrismPropertyPanel<IW> {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyColumnPanel.class);

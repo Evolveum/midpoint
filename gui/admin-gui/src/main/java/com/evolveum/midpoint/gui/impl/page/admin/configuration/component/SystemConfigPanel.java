@@ -23,13 +23,13 @@ import java.util.List;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class SystemConfigPanel extends BasePanel<ObjectWrapper<SystemConfigurationType>> {
+public class SystemConfigPanel extends BasePanel<ObjectWrapperImpl<SystemConfigurationType>> {
 	
     private static final long serialVersionUID = 1L;
     
@@ -46,7 +46,7 @@ public class SystemConfigPanel extends BasePanel<ObjectWrapper<SystemConfigurati
     private static final String ID_SYSTEM_CONFIG = "basicSystemConfiguration";
 
     
-    public SystemConfigPanel(String id, IModel<ObjectWrapper<SystemConfigurationType>> model) {
+    public SystemConfigPanel(String id, IModel<ObjectWrapperImpl<SystemConfigurationType>> model) {
         super(id, model);
 
         setOutputMarkupId(true);
@@ -73,7 +73,7 @@ public class SystemConfigPanel extends BasePanel<ObjectWrapper<SystemConfigurati
 		return paths;
 	}
 	
-	private ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper) {
+	private ItemVisibility getBasicTabVisibity(ItemWrapperOld itemWrapper) {
 		if(itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(ItemPath.EMPTY_PATH, SystemConfigurationType.F_DESCRIPTION)) || itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(
 				ItemPath.EMPTY_PATH, SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF))) {
 			return ItemVisibility.AUTO;

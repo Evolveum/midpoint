@@ -29,7 +29,10 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
@@ -38,6 +41,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
@@ -50,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  *
  * @author mederly
  */
-public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapper<I, ID, ValueWrapper>, Serializable {
+public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapperOld<I, ID, ValueWrapper>, Serializable {
 
 	private static final long serialVersionUID = -179218652752175177L;
 
@@ -105,7 +109,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	
 	@Override
 	@Nullable
-	public ContainerWrapper getParent() {
+	public ContainerWrapperImpl getParent() {
 		return container != null ? container.getContainer() : null;
 	}
 
@@ -203,14 +207,14 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 			// Lazy loading of a localized name.
 			// We really want to remember a processed name in the wrapper.
 			// getDisplatName() method may be called many times, e.g. during sorting.
-			displayName = ContainerWrapper.getDisplayNameFromItem(item);
+			displayName = ContainerWrapperImpl.getDisplayNameFromItem(item);
 		}
 		return displayName;
 	}
 	
 	@Override
 	public void setDisplayName(String displayName) {
-		this.displayName = ContainerWrapper.localizeName(displayName);
+		this.displayName = ContainerWrapperImpl.localizeName(displayName);
 	}
 
 	public ValueStatus getStatus() {
@@ -266,35 +270,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		}
 	}
 	
-	private int countUsableValues(PropertyOrReferenceWrapper<I, ID> property) {
-		int count = 0;
-		for (ValueWrapper value : property.getValues()) {
-			value.normalize(property.getItemDefinition().getPrismContext());
-
-			if (ValueStatus.DELETED.equals(value.getStatus())) {
-				continue;
-			}
-
-			if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
-				continue;
-			}
-
-			count++;
-		}
-		return count;
-	}
 	
-	private boolean hasEmptyPlaceholder(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
-		for (ValueWrapper value : property.getValues()) {
-			value.normalize(property.getItemDefinition().getPrismContext());
-			if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	
 	public abstract ValueWrapper createAddedValue();
 
@@ -323,7 +299,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return false;
 	}
 	private boolean isMetadataContainer() {
-		ContainerWrapper parent = getParent();
+		ContainerWrapperImpl parent = getParent();
 		if (parent == null) {
 			return false;
 		}
@@ -369,7 +345,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 			if (ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 				updatedItem.remove(valueWrapper.getValue());
 			} else if (!updatedItem.containsEquivalentValue(valueWrapper.getValue())) {
-				PrismValue cloned = ObjectWrapper.clone(valueWrapper.getValue());
+				PrismValue cloned = ObjectWrapperImpl.clone(valueWrapper.getValue());
 				if (cloned != null) {
 					updatedItem.add(cloned);
 				}
@@ -423,6 +399,21 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 	
 	public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
-		return new PrismPropertyPanel<>(id, this, form, visibilityHandler);
+		PrismPropertyPanel propertyPanel = new PrismPropertyPanel<>(id, this, form, visibilityHandler);
+		propertyPanel.setOutputMarkupId(true);
+		propertyPanel.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public boolean isVisible() {
+				if(!container.isExpanded()) {
+					return false;
+				}
+				return propertyPanel.isVisible();
+			}
+		});
+		
+		return propertyPanel;
 	}
 }

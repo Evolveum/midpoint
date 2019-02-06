@@ -25,12 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.input.TextAreaPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -46,7 +46,7 @@ public class TextAreaPanelFactory extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> boolean match(ItemWrapper itemWrapper) {
+	public <T> boolean match(ItemWrapperOld itemWrapper) {
 		ItemDefinition def = itemWrapper.getItemDefinition();
 		
 		return FocusType.F_DESCRIPTION.equals(def.getName()) || QueryType.COMPLEX_TYPE.equals(def.getTypeName()) || CleanupPoliciesType.COMPLEX_TYPE.equals(def.getTypeName());

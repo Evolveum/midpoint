@@ -18,9 +18,9 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -34,7 +34,7 @@ public class FocusApplicablePoliciesTabPanel <F extends FocusType> extends Abstr
     private static final String ID_APPLICABLE_POLICIES_CONTAINER = "applicablePoliciesContainer";
     private static final String ID_APPLICABLE_POLICIES_PANEL = "applicablePolicyPanel";
 
-    public FocusApplicablePoliciesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
+    public FocusApplicablePoliciesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperImpl<F>> focusWrapperModel,
                                     PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
         initLayout();

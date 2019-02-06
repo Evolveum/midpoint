@@ -21,10 +21,13 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.factory.RealValuable;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -84,7 +87,7 @@ public class ContainerWrapperFactory {
         return result;
     }
 
-    public <C extends Containerable> ContainerWrapper createContainerWrapper( ObjectWrapper objectWrapper,
+    public <C extends Containerable> ContainerWrapperImpl createContainerWrapper( ObjectWrapperImpl objectWrapper,
                                                                               PrismContainer<C> container,
                                                                               ContainerStatus status,
                                                                               ItemPath path,
@@ -92,7 +95,7 @@ public class ContainerWrapperFactory {
 
         result = new OperationResult(CREATE_PROPERTIES);
         
-        ContainerWrapper<C> cWrapper = new ContainerWrapper(objectWrapper, container, objectWrapper.getStatus(), status, path);
+        ContainerWrapperImpl<C> cWrapper = new ContainerWrapperImpl(objectWrapper, container, objectWrapper.getStatus(), status, path);
         
         List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
@@ -104,7 +107,7 @@ public class ContainerWrapperFactory {
        return cWrapper;
     }
 
-	public <C extends Containerable> ShadowAssociationWrapper createAssociationWrapper(ObjectWrapper objectWrapper, PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<C> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
+	public <C extends Containerable> ShadowAssociationWrapper createAssociationWrapper(ObjectWrapperImpl objectWrapper, PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<C> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
 		if (association == null || association.getDefinition() == null
 				|| (!(association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class))
 				&& !(association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)))){
@@ -145,7 +148,7 @@ public class ContainerWrapperFactory {
 				associationTransformed.createNewValue(), objectStatus,
 				ContainerStatus.ADDING == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, path);
 		
-		List<ItemWrapper> associationValuesWrappers = new ArrayList<>();
+		List<ItemWrapperOld> associationValuesWrappers = new ArrayList<>();
 		for (RefinedAssociationDefinition refinedAssocationDefinition: refinedAssociationDefinitions) {
 			MutablePrismReferenceDefinition shadowRefDef = prismContext
 					.definitionFactory().createReferenceDefinition(refinedAssocationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE);
@@ -204,11 +207,11 @@ public class ContainerWrapperFactory {
     	
     }
     
-   public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly, Task task) {
+   public <C extends Containerable> ContainerWrapperImpl<C> createContainerWrapper(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly, Task task) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
-		ContainerWrapper<C> cWrapper = new ContainerWrapper<>(objectWrapper, container, objectWrapper == null ? status : objectWrapper.getStatus(), status, path, readonly);
+		ContainerWrapperImpl<C> cWrapper = new ContainerWrapperImpl<>(objectWrapper, container, objectWrapper == null ? status : objectWrapper.getStatus(), status, path, readonly);
 
 		List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
@@ -217,7 +220,7 @@ public class ContainerWrapperFactory {
 		return cWrapper;
 	}
 
-	  private <C extends Containerable> List<ContainerValueWrapper<C>> createContainerValues(ContainerWrapper<C> cWrapper, ItemPath path, Task task) {
+	  private <C extends Containerable> List<ContainerValueWrapper<C>> createContainerValues(ContainerWrapperImpl<C> cWrapper, ItemPath path, Task task) {
 	    	List<ContainerValueWrapper<C>> containerValueWrappers = new ArrayList<>();
 	    	PrismContainer<C> container = cWrapper.getItem();
 	    	
@@ -250,10 +253,10 @@ public class ContainerWrapperFactory {
 	    	return containerValueWrappers;
 	    }
 	  
-	  public <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ContainerStatus objectStatus, ValueStatus status, ItemPath path, Task task){
+	  public <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapperImpl cWrapper, PrismContainerValue<C> value, ContainerStatus objectStatus, ValueStatus status, ItemPath path, Task task){
 		  ContainerValueWrapper<C> containerValueWrapper = new ContainerValueWrapper<C>(cWrapper, value, objectStatus, status, path);
 		    
-			List<ItemWrapper> properties = createProperties(containerValueWrapper, false, task);
+			List<ItemWrapperOld> properties = createProperties(containerValueWrapper, false, task);
 			containerValueWrapper.setProperties(properties);
 			
 			ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapperByName(ShadowAssociationType.F_SHADOW_REF);
@@ -264,14 +267,14 @@ public class ContainerWrapperFactory {
 			return containerValueWrapper;
 	  }
 
-	public <O extends ObjectType, C extends Containerable> List<ItemWrapper> createProperties(ContainerValueWrapper<C> cWrapper, boolean onlyEmpty, Task task) {
+	public <O extends ObjectType, C extends Containerable> List<ItemWrapperOld> createProperties(ContainerValueWrapper<C> cWrapper, boolean onlyEmpty, Task task) {
 		
 		result = new OperationResult(CREATE_PROPERTIES);
 		
-		ContainerWrapper<C> containerWrapper = cWrapper.getContainer();
+		ContainerWrapperImpl<C> containerWrapper = cWrapper.getContainer();
 		PrismContainerDefinition<C> definition = containerWrapper.getItemDefinition();
 
-		List<ItemWrapper> properties = new ArrayList<>();
+		List<ItemWrapperOld> properties = new ArrayList<>();
 
 		if (definition == null) {
 			LOGGER.error("Couldn't get property list from null definition {}",
@@ -290,7 +293,7 @@ public class ContainerWrapperFactory {
 		}
 		
 		List<PropertyOrReferenceWrapper> propertyOrReferenceWrappers = new ArrayList<>();
-		List<ContainerWrapper<C>> containerWrappers = new ArrayList<>();
+		List<ContainerWrapperImpl<C>> containerWrappers = new ArrayList<>();
 		propertyDefinitions.forEach(itemDef -> {
 
 			if (itemDef.isIgnored() || skipProperty(itemDef)) {
@@ -344,7 +347,7 @@ public class ContainerWrapperFactory {
 
     
     private <C extends Containerable> void createContainerWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper,
-																  List<ContainerWrapper<C>> properties, boolean onlyEmpty, Task task){
+																  List<ContainerWrapperImpl<C>> properties, boolean onlyEmpty, Task task){
     	
     	if (itemDef instanceof PrismContainerDefinition) {
         	
@@ -352,7 +355,7 @@ public class ContainerWrapperFactory {
         		return;
         	}
         	
-        	ContainerWrapper<C> subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper, onlyEmpty, task);
+        	ContainerWrapperImpl<C> subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper, onlyEmpty, task);
 
         	
         	if (subContainerWrapper == null) {
@@ -472,7 +475,7 @@ public class ContainerWrapperFactory {
         
 	}
 	
-	private <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainerDefinition<C> def,
+	private <C extends Containerable> ContainerWrapperImpl<C> createContainerWrapper(PrismContainerDefinition<C> def,
 			ContainerValueWrapper<C> cWrapper, boolean onlyEmpty, Task task) {
 
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
@@ -493,7 +496,7 @@ public class ContainerWrapperFactory {
 //			return null;
 //		}
 
-		ObjectWrapper objectWrapper = cWrapper.getContainer().getObjectWrapper();
+		ObjectWrapperImpl objectWrapper = cWrapper.getContainer().getObjectWrapper();
 		if (container == null) {
 			PrismContainer<C> newContainer;
 			try {

@@ -19,7 +19,9 @@ package com.evolveum.midpoint.gui.impl.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -28,8 +30,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -48,7 +48,7 @@ import org.apache.wicket.model.*;
  * @author lazyman
  * @author skubl
  */
-public class PrismPropertyHeaderPanel<IW extends ItemWrapper> extends Panel {
+public class PrismPropertyHeaderPanel<IW extends ItemWrapperOld> extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyHeaderPanel.class);
@@ -228,7 +228,7 @@ public class PrismPropertyHeaderPanel<IW extends ItemWrapper> extends Panel {
     }
 
     private boolean hasOutbound(IModel<IW> model) {
-        ItemWrapper wrapper = model.getObject();
+        ItemWrapperOld wrapper = model.getObject();
         ItemDefinition def = wrapper.getItemDefinition();
         if (!(def instanceof RefinedAttributeDefinition)) {
             return false;
@@ -239,8 +239,8 @@ public class PrismPropertyHeaderPanel<IW extends ItemWrapper> extends Panel {
     }
 
     private boolean hasPendingModification(IModel<IW> model) {
-        ItemWrapper propertyWrapper = model.getObject();
-        ContainerWrapper containerWrapper = propertyWrapper.getParent();
+        ItemWrapperOld propertyWrapper = model.getObject();
+        ContainerWrapperImpl containerWrapper = propertyWrapper.getParent();
         if (containerWrapper == null) {
             return false;           // TODO - ok?
         }

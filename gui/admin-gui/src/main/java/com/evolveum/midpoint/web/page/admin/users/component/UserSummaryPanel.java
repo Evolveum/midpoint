@@ -20,13 +20,13 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -43,14 +43,14 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
 	private static final String ID_TAG_ORG = "summaryTagOrg";
 
-	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model, ModelServiceLocator serviceLocator) {
+	public UserSummaryPanel(String id, IModel<ObjectWrapperImpl<UserType>> model, ModelServiceLocator serviceLocator) {
 		super(id, UserType.class, model, serviceLocator);
 
 		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, model) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void initialize(ObjectWrapper<UserType> wrapper) {
+			protected void initialize(ObjectWrapperImpl<UserType> wrapper) {
 				List<AssignmentType> assignments = wrapper.getObject().asObjectable().getAssignment();
 				if (assignments.isEmpty()) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
@@ -93,7 +93,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void initialize(ObjectWrapper<UserType> wrapper) {
+			protected void initialize(ObjectWrapperImpl<UserType> wrapper) {
 				List<ObjectReferenceType> parentOrgRefs = wrapper.getObject().asObjectable().getParentOrgRef();
 				if (parentOrgRefs.isEmpty()) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);

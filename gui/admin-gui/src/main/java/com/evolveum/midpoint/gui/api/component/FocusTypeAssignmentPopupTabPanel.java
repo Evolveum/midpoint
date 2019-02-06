@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -26,8 +28,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -112,7 +112,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected boolean isInducement(){
-        ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+        ContainerWrapperImpl<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper != null && assignmentWrapper.getPath() != null && assignmentWrapper.getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT)){
             return true;
         }
@@ -120,18 +120,18 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
-        ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+        ContainerWrapperImpl<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper == null){
             return null;
         }
-        ObjectWrapper<O> w = assignmentWrapper.getObjectWrapper();
+        ObjectWrapperImpl<O> w = assignmentWrapper.getObjectWrapper();
         if (w == null) {
             return null;
         }
         return w.getObject();
     }
 
-    protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+    protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
         return null;
     }
 

@@ -33,6 +33,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -53,7 +54,6 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
@@ -90,7 +90,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_BACK = "back";
 	private static final String ID_SAVE = "save";
-	private LoadableModel<ObjectWrapper> userModel;
+	private LoadableModel<ObjectWrapperImpl> userModel;
 
 
 	private List<MyPasswordQuestionsPanel> pqPanels;
@@ -123,10 +123,10 @@ public class PageMyPasswordQuestions extends PageAdminHome {
     }
 
 	public PageMyPasswordQuestions(final PrismObject<UserType> userToEdit) {
-		userModel = new LoadableModel<ObjectWrapper>(false) {
+		userModel = new LoadableModel<ObjectWrapperImpl>(false) {
 
 			@Override
-			protected ObjectWrapper load() {
+			protected ObjectWrapperImpl load() {
 				return loadUserWrapper(userToEdit);
 			}
 		};
@@ -470,7 +470,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		setResponsePage(getMidpointApplication().getHomePage());
     }
 
-	private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
+	private ObjectWrapperImpl loadUserWrapper(PrismObject<UserType> userToEdit) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 		PrismObject<UserType> user = null;
 		Task task = createSimpleTask(OPERATION_LOAD_USER);
@@ -496,7 +496,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 		ContainerStatus status = ContainerStatus.MODIFYING;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-		ObjectWrapper wrapper;
+		ObjectWrapperImpl wrapper;
 		try{
 			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status, task);
 		} catch (Exception ex){

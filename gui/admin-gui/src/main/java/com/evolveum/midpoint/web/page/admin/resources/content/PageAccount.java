@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -89,20 +89,20 @@ public class PageAccount extends PageAdmin {
 
 	public static final String PARAMETER_SELECTED_TAB = "tab";
 
-	private LoadableModel<ObjectWrapper<ShadowType>> accountModel;
+	private LoadableModel<ObjectWrapperImpl<ShadowType>> accountModel;
 
 	public PageAccount(final PageParameters parameters) {
-		accountModel = new LoadableModel<ObjectWrapper<ShadowType>>(false) {
+		accountModel = new LoadableModel<ObjectWrapperImpl<ShadowType>>(false) {
 
 			@Override
-			protected ObjectWrapper<ShadowType> load() {
+			protected ObjectWrapperImpl<ShadowType> load() {
 				return loadAccount(parameters);
 			}
 		};
 		initLayout();
 	}
 
-	private ObjectWrapper<ShadowType> loadAccount(PageParameters parameters) {
+	private ObjectWrapperImpl<ShadowType> loadAccount(PageParameters parameters) {
 		Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
 		OperationResult result = task.getResult();
 
@@ -119,7 +119,7 @@ public class PageAccount extends PageAdmin {
 			throw new RestartResponseException(PageResources.class);
 		}
 
-		ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, task, this);
+		ObjectWrapperImpl wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, task, this);
 		OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
 		try {
 			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
@@ -139,7 +139,7 @@ public class PageAccount extends PageAdmin {
 
 			@Override
 			public boolean isVisible() {
-				ObjectWrapper wrapper = accountModel.getObject();
+				ObjectWrapperImpl wrapper = accountModel.getObject();
 				return wrapper.isProtectedAccount();
 			}
 		});
@@ -155,7 +155,7 @@ public class PageAccount extends PageAdmin {
 	}
 
 
-	private AjaxTabbedPanel<ITab> createTabsPanel(com.evolveum.midpoint.web.component.form.Form<ObjectWrapper<ShadowType>> form) {
+	private AjaxTabbedPanel<ITab> createTabsPanel(com.evolveum.midpoint.web.component.form.Form<ObjectWrapperImpl<ShadowType>> form) {
 		List<ITab> tabs = new ArrayList<>();
 
 		tabs.add(new PanelTab(createStringResource("PageAccount.tab.details")) {
@@ -198,7 +198,7 @@ public class PageAccount extends PageAdmin {
 
 			@Override
 			public boolean isVisible() {
-				ObjectWrapper wrapper = accountModel.getObject();
+				ObjectWrapperImpl wrapper = accountModel.getObject();
 				return !wrapper.isProtectedAccount();
 			}
 		});
@@ -237,7 +237,7 @@ public class PageAccount extends PageAdmin {
 		OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
 		try {
 			WebComponentUtil.revive(accountModel, getPrismContext());
-			ObjectWrapper wrapper = accountModel.getObject();
+			ObjectWrapperImpl wrapper = accountModel.getObject();
 			ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
 			if (delta == null) {
 				return;

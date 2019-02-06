@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.prism;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.factory.RealValuable;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.Validate;
 
@@ -127,7 +128,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable, RealValuabl
 	}
 	
     
-    public ItemWrapper getItem() {
+    public ItemWrapperOld getItem() {
         return item;
     }
 

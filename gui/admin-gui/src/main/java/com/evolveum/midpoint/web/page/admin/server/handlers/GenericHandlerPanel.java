@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.GenericHandlerDto;
 import org.apache.wicket.model.IModel;
@@ -37,7 +37,7 @@ public class GenericHandlerPanel extends BasePanel<GenericHandlerDto> {
 	}
 
 	private void initLayout(final PageTaskEdit parentPage) {
-		PrismContainerPanel containerPanel = new PrismContainerPanel(
+		PrismContainerPanelOld containerPanel = new PrismContainerPanelOld(
 				ID_CONTAINER, new PropertyModel<>(getModel(), GenericHandlerDto.F_CONTAINER),
 				parentPage.getForm(), null);
 		add(containerPanel);

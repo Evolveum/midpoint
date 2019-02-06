@@ -12,12 +12,13 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
-public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHeaderPanel<ContainerWrapper<C>>{
+public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHeaderPanel<ContainerWrapperImpl<C>>{
 
 	private static final long serialVersionUID = 1L;
 	
@@ -25,7 +26,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	private static final String ID_EXPAND_COLLAPSE_FRAGMENT = "expandCollapseFragment";
     private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
 	
-	public PrismContainerHeaderPanel(String id, IModel<ContainerWrapper<C>> model) {
+	public PrismContainerHeaderPanel(String id, IModel<ContainerWrapperImpl<C>> model) {
 		super(id, model);
 	
 	}
@@ -71,7 +72,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	
 	private void addValue(AjaxRequestTarget target) {
 		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
-		ContainerWrapper<C> containerWrapper = getModelObject();
+		ContainerWrapperImpl<C> containerWrapper = getModelObject();
 		Task task = getPageBase().createSimpleTask("Creating new container");
 		ContainerValueWrapper<C> newContainerValue = cwf.createContainerValueWrapper(containerWrapper,
 				containerWrapper.getItem().createNewValue(), containerWrapper.getObjectStatus(), ValueStatus.ADDED,
@@ -118,7 +119,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	
 	private void onExpandClick(AjaxRequestTarget target) {
 		
-		ContainerWrapper<C> wrapper = PrismContainerHeaderPanel.this.getModelObject();
+		ContainerWrapperImpl<C> wrapper = PrismContainerHeaderPanel.this.getModelObject();
 		wrapper.setExpanded(!wrapper.isExpanded());
 		onButtonClick(target);
 	}
@@ -153,7 +154,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	
 	@Override
 	protected String getHelpText() {
-		return WebComponentUtil.loadHelpText(new Model<ContainerWrapper<C>>(getModelObject()), PrismContainerHeaderPanel.this);
+		return WebComponentUtil.loadHelpText(new Model<ContainerWrapperImpl<C>>(getModelObject()), PrismContainerHeaderPanel.this);
 	}
 	
 	@Override

@@ -38,8 +38,11 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.PanelContext;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -50,11 +53,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
@@ -66,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author lazyman
  */
-public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPropertyPanel<IW> {
+public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrismPropertyPanel<IW> {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
@@ -284,7 +284,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
 //	}
     
     private void addValue(AjaxRequestTarget target) {
-		ItemWrapper propertyWrapper = getModel().getObject();
+		ItemWrapperOld propertyWrapper = getModel().getObject();
 		LOGGER.debug("Adding value of {}", propertyWrapper);
 		propertyWrapper.addValue(true);
 		target.add(PrismPropertyPanel.this);
@@ -292,7 +292,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
 	
 	private <T> void removeValue(ValueWrapper<T> valueToRemove, AjaxRequestTarget target) {
 		
-		ItemWrapper itemWrapper = getModel().getObject();
+		ItemWrapperOld itemWrapper = getModel().getObject();
 		try {
 			itemWrapper.removeValue(valueToRemove);
 		} catch (SchemaException e) {
@@ -360,8 +360,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
 
 	}
 	
-	private ContainerStatus getContainerStatus(ItemWrapper propertyWrapper) {
-		final ContainerWrapper<Containerable> objectWrapper = propertyWrapper.getParent();
+	private ContainerStatus getContainerStatus(ItemWrapperOld propertyWrapper) {
+		final ContainerWrapperImpl<Containerable> objectWrapper = propertyWrapper.getParent();
 		return objectWrapper != null ? objectWrapper.getStatus() : ContainerStatus.MODIFYING;
 	}
 	
@@ -420,13 +420,13 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
 //		return false;
 //	}
     
-    private <O extends ObjectType, C extends Containerable> O getObject(ItemWrapper itemWrapper) {
-		ContainerWrapper<C> cWrapper = itemWrapper.getParent();
+    private <O extends ObjectType, C extends Containerable> O getObject(ItemWrapperOld itemWrapper) {
+		ContainerWrapperImpl<C> cWrapper = itemWrapper.getParent();
 		if (cWrapper == null) {
 			return null;
 		}
 		
-		ObjectWrapper<O> objectWrapper = cWrapper.getObjectWrapper();
+		ObjectWrapperImpl<O> objectWrapper = cWrapper.getObjectWrapper();
 		PrismObject<O> newObject = objectWrapper.getObject().clone();
 		
 		try {
@@ -483,7 +483,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
     }
 
     private <T> int getIndexOfValue(ValueWrapper<T> value) {
-        ItemWrapper property = value.getItem();
+        ItemWrapperOld property = value.getItem();
         List<ValueWrapper<T>> values = property.getValues();
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i).equals(value)) {

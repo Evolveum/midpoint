@@ -15,8 +15,8 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
@@ -30,7 +30,7 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     private static final long serialVersionUID = 1L;
 
 
-    public InducementsPanel(String id, IModel<ContainerWrapper<AssignmentType>> inducementContainerWrapperModel){
+    public InducementsPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> inducementContainerWrapperModel){
         super(id, inducementContainerWrapperModel);
 
     }

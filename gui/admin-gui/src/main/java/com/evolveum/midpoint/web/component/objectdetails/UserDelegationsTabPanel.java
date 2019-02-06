@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -62,7 +62,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
 
-    public UserDelegationsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
+    public UserDelegationsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperImpl<F>> focusWrapperModel,
             LoadableModel<List<AssignmentEditorDto>> delegationsModel,
 			LoadableModel<List<AssignmentInfoDto>> privilegesListModel, PageBase page) {
         super(id, mainForm, focusWrapperModel, page);

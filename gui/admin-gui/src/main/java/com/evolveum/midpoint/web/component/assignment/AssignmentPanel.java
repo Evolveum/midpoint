@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -74,7 +76,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>> {
+public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentType>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -94,7 +96,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	protected int assignmentsRequestsLimit = -1;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
 
-	public AssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
+	public AssignmentPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
 	}
 
@@ -441,7 +443,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 
 			@Override
-			protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+			protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
 				return AssignmentPanel.this.getModelObject();
 			}
 		};
@@ -516,7 +518,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+			protected ItemVisibility getBasicTabVisibity(ItemWrapperOld itemWrapper, ItemPath parentAssignmentPath) {
 				return AssignmentPanel.this.getBasicTabVisibity(itemWrapper, parentAssignmentPath, item.getModel());
 			}
 
@@ -532,7 +534,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 				ItemPath assignmentPath = item.getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
 				ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType>(((PageAdminObjectDetails<FocusType>)getPageBase()).getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
+				PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
 				specificContainers.add(acitvationContainer);
 
 				return specificContainers;
@@ -562,7 +564,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		return detailsPanel;
 	}
 
-	private ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, IModel<ContainerValueWrapper<AssignmentType>> model) {
+	private ItemVisibility getBasicTabVisibity(ItemWrapperOld itemWrapper, ItemPath parentAssignmentPath, IModel<ContainerValueWrapper<AssignmentType>> model) {
 		PrismContainerValue<AssignmentType> prismContainerValue = model.getObject().getContainerValue();
 		ItemPath assignmentPath = model.getObject().getContainerValue().getValue().asPrismContainerValue().getPath();
 		return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
@@ -631,22 +633,22 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		specificContainers.add(getSpecificContainerPanel(modelObject));
 		return specificContainers;
 	}
-	protected PrismContainerPanel getSpecificContainerPanel(ContainerValueWrapper<AssignmentType> modelObject) {
+	protected PrismContainerPanelOld getSpecificContainerPanel(ContainerValueWrapper<AssignmentType> modelObject) {
 		Form form = new Form<>("form");
 		ItemPath assignmentPath = modelObject.getPath();
-		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER,
+		PrismContainerPanelOld constraintsContainerPanel = new PrismContainerPanelOld(ID_SPECIFIC_CONTAINER,
 				getSpecificContainerModel(modelObject), form,
 				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
 		constraintsContainerPanel.setOutputMarkupId(true);
 		return constraintsContainerPanel;
 	}
 
-	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapperOld itemWrapper, ItemPath parentAssignmentPath) {
 		if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())
 				|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())) {
 			return ItemVisibility.HIDDEN;
 		}
-		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
+		if (ContainerWrapperImpl.class.isAssignableFrom(itemWrapper.getClass())){
 			return ItemVisibility.AUTO;
 		}
 		List<ItemPath> pathsToHide = new ArrayList<>();
@@ -659,11 +661,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		}
 	}
 
-	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject){
+	protected IModel<ContainerWrapperImpl> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject){
 		return Model.of();
 	}
 
-	protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
+	protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapperOld itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
 
 		if (itemWrapper.getPath().equals(assignmentPath.append(AssignmentType.F_METADATA))){
 			return ItemVisibility.AUTO;
@@ -845,7 +847,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	private IModel<String> getActivationLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-		ContainerWrapper<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(AssignmentType.F_ACTIVATION));
+		ContainerWrapperImpl<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(AssignmentType.F_ACTIVATION));
 		ActivationStatusType administrativeStatus = null;
 		XMLGregorianCalendar validFrom = null;
 		XMLGregorianCalendar validTo = null;

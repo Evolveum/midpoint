@@ -11,12 +11,12 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
@@ -28,7 +28,7 @@ public class PanelContext<T> {
 	
 	private Component parentComponent;
 	
-	private ItemWrapper itemWrapper;
+	private ItemWrapperOld itemWrapper;
 	private ItemRealValueModel<T> realValueModel;
 	
 	private Form form;
@@ -105,7 +105,7 @@ public class PanelContext<T> {
 		this.realValueModel = new ItemRealValueModel<>(valueWrapper);
 	}
 	
-	public void setItemWrapper(ItemWrapper itemWrapper) {
+	public void setItemWrapper(ItemWrapperOld itemWrapper) {
 		this.itemWrapper = itemWrapper;
 	}
 	

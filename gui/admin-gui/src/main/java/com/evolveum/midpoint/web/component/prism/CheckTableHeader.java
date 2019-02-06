@@ -22,6 +22,8 @@ import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,7 +50,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrapper<O>> {
+public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrapperImpl<O>> {
 	private static final long serialVersionUID = 1L;
 
     private static final String ID_CHECK = "check";
@@ -62,7 +64,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     private static final String ID_EXPAND = "expand";
     private static final String ID_PENDING_OPERATION = "pendingOperation";
 
-    public CheckTableHeader(String id, IModel<ObjectWrapper<O>> model) {
+    public CheckTableHeader(String id, IModel<ObjectWrapperImpl<O>> model) {
         super(id, model);
 
         initLayout();
@@ -71,7 +73,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     private void initLayout() {
 
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK,
-            new PropertyModel<>(getModel(), ObjectWrapper.F_SELECTED)) {
+            new PropertyModel<>(getModel(), ObjectWrapperImpl.F_SELECTED)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -186,8 +188,8 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
             public List<PendingOperationType> getObject() {
                 List<PendingOperationType> list = new ArrayList<>();
 
-                ObjectWrapper wrapper = getModelObject();
-                ContainerWrapper operations = wrapper.findContainerWrapper(ShadowType.F_PENDING_OPERATION);
+                ObjectWrapperImpl wrapper = getModelObject();
+                ContainerWrapperImpl operations = wrapper.findContainerWrapper(ShadowType.F_PENDING_OPERATION);
                 if (operations == null) {
                     return list;
                 }
@@ -202,7 +204,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private String createAccountIcon() {
-        ObjectWrapper<O> wrapper = getModelObject();
+        ObjectWrapperImpl<O> wrapper = getModelObject();
         PrismObject<O> object = wrapper.getObject();
         PrismProperty<ActivationStatusType> status = object.findProperty(ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
         if (status != null && status.getRealValue() != null) {
@@ -216,7 +218,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private String createTriggerTooltip() {
-        ObjectWrapper<O> wrapper = getModelObject();
+        ObjectWrapperImpl<O> wrapper = getModelObject();
         PrismObject<O> obj = wrapper.getObject();
         PrismContainer<TriggerType> container = obj.findContainer(ObjectType.F_TRIGGER);
         if (container == null || container.isEmpty()) {
@@ -238,7 +240,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private boolean hasTriggers() {
-        ObjectWrapper<O> wrapper = getModelObject();
+        ObjectWrapperImpl<O> wrapper = getModelObject();
         PrismObject<O> obj = wrapper.getObject();
         PrismContainer<TriggerType> container = obj.findContainer(ObjectType.F_TRIGGER);
         return container != null && !container.isEmpty();
@@ -260,7 +262,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private String getDisplayName() {
-        ObjectWrapper<O> wrapper = getModel().getObject();
+        ObjectWrapperImpl<O> wrapper = getModel().getObject();
         PrismObject<O> object = wrapper.getObject();
         if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
         	ShadowType shadow = (ShadowType) object.asObjectable();
@@ -280,7 +282,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private String getDescription() {
-        ObjectWrapper<O> wrapper = getModel().getObject();
+        ObjectWrapperImpl<O> wrapper = getModel().getObject();
         PrismObject<O> object = wrapper.getObject();
         if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
         	ShadowType shadow = (ShadowType) object.asObjectable();
@@ -306,7 +308,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     protected void onClickPerformed(AjaxRequestTarget target) {
-        ObjectWrapper<O> wrapper = getModelObject();
+        ObjectWrapperImpl<O> wrapper = getModelObject();
         wrapper.setMinimalized(!wrapper.isMinimalized());
     }
 

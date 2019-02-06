@@ -34,7 +34,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
@@ -47,6 +46,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -257,7 +257,7 @@ public class AssignmentsUtil {
 
 		if (assignment.getPolicyRule() != null){
 			StringBuilder sbName = new StringBuilder("");
-			ContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
+			ContainerWrapperImpl<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
 			if(policyRuleWrapper != null) {
 				PropertyOrReferenceWrapper property = policyRuleWrapper.findPropertyWrapper(PolicyRuleType.F_NAME);
 				if(property != null && !property.getValues().isEmpty()) {

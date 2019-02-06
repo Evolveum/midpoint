@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -56,9 +57,9 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     private static final String ID_POLICIES_CONTAINER = "policiesContainer";
     private static final String ID_POLICY_CHECK_BOX = "policyCheckBox";
     private LoadableModel<List<PrismObject<AbstractRoleType>>> policiesListModel;
-    IModel<ContainerWrapper<AssignmentType>> assignmentsModel;
+    IModel<ContainerWrapperImpl<AssignmentType>> assignmentsModel;
 
-    public ApplicablePolicyGroupPanel(String id, IModel<ObjectReferenceType> model, IModel<ContainerWrapper<AssignmentType>> assignmentsModel){
+    public ApplicablePolicyGroupPanel(String id, IModel<ObjectReferenceType> model, IModel<ContainerWrapperImpl<AssignmentType>> assignmentsModel){
         super(id, model);
         this.assignmentsModel = assignmentsModel;
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.prism;
+package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -27,11 +27,14 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -43,19 +46,28 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
+import com.evolveum.midpoint.web.component.prism.PrismWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
  * @author katkav
  */
-public class ContainerWrapper<C extends Containerable> extends PrismWrapper implements
-		ItemWrapper<PrismContainer<C>, PrismContainerDefinition<C>, ContainerValueWrapper<C>>, Serializable, DebugDumpable {
+public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper implements
+		Serializable, DebugDumpable {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperImpl.class);
 
-	private ObjectWrapper objectWrapper;
+	private ObjectWrapperImpl objectWrapper;
 	
 	private String displayName;
 	private PrismContainer<C> container;
@@ -74,11 +86,11 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	//TODO: HACK to have custom filter for association contianer here becasue of creating new association:
 	private ObjectFilter filter;
 	
-	public ObjectWrapper getObjectWrapper() {
+	public ObjectWrapperImpl getObjectWrapper() {
 		return objectWrapper;
 	}
 
-	ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+	ContainerWrapperImpl(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(container.getDefinition(), "container definition must not be null.");
@@ -91,7 +103,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	}
 
-	ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
+	ContainerWrapperImpl(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
 		this(objectWrapper, container, objectStatus, status, path);
 		this.readonly = readOnly;
 	}
@@ -153,10 +165,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return objectStatus;
 	}
 	
-	public ItemWrapper findItemWrapper(QName name) {
+	public ItemWrapperOld findItemWrapper(QName name) {
 		Validate.notNull(name, "QName must not be null.");
 		for (ContainerValueWrapper wrapper : getValues()) {
-			ItemWrapper propertyWrapper = wrapper.findItemWrapper(name);
+			ItemWrapperOld propertyWrapper = wrapper.findItemWrapper(name);
 			if (propertyWrapper != null) {
 				return propertyWrapper;
 			}
@@ -175,10 +187,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return null;
 	}
 
-	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
+	public <T extends Containerable> ContainerWrapperImpl<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ContainerValueWrapper<C> wrapper : getValues()) {
-			ContainerWrapper<T> containerWrapper = wrapper.findContainerWrapper(path);
+			ContainerWrapperImpl<T> containerWrapper = wrapper.findContainerWrapper(path);
 			if (containerWrapper != null) {
 				return containerWrapper;
 			}
@@ -186,10 +198,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return null;
 	}
 	
-	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName name) {
+	public <T extends Containerable> ContainerWrapperImpl<T> findContainerWrapper(QName name) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ContainerValueWrapper<C> wrapper : getValues()) {
-			ContainerWrapper<T> containerWrapper = wrapper.findContainerWrapper(wrapper.getPath().append(name));
+			ContainerWrapperImpl<T> containerWrapper = wrapper.findContainerWrapper(wrapper.getPath().append(name));
 			if (containerWrapper != null) {
 				return containerWrapper;
 			}
@@ -197,10 +209,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return null;
 	}
 	
-	public <T extends Containerable> ContainerWrapper<T> findContainerWrapperByName(ItemName name) {
+	public <T extends Containerable> ContainerWrapperImpl<T> findContainerWrapperByName(ItemName name) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ContainerValueWrapper<C> wrapper : getValues()) {
-			ContainerWrapper<T> containerWrapper = wrapper.findContainerWrapperByName(name);
+			ContainerWrapperImpl<T> containerWrapper = wrapper.findContainerWrapperByName(name);
 			if (containerWrapper != null) {
 				return containerWrapper;
 			}
@@ -518,7 +530,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 
 	@Override
-	public ContainerWrapper getParent() {
+	public ContainerWrapperImpl getParent() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -539,6 +551,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		if (def.isDeprecated() && isEmpty()) {
 			return false;
 		}
+		
+//		if(!getContinaer.isExpanded() && !getContainer().isShowOnTopLevel()) {
+//			return false;
+//		}
 
 		switch (objectStatus) {
 			case MODIFYING:
@@ -556,7 +572,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 
 	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
-		return def.canRead();// && def.canModify();
+		return def.canRead(); // && def.canModify();
 	}
 
 	private boolean showEmptyCanReadAndModify(PrismContainerDefinition<C> def) {
@@ -619,6 +635,35 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	 */
 	@Override
 	public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
-		return new PrismContainerPanel<>(id, Model.of(this), form, visibilityHandler, isShowOnTopLevel);
+		PrismContainerPanelOld<C> containerPanel = new PrismContainerPanelOld<>(id, Model.of(this), form, visibilityHandler, isShowOnTopLevel);
+		containerPanel.setOutputMarkupId(true);
+		return containerPanel;
+	}
+
+	/**
+	 * @return
+	 */
+	public PrismContainerHeaderPanel<C> createHeader(String id) {
+		PrismContainerHeaderPanel<C> header = new PrismContainerHeaderPanel<C>(id, Model.of(this)) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onButtonClick(AjaxRequestTarget target) {
+//				addOrReplaceProperties(model, form, isPanelVisible, true);
+				target.add(getParent());
+			}
+
+
+    	};
+        header.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return getItemDefinition().isMultiValue();
+            }
+        });
+        header.setOutputMarkupId(true);
+        return header;
 	}
 }

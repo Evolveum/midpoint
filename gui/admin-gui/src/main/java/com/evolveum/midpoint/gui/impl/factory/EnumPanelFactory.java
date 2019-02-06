@@ -25,12 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 
 /**
  * @author katka
@@ -47,7 +47,7 @@ public class EnumPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ItemWrapper itemWrapper) {
+	public <T> boolean match(ItemWrapperOld itemWrapper) {
 		if (itemWrapper.getItem() instanceof PrismReference) {
 			return false;
 		}

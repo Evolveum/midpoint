@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPanel;
@@ -41,7 +42,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 	private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
 
-	public FocusAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel, PageBase page) {
+	public FocusAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<ObjectWrapperImpl<F>> focusWrapperModel, PageBase page) {
 		super(id, mainForm, focusWrapperModel, page);
 		initLayout();
 	}

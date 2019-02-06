@@ -36,6 +36,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -53,7 +54,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -68,7 +68,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
  * @author skublik
  */
 
-public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends BasePanel<ContainerWrapper<C>> {
+public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends BasePanel<ContainerWrapperImpl<C>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -85,7 +85,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	
 	private LoadableModel<Search> searchModel = null;
 	
-	public MultivalueContainerListPanel(String id, IModel<ContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
+	public MultivalueContainerListPanel(String id, IModel<ContainerWrapperImpl<C>> model, TableId tableId, PageStorage pageStorage) {
 		super(id, model);
 		this.tableId = tableId;
 		this.pageStorage = pageStorage;
@@ -458,7 +458,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	
 	public ContainerValueWrapper<C> createNewItemContainerValueWrapper(
 			PrismContainerValue<C> newItem,
-			IModel<ContainerWrapper<C>> model) {
+			IModel<ContainerWrapperImpl<C>> model) {
     	ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
 		Task task = getPageBase().createSimpleTask("Creating new object policy");
 		ContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,
@@ -506,7 +506,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		}
 		toDelete.forEach(value -> {
 			if (value.getStatus() == ValueStatus.ADDED) {
-				ContainerWrapper<C> wrapper = getModelObject();
+				ContainerWrapperImpl<C> wrapper = getModelObject();
 				wrapper.getValues().remove(value);
 			} else {
 				value.setStatus(ValueStatus.DELETED);

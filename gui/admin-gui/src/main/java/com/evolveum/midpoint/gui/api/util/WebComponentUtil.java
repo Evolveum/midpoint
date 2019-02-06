@@ -116,9 +116,12 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -496,12 +499,12 @@ public final class WebComponentUtil {
 	}
 
 	// quite a hack (temporary)
-	public static <T extends ObjectType> IModel<ObjectWrapper<T>> adopt(
-			PropertyModel<ObjectWrapper<T>> objectWrapperModel, PrismContext prismContext) {
+	public static <T extends ObjectType> IModel<ObjectWrapperImpl<T>> adopt(
+			PropertyModel<ObjectWrapperImpl<T>> objectWrapperModel, PrismContext prismContext) {
 		if (objectWrapperModel == null) {
 			return null;
 		}
-		ObjectWrapper<T> wrapper = objectWrapperModel.getObject();
+		ObjectWrapperImpl<T> wrapper = objectWrapperModel.getObject();
 		if (wrapper == null || wrapper.getObject() == null) {
 			return objectWrapperModel;
 		}
@@ -1011,7 +1014,7 @@ public final class WebComponentUtil {
 	}
 
 
-	public static <IW extends ItemWrapper, C extends Containerable> PropertyModel createPrismPropertySingleValueModel(IModel<ContainerValueWrapper<C>> containerModel,
+	public static <IW extends ItemWrapperOld, C extends Containerable> PropertyModel createPrismPropertySingleValueModel(IModel<ContainerValueWrapper<C>> containerModel,
 																													QName attributeName){
 		//todo should be refactored: wrap with some new  model
 		PropertyModel<List<IW>> propertiesModel = new PropertyModel<>(containerModel, "properties");
@@ -2154,12 +2157,6 @@ public final class WebComponentUtil {
 		}
 	}
 
-	public static void revive(IModel<?> model, PrismContext prismContext) throws SchemaException {
-		if (model != null && model.getObject() != null) {
-			reviveObject(model.getObject(), prismContext);
-		}
-	}
-
 	public static void reviveObject(Object object, PrismContext prismContext) throws SchemaException {
 		if (object == null) {
 			return;
@@ -2178,16 +2175,6 @@ public final class WebComponentUtil {
 		return ((MidPointApplication) component.getApplication()).getPrismContext();
 	}
 
-	public static void reviveIfNeeded(ObjectType objectType, Component component) {
-		if (objectType != null && objectType.asPrismObject().getPrismContext() == null) {
-			try {
-				objectType.asPrismObject().revive(getPrismContext(component));
-			} catch (SchemaException e) {
-				throw new SystemException("Couldn't revive " + objectType + " because of schema exception",
-						e);
-			}
-		}
-	}
 
 	public static List<String> getChannelList() {
 		List<String> channels = new ArrayList<>();
@@ -2686,10 +2673,10 @@ public final class WebComponentUtil {
 				ShadowType.F_ASSOCIATION);
 	}
 
-	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
-																	 IModel<ObjectWrapper<ShadowType>> shadowModel) {
+	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapperOld itemWrapper,
+																	 IModel<ObjectWrapperImpl<ShadowType>> shadowModel) {
 		
-		ObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
+		ObjectWrapperImpl<ShadowType> shadowWrapper = shadowModel.getObject();
 		PrismObject<ShadowType> shadow = shadowWrapper.getObject();
 		ShadowType shadowType = shadow.asObjectable();
 		
@@ -3035,7 +3022,7 @@ public final class WebComponentUtil {
 		return filter;
 	}
 
-	public static <IW extends ItemWrapper> String loadHelpText(IModel<IW> model, Panel panel) {
+	public static <IW extends ItemWrapperOld> String loadHelpText(IModel<IW> model, Panel panel) {
 		if(model == null || model.getObject() == null) {
 			return null;
 		}
@@ -3069,13 +3056,13 @@ public final class WebComponentUtil {
 		return duration;
 	}
 	
-	public static <IW extends ItemWrapper> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
+	public static <IW extends ItemWrapperOld> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
         return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-            	ItemWrapper wrapper = model.getObject();
+            	ItemWrapperOld wrapper = model.getObject();
                 String displayName = wrapper.getDisplayName();
                 // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
                 // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
@@ -3138,12 +3125,12 @@ public final class WebComponentUtil {
 		if (createIfNotExist && prismContext == null) {
 			throw new IllegalArgumentException("createIfNotExist is set but prismContext is null");
 		}
-		ContainerWrapper<ConstructionType> construction = assignmentValueWrapper
+		ContainerWrapperImpl<ConstructionType> construction = assignmentValueWrapper
 				.findContainerWrapper(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
 		if (construction == null){
 			return null;
 		}
-		ContainerWrapper<ResourceObjectAssociationType> association = construction
+		ContainerWrapperImpl<ResourceObjectAssociationType> association = construction
 				.findContainerWrapper(ItemPath.create(construction.getPath(), ConstructionType.F_ASSOCIATION));
 		if (association == null || association.getValues() == null || association.getValues().size() == 0){
 			return null;
@@ -3153,7 +3140,7 @@ public final class WebComponentUtil {
 			association.getItem().clear();
 		}
 		ContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
-		ContainerWrapper<MappingType> outbound =
+		ContainerWrapperImpl<MappingType> outbound =
 				associationValueWrapper.findContainerWrapper(ItemPath.create(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
 
 		if (outbound == null){

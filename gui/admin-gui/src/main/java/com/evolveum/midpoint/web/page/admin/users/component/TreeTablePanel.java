@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -178,7 +178,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					managersQuery, options, searchManagersResult, getPageBase());
 			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
 			for (PrismObject<FocusType> manager : managers) {
-				ObjectWrapper<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
+				ObjectWrapperImpl<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
 						WebComponentUtil.getEffectiveName(manager, RoleType.F_DISPLAY_NAME), "", manager,
 						ContainerStatus.MODIFYING, task, getPageBase());
 				WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());

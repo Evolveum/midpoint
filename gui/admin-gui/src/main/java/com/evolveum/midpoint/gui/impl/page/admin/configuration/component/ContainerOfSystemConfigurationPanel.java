@@ -22,14 +22,14 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 /**
  * @author skublik
  */
-public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends BasePanel<ObjectWrapper<SystemConfigurationType>> {
+public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends BasePanel<ObjectWrapperImpl<SystemConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -49,7 +49,7 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     private static final String ID_CONTAINER = "container";
     private ItemName qNameContainer;
 
-    public ContainerOfSystemConfigurationPanel(String id, IModel<ObjectWrapper<SystemConfigurationType>> model, QName qNameContainer) {
+    public ContainerOfSystemConfigurationPanel(String id, IModel<ObjectWrapperImpl<SystemConfigurationType>> model, QName qNameContainer) {
         super(id, model);
         this.qNameContainer = ItemName.fromQName(qNameContainer);
     }
@@ -65,7 +65,7 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     	Form form = new Form<>("form");
     	
     	ContainerWrapperFromObjectWrapperModel<C, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getModel(), qNameContainer);
-		PrismContainerPanel<C> panel = new PrismContainerPanel<>(ID_CONTAINER, model, form, itemWrapper -> getVisibity(itemWrapper.getPath()));
+		PrismContainerPanelOld<C> panel = new PrismContainerPanelOld<>(ID_CONTAINER, model, form, itemWrapper -> getVisibity(itemWrapper.getPath()));
 		add(panel);
 		
 	}

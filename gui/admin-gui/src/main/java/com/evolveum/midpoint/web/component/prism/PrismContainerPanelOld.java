@@ -35,7 +35,9 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -47,21 +49,21 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  * @author lazyman
  * @author semancik
  */
-public class PrismContainerPanel<C extends Containerable> extends BasePanel<ContainerWrapper<C>> {
+public class PrismContainerPanelOld<C extends Containerable> extends BasePanel<ContainerWrapperImpl<C>> {
 	private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanelOld.class);
     private static final String ID_HEADER = "header";
     private static final String STRIPED_CLASS = "striped";
     
     private ItemVisibilityHandler itemVisibility = null;
     private Form form;
     
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, Form form, ItemVisibilityHandler isPanelVisible) {
+    public PrismContainerPanelOld(String id, final IModel<ContainerWrapperImpl<C>> model, Form form, ItemVisibilityHandler isPanelVisible) {
     	this(id, model, form, isPanelVisible, true);
     }
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, Form form, ItemVisibilityHandler isPanelVisible, boolean isModelOnTopLevel) {
+    public PrismContainerPanelOld(String id, final IModel<ContainerWrapperImpl<C>> model, Form form, ItemVisibilityHandler isPanelVisible, boolean isModelOnTopLevel) {
         super(id, model);
         setOutputMarkupId(true); 
 		this.itemVisibility = isPanelVisible;
@@ -89,6 +91,7 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         	add(AttributeModifier.append("class", "prism-multivalue-container"));
         }
         
+//        add(AttributeModifier.append("class", "container-wrapper"));
     }
     
     /* (non-Javadoc)
@@ -110,7 +113,7 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
     	super.onConfigure();
     }
 
-    private void setExtendedForEmptyContainers(IModel<ContainerWrapper<C>> model) {
+    private void setExtendedForEmptyContainers(IModel<ContainerWrapperImpl<C>> model) {
     	Collection<QName> qNames = QNameUtil.createCollection(
     			SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
     			SystemConfigurationType.F_GLOBAL_POLICY_RULE,
@@ -141,27 +144,27 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
 		boolean expandingHigherLevelContainerValue = true;
 		if(WebModelServiceUtils.isContainerValueWrapperEmpty(value) && !getModelObject().isShowOnTopLevel()) {
 			value.setExpanded(false);
-			value.setShowEmpty(true, false);
+			value.setShowEmpty(false, false);
 			expandingHigherLevelContainerValue = false;
 		}
 		
-		for(ItemWrapper itemWrapper: value.getItems()) {
-			if(itemWrapper instanceof ContainerWrapper) {
-				if(!((ContainerWrapper<C>)itemWrapper).isEmpty()) {
-					((ContainerWrapper<C>)itemWrapper).getValues().forEach(containerValue -> setExpandedForContainerValueWrapper(containerValue));
-					((ContainerWrapper<C>)itemWrapper).setExpanded(true);
+		for(ItemWrapperOld itemWrapper: value.getItems()) {
+			if(itemWrapper instanceof ContainerWrapperImpl) {
+				if(!((ContainerWrapperImpl<C>)itemWrapper).isEmpty()) {
+					((ContainerWrapperImpl<C>)itemWrapper).getValues().forEach(containerValue -> setExpandedForContainerValueWrapper(containerValue));
+					((ContainerWrapperImpl<C>)itemWrapper).setExpanded(true);
 					continue;
 				} 
 				if(!getModelObject().isShowOnTopLevel()) {
-					((ContainerWrapper<C>)itemWrapper).setExpanded(true);
+					((ContainerWrapperImpl<C>)itemWrapper).setExpanded(true);
 				} else {
-					((ContainerWrapper<C>)itemWrapper).setExpanded(expandingHigherLevelContainerValue);
+					((ContainerWrapperImpl<C>)itemWrapper).setExpanded(expandingHigherLevelContainerValue);
 				}
 			} 
 		}
 	}
 
-	public boolean isPanelVisible(ItemVisibilityHandler isPanelVisible, IModel<ContainerWrapper<C>> model) {
+	public boolean isPanelVisible(ItemVisibilityHandler isPanelVisible, IModel<ContainerWrapperImpl<C>> model) {
     	if (isPanelVisible != null && model.getObject() != null) {
 			ItemVisibility visible = isPanelVisible.isVisible(model.getObject());
 			if (visible != null) {
@@ -179,49 +182,15 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
     }
     
     private void initLayout(final Form form, ItemVisibilityHandler isPanelVisible) {
-    	final IModel<ContainerWrapper<C>> model = getModel();
-    	PrismContainerHeaderPanel<C> header = new PrismContainerHeaderPanel<C>(ID_HEADER, model) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onButtonClick(AjaxRequestTarget target) {
-				addOrReplaceProperties(model, form, isPanelVisible, true);
-				target.add(PrismContainerPanel.this.getParent());
-			}
-
-
-    	};
-        header.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible(){
-                return model.getObject().getItemDefinition().isMultiValue();
-            }
-        });
-        header.setOutputMarkupId(true);
-        add(header);
+    	final IModel<ContainerWrapperImpl<C>> model = getModel();
+    	
+    	PrismContainerHeaderPanel<C> header = model.getObject().createHeader(ID_HEADER);
+    	add(header);
 
         addOrReplaceProperties(model, form, isPanelVisible, false);
     }
 
-//    public PageBase getPageBase(){
-//        return (PageBase) getPage();
-//    }
-
-    private IModel<String> createStyleClassModel(final IModel<ItemWrapper> wrapper) {
-        return new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-            	ItemWrapper property = wrapper.getObject();
-                return property.isStripe() ? "stripe" : null;
-            }
-        };
-    }
-
-    private void addOrReplaceProperties(IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
+    private void addOrReplaceProperties(IModel<ContainerWrapperImpl<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
     	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
 			
 			private static final long serialVersionUID = 1L;

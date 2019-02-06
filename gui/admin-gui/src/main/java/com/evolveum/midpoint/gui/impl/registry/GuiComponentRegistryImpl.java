@@ -9,9 +9,9 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 
 public class GuiComponentRegistryImpl implements GuiComponentRegistry {
@@ -50,7 +50,7 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 	}
 
 	@Override
-	public <T> GuiComponentFactory findFactory(ItemWrapper itemWrapper) {
+	public <T> GuiComponentFactory findFactory(ItemWrapperOld itemWrapper) {
 		
 		
 		Optional<GuiComponentFactory> opt = guiComponentFactories.stream().filter(f -> f.match(itemWrapper)).findFirst();

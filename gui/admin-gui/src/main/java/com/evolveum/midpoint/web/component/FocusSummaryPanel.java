@@ -17,12 +17,12 @@ package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ReadOnlyPrismObjectFromObjectWrapperModel;
@@ -51,9 +51,9 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 
 	private static final String ID_ACTIVATION_TAG = "activationTag";
 
-	private IModel<ObjectWrapper<O>> wrapperModel;
+	private IModel<ObjectWrapperImpl<O>> wrapperModel;
 
-	public FocusSummaryPanel(String id, Class<O> type, final IModel<ObjectWrapper<O>> model, ModelServiceLocator serviceLocator) {
+	public FocusSummaryPanel(String id, Class<O> type, final IModel<ObjectWrapperImpl<O>> model, ModelServiceLocator serviceLocator) {
 		super(id, type, new ReadOnlyPrismObjectFromObjectWrapperModel<>(model), serviceLocator);
 
 		this.wrapperModel = model;
@@ -63,7 +63,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void initialize(ObjectWrapper<O> wrapper) {
+			protected void initialize(ObjectWrapperImpl<O> wrapper) {
 				ActivationType activation = null;
 				O object = wrapper.getObject().asObjectable();
 				if (object instanceof FocusType) {
@@ -157,19 +157,19 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 		return true;
 	}
 
-	public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, ObjectWrapper<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
+	public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, ObjectWrapperImpl<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
 		if (focus.getCompileTimeClass().equals(UserType.class)) {
 			parentComponent.add(new UserSummaryPanel(id,
-                    new Model<ObjectWrapper<UserType>>((ObjectWrapper) focusWrapper), serviceLocator));
+                    new Model<ObjectWrapperImpl<UserType>>((ObjectWrapperImpl) focusWrapper), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(RoleType.class)) {
         	parentComponent.add(new RoleSummaryPanel(id,
-                    new Model<ObjectWrapper<RoleType>>((ObjectWrapper) focusWrapper), serviceLocator));
+                    new Model<ObjectWrapperImpl<RoleType>>((ObjectWrapperImpl) focusWrapper), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(OrgType.class)) {
         	parentComponent.add(new OrgSummaryPanel(id,
-                    new Model<ObjectWrapper<OrgType>>((ObjectWrapper) focusWrapper), serviceLocator));
+                    new Model<ObjectWrapperImpl<OrgType>>((ObjectWrapperImpl) focusWrapper), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(ServiceType.class)) {
         	parentComponent.add(new ServiceSummaryPanel(id,
-                    new Model<ObjectWrapper<ServiceType>>((ObjectWrapper) focusWrapper), serviceLocator));
+                    new Model<ObjectWrapperImpl<ServiceType>>((ObjectWrapperImpl) focusWrapper), serviceLocator));
         }
 	}
 }

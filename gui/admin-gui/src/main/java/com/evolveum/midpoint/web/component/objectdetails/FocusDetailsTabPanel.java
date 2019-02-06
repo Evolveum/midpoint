@@ -24,12 +24,12 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -48,7 +48,7 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
 
 	public FocusDetailsTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapper<F>> focusWrapperModel,
+			LoadableModel<ObjectWrapperImpl<F>> focusWrapperModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageBase pageBase) {
 		super(id, mainForm, focusWrapperModel, projectionModel, pageBase);

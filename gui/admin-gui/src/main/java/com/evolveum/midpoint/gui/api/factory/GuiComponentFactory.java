@@ -16,16 +16,18 @@
 
 package com.evolveum.midpoint.gui.api.factory;
 
+import java.io.Serializable;
+
 import org.apache.wicket.markup.html.panel.Panel;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.factory.PanelContext;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 
-public interface GuiComponentFactory {
+public interface GuiComponentFactory extends Serializable {
 
 //	public void register();
 	
-	<T> boolean match(ItemWrapper itemWrapper);
+	<T> boolean match(ItemWrapperOld itemWrapper);
 	
 	<T> Panel createPanel(PanelContext<T> panelCtx);
 	

@@ -17,11 +17,11 @@
 package com.evolveum.midpoint.gui.impl.component.prism;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang.Validate;
@@ -33,7 +33,7 @@ import org.apache.wicket.model.*;
 /**
  * @author lazyman
  */
-public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapper> extends Panel {
+public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapperOld> extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractPrismPropertyPanel.class);

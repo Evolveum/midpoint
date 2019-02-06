@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.server.handlers.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -54,8 +56,8 @@ public class GenericHandlerDto extends HandlerDto {
 	}
 
 	@NotNull private List<Item> items;
-	private final List<ItemWrapper> propertyWrappers = new ArrayList<>();
-	private final ContainerWrapper containerWrapper;
+	private final List<ItemWrapperOld> propertyWrappers = new ArrayList<>();
+	private final ContainerWrapperImpl containerWrapper;
 
 	public GenericHandlerDto(TaskDto taskDto, @NotNull List<Item> items, PageBase pageBase) {
 		super(taskDto);
@@ -109,7 +111,7 @@ public class GenericHandlerDto extends HandlerDto {
 		containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true, task);
 	}
 
-	public ContainerWrapper getContainer() {
+	public ContainerWrapperImpl getContainer() {
 		return containerWrapper;
 	}
 }

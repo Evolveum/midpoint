@@ -16,17 +16,17 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ObjectWrapperUtil {
 
-    public static <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
+    public static <O extends ObjectType> ObjectWrapperImpl<O> createObjectWrapper(String displayName, String description,
 			PrismObject<O> object, ContainerStatus status, Task task, PageBase pageBase) {
         ObjectWrapperFactory owf = new ObjectWrapperFactory(pageBase);
         return owf.createObjectWrapper(displayName, description, object, status,

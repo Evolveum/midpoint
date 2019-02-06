@@ -18,9 +18,9 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.web.component.assignment.InducementsPanel;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
@@ -31,7 +31,7 @@ public class AbstractRoleInducementPanel <R extends AbstractRoleType> extends Ab
    
     private static final String ID_INDUCEMENT_PANEL = "inducementPanel";
    
-    public AbstractRoleInducementPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<R>> focusWrapperModel,
+    public AbstractRoleInducementPanel(String id, Form mainForm, LoadableModel<ObjectWrapperImpl<R>> focusWrapperModel,
                                     PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
         initLayout();

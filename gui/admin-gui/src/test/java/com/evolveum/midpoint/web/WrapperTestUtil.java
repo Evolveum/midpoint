@@ -29,6 +29,9 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,9 +42,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -52,12 +52,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class WrapperTestUtil {
 	
 	public static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... newValues) {
-		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(itemPath);
+		ItemWrapperOld itemWrapper = containerWrapper.findPropertyWrapper(itemPath);
 		assertNotNull("No item wrapper for path "+itemPath+" in "+containerWrapper, itemWrapper);
 		fillInPropertyWrapper(containerWrapper, itemWrapper, itemPath.lastName(), newValues);
 	}
 	
-	private static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapper itemWrapper, QName itemName, T... newValues) {
+	private static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapperOld itemWrapper, QName itemName, T... newValues) {
 		for (T newValue: newValues) {
 			List<ValueWrapper> valueWrappers = itemWrapper.getValues();
 			ValueWrapper lastValueWrapper = valueWrappers.get(valueWrappers.size() - 1);
@@ -87,19 +87,19 @@ public class WrapperTestUtil {
 	}
 
 	public static <C extends Containerable,T> void assertPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... expectedValues) {
-		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(itemPath);
+		ItemWrapperOld itemWrapper = containerWrapper.findPropertyWrapper(itemPath);
 		assertNotNull("No item wrapper for path "+itemPath+" in "+containerWrapper, itemWrapper);
 		assertPropertyWrapper(containerWrapper, itemWrapper, itemPath.lastName(), expectedValues);
 	}
 
 	// todo better name
 	public static <C extends Containerable,T> void assertPropertyWrapperByName(ContainerValueWrapper<C> containerWrapper, ItemName itemName, T... expectedValues) {
-		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapperByName(itemName);
+		ItemWrapperOld itemWrapper = containerWrapper.findPropertyWrapperByName(itemName);
 		assertNotNull("No item wrapper "+itemName+" in "+containerWrapper, itemWrapper);
 		assertPropertyWrapper(containerWrapper, itemWrapper, itemName, expectedValues);
 	}
 
-	private static <C extends Containerable,T> void assertPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapper itemWrapper, QName itemName, T... expectedValues) {
+	private static <C extends Containerable,T> void assertPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapperOld itemWrapper, QName itemName, T... expectedValues) {
 		List<ValueWrapper> valueWrappers = itemWrapper.getValues();
 		assertPropertyWrapperValues("item wrapper "+itemName+" in "+containerWrapper, valueWrappers, expectedValues);
 	}
@@ -138,7 +138,7 @@ public class WrapperTestUtil {
 		}
 	}
 
-	public static <C extends Containerable, O extends ObjectType> void assertWrapper(ContainerWrapper<C> containerWrapper, String displayName,
+	public static <C extends Containerable, O extends ObjectType> void assertWrapper(ContainerWrapperImpl<C> containerWrapper, String displayName,
 			ItemPath expectedPath, PrismObject<O> object, ContainerStatus status) {
 		PrismContainer<C> container;
 		if (expectedPath == null) {
@@ -149,7 +149,7 @@ public class WrapperTestUtil {
 		assertWrapper(containerWrapper, displayName, expectedPath, container, expectedPath==null, status);
 	}
 
-	public static <C extends Containerable> void assertWrapper(ContainerWrapper<C> containerWrapper, String displayName, ItemPath expectedPath,
+	public static <C extends Containerable> void assertWrapper(ContainerWrapperImpl<C> containerWrapper, String displayName, ItemPath expectedPath,
 			PrismContainer<C> container, boolean isMain, ContainerStatus status) {
 		assertNotNull("null wrapper", containerWrapper);
 		PrismAsserts.assertEquivalent("Wrong path in wrapper " + containerWrapper,
@@ -162,7 +162,7 @@ public class WrapperTestUtil {
 		assertEquals("Wrong status in wrapper "+containerWrapper, status, containerWrapper.getStatus());
 	}
 
-	public static <O extends ObjectType> void assertWrapper(ObjectWrapper<O> objectWrapper, String displayName, String description, PrismObject<O> object,
+	public static <O extends ObjectType> void assertWrapper(ObjectWrapperImpl<O> objectWrapper, String displayName, String description, PrismObject<O> object,
 			ContainerStatus status) {
 		assertNotNull("null wrapper", objectWrapper);
 		assertEquals("Wrong object in wrapper "+objectWrapper, object, objectWrapper.getObject());

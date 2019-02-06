@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.prism;
+package com.evolveum.midpoint.gui.api.prism;
 
 import java.io.Serializable;
 import java.util.List;
@@ -22,15 +22,23 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.jetbrains.annotations.Nullable;
@@ -38,8 +46,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author lazyman
  */
-public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> extends Revivable, DebugDumpable, Serializable {
-
+public interface ItemWrapperOld<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>> extends Revivable, DebugDumpable, Serializable {
+	
+	
 	QName getName();
 
 	/**
@@ -88,7 +97,7 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
     /**
      * Used to display the form elements with stripe in every other line.
      */
-	boolean isStripe();
+	//Shoul be in pripoerty/reference not in item boolean isStripe();
 	
 	boolean isDeprecated();
 	
@@ -110,18 +119,20 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 
 	// are required fields enforced by wicket?
 	default boolean isEnforceRequiredFields() {
-	    ContainerWrapper cw = getParent();
+		ContainerValueWrapper<?> cw = getParent();
 	    return cw == null || cw.isEnforceRequiredFields();
     }
 
-    @Nullable
-	ContainerWrapper getParent();
+//    @Nullable
+//	ContainerWrapperImpl getParent();
+	ContainerValueWrapper<?> getParent();
 	
 	boolean isShowEmpty();
 	
 	void setShowEmpty(boolean isShowEmpty, boolean recursive);
 	
-	ExpressionType getFormItemValidator();
+	////Shoul be in pripoerty/reference not in item boolean isStripe();
+//	ExpressionType getFormItemValidator();
 	
 	Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler);
 

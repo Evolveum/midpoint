@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.model.IModel;
 
@@ -34,9 +34,9 @@ public class ReadOnlyPrismObjectFromObjectWrapperModel<O extends ObjectType> imp
 
     private static final Trace LOGGER = TraceManager.getTrace(ReadOnlyPrismObjectFromObjectWrapperModel.class);
 
-    private IModel<ObjectWrapper<O>> model;
+    private IModel<ObjectWrapperImpl<O>> model;
 
-    public ReadOnlyPrismObjectFromObjectWrapperModel(IModel<ObjectWrapper<O>> model) {
+    public ReadOnlyPrismObjectFromObjectWrapperModel(IModel<ObjectWrapperImpl<O>> model) {
     	this.model = model;
     }
 

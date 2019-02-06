@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
@@ -28,18 +28,18 @@ import org.apache.wicket.model.IModel;
  */
 public abstract class AbstractWrapperModel<T,O extends ObjectType> implements IModel<T> {
 
-    private IModel<ObjectWrapper<O>> wrapperModel;
+    private IModel<ObjectWrapperImpl<O>> wrapperModel;
 
-    public AbstractWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
+    public AbstractWrapperModel(IModel<ObjectWrapperImpl<O>> wrapperModel) {
     	Validate.notNull(wrapperModel, "Wrapper model must not be null.");
         this.wrapperModel = wrapperModel;
     }
 
-    public IModel<ObjectWrapper<O>> getWrapperModel() {
+    public IModel<ObjectWrapperImpl<O>> getWrapperModel() {
 		return wrapperModel;
 	}
 
-    public ObjectWrapper<O> getWrapper() {
+    public ObjectWrapperImpl<O> getWrapper() {
 		return wrapperModel.getObject();
 	}
 

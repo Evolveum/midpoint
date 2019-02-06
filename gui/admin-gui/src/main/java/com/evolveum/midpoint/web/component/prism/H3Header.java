@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.BootstrapLabel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -39,13 +40,13 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>> {
+public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapperImpl<O>> {
 
     private static final String ID_STATUS = "status";
     private static final String ID_SHOW_MORE = "showMore";
     public static final String ID_TITLE = "title";
 
-    public H3Header(String id, IModel<ObjectWrapper<O>> model) {
+    public H3Header(String id, IModel<ObjectWrapperImpl<O>> model) {
         super(id, model);
 
         add(AttributeModifier.append("class", "h3-header"));
@@ -114,7 +115,7 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>
     }
 
     private String getDisplayName() {
-        ObjectWrapper wrapper = getModel().getObject();
+        ObjectWrapperImpl wrapper = getModel().getObject();
         String key = wrapper.getDisplayName();
         if (key == null) {
             key = "";

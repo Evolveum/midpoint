@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.gui.impl.factory;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -31,7 +34,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -43,12 +45,13 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory {
 	
 	@Autowired GuiComponentRegistry registry;
 	
+	@PostConstruct
 	public void register() {
 		registry.addToRegistry(this);
 	}
 	
 	@Override
-	public <T> boolean match(ItemWrapper itemWrapper) {
+	public <T> boolean match(ItemWrapperOld itemWrapper) {
 		return SearchFilterType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
 	}
 
@@ -87,7 +90,7 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory {
 				return prismCtx.xmlSerializer().serializeRealValue(value);
 			} catch (SchemaException e) {
 				// TODO handle!!!!
-				LoggingUtils.logException(LOGGER, "Cannot serialize filter", e);
+				LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
 //				getSession().error("Cannot serialize filter");
 			}
 			return null;
@@ -104,7 +107,7 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory {
 				baseModel.setObject(filter);
 			} catch (SchemaException e) {
 				// TODO handle!!!!
-				LoggingUtils.logException(LOGGER, "Cannot parse filter", e);
+				LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
 //				getSession().error("Cannot parse filter");
 			}
 			

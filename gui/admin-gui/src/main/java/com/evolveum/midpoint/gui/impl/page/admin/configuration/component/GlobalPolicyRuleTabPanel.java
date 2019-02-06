@@ -48,6 +48,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyC
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -60,7 +61,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -81,7 +81,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<ContainerWrapper<GlobalPolicyRuleType>> {
+public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<ContainerWrapperImpl<GlobalPolicyRuleType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -89,7 +89,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 	
     private static final String ID_GLOBAL_POLICY_RULE = "globalPolicyRule";
     
-    public GlobalPolicyRuleTabPanel(String id, IModel<ContainerWrapper<GlobalPolicyRuleType>> model) {
+    public GlobalPolicyRuleTabPanel(String id, IModel<ContainerWrapperImpl<GlobalPolicyRuleType>> model) {
         super(id, model);
 		
     }

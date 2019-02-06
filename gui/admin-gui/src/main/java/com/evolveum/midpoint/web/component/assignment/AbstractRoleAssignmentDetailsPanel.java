@@ -16,10 +16,10 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.web.component.form.Form;
 import org.apache.wicket.model.Model;
 
@@ -36,16 +36,16 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 
 	
 	@Override
-	protected IModel<ContainerWrapper> getSpecificContainerModel() {
+	protected IModel<ContainerWrapperImpl> getSpecificContainerModel() {
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(AssignmentType.F_CONSTRUCTION));
+			ContainerWrapperImpl<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(AssignmentType.F_CONSTRUCTION));
 
 //			constructionWrapper.setAddContainerButtonVisible(true);
 			constructionWrapper.setShowEmpty(true, false);
 			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
 				constructionWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
 			}
-			ContainerWrapper associationWrapper = constructionWrapper.findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
+			ContainerWrapperImpl associationWrapper = constructionWrapper.findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
 			if (associationWrapper != null) {
 //				associationWrapper.setRemoveContainerButtonVisible(true);
 			}
@@ -53,7 +53,7 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 		}
 		
 		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			ContainerWrapper<PolicyRuleType> personasWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(AssignmentType.F_PERSONA_CONSTRUCTION));
+			ContainerWrapperImpl<PolicyRuleType> personasWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(AssignmentType.F_PERSONA_CONSTRUCTION));
 			if (personasWrapper != null && personasWrapper.getValues() != null) {
 				personasWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
 			}

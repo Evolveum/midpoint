@@ -32,6 +32,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +71,6 @@ import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
@@ -92,7 +92,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<NotificationConfigurationType>> {
+public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<NotificationConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -116,7 +116,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 	private MailConfigurationType mailConfigType;
 	private List<MailServerConfiguration> mailServers;
 
-	public NotificationConfigTabPanel(String id, IModel<ContainerWrapper<NotificationConfigurationType>> model) {
+	public NotificationConfigTabPanel(String id, IModel<ContainerWrapperImpl<NotificationConfigurationType>> model) {
 		super(id, model);
 	}
 	

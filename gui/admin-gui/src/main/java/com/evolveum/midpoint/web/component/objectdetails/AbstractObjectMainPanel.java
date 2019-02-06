@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
@@ -68,7 +68,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
 	private Form mainForm;
 
-	private LoadableModel<ObjectWrapper<O>> objectModel;
+	private LoadableModel<ObjectWrapperImpl<O>> objectModel;
 
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 		private static final long serialVersionUID = 1L;
@@ -79,7 +79,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		}
 	};
 
-	public AbstractObjectMainPanel(String id, LoadableModel<ObjectWrapper<O>> objectModel, PageAdminObjectDetails<O> parentPage) {
+	public AbstractObjectMainPanel(String id, LoadableModel<ObjectWrapperImpl<O>> objectModel, PageAdminObjectDetails<O> parentPage) {
 		super(id, objectModel);
 		Validate.notNull(objectModel, "Null object model");
 		this.objectModel = objectModel;
@@ -95,11 +95,11 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 				PARAMETER_SELECTED_TAB);
 	}
 
-	public LoadableModel<ObjectWrapper<O>> getObjectModel() {
+	public LoadableModel<ObjectWrapperImpl<O>> getObjectModel() {
 		return objectModel;
 	}
 
-	public ObjectWrapper<O> getObjectWrapper() {
+	public ObjectWrapperImpl<O> getObjectWrapper() {
 		return objectModel.getObject();
 	}
 

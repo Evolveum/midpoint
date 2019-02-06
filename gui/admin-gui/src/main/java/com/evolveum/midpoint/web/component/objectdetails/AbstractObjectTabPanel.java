@@ -28,6 +28,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -51,22 +51,22 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
-	private LoadableModel<ObjectWrapper<O>> objectWrapperModel;
+	private LoadableModel<ObjectWrapperImpl<O>> objectWrapperModel;
 	protected PageBase pageBase;
-	private Form<ObjectWrapper<O>> mainForm;
+	private Form<ObjectWrapperImpl<O>> mainForm;
 
-	public AbstractObjectTabPanel(String id, Form<ObjectWrapper<O>> mainForm, LoadableModel<ObjectWrapper<O>> objectWrapperModel, PageBase pageBase) {
+	public AbstractObjectTabPanel(String id, Form<ObjectWrapperImpl<O>> mainForm, LoadableModel<ObjectWrapperImpl<O>> objectWrapperModel, PageBase pageBase) {
 		super(id);
 		this.objectWrapperModel = objectWrapperModel;
 		this.mainForm = mainForm;
 		this.pageBase = pageBase;
 	}
 
-	public LoadableModel<ObjectWrapper<O>> getObjectWrapperModel() {
+	public LoadableModel<ObjectWrapperImpl<O>> getObjectWrapperModel() {
 		return objectWrapperModel;
 	}
 
-	public ObjectWrapper<O> getObjectWrapper() {
+	public ObjectWrapperImpl<O> getObjectWrapper() {
 		return objectWrapperModel.getObject();
 	}
 
@@ -82,7 +82,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		return pageBase;
 	}
 
-	public Form<ObjectWrapper<O>> getMainForm() {
+	public Form<ObjectWrapperImpl<O>> getMainForm() {
 		return mainForm;
 	}
 

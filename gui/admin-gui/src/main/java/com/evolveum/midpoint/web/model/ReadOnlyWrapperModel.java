@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.IModel;
@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
  */
 public abstract class ReadOnlyWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<T,O> {
 
-    public ReadOnlyWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
+    public ReadOnlyWrapperModel(IModel<ObjectWrapperImpl<O>> wrapperModel) {
     	super(wrapperModel);
     }
 

@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web;
 
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -51,10 +53,10 @@ public class ObjectWrapperTest extends AbstractGuiIntegrationTest {
         Task task = taskManager.createTaskInstance("testEmptyPolyString");
 
         ObjectWrapperFactory owf = new ObjectWrapperFactory(null);
-        ObjectWrapper<UserType> wrapper = owf.createObjectWrapper(null, null, user, ContainerStatus.MODIFYING, task);
+        ObjectWrapperImpl<UserType> wrapper = owf.createObjectWrapper(null, null, user, ContainerStatus.MODIFYING, task);
         //simulate change on honorific prefix
-        ContainerWrapper containerWrapper = null;
-        for (ContainerWrapper container : wrapper.getContainers()) {
+        ContainerWrapperImpl containerWrapper = null;
+        for (ContainerWrapperImpl container : wrapper.getContainers()) {
             if (container.isMain()) {
                 containerWrapper = container;
                 break;

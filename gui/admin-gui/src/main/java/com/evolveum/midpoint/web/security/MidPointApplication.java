@@ -16,6 +16,79 @@
 
 package com.evolveum.midpoint.web.security;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.Set;
+
+import javax.xml.datatype.Duration;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ConverterLocator;
+import org.apache.wicket.IConverterLocator;
+import org.apache.wicket.ISessionListener;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
+import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.core.request.mapper.MountedMapper;
+import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
+import org.apache.wicket.core.util.objects.checker.IObjectChecker;
+import org.apache.wicket.core.util.objects.checker.NotDetachedModelChecker;
+import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
+import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
+import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
+import org.apache.wicket.markup.head.PriorityFirstComparator;
+import org.apache.wicket.markup.html.SecurePackageResourceGuard;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.resource.loader.IStringResourceLoader;
+import org.apache.wicket.serialize.java.JavaSerializer;
+import org.apache.wicket.settings.ApplicationSettings;
+import org.apache.wicket.settings.ResourceSettings;
+import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
+import org.apache.wicket.util.lang.Bytes;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.security.web.csrf.CsrfToken;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -26,7 +99,11 @@ import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
 import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
 import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
 import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
-import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.ModelAuditService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -55,7 +132,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
-import com.evolveum.midpoint.web.page.error.*;
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.page.error.PageError401;
+import com.evolveum.midpoint.web.page.error.PageError403;
+import com.evolveum.midpoint.web.page.error.PageError404;
+import com.evolveum.midpoint.web.page.error.PageError410;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
@@ -68,51 +149,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.IOUtils;
-import org.apache.wicket.*;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
-import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.core.request.mapper.MountedMapper;
-import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
-import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
-import org.apache.wicket.markup.head.PriorityFirstComparator;
-import org.apache.wicket.markup.html.SecurePackageResourceGuard;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.protocol.http.WebApplication;
-import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.request.resource.SharedResourceReference;
-import org.apache.wicket.resource.loader.IStringResourceLoader;
-import org.apache.wicket.settings.ApplicationSettings;
-import org.apache.wicket.settings.ResourceSettings;
-import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
-import org.apache.wicket.util.lang.Bytes;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.security.web.csrf.CsrfToken;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-import javax.xml.datatype.Duration;
 
 /**
  * @author lazyman
@@ -440,18 +476,18 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     private void initializeDevelopmentSerializers() {
-//    	JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
-//    	    @Override
-//    	    protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
-//    	    	LOGGER.info("XXXXXXX YX Y");
-////    	    	IObjectChecker checker1 = new MidPointObjectChecker();
-//////    	        IObjectChecker checker2 = new NotDetachedModelChecker();
-////    	        IObjectChecker checker3 = new ObjectSerializationChecker();
-////    	        return new CheckingObjectOutputStream(out, checker1, checker3);
+    	JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
+    	    @Override
+    	    protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
+    	    	LOGGER.info("XXXXXXX YX Y");
+    	    	IObjectChecker checker1 = new MidPointObjectChecker();
+    	        IObjectChecker checker2 = new NotDetachedModelChecker();
+    	        IObjectChecker checker3 = new ObjectSerializationChecker();
+    	        return new CheckingObjectOutputStream(out, checker1, checker3);
 //    	        return new ObjectOutputStream(out);
-//    	    }
-//    	};
-//    	getFrameworkSettings().setSerializer( javaSerializer );
+    	    }
+    	};
+    	getFrameworkSettings().setSerializer( javaSerializer );
 
     }
 

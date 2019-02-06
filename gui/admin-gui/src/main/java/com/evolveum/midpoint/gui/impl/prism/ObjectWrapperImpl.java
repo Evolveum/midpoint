@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.prism;
+package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,6 +31,8 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -58,6 +60,11 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.HeaderStatus;
+import com.evolveum.midpoint.web.component.prism.ItemWrapperComparator;
+import com.evolveum.midpoint.web.component.prism.PrismWrapper;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -65,14 +72,14 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author lazyman
  * @author katkav
  */
-public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements Serializable, Revivable, DebugDumpable {
+public class ObjectWrapperImpl<O extends ObjectType> extends PrismWrapper implements PrismObjectWrapper, Serializable, Revivable, DebugDumpable {
 	private static final long serialVersionUID = 1L;
 
 	public static final String F_DISPLAY_NAME = "displayName";
 	public static final String F_SELECTED = "selected";
 	public static final String F_OBJECT = "object";
 
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapperImpl.class);
 
 	public static final String PROPERTY_CONTAINERS = "containers";
 
@@ -83,7 +90,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 	private HeaderStatus headerStatus;
 	private String displayName;
 	private String description;
-	private List<ContainerWrapper<? extends Containerable>> containers;
+	private List<ContainerWrapperImpl<? extends Containerable>> containers;
 
 	private boolean selectable;
 	private boolean selected;
@@ -112,7 +119,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 	// editability; applicable for shadows only
 	private RefinedObjectClassDefinition objectClassDefinitionForEditing;
 
-	public ObjectWrapper(String dispayName, String descritpion, PrismObject<O> object, ContainerStatus status) {
+	public ObjectWrapperImpl(String dispayName, String descritpion, PrismObject<O> object, ContainerStatus status) {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 
@@ -131,7 +138,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			oldDelta.revive(prismContext);
 		}
 		if (containers != null) {
-			for (ContainerWrapper containerWrapper : containers) {
+			for (ContainerWrapperImpl containerWrapper : containers) {
 				containerWrapper.revive(prismContext);
 			}
 		}
@@ -227,29 +234,29 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		this.selected = selected;
 	}
 
-	public <C extends Containerable> List<ContainerWrapper<? extends Containerable>> getContainers() {
+	public <C extends Containerable> List<ContainerWrapperImpl<? extends Containerable>> getContainers() {
 		if (containers == null) {
 			containers = new ArrayList<>();
 		}
 		return containers;
 	}
 
-	public void setContainers(List<ContainerWrapper<? extends Containerable>> containers) {
+	public void setContainers(List<ContainerWrapperImpl<? extends Containerable>> containers) {
 		this.containers = containers;
 	}
 
-	public <C extends Containerable> ContainerWrapper<C> findContainerWrapper(ItemPath path) {
+	public <C extends Containerable> ContainerWrapperImpl<C> findContainerWrapper(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return (ContainerWrapper<C>) findMainContainerWrapper();
+			return (ContainerWrapperImpl<C>) findMainContainerWrapper();
 
 		}
 
 		if (path.size() == 1) {
-			return (ContainerWrapper<C>) getContainers().stream().filter(wrapper -> path.equivalent(wrapper.getPath()))
+			return (ContainerWrapperImpl<C>) getContainers().stream().filter(wrapper -> path.equivalent(wrapper.getPath()))
 					.findFirst().orElse(null);
 		}
 
-		ContainerWrapper<C> containerWrapper = findContainerWrapper(path.firstAsPath());
+		ContainerWrapperImpl<C> containerWrapper = findContainerWrapper(path.firstAsPath());
 		if (containerWrapper == null) {
 			return null;
 		}
@@ -260,14 +267,14 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	public <C extends Containerable> ContainerValueWrapper<C> findContainerValueWrapper(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			ContainerWrapper<C> mainContainer = (ContainerWrapper<C>) findMainContainerWrapper();
+			ContainerWrapperImpl<C> mainContainer = (ContainerWrapperImpl<C>) findMainContainerWrapper();
 			if (mainContainer == null) {
 				return null;
 			}
 			return mainContainer.getValues().iterator().next();
 		}
 
-		ContainerWrapper<C> containerWrapper = findContainerWrapper(path.firstAsPath());
+		ContainerWrapperImpl<C> containerWrapper = findContainerWrapper(path.firstAsPath());
 		if (containerWrapper == null) {
 			return null;
 		}
@@ -276,8 +283,8 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	}
 
-	public ContainerWrapper<O> findMainContainerWrapper() {
-		for (ContainerWrapper wrapper : getContainers()) {
+	public ContainerWrapperImpl<O> findMainContainerWrapper() {
+		for (ContainerWrapperImpl wrapper : getContainers()) {
 			if (wrapper.isMain()) {
 				return wrapper;
 			}
@@ -285,8 +292,8 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		return null;
 	}
 
-	public <IW extends ItemWrapper> IW findPropertyWrapper(ItemPath path) {
-		ContainerWrapper containerWrapper;
+	public <IW extends ItemWrapperOld> IW findPropertyWrapper(ItemPath path) {
+		ContainerWrapperImpl containerWrapper;
 		ItemPath propertyPath;
 		if (path.size() == 1) {
 			containerWrapper = findMainContainerWrapper();
@@ -328,11 +335,11 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		ObjectDelta<O> delta = object.getPrismContext().deltaFactory().object().create(object.getCompileTimeClass(), ChangeType.MODIFY);
 		delta.setOid(object.getOid());
 
-		List<ContainerWrapper<? extends Containerable>> containers = getContainers();
+		List<ContainerWrapperImpl<? extends Containerable>> containers = getContainers();
 		// sort containers by path size
 		Collections.sort(containers, new PathSizeComparator());
 
-		for (ContainerWrapper containerWrapper : getContainers()) {
+		for (ContainerWrapperImpl containerWrapper : getContainers()) {
 			containerWrapper.collectModifications(delta);
 		}
 		
@@ -463,10 +470,10 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		return protectedObject.getRealValue() != null ? protectedObject.getRealValue() : false;
 	}
 
-	private static class PathSizeComparator implements Comparator<ContainerWrapper> {
+	private static class PathSizeComparator implements Comparator<ContainerWrapperImpl> {
 
 		@Override
-		public int compare(ContainerWrapper c1, ContainerWrapper c2) {
+		public int compare(ContainerWrapperImpl c1, ContainerWrapperImpl c2) {
 			int size1 = c1.getPath() != null ? c1.getPath().size() : 0;
 			int size2 = c2.getPath() != null ? c2.getPath().size() : 0;
 
@@ -534,7 +541,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		return null;
 	}
 
-	public void copyRuntimeStateTo(ObjectWrapper<O> newWrapper) {
+	public void copyRuntimeStateTo(ObjectWrapperImpl<O> newWrapper) {
 		newWrapper.setMinimalized(this.isMinimalized());
 		// newWrapper.setShowEmpty(this.isShowEmpty());
 		newWrapper.setSorted(this.isSorted());
@@ -558,7 +565,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 	@SuppressWarnings("unused")
 	public boolean checkRequiredFields(PageBase pageBase) {
 		boolean rv = true;
-		for (ContainerWrapper<? extends Containerable> container : containers) {
+		for (ContainerWrapperImpl<? extends Containerable> container : containers) {
 			if (!container.checkRequired(pageBase)) {
 				rv = false; // continuing to display messages for all missing fields
 			}

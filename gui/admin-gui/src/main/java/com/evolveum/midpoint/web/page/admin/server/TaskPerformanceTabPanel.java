@@ -17,11 +17,11 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -45,7 +45,7 @@ public class TaskPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> im
 	private static final Trace LOGGER = TraceManager.getTrace(TaskPerformanceTabPanel.class);
 
 	public TaskPerformanceTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
+			LoadableModel<ObjectWrapperImpl<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		this.taskDtoModel = taskDtoModel;

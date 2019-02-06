@@ -34,8 +34,11 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.factory.RealValuable;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -78,19 +81,19 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerValueWrapper.class);
 
-	private ContainerWrapper<C> containerWrapper;
+	private ContainerWrapperImpl<C> containerWrapper;
 	private PrismContainerValue<C> containerValue;
 	private ValueStatus status;
 	private ItemPath path;
 	// WARNING!!! This field has to be called "properties" even if the right name should be "items".
 	// But some Wicket reflection magic is looking for "properties" field. So, let it be properties for now.
-	private List<ItemWrapper> properties;
+	private List<ItemWrapperOld> properties;
 	private boolean readonly;
 	private boolean selected;
 
 	private ContainerStatus objectStatus;
 	
-	ContainerValueWrapper(ContainerWrapper<C> containerWrapper, PrismContainerValue<C> containerValue, ContainerStatus objectStatus, ValueStatus status,
+	ContainerValueWrapper(ContainerWrapperImpl<C> containerWrapper, PrismContainerValue<C> containerValue, ContainerStatus objectStatus, ValueStatus status,
 			ItemPath path) {
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(containerValue.getParent().getDefinition(), "container definition must not be null.");
@@ -120,14 +123,14 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			getDefinition().revive(prismContext);
 		}
 		if (properties != null) {
-			for (ItemWrapper itemWrapper : properties) {
+			for (ItemWrapperOld itemWrapper : properties) {
 				itemWrapper.revive(prismContext);
 			}
 		}
 	}
 
 	@Nullable
-	public ContainerWrapper<C> getContainer() {
+	public ContainerWrapperImpl<C> getContainer() {
 		return containerWrapper;
 	}
 
@@ -147,21 +150,21 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return containerValue;
 	}
 
-	public List<ItemWrapper> getItems() {
+	public List<ItemWrapperOld> getItems() {
 		if (properties == null) {
 			properties = new ArrayList<>();
 		}
 		return properties;
 	}
 
-	public void addEmptyProperties(List<ItemWrapper> emptyProperties) {
+	public void addEmptyProperties(List<ItemWrapperOld> emptyProperties) {
 		emptyProperties.forEach(empty -> {
 			if (!properties.contains(empty))
 				properties.add(empty);
 		});
 	}
 
-	public void setProperties(List<ItemWrapper> properties) {
+	public void setProperties(List<ItemWrapperOld> properties) {
 		this.properties = properties;
 	}
 
@@ -171,7 +174,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		int visibleProperties = 0;
 
- 		for (ItemWrapper item : properties) {
+ 		for (ItemWrapperOld item : properties) {
 			if (item.isVisible()) {
 				visibleProperties++;
 			}
@@ -212,7 +215,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 				return true;
 			case ADDED:
 			case NOT_CHANGED:
-				for (ItemWrapper item : getItems()) {
+				for (ItemWrapperOld item : getItems()) {
 					if (item.hasChanged()) {
 						return true;
 					}
@@ -293,8 +296,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 					((PropertyOrReferenceWrapper) item).setReadonly(readonly);
 					return;
 				}
-				if (item instanceof ContainerWrapper){
-					List<ContainerValueWrapper> itemWrapperValues = ((ContainerWrapper) item).getValues();
+				if (item instanceof ContainerWrapperImpl){
+					List<ContainerValueWrapper> itemWrapperValues = ((ContainerWrapperImpl) item).getValues();
 					itemWrapperValues.forEach(containerValueWrapper -> {
 						containerValueWrapper.setReadonly(readonly, recursive);
 					});
@@ -321,23 +324,23 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
 			collator.setDecomposition(Collator.FULL_DECOMPOSITION);     // slower but more precise
 			
-			Collections.sort(properties, new Comparator<ItemWrapper>() {
+			Collections.sort(properties, new Comparator<ItemWrapperOld>() {
 				@Override
-				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
+				public int compare(ItemWrapperOld pw1, ItemWrapperOld pw2) {
 					
-					if (pw1 instanceof ContainerWrapper) {
-						((ContainerWrapper) pw1).sort();
+					if (pw1 instanceof ContainerWrapperImpl) {
+						((ContainerWrapperImpl) pw1).sort();
 					}
 					
-					if (pw2 instanceof ContainerWrapper) {
-						((ContainerWrapper) pw2).sort();
+					if (pw2 instanceof ContainerWrapperImpl) {
+						((ContainerWrapperImpl) pw2).sort();
 					}
 					
-					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw1.getClass()) && pw2 instanceof ContainerWrapper) {
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw1.getClass()) && pw2 instanceof ContainerWrapperImpl) {
 						return -1;
 					}
 					
-					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw2.getClass()) && pw1 instanceof ContainerWrapper) {
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw2.getClass()) && pw1 instanceof ContainerWrapperImpl) {
 						return 1;
 					}
 //					
@@ -345,23 +348,23 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 				}
 			});
 		} else {
-			Collections.sort(properties, new Comparator<ItemWrapper>() {
+			Collections.sort(properties, new Comparator<ItemWrapperOld>() {
 				@Override
-				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
+				public int compare(ItemWrapperOld pw1, ItemWrapperOld pw2) {
 					
-					if (pw1 instanceof ContainerWrapper) {
-						((ContainerWrapper) pw1).sort();
+					if (pw1 instanceof ContainerWrapperImpl) {
+						((ContainerWrapperImpl) pw1).sort();
 					}
 					
-					if (pw2 instanceof ContainerWrapper) {
-						((ContainerWrapper) pw2).sort();
+					if (pw2 instanceof ContainerWrapperImpl) {
+						((ContainerWrapperImpl) pw2).sort();
 					}
 					
-					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw1.getClass()) && pw2 instanceof ContainerWrapper) {
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw1.getClass()) && pw2 instanceof ContainerWrapperImpl) {
 						return -1;
 					}
 					
-					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw2.getClass()) && pw1 instanceof ContainerWrapper) {
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw2.getClass()) && pw1 instanceof ContainerWrapperImpl) {
 						return 1;
 					}
 					
@@ -381,7 +384,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	}
 
-	private int compareByDisplayNames(ItemWrapper pw1, ItemWrapper pw2, Collator collator) {
+	private int compareByDisplayNames(ItemWrapperOld pw1, ItemWrapperOld pw2, Collator collator) {
 		return collator.compare(pw1.getDisplayName(), pw2.getDisplayName());
 	}
 
@@ -419,14 +422,14 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 		PrismContainerValue<C> newValue = containerValue.clone();
 		
-		for (ItemWrapper item : getItems()) {
+		for (ItemWrapperOld item : getItems()) {
 			if (!item.hasChanged()) {
 				continue;
 			}
 
-			if (item instanceof ContainerWrapper) {
+			if (item instanceof ContainerWrapperImpl) {
 				
-				PrismContainer containerToAdd = ((ContainerWrapper) item).createContainerAddDelta();
+				PrismContainer containerToAdd = ((ContainerWrapperImpl) item).createContainerAddDelta();
 				newValue.addReplaceExisting(containerToAdd);
 				
 			} else {
@@ -479,7 +482,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			return;
 		}
 
-		for (ItemWrapper itemWrapper : getItems()) {
+		for (ItemWrapperOld itemWrapper : getItems()) {
 			if (!itemWrapper.hasChanged()) {
 				continue;
 			}
@@ -504,8 +507,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 				if (!pDelta.isEmpty()) {
 					delta.addModification(pDelta);
 				}
-			} else if (itemWrapper instanceof ContainerWrapper) {
-				((ContainerWrapper) itemWrapper).collectModifications(delta);
+			} else if (itemWrapper instanceof ContainerWrapperImpl) {
+				((ContainerWrapperImpl) itemWrapper).collectModifications(delta);
 			} else {
 				LOGGER.trace("Delta from wrapper: ignoring {}", itemWrapper);
 			}
@@ -543,8 +546,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 				continue;
 			}
 
-			PrismValue newValCloned = ObjectWrapper.clone(valueWrapper.getValue());
-			PrismValue oldValCloned = ObjectWrapper.clone(valueWrapper.getOldValue());
+			PrismValue newValCloned = ObjectWrapperImpl.clone(valueWrapper.getValue());
+			PrismValue oldValCloned = ObjectWrapperImpl.clone(valueWrapper.getOldValue());
 			switch (valueWrapper.getStatus()) {
 				case ADDED:
 					if (newValCloned != null) {
@@ -701,7 +704,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	private boolean showEmptyCanReadAndModify(PrismContainerDefinition<C> def) {
-		return def.canRead() && isShowEmpty(); //def.canModify() && isShowEmpty();
+		return def.canRead() && isShowEmpty() && getContainer().isExpanded(); //def.canModify() && isShowEmpty();
 	}
 
 	private boolean showEmptyAndCanAdd(PrismContainerDefinition<C> def) {
@@ -725,8 +728,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	public void setShowMetadata(boolean showMetadata) {
 		super.setShowMetadata(showMetadata);
 		getItems().forEach(value -> {
-			if (value instanceof ContainerWrapper) {
-				((ContainerWrapper<C>) value).setShowMetadata(showMetadata);
+			if (value instanceof ContainerWrapperImpl) {
+				((ContainerWrapperImpl<C>) value).setShowMetadata(showMetadata);
 			}
 		});
 	}
@@ -734,7 +737,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	// @Override
 	public boolean checkRequired(PageBase pageBase) {
 		boolean rv = true;
-		for (ItemWrapper itemWrapper : getItems()) {
+		for (ItemWrapperOld itemWrapper : getItems()) {
 			if (!itemWrapper.checkRequired(pageBase)) {
 				rv = false;     // not returning directly as we want to go through all the values
 			}
@@ -742,9 +745,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return rv;
 	}
 	
-	public ItemWrapper findItemWrapper(QName name) {
+	public ItemWrapperOld findItemWrapper(QName name) {
 		Validate.notNull(name, "QName must not be null.");
-		for (ItemWrapper wrapper : getItems()) {
+		for (ItemWrapperOld wrapper : getItems()) {
 			if (QNameUtil.match(name, wrapper.getItem().getElementName())) {
 				return wrapper;
 			}
@@ -754,8 +757,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public PropertyOrReferenceWrapper findPropertyWrapperByName(ItemName name) {
 		Validate.notNull(name, "QName must not be null.");
-		for (ItemWrapper wrapper : getItems()) {
-			if (wrapper instanceof ContainerWrapper) {
+		for (ItemWrapperOld wrapper : getItems()) {
+			if (wrapper instanceof ContainerWrapperImpl) {
 				continue;
 			}
 			if (QNameUtil.match(name, wrapper.getItem().getElementName())) {
@@ -767,8 +770,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public PropertyOrReferenceWrapper findPropertyWrapper(ItemPath itemPath) {
 		Validate.notNull(itemPath, "Item path must not be null.");
-		for (ItemWrapper wrapper : getItems()) {
-			if (wrapper instanceof ContainerWrapper) {
+		for (ItemWrapperOld wrapper : getItems()) {
+			if (wrapper instanceof ContainerWrapperImpl) {
 				continue;
 			}
 			if (itemPath.equivalent(wrapper.getPath())) {
@@ -778,13 +781,13 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-	public <T extends Containerable> ContainerWrapper<T> findContainerWrapperByName(ItemName name) {
+	public <T extends Containerable> ContainerWrapperImpl<T> findContainerWrapperByName(ItemName name) {
 		Validate.notNull(path, "QName must not be null.");
-		for (ItemWrapper wrapper : getItems()) {
-			if (!(wrapper instanceof ContainerWrapper)) {
+		for (ItemWrapperOld wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapperImpl)) {
 				continue;
 			}
-			ContainerWrapper<T> containerWrapper = (ContainerWrapper<T>) wrapper;
+			ContainerWrapperImpl<T> containerWrapper = (ContainerWrapperImpl<T>) wrapper;
 			if (QNameUtil.match(name, containerWrapper.getItem().getElementName())) {
 				return containerWrapper;
 			} 
@@ -792,17 +795,17 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 	
-	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
+	public <T extends Containerable> ContainerWrapperImpl<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "Path must not be null.");
-		for (ItemWrapper wrapper : getItems()) {
-			if (!(wrapper instanceof ContainerWrapper)) {
+		for (ItemWrapperOld wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapperImpl)) {
 				continue;
 			}
-			ContainerWrapper<T> containerWrapper = (ContainerWrapper<T>) wrapper;
+			ContainerWrapperImpl<T> containerWrapper = (ContainerWrapperImpl<T>) wrapper;
 			if (containerWrapper.getPath().equivalent(path)) {
 				return containerWrapper;
 			} else {
-				ContainerWrapper<T> childrenContainer = containerWrapper.findContainerWrapper(path);
+				ContainerWrapperImpl<T> childrenContainer = containerWrapper.findContainerWrapper(path);
 				if (childrenContainer != null){
 					return childrenContainer;
 				}
@@ -813,7 +816,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public ContainerValueWrapper<C> findContainerValueWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
-		for (ItemWrapper wrapper : getItems()) {
+		for (ItemWrapperOld wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerValueWrapper)) {
 				continue;
 			}
@@ -825,17 +828,17 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public boolean containsMultipleMultivalueContainer(ItemVisibilityHandler isPanelVisible){
 		int count = 0;
-		for (ItemWrapper wrapper : getItems()) {
-			if (!(wrapper instanceof ContainerWrapper)) {
+		for (ItemWrapperOld wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapperImpl)) {
 				continue;
 			}
-			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
+			if (!((ContainerWrapperImpl<C>) wrapper).getItemDefinition().isSingleValue()){
 				if(isPanelVisible != null) {
 					if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.VISIBLE)
-							|| (isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && ((ContainerWrapper<C>)wrapper).isVisible())) {
+							|| (isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && ((ContainerWrapperImpl<C>)wrapper).isVisible())) {
 						count++;
 					}
-				} else if(((ContainerWrapper<C>)wrapper).isVisible()) {
+				} else if(((ContainerWrapperImpl<C>)wrapper).isVisible()) {
 					count++;
 				}
 			}
@@ -849,26 +852,26 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public List<QName> getChildMultivalueContainersToBeAdded(ItemVisibilityHandler isPanelVisible){
 		List<QName> pathList = new ArrayList<>();
-		for (ItemWrapper wrapper : getItems()) {
-			if (!(wrapper instanceof ContainerWrapper)) {
+		for (ItemWrapperOld wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapperImpl)) {
 				continue;
 			}
-			if (!((ContainerWrapper<C>)wrapper).getItemDefinition().canAdd() ||
-					!((ContainerWrapper<C>)wrapper).getItemDefinition().canModify()){
+			if (!((ContainerWrapperImpl<C>)wrapper).getItemDefinition().canAdd() ||
+					!((ContainerWrapperImpl<C>)wrapper).getItemDefinition().canModify()){
 				continue;
 			}
 			if(isPanelVisible != null) {
 				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.HIDDEN)) {
 					continue;
 				}
-				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && !((ContainerWrapper<C>)wrapper).isVisible()) {
+				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && !((ContainerWrapperImpl<C>)wrapper).isVisible()) {
 					continue;
 				}
-			} else if(!((ContainerWrapper<C>)wrapper).isVisible()) {
+			} else if(!((ContainerWrapperImpl<C>)wrapper).isVisible()) {
 					continue;
 			}
-			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
-				pathList.add(((ContainerWrapper<C>) wrapper).getName());
+			if (!((ContainerWrapperImpl<C>) wrapper).getItemDefinition().isSingleValue()){
+				pathList.add(((ContainerWrapperImpl<C>) wrapper).getName());
 			}
 
 		}
@@ -886,7 +889,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 		if (getDefinition().isSingleValue()) {
 
-			return ContainerWrapper.getDisplayNameFromItem(getContainerValue().getContainer());
+			return ContainerWrapperImpl.getDisplayNameFromItem(getContainerValue().getContainer());
 		}
 		return WebComponentUtil.getDisplayName(containerValue);
 	}
@@ -899,5 +902,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	@Override
 	public void setRealValue(C object) {
 		containerValue = object.asPrismContainerValue();
+	}
+	
+	public boolean isEnforceRequiredFields() {
+		return getContainer() != null && getContainer().isEnforceRequiredFields();
 	}
 }

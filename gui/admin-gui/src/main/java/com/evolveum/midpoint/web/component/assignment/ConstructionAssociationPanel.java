@@ -19,8 +19,10 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -46,7 +48,7 @@ import java.util.*;
 /**
  * Created by honchar.
  */
-public class ConstructionAssociationPanel<C extends Containerable, IW extends ItemWrapper> extends BasePanel<ContainerWrapper<ConstructionType>> {
+public class ConstructionAssociationPanel<C extends Containerable, IW extends ItemWrapperOld> extends BasePanel<ContainerWrapperImpl<ConstructionType>> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ASSOCIATIONS = "associations";
@@ -62,11 +64,11 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
     private static final String ID_INPUT_SIZE = "col-md-6";
 
     private LoadableDetachableModel<PrismObject<ResourceType>> resourceModel;
-    private ContainerWrapper<ResourceObjectAssociationType> associationWrapper;
+    private ContainerWrapperImpl<ResourceObjectAssociationType> associationWrapper;
     private LoadableDetachableModel<List<RefinedAssociationDefinition>> refinedAssociationDefinitionsModel;
 
 
-    public ConstructionAssociationPanel(String id, IModel<ContainerWrapper<ConstructionType>> constructionWrapperModel) {
+    public ConstructionAssociationPanel(String id, IModel<ContainerWrapperImpl<ConstructionType>> constructionWrapperModel) {
         super(id, constructionWrapperModel);
     }
 
@@ -151,8 +153,8 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                             @Override
                             protected void removeValuePerformed(AjaxRequestTarget target, ListItem<ObjectReferenceType> item) {
                                 ObjectReferenceType removedShadowRef = item.getModelObject();
-                                ContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
-                                ContainerWrapper associationWrapper = constructionContainerWrapper.findContainerWrapper(constructionContainerWrapper
+                                ContainerWrapperImpl<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
+                                ContainerWrapperImpl associationWrapper = constructionContainerWrapper.findContainerWrapper(constructionContainerWrapper
                                         .getPath().append(ConstructionType.F_ASSOCIATION));
                                 associationWrapper.getValues().forEach(associationValueWrapper -> {
                                     if (ValueStatus.DELETED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus())) {
@@ -195,7 +197,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
             public List<ObjectReferenceType> load() {
                 QName defName = def.getName();
                 List<ObjectReferenceType> shadowsList = new ArrayList<>();
-                ContainerWrapper associationWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(ConstructionType.F_ASSOCIATION));
+                ContainerWrapperImpl associationWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(ConstructionType.F_ASSOCIATION));
                 associationWrapper.getValues().forEach(associationValueWrapper -> {
                     if (ValueStatus.DELETED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus())) {
                         return;
@@ -222,7 +224,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
 
     private List<ObjectReferenceType> getAssociationsShadowRefs(boolean compareName, QName name) {
         List<ObjectReferenceType> shadowsList = new ArrayList<>();
-        ContainerWrapper associationWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(ConstructionType.F_ASSOCIATION));
+        ContainerWrapperImpl associationWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(ConstructionType.F_ASSOCIATION));
         associationWrapper.getValues().forEach(associationValueWrapper -> {
             if (ValueStatus.DELETED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus())) {
                 return;
@@ -258,8 +260,8 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, ShadowType object) {
                 getPageBase().hideMainPopup(target);
-                ContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
-                ContainerWrapper associationWrapper = constructionContainerWrapper.findContainerWrapper(constructionContainerWrapper
+                ContainerWrapperImpl<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
+                ContainerWrapperImpl associationWrapper = constructionContainerWrapper.findContainerWrapper(constructionContainerWrapper
                         .getPath().append(ConstructionType.F_ASSOCIATION));
                 PrismContainerValue newAssociation = associationWrapper.getItem().createNewValue();
                 ItemName associationRefPath = def.getName();

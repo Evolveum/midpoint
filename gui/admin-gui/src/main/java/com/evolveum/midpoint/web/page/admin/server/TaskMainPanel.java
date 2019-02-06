@@ -17,13 +17,13 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -58,12 +58,12 @@ public class TaskMainPanel extends Panel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
-	private final LoadableModel<ObjectWrapper<TaskType>> objectModel;
+	private final LoadableModel<ObjectWrapperImpl<TaskType>> objectModel;
 	private final IModel<TaskDto> taskDtoModel;
 	private final IModel<Boolean> showAdvancedFeaturesModel;
 	private final PageTaskEdit parentPage;
 
-	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel,
+	public TaskMainPanel(String id, LoadableModel<ObjectWrapperImpl<TaskType>> objectModel, IModel<TaskDto> taskDtoModel,
 			IModel<Boolean> showAdvancedFeaturesModel, PageTaskEdit parentPage) {
 		super(id, objectModel);
 		this.objectModel = objectModel;

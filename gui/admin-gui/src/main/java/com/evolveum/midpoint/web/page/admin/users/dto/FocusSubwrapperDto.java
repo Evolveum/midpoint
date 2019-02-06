@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.HeaderStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
@@ -31,14 +31,14 @@ import java.io.Serializable;
 public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private ObjectWrapper<O> object;
+	private ObjectWrapperImpl<O> object;
     private UserDtoStatus status;
 
     private boolean loadedOK = true;
     private String description;
     private OperationResult result;
 
-    public FocusSubwrapperDto(ObjectWrapper<O> object, UserDtoStatus status) {
+    public FocusSubwrapperDto(ObjectWrapperImpl<O> object, UserDtoStatus status) {
         setObject(object);
         setStatus(status);
     }
@@ -69,11 +69,11 @@ public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
         this.loadedOK = loadedOK;
     }
 
-    public ObjectWrapper<O> getObject() {
+    public ObjectWrapperImpl<O> getObject() {
         return object;
     }
 
-    public void setObject(ObjectWrapper<O> object) {
+    public void setObject(ObjectWrapperImpl<O> object) {
         Validate.notNull(object, "Object wrapper must not be null.");
         this.object = object;
     }

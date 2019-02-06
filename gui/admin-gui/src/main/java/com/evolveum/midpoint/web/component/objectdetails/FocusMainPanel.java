@@ -23,6 +23,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -73,7 +75,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	private TaskDtoProvider taskDtoProvider;
     private FocusAssignmentsTabPanel assignmentsTabPanel = null;
 
-	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
+	public FocusMainPanel(String id, LoadableModel<ObjectWrapperImpl<F>> objectModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
@@ -373,13 +375,13 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	@Override
     protected boolean areSavePreviewButtonsEnabled(){
-		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
-		ContainerWrapper<AssignmentType> assignmentsWrapper =
+		ObjectWrapperImpl<F> focusWrapper = getObjectModel().getObject();
+		ContainerWrapperImpl<AssignmentType> assignmentsWrapper =
 				focusWrapper.findContainerWrapper(FocusType.F_ASSIGNMENT);
 		return isAssignmentsModelChanged(assignmentsWrapper);
     }
 
-    protected boolean isAssignmentsModelChanged(ContainerWrapper<AssignmentType> assignmentsWrapper){
+    protected boolean isAssignmentsModelChanged(ContainerWrapperImpl<AssignmentType> assignmentsWrapper){
 		if (assignmentsWrapper != null) {
 			for (ContainerValueWrapper assignmentWrapper : assignmentsWrapper.getValues()) {
 				if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||

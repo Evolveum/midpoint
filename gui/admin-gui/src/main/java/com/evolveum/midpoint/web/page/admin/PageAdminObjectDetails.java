@@ -37,6 +37,7 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -93,7 +94,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
-	private LoadableModel<ObjectWrapper<O>> objectModel;
+	private LoadableModel<ObjectWrapperImpl<O>> objectModel;
 	private LoadableModel<List<FocusSubwrapperDto<OrgType>>> parentOrgModel;
 
 	private ProgressPanel progressPanel;
@@ -157,7 +158,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		};
 	}
 
-	public LoadableModel<ObjectWrapper<O>> getObjectModel() {
+	public LoadableModel<ObjectWrapperImpl<O>> getObjectModel() {
 		return objectModel;
 	}
 
@@ -169,7 +170,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return mainPanel;
 	}
 
-	public ObjectWrapper<O> getObjectWrapper() {
+	public ObjectWrapperImpl<O> getObjectWrapper() {
 		return objectModel.getObject();
 	}
 
@@ -215,12 +216,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
 		editingFocus = !isNewObject;
 
-		objectModel = new LoadableModel<ObjectWrapper<O>>(false) {
+		objectModel = new LoadableModel<ObjectWrapperImpl<O>>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected ObjectWrapper<O> load() {
-				ObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
+			protected ObjectWrapperImpl<O> load() {
+				ObjectWrapperImpl<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
 				wrapper.sort();
 				return wrapper;
 			}
@@ -297,7 +298,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return getObjectOidParameter() != null;
 	}
 
-	protected ObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
+	protected ObjectWrapperImpl<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
 		Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
 		OperationResult result = task.getResult();
 		PrismObject<O> object = null;
@@ -349,7 +350,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 
 		ContainerStatus status = isOidParameterExists() || editingFocus ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-		ObjectWrapper<O> wrapper;
+		ObjectWrapperImpl<O> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, isReadonly, task);
@@ -378,7 +379,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return wrapper;
 	}
 
-	private void loadParentOrgs(ObjectWrapper<O> wrapper, Task task, OperationResult result) {
+	private void loadParentOrgs(ObjectWrapperImpl<O> wrapper, Task task, OperationResult result) {
 		OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
 		PrismObject<O> focus = wrapper.getObject();
 		// Load parent organizations (full objects). There are used in the
@@ -459,7 +460,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 		boolean delegationChangesExist = processDeputyAssignments(previewOnly);
 
-		ObjectWrapper<O> objectWrapper = getObjectWrapper();
+		ObjectWrapperImpl<O> objectWrapper = getObjectWrapper();
 		LOGGER.debug("Saving object {}", objectWrapper);
 
 		// todo: improve, delta variable is quickfix for MID-1006
@@ -655,7 +656,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return null;
 	}
 
-	protected boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
+	protected boolean executeForceDelete(ObjectWrapperImpl userWrapper, Task task, ModelExecuteOptions options,
 			OperationResult parentResult) {
 		return isForce();
 	}

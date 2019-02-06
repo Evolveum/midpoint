@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.wicket.Component;
@@ -32,6 +31,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * @author semancik
  */
-public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<ContainerWrapper<AssignmentType>> {
+public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<ContainerWrapperImpl<AssignmentType>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleRoleSelector.class);
@@ -55,7 +55,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
     List<PrismObject<R>> availableRoles;
 
-    public SimpleRoleSelector(String id, IModel<ContainerWrapper<AssignmentType>> assignmentModel, List<PrismObject<R>> availableRoles) {
+    public SimpleRoleSelector(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentModel, List<PrismObject<R>> availableRoles) {
         super(id, assignmentModel);
         this.availableRoles = availableRoles;
         initLayout();

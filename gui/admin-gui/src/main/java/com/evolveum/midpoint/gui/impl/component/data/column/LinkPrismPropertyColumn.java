@@ -28,13 +28,13 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 
@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.component.prism.ValueWrapper;
  */
 public class LinkPrismPropertyColumn<T,C extends Containerable> extends AbstractItemWrapperColumn<C> implements IExportableColumn<ContainerValueWrapper<C>, String>{
 
-	public LinkPrismPropertyColumn(final IModel<ContainerWrapper<Containerable>> headerModel, ItemName name, PageBase pageBase) {
+	public LinkPrismPropertyColumn(final IModel<ContainerWrapperImpl<Containerable>> headerModel, ItemName name, PageBase pageBase) {
 		super(headerModel == null ? null : getPropertyOrReferenceForHeaderWrapper(headerModel, name, pageBase),
 				pageBase);
 	}

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyC
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -64,7 +65,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -84,7 +84,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends BasePanel<ContainerWrapper<ObjectPolicyConfigurationType>> {
+public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends BasePanel<ContainerWrapperImpl<ObjectPolicyConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -92,7 +92,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 	
     private static final String ID_OBJECTS_POLICY = "objectsPolicy";
     
-    public ObjectPolicyConfigurationTabPanel(String id, IModel<ContainerWrapper<ObjectPolicyConfigurationType>> model) {
+    public ObjectPolicyConfigurationTabPanel(String id, IModel<ContainerWrapperImpl<ObjectPolicyConfigurationType>> model) {
         super(id, model);
         
         
@@ -264,13 +264,13 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				ContainerWrapper lifecycleStateModel = rowModel.getObject().findContainerWrapperByName(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
+				ContainerWrapperImpl lifecycleStateModel = rowModel.getObject().findContainerWrapperByName(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
 				
 				Label label = null;
 				if (lifecycleStateModel == null || lifecycleStateModel.getValues() == null || lifecycleStateModel.getValues().isEmpty()) {
 					item.add(new Label(componentId, ""));
 				} else {
-					ContainerWrapper lifecycleState = lifecycleStateModel.findContainerWrapperByName(LifecycleStateModelType.F_STATE);
+					ContainerWrapperImpl lifecycleState = lifecycleStateModel.findContainerWrapperByName(LifecycleStateModelType.F_STATE);
 					if (lifecycleState == null || lifecycleState.getValues() == null || lifecycleState.getValues().isEmpty()) {
 						item.add(new Label(componentId, ""));
 					} else {

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -51,7 +51,7 @@ import java.util.List;
 /**
  * Created by honchar
  */
-public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<AssignmentType>> {
+public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<AssignmentType>> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ASSIGNMENT_TYPE_BUTTONS = "assignmentTypeButtons";
@@ -68,7 +68,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
 
     private String activeButtonId = ID_ALL_ASSIGNMENTS;
 
-    public SwitchAssignmentTypePanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
+    public SwitchAssignmentTypePanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentContainerWrapperModel) {
         super(id, assignmentContainerWrapperModel);
     }
 

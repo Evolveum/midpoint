@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -59,7 +60,7 @@ public class PageCase  extends PageAdminCases {
     private static final String ID_BACK_BUTTON = "backButton";
     private static final String ID_SAVE_BUTTON = "saveButton";
 
-    private LoadableModel<ObjectWrapper<CaseType>> caseModel;
+    private LoadableModel<ObjectWrapperImpl<CaseType>> caseModel;
 
     public PageCase() {
         initialize();
@@ -70,17 +71,17 @@ public class PageCase  extends PageAdminCases {
         initialize();
     }
     private void initialize(){
-        caseModel = new LoadableModel<ObjectWrapper<CaseType>>(false) {
+        caseModel = new LoadableModel<ObjectWrapperImpl<CaseType>>(false) {
 
             @Override
-            protected ObjectWrapper<CaseType> load() {
+            protected ObjectWrapperImpl<CaseType> load() {
                 return loadCase();
             }
         };
         initLayout();
     }
 
-    private ObjectWrapper<CaseType> loadCase() {
+    private ObjectWrapperImpl<CaseType> loadCase() {
         Task task = createSimpleTask(OPERATION_LOAD_CASE);
         OperationResult result = task.getResult();
 
@@ -123,7 +124,7 @@ public class PageCase  extends PageAdminCases {
             throw new RestartResponseException(PageCasesAll.class);
         }
 
-        ObjectWrapper<CaseType> wrapper;
+        ObjectWrapperImpl<CaseType> wrapper;
         ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
         ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         try {
@@ -220,7 +221,7 @@ public class PageCase  extends PageAdminCases {
         Task task = createSimpleTask(OPERATION_SAVE_CASE);
         try {
             WebComponentUtil.revive(caseModel, getPrismContext());
-            ObjectWrapper<CaseType> wrapper = caseModel.getObject();
+            ObjectWrapperImpl<CaseType> wrapper = caseModel.getObject();
             ObjectDelta<CaseType> delta = wrapper.getObjectDelta();
             if (delta == null) {
                 return;

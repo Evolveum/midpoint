@@ -27,8 +27,10 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
@@ -133,7 +135,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
 
 		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
+		PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<>(ID_ACTIVATION_PANEL, activationModel, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
 		add(acitvationContainer);
 		
 		initContainersPanel(form, pageBase);
@@ -141,7 +143,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
     protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase) {
 		ItemPath assignmentPath = getModelObject().getPath();
-		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = (PrismContainerPanel<PolicyRuleType>) getSpecificContainerModel().getObject().createPanel(ID_SPECIFIC_CONTAINERS, form, itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
+		PrismContainerPanelOld<PolicyRuleType> constraintsContainerPanel = (PrismContainerPanelOld<PolicyRuleType>) getSpecificContainerModel().getObject().createPanel(ID_SPECIFIC_CONTAINERS, form, itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
 //		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINERS,
 //				getSpecificContainerModel(), false, form,
 //				);
@@ -153,10 +155,10 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     	return getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
     }
     
-    protected abstract IModel<ContainerWrapper> getSpecificContainerModel();
+    protected abstract IModel<ContainerWrapperImpl> getSpecificContainerModel();
     
-    protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
-		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
+    protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapperOld itemWrapper, ItemPath parentAssignmentPath) {
+		if (ContainerWrapperImpl.class.isAssignableFrom(itemWrapper.getClass())){
 			return ItemVisibility.AUTO;
 		}
 		List<ItemPath> pathsToHide = new ArrayList<>();
@@ -170,7 +172,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		}
 	}
 
-    private ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+    private ItemVisibility getAssignmentBasicTabVisibity(ItemWrapperOld itemWrapper, ItemPath parentAssignmentPath) {
     	if (itemWrapper.getPath().equals(getAssignmentPath().append(AssignmentType.F_METADATA))){
     		return ItemVisibility.AUTO;
 		}

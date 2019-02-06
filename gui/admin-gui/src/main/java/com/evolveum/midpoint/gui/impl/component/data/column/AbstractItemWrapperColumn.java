@@ -24,13 +24,13 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 
 /**
@@ -38,21 +38,21 @@ import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
  */
 public abstract class AbstractItemWrapperColumn<C extends Containerable> extends AbstractColumn<ContainerValueWrapper<C>, String> {
 
-	protected IModel<ItemWrapper> headerModel;
+	protected IModel<ItemWrapperOld> headerModel;
 	protected PageBase pageBase;
 	protected QName qNameOfItem;
 	
-	public AbstractItemWrapperColumn(final IModel<ContainerWrapper<C>> headerModel, QName name, PageBase pageBase) {
+	public AbstractItemWrapperColumn(final IModel<ContainerWrapperImpl<C>> headerModel, QName name, PageBase pageBase) {
 		super(null);
 		Validate.notNull(headerModel, "no model");
 		Validate.notNull(headerModel.getObject(), "no ContainerWrappe from model");
 		Validate.notNull(name, "no qName");
 		this.pageBase = pageBase;
-		this.headerModel = new IModel<ItemWrapper>() {
+		this.headerModel = new IModel<ItemWrapperOld>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public ItemWrapper getObject() {
+			public ItemWrapperOld getObject() {
 				if(headerModel.getObject().getValues().size() < 1) {
 		    		ContainerValueWrapper<C> value = WebModelServiceUtils.createNewItemContainerValueWrapper(pageBase, headerModel);
 		    		return value.findItemWrapper(name);
@@ -65,18 +65,18 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable> extends
 		qNameOfItem = name;
 	}
 	
-	public <IW extends ItemWrapper> AbstractItemWrapperColumn(final IModel<IW> headerModel, PageBase pageBase) {
+	public <IW extends ItemWrapperOld> AbstractItemWrapperColumn(final IModel<IW> headerModel, PageBase pageBase) {
 		super(null);
 		this.pageBase = pageBase;
 		Validate.notNull(headerModel, "no model");
 		Validate.notNull(headerModel.getObject(), "no ContainerWrappe from model");
-		this.headerModel = (IModel<ItemWrapper>) headerModel;
+		this.headerModel = (IModel<ItemWrapperOld>) headerModel;
 		qNameOfItem = headerModel.getObject().getName();
 	}
 	
 	@Override
 	public Component getHeader(String componentId) {
-		PrismPropertyHeaderPanel<ItemWrapper> header = new PrismPropertyHeaderPanel<ItemWrapper>(componentId, headerModel, getPageBase()) {
+		PrismPropertyHeaderPanel<ItemWrapperOld> header = new PrismPropertyHeaderPanel<ItemWrapperOld>(componentId, headerModel, getPageBase()) {
 			@Override
 			public String getContainerLabelCssClass() {
 				return " col-xs-12 ";
@@ -93,7 +93,7 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable> extends
 		return pageBase;
 	}
 	
-	protected static IModel<PropertyOrReferenceWrapper> getPropertyOrReferenceForHeaderWrapper(final IModel<ContainerWrapper<Containerable>> model, ItemName name, PageBase pageBase){
+	protected static IModel<PropertyOrReferenceWrapper> getPropertyOrReferenceForHeaderWrapper(final IModel<ContainerWrapperImpl<Containerable>> model, ItemName name, PageBase pageBase){
 		Validate.notNull(model, "no model");
 		Validate.notNull(model.getObject(), "no model object");
 		return new IModel<PropertyOrReferenceWrapper>() {

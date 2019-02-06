@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -43,7 +43,7 @@ public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> exten
 
     private ItemPath path;
 
-    public PropertyWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
+    public PropertyWrapperFromObjectWrapperModel(IModel<ObjectWrapperImpl<O>> model, ItemPath path) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;

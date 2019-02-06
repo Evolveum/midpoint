@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -36,9 +37,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -75,7 +75,7 @@ public class ConfigurationStep extends WizardStep {
 	private static final String ID_MAIN = "main";
 
 	final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelNoFetch;
-	final private NonEmptyLoadableModel<List<ContainerWrapper>> configurationPropertiesModel;
+	final private NonEmptyLoadableModel<List<ContainerWrapperImpl>> configurationPropertiesModel;
 	final private PageResourceWizard parentPage;
 
     public ConfigurationStep(NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch, final PageResourceWizard parentPage) {
@@ -83,10 +83,10 @@ public class ConfigurationStep extends WizardStep {
         this.resourceModelNoFetch = modelNoFetch;
 		this.parentPage = parentPage;
 
-        this.configurationPropertiesModel = new NonEmptyLoadableModel<List<ContainerWrapper>>(false) {
+        this.configurationPropertiesModel = new NonEmptyLoadableModel<List<ContainerWrapperImpl>>(false) {
             @Override
 			@NotNull
-            protected List<ContainerWrapper> load() {
+            protected List<ContainerWrapperImpl> load() {
 				try {
 					return createConfigContainerWrappers();
 				} catch (SchemaException e) {
@@ -100,11 +100,11 @@ public class ConfigurationStep extends WizardStep {
     }
 
 	@NotNull
-	private List<ContainerWrapper> createConfigContainerWrappers() throws SchemaException {
+	private List<ContainerWrapperImpl> createConfigContainerWrappers() throws SchemaException {
 		PrismObject<ResourceType> resource = resourceModelNoFetch.getObject();
 		PrismContainer<ConnectorConfigurationType> configuration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 
-		List<ContainerWrapper> containerWrappers = new ArrayList<>();
+		List<ContainerWrapperImpl> containerWrappers = new ArrayList<>();
 
 		if(parentPage.isNewResource()) {
 			return containerWrappers;
@@ -135,7 +135,7 @@ public class ConfigurationStep extends WizardStep {
 			PrismContainer container = configuration.findContainer(containerDef.getName());
 
 			ContainerWrapperFactory cwf = new ContainerWrapperFactory(parentPage);
-			ContainerWrapper containerWrapper;
+			ContainerWrapperImpl containerWrapper;
 			Task task = getPageBase().createSimpleTask("Creting configuration container");
 			if (container != null) {
 				containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly(), task);
@@ -205,8 +205,8 @@ public class ConfigurationStep extends WizardStep {
 	private List<ITab> createConfigurationTabs() {
 		final com.evolveum.midpoint.web.component.form.Form form = getForm();
 		List<ITab> tabs = new ArrayList<>();
-		List<ContainerWrapper> wrappers = configurationPropertiesModel.getObject();
-		for (final ContainerWrapper wrapper : wrappers) {
+		List<ContainerWrapperImpl> wrappers = configurationPropertiesModel.getObject();
+		for (final ContainerWrapperImpl wrapper : wrappers) {
 			String tabName = getString(wrapper.getDisplayName(), null, wrapper.getDisplayName());
 			tabs.add(new AbstractTab(new Model<>(tabName)) {
 				@Override
@@ -275,11 +275,11 @@ public class ConfigurationStep extends WizardStep {
         OperationResult result = task.getResult();
 		boolean saved = false;
         try {
-            List<ContainerWrapper> wrappers = configurationPropertiesModel.getObject();
+            List<ContainerWrapperImpl> wrappers = configurationPropertiesModel.getObject();
 			ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
 					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid()
 					);
-			for (ContainerWrapper wrapper : wrappers) {
+			for (ContainerWrapperImpl wrapper : wrappers) {
 				wrapper.collectModifications(delta);
 			}
 			parentPage.getPrismContext().adopt(delta);

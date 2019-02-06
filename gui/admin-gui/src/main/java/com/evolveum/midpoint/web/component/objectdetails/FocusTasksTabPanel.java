@@ -24,11 +24,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -50,7 +50,7 @@ public class FocusTasksTabPanel<F extends FocusType>
 
 	private TaskDtoProvider taskDtoProvider;
 
-	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel,
+	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperImpl<F>> focusModel,
 			TaskDtoProvider taskDtoProvider, PageBase page) {
 		super(id, mainForm, focusModel, page);
 		this.taskDtoProvider = taskDtoProvider;

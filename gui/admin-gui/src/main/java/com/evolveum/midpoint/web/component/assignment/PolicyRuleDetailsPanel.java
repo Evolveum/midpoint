@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.web.component.form.Form;
 import org.apache.wicket.model.Model;
 
@@ -33,8 +34,8 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
     }
 
 	@Override
-	protected IModel<ContainerWrapper> getSpecificContainerModel() {
-		ContainerWrapper<PolicyRuleType> policyRuleWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(AssignmentType.F_POLICY_RULE));
+	protected IModel<ContainerWrapperImpl> getSpecificContainerModel() {
+		ContainerWrapperImpl<PolicyRuleType> policyRuleWrapper = getModelObject().findContainerWrapper(getModelObject().getPath().append(AssignmentType.F_POLICY_RULE));
 		policyRuleWrapper.setShowEmpty(true, true);
 		return Model.of(policyRuleWrapper);
 	}

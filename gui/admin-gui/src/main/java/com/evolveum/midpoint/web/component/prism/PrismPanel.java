@@ -26,6 +26,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.ResourceReference;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,7 +46,7 @@ public class PrismPanel<C extends Containerable> extends Panel {
 
     private PageBase pageBase;
 
-    public PrismPanel(String id, IModel<List<ContainerWrapper<C>>> model, ResourceReference image, Form form, ItemVisibilityHandler isPanelVisible, PageBase pageBase) {
+    public PrismPanel(String id, IModel<List<ContainerWrapperImpl<C>>> model, ResourceReference image, Form form, ItemVisibilityHandler isPanelVisible, PageBase pageBase) {
         super(id, model);
         setOutputMarkupId(true);
 
@@ -61,17 +62,17 @@ public class PrismPanel<C extends Containerable> extends Panel {
     }
 
 	public void removeAllContainerWrappers() {
-		((ListView<ContainerWrapper>) get(ID_CONTAINERS)).removeAll();
+		((ListView<ContainerWrapperImpl>) get(ID_CONTAINERS)).removeAll();
 	}
 
 
     private void addOrReplaceContainers(final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
-        ListView<ContainerWrapper<C>> containers = new ListView<ContainerWrapper<C>>(ID_CONTAINERS,
+        ListView<ContainerWrapperImpl<C>> containers = new ListView<ContainerWrapperImpl<C>>(ID_CONTAINERS,
                 getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<ContainerWrapper<C>> item) {
+            protected void populateItem(ListItem<ContainerWrapperImpl<C>> item) {
                 createContainerPanel(item, isPanelVisible, form);
             }
         };
@@ -84,15 +85,15 @@ public class PrismPanel<C extends Containerable> extends Panel {
         }
     }
     
-    protected PrismContainerPanel createContainerPanel(ListItem<ContainerWrapper<C>> item, ItemVisibilityHandler isPanelVisible, Form form){
-        PrismContainerPanel panel = new PrismContainerPanel(ID_CONTAINER, item.getModel(), form, isPanelVisible);
+    protected PrismContainerPanelOld createContainerPanel(ListItem<ContainerWrapperImpl<C>> item, ItemVisibilityHandler isPanelVisible, Form form){
+        PrismContainerPanelOld panel = new PrismContainerPanelOld(ID_CONTAINER, item.getModel(), form, isPanelVisible);
         panel.setOutputMarkupPlaceholderTag(true);
         item.add(panel);
         return panel;
     }
     
-    private IModel<List<ContainerWrapper<C>>> getModel() {
-    	return (IModel<List<ContainerWrapper<C>>>) getInnermostModel();
+    private IModel<List<ContainerWrapperImpl<C>>> getModel() {
+    	return (IModel<List<ContainerWrapperImpl<C>>>) getInnermostModel();
     }
 
 }

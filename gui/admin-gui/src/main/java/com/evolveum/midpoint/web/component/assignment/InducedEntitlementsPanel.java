@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -64,7 +65,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     private static final String OPERATION_LOAD_SHADOW_OBJECT = DOT_CLASS + "loadReferencedShadowObject";
     private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
 
-    public InducedEntitlementsPanel(String id, IModel<ContainerWrapper<AssignmentType>> inducementContainerWrapperModel){
+    public InducedEntitlementsPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> inducementContainerWrapperModel){
         super(id, inducementContainerWrapperModel);
 
     }
@@ -215,7 +216,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
     
     private ConstructionAssociationPanel getConstructionAssociationPanel(ContainerValueWrapper<AssignmentType> modelObject) {
-    	ContainerWrapper<ConstructionType> constructionContainer = modelObject.findContainerWrapper(modelObject.getPath().append((AssignmentType.F_CONSTRUCTION)));
+    	ContainerWrapperImpl<ConstructionType> constructionContainer = modelObject.findContainerWrapper(modelObject.getPath().append((AssignmentType.F_CONSTRUCTION)));
         ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, Model.of(constructionContainer));
         constructionDetailsPanel.setOutputMarkupId(true);
         return constructionDetailsPanel;
@@ -255,12 +256,12 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         if (assignmentWrapper == null){
             return "";
         }
-        ContainerWrapper<ConstructionType> constructionWrapper = assignmentWrapper.findContainerWrapper(assignmentWrapper.getPath()
+        ContainerWrapperImpl<ConstructionType> constructionWrapper = assignmentWrapper.findContainerWrapper(assignmentWrapper.getPath()
                 .append(AssignmentType.F_CONSTRUCTION));
         if (constructionWrapper == null || constructionWrapper.findContainerValueWrapper(constructionWrapper.getPath()) == null){
             return null;
         }
-        ContainerWrapper<ResourceObjectAssociationType> associationWrapper = constructionWrapper.findContainerValueWrapper(constructionWrapper.getPath())
+        ContainerWrapperImpl<ResourceObjectAssociationType> associationWrapper = constructionWrapper.findContainerValueWrapper(constructionWrapper.getPath())
                 .findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
         if (associationWrapper == null || associationWrapper.getValues() == null || associationWrapper.getValues().size() == 0){
             return null;

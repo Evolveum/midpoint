@@ -31,9 +31,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
@@ -44,12 +43,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 
 /**
  * @author skublik
  */
 
-public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<ProfilingConfigurationType>> {
+public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapperImpl<ProfilingConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -61,10 +61,10 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
 	private static final String ID_PROFILING_LOGGER_LEVEL = "profilingLoggerLevel";
 
 	public static final String LOGGER_PROFILING = "PROFILING";
-	private IModel<ContainerWrapper<LoggingConfigurationType>> loggingModel;
+	private IModel<ContainerWrapperImpl<LoggingConfigurationType>> loggingModel;
 	
 	
-    public ProfilingConfigurationTabPanel(String id, IModel<ContainerWrapper<ProfilingConfigurationType>> profilingModel, IModel<ContainerWrapper<LoggingConfigurationType>> loggingModel) {
+    public ProfilingConfigurationTabPanel(String id, IModel<ContainerWrapperImpl<ProfilingConfigurationType>> profilingModel, IModel<ContainerWrapperImpl<LoggingConfigurationType>> loggingModel) {
         super(id, profilingModel);
         this.loggingModel = loggingModel;
     }
@@ -75,11 +75,11 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	initLayout();
     }
     
-    private IModel<ContainerWrapper<LoggingConfigurationType>> getLoggingModel() {
+    private IModel<ContainerWrapperImpl<LoggingConfigurationType>> getLoggingModel() {
     	return loggingModel;
     }
     
-    private IModel<ContainerWrapper<ProfilingConfigurationType>> getProfilingModel() {
+    private IModel<ContainerWrapperImpl<ProfilingConfigurationType>> getProfilingModel() {
     	return getModel();
     }
     
@@ -97,10 +97,10 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	});
 		add(profilingEnabledNote);
     	
-    	PrismContainerPanel<ProfilingConfigurationType> profilingPanel = new PrismContainerPanel<ProfilingConfigurationType>(ID_PROFILING, getProfilingModel(), new Form<>("form"), null);
+    	PrismContainerPanelOld<ProfilingConfigurationType> profilingPanel = new PrismContainerPanelOld<ProfilingConfigurationType>(ID_PROFILING, getProfilingModel(), new Form<>("form"), null);
     	add(profilingPanel);
     	
-    	IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = new Model<>(getLoggingModel().getObject()
+    	IModel<ContainerWrapperImpl<ClassLoggerConfigurationType>> loggerModel = new Model<>(getLoggingModel().getObject()
 			    .findContainerWrapper(
 					    ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER)));
     	

@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
 
 import org.apache.commons.lang.StringUtils;
@@ -86,7 +86,7 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
     private void handleLocalization(Component component) {
         if (component instanceof PrismPropertyPanel) {
             PrismPropertyPanel ppp = (PrismPropertyPanel) component;
-            ItemWrapper iw = (ItemWrapper) ppp.getModel().getObject();
+            ItemWrapperOld iw = (ItemWrapperOld) ppp.getModel().getObject();
             String key = iw.getDisplayName();
 
             QName qname = iw.getName();

@@ -28,6 +28,8 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -95,7 +97,7 @@ public class ObjectWrapperFactory {
         return result;
     }
 
-    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
+    public <O extends ObjectType> ObjectWrapperImpl<O> createObjectWrapper(String displayName,
             String description, PrismObject<O> object, ContainerStatus status, Task task) {
         return createObjectWrapper(displayName, description, object, status, AuthorizationPhaseType.REQUEST, false, task);
     }
@@ -111,17 +113,17 @@ public class ObjectWrapperFactory {
 	 * @param <O>
 	 * @return
 	 */
-    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
+    public <O extends ObjectType> ObjectWrapperImpl<O> createObjectWrapper(String displayName,
             String description, PrismObject<O> object, ContainerStatus status, boolean entirelyReadonly, Task task) {
         return createObjectWrapper(displayName, description, object, status, AuthorizationPhaseType.REQUEST, entirelyReadonly, task);
     }
 
-    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
+    public <O extends ObjectType> ObjectWrapperImpl<O> createObjectWrapper(String displayName, String description,
 			PrismObject<O> object, ContainerStatus status, AuthorizationPhaseType authorizationPhase, Task task) {
 		return createObjectWrapper(displayName, description, object, status, authorizationPhase, false, task);
 	}
 
-    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
+    public <O extends ObjectType> ObjectWrapperImpl<O> createObjectWrapper(String displayName, String description,
 			PrismObject<O> object, ContainerStatus status, AuthorizationPhaseType authorizationPhase, boolean entirelyReadonly, Task task) {
         if (authorizationPhase == null) {
             authorizationPhase = AuthorizationPhaseType.REQUEST;
@@ -158,14 +160,14 @@ public class ObjectWrapperFactory {
         }
     }
 
-    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
+    public <O extends ObjectType> ObjectWrapperImpl<O> createObjectWrapper(String displayName,
 			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
 			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status, Task task) throws SchemaException {
         return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
                 objectClassDefinitionForEditing, status, false, task, null);
     }
 
-    private <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
+    private <O extends ObjectType> ObjectWrapperImpl<O> createObjectWrapper(String displayName,
 			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
 			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status, boolean entirelyReadonly,
 			Task task, OperationResult result) throws SchemaException {
@@ -176,10 +178,10 @@ public class ObjectWrapperFactory {
             this.result = result;
         }
         
-		ObjectWrapper<O> objectWrapper = new ObjectWrapper<>(displayName, description, object,
+		ObjectWrapperImpl<O> objectWrapper = new ObjectWrapperImpl<>(displayName, description, object,
 				status);
 
-		List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
+		List<ContainerWrapperImpl<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
 				objectDefinitionForEditing, status, task, this.result);
 		objectWrapper.setContainers(containerWrappers);
 		if (entirelyReadonly) {
@@ -197,15 +199,15 @@ public class ObjectWrapperFactory {
         return objectWrapper;
     }
 
-    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createContainerWrappers(ObjectWrapper<O> oWrapper,
+    private <O extends ObjectType> List<ContainerWrapperImpl<? extends Containerable>> createContainerWrappers(ObjectWrapperImpl<O> oWrapper,
 			PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing, ContainerStatus cStatus, Task task, OperationResult pResult) throws SchemaException {
         OperationResult result = pResult.createSubresult(CREATE_CONTAINERS);
 
-        List<ContainerWrapper<? extends Containerable>> containerWrappers = new ArrayList<>();
+        List<ContainerWrapperImpl<? extends Containerable>> containerWrappers = new ArrayList<>();
 
         ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
         try {
-                ContainerWrapper<O> mainContainerWrapper = cwf.createContainerWrapper(oWrapper, object, cStatus, ItemPath.EMPTY_PATH, task);
+                ContainerWrapperImpl<O> mainContainerWrapper = cwf.createContainerWrapper(oWrapper, object, cStatus, ItemPath.EMPTY_PATH, task);
                 mainContainerWrapper.setDisplayName("prismContainer.mainPanelDisplayName");
                 result.addSubresult(cwf.getResult());
                 containerWrappers.add(mainContainerWrapper);
@@ -226,7 +228,7 @@ public class ObjectWrapperFactory {
 
 
    private <O extends ObjectType, C extends Containerable> void addContainerWrappers(
-			List<ContainerWrapper<? extends Containerable>> containerWrappers, ObjectWrapper<O> oWrapper,
+			List<ContainerWrapperImpl<? extends Containerable>> containerWrappers, ObjectWrapperImpl<O> oWrapper,
 			PrismContainer<C> parentContainer, ItemPath path, Task task, OperationResult result) throws SchemaException {
 
 		PrismContainerDefinition<C> parentContainerDefinition = parentContainer.getDefinition();
@@ -255,7 +257,7 @@ public class ObjectWrapperFactory {
 
 			PrismContainer<C> prismContainer = parentContainer.findContainer(def.getName());
 			
-			ContainerWrapper<C>  container = createContainerWrapper(oWrapper, prismContainer, containerDef, cwf, newPath, task);
+			ContainerWrapperImpl<C>  container = createContainerWrapper(oWrapper, prismContainer, containerDef, cwf, newPath, task);
 			result.addSubresult(cwf.getResult());
 			if (container != null) {
 				containerWrappers.add(container);
@@ -264,7 +266,7 @@ public class ObjectWrapperFactory {
 		}
 	}
 	
-	private <O extends ObjectType, C extends Containerable> ContainerWrapper<C> createContainerWrapper(ObjectWrapper<O> objectWrapper, PrismContainer<C> prismContainer, 
+	private <O extends ObjectType, C extends Containerable> ContainerWrapperImpl<C> createContainerWrapper(ObjectWrapperImpl<O> objectWrapper, PrismContainer<C> prismContainer, 
 			PrismContainerDefinition<C> containerDef, ContainerWrapperFactory cwf, ItemPath newPath, Task task) throws SchemaException{
 		if (ShadowAssociationType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
 			ObjectType objectType = objectWrapper.getObject().asObjectable();
@@ -286,10 +288,10 @@ public class ObjectWrapperFactory {
 			}
 			
 			if (prismContainer != null) { 
-				return (ContainerWrapper<C>) cwf.createAssociationWrapper(objectWrapper, resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, objectWrapper.getStatus(), ContainerStatus.MODIFYING, newPath);
+				return (ContainerWrapperImpl<C>) cwf.createAssociationWrapper(objectWrapper, resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, objectWrapper.getStatus(), ContainerStatus.MODIFYING, newPath);
 			}
 			prismContainer = containerDef.instantiate();
-			return (ContainerWrapper<C>) cwf.createAssociationWrapper(objectWrapper, resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, objectWrapper.getStatus(), ContainerStatus.ADDING, newPath);
+			return (ContainerWrapperImpl<C>) cwf.createAssociationWrapper(objectWrapper, resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, objectWrapper.getStatus(), ContainerStatus.ADDING, newPath);
 			
 		}
 
@@ -323,19 +325,19 @@ public class ObjectWrapperFactory {
                 .equals(ShadowType.COMPLEX_TYPE));
     }
 
-	private <O extends ObjectType> void setObjectWrapperValuesReadOnlyState(ObjectWrapper<O> objectWrapper, boolean entirelyReadonly) {
-		for (ContainerWrapper<? extends Containerable> container : objectWrapper.getContainers()) {
+	private <O extends ObjectType> void setObjectWrapperValuesReadOnlyState(ObjectWrapperImpl<O> objectWrapper, boolean entirelyReadonly) {
+		for (ContainerWrapperImpl<? extends Containerable> container : objectWrapper.getContainers()) {
 			setContainerValuesReadOnlyState(container, entirelyReadonly);
 		}
 	}
 
-	private void setContainerValuesReadOnlyState(ContainerWrapper<? extends Containerable> container, boolean entirelyReadonly) {
+	private void setContainerValuesReadOnlyState(ContainerWrapperImpl<? extends Containerable> container, boolean entirelyReadonly) {
 		container.setReadonly(entirelyReadonly);
 
 		container.getValues().forEach(v -> {
 			v.getItems().forEach(item -> {
-				if (item instanceof ContainerWrapper) {
-					setContainerValuesReadOnlyState((ContainerWrapper) item, entirelyReadonly);
+				if (item instanceof ContainerWrapperImpl) {
+					setContainerValuesReadOnlyState((ContainerWrapperImpl) item, entirelyReadonly);
 				} else if (item instanceof PropertyOrReferenceWrapper) {
 					((PropertyOrReferenceWrapper) item).setReadonly(entirelyReadonly);
 				}

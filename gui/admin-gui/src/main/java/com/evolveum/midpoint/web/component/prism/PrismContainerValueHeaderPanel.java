@@ -15,8 +15,10 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -97,7 +99,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			
 			@Override
 			public boolean isVisible() {
-				for (ItemWrapper wrapper : getModelObject().getItems()) {
+				for (ItemWrapperOld wrapper : getModelObject().getItems()) {
 					if (MetadataType.COMPLEX_TYPE.equals(wrapper.getItemDefinition().getTypeName())) {
 						return true;
 					}
@@ -291,7 +293,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	
 	public void createNewContainerValue(ContainerValueWrapper<C> containerValueWrapper, QName path){
 		ItemPath newPath = ItemPath.create(containerValueWrapper.getPath(), path);
-		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(newPath);
+		ContainerWrapperImpl<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(newPath);
 		
 		if (childContainerWrapper == null){
 			return;
@@ -346,7 +348,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	
 	@Override
 	protected String getHelpText() {
-		return WebComponentUtil.loadHelpText(new Model<ContainerWrapper<C>>(getModelObject().getContainer()), PrismContainerValueHeaderPanel.this);
+		return WebComponentUtil.loadHelpText(new Model<ContainerWrapperImpl<C>>(getModelObject().getContainer()), PrismContainerValueHeaderPanel.this);
 	}
 	
 	@Override

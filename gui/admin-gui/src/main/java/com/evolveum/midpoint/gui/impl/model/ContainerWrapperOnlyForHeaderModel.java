@@ -18,12 +18,12 @@ package com.evolveum.midpoint.gui.impl.model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 
 import javax.xml.namespace.QName;
 
@@ -38,16 +38,16 @@ import org.apache.wicket.model.PropertyModel;
  * @author skublik
  * 
  */
-public class ContainerWrapperOnlyForHeaderModel<T extends Containerable, C extends Containerable> implements IModel<ContainerWrapper<T>> {
+public class ContainerWrapperOnlyForHeaderModel<T extends Containerable, C extends Containerable> implements IModel<ContainerWrapperImpl<T>> {
 	private static final long serialVersionUID = 1L;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperOnlyForHeaderModel.class);
     
-	private IModel<ContainerWrapper<C>> model;
+	private IModel<ContainerWrapperImpl<C>> model;
 	private ItemName name;
 	private PageBase pageBase;
 	
-    public ContainerWrapperOnlyForHeaderModel(IModel<ContainerWrapper<C>> model, ItemName name, PageBase pageBase) {
+    public ContainerWrapperOnlyForHeaderModel(IModel<ContainerWrapperImpl<C>> model, ItemName name, PageBase pageBase) {
     	Validate.notNull(model, "no model");
     	this.model = model;
     	this.name = name;
@@ -56,7 +56,7 @@ public class ContainerWrapperOnlyForHeaderModel<T extends Containerable, C exten
     
     
     @Override
-	public ContainerWrapper<T> getObject() {
+	public ContainerWrapperImpl<T> getObject() {
 		
     	if(model.getObject().getValues().size() < 1) {
     		ContainerValueWrapper<C> value = WebModelServiceUtils.createNewItemContainerValueWrapper(pageBase, model);

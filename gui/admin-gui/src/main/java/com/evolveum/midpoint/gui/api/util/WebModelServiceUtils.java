@@ -29,10 +29,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -48,6 +45,9 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -819,11 +819,11 @@ public class WebModelServiceUtils {
 		return systemConfig;
 	}
 	
-	public static ObjectWrapper<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
+	public static ObjectWrapperImpl<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
 		Task task = pageBase.createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
 		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
 		
-		ObjectWrapper<SystemConfigurationType> wrapper = null;
+		ObjectWrapperImpl<SystemConfigurationType> wrapper = null;
 		try {
 			PrismObject<SystemConfigurationType> systemConfig = loadSystemConfigurationAsPrismObject(pageBase, task, result);
 		
@@ -846,7 +846,7 @@ public class WebModelServiceUtils {
 	}
 	
 	public static <C extends Containerable> boolean isContainerValueWrapperEmpty(ContainerValueWrapper<C> value) {
-		for(ItemWrapper itemWrapper: value.getItems()) {
+		for(ItemWrapperOld itemWrapper: value.getItems()) {
 				if(!itemWrapper.isEmpty()) {
 					return false;
 				} 
@@ -855,7 +855,7 @@ public class WebModelServiceUtils {
 	}
 	
 	public static <C extends Containerable> ContainerValueWrapper<C> createNewItemContainerValueWrapper(PageBase pageBase,
-			IModel<ContainerWrapper<C>> model) {
+			IModel<ContainerWrapperImpl<C>> model) {
     	ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
 		Task task = pageBase.createSimpleTask("Creating new object policy");
 		PrismContainerValue<C> newItem = model.getObject().getItem().createNewValue();

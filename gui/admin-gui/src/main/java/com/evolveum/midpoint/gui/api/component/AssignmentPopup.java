@@ -18,12 +18,12 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -138,7 +138,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             }
 
                             @Override
-                            protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                            protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
                                 return AssignmentPopup.this.getAssignmentWrapperModel();
                             }
 
@@ -188,7 +188,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             }
 
                             @Override
-                            protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                            protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
                                 return AssignmentPopup.this.getAssignmentWrapperModel();
                             }
 
@@ -233,7 +233,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     }
 
                     @Override
-                    protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                    protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
                         return AssignmentPopup.this.getAssignmentWrapperModel();
                     }
 
@@ -277,7 +277,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             }
                             
                             @Override
-                            protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                            protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
                             	return AssignmentPopup.this.getAssignmentWrapperModel();
                             }
 
@@ -337,7 +337,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         return tabs;
     }
 
-    protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel(){
+    protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel(){
         return null;
     }
 

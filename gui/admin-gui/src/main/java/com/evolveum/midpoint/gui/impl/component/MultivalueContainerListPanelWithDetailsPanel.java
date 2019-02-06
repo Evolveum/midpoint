@@ -25,12 +25,12 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -58,7 +58,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	private List<ContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
 	private boolean itemDetailsVisible;
 	
-	public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<ContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
+	public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<ContainerWrapperImpl<C>> model, TableId tableId, PageStorage pageStorage) {
 		super(id, model, tableId, pageStorage);
 	}
 	

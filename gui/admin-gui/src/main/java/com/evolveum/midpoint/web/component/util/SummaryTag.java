@@ -20,7 +20,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -40,7 +40,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	private String color = null;
 	private boolean hideTag = false;
 
-	public SummaryTag(String id, final IModel<ObjectWrapper<O>> model) {
+	public SummaryTag(String id, final IModel<ObjectWrapperImpl<O>> model) {
 		super(id, model);
 
 		Label tagIcon = new Label(ID_TAG_ICON, "");
@@ -127,11 +127,11 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 		this.hideTag = hideTag;
 	}
 
-	protected abstract void initialize(ObjectWrapper<O> objectWrapper);
+	protected abstract void initialize(ObjectWrapperImpl<O> objectWrapper);
 
 	abstract class SummaryTagWrapperModel<T> extends ReadOnlyWrapperModel<T,O> {
 
-		public SummaryTagWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
+		public SummaryTagWrapperModel(IModel<ObjectWrapperImpl<O>> wrapperModel) {
 			super(wrapperModel);
 		}
 

@@ -17,24 +17,25 @@ package com.evolveum.midpoint.web;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.ROLE_MAPMAKER_OID;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_EMPTY_OID;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_EMPTY_USERNAME;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_FULL_NAME;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_USERNAME;
-import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_EMPTY_OID;
-import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_EMPTY_USERNAME;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,9 +43,23 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -60,16 +75,13 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.web.component.prism.ShadowAssociationWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ShadowAssociationWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -165,7 +177,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -176,7 +188,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
 		assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
 
-		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, user, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+mainContainerWrapper, 1, mainContainerWrapper.getValues().size());
 		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
@@ -184,7 +196,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_TIMEZONE, null);
 		WrapperTestUtil.assertPropertyWrapper(mainContainerValueWrapper, extensionPath(PIRACY_SHIP), AdminGuiTestConstants.USER_JACK_SHIP);
 
-		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(UserType.F_ACTIVATION);
+		ContainerWrapperImpl<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(UserType.F_ACTIVATION);
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, getString("ActivationType.activation"), UserType.F_ACTIVATION, user, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
 		ContainerValueWrapper<ActivationType> activationContainerValueWrapper = activationContainerWrapper.getValues().iterator().next();
@@ -219,7 +231,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
 	}
 
-	private void assertContainersPaths(ObjectWrapper<?> objectWrapper, Collection<ItemPath> expectedPaths) {
+	private void assertContainersPaths(ObjectWrapperImpl<?> objectWrapper, Collection<ItemPath> expectedPaths) {
 		Set<UniformItemPath> expectedUniformPaths = expectedPaths.stream()
 				.map(p -> prismContext.toUniformPath(p))
 				.collect(Collectors.toSet());
@@ -244,7 +256,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.ADDING, task);
 
 		// THEN
@@ -255,14 +267,14 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.ADDING);
 		assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
 
-		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, user, ContainerStatus.ADDING);
 		assertEquals("wrong number of containers in "+mainContainerWrapper, 1, mainContainerWrapper.getValues().size());
 		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 		WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_NAME, null);
 		WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_TIMEZONE, null);
 
-		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(UserType.F_ACTIVATION);
+		ContainerWrapperImpl<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(UserType.F_ACTIVATION);
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, getString("ActivationType.activation"), UserType.F_ACTIVATION, user, ContainerStatus.ADDING);
 		assertEquals("wrong number of containers in "+activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
 		ContainerValueWrapper<ActivationType> activationContainerValueWrapper = activationContainerWrapper.getValues().iterator().next();
@@ -313,10 +325,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.ADDING, task);
 
-		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 		
 		WrapperTestUtil.fillInPropertyWrapper(mainContainerValueWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_USERNAME));
@@ -339,7 +351,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, UserType.F_TIMEZONE, null);
 		WrapperTestUtil.assertPropertyWrapper(mainContainerValueWrapper, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
 
-		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(UserType.F_ACTIVATION);
+		ContainerWrapperImpl<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(UserType.F_ACTIVATION);
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, getString("ActivationType.activation"), UserType.F_ACTIVATION, user, ContainerStatus.ADDING);
 		assertEquals("wrong number of containers in "+activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
 
@@ -389,7 +401,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -400,7 +412,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
 		assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
 
-		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, user, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+mainContainerWrapper, 1, mainContainerWrapper.getValues().size());
 		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
@@ -448,7 +460,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow,
+		ObjectWrapperImpl<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -459,7 +471,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(objectWrapper, "shadow display name", "shadow description", shadow, ContainerStatus.MODIFYING);
 		assertContainersPaths(objectWrapper, BASIC_SHADOW_CONTAINERS_PATHS);
 
-		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ATTRIBUTES);
+		ContainerWrapperImpl<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ATTRIBUTES);
 		assertEquals("wrong number of values in "+attributesContainerWrapper, 1, attributesContainerWrapper.getValues().size());
 		PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "Attributes", ShadowType.F_ATTRIBUTES,
@@ -469,7 +481,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapperByName(attributesContainerValueWrapper, SchemaConstants.ICFS_NAME, USER_JACK_USERNAME);
 		assertEquals("wrong number of items in "+attributesContainerWrapper, 18, attributesContainerValueWrapper.getItems().size());
 
-		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ACTIVATION);
+		ContainerWrapperImpl<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ACTIVATION);
 		assertEquals("wrong number of values in "+activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
 		ContainerValueWrapper<ActivationType> activationContainerValueWrapper = activationContainerWrapper.getValues().iterator().next();
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, getString("ShadowType.activation"), UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
@@ -478,7 +490,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 		assertEquals("Wrong attributes container wrapper readOnly", Boolean.FALSE, (Boolean)attributesContainerWrapper.isReadonly());
 
-		ItemWrapper fullnameWrapper = attributesContainerValueWrapper.findPropertyWrapperByName(dummyResourceCtl.getAttributeFullnameQName());
+		ItemWrapperOld fullnameWrapper = attributesContainerValueWrapper.findPropertyWrapperByName(dummyResourceCtl.getAttributeFullnameQName());
 		assertEquals("Wrong attribute fullname readOnly", Boolean.FALSE, (Boolean)fullnameWrapper.isReadonly()); // Is this OK?
 		assertEquals("Wrong attribute fullname visible", Boolean.TRUE, (Boolean)fullnameWrapper.isVisible());
 		ItemDefinition fullNameDefinition = fullnameWrapper.getItemDefinition();
@@ -510,7 +522,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -521,14 +533,14 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(objectWrapper, "org display name", "org description", org, ContainerStatus.MODIFYING);
 		assertContainersPaths(objectWrapper, BASIC_ORG_CONTAINERS_PATHS);
 
-		ContainerWrapper<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, org, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+mainContainerWrapper, 1, mainContainerWrapper.getValues().size());
 		ContainerValueWrapper<OrgType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 		WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, OrgType.F_NAME, PrismTestUtil.createPolyString(ORG_SCUMM_BAR_NAME));
 		WrapperTestUtil.assertPropertyWrapperByName(mainContainerValueWrapper, OrgType.F_TIMEZONE, null);
 
-		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(OrgType.F_ACTIVATION);
+		ContainerWrapperImpl<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(OrgType.F_ACTIVATION);
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, getString("ActivationType.activation"), OrgType.F_ACTIVATION, org, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
 		ContainerValueWrapper<ActivationType> activationContainerValueWrapper = activationContainerWrapper.getValues().iterator().next();
@@ -543,7 +555,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_LOCALITY, true);
 		
 		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_TRANSFORM_DESCRIPTION, null);
-		ContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
+		ContainerWrapperImpl<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
 		assertEquals("Wrong processing in item wrapper for "+PIRACY_TRANSFORM, ItemProcessing.MINIMAL, transformContainerWrapper.getProcessing());
 		
 //		ContainerWrapper<Containerable> transformContainerWrapper = objectWrapper.findContainerWrapper(ItemPath.create(PIRACY_TRANSFORM));
@@ -599,7 +611,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         displayWhen(TEST_NAME);
 
         ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow,
+		ObjectWrapperImpl<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -610,7 +622,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(objectWrapper, "shadow display name", "shadow description", shadow, ContainerStatus.MODIFYING);
 		assertContainersPaths(objectWrapper, BASIC_SHADOW_CONTAINERS_PATHS);
 
-		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ATTRIBUTES);
+		ContainerWrapperImpl<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ATTRIBUTES);
 		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "Attributes", ShadowType.F_ATTRIBUTES, shadow.findContainer(ShadowType.F_ATTRIBUTES),
 				false, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+attributesContainerWrapper, 1, attributesContainerWrapper.getValues().size());
@@ -619,7 +631,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapperByName(attributesContainerValueWrapper, SchemaConstants.ICFS_NAME, USER_WALLY_NAME);
 		assertEquals("wrong number of items in "+attributesContainerWrapper, 18, attributesContainerValueWrapper.getItems().size());
 
-		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ACTIVATION);
+		ContainerWrapperImpl<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ACTIVATION);
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, getString("ShadowType.activation"), UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
 		ContainerValueWrapper<ActivationType> activationContainerValueWrapper = activationContainerWrapper.getValues().iterator().next();
@@ -627,7 +639,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapperByName(activationContainerValueWrapper, ActivationType.F_LOCKOUT_STATUS, null);
 
 		//TODO: fix
-		ContainerWrapper<ShadowAssociationType> associationContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ASSOCIATION);
+		ContainerWrapperImpl<ShadowAssociationType> associationContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ASSOCIATION);
 		assertNotNull("No association container wrapper", associationContainerWrapper);
 		assertTrue("Wrong type of group association property wrapper: "+associationContainerWrapper.getClass(), associationContainerWrapper instanceof ShadowAssociationWrapper);
 		assertEquals("wrong number of items in "+associationContainerWrapper, 1, associationContainerWrapper.getValues().size());
@@ -655,12 +667,12 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		IntegrationTestTools.display("Wrapper before", objectWrapper);
 
-		ContainerWrapper<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		ContainerValueWrapper<OrgType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 
 		modifyPropertyWrapper(mainContainerValueWrapper, PIRACY_TRANSFORM_DESCRIPTION, "Whatever");
@@ -697,14 +709,14 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		IntegrationTestTools.display("Wrapper before", objectWrapper);
 
-		ContainerWrapper<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		ContainerValueWrapper<OrgType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
-		ContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
+		ContainerWrapperImpl<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
 		List<ContainerValueWrapper<Containerable>> transformValueWrappers = transformContainerWrapper.getValues();
 		assertEquals("Unexpecter number of transform value wrappers", 3, transformValueWrappers.size());
 		
@@ -745,14 +757,14 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		IntegrationTestTools.display("Wrapper before", objectWrapper);
 
-		ContainerWrapper<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		ContainerValueWrapper<OrgType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
-		ContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
+		ContainerWrapperImpl<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
 		List<ContainerValueWrapper<Containerable>> transformValueWrappers = transformContainerWrapper.getValues();
 		assertEquals("Unexpecter number of transform value wrappers", 3, transformValueWrappers.size());
 		
@@ -812,12 +824,12 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapper<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		IntegrationTestTools.display("Wrapper before", objectWrapper);
 
-		ContainerWrapper<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapperImpl<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		ContainerValueWrapper<OrgType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 
 		modifyPropertyWrapper(mainContainerValueWrapper, PIRACY_TRANSFORM_DESCRIPTION, "Whatever");
@@ -900,7 +912,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         // WHEN
         displayWhen(TEST_NAME);
 
-		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -909,40 +921,40 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 		assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadonly());
 
-		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findMainContainerWrapper();
+		ContainerWrapperImpl<UserType> mainContainerWrapper = objectWrapper.findMainContainerWrapper();
 		assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)mainContainerWrapper.isReadonly());
 
 		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 		
-		ItemWrapper nameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_NAME);
+		ItemWrapperOld nameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_NAME);
 		assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean)nameWrapper.isReadonly()); // Is this OK?
 		assertEquals("Wrong name visible", Boolean.TRUE, (Boolean)nameWrapper.isVisible());
 		assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean)nameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canModify());
 
-		ItemWrapper givenNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_GIVEN_NAME);
+		ItemWrapperOld givenNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_GIVEN_NAME);
 		assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean)givenNameWrapper.isReadonly()); // Is this OK?
 		assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean)givenNameWrapper.isVisible());
 		assertEquals("Wrong givenName definition.canRead", Boolean.TRUE, (Boolean)givenNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong givenName definition.canAdd", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong givenName definition.canModify", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canModify());
 
-		ItemWrapper fullNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_FULL_NAME);
+		ItemWrapperOld fullNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_FULL_NAME);
 		assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean)fullNameWrapper.isReadonly());
 		assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean)fullNameWrapper.isVisible());
 		assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean)fullNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canModify());
 
-		ItemWrapper additionalNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_ADDITIONAL_NAME);
+		ItemWrapperOld additionalNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_ADDITIONAL_NAME);
 		assertEquals("Wrong additionalName readOnly", Boolean.TRUE, (Boolean)additionalNameWrapper.isReadonly()); // Is this OK?
 		assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean)additionalNameWrapper.isVisible()); // not visible, because it is empty
 		assertEquals("Wrong additionalName definition.canRead", Boolean.TRUE, (Boolean)additionalNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong additionalName definition.canAdd", Boolean.FALSE, (Boolean)additionalNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong additionalName definition.canModify", Boolean.FALSE, (Boolean)additionalNameWrapper.getItemDefinition().canModify());
 
-		ItemWrapper localityNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_LOCALITY);
+		ItemWrapperOld localityNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_LOCALITY);
 		assertEquals("Wrong locality readOnly", Boolean.TRUE, (Boolean)localityNameWrapper.isReadonly());
 		assertEquals("Wrong locality visible", Boolean.TRUE, (Boolean)localityNameWrapper.isVisible());
 		assertEquals("Wrong locality definition.canRead", Boolean.TRUE, (Boolean)localityNameWrapper.getItemDefinition().canRead());
@@ -979,7 +991,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         // WHEN
         displayWhen(TEST_NAME);
 
-		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -988,18 +1000,18 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 		assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadonly());
 
-		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findMainContainerWrapper();
+		ContainerWrapperImpl<UserType> mainContainerWrapper = objectWrapper.findMainContainerWrapper();
 		assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)mainContainerWrapper.isReadonly());
 
 		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
-		ItemWrapper nameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_NAME);
+		ItemWrapperOld nameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_NAME);
 		assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean)nameWrapper.isReadonly());
 		assertEquals("Wrong name visible", Boolean.TRUE, (Boolean)nameWrapper.isVisible());
 		assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean)nameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canModify());
 
-		ItemWrapper givenNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_GIVEN_NAME);
+		ItemWrapperOld givenNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_GIVEN_NAME);
 		assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean)givenNameWrapper.isReadonly());
 		// Emphasized property. But the role given no access to this. Therefore is should not be visible.
 		// MID-3206
@@ -1008,21 +1020,21 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("Wrong givenName definition.canAdd", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong givenName definition.canModify", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canModify());
 
-		ItemWrapper fullNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_FULL_NAME);
+		ItemWrapperOld fullNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_FULL_NAME);
 		assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean)fullNameWrapper.isReadonly());
 		assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean)fullNameWrapper.isVisible());
 		assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean)fullNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canModify());
 
-		ItemWrapper additionalNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_ADDITIONAL_NAME);
+		ItemWrapperOld additionalNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_ADDITIONAL_NAME);
 		assertEquals("Wrong additionalName readOnly", Boolean.FALSE, (Boolean)additionalNameWrapper.isReadonly());
 		assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean)additionalNameWrapper.isVisible());
 		assertEquals("Wrong additionalName definition.canRead", Boolean.FALSE, (Boolean)additionalNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong additionalName definition.canAdd", Boolean.FALSE, (Boolean)additionalNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong additionalName definition.canModify", Boolean.TRUE, (Boolean)additionalNameWrapper.getItemDefinition().canModify());
 
-		ItemWrapper localityNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_LOCALITY);
+		ItemWrapperOld localityNameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_LOCALITY);
 		assertEquals("Wrong locality readOnly", Boolean.TRUE, (Boolean)localityNameWrapper.isReadonly()); // Is this OK?
 		assertEquals("Wrong locality visible", Boolean.FALSE, (Boolean)localityNameWrapper.isVisible());
 		assertEquals("Wrong locality definition.canRead", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canRead());
@@ -1032,7 +1044,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 	private <C extends Containerable> void assertItemWrapperFullConrol(ContainerValueWrapper<C> containerWrapper, ItemName propName,
 			boolean visible) {
-		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapperByName(propName);
+		ItemWrapperOld itemWrapper = containerWrapper.findPropertyWrapperByName(propName);
 		assertEquals("Wrong "+propName+" readOnly", Boolean.FALSE, (Boolean)itemWrapper.isReadonly());
 		assertEquals("Wrong "+propName+" visible", visible, itemWrapper.isVisible());
 		assertEquals("Wrong "+propName+" definition.canRead", Boolean.TRUE, (Boolean)itemWrapper.getItemDefinition().canRead());
@@ -1042,7 +1054,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	
 	private <F extends FocusType> void assertItemWrapperProcessing(ContainerValueWrapper<F> containerWrapper,
 			ItemName propName, ItemProcessing expectedProcessing) {
-		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapperByName(propName);
+		ItemWrapperOld itemWrapper = containerWrapper.findPropertyWrapperByName(propName);
 		if (expectedProcessing == ItemProcessing.IGNORE) {
 			assertNull("Unexpected ignored item wrapper for "+propName, itemWrapper);
 		} else {

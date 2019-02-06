@@ -17,6 +17,9 @@ package com.evolveum.midpoint.web.component.prism;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -33,11 +36,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
  * @author katkav
  *
  */
-public class ShadowAssociationWrapper extends ContainerWrapper<ShadowAssociationType> {
+public class ShadowAssociationWrapper extends ContainerWrapperImpl<ShadowAssociationType> {
 
 	private static transient Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapper.class);
 	
-	ShadowAssociationWrapper(ObjectWrapper objectWrapper, PrismContainer<ShadowAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+	ShadowAssociationWrapper(ObjectWrapperImpl objectWrapper, PrismContainer<ShadowAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		super(objectWrapper, container, objectStatus, status, path);	
 	}
 
@@ -53,7 +56,7 @@ public class ShadowAssociationWrapper extends ContainerWrapper<ShadowAssociation
 		
 		//we know that there is always only one value
 		ContainerValueWrapper<ShadowAssociationType> containerValueWrappers = getValues().iterator().next();
-		for (ItemWrapper itemWrapper : containerValueWrappers.getItems()) {
+		for (ItemWrapperOld itemWrapper : containerValueWrappers.getItems()) {
 			
 			if (!(itemWrapper instanceof ReferenceWrapper)) {
 				LOGGER.warn("Item in shadow association value wrapper is not an reference. Should not happen.");
@@ -91,7 +94,7 @@ public class ShadowAssociationWrapper extends ContainerWrapper<ShadowAssociation
 		
 		ContainerValueWrapper<ShadowAssociationType> containerValueWrappers = getValues().iterator().next();
 		
-		for (ItemWrapper itemWrapper : containerValueWrappers.getItems()) {
+		for (ItemWrapperOld itemWrapper : containerValueWrappers.getItems()) {
 			
 			if (!(itemWrapper instanceof ReferenceWrapper)) {
 				LOGGER.warn("Item in shadow association value wrapper is not an reference. Should not happen.");

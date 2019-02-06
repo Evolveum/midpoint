@@ -16,13 +16,13 @@
 
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
@@ -40,7 +40,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  * @author semancik
  */
-public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<ContainerWrapper<C> ,O> {
+public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<ContainerWrapperImpl<C> ,O> {
 
    private static final long serialVersionUID = 1L;
 
@@ -48,7 +48,7 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 
     private ItemPath path;
 
-    public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
+    public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapperImpl<O>> model, ItemPath path) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;
@@ -60,13 +60,13 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
     }
 
 	@Override
-	public ContainerWrapper<C> getObject() {
-		ContainerWrapper<C> containerWrapper = getWrapper().findContainerWrapper(path);
+	public ContainerWrapperImpl<C> getObject() {
+		ContainerWrapperImpl<C> containerWrapper = getWrapper().findContainerWrapper(path);
 		return containerWrapper;
 	}
 
 	@Override
-	public void setObject(ContainerWrapper<C> arg0) {
+	public void setObject(ContainerWrapperImpl<C> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
 	}

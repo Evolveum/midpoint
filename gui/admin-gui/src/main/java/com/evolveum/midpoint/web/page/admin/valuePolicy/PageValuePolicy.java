@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.component.ValuePolicyBasicPanel;
@@ -100,7 +100,7 @@ public class PageValuePolicy extends PageAdmin {
     private static final String ID_SAVE_BUTTON = "saveButton";
 
 
-    private LoadableModel<ObjectWrapper<ValuePolicyType>> valuePolicyModel;
+    private LoadableModel<ObjectWrapperImpl<ValuePolicyType>> valuePolicyModel;
     private String policyOid;
 
     public PageValuePolicy(PageParameters parameters) {
@@ -113,9 +113,9 @@ public class PageValuePolicy extends PageAdmin {
     }
 
     private void initModels() {
-        valuePolicyModel = new LoadableModel<ObjectWrapper<ValuePolicyType>>(false) {
+        valuePolicyModel = new LoadableModel<ObjectWrapperImpl<ValuePolicyType>>(false) {
             @Override
-            protected ObjectWrapper<ValuePolicyType> load() {
+            protected ObjectWrapperImpl<ValuePolicyType> load() {
                 if (policyOid != null) {
                     return loadValuePolicy(policyOid);
                 } else {
@@ -129,20 +129,20 @@ public class PageValuePolicy extends PageAdmin {
         };
     }
 
-    private ObjectWrapper<ValuePolicyType> createValuePolicy() throws SchemaException {
+    private ObjectWrapperImpl<ValuePolicyType> createValuePolicy() throws SchemaException {
         Task task = createSimpleTask(OPERATION_LOAD_VALUEPOLICY);
 
         PrismObject<ValuePolicyType> valuePolicyObject  = getPrismContext().createObject(ValuePolicyType.class);
 
-        ObjectWrapper<ValuePolicyType> valuePolicyWrapper = ObjectWrapperUtil.createObjectWrapper("","", valuePolicyObject, ContainerStatus.ADDING,task, WebComponentUtil.getPageBase(this));
+        ObjectWrapperImpl<ValuePolicyType> valuePolicyWrapper = ObjectWrapperUtil.createObjectWrapper("","", valuePolicyObject, ContainerStatus.ADDING,task, WebComponentUtil.getPageBase(this));
 
         return valuePolicyWrapper;
     }
 
-    private ObjectWrapper<ValuePolicyType> loadValuePolicy(String policyOid) {
+    private ObjectWrapperImpl<ValuePolicyType> loadValuePolicy(String policyOid) {
         Task task = createSimpleTask(OPERATION_LOAD_DEFINITION);
         OperationResult result = task.getResult();
-        ObjectWrapper<ValuePolicyType> valuePolicyWrapper = null;
+        ObjectWrapperImpl<ValuePolicyType> valuePolicyWrapper = null;
         try {
             PrismObject<ValuePolicyType> valuePolicyObject =
                     WebModelServiceUtils.loadObject(ValuePolicyType.class, policyOid,
@@ -227,7 +227,7 @@ public class PageValuePolicy extends PageAdmin {
         OperationResult result = new OperationResult(OPERATION_SAVE_VALUEPOLICY);
         try {
             WebComponentUtil.revive(valuePolicyModel, getPrismContext());
-            ObjectWrapper wrapper = valuePolicyModel.getObject();
+            ObjectWrapperImpl wrapper = valuePolicyModel.getObject();
             ObjectDelta<ValuePolicyType> delta = wrapper.getObjectDelta();
             if (delta == null) {
                 return;
