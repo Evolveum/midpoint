@@ -47,6 +47,8 @@ public abstract class TestBase {
     public static final String PROPERTY_NAME_USER_HOME = "user.home";
     public static final String PROPERTY_NAME_FILE_SEPARATOR = "file.separator";
 
+    protected static final String CSV_RESOURCE_ATTR_UNIQUE= "Unique attribute name";
+
     private static final Logger LOG = LoggerFactory.getLogger(TestBase.class);
     protected static File CSV_TARGET_DIR;
 
