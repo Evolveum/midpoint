@@ -2151,7 +2151,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         List<PrismObject<TaskType>> obsoleteTasks;
         try {
             ObjectQuery obsoleteTasksQuery = prismContext.queryFor(TaskType.class)
-					.item(TaskType.F_COMPLETION_TIMESTAMP).le(timeXml)
+					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED)
+					.and().item(TaskType.F_COMPLETION_TIMESTAMP).le(timeXml)
 					.and().item(TaskType.F_PARENT).isNull()
 					.build();
             obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, null, result);
