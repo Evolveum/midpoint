@@ -754,11 +754,12 @@ public class OpenDJController extends AbstractResourceController {
         }
 	}
 
-	public void addEntry(String ldif) throws IOException, LDIFException {
+	public Entry addEntry(String ldif) throws IOException, LDIFException {
 		LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(ldif, "utf-8"));
 	    LDIFReader ldifReader = new LDIFReader(importConfig);
 	    Entry ldifEntry = ldifReader.readEntry();
 	    addEntry(ldifEntry);
+	    return ldifEntry;
 	}
 
 	public ChangeRecordEntry executeRenameChange(File file) throws LDIFException, IOException{
