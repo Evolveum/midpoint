@@ -196,6 +196,11 @@ public abstract class TestBase {
             Assert.assertTrue(
                     listResourcesPage
                         .table()
+                            .search()
+                            .byName()
+                            .inputValue(resourceName)
+                            .updateSearch()
+                            .and()
                             .clickByName(resourceName)
                                 .clickEditResourceConfiguration()
                                     .form()
