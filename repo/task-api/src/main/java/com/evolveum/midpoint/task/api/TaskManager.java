@@ -716,4 +716,13 @@ public interface TaskManager {
 	 * EXPERIMENTAL. Used to provide midPoint URL path (typically "/midpoint") when determined by the web layer.
 	 */
 	void setWebContextPath(String path);
+
+	String getRunningTasksThreadsDump(OperationResult parentResult);
+
+	String recordRunningTasksThreadsDump(String cause, OperationResult parentResult) throws ObjectAlreadyExistsException;
+
+	String getTaskThreadsDump(String taskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+
+	String recordTaskThreadsDump(String taskOid, String cause, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			ObjectAlreadyExistsException;
 }

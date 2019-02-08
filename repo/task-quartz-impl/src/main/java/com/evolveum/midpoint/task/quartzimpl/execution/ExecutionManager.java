@@ -17,13 +17,16 @@
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -758,6 +761,144 @@ public class ExecutionManager {
             // should never occur, as local scheduler shouldn't throw such exceptions
             throw new SystemException("Couldn't set local Quartz scheduler execution capabilities: " + e.getMessage(), e);
         }
+    }
+
+    public Thread getTaskThread(String oid) {
+        return localNodeManager.getLocalTaskThread(oid);
+    }
+
+    public String getRunningTasksThreadsDump(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(ExecutionManager.DOT_CLASS + "getRunningTasksThreadsDump");
+        try {
+            Set<Task> locallyRunningTasks = taskManager.getLocallyRunningTasks(result);
+            StringBuilder output = new StringBuilder();
+            for (Task task : locallyRunningTasks) {
+                try {
+                    output.append(getTaskThreadsDump(task.getOid(), result));
+                } catch (SchemaException | ObjectNotFoundException | RuntimeException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get task thread dump for {}", e, task);
+                    output.append("Couldn't get task thread dump for ").append(task).append("\n\n");
+                }
+            }
+            result.computeStatus();
+            return output.toString();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't get thread dump for running tasks: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    public String recordRunningTasksThreadsDump(String cause, OperationResult parentResult) throws ObjectAlreadyExistsException {
+        OperationResult result = parentResult.createSubresult(ExecutionManager.DOT_CLASS + "recordRunningTasksThreadsDump");
+        try {
+            Set<Task> locallyRunningTasks = taskManager.getLocallyRunningTasks(result);
+            StringBuilder output = new StringBuilder();
+            for (Task task : locallyRunningTasks) {
+                try {
+                    output.append(recordTaskThreadsDump(task.getOid(), cause, result));
+                } catch (SchemaException | ObjectNotFoundException | RuntimeException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get task thread dump for {}", e, task);
+                    output.append("Couldn't get task thread dump for ").append(task).append("\n\n");
+                }
+            }
+            result.computeStatus();
+            return output.toString();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't record thread dump for running tasks: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    public String getTaskThreadsDump(String taskOid, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        StringBuilder output = new StringBuilder();
+        OperationResult result = parentResult.createSubresult(ExecutionManager.DOT_CLASS + "getTaskThreadsDump");
+        try {
+            TaskQuartzImpl task = taskManager.getTask(taskOid, parentResult);
+            Task localTask = taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier());
+            Thread rootThread = taskManager.getTaskThread(taskOid);
+            if (localTask == null || rootThread == null) {
+                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Task " + task + " is not running locally");
+                return null;
+            }
+            output.append("*** Root thread for task ").append(task).append(":\n\n");
+            addTaskInfo(output, localTask, rootThread);
+            for (Task subtask : new HashSet<>(localTask.getLightweightAsynchronousSubtasks())) {
+                TaskQuartzImpl subtaskImpl = (TaskQuartzImpl) subtask;
+                Thread thread = subtaskImpl.getLightweightThread();
+                output.append("** Information for lightweight asynchronous subtask ").append(subtask).append(":\n\n");
+                addTaskInfo(output, subtask, thread);
+            }
+            result.recordSuccess();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't get task threads dump: " + t.getMessage(), t);
+            throw t;
+        }
+        return output.toString();
+    }
+
+    private void addTaskInfo(StringBuilder output, Task localTask, Thread thread) {
+        output.append("Execution state: ").append(localTask.getExecutionStatus()).append("\n");
+        output.append("Progress: ").append(localTask.getProgress());
+        if (localTask.getExpectedTotal() != null) {
+            output.append(" of ").append(localTask.getExpectedTotal());
+        }
+        output.append("\n");
+        OperationStatsType stats = localTask.getAggregatedLiveOperationStats();
+        IterativeTaskInformationType info = stats != null ? stats.getIterativeTaskInformation() : null;
+        if (info != null) {
+            output.append("Total success count: ").append(info.getTotalSuccessCount()).append(", failure count: ").append(info.getTotalFailureCount()).append("\n");
+            output.append("Current object: ").append(info.getCurrentObjectOid()).append(" ").append(info.getCurrentObjectName()).append("\n");
+            if (info.getLastSuccessObjectOid() != null || info.getLastSuccessObjectName() != null) {
+                output.append("Last object (success): ").append(info.getLastSuccessObjectOid())
+                        .append(" (").append(info.getLastSuccessObjectName()).append(") at ")
+                        .append(info.getLastSuccessEndTimestamp()).append("\n");
+            }
+            if (info.getLastFailureObjectOid() != null || info.getLastFailureObjectName() != null) {
+                output.append("Last object (failure): ").append(info.getLastFailureObjectOid())
+                        .append(" (").append(info.getLastFailureObjectName()).append(") at ")
+                        .append(info.getLastFailureEndTimestamp()).append("\n");
+            }
+        }
+        output.append("\n");
+        if (thread != null) {
+            output.append(MiscUtil.takeThreadDump(thread));
+        } else {
+            output.append("(no thread for this task)");
+        }
+        output.append("\n\n");
+    }
+
+    public String recordTaskThreadsDump(String taskOid, String cause, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        StringBuilder output = new StringBuilder();
+
+        OperationResult result = parentResult.createSubresult(ExecutionManager.DOT_CLASS + "recordTaskThreadDump");
+        result.addParam("taskOid", taskOid);
+        result.addParam("cause", cause);
+        try {
+            String dump = getTaskThreadsDump(taskOid, result);
+            if (dump != null) {
+                LOGGER.debug("Thread dump for task {}:\n{}", taskOid, dump);
+                DiagnosticInformationType event = new DiagnosticInformationType()
+                        .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
+                        .type(SchemaConstants.TASK_THREAD_DUMP_URI)
+                        .cause(cause)
+                        .nodeIdentifier(taskManager.getNodeId())
+                        .content(dump);
+                taskManager.getRepositoryService().addDiagnosticInformation(TaskType.class, taskOid, event, result);
+                output.append("Thread dump for task ").append(taskOid).append(" was recorded.\n");
+                result.computeStatus();
+            } else {
+                output.append("Thread dump for task ").append(taskOid).append(" was NOT recorded as it couldn't be obtained.\n");
+                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Unable to get threads dump for task " +
+                        taskOid + "; it is probably not running locally.");
+            }
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't take thread dump: " + t.getMessage(), t);
+            throw t;
+        }
+        return output.toString();
     }
 }
 

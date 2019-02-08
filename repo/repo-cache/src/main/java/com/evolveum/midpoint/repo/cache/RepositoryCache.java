@@ -823,4 +823,19 @@ public class RepositoryCache implements RepositoryService {
 			throw ex;
 		}
 	}
+
+	@Override
+	public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		delay(modifyRandomDelayRange);
+		Long startTime = repoOpStart();
+		try {
+			repositoryService.addDiagnosticInformation(type, oid, information, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
+			// the object in cache
+			invalidateCacheEntry(type, oid);
+		}
+	}
 }
