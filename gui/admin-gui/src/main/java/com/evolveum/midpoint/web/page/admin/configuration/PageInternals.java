@@ -145,6 +145,16 @@ public class PageInternals extends PageAdminConfiguration {
 			}
 		});
         
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.threads")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initThreadsPanel(panelId);
+			}
+		});
+
         TabbedPanel<ITab> tabPannel = new TabbedPanel<>(ID_TAB_PANEL, tabs);
         add(tabPannel);
        
@@ -171,10 +181,12 @@ public class PageInternals extends PageAdminConfiguration {
 	}
     
     private WebMarkupContainer initCachePanel(String panelId) {
-    		return new InternalsCachePanel(panelId);
+	    return new InternalsCachePanel(panelId);
 	}
 
+    private WebMarkupContainer initThreadsPanel(String panelId) {
+	    return new InternalsThreadsPanel(panelId);
+	}
 
-   
     
 }

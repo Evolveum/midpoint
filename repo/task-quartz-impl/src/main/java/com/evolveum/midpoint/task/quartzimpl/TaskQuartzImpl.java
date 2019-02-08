@@ -110,7 +110,7 @@ public class TaskQuartzImpl implements Task {
 	 * <p>
 	 * This must be synchronized, because interrupt() method uses it.
 	 */
-	private Set<TaskQuartzImpl> lightweightAsynchronousSubtasks = Collections.synchronizedSet(new HashSet<TaskQuartzImpl>());
+	private Set<TaskQuartzImpl> lightweightAsynchronousSubtasks = Collections.synchronizedSet(new HashSet<>());
 	private Task parentForLightweightAsynchronousTask;            // EXPERIMENTAL
 
 	/*
@@ -155,11 +155,16 @@ public class TaskQuartzImpl implements Task {
 	private Future lightweightHandlerFuture;
 
 	/**
-	 * An indication whether lighweight hander is currently executing or not.
+	 * An indication whether lightweight handler is currently executing or not.
 	 * Used for waiting upon its completion (because java.util.concurrent facilities are not able
 	 * to show this for cancelled/interrupted tasks).
 	 */
 	private volatile boolean lightweightHandlerExecuting;
+
+	/**
+	 * Thread in which this task's lightweight handler is executing.
+	 */
+	private volatile Thread lightweightThread;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
@@ -2792,6 +2797,14 @@ public class TaskQuartzImpl implements Task {
 
 	public boolean isLightweightHandlerExecuting() {
 		return lightweightHandlerExecuting;
+	}
+
+	public Thread getLightweightThread() {
+		return lightweightThread;
+	}
+
+	public void setLightweightThread(Thread lightweightThread) {
+		this.lightweightThread = lightweightThread;
 	}
 
 	// Operational data

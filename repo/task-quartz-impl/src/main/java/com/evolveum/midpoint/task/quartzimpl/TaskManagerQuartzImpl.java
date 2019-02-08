@@ -1180,10 +1180,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
                 try {
                     task.setLightweightHandlerExecuting(true);
+                    task.setLightweightThread(Thread.currentThread());
                     lightweightTaskHandler.run(task);
                 } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);
                 } finally {
+                	task.setLightweightThread(null);
                     task.setLightweightHandlerExecuting(false);
                 }
                 LOGGER.debug("Lightweight task handler shell finishing; task = {}", task);
@@ -2261,6 +2263,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		return infrastructureConfiguration != null ? infrastructureConfiguration.getIntraClusterHttpUrlPattern() : null;
 	}
 
+	public Thread getTaskThread(String oid) {
+		return executionManager.getTaskThread(oid);
+	}
+
 	public static class NextStartTimes {
     	final Long nextScheduledRun;
     	final Long nextRetry;
@@ -2400,5 +2406,27 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	public boolean update(@Nullable SystemConfigurationType value) {
 		infrastructureConfiguration = value != null ? value.getInfrastructure() : null;
 		return true;
+	}
+
+	@Override
+	public String getRunningTasksThreadsDump(OperationResult parentResult) {
+		return executionManager.getRunningTasksThreadsDump(parentResult);
+	}
+
+	@Override
+	public String recordRunningTasksThreadsDump(String cause, OperationResult parentResult) throws ObjectAlreadyExistsException {
+		return executionManager.recordRunningTasksThreadsDump(cause, parentResult);
+	}
+
+	@Override
+	public String getTaskThreadsDump(String taskOid, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException {
+		return executionManager.getTaskThreadsDump(taskOid, parentResult);
+	}
+
+	@Override
+	public String recordTaskThreadsDump(String taskOid, String cause, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		return executionManager.recordTaskThreadsDump(taskOid, cause, parentResult);
 	}
 }
