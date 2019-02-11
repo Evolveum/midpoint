@@ -1,0 +1,34 @@
+package com.evolveum.midpoint.schrodinger.component.modal;
+
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.DropDown;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.openqa.selenium.By;
+
+import static com.codeborne.selenide.Selenide.$;
+
+/**
+ * Created by honchar.
+ */
+public class ObjectBrowserModal<T> extends ModalBox<T> {
+    public ObjectBrowserModal(T parent, SelenideElement parentElement) {
+        super(parent, parentElement);
+    }
+
+    public ObjectBrowserModal<T> selectType(String type) {
+        DropDown<ObjectBrowserModal> typeDropDown =
+                (DropDown<ObjectBrowserModal>) $(Schrodinger.byElementAttributeValue("select", "data-s-id", "type"));
+        typeDropDown.selectOption(type);
+        return this;
+    }
+
+    public ObjectBrowserModalTable<T> table(){
+        SelenideElement box = $(By.className("box boxed-table"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new ObjectBrowserModalTable<T>(this, box);
+    }
+
+}

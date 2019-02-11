@@ -22,6 +22,7 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.configuration.ObjectCollectionViewsPanel;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -254,4 +255,43 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public PrismForm<T> expandContainerPropertiesPanel(String containerHeaderKey){
+        SelenideElement panelHeader = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
+
+        SelenideElement headerChevron = panelHeader.$(By.tagName("i"));
+        if (!headerChevron.has(Condition.cssClass("fa fa-caret-down fa-lg"))) {
+            headerChevron.click();
+            //TODO fix this check
+//            panelHeader
+//                    .shouldHave(Condition.cssClass("fa fa-caret-down fa-lg"));
+//                    .waitUntil(Condition.cssClass("fa fa-caret-down fa-lg"), MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
+        panelHeader
+                .parent()
+                .$(By.className("prism-properties"))
+                .shouldBe(Condition.visible);
+        return this;
+    }
+
+    public PrismForm<T> addNewContainerValue(String containerHeaderKey, String newContainerHeaderKey){
+        SelenideElement panelHeader = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
+        panelHeader.$(Schrodinger.byDataId("addButton")).click();
+
+        SelenideElement newPanelHeader = $(Schrodinger.byDataResourceKey("div", newContainerHeaderKey));
+        newPanelHeader.shouldHave(Condition.cssClass("container-fluid success")).waitUntil(Condition.cssClass("container-fluid success"), MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return this;
+    }
+
+    public SelenideElement getPrismPropertiesPanel(String containerHeaderKey){
+        expandContainerPropertiesPanel(containerHeaderKey);
+
+        SelenideElement containerHeaderPanel = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
+        return containerHeaderPanel
+                .parent()
+                .$(By.className("prism-properties"))
+                .shouldBe(Condition.visible)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+    }
 }
