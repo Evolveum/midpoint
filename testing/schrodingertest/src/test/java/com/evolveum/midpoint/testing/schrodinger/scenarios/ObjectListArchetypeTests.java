@@ -112,6 +112,10 @@ public class ObjectListArchetypeTests extends TestBase {
         //check archetype pluralLabel
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);
 
+        //check the icon class next to the Employee  menu item
+        Assert.assertTrue(ARCHETYPE_ICON_CSS_STYLE
+                .equals(basicPage.getAdministrationMenuItemIconClass("PageAdmin.menu.top.users", ARCHETYPE_PLURAL_LABEL)));
+
         Assert.assertTrue(collectionListPage
                 .table()
                 .buttonToolBarExists());
