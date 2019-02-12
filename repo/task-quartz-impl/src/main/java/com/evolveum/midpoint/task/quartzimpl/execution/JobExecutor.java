@@ -54,6 +54,7 @@ import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
+import java.util.Objects;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -225,7 +226,7 @@ public class JobExecutor implements InterruptableJob {
 
 	static class GroupExecInfo {
 		int limit;
-		Set<Task> tasks = new HashSet<>();
+		Collection<Task> tasks = new ArrayList<>();
 
 		GroupExecInfo(Integer l) {
 			limit = l != null ? l : Integer.MAX_VALUE;
@@ -235,7 +236,9 @@ public class JobExecutor implements InterruptableJob {
 			if (limit != null && limit < this.limit) {
 				this.limit = limit;
 			}
-			this.tasks.add(task);
+			if (tasks.stream().noneMatch(t -> Objects.equals(t.getOid(), task.getOid()))) {    // just for sure
+				tasks.add(task);
+			}
 		}
 
 		@Override
@@ -257,7 +260,7 @@ public class JobExecutor implements InterruptableJob {
 		for (Map.Entry<String, GroupExecInfo> entry : groupMap.entrySet()) {
 			String group = entry.getKey();
 			int limit = entry.getValue().limit;
-			Set<Task> tasksInGroup = entry.getValue().tasks;
+			Collection<Task> tasksInGroup = entry.getValue().tasks;
 			if (tasksInGroup.size() >= limit) {
 				RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints,
 						DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT, task.getNextRunStartTime(result));

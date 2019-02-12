@@ -357,7 +357,7 @@ public interface TaskManager {
      *
      * @return tasks that currently run on this node.
      */
-    Set<Task> getLocallyRunningTasks(OperationResult parentResult);
+    Collection<Task> getLocallyRunningTasks(OperationResult parentResult);
 
 	/**
 	 * Returns the local scheduler information.

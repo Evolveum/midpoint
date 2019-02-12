@@ -1018,9 +1018,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     boolean isLightweightAsynchronousTask();
 
-    Set<? extends Task> getLightweightAsynchronousSubtasks();
+    Collection<? extends Task> getLightweightAsynchronousSubtasks();
 
-    Set<? extends Task> getRunningLightweightAsynchronousSubtasks();
+	Collection<? extends Task> getRunningLightweightAsynchronousSubtasks();
 
     boolean lightweightHandlerStartRequested();
 
