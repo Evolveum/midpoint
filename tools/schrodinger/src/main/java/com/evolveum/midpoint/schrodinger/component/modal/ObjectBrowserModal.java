@@ -18,14 +18,14 @@ public class ObjectBrowserModal<T> extends ModalBox<T> {
     }
 
     public ObjectBrowserModal<T> selectType(String type) {
-        DropDown<ObjectBrowserModal> typeDropDown =
-                (DropDown<ObjectBrowserModal>) $(Schrodinger.byElementAttributeValue("select", "data-s-id", "type"));
+        SelenideElement typeDropDown =
+                $(Schrodinger.byElementAttributeValue("select", "data-s-id", "type"));
         typeDropDown.selectOption(type);
         return this;
     }
 
     public ObjectBrowserModalTable<T> table(){
-        SelenideElement box = $(By.className("box boxed-table"))
+        SelenideElement box = $(Schrodinger.byElementAttributeValue("div", "class","box boxed-table"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ObjectBrowserModalTable<T>(this, box);

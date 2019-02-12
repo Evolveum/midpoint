@@ -3,6 +3,7 @@ package com.evolveum.midpoint.testing.schrodinger.scenarios;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.configuration.AdminGuiTab;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
@@ -30,6 +31,7 @@ public class ObjectListArchetypeTests extends TestBase {
     private static final String OBJECT_COLLECTION_VIEWS_HEADER = "Object collection views";
     private static final String OBJECT_COLLECTION_VIEW_HEADER = "Object collection view";
     private static final String NEW_GUI_OBJECT_LIST_VIEW_HEADER = "New gui object list view";
+    private static final String NEW_OBJECT_LIST_VIEW_CONTAINER_KEY = "GuiObjectListViewType.details";
     private static final String COLLECTION_HEADER = "Collection";
 
     @Test(priority = 0)
@@ -51,14 +53,14 @@ public class ObjectListArchetypeTests extends TestBase {
     public void configureArchetypeObjectListView(){
         AdminGuiTab adminGuiTab = basicPage.adminGui();
         PrismForm<AdminGuiTab> prismForm = adminGuiTab.form();
-        SelenideElement collectionContainerProperties = prismForm
+        prismForm
                 .expandContainerPropertiesPanel(OBJECT_COLLECTION_VIEWS_HEADER)
-                .addNewContainerValue(OBJECT_COLLECTION_VIEW_HEADER, NEW_GUI_OBJECT_LIST_VIEW_HEADER)
-                .expandContainerPropertiesPanel(NEW_GUI_OBJECT_LIST_VIEW_HEADER)
-                .expandContainerPropertiesPanel(COLLECTION_HEADER)
-                .getPrismPropertiesPanel(COLLECTION_HEADER);
+                .addNewContainerValue(OBJECT_COLLECTION_VIEW_HEADER, NEW_OBJECT_LIST_VIEW_CONTAINER_KEY)
+                .expandContainerPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_KEY)
+                .expandContainerPropertiesPanel(COLLECTION_HEADER);
 
-        collectionContainerProperties
+        SelenideElement collectionRefPropertyPanel = prismForm.findProperty(COLLECTION_REF_ATTRIBUTE_NAME);
+        collectionRefPropertyPanel
                 .$(Schrodinger.byDataId("edit"))
                 .click();
 
@@ -67,7 +69,7 @@ public class ObjectListArchetypeTests extends TestBase {
 
         ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(prismForm, modalWindow);
         objectBrowserModal
-                .selectType("ARCHETYPE")
+                .selectType("Archetype")
                 .table()
                     .search()
                         .byName()

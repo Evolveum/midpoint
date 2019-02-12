@@ -3,6 +3,9 @@ package com.evolveum.midpoint.schrodinger.page.configuration;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -15,7 +18,7 @@ public class SystemPage extends BasicPage {
     }
 
     public SystemPage save() {
-        //todo implement
+        $(Schrodinger.byDataId("save")).click();
         return this;
     }
 

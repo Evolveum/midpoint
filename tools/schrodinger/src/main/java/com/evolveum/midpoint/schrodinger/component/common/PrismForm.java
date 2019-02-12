@@ -37,6 +37,8 @@ import static com.codeborne.selenide.Selenide.$;
  */
 public class PrismForm<T> extends Component<T> {
 
+    private static final String CARET_DOWN_ICON_STYLE = "fa-caret-down";
+
     public PrismForm(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
@@ -219,7 +221,7 @@ public class PrismForm<T> extends Component<T> {
         return null;
     }
 
-    private SelenideElement findProperty(String name) {
+    public SelenideElement findProperty(String name) {
 
         Selenide.sleep(5000);
 
@@ -256,15 +258,14 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> expandContainerPropertiesPanel(String containerHeaderKey){
-        SelenideElement panelHeader = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
+        SelenideElement panelHeader = $(Schrodinger.byElementAttributeValue("div", "data-s-resource-key", containerHeaderKey));
 
         SelenideElement headerChevron = panelHeader.$(By.tagName("i"));
-        if (!headerChevron.has(Condition.cssClass("fa fa-caret-down fa-lg"))) {
+        if (headerChevron.getAttribute("class") != null && !headerChevron.getAttribute("class").contains(CARET_DOWN_ICON_STYLE)) {
             headerChevron.click();
-            //TODO fix this check
-//            panelHeader
-//                    .shouldHave(Condition.cssClass("fa fa-caret-down fa-lg"));
-//                    .waitUntil(Condition.cssClass("fa fa-caret-down fa-lg"), MidPoint.TIMEOUT_DEFAULT_2_S);
+            panelHeader
+                    .$(Schrodinger.byElementAttributeValue("i", "class","fa fa-caret-down fa-lg"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         }
         panelHeader
                 .parent()
@@ -277,8 +278,11 @@ public class PrismForm<T> extends Component<T> {
         SelenideElement panelHeader = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
         panelHeader.$(Schrodinger.byDataId("addButton")).click();
 
-        SelenideElement newPanelHeader = $(Schrodinger.byDataResourceKey("div", newContainerHeaderKey));
-        newPanelHeader.shouldHave(Condition.cssClass("container-fluid success")).waitUntil(Condition.cssClass("container-fluid success"), MidPoint.TIMEOUT_DEFAULT_2_S);
+        panelHeader
+                .parent()
+                .$(Schrodinger.byDataResourceKey(newContainerHeaderKey))
+                .shouldBe(Condition.visible)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return this;
     }
