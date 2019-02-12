@@ -61,6 +61,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
@@ -108,9 +109,9 @@ public class TaskQuartzImpl implements Task {
 	 * Lightweight asynchronous subtasks.
 	 * Each task here is a LAT, i.e. transient and with assigned lightweight handler.
 	 * <p>
-	 * This must be synchronized, because interrupt() method uses it.
+	 * This must be concurrent, because interrupt() method uses it.
 	 */
-	private Set<TaskQuartzImpl> lightweightAsynchronousSubtasks = Collections.synchronizedSet(new HashSet<>());
+	private Map<String, TaskQuartzImpl> lightweightAsynchronousSubtasks = new ConcurrentHashMap<>();
 	private Task parentForLightweightAsynchronousTask;            // EXPERIMENTAL
 
 	/*
@@ -2588,7 +2589,8 @@ public class TaskQuartzImpl implements Task {
 	public Task createSubtask(LightweightTaskHandler handler) {
 		TaskQuartzImpl sub = ((TaskQuartzImpl) createSubtask());
 		sub.setLightweightTaskHandler(handler);
-		lightweightAsynchronousSubtasks.add(sub);
+		assert sub.getTaskIdentifier() != null;
+		lightweightAsynchronousSubtasks.put(sub.getTaskIdentifier(), sub);
 		sub.parentForLightweightAsynchronousTask = this;
 		return sub;
 	}
@@ -2764,20 +2766,20 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public Set<? extends TaskQuartzImpl> getLightweightAsynchronousSubtasks() {
-		return Collections.unmodifiableSet(lightweightAsynchronousSubtasks);
+	public Collection<? extends TaskQuartzImpl> getLightweightAsynchronousSubtasks() {
+		return Collections.unmodifiableList(new ArrayList<>(lightweightAsynchronousSubtasks.values()));
 	}
 
 	@Override
-	public Set<? extends TaskQuartzImpl> getRunningLightweightAsynchronousSubtasks() {
+	public Collection<? extends TaskQuartzImpl> getRunningLightweightAsynchronousSubtasks() {
 		// beware: Do not touch task prism here, because this method can be called asynchronously
-		Set<TaskQuartzImpl> retval = new HashSet<>();
+		List<TaskQuartzImpl> retval = new ArrayList<>();
 		for (TaskQuartzImpl subtask : getLightweightAsynchronousSubtasks()) {
 			if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && subtask.lightweightHandlerStartRequested()) {
 				retval.add(subtask);
 			}
 		}
-		return Collections.unmodifiableSet(retval);
+		return Collections.unmodifiableList(retval);
 	}
 
 	@Override

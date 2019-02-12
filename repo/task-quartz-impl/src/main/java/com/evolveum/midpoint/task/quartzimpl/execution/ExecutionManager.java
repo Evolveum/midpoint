@@ -108,7 +108,7 @@ public class ExecutionManager {
 
         LOGGER.debug("{} task(s) found on nodes that are going down, stopping them.", taskInfoList.size());
 
-        Set<Task> tasks = new HashSet<>();
+        List<Task> tasks = new ArrayList<>();
         for (ClusterStatusInformation.TaskInfo taskInfo : taskInfoList) {
             try {
                 tasks.add(taskManager.getTask(taskInfo.getOid(), result));
@@ -225,7 +225,7 @@ public class ExecutionManager {
         result.addParam("timeToWait", timeToWait);
 
         LOGGER.info("Stopping all tasks on local node");
-        Set<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
+        Collection<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
         boolean retval = stopTasksRunAndWait(tasks, null, timeToWait, false, result);
         result.computeStatus();
         return retval;
@@ -544,7 +544,7 @@ public class ExecutionManager {
         return localNodeManager.getLocallyRunningTasksOids(parentResult);
     }
 
-    public Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
+    public Collection<Task> getLocallyRunningTasks(OperationResult parentResult) {
         return localNodeManager.getLocallyRunningTasks(parentResult);
     }
 
@@ -770,7 +770,7 @@ public class ExecutionManager {
     public String getRunningTasksThreadsDump(OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(ExecutionManager.DOT_CLASS + "getRunningTasksThreadsDump");
         try {
-            Set<Task> locallyRunningTasks = taskManager.getLocallyRunningTasks(result);
+            Collection<Task> locallyRunningTasks = taskManager.getLocallyRunningTasks(result);
             StringBuilder output = new StringBuilder();
             for (Task task : locallyRunningTasks) {
                 try {
@@ -791,7 +791,7 @@ public class ExecutionManager {
     public String recordRunningTasksThreadsDump(String cause, OperationResult parentResult) throws ObjectAlreadyExistsException {
         OperationResult result = parentResult.createSubresult(ExecutionManager.DOT_CLASS + "recordRunningTasksThreadsDump");
         try {
-            Set<Task> locallyRunningTasks = taskManager.getLocallyRunningTasks(result);
+            Collection<Task> locallyRunningTasks = taskManager.getLocallyRunningTasks(result);
             StringBuilder output = new StringBuilder();
             for (Task task : locallyRunningTasks) {
                 try {
@@ -823,7 +823,7 @@ public class ExecutionManager {
             }
             output.append("*** Root thread for task ").append(task).append(":\n\n");
             addTaskInfo(output, localTask, rootThread);
-            for (Task subtask : new HashSet<>(localTask.getLightweightAsynchronousSubtasks())) {
+            for (Task subtask : localTask.getLightweightAsynchronousSubtasks()) {
                 TaskQuartzImpl subtaskImpl = (TaskQuartzImpl) subtask;
                 Thread thread = subtaskImpl.getLightweightThread();
                 output.append("** Information for lightweight asynchronous subtask ").append(subtask).append(":\n\n");

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.task.api.*;
@@ -1879,7 +1880,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     @Override
-    public Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
+    public Collection<Task> getLocallyRunningTasks(OperationResult parentResult) {
         return executionManager.getLocallyRunningTasks(parentResult);
     }
 
