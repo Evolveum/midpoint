@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -208,6 +209,25 @@ public interface TaskService {
 	void deleteWorkersAndWorkState(String coordinatorOid, long subtasksWaitTime, Task operationTask, OperationResult parentResult)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException;
+
+	String getThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult) throws CommunicationException,
+			ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException;
+
+	// TODO migrate to more structured information
+	String getRunningTasksThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException;
+
+	// TODO reconsider the return value
+	String recordRunningTasksThreadsDump(String cause, @NotNull Task task, @NotNull OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
+
+	// TODO migrate to more structured information
+	String getTaskThreadsDump(@NotNull String taskOid, @NotNull Task task, @NotNull OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException;
 
 	//endregion
 }

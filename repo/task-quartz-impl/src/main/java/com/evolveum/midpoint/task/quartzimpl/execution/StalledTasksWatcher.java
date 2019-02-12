@@ -16,10 +16,12 @@
 
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -118,18 +119,18 @@ public class StalledTasksWatcher {
                                 lastProgressEntry.lastNotificationIssuedTimestamp != 0 ?
 									" [this is a repeated notification]" : "");
                         lastProgressEntry.lastNotificationIssuedTimestamp = currentTimestamp;
+                        try {
+                            taskManager.recordTaskThreadsDump(task.getOid(), SchemaConstants.INTERNAL_URI, result);
+                        } catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record thread dump for stalled task {}", e, task);
+                        }
                     }
                 }
             }
         }
 
         // clean-up obsolete progress entries
-        Iterator<String> iterator = lastProgressMap.keySet().iterator();
-        while (iterator.hasNext()) {
-            if (!runningTasks.containsKey(iterator.next())) {
-                iterator.remove();
-            }
-        }
+        lastProgressMap.keySet().removeIf(s -> !runningTasks.containsKey(s));
 
         LOGGER.trace("checkStalledTasks lastProgress map after cleaning up = {}", lastProgressMap);
     }

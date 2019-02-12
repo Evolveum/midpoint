@@ -918,7 +918,6 @@ mainCycle:
         }
     }
 
-    // should be used only for testing
     public Thread getExecutingThread() {
         return executingThread;
     }
