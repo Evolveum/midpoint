@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionBut
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.apache.http.util.Asserts;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -82,5 +83,13 @@ public class UserAssignmentsTab extends Component<UserPage> {
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new FocusSetAssignmentsModal<>(this, modalElement);
+    }
+
+    public boolean assignmentExists(String assignmentName){
+        SelenideElement assignmentSummaryDisplayName = table()
+                .clickByName(assignmentName)
+                    .getParentElement()
+                        .$(Schrodinger.byDataId("displayName"));
+        return assignmentName.equals(assignmentSummaryDisplayName.getText());
     }
 }

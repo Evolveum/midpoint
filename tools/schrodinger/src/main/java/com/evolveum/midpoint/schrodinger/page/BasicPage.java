@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.page.workitems.*;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -72,7 +73,15 @@ public class BasicPage {
     }
 
     public ListUsersPage listUsers() {
-        clickAdministrationMenu("PageAdmin.menu.top.users", "PageAdmin.menu.top.users.list");
+        return listUsers("");
+    }
+
+    public ListUsersPage listUsers(String objectListMenuItemKey) {
+        if (StringUtils.isEmpty(objectListMenuItemKey)) {
+            clickAdministrationMenu("PageAdmin.menu.top.users", "PageAdmin.menu.top.users.list");
+        } else {
+            clickAdministrationMenu("PageAdmin.menu.top.users", objectListMenuItemKey);
+        }
         return new ListUsersPage();
     }
 

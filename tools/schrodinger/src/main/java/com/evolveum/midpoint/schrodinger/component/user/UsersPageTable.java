@@ -93,4 +93,20 @@ public class UsersPageTable<T> extends TableWithPageRedirect<T> {
         return new UsersTableDropDown<>(this, dropDown);
 
     }
+
+    public SelenideElement getToolbarButton(String iconCssClass){
+        SelenideElement buttonToolbar = getButtonToolbar();
+        return buttonToolbar
+                .$(Schrodinger.byElementAttributeValue("i", "class", iconCssClass));
+    }
+
+    public UserPage newObjectButtonClickPerformed(String iconCssClass){
+        getToolbarButton(iconCssClass)
+                .click();
+
+        $(Schrodinger.byDataId("tabPanel"))
+                .shouldBe(Condition.visible)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
+        return new UserPage();
+    }
 }
