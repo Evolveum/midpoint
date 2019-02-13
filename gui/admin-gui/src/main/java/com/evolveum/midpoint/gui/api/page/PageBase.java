@@ -104,6 +104,7 @@ import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardAdmin;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.admin.resources.*;
@@ -1943,6 +1944,24 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		addMenuItem(item, "PageAdmin.menu.dashboard.info", PageDashboardInfo.class);
 		addMenuItem(item, "PageAdmin.menu.dashboard.admin", PageDashboardAdmin.class);
+		
+		OperationResult result = new OperationResult("Search Dashboard");
+		List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, this);
+		if(dashboards != null) {
+			dashboards.forEach(prismObject -> {
+				DashboardType dashboard = prismObject.getRealValue();
+				StringResourceModel label = null;
+				if(dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
+					label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
+				} else {
+					label = createStringResource(dashboard.getName());
+				}
+				PageParameters pageParameters = new PageParameters();
+				pageParameters.add(PageDashboardConfigurable.PARAM_DASHBOARD_ID, "e159a3ac-1d8a-11e9-83b6-e79f71fe88b7");
+				MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
+	        	item.getItems().add(menu);
+			});
+		}
 
 		return item;
 	}

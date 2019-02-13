@@ -9558,6 +9558,83 @@
     </xsd:complexType>
 	<xsd:element name="function" type="tns:FunctionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 	
+	<xsd:complexType name="ProportionalExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+				Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
+				But this is all experimental. Later it will probably get entire AuditSearchType object.
+                This expression evaluator may autodetect that input is a ObjectCollectionType and find IntegerStatType inside. 
+            </xsd:documentation>
+            <xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="style" type="tns:ProportionalStyleType" minOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				TODO
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:element name="proportional" type="tns:ProportionalExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	
+	<xsd:simpleType name="ProportionalStyleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="percentage">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERCENTAGE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        For example 42%.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="value-only">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE_ONLY"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        For example 42.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="value-slash-domain">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE_SLASH_DOMAIN"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        For example 42/100.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+			<xsd:enumeration value="value-of-domain">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE_OF_DOMAIN"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        For example 42 of 100.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+	
 	<xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
@@ -23052,7 +23129,7 @@
                         <!-- This may be part of ObjectType later. -->
                     </xsd:element>
                     <!-- TODO: layout -->
-                    <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0">
+                    <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
