@@ -1949,7 +1949,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, this);
 		if(dashboards != null) {
 			dashboards.forEach(prismObject -> {
+				Validate.notNull(prismObject, "PrismObject<Dashboard> is null");
 				DashboardType dashboard = prismObject.getRealValue();
+				Validate.notNull(dashboard, "Dashboard object is null");
+				
 				StringResourceModel label = null;
 				if(dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
 					label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
@@ -1957,7 +1960,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					label = createStringResource(dashboard.getName());
 				}
 				PageParameters pageParameters = new PageParameters();
-				pageParameters.add(PageDashboardConfigurable.PARAM_DASHBOARD_ID, "e159a3ac-1d8a-11e9-83b6-e79f71fe88b7");
+				pageParameters.add(PageDashboardConfigurable.PARAM_DASHBOARD_ID, dashboard.getOid());
 				MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
 	        	item.getItems().add(menu);
 			});
