@@ -25,8 +25,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -85,7 +85,7 @@ public class JobExecutor implements InterruptableJob {
 	 * "Each (and every) time the scheduler executes the job, it creates a new instance of
 	 * the class before calling its execute(..) method."
 	 */
-	private volatile TaskQuartzImpl task;
+	private volatile RunningTaskQuartzImpl task;
 	private volatile Thread executingThread;				// used for interruptions
 
 	@Override
@@ -103,7 +103,7 @@ public class JobExecutor implements InterruptableJob {
         try {
 	        Collection<SelectorOptions<GetOperationOptions>> options = taskManagerImpl.getSchemaHelper().getOperationOptionsBuilder()
 			        .item(TaskType.F_RESULT).retrieve().build();
-	        task = taskManagerImpl.getTask(oid, options, executionResult);
+	        task = taskManagerImpl.createRunningTask(taskManagerImpl.getTask(oid, options, executionResult));
 		} catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
@@ -248,7 +248,7 @@ public class JobExecutor implements InterruptableJob {
 	}
 
 	// returns false if constraints are not met (i.e. execution should finish immediately)
-	private boolean checkExecutionConstraints(TaskQuartzImpl task, OperationResult result) throws JobExecutionException {
+	private boolean checkExecutionConstraints(RunningTaskQuartzImpl task, OperationResult result) throws JobExecutionException {
 		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
 		if (executionConstraints == null) {
 			return true;
@@ -284,7 +284,7 @@ public class JobExecutor implements InterruptableJob {
 	}
 
 	@NotNull
-	private Map<String, GroupExecInfo> createGroupMap(TaskQuartzImpl task, OperationResult result) {
+	private Map<String, GroupExecInfo> createGroupMap(RunningTaskQuartzImpl task, OperationResult result) {
 		Map<String, GroupExecInfo> groupMap = new HashMap<>();
 		Map<String, Integer> groupsWithLimits = task.getGroupsWithLimits();
 		if (!groupsWithLimits.isEmpty()) {
@@ -354,7 +354,7 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 
-	private void rescheduleLater(TaskQuartzImpl task, long startAt) throws JobExecutionException {
+	private void rescheduleLater(RunningTaskQuartzImpl task, long startAt) throws JobExecutionException {
 		Trigger trigger = TaskQuartzImplUtil.createTriggerForTask(task, startAt);
 		try {
 			taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
@@ -369,11 +369,11 @@ public class JobExecutor implements InterruptableJob {
         taskManagerImpl.waitForTransientChildren(task, result);
 
         // at this moment, there should be no executing child tasks... we just clean-up all runnables that had not started
-        for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
+        for (RunningTaskQuartzImpl subtask : task.getLightweightAsynchronousSubtasks()) {
             if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-                if (((TaskQuartzImpl) subtask).getLightweightHandlerFuture() == null) {
+                if (subtask.getLightweightHandlerFuture() == null) {
                     LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
-                    closeTask((TaskQuartzImpl) subtask, result);
+                    closeTask(subtask, result);
                 }
             }
         }
@@ -445,7 +445,7 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-    private void closeFlawedTask(TaskQuartzImpl task, OperationResult result) {
+    private void closeFlawedTask(RunningTaskQuartzImpl task, OperationResult result) {
         LOGGER.info("Closing flawed task {}", task);
         try {
             task.setResultImmediate(result, result);
@@ -457,7 +457,7 @@ public class JobExecutor implements InterruptableJob {
 		closeTask(task, result);
     }
 
-    private void closeTask(TaskQuartzImpl task, OperationResult result) {
+    private void closeTask(RunningTaskQuartzImpl task, OperationResult result) {
         try {
             taskManagerImpl.closeTask(task, result);
         } catch (ObjectNotFoundException e) {
@@ -890,7 +890,7 @@ mainCycle:
         boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
         if (task != null) {
             task.unsetCanRun();
-            for (TaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+            for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
                 subtask.unsetCanRun();
                 // if we want to cancel the Future using interrupts, we have to do it now
                 // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
@@ -914,9 +914,9 @@ mainCycle:
             LOGGER.trace("Thread.interrupt was called on thread {}.", executingThread);
         }
         if (alsoSubtasks) {
-            for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+            for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
                 //LOGGER.trace("Calling Future.cancel(mayInterruptIfRunning:=true) on a future for LAT subtask {}", subtask);
-                ((TaskQuartzImpl) subtask).getLightweightHandlerFuture().cancel(true);
+                subtask.getLightweightHandlerFuture().cancel(true);
             }
         }
     }

@@ -65,6 +65,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface Task extends DebugDumpable, StatisticsCollector {
 
+	String DOT_INTERFACE = Task.class.getName() + ".";
+
     // =================================================================== Basic information (ID, owner)
 
     /**
@@ -218,17 +220,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     String getNodeAsObserved();
 
-    /**
-     * Returns true if the task can run (was not interrupted).
-     *
-     * Will return false e.g. if shutdown was signaled.
-     *
-     * BEWARE: this flag is present only on the instance of the task that is being "executed", i.e. passed to
-     * task execution routine and task handler(s).
-     *
-     * @return true if the task can run
-     */
-    boolean canRun();
 
 
     // =================================================================== Persistence and asynchrony
@@ -816,15 +807,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     Task createSubtask();
 
     /**
-     * Creates a transient subtask, ready to execute a given LightweightTaskHandler.
-     *
-     * Owner is inherited from parent task to subtask.
-     *
-     * @return
-     */
-    Task createSubtask(LightweightTaskHandler handler);
-
-    /**
      * Returns the identifier of the task's parent (or null of there is no parent task).
      * @return
      */
@@ -834,12 +816,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Returns the parent task, if any.
      */
     Task getParentTask(OperationResult result) throws SchemaException, ObjectNotFoundException;
-
-	/**
-	 * Returns the in-memory version of the parent task. Applicable only to lightweight subtasks.
-	 * EXPERIMENTAL (use with care)
-	 */
-	Task getParentForLightweightAsynchronousTask();
 
 	/**
      * Lists the (direct) subtasks of a given task.
@@ -967,11 +943,17 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * Returns backing task prism object.
-     * @return
+     * AVOID use of this method if possible.
+     * - for regular tasks it has to update operation result in the prism object (might be costly)
+     * - for running tasks it provides a clone of the actual prism object (even more costly and leads to lost changes
+     *   if the returned value is changed)
      */
     PrismObject<TaskType> getTaskPrismObject();
 
-    TaskType getTaskType();
+	/**
+	 * AVOID using this method for the same reasons as above.
+	 */
+	TaskType getTaskType();
 
 	/**
 	 * Re-reads the task state from the persistent storage.
@@ -1014,43 +996,11 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     Collection<ItemDelta<?,?>> getPendingModifications();
 
-    LightweightTaskHandler getLightweightTaskHandler();
-
-    boolean isLightweightAsynchronousTask();
-
-    Collection<? extends Task> getLightweightAsynchronousSubtasks();
-
-	Collection<? extends Task> getRunningLightweightAsynchronousSubtasks();
-
-    boolean lightweightHandlerStartRequested();
-
-    /**
-     * Starts execution of a transient task carrying a LightweightTaskHandler.
-     * (just a shortcut to analogous call in TaskManager)
-     */
-    void startLightweightHandler();
-
-	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy);
-
-	void storeOperationStatsDeferred();
-
-	void storeOperationStats();
-
-    // stores operation statistics if the time has come
-    void storeOperationStatsIfNeeded();
-
-    Long getLastOperationStatsUpdateTimestamp();
-
-    void setOperationStatsUpdateInterval(long interval);
-
-    long getOperationStatsUpdateInterval();
-
     WfContextType getWorkflowContext();
 
 	void setWorkflowContext(WfContextType context) throws SchemaException;
 
-	void incrementProgressAndStoreStatsIfNeeded();
-
+	// TODO move into RunningTask?
 	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	TaskWorkManagementType getWorkManagement();
@@ -1066,4 +1016,19 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	boolean isPartitionedMaster();
 
 	String getExecutionGroup();
+
+	/**
+	 * Gets information from the current task and - for running task - its transient subtasks (aka worker threads).
+	 */
+	OperationStatsType getAggregatedLiveOperationStats();
+
+	ObjectReferenceType getReference();
+
+	String getVersion();
+
+	Collection<? extends TriggerType> getTriggers();
+
+	Collection<? extends AssignmentType> getAssignments();
+
+	ObjectReferenceType getOwnerRef();
 }

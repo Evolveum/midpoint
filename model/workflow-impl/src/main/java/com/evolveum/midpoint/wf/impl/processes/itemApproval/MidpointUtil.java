@@ -165,7 +165,7 @@ public class MidpointUtil {
 
 	public static void removeTriggersForWorkItem(Task wfTask, String workItemId, OperationResult result) {
 		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
-		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
+		for (TriggerType triggerType : wfTask.getTriggers()) {
 			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
 				PrismProperty workItemIdProperty = triggerType.getExtension().asPrismContainerValue()
 						.findProperty(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
@@ -177,17 +177,17 @@ public class MidpointUtil {
 		removeSelectedTriggers(wfTask, toDelete, result);
 	}
 
-	// not necessary any more, as work item triggers are deleted when the work item (task) is deleted
-	// (and there are currently no triggers other than work-item-related)
-	public static void removeAllStageTriggersForWorkItem(Task wfTask, OperationResult result) {
-		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
-		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
-			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
-				toDelete.add(triggerType.clone().asPrismContainerValue());
-			}
-		}
-		removeSelectedTriggers(wfTask, toDelete, result);
-	}
+//	// not necessary any more, as work item triggers are deleted when the work item (task) is deleted
+//	// (and there are currently no triggers other than work-item-related)
+//	public static void removeAllStageTriggersForWorkItem(Task wfTask, OperationResult result) {
+//		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
+//		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
+//			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
+//				toDelete.add(triggerType.clone().asPrismContainerValue());
+//			}
+//		}
+//		removeSelectedTriggers(wfTask, toDelete, result);
+//	}
 
 	private static void removeSelectedTriggers(Task wfTask, List<PrismContainerValue<TriggerType>> toDelete, OperationResult result) {
 		try {

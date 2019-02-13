@@ -68,7 +68,7 @@ public class MockSingleTaskHandler implements TaskHandler {
     private int executions = 0;
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 		LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");

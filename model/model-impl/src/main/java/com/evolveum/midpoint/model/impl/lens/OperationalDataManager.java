@@ -247,7 +247,7 @@ public class OperationalDataManager {
 		if (task.getOwner() != null) {
 			metaData.setCreatorRef(createObjectRef(task.getOwner(), prismContext));
 		}
-		metaData.setCreateTaskRef(task.getOid() != null ? createObjectRef(task.getTaskPrismObject(), prismContext) : null);
+		metaData.setCreateTaskRef(task.getOid() != null ? task.getReference() : null);
 	}
 
 	public <F extends ObjectType, T extends ObjectType> Collection<ItemDelta<?,?>> createModifyMetadataDeltas(LensContext<F> context,
@@ -257,7 +257,7 @@ public class OperationalDataManager {
 				.item(metadataPath.append(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
 				.item(metadataPath.append(MetadataType.F_MODIFIER_REF)).replace(createObjectRef(task.getOwner(), prismContext))
 				.item(metadataPath.append(MetadataType.F_MODIFY_TASK_REF)).replaceRealValues(
-						task.getOid() != null ? singleton(createObjectRef(task.getTaskPrismObject(), prismContext)) : emptySet())
+						task.getOid() != null ? singleton(task.getReference()) : emptySet())
 				.asItemDeltas();
 	}
 

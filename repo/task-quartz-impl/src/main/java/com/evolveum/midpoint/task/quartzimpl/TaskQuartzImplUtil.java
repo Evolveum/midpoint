@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.quartz.*;
 
@@ -177,9 +178,9 @@ public class TaskQuartzImplUtil {
 	}
 
 	private static TriggerBuilder<Trigger> createBasicTriggerBuilderForTask(Task task) {
-		TaskType taskType = task.getTaskPrismObject().asObjectable();
-		String executionGroup = taskType.getExecutionConstraints() != null
-				? MiscUtil.nullIfEmpty(taskType.getExecutionConstraints().getGroup())
+		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
+		String executionGroup = executionConstraints != null
+				? MiscUtil.nullIfEmpty(executionConstraints.getGroup())
 				: null;
 		return TriggerBuilder.newTrigger()
 				.forJob(createJobKeyForTask(task))

@@ -56,7 +56,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 		
 		OperationResult opResult = new OperationResult(WorkersCreationTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();

@@ -17,9 +17,8 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -32,15 +31,12 @@ import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
-import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
-import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
+import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -61,8 +57,6 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
@@ -83,36 +77,16 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
  * @author Pavol Mederly
  *
  */
-public class TaskQuartzImpl implements Task {
-
-	public static final String DOT_INTERFACE = Task.class.getName() + ".";
+public class TaskQuartzImpl implements InternalTaskInterface {
 
 	private TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
 	private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
-	public static final long DEFAULT_OPERATION_STATS_UPDATE_INTERVAL = 3000L;
+	@NotNull protected final Statistics statistics;
 
-	private Long lastOperationStatsUpdateTimestamp;
+	protected PrismObject<TaskType> taskPrism;
 
-	private long operationStatsUpdateInterval = DEFAULT_OPERATION_STATS_UPDATE_INTERVAL;
-
-	private PrismObject<TaskType> taskPrism;
-
-	private PrismObject<UserType> requestee;                                  // temporary information
-
-	private EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
-	private SynchronizationInformation synchronizationInformation;                // has to be explicitly enabled
-	private IterativeTaskInformation iterativeTaskInformation;                    // has to be explicitly enabled
-	private ActionsExecutedInformation actionsExecutedInformation;            // has to be explicitly enabled
-
-	/**
-	 * Lightweight asynchronous subtasks.
-	 * Each task here is a LAT, i.e. transient and with assigned lightweight handler.
-	 * <p>
-	 * This must be concurrent, because interrupt() method uses it.
-	 */
-	private Map<String, TaskQuartzImpl> lightweightAsynchronousSubtasks = new ConcurrentHashMap<>();
-	private Task parentForLightweightAsynchronousTask;            // EXPERIMENTAL
+	protected PrismObject<UserType> requestee;                                  // temporary information
 
 	/*
      * Task result is stored here as well as in task prism.
@@ -133,46 +107,16 @@ public class TaskQuartzImpl implements Task {
      * Basically, the result should be initialized only when a new transient task is created. It should be then persisted
      * into the repository. Tasks that are to execute handlers should be fetched from the repository with their results.
      */
-	private OperationResult taskResult;
+	protected OperationResult taskResult;
 
-	/**
-	 * Is the task handler allowed to run, or should it stop as soon as possible?
-	 */
-	private volatile boolean canRun;
-
-	private TaskManagerQuartzImpl taskManager;
-	private RepositoryService repositoryService;
-
-	/**
-	 * The code that should be run for asynchronous transient tasks.
-	 * (As opposed to asynchronous persistent tasks, where the handler is specified
-	 * via Handler URI in task prism object.)
-	 */
-	private LightweightTaskHandler lightweightTaskHandler;
-
-	/**
-	 * Future representing executing (or submitted-to-execution) lightweight task handler.
-	 */
-	private Future lightweightHandlerFuture;
-
-	/**
-	 * An indication whether lightweight handler is currently executing or not.
-	 * Used for waiting upon its completion (because java.util.concurrent facilities are not able
-	 * to show this for cancelled/interrupted tasks).
-	 */
-	private volatile boolean lightweightHandlerExecuting;
-
-	/**
-	 * Thread in which this task's lightweight handler is executing.
-	 */
-	private volatile Thread lightweightThread;
+	protected TaskManagerQuartzImpl taskManager;
+	protected RepositoryService repositoryService;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
-	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
 	private TaskQuartzImpl(TaskManagerQuartzImpl taskManager) {
 		this.taskManager = taskManager;
-		this.canRun = true;
+		statistics = new Statistics(taskManager.getPrismContext());
 	}
 
 	//region Constructors
@@ -205,14 +149,12 @@ public class TaskQuartzImpl implements Task {
 	 *
 	 * NOTE: if the result in prism is null, task result will be kept null as well (meaning it was not fetched from the repository).
 	 *
-	 * @param operationName if null, default op. name will be used
 	 */
-	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService,
-			String operationName) {
+	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
 		this(taskManager);
 		this.repositoryService = repositoryService;
 		this.taskPrism = taskPrism;
-		createOrUpdateTaskResult(operationName, false);
+		createOrUpdateTaskResult(null, false);
 
 		setDefaults();
 	}
@@ -251,6 +193,10 @@ public class TaskQuartzImpl implements Task {
 	}
 	//endregion
 
+	public PrismObject<TaskType> getLiveTaskPrismObject() {
+		return taskPrism;
+	}
+
 	public PrismObject<TaskType> getTaskPrismObject() {
 
 		if (taskResult != null) {
@@ -276,16 +222,17 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public boolean isAsynchronous() {
-		return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT
-				|| isLightweightAsynchronousTask();     // note: if it has lightweight task handler, it must be transient
+		return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT;
 	}
 
 	private boolean recreateQuartzTrigger = false;          // whether to recreate quartz trigger on next savePendingModifications and/or synchronizeWithQuartz
 
+	@Override
 	public boolean isRecreateQuartzTrigger() {
 		return recreateQuartzTrigger;
 	}
 
+	@Override
 	public void setRecreateQuartzTrigger(boolean recreateQuartzTrigger) {
 		this.recreateQuartzTrigger = recreateQuartzTrigger;
 	}
@@ -400,7 +347,7 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 
-	private void processModificationBatched(ItemDelta<?, ?> delta) {
+	protected void processModificationBatched(ItemDelta<?, ?> delta) {
 		if (delta != null) {
 			addPendingModification(delta);
 		}
@@ -453,7 +400,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Nullable
-	private PropertyDelta<?> createProgressDelta(long value) {
+	protected PropertyDelta<?> createProgressDelta(long value) {
 		return isPersistent() ? deltaFactory().property().createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_PROGRESS, value) : null;
 	}
@@ -518,7 +465,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Nullable
-	private PropertyDelta<?> createExpectedTotalDelta(Long value) {
+	protected PropertyDelta<?> createExpectedTotalDelta(Long value) {
 		return isPersistent() ? deltaFactory().property().createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_EXPECTED_TOTAL, value) : null;
 	}
@@ -884,6 +831,7 @@ public class TaskQuartzImpl implements Task {
 				getHandlersCount());
 	}
 
+	@Override
 	public void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		//System.out.println("checkDependentTasksOnClose (state=" + getExecutionStatus()+"): " + this);
@@ -892,14 +840,15 @@ public class TaskQuartzImpl implements Task {
 		}
 
 		for (Task dependent : listDependents(result)) {
-			((TaskQuartzImpl) dependent).checkDependencies(result);
+			((InternalTaskInterface) dependent).checkDependencies(result);
 		}
 		Task parentTask = getParentTask(result);
 		if (parentTask != null) {
-			((TaskQuartzImpl) parentTask).checkDependencies(result);
+			((InternalTaskInterface) parentTask).checkDependencies(result);
 		}
 	}
 
+	@Override
 	public void checkDependencies(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		if (getExecutionStatus() != TaskExecutionStatus.WAITING || getWaitingReason() != TaskWaitingReason.OTHER_TASKS) {
@@ -977,6 +926,7 @@ public class TaskQuartzImpl implements Task {
 		return taskPrism.getOid();
 	}
 
+	@Override
 	public void setOid(String oid) {
 		taskPrism.setOid(oid);
 	}
@@ -992,7 +942,7 @@ public class TaskQuartzImpl implements Task {
 		return taskPrism.getPropertyRealValue(TaskType.F_TASK_IDENTIFIER, String.class);
 	}
 
-	private void setTaskIdentifier(String value) {
+	public void setTaskIdentifier(String value) {
 		try {
 			taskPrism.setPropertyRealValue(TaskType.F_TASK_IDENTIFIER, value);
 		} catch (SchemaException e) {
@@ -1035,6 +985,7 @@ public class TaskQuartzImpl implements Task {
 		taskPrism.asObjectable().setExecutionStatus(value.toTaskType());
 	}
 
+	@Override
 	public void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 		try {
@@ -1044,7 +995,9 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 
-	public void setExecutionStatusImmediate(TaskExecutionStatus value, TaskExecutionStatusType previousValue, OperationResult parentResult)
+	@Override
+	public void setExecutionStatusImmediate(TaskExecutionStatus value, TaskExecutionStatusType previousValue,
+			OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
 		try {
 			processModificationsNow(singleton(setExecutionStatusAndPrepareDelta(value)),
@@ -1117,6 +1070,7 @@ public class TaskQuartzImpl implements Task {
 		processModificationBatched(setWaitingReasonAndPrepareDelta(value));
 	}
 
+	@Override
 	public void setWaitingReasonImmediate(TaskWaitingReason value, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 		try {
@@ -1696,11 +1650,6 @@ public class TaskQuartzImpl implements Task {
 		} else {
 			return taskManager.getTaskByIdentifier(getParent(), result);
 		}
-	}
-
-	@Override
-	public Task getParentForLightweightAsynchronousTask() {
-		return parentForLightweightAsynchronousTask;
 	}
 
 	public void setParent(String value) {
@@ -2506,16 +2455,6 @@ public class TaskQuartzImpl implements Task {
 	 * If called e.g. on a Task just retrieved from the repository, it will have no effect whatsoever.
 	 */
 
-	public void unsetCanRun() {
-		// beware: Do not touch task prism here, because this method can be called asynchronously
-		canRun = false;
-	}
-
-	@Override
-	public boolean canRun() {
-		return canRun;
-	}
-
 	// checks latest start time (useful for recurring tightly coupled tasks)
 	public boolean stillCanStart() {
 		if (getSchedule() != null && getSchedule().getLatestStartTime() != null) {
@@ -2563,7 +2502,7 @@ public class TaskQuartzImpl implements Task {
 		return true;
 	}
 
-	private PrismContext getPrismContext() {
+	protected PrismContext getPrismContext() {
 		return taskManager.getPrismContext();
 	}
 
@@ -2572,9 +2511,9 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public Task createSubtask() {
+	public TaskQuartzImpl createSubtask() {
 
-		TaskQuartzImpl sub = (TaskQuartzImpl) taskManager.createTaskInstance();
+		TaskQuartzImpl sub = taskManager.createTaskInstance();
 		sub.setParent(this.getTaskIdentifier());
 		sub.setOwner(this.getOwner());
 		sub.setChannel(this.getChannel());
@@ -2582,16 +2521,6 @@ public class TaskQuartzImpl implements Task {
 		//        taskManager.registerTransientSubtask(sub, this);
 
 		LOGGER.trace("New subtask {} has been created.", sub.getTaskIdentifier());
-		return sub;
-	}
-
-	@Override
-	public Task createSubtask(LightweightTaskHandler handler) {
-		TaskQuartzImpl sub = ((TaskQuartzImpl) createSubtask());
-		sub.setLightweightTaskHandler(handler);
-		assert sub.getTaskIdentifier() != null;
-		lightweightAsynchronousSubtasks.put(sub.getTaskIdentifier(), sub);
-		sub.parentForLightweightAsynchronousTask = this;
 		return sub;
 	}
 
@@ -2650,6 +2579,7 @@ public class TaskQuartzImpl implements Task {
 	//        return true;
 	//    }
 
+	@Override
 	public List<PrismObject<TaskType>> listPersistentSubtasksRaw(OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listPersistentSubtasksRaw");
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
@@ -2687,8 +2617,9 @@ public class TaskQuartzImpl implements Task {
 		return listSubtasksInternal(persistentOnly, result);
 	}
 
+	@Override
 	@NotNull
-	private List<Task> listSubtasksInternal(boolean persistentOnly, OperationResult result) throws SchemaException {
+	public List<Task> listSubtasksInternal(boolean persistentOnly, OperationResult result) throws SchemaException {
 		// persistent subtasks
 		List<Task> retval = new ArrayList<>(taskManager.resolveTasksFromTaskTypes(listPersistentSubtasksRaw(result), result));
 		// transient asynchronous subtasks - must be taken from the running task instance!
@@ -2711,10 +2642,10 @@ public class TaskQuartzImpl implements Task {
 		return retval;
 	}
 
-	private void addSubtasks(ArrayList<Task> tasks, TaskQuartzImpl taskToProcess, boolean persistentOnly, OperationResult result) throws SchemaException {
+	private void addSubtasks(ArrayList<Task> tasks, InternalTaskInterface taskToProcess, boolean persistentOnly, OperationResult result) throws SchemaException {
 		for (Task task : taskToProcess.listSubtasksInternal(persistentOnly, result)) {
 			tasks.add(task);
-			addSubtasks(tasks, (TaskQuartzImpl) task, persistentOnly, result);
+			addSubtasks(tasks, (InternalTaskInterface) task, persistentOnly, result);
 		}
 	}
 
@@ -2743,425 +2674,6 @@ public class TaskQuartzImpl implements Task {
 		pushHandlerUri(WaitForTasksTaskHandler.HANDLER_URI, new ScheduleType(), null);
 	}
 
-	public void setLightweightTaskHandler(LightweightTaskHandler lightweightTaskHandler) {
-		this.lightweightTaskHandler = lightweightTaskHandler;
-	}
-
-	@Override
-	public LightweightTaskHandler getLightweightTaskHandler() {
-		return lightweightTaskHandler;
-	}
-
-	@Override
-	public boolean isLightweightAsynchronousTask() {
-		return lightweightTaskHandler != null;
-	}
-
-	void setLightweightHandlerFuture(Future lightweightHandlerFuture) {
-		this.lightweightHandlerFuture = lightweightHandlerFuture;
-	}
-
-	public Future getLightweightHandlerFuture() {
-		return lightweightHandlerFuture;
-	}
-
-	@Override
-	public Collection<? extends TaskQuartzImpl> getLightweightAsynchronousSubtasks() {
-		return Collections.unmodifiableList(new ArrayList<>(lightweightAsynchronousSubtasks.values()));
-	}
-
-	@Override
-	public Collection<? extends TaskQuartzImpl> getRunningLightweightAsynchronousSubtasks() {
-		// beware: Do not touch task prism here, because this method can be called asynchronously
-		List<TaskQuartzImpl> retval = new ArrayList<>();
-		for (TaskQuartzImpl subtask : getLightweightAsynchronousSubtasks()) {
-			if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && subtask.lightweightHandlerStartRequested()) {
-				retval.add(subtask);
-			}
-		}
-		return Collections.unmodifiableList(retval);
-	}
-
-	@Override
-	public boolean lightweightHandlerStartRequested() {
-		return lightweightHandlerFuture != null;
-	}
-
-	// just a shortcut
-	@Override
-	public void startLightweightHandler() {
-		taskManager.startLightweightTask(this);
-	}
-
-	public void setLightweightHandlerExecuting(boolean lightweightHandlerExecuting) {
-		this.lightweightHandlerExecuting = lightweightHandlerExecuting;
-	}
-
-	public boolean isLightweightHandlerExecuting() {
-		return lightweightHandlerExecuting;
-	}
-
-	public Thread getLightweightThread() {
-		return lightweightThread;
-	}
-
-	public void setLightweightThread(Thread lightweightThread) {
-		this.lightweightThread = lightweightThread;
-	}
-
-	// Operational data
-
-	private EnvironmentalPerformanceInformation getEnvironmentalPerformanceInformation() {
-		return environmentalPerformanceInformation;
-	}
-
-	private SynchronizationInformation getSynchronizationInformation() {
-		return synchronizationInformation;
-	}
-
-	private IterativeTaskInformation getIterativeTaskInformation() {
-		return iterativeTaskInformation;
-	}
-
-	public ActionsExecutedInformation getActionsExecutedInformation() {
-		return actionsExecutedInformation;
-	}
-
-	@Override
-	public OperationStatsType getAggregatedLiveOperationStats() {
-		EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation();
-		IterativeTaskInformationType itit = getAggregateIterativeTaskInformation();
-		SynchronizationInformationType sit = getAggregateSynchronizationInformation();
-		ActionsExecutedInformationType aeit = getAggregateActionsExecutedInformation();
-		if (env == null && itit == null && sit == null && aeit == null) {
-			return null;
-		}
-		OperationStatsType rv = new OperationStatsType();
-		rv.setEnvironmentalPerformanceInformation(env);
-		rv.setIterativeTaskInformation(itit);
-		rv.setSynchronizationInformation(sit);
-		rv.setActionsExecutedInformation(aeit);
-		rv.setTimestamp(createXMLGregorianCalendar(new Date()));
-		return rv;
-	}
-
-	@NotNull
-	@Override
-	public List<String> getLastFailures() {
-		return iterativeTaskInformation != null ? iterativeTaskInformation.getLastFailures() : Collections.emptyList();
-	}
-
-	private EnvironmentalPerformanceInformationType getAggregateEnvironmentalPerformanceInformation() {
-		if (environmentalPerformanceInformation == null) {
-			return null;
-		}
-		EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
-		EnvironmentalPerformanceInformation.addTo(rv, environmentalPerformanceInformation.getAggregatedValue());
-		for (Task subtask : getLightweightAsynchronousSubtasks()) {
-			EnvironmentalPerformanceInformation info = ((TaskQuartzImpl) subtask).getEnvironmentalPerformanceInformation();
-			if (info != null) {
-				EnvironmentalPerformanceInformation.addTo(rv, info.getAggregatedValue());
-			}
-		}
-		return rv;
-	}
-
-	private IterativeTaskInformationType getAggregateIterativeTaskInformation() {
-		if (iterativeTaskInformation == null) {
-			return null;
-		}
-		IterativeTaskInformationType rv = new IterativeTaskInformationType();
-		IterativeTaskInformation.addTo(rv, iterativeTaskInformation.getAggregatedValue(), false);
-		for (Task subtask : getLightweightAsynchronousSubtasks()) {
-			IterativeTaskInformation info = ((TaskQuartzImpl) subtask).getIterativeTaskInformation();
-			if (info != null) {
-				IterativeTaskInformation.addTo(rv, info.getAggregatedValue(), false);
-			}
-		}
-		return rv;
-	}
-
-	private SynchronizationInformationType getAggregateSynchronizationInformation() {
-		if (synchronizationInformation == null) {
-			return null;
-		}
-		SynchronizationInformationType rv = new SynchronizationInformationType();
-		SynchronizationInformation.addTo(rv, synchronizationInformation.getAggregatedValue());
-		for (Task subtask : getLightweightAsynchronousSubtasks()) {
-			SynchronizationInformation info = ((TaskQuartzImpl) subtask).getSynchronizationInformation();
-			if (info != null) {
-				SynchronizationInformation.addTo(rv, info.getAggregatedValue());
-			}
-		}
-		return rv;
-	}
-
-	private ActionsExecutedInformationType getAggregateActionsExecutedInformation() {
-		if (actionsExecutedInformation == null) {
-			return null;
-		}
-		ActionsExecutedInformationType rv = new ActionsExecutedInformationType();
-		ActionsExecutedInformation.addTo(rv, actionsExecutedInformation.getAggregatedValue());
-		for (Task subtask : getLightweightAsynchronousSubtasks()) {
-			ActionsExecutedInformation info = ((TaskQuartzImpl) subtask).getActionsExecutedInformation();
-			if (info != null) {
-				ActionsExecutedInformation.addTo(rv, info.getAggregatedValue());
-			}
-		}
-		return rv;
-	}
-
-	@Override
-	public void recordState(String message) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("{}", message);
-		}
-		if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
-			PERFORMANCE_ADVISOR.debug("{}", message);
-		}
-		environmentalPerformanceInformation.recordState(message);
-	}
-
-	@Override
-	public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
-			ProvisioningOperation operation, boolean success, int count, long duration) {
-		environmentalPerformanceInformation
-				.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
-	}
-
-	@Override
-	public void recordNotificationOperation(String transportName, boolean success, long duration) {
-		environmentalPerformanceInformation.recordNotificationOperation(transportName, success, duration);
-	}
-
-	@Override
-	public void recordMappingOperation(String objectOid, String objectName, String objectTypeName, String mappingName,
-			long duration) {
-		environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, duration);
-	}
-
-	@Override
-	public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType,
-			String objectOid,
-			long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
-			SynchronizationInformation.Record newStateIncrement) {
-		if (synchronizationInformation != null) {
-			synchronizationInformation
-					.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception,
-							originalStateIncrement, newStateIncrement);
-		}
-	}
-
-	@Override
-	public synchronized void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType,
-			String objectOid) {
-		if (synchronizationInformation != null) {
-			synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
-		}
-	}
-
-	@Override
-	public synchronized void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType,
-			String objectOid, long started, Throwable exception) {
-		if (iterativeTaskInformation != null) {
-			iterativeTaskInformation.recordOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
-		}
-	}
-
-	@Override
-	public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
-		recordIterativeOperationEnd(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
-				ShadowType.COMPLEX_TYPE, shadow.getOid(), started, exception);
-	}
-
-	@Override
-	public void recordIterativeOperationStart(ShadowType shadow) {
-		recordIterativeOperationStart(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
-				ShadowType.COMPLEX_TYPE, shadow.getOid());
-	}
-
-	@Override
-	public synchronized void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType,
-			String objectOid) {
-		if (iterativeTaskInformation != null) {
-			iterativeTaskInformation.recordOperationStart(objectName, objectDisplayName, objectType, objectOid);
-		}
-	}
-
-	@Override
-	public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
-			ChangeType changeType, String channel, Throwable exception) {
-		if (actionsExecutedInformation != null) {
-			actionsExecutedInformation
-					.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel,
-							exception);
-		}
-	}
-
-	@Override
-	public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
-		recordObjectActionExecuted(object, null, null, changeType, getChannel(), exception);
-	}
-
-	@Override
-	public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass,
-			String defaultOid, ChangeType changeType, String channel, Throwable exception) {
-		if (actionsExecutedInformation != null) {
-			String name, displayName, oid;
-			PrismObjectDefinition definition;
-			Class<T> clazz;
-			if (object != null) {
-				name = PolyString.getOrig(object.getName());
-				displayName = StatisticsUtil.getDisplayName(object);
-				definition = object.getDefinition();
-				clazz = object.getCompileTimeClass();
-				oid = object.getOid();
-				if (oid == null) {        // in case of ADD operation
-					oid = defaultOid;
-				}
-			} else {
-				name = null;
-				displayName = null;
-				definition = null;
-				clazz = objectTypeClass;
-				oid = defaultOid;
-			}
-			if (definition == null && clazz != null) {
-				definition = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-			}
-			QName typeQName;
-			if (definition != null) {
-				typeQName = definition.getTypeName();
-			} else {
-				typeQName = ObjectType.COMPLEX_TYPE;
-			}
-			actionsExecutedInformation
-					.recordObjectActionExecuted(name, displayName, typeQName, oid, changeType, channel, exception);
-		}
-	}
-
-	@Override
-	public void markObjectActionExecutedBoundary() {
-		if (actionsExecutedInformation != null) {
-			actionsExecutedInformation.markObjectActionExecutedBoundary();
-		}
-	}
-
-	@Override
-	public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
-		environmentalPerformanceInformation = new EnvironmentalPerformanceInformation(value);
-	}
-
-	@Override
-	public void resetSynchronizationInformation(SynchronizationInformationType value) {
-		synchronizationInformation = new SynchronizationInformation(value);
-	}
-
-	@Override
-	public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
-		iterativeTaskInformation = new IterativeTaskInformation(value);
-	}
-
-	@Override
-	public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
-		actionsExecutedInformation = new ActionsExecutedInformation(value);
-	}
-
-	private void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics,
-			boolean enableActionsExecutedStatistics) {
-		resetEnvironmentalPerformanceInformation(null);
-		if (enableIterationStatistics) {
-			resetIterativeTaskInformation(null);
-		}
-		if (enableSynchronizationStatistics) {
-			resetSynchronizationInformation(null);
-		}
-		if (enableActionsExecutedStatistics) {
-			resetActionsExecutedInformation(null);
-		}
-		setProgress(0);
-	}
-
-	private void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics,
-			boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
-		OperationStatsType stored = getStoredOperationStats();
-		if (stored == null) {
-			stored = new OperationStatsType();
-		}
-		resetEnvironmentalPerformanceInformation(stored.getEnvironmentalPerformanceInformation());
-		if (enableIterationStatistics) {
-			resetIterativeTaskInformation(stored.getIterativeTaskInformation());
-		} else {
-			iterativeTaskInformation = null;
-		}
-		if (enableSynchronizationStatistics) {
-			resetSynchronizationInformation(stored.getSynchronizationInformation());
-		} else {
-			synchronizationInformation = null;
-		}
-		if (enableActionsExecutedStatistics) {
-			resetActionsExecutedInformation(stored.getActionsExecutedInformation());
-		} else {
-			actionsExecutedInformation = null;
-		}
-	}
-
-	@Override
-	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
-		if (strategy.isStartFromZero()) {
-			startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
-			storeOperationStats();
-		} else {
-			startCollectingOperationStatsFromStoredValues(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
-		}
-	}
-
-	@Override
-	public void storeOperationStatsDeferred() {
-		setOperationStats(getAggregatedLiveOperationStats());
-	}
-
-	@Override
-	public void storeOperationStats() {
-		try {
-			storeOperationStatsDeferred();
-			processModificationBatched(createProgressDelta(getProgress()));
-			processModificationBatched(createExpectedTotalDelta(getExpectedTotal()));
-			savePendingModifications(new OperationResult(DOT_INTERFACE + ".storeOperationStats"));    // TODO fixme
-			lastOperationStatsUpdateTimestamp = System.currentTimeMillis();
-		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, this);
-		}
-	}
-
-	@Override
-	public void storeOperationStatsIfNeeded() {
-		if (lastOperationStatsUpdateTimestamp == null ||
-				System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
-			storeOperationStats();
-		}
-	}
-
-	@Override
-	public Long getLastOperationStatsUpdateTimestamp() {
-		return lastOperationStatsUpdateTimestamp;
-	}
-
-	@Override
-	public void setOperationStatsUpdateInterval(long interval) {
-		this.operationStatsUpdateInterval = interval;
-	}
-
-	@Override
-	public long getOperationStatsUpdateInterval() {
-		return operationStatsUpdateInterval;
-	}
-
-	@Override
-	public void incrementProgressAndStoreStatsIfNeeded() {
-		setProgress(getProgress() + 1);
-		storeOperationStatsIfNeeded();
-	}
 
 	@Override
 	public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult)
@@ -3218,6 +2730,7 @@ public class TaskQuartzImpl implements Task {
 		return taskPrism.asObjectable().getStateBeforeSuspend();
 	}
 
+	@Override
 	public void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 		if (isPersistent()) {
@@ -3239,6 +2752,11 @@ public class TaskQuartzImpl implements Task {
 		return executionConstraints != null ? executionConstraints.getGroup() : null;
 	}
 
+	@Override
+	public OperationStatsType getAggregatedLiveOperationStats() {
+		return statistics.getAggregatedLiveOperationStats(emptyList());
+	}
+
 	@NotNull
 	public OperationResult createUnnamedTaskResult() {
 		return new OperationResult(DOT_INTERFACE + "run");
@@ -3246,5 +2764,168 @@ public class TaskQuartzImpl implements Task {
 
 	private DeltaFactory deltaFactory() {
 		return getPrismContext().deltaFactory();
+	}
+
+	//region Statistics collection
+
+	/*
+	 * Here we simply delegate statistics collection and retrieval methods calls to the collector.
+	 */
+	@Override
+	public void recordState(String message) {
+		statistics.recordState(message);
+	}
+
+	@Override
+	public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName,
+			ProvisioningOperation operation, boolean success, int count, long duration) {
+		statistics.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
+	}
+
+	@Override
+	public void recordNotificationOperation(String transportName, boolean success, long duration) {
+		statistics.recordNotificationOperation(transportName, success, duration);
+	}
+
+	@Override
+	public void recordMappingOperation(String objectOid, String objectName, String objectTypeName, String mappingName,
+			long duration) {
+		statistics.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, duration);
+	}
+
+	@Override
+	public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+		statistics.recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
+	}
+
+	@Override
+	public void recordIterativeOperationStart(ShadowType shadow) {
+		statistics.recordIterativeOperationStart(shadow);
+	}
+
+	@Override
+	public void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
+			long started, Throwable exception) {
+		statistics.recordIterativeOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
+	}
+
+	@Override
+	public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
+		statistics.recordIterativeOperationEnd(shadow, started, exception);
+	}
+
+	@Override
+	public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType,
+			String objectOid) {
+		statistics.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
+	}
+
+	@Override
+	public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
+			long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
+			SynchronizationInformation.Record newStateIncrement) {
+		statistics.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, originalStateIncrement, newStateIncrement);
+	}
+
+	@Override
+	public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
+			ChangeType changeType, String channel, Throwable exception) {
+		statistics.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
+	}
+
+	@Override
+	public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
+		statistics.recordObjectActionExecuted(object, changeType, getChannel(), exception);
+	}
+
+	@Override
+	public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass,
+			String defaultOid, ChangeType changeType, String channel, Throwable exception) {
+		statistics.recordObjectActionExecuted(object, objectTypeClass, defaultOid, changeType, channel, exception);
+	}
+
+	@Override
+	public void markObjectActionExecutedBoundary() {
+		statistics.markObjectActionExecutedBoundary();
+	}
+
+	@Override
+	public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
+		statistics.resetEnvironmentalPerformanceInformation(value);
+	}
+
+	@Override
+	public void resetSynchronizationInformation(SynchronizationInformationType value) {
+		statistics.resetSynchronizationInformation(value);
+	}
+
+	@Override
+	public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
+		statistics.resetIterativeTaskInformation(value);
+	}
+
+	@Override
+	public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
+		statistics.resetActionsExecutedInformation(value);
+	}
+
+	@NotNull
+	@Override
+	public List<String> getLastFailures() {
+		return statistics.getLastFailures();
+	}
+
+	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
+		if (strategy.isStartFromZero()) {
+			statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
+			setProgress(0);
+		} else {
+			OperationStatsType stored = getStoredOperationStats();
+			statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
+		}
+	}
+	//endregion
+
+	@Override
+	public ObjectReferenceType getReference() {
+		if (getOid() != null) {
+			return new ObjectReferenceType()
+					.type(TaskType.COMPLEX_TYPE)
+					.oid(getOid())
+					.relation(getPrismContext().getDefaultRelation())
+					.targetName(getName());
+		} else {
+			throw new IllegalStateException("Reference cannot be created for a transient task: " + this);
+		}
+	}
+
+	@Override
+	public String getVersion() {
+		return taskPrism.getVersion();
+	}
+
+	@Override
+	public Collection<? extends TriggerType> getTriggers() {
+		return taskPrism.asObjectable().getTrigger();
+	}
+
+	@Override
+	public Collection<? extends AssignmentType> getAssignments() {
+		return taskPrism.asObjectable().getAssignment();
+	}
+
+	@Override
+	public ObjectReferenceType getOwnerRef() {
+		return taskPrism.asObjectable().getOwnerRef();
+	}
+
+	@Override
+	public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException {
+		ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);
+	}
+
+	@Override
+	public void addSubtask(TaskType subtaskBean) {
+		taskPrism.asObjectable().getSubtask().add(subtaskBean);
 	}
 }

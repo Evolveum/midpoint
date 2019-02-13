@@ -48,7 +48,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task coordinatorTask) {
+	public TaskRunResult run(RunningTask coordinatorTask) {
 		OperationResult opResult = new OperationResult(OperationConstants.AUDIT_REINDEX + ".run");
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();

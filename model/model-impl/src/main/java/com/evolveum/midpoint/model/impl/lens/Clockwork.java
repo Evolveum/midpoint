@@ -35,6 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -93,11 +94,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -989,11 +985,11 @@ public class Clockwork {
 
 	private void setOperationContext(OperationExecutionType operation,
 			OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task) {
-		if (task.getParentForLightweightAsynchronousTask() != null) {
-			task = task.getParentForLightweightAsynchronousTask();
+		if (task instanceof RunningTask && ((RunningTask) task).getParentForLightweightAsynchronousTask() != null) {
+			task = ((RunningTask) task).getParentForLightweightAsynchronousTask();
 		}
 		if (task.isPersistent()) {
-			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject(), prismContext));
+			operation.setTaskRef(task.getReference());
 		}
 		operation.setStatus(overallStatus);
 		operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));		// TODO what if the real initiator is different? (e.g. when executing approved changes)

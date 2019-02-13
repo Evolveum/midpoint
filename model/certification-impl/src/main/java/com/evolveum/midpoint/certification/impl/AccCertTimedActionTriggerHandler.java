@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -61,7 +62,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 	}
 
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task triggerScannerTask, OperationResult parentResult) {
+	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask triggerScannerTask, OperationResult parentResult) {
 		if (!(object.asObjectable() instanceof AccessCertificationCampaignType)) {
 			throw new IllegalArgumentException("Unexpected object type: should be AccessCertificationCampaignType: " + object);
 		}

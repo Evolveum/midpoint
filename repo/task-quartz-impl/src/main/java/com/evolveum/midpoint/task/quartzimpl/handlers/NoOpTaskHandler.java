@@ -57,7 +57,7 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 	}
 
 	@Override
-	public TaskWorkBucketProcessingResult run(Task task, WorkBucketType workBucket,
+	public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
 			TaskWorkBucketProcessingResult previousRunResult) {
 
 		String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4

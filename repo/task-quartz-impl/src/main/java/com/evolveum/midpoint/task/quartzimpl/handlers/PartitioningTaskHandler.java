@@ -62,7 +62,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task masterTask) {
+	public TaskRunResult run(RunningTask masterTask) {
 		
 		OperationResult opResult = new OperationResult(PartitioningTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
@@ -246,7 +246,6 @@ public class PartitioningTaskHandler implements TaskHandler {
 
 		TaskPartitionDefinition partition = partitionsDefinition.getPartition(masterTask, index);
 
-		TaskType masterTaskBean = masterTask.getTaskType();
 		TaskType subtask = new TaskType(getPrismContext());
 
 		String nameTemplate = applyDefaults(
@@ -285,9 +284,9 @@ public class PartitioningTaskHandler implements TaskHandler {
 		subtask.setWorkManagement(workManagement);
 
 		subtask.setExecutionStatus(TaskExecutionStatusType.SUSPENDED);
-		subtask.setOwnerRef(CloneUtil.clone(masterTaskBean.getOwnerRef()));
+		subtask.setOwnerRef(CloneUtil.clone(masterTask.getOwnerRef()));
 		subtask.setCategory(masterTask.getCategory());
-		subtask.setObjectRef(CloneUtil.clone(masterTaskBean.getObjectRef()));
+		subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRef()));
 		subtask.setRecurrence(TaskRecurrenceType.SINGLE);
 		subtask.setParent(masterTask.getTaskIdentifier());
 		boolean copyMasterExtension = applyDefaults(
@@ -295,8 +294,8 @@ public class PartitioningTaskHandler implements TaskHandler {
 				ps -> ps.isCopyMasterExtension(masterTask),
 				false, partition, partitionsDefinition);
 		if (copyMasterExtension) {
-			PrismContainer<Containerable> masterExtension = masterTaskBean.asPrismObject().findContainer(TaskType.F_EXTENSION);
-			if (masterTaskBean.getExtension() != null) {
+			PrismContainer<Containerable> masterExtension = masterTask.getExtension();
+			if (masterExtension != null) {
 				subtask.asPrismObject().add(masterExtension.clone());
 			}
 		}

@@ -34,7 +34,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * @author mederly
@@ -87,7 +86,7 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
      *
      */
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 
 		OperationResult taskResult = WfTaskUtil.getResult(task);
 

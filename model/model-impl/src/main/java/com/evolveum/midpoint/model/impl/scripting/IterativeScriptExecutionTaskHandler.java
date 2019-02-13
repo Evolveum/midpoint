@@ -26,10 +26,7 @@ import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandl
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,7 +66,7 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 
 	@NotNull
 	@Override
-	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskRunResult runResult, RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionProperty(SchemaConstants.SE_EXECUTE_SCRIPT);
@@ -85,7 +82,7 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 		AbstractSearchIterativeResultHandler<ObjectType> handler = new AbstractSearchIterativeResultHandler<ObjectType>(
 				coordinatorTask, IterativeScriptExecutionTaskHandler.class.getName(), "execute", "execute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult result) {
+			protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
 				try {
 					ExecuteScriptType executeScriptRequest = executeScriptRequestTemplate.clone();
 					executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));

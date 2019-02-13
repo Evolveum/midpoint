@@ -50,7 +50,7 @@ public class WaitForTasksTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 
 		OperationResult result = task.getResult().createSubresult(WaitForTasksTaskHandler.class.getName()+".run");
         result.recordInProgress();

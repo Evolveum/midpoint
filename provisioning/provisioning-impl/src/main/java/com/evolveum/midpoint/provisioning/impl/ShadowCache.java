@@ -53,6 +53,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -2399,7 +2400,9 @@ public class ShadowCache {
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
 					processedChanges++;
-					task.incrementProgressAndStoreStatsIfNeeded();
+					if (task instanceof RunningTask) {
+						((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+					}
 					LOGGER.debug(
 							"Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
@@ -2419,7 +2422,9 @@ public class ShadowCache {
 					// get updated token from change, create property modification from new token and replace old token with the new one
 					task.setExtensionProperty(change.getToken());
 					processedChanges++;
-					task.incrementProgressAndStoreStatsIfNeeded();
+					if (task instanceof RunningTask) {
+						((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+					}
 				}
 			}
 

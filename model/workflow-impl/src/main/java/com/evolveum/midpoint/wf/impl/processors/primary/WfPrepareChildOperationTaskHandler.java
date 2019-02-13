@@ -73,7 +73,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     //region Body
     @SuppressWarnings("unchecked")
     @Override
-    public TaskRunResult run(Task task) {
+    public TaskRunResult run(RunningTask task) {
 
         TaskRunResult.TaskRunResultStatus status = TaskRunResult.TaskRunResultStatus.FINISHED;
 

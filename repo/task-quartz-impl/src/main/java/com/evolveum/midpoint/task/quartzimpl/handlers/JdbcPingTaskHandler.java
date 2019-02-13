@@ -32,7 +32,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.sql.*;
-import java.util.List;
 
 /**
  * @author Pavol Mederly
@@ -84,7 +83,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 
 		OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName()+".run");
 

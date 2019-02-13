@@ -87,7 +87,7 @@ public interface TaskManager {
      */
     <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException;
 
-    void waitForTransientChildren(Task task, OperationResult result);
+    void waitForTransientChildren(RunningTask task, OperationResult result);
 
     /**
      * TODO
@@ -295,7 +295,7 @@ public interface TaskManager {
      * @param closedTasksPolicy specifies which tasks are to be deleted, e.g. how old they have to be
      * @param task task, within which context the cleanup executes (used to test for interruptions)
      */
-    void cleanupTasks(CleanupPolicyType closedTasksPolicy, Task task, OperationResult opResult) throws SchemaException;
+    void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
 
     /**
      * This is a signal to task manager that a new task was created in the repository.
@@ -376,7 +376,7 @@ public interface TaskManager {
      *
      * EXPERIMENTAL. Should be replaced by something like "get operational information".
      */
-    Task getLocallyRunningTaskByIdentifier(String lightweightIdentifier);
+    RunningTask getLocallyRunningTaskByIdentifier(String lightweightIdentifier);
 
     //endregion
 
@@ -725,4 +725,9 @@ public interface TaskManager {
 
 	String recordTaskThreadsDump(String taskOid, String cause, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			ObjectAlreadyExistsException;
+
+	/**
+	 * Use only for tests. Otherwise considered to be an ugly hack.
+	 */
+	RunningTask createFakeRunningTask(Task task);
 }
