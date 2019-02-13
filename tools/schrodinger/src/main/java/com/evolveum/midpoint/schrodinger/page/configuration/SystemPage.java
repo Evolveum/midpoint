@@ -51,4 +51,8 @@ public class SystemPage extends BasicPage {
         SelenideElement element = null;
         return new AdminGuiTab(this, element);
     }
+
+    public RoleManagementTab roleManagementTab(){
+        return new RoleManagementTab(this, null);
+    }
 }

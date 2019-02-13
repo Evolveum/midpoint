@@ -277,6 +277,11 @@ public class BasicPage {
         return new SystemPage().adminGuiTab();
     }
 
+    public RoleManagementTab roleManagement() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.roleManagement");
+        return new SystemPage().roleManagementTab();
+    }
+
     public InternalsConfigurationPage internalsConfiguration() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.internals", null);
         return new InternalsConfigurationPage();

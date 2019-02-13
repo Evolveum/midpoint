@@ -6,7 +6,6 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.configuration.AdminGuiTab;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
-import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
@@ -37,23 +36,14 @@ public class ObjectListArchetypeTests extends TestBase {
     private static final String NEW_GUI_OBJECT_LIST_VIEW_HEADER = "New gui object list view";
     private static final String NEW_OBJECT_LIST_VIEW_CONTAINER_KEY = "GuiObjectListViewType.details";
     private static final String COLLECTION_HEADER = "Collection";
+    public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "bjectListArchetypeTests";
 
-    @Test(priority = 0)
+    @Test(priority = 0, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void importEmployeeArchetype() throws IOException, ConfigurationException {
-
-        ImportObjectPage importPage = basicPage.importObject();
-        Assert.assertTrue(
-                importPage
-                        .getObjectsFromFile()
-                        .chooseFile(EMPLOYEE_ARCHETYPE_FILE)
-                        .checkOverwriteExistingObject()
-                        .clickImport()
-                        .feedback()
-                        .isSuccess()
-        );
+        importObject(EMPLOYEE_ARCHETYPE_FILE, true);
     }
 
-    @Test(priority = 1, dependsOnMethods ={"importEmployeeArchetype"})
+    @Test(priority = 1, dependsOnMethods ={"importEmployeeArchetype"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void configureArchetypeObjectListView(){
         AdminGuiTab adminGuiTab = basicPage.adminGui();
         PrismForm<AdminGuiTab> prismForm = adminGuiTab.form();
@@ -103,7 +93,7 @@ public class ObjectListArchetypeTests extends TestBase {
 
 
 
-    @Test(priority = 2, dependsOnMethods ={"configureArchetypeObjectListView"})
+    @Test(priority = 2, dependsOnMethods ={"configureArchetypeObjectListView"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void actualizeArchetypeConfiguration() {
         basicPage.loggedUser().logout();
         midPoint.login()
@@ -129,7 +119,7 @@ public class ObjectListArchetypeTests extends TestBase {
 
     }
 
-    @Test(priority = 3, dependsOnMethods ={"configureArchetypeObjectListView"})
+    @Test(priority = 3, dependsOnMethods ={"actualizeArchetypeConfiguration"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void createNewEmployeeUser(){
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);
 
@@ -153,6 +143,28 @@ public class ObjectListArchetypeTests extends TestBase {
                                 .updateSearch()
                             .and()
                         .clickByName(EMPLOYEE_USER_NAME_VALUE);
+
+    }
+
+    @Test(priority = 4, dependsOnMethods ={"actualizeArchetypeConfiguration"})
+    public void checkNewObjectButtonWithDropdown(){
+        ListUsersPage userListPage = basicPage.listUsers();
+        Assert.assertTrue(userListPage
+                            .table()
+                                .getToolbarButton("fa fa-plus")
+                                .exists());
+
+        SelenideElement newObjectButton = userListPage
+                .table()
+                    .getToolbarButton("fa fa-plus");
+        newObjectButton.click();
+
+        newObjectButton
+                .$(By.tagName("ul"))
+                .shouldBe(Condition.visible)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .$(Schrodinger.byElementAttributeValue("i", "class", ARCHETYPE_ICON_CSS_STYLE))
+                    .$(Schrodinger.byElementAttributeValue("i", "class", "fa fa-user")); //standard user icon
 
     }
 
