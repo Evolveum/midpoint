@@ -53,6 +53,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -2391,27 +2392,29 @@ public class ShadowCache {
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
 					processedChanges++;
-					task.incrementProgressAndStoreStatsIfNeeded();
+					if (task instanceof RunningTask) {
+						((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+					}
 					LOGGER.debug(
 							"Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
 				}
 				boolean isSuccess = processSynchronization(shadowCtx, change, parentResult);
                                 
-                                boolean retryUnhandledError = true;
-                                if (task.getExtension() != null) {
-                                      PrismProperty tokenRetryUnhandledErrProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED);
-                                      
-                                      if (tokenRetryUnhandledErrProperty != null) {
-                                          retryUnhandledError = (boolean) tokenRetryUnhandledErrProperty.getRealValue(); 
-                                      }                                                                     
-                                }     
-                                
+				boolean retryUnhandledError = true;
+
+				PrismProperty tokenRetryUnhandledErrProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED);
+				if (tokenRetryUnhandledErrProperty != null) {
+					retryUnhandledError = (boolean) tokenRetryUnhandledErrProperty.getRealValue();
+				}
+
 				if (!retryUnhandledError || isSuccess) {                                    
 					// get updated token from change, create property modification from new token and replace old token with the new one
 					task.setExtensionProperty(change.getToken());
 					processedChanges++;
-					task.incrementProgressAndStoreStatsIfNeeded();
+					if (task instanceof RunningTask) {
+						((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+					}
 				}
 			}
 
@@ -2420,7 +2423,7 @@ public class ShadowCache {
 				LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
 				task.setExtensionProperty(lastToken);
 			}
-			task.savePendingModifications(parentResult);
+			task.flushPendingModifications(parentResult);
 			return processedChanges;
 
 		} catch (SchemaException | CommunicationException | GenericFrameworkException | ConfigurationException | 

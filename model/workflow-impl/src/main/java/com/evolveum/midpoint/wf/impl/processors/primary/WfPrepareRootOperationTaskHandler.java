@@ -70,7 +70,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
     //region run method
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 
         TaskRunResultStatus status = TaskRunResultStatus.FINISHED;
 

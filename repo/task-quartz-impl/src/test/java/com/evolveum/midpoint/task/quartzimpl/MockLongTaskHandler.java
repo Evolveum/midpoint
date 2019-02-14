@@ -16,15 +16,10 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.List;
 
 /**
  * @author Radovan Semancik
@@ -45,7 +40,7 @@ public class MockLongTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 		LOGGER.info("MockLong.run starting (id = {}, progress = {})", id, task.getProgress());
 
 		OperationResult opResult = new OperationResult(MockLongTaskHandler.class.getName()+".run");

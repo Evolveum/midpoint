@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -49,7 +50,7 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
     private ObjectStatistics statistics = new ObjectStatistics();
 
-    public ObjectIntegrityCheckResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
+    public ObjectIntegrityCheckResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
             String contextDesc, TaskManager taskManager, PrismContext prismContext, RepositoryService repositoryService,
             SystemObjectCache systemObjectCache, OperationResult result) {
         super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
@@ -72,7 +73,7 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     @Override
-    protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult parentResult) throws CommonException {
+    protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
         try {
         	statistics.record(object);
