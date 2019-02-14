@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.task.api.RunningTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -89,19 +90,19 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 	}
 
 	@Override
-	protected void finish(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task task, OperationResult opResult)
+	protected void finish(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, RunningTask task, OperationResult opResult)
 			throws SchemaException {
 		super.finish(handler, runResult, task, opResult);
 	}
 
 	@Override
-	protected AbstractScannerResultHandler<ShadowType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractScannerResultHandler<ShadowType> createHandler(TaskRunResult runResult, final RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractScannerResultHandler<ShadowType> handler = new AbstractScannerResultHandler<ShadowType>(
 				coordinatorTask, ShadowRefreshTaskHandler.class.getName(), "shadowRefresh", "shadow refresh task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<ShadowType> object, Task workerTask, OperationResult result) throws CommonException {
+			protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result) throws CommonException {
 				LOGGER.trace("Refreshing {}", object);
 
 				provisioningService.refreshShadow(object, null, workerTask, result);

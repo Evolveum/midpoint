@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
@@ -55,7 +56,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	protected static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
 
 	private final TaskManager taskManager;
-	private final Task coordinatorTask;
+	private final RunningTask coordinatorTask;
 	private final String taskOperationPrefix;
 	private final String processShortName;
 	private String contextDesc;
@@ -78,7 +79,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 	private List<OperationResult> workerSpecificResults;
 
-	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
+	public AbstractSearchIterativeResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
 			String contextDesc, TaskManager taskManager) {
 		super();
 		this.coordinatorTask = coordinatorTask;
@@ -268,7 +269,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 
 		@Override
-		public void run(Task workerTask) {
+		public void run(RunningTask workerTask) {
 
 			// temporary hack: how to see thread name for this task
 			workerTask.setName(workerTask.getName().getOrig() + " (" + Thread.currentThread().getName() + ")");
@@ -294,7 +295,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
-	private void processRequest(ProcessingRequest request, Task workerTask, OperationResult parentResult) {
+	private void processRequest(ProcessingRequest request, RunningTask workerTask, OperationResult parentResult) {
 
 		PrismObject<O> object = request.object;
 
@@ -359,7 +360,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			long duration = System.currentTimeMillis()-startTime;
 			long total = totalTimeProcessing.addAndGet(duration);
-			int progress = objectsProcessed.incrementAndGet();
+			long progress = objectsProcessed.incrementAndGet();
 
 			result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
@@ -373,7 +374,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					workerTask.setProgress(workerTask.getProgress()+1);
 				}
 				// todo report current op result?
-				coordinatorTask.storeOperationStatsIfNeeded();  // includes savePendingModifications
+				coordinatorTask.storeOperationStatsIfNeeded();  // includes flushPendingModifications
 			}
 
 			if (logObjectProgress) {
@@ -461,7 +462,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.logErrors = logErrors;
 	}
 
-	protected abstract boolean handleObject(PrismObject<O> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException;
+	protected abstract boolean handleObject(PrismObject<O> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException;
 
 	public class ProcessingRequest {
 		public PrismObject<O> object;
@@ -471,7 +472,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
-	public void createWorkerThreads(Task coordinatorTask, OperationResult opResult) {
+	public void createWorkerThreads(RunningTask coordinatorTask, OperationResult opResult) {
 		Integer threadsCount = getWorkerThreadsCount(coordinatorTask);
 		if (threadsCount == null || threadsCount == 0) {
 			return;             // nothing to do
@@ -489,7 +490,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			workerSpecificResult.addContext("subtaskIndex", i+1);
 			workerSpecificResults.add(workerSpecificResult);
 
-			Task subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
+			RunningTask subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
 			if (isEnableIterationStatistics()) {
 				subtask.resetIterativeTaskInformation(null);
 			}

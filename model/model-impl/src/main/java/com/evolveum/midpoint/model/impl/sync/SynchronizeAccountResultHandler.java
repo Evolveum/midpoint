@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandl
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -65,7 +65,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private boolean simulate;
 	
 	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
-			String processShortName, Task coordinatorTask, ResourceObjectChangeListener objectChangeListener,
+			String processShortName, RunningTask coordinatorTask, ResourceObjectChangeListener objectChangeListener,
 			TaskManager taskManager) {
 		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, taskManager);
 		this.objectChangeListener = objectChangeListener;
@@ -119,7 +119,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	 * was created and invoke notification interface.
 	 */
 	@Override
-	protected boolean handleObject(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
+	protected boolean handleObject(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
 		long started = System.currentTimeMillis();
 		try {
 			workerTask.recordIterativeOperationStart(accountShadow.asObjectable());
@@ -137,7 +137,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		}
 	}
 
-	protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
+	protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), accountShadow.debugDump(1));

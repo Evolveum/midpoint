@@ -45,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * The task handler for a live synchronization.
@@ -84,7 +83,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 		LOGGER.trace("LiveSyncTaskHandler.run starting");
 		
 		counterManager.registerCounter(task, true);

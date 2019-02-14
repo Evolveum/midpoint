@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -45,14 +46,14 @@ public class MultiPropagationResultHandler extends AbstractSearchIterativeResult
 	private final RepositoryService repositoryService;
 	private final ShadowCache shadowCache;
 
-	public MultiPropagationResultHandler(Task coordinatorTask, String taskOperationPrefix, TaskManager taskManager, RepositoryService repositoryService, ShadowCache shadowCache) {
+	public MultiPropagationResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, TaskManager taskManager, RepositoryService repositoryService, ShadowCache shadowCache) {
 		super(coordinatorTask, taskOperationPrefix, "propagation", "multipropagation", taskManager);
 		this.repositoryService = repositoryService;
 		this.shadowCache = shadowCache;
 	}
 
 	@Override
-	protected boolean handleObject(PrismObject<ResourceType> resource, Task workerTask, OperationResult taskResult)
+	protected boolean handleObject(PrismObject<ResourceType> resource, RunningTask workerTask, OperationResult taskResult)
 			throws CommonException {
 		
 		LOGGER.trace("Propagating provisioning operations on {}", resource);

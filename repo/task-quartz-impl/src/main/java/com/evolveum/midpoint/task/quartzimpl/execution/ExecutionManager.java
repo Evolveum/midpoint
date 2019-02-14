@@ -484,7 +484,7 @@ public class ExecutionManager {
         return localNodeManager.stopSchedulerAndTasks(timeToWait, result);
     }
 
-    public void synchronizeTask(TaskQuartzImpl task, OperationResult result) {
+    public void synchronizeTask(Task task, OperationResult result) {
         taskSynchronizer.synchronizeTask(task, result);
     }
 
@@ -643,9 +643,9 @@ public class ExecutionManager {
             LOGGER.warn(message);
             return;
         }
-        taskSynchronizer.synchronizeTask((TaskQuartzImpl) task, result);        // this should remove any triggers
-        ((TaskQuartzImpl) task).setRecreateQuartzTrigger(true);
-        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, result);  // this will create the trigger
+        taskSynchronizer.synchronizeTask(task, result);        // this should remove any triggers
+        ((InternalTaskInterface) task).setRecreateQuartzTrigger(true);
+        ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, result);  // this will create the trigger
         result.recordSuccess();
 
         // note that if scheduling (not executes before/after) prevents the task from running, it will not run!
@@ -663,12 +663,12 @@ public class ExecutionManager {
 
         // for loosely-bound, recurring, interval-based tasks we reschedule the task in order to start immediately
         // and then continue after specified interval (i.e. NOT continue according to original schedule) - MID-1410
-        if (!getConfiguration().isRunNowKeepsOriginalSchedule() && task.isLooselyBound() && task.isCycle() && task.getSchedule() != null
+        if (!getConfiguration().isRunNowKeepsOriginalSchedule() && task.isLooselyBound() && task.isRecurring() && task.getSchedule() != null
                 && task.getSchedule().getInterval() != null && task.getSchedule().getInterval() != 0) {
             LOGGER.trace("'Run now' for task invoked: unscheduling and rescheduling it; task = {}", task);
             unscheduleTask(task, result);
-            ((TaskQuartzImpl) task).setRecreateQuartzTrigger(true);
-            synchronizeTask((TaskQuartzImpl) task, result);
+            ((InternalTaskInterface) task).setRecreateQuartzTrigger(true);
+            synchronizeTask(task, result);
         } else {
             // otherwise, we simply add another trigger to this task
             addTriggerNowForTask(task, result);
@@ -691,7 +691,7 @@ public class ExecutionManager {
             if (!quartzScheduler.checkExists(TaskQuartzImplUtil.createJobKeyForTask(task))) {
                 quartzScheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
             }
-	        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, parentResult);
+	        ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, parentResult);
         } catch (SchedulerException | ObjectNotFoundException | SchemaException | PreconditionViolationException e) {
             String message = "Waiting task " + task + " cannot be scheduled: " + e.getMessage();
             result.recordFatalError(message, e);
@@ -815,7 +815,7 @@ public class ExecutionManager {
         OperationResult result = parentResult.createSubresult(ExecutionManager.DOT_CLASS + "getTaskThreadsDump");
         try {
             TaskQuartzImpl task = taskManager.getTask(taskOid, parentResult);
-            Task localTask = taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier());
+            RunningTask localTask = taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier());
             Thread rootThread = taskManager.getTaskThread(taskOid);
             if (localTask == null || rootThread == null) {
                 result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Task " + task + " is not running locally");
@@ -823,9 +823,8 @@ public class ExecutionManager {
             }
             output.append("*** Root thread for task ").append(task).append(":\n\n");
             addTaskInfo(output, localTask, rootThread);
-            for (Task subtask : localTask.getLightweightAsynchronousSubtasks()) {
-                TaskQuartzImpl subtaskImpl = (TaskQuartzImpl) subtask;
-                Thread thread = subtaskImpl.getLightweightThread();
+            for (RunningTask subtask : localTask.getLightweightAsynchronousSubtasks()) {
+                Thread thread = ((RunningTaskQuartzImpl) subtask).getLightweightThread();
                 output.append("** Information for lightweight asynchronous subtask ").append(subtask).append(":\n\n");
                 addTaskInfo(output, subtask, thread);
             }
@@ -837,7 +836,7 @@ public class ExecutionManager {
         return output.toString();
     }
 
-    private void addTaskInfo(StringBuilder output, Task localTask, Thread thread) {
+    private void addTaskInfo(StringBuilder output, RunningTask localTask, Thread thread) {
         output.append("Execution state: ").append(localTask.getExecutionStatus()).append("\n");
         output.append("Progress: ").append(localTask.getProgress());
         if (localTask.getExpectedTotal() != null) {

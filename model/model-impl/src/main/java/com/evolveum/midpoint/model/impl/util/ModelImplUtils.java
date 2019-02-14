@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -591,27 +592,35 @@ public class ModelImplUtils {
 	}
 
 	public static boolean isDryRun(Task task) throws SchemaException {
-		Boolean dryRun = findItemValue(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		if (dryRun == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
-			dryRun = findItemValue(task.getParentForLightweightAsynchronousTask(), SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		}
+		Boolean dryRun = findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 		return dryRun != null ? dryRun : Boolean.FALSE;
 	}
 	
 	public static boolean isSimulateRun(Task task) throws SchemaException {
-		Boolean simulate = findItemValue(task, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
-		if (simulate == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
-			simulate = findItemValue(task.getParentForLightweightAsynchronousTask(), SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
-		}
+		Boolean simulate = findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
 		return simulate != null ? simulate : Boolean.FALSE;
 	}
 	
-	static Boolean findItemValue(Task task, QName path) throws SchemaException{
+	private static Boolean findExtensionItemValueInThisOrParent(Task task, QName path) throws SchemaException {
+		Boolean value = findExtensionItemValue(task, path);
+		if (value != null) {
+			return value;
+		}
+		if (task instanceof RunningTask) {
+			RunningTask runningTask = (RunningTask) task;
+			if (runningTask.isLightweightAsynchronousTask() && runningTask.getParentForLightweightAsynchronousTask() != null) {
+				return findExtensionItemValue(runningTask.getParentForLightweightAsynchronousTask(), path);
+			}
+		}
+		return null;
+	}
+
+	private static Boolean findExtensionItemValue(Task task, QName path) throws SchemaException{
 		Validate.notNull(task, "Task must not be null.");
-		if (task.getExtension() == null) {
+		if (!task.hasExtension()) {
 			return null;
 		}
-		PrismProperty<Boolean> item = task.getExtensionProperty(path);
+		PrismProperty<Boolean> item = task.getExtensionProperty(ItemName.fromQName(path));
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
@@ -626,7 +635,7 @@ public class ModelImplUtils {
 
 	public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
 		Validate.notNull(task, "Task must not be null.");
-		if (task.getExtension() == null) {
+		if (!task.hasExtension()) {
 			return null;
 		}
 		//LOGGER.info("Task:\n{}",task.debugDump(1));

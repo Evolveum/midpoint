@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
@@ -35,13 +36,13 @@ public class ModelConstants {
 
 	public static final String NS_EXTENSION = SchemaConstants.NS_MODEL + "/extension-3";
 
-	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(ModelConstants.NS_EXTENSION, "objectclass");
+	public static final ItemName OBJECTCLASS_PROPERTY_NAME = new ItemName(ModelConstants.NS_EXTENSION, "objectclass");
 
-	public static final QName KIND_PROPERTY_NAME = new QName(ModelConstants.NS_EXTENSION, "kind");
+	public static final ItemName KIND_PROPERTY_NAME = new ItemName(ModelConstants.NS_EXTENSION, "kind");
 
-	public static final QName INTENT_PROPERTY_NAME = new QName(ModelConstants.NS_EXTENSION, "intent");
+	public static final ItemName INTENT_PROPERTY_NAME = new ItemName(ModelConstants.NS_EXTENSION, "intent");
 
-	public static final QName FILENAME_PROPERTY_NAME = new QName(ModelConstants.NS_EXTENSION, "filename");
+	public static final ItemName FILENAME_PROPERTY_NAME = new ItemName(ModelConstants.NS_EXTENSION, "filename");
 
 
 }

@@ -109,7 +109,7 @@ public class WfTask {
     }
 
     public void commitChanges(OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        task.savePendingModifications(result);
+        task.flushPendingModifications(result);
     }
 
     public void resumeTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -122,7 +122,7 @@ public class WfTask {
 
     public void setWfProcessId(String pid) throws SchemaException {
 		processInstanceId = pid;
-        task.addModification(
+        task.modify(
                 getPrismContext().deltaFor(TaskType.class)
                         .item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).replace(pid)
                         .asItemDelta());
@@ -130,7 +130,7 @@ public class WfTask {
 
     public void setProcessInstanceEndTimestamp() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-        task.addModification(
+        task.modify(
                 getPrismContext().deltaFor(TaskType.class)
                         .item(F_WORKFLOW_CONTEXT, F_END_TIMESTAMP).replace(now)
                         .asItemDelta());
@@ -233,14 +233,14 @@ public class WfTask {
 	}
 
     public void setOutcome(String outcome) throws SchemaException {
-        task.addModifications(getPrismContext().deltaFor(TaskType.class)
+        task.modify(getPrismContext().deltaFor(TaskType.class)
                 .item(F_WORKFLOW_CONTEXT, F_OUTCOME).replace(outcome)
                 .asItemDeltas());
     }
 
     public void setProcessInstanceStageInformation(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName)
 			throws SchemaException {
-        task.addModifications(getPrismContext().deltaFor(TaskType.class)
+        task.modify(getPrismContext().deltaFor(TaskType.class)
 				.item(F_WORKFLOW_CONTEXT, F_STAGE_NUMBER).replace(stageNumber)
 				.asItemDeltas());
     }

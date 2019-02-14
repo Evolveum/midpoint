@@ -25,7 +25,7 @@ import java.util.List;
  */
 public interface TaskHandler {
 
-	TaskRunResult run(Task task);
+	TaskRunResult run(RunningTask task);
 
 	default Long heartbeat(Task task) {
 		return null;
