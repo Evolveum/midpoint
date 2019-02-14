@@ -22,7 +22,28 @@
                 <div wicket:id="search"/>
             </form>
             <div class="col-md-12" wicket:id="shoppingCartItemsPanel" />
-            <a class="btn btn-sm btn-default pull-left" style="margin-left: 15px;" wicket:id="addAllButton" />
+
+            <div wicket:id="parametersPanel">
+                <div class="row">
+                    <div class="form-group col-md-6">
+                        <div class="col-md-2 prism-multivalue-container">
+                            <wicket:message key="AbstractShoppingCartTabPanel.requestingForLabel"/>
+                        </div>
+                        <div class="col-md-8 prism-multivalue-container" wicket:id="targetUserPanel"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div wicket:id="relationContainer" class="form-group col-md-6 pull-left">
+                        <div class="col-md-2 prism-multivalue-container">
+                            <wicket:message key="ObjectReferenceType.relation"/>
+                        </div>
+                        <div class="col-md-8" wicket:id="relation"/>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <a class="btn btn-sm btn-default pull-right" wicket:id="addAllButton" />
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </wicket:panel>

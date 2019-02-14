@@ -135,7 +135,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             
             @Override
             		public IModel<String> getLabel() {
-            			return createStringResource("FocusType.assignment");
+            			return createStringResource("PageAssignmentsList.assignmentsToRequest");
             		}
         };
         mainForm.add(panel);
@@ -672,7 +672,11 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private String getTargetUserSelectionButtonLabel(List<UserType> usersList){
         if (usersList == null || usersList.size() == 0){
-            return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
+            StringBuilder sb = new StringBuilder();
+            sb.append(createStringResource("AssignmentCatalogPanel.requestFor").getString());
+            sb.append(" ");
+            sb.append(createStringResource("AssignmentCatalogPanel.requestForMe").getString());
+            return sb.toString();
         } else if (usersList.size() == 1){
             String name = usersList.get(0).getName().getOrig();
             return createStringResource("AssignmentCatalogPanel.requestFor", name).getString();

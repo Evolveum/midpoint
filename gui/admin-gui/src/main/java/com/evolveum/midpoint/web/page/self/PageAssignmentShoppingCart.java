@@ -57,12 +57,8 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
     private static final String ID_VIEWS_TAB_PANEL = "viewsTabPanel";
-    private static final String ID_PARAMETERS_PANEL = "parametersPanel";
     private static final String DOT_CLASS = PageAssignmentShoppingCart.class.getName() + ".";
-    private static final String ID_RELATION_CONTAINER = "relationContainer";
-    private static final String ID_RELATION = "relation";
 
     private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getRoleCatalogViewsList";
     private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
@@ -107,13 +103,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
             tabbedPanel.setSelectedTab(defaultSelectedTabIndex);
         }
         mainForm.add(tabbedPanel);
-
-        WebMarkupContainer parametersPanel = new WebMarkupContainer(ID_PARAMETERS_PANEL);
-        parametersPanel.setOutputMarkupId(true);
-        mainForm.add(parametersPanel);
-
-        initTargetUserSelectionPanel(parametersPanel);
-        initRelationPanel(parametersPanel);
     }
 
     private void initModels(){
@@ -173,11 +162,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                             reloadShoppingCartIcon(target);
                         }
 
-                        @Override
-                        protected QName getNewAssignmentRelation(){
-                            return getRelationParameterValue();
-                        }
-
                     };
                 }
             });
@@ -201,11 +185,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
                         reloadShoppingCartIcon(target);
                     }
-
-                    @Override
-                    protected QName getNewAssignmentRelation(){
-                        return getRelationParameterValue();
-                    }
                 };
             }
         });
@@ -227,11 +206,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
                         reloadShoppingCartIcon(target);
-                    }
-
-                    @Override
-                    protected QName getNewAssignmentRelation(){
-                        return getRelationParameterValue();
                     }
                 };
             }
@@ -255,11 +229,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
                         reloadShoppingCartIcon(target);
                     }
-
-                    @Override
-                    protected QName getNewAssignmentRelation(){
-                        return getRelationParameterValue();
-                    }
                 };
             }
         });
@@ -276,11 +245,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
                         reloadShoppingCartIcon(target);
-                    }
-
-                    @Override
-                    protected QName getNewAssignmentRelation(){
-                        return getRelationParameterValue();
                     }
                 };
             }
@@ -321,73 +285,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         };
     }
 
-    private void initTargetUserSelectionPanel(WebMarkupContainer parametersPanel){
-        UserSelectionButton targetUserPanel = new UserSelectionButton(ID_TARGET_USER_PANEL,
-                new IModel<List<UserType>>() {
-                    @Override
-                    public List<UserType> getObject() {
-                        return getRoleCatalogStorage().getTargetUserList();
-                    }
-                },
-                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String getUserButtonLabel(){
-                return getTargetUserSelectionButtonLabel(getModelObject());
-            }
-
-            @Override
-            protected String getTargetUserButtonClass(){
-                return "btn-sm";
-            }
-
-            @Override
-            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
-                super.onDeleteSelectedUsersPerformed(target);
-                getRoleCatalogStorage().setTargetUserList(new ArrayList<>());
-
-                target.add(PageAssignmentShoppingCart.this.getTabbedPanel());
-                target.add(parametersPanel.get(ID_TARGET_USER_PANEL));
-            }
-
-            @Override
-            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
-                getRoleCatalogStorage().setTargetUserList(usersList);
-                target.add(PageAssignmentShoppingCart.this.getTabbedPanel());
-                target.add(parametersPanel.get(ID_TARGET_USER_PANEL));
-           }
-
-        };
-        targetUserPanel.setOutputMarkupId(true);
-        parametersPanel.add(targetUserPanel);
-    }
-
-    private void initRelationPanel(WebMarkupContainer parametersPanel){
-        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
-        relationContainer.setOutputMarkupId(true);
-        parametersPanel.add(relationContainer);
-
-        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, PageAssignmentShoppingCart.this);
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getRoleCatalogStorage().getSelectedRelation(),
-                availableRelations, false){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onValueChanged(AjaxRequestTarget target){
-                getRoleCatalogStorage().setSelectedRelation(getRelationValue());
-            }
-        });
-    }
-
-    private QName getRelationParameterValue(){
-        return getRelationDropDown().getRelationValue();
-    }
-
-    private RelationDropDownChoicePanel getRelationDropDown(){
-        return (RelationDropDownChoicePanel)get(createComponentPath(ID_MAIN_FORM, ID_PARAMETERS_PANEL, ID_RELATION_CONTAINER, ID_RELATION));
-    }
-
     private TabbedPanel getTabbedPanel(){
         return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_VIEWS_TAB_PANEL));
     }
@@ -401,18 +298,4 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         return config == null || config.getRoleCatalogRef() == null ? null : config.getRoleCatalogRef().getOid();
     }
 
-    private String getTargetUserSelectionButtonLabel(List<UserType> usersList){
-        if (usersList == null || usersList.size() == 0){
-            return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
-        } else if (usersList.size() == 1){
-            if (usersList.get(0).getOid().equals(loadUserSelf().getOid())){
-                return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
-            } else {
-                return usersList.get(0).getName().getOrig();
-            }
-        } else {
-            return createStringResource("AssignmentCatalogPanel.requestForMultiple",
-                    usersList.size()).getString();
-        }
-    }
 }
