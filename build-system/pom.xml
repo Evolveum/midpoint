@@ -49,8 +49,8 @@
         <commons.lang.version>2.6</commons.lang.version>
         <commons.lang3.version>3.7</commons.lang3.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>3.2.4</cxf.version>
-        <cxf-xjc.version>3.2.0</cxf-xjc.version>
+        <cxf.version>3.3.0</cxf.version>
+        <cxf-xjc.version>3.3.0</cxf-xjc.version>
         <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
         <jaxb-api.version>2.2.10</jaxb-api.version>
@@ -95,10 +95,19 @@
         <jcommander.version>1.72</jcommander.version>
 		<failsafe.version>3.0.0-M2</failsafe.version>
 		<antrun.version>1.8</antrun.version>
+		<javax.xml.soap.version>1.4.0</javax.xml.soap.version>
     </properties>
     <dependencyManagement>
         <dependencies>
-            <dependency>
+		
+			<!-- Upgrade to Java 11 -->
+			<dependency>
+				<groupId>javax.xml.soap</groupId>
+				<artifactId>javax.xml.soap-api</artifactId>
+				<version>${javax.xml.soap.version}</version>
+			</dependency>
+		
+			<dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -132,6 +141,10 @@
 					<exclusion> <!-- Conflicting version with CXF -->
                         <groupId>org.ow2.asm</groupId>
                         <artifactId>asm</artifactId>
+                    </exclusion>
+					<exclusion>
+                        <groupId>org.apache.ant</groupId>
+						<artifactId>ant</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -495,6 +508,16 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-core</artifactId>
                 <version>${cxf.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.jvnet.staxex</groupId>
+						<artifactId>stax-ex</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>javax.xml.soap</groupId>
+						<artifactId>javax.xml.soap-api</artifactId>
+					</exclusion>
+				</exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -510,6 +533,16 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-tools-common</artifactId>
                 <version>${cxf.version}</version>
+				<exclusions>
+				<exclusion>
+					<groupId>org.jvnet.staxex</groupId>
+					<artifactId>stax-ex</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.xml.soap</groupId>
+					<artifactId>javax.xml.soap-api</artifactId>
+				</exclusion>
+			</exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -596,6 +629,16 @@
 			   <groupId>org.apache.cxf</groupId>
 			   <artifactId>cxf-rt-rs-client</artifactId>
 			   <version>${cxf.version}</version>
+			   <exclusions>
+				<exclusion>
+					<groupId>org.jvnet.staxex</groupId>
+					<artifactId>stax-ex</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.xml.soap</groupId>
+					<artifactId>javax.xml.soap-api</artifactId>
+				</exclusion>
+			</exclusions>
 			</dependency>
 			<dependency>
 			   <groupId>org.apache.cxf</groupId>
@@ -1433,7 +1476,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>1.4.1</version>
+				<version>3.0.0-M2</version>
 				<executions>
 					<execution>
 						<id>enforce</id>
@@ -1448,10 +1491,10 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
+			<!--<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>3.1.1</version>
 				<executions>
 					<execution>
 						<id>analyze</id>
@@ -1461,42 +1504,42 @@
 						<configuration>
 							<failOnWarning>true</failOnWarning>
 							<ignoreNonCompile>true</ignoreNonCompile>
-							<ignoredUnusedDeclaredDependencies>
+							<ignoredUnusedDeclaredDependencies>-->
 
 								<!-- There are dependencies in this master POM. So they are projected 
 									everywhere, used or unused. -->
-								<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
-                                <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
+								<!--<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>-->
 
 								<!-- Common "drill" for all modules. -->
-								<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
+								<!--<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>-->
 
 								<!-- There is some kind of conflict between these. TODO: clean up -->
-								<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
+								<!--<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>-->
 
 								<!-- We are making this dependency explicit to detect conflicts early -->
-								<ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
+								<!--<ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>-->
 
 								<!-- The xjc-plugin does not compile without dependency on this -->
-								<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
+								<!--<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>-->
 
 								<!-- Cannot help myself with this one (commons-configuration 1.6 causes this) TODO: revisit -->
-								<ignoredUnusedDeclaredDependency>commons-beanutils:commons-beanutils-core</ignoredUnusedDeclaredDependency>
+								<!--<ignoredUnusedDeclaredDependency>commons-beanutils:commons-beanutils-core</ignoredUnusedDeclaredDependency>
 							</ignoredUnusedDeclaredDependencies>
-							<ignoredUsedUndeclaredDependencies>
+							<ignoredUsedUndeclaredDependencies>-->
 								<!-- There is some kind of conflict between these. TODO: clean up -->
-								<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
+								<!--<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
 								<ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
 								<ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
 							</ignoredUsedUndeclaredDependencies>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin>-->
 		</plugins>
 
         <pluginManagement>

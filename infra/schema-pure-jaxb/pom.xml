@@ -111,10 +111,10 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--<plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>2.3.1</version>
+                <version>2.4</version>
                 <executions>
                     <execution>
                         <id>xjc</id>
@@ -130,24 +130,54 @@
                     <catalog>${basedir}/src/compile/resources/catalog.xml</catalog>
                     <laxSchemaValidation>true</laxSchemaValidation>
                     <verbose>false</verbose>
-                    <xjcSourceExcludeFilters>
+                    <xjcSourceExcludeFilters>-->
                         <!-- This is a workaround for xjc bug described here: https://java.net/projects/jaxb/lists/users/archive/2005-12/message/33 -->
                         <!-- It presents itself on Windows machines. -->
                         <!-- We simply exclude any imported files. So, after a new imported file is present, please add it into this list. -->
-                        <filter implementation="org.codehaus.mojo.jaxb2.shared.filters.pattern.PatternFileFilter">
+                        <!-- <filter implementation="org.codehaus.mojo.jaxb2.shared.filters.pattern.PatternFileFilter">
                             <patterns>
                                 <pattern>annotation-3\.xsd</pattern>
                                 <pattern>query-3\.xsd</pattern>
-                                <pattern>\\types-3\.xsd</pattern>       <!-- to match types but not api-types -->
-                                <pattern>/types-3\.xsd</pattern>        <!-- to match types but not api-types -->
-                                <pattern>common-.*\.xsd</pattern>
+                                <pattern>\\types-3\.xsd</pattern>-->       <!-- to match types but not api-types -->
+                                <!-- <pattern>/types-3\.xsd</pattern> -->       <!-- to match types but not api-types -->
+                                <!-- <pattern>common-.*\.xsd</pattern>
                                 <pattern>scripting-3\.xsd</pattern>
                                 <pattern>resource-schema-3\.xsd</pattern>
                             </patterns>
                         </filter>
                     </xjcSourceExcludeFilters>
                 </configuration>
-            </plugin>
+				<dependencies>
+    <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-xjc</artifactId>
+            <version>2.3.2</version>
+          </dependency>
+          <dependency>
+            <groupId>com.sun.activation</groupId>
+            <artifactId>jakarta.activation</artifactId>
+            <version>1.2.1</version>
+          </dependency>
+</dependencies>
+
+            </plugin>-->
+            <plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>0.14.0</version>
+				<executions>
+					<execution>
+						<id>generate</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<schemaDirectory>${project.basedir}/target/midpoint-schema</schemaDirectory>
+					<catalog>${basedir}/src/compile/resources/catalog.xml</catalog>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 </project>

@@ -92,13 +92,19 @@ public class SchemaDocMojo extends AbstractMojo {
      */
     private File resourcesDir;
 
-    /** @parameter default-value="${project}" */
+    /**
+    * @parameter default-value="${project}" 
+    */
     private org.apache.maven.project.MavenProject project;
 
-    /** @parameter */
+    /** 
+     * @parameter 
+     */
     private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
-    /** @parameter default-value="${project.build.finalName}" */
+    /** 
+     * @parameter default-value="${project.build.finalName}" 
+     */
     private String finalName;
 
     /**
@@ -106,7 +112,9 @@ public class SchemaDocMojo extends AbstractMojo {
      */
     private MavenProjectHelper projectHelper;
 
-    /** @component role="org.codehaus.plexus.archiver.Archiver" roleHint="zip" */
+    /** 
+     * @component role="org.codehaus.plexus.archiver.Archiver" roleHint="zip" 
+     */
     private ZipArchiver zipArchiver;
 
     private String getTemplateDirName() {

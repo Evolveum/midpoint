@@ -102,13 +102,19 @@ public class SchemaDistMojo extends AbstractMojo {
      */
     private File resourcesDir;
 
-    /** @parameter default-value="${project}" */
+    /** 
+     * @parameter default-value="${project}" 
+     */
     private org.apache.maven.project.MavenProject project;
 
-    /** @parameter default-value="${localRepository}" */
+    /** 
+     * @parameter default-value="${localRepository}" 
+     */
     private ArtifactRepository local;
 
-    /** @parameter default-value="${project.remoteArtifactRepositories}" */
+    /** 
+     * @parameter default-value="${project.remoteArtifactRepositories}"
+     */
     protected List<ArtifactRepository> remoteRepos;
 
     /**

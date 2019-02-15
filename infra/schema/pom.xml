@@ -202,7 +202,7 @@
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
+                                        <!--<extraarg>-validate</extraarg> ERROR: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized. -->
                                         <extraarg>-xjc-Xts</extraarg>
                                         <extraarg>-xjc-XhashCode</extraarg>
                                         <extraarg>
@@ -234,7 +234,7 @@
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
+                                        <!--<extraarg>-validate</extraarg> ERROR: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized. -->
                                         <extraarg>-xjc-Xts</extraarg>
                                         <extraarg>-xjc-XhashCode</extraarg>
                                         <extraarg>

@@ -46,6 +46,11 @@
 
     <dependencies>
     	<dependency>
+    		<groupId>javax.jws</groupId>
+    		<artifactId>javax.jws-api</artifactId>
+    		<version>1.1</version>
+		</dependency>
+    	<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 		</dependency>
@@ -179,7 +184,7 @@
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
+                                        <!--<extraarg>-validate</extraarg> ERROR: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized. -->
                                         <extraarg>-xjc-Xts</extraarg>
                                     </extraargs>
                                 </wsdlOption>
@@ -189,7 +194,7 @@
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
+                                        <!--<extraarg>-validate</extraarg> ERROR: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized. -->
                                         <extraarg>-xjc-Xts</extraarg>
                                     </extraargs>
                                 </wsdlOption>
