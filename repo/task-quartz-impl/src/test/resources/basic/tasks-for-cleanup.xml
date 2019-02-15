@@ -41,7 +41,7 @@
         </description>
         <taskIdentifier>1238546</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>runnable</executionStatus>
+        <executionStatus>closed</executionStatus>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <recurrence>recurring</recurrence>
@@ -57,6 +57,7 @@
         <taskIdentifier>1238546-1</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <parent>1238546</parent>
+        <executionStatus>closed</executionStatus>
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
     </task>
 
@@ -65,6 +66,7 @@
         <taskIdentifier>1238546-2</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <parent>1238546</parent>
+        <executionStatus>closed</executionStatus>
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
     </task>
 
@@ -76,7 +78,7 @@
         </description>
         <taskIdentifier>1238547</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>runnable</executionStatus>
+        <executionStatus>closed</executionStatus>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <recurrence>recurring</recurrence>
@@ -94,7 +96,7 @@
         </description>
         <taskIdentifier>1238548</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>runnable</executionStatus>
+        <executionStatus>closed</executionStatus>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <recurrence>recurring</recurrence>
