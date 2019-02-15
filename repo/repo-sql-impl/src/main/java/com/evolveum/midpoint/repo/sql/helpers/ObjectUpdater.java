@@ -387,12 +387,15 @@ public class ObjectUpdater {
                 //
                 // So the first step is to retrieve the current value of photo - we obviously do this only if the modifications
                 // deal with the jpegPhoto property.
-                Collection<SelectorOptions<GetOperationOptions>> options;
+                Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
                 boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
                 if (containsFocusPhotoModification) {
-                    options = Collections.singletonList(SelectorOptions.create(FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-                } else {
-                    options = null;
+                    options.add(SelectorOptions.create(FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+                }
+
+                if (reindex) {
+                    LOGGER.trace("Setting 'raw' option for object fetching because reindex is being applied");
+                    options.addAll(GetOperationOptions.createRawCollection());
                 }
 
                 // get object
