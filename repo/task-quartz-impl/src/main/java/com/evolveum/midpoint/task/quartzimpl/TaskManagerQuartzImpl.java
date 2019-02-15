@@ -240,7 +240,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
     }
 
-    @Override
+	@PreDestroy
+	public void destroy() {
+		systemConfigurationChangeDispatcher.unregisterListener(this);
+	}
+
+	@Override
     public void postInit(OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_IMPL_CLASS + "postInit");
