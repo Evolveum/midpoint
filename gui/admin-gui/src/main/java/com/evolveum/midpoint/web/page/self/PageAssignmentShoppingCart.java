@@ -154,15 +154,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    return new RoleCatalogTabPanel(panelId, roleManagementConfigModel.getObject(), roleCatalogOid){
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                            reloadShoppingCartIcon(target);
-                        }
-
-                    };
+                    return new RoleCatalogTabPanel(panelId, roleManagementConfigModel.getObject(), roleCatalogOid);
                 }
             });
         }
@@ -181,10 +173,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                         return RoleType.COMPLEX_TYPE;
                     }
 
-                    @Override
-                    protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        reloadShoppingCartIcon(target);
-                    }
                 };
             }
         });
@@ -203,10 +191,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                         return OrgType.COMPLEX_TYPE;
                     }
 
-                    @Override
-                    protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        reloadShoppingCartIcon(target);
-                    }
                 };
             }
         });
@@ -224,11 +208,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                     protected QName getQueryType() {
                         return ServiceType.COMPLEX_TYPE;
                     }
-
-                    @Override
-                    protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        reloadShoppingCartIcon(target);
-                    }
                 };
             }
         });
@@ -239,14 +218,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new UserViewTabPanel(panelId, roleManagementConfigModel.getObject()) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        reloadShoppingCartIcon(target);
-                    }
-                };
+                return new UserViewTabPanel(panelId, roleManagementConfigModel.getObject());
             }
         });
         return tabs;

@@ -33,10 +33,13 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -61,6 +64,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
     private static final String ID_ADD_ALL_BUTTON = "addAllButton";
+    private static final String ID_GO_TO_SHOPPING_CART_BUTTON = "goToShoppingCart";
     private static final String ID_PARAMETERS_PANEL = "parametersPanel";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
@@ -176,7 +180,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
         initTargetUserSelectionPanel(parametersPanel);
         initRelationPanel(parametersPanel);
-        initAddAllButton(parametersPanel);
+        initButtonsPanel(parametersPanel);
     }
 
     private void initTargetUserSelectionPanel(WebMarkupContainer parametersPanel){
@@ -243,7 +247,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         });
     }
 
-    private void initAddAllButton(WebMarkupContainer parametersPanel){
+    private void initButtonsPanel(WebMarkupContainer parametersPanel){
         AjaxButton addAllButton = new AjaxButton(ID_ADD_ALL_BUTTON, createStringResource("AbstractShoppingCartTabPanel.addAllButton")) {
             private static final long serialVersionUID = 1L;
 
@@ -278,6 +282,26 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         addAllButton.add(AttributeAppender.append("title",
                 AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(getPageBase())));
         parametersPanel.add(addAllButton);
+
+        AjaxButton goToShoppingCartButton = new AjaxButton(ID_GO_TO_SHOPPING_CART_BUTTON, createStringResource("AbstractShoppingCartTabPanel.goToShoppingCartButton")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                AbstractShoppingCartTabPanel.this.getPageBase().navigateToNext(new PageAssignmentsList(true));
+            }
+        };
+        goToShoppingCartButton.setOutputMarkupId(true);
+        goToShoppingCartButton.add(new VisibleBehaviour(() -> {
+            boolean isShoppingCartEmpty = AbstractShoppingCartTabPanel.this.getRoleCatalogStorage().getAssignmentShoppingCart().size() == 0;
+            return !isShoppingCartEmpty;
+        }));
+        parametersPanel.add(goToShoppingCartButton);
     }
 
     private String getTargetUserSelectionButtonLabel(List<UserType> usersList){
@@ -416,6 +440,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
+        getPageBase().reloadShoppingCartIcon(target);
+        target.add(AbstractShoppingCartTabPanel.this);
     }
 
     protected QName getNewAssignmentRelation() {
