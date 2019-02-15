@@ -6,17 +6,15 @@ import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * Created by honchar
  */
-public class AdminGuiTab extends Component<SystemPage> {
+public class RoleManagementTab extends Component<SystemPage> {
 
-    public AdminGuiTab(SystemPage parent, SelenideElement parentElement) {
+    public RoleManagementTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public PrismForm<AdminGuiTab> form() {
-
-        SelenideElement element = null;
-        return new PrismForm<>(this, element);
+    public PrismForm<RoleManagementTab> form(){
+        return new PrismForm<>(this, null);
     }
 }
