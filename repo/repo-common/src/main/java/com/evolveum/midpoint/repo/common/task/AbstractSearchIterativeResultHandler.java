@@ -99,7 +99,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, null, taskManager);
 	}
 	
-	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
+	public AbstractSearchIterativeResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
 			String contextDesc, TaskStageType taskStageType, TaskManager taskManager) {
 		super();
 		this.coordinatorTask = coordinatorTask;
