@@ -999,7 +999,13 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 					ref.setRelation(getRelationValue());
 				}
 			}
-		};		relationDropDown.setEnabled(getModel().getObject().isEditable());
+
+			@Override
+			protected IModel<String> getRelationLabelModel(){
+				return Model.of();
+			}
+		};
+		relationDropDown.setEnabled(getModel().getObject().isEditable());
 		relationDropDown.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
