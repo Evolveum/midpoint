@@ -266,6 +266,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             storage.getRoleCatalog().getAssignmentShoppingCart().clear();
         } catch (Exception e) {
             result.recordFatalError(e);
+            result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
             LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
         } finally {
             result.recomputeStatus();
@@ -274,20 +275,22 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         findBackgroundTaskOperation(result);
         if (backgroundTaskOperationResult != null
                 && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())){
-            result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
+            result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
             showResult(result);
             clearStorage();
             setResponsePage(PageAssignmentShoppingCart.class);
             return;
         }
-        showResult(result);
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
             target.add(getFeedbackPanel());
             target.add(PageAssignmentsList.this.get(ID_FORM));
         } else {
             clearStorage();
+            result.setMessage(createStringResource("PageAssignmentsList.requestSuccess").getString());
             setResponsePage(PageAssignmentShoppingCart.class);
         }
+        showResult(result);
     }
 
     private void targetUserChangePerformed(AjaxRequestTarget target){
@@ -326,6 +329,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 WebModelServiceUtils.runTask(task, operationalTask, result, PageAssignmentsList.this);
             } catch (SchemaException e) {
                 result.recordFatalError(result.getOperation(), e);
+                result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
                 LoggingUtils.logUnexpectedException(LOGGER,
                         "Failed to execute operaton " + result.getOperation(), e);
                 target.add(getFeedbackPanel());
@@ -333,7 +337,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             findBackgroundTaskOperation(result);
             if (backgroundTaskOperationResult != null
                     && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())) {
-                result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
+                result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
                 showResult(result);
                 clearStorage();
                 setResponsePage(PageAssignmentShoppingCart.class);
@@ -342,12 +346,14 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             if (WebComponentUtil.isSuccessOrHandledError(result)
                     || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
                 clearStorage();
+                result.setMessage(createStringResource("PageAssignmentsList.requestSuccess").getString());
                 setResponsePage(PageAssignmentShoppingCart.class);
             } else {
-                showResult(result);
+                result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());
                 target.add(getFeedbackPanel());
                 target.add(PageAssignmentsList.this.get(ID_FORM));
             }
+            showResult(result);
     }
 
     private void clearStorage(){
@@ -672,11 +678,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private String getTargetUserSelectionButtonLabel(List<UserType> usersList){
         if (usersList == null || usersList.size() == 0){
-            StringBuilder sb = new StringBuilder();
-            sb.append(createStringResource("AssignmentCatalogPanel.requestFor").getString());
-            sb.append(" ");
-            sb.append(createStringResource("AssignmentCatalogPanel.requestForMe").getString());
-            return sb.toString();
+            String label = createStringResource("AssignmentCatalogPanel.requestFor",
+                    createStringResource("AssignmentCatalogPanel.requestForMe").getString()).getString();
+            return label;
         } else if (usersList.size() == 1){
             String name = usersList.get(0).getName().getOrig();
             return createStringResource("AssignmentCatalogPanel.requestFor", name).getString();
