@@ -931,7 +931,7 @@ public class Clockwork {
 			}
 		} catch (ObjectNotFoundException e) {
 			if (!deletedOk) {
-				throw e;
+				LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't record operation execution because the object {} is gone", e, oid);
 			} else {
 				LOGGER.trace("Object {} deleted but this was expected.", oid);
 				result.deleteLastSubresultIfError();
