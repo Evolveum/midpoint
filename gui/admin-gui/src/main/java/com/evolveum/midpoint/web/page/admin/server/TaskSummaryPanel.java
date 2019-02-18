@@ -22,11 +22,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
-import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.model.IModel;
 
 import java.util.Date;
@@ -62,7 +60,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		this.parentPage = parentPage;
 		IModel<TaskType> containerModel = new ContainerableFromPrismObjectModel<>(model);
 
-		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_TAG_EXECUTION_STATUS, containerModel) {
+		SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_TAG_EXECUTION_STATUS, containerModel) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
@@ -76,7 +74,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagExecutionStatus);
 
-		SummaryTagSimple<TaskType> tagResult = new SummaryTagSimple<TaskType>(ID_TAG_RESULT, containerModel) {
+		SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_TAG_RESULT, containerModel) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				OperationResultStatusType resultStatus = taskType.getResultStatus();
@@ -90,7 +88,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagResult);
 
-		SummaryTagSimple<TaskType> tagOutcome = new SummaryTagSimple<TaskType>(ID_TAG_WF_OUTCOME, containerModel) {
+		SummaryTag<TaskType> tagOutcome = new SummaryTag<TaskType>(ID_TAG_WF_OUTCOME, containerModel) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				String icon, name;

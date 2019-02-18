@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.model.Model;
 
 /**
  * @author semancik
@@ -46,12 +47,12 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model, ModelServiceLocator serviceLocator) {
 		super(id, UserType.class, model, serviceLocator);
 
-		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, model) {
+		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, Model.of(model.getObject().getObject().asObjectable())) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void initialize(ObjectWrapper<UserType> wrapper) {
-				List<AssignmentType> assignments = wrapper.getObject().asObjectable().getAssignment();
+			protected void initialize(UserType object) {
+				List<AssignmentType> assignments = object.getAssignment();
 				if (assignments.isEmpty()) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
 					setLabel(getString("user.noAssignments"));
@@ -89,12 +90,12 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 		};
 		addTag(tagSecurity);
 
-		SummaryTag<UserType> tagOrg = new SummaryTag<UserType>(ID_TAG_ORG, model) {
+		SummaryTag<UserType> tagOrg = new SummaryTag<UserType>(ID_TAG_ORG, Model.of(model.getObject().getObject().asObjectable())) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void initialize(ObjectWrapper<UserType> wrapper) {
-				List<ObjectReferenceType> parentOrgRefs = wrapper.getObject().asObjectable().getParentOrgRef();
+			protected void initialize(UserType object) {
+				List<ObjectReferenceType> parentOrgRefs = object.getParentOrgRef();
 				if (parentOrgRefs.isEmpty()) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
 					setLabel(getString("user.noOrgs"));
@@ -103,7 +104,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				}
 				boolean isManager = false;
 				boolean isMember = false;
-				for (ObjectReferenceType parentOrgRef: wrapper.getObject().asObjectable().getParentOrgRef()) {
+				for (ObjectReferenceType parentOrgRef: object.getParentOrgRef()) {
 					if (WebComponentUtil.isManagerRelation(parentOrgRef.getRelation())) {
 						isManager = true;
 					} else {

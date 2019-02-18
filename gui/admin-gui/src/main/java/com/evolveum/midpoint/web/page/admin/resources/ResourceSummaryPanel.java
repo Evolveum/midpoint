@@ -15,26 +15,16 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	private static final long serialVersionUID = 1L;
@@ -53,7 +43,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 		super.onBeforeRender();
 		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
 		IModel<ResourceType> containerModel = new ContainerableFromPrismObjectModel<>(model);
-		SummaryTagSimple<ResourceType> summaryTag = new SummaryTagSimple<ResourceType>(ID_UP_DOWN_TAG, containerModel) {
+		SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_UP_DOWN_TAG, containerModel) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

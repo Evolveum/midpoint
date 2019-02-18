@@ -59,13 +59,13 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 		this.wrapperModel = model;
 		initLayoutCommon(serviceLocator);	// calls getParentOrgModel that depends on wrapperModel
 
-		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_ACTIVATION_TAG, model) {
+		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_ACTIVATION_TAG, Model.of(model.getObject().getObject().asObjectable())) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void initialize(ObjectWrapper<O> wrapper) {
+			protected void initialize(O object) {
 				ActivationType activation = null;
-				O object = wrapper.getObject().asObjectable();
+//				O object = object.asObjectable();
 				if (object instanceof FocusType) {
 					activation = ((FocusType)object).getActivation();
 				}
