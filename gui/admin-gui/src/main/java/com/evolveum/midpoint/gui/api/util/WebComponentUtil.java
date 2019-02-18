@@ -2495,8 +2495,11 @@ public final class WebComponentUtil {
 			String expDateStr = subscriptionId.substring(2, 6);
 			dateFormat = new SimpleDateFormat("MMyy");
 			Date expDate = dateFormat.parse(expDateStr);
+			Calendar expireCalendarValue = Calendar.getInstance();
+			expireCalendarValue.setTime(expDate);
+			expireCalendarValue.add(Calendar.MONTH, 1);
 			Date currentDate = new Date(System.currentTimeMillis());
-			if (expDate.before(currentDate)) {
+			if (expireCalendarValue.getTime().before(currentDate) || expireCalendarValue.getTime().equals(currentDate)) {
 				return false;
 			}
 		} catch (Exception ex) {
