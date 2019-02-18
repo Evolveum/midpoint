@@ -76,7 +76,9 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         	defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
         DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(), 
-        		createStringResource("relationDropDownChoicePanel.relation"), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4", "col-md-8", !allowNull);
+        		getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4",
+                getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ?
+                        "" : "col-md-8", !allowNull);
         
         input.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         input.getInput().add(new OnChangeAjaxBehavior() {
@@ -126,6 +128,10 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
                 return Integer.toString(index);
             }
         };
+    }
+
+    protected IModel<String> getRelationLabelModel(){
+        return createStringResource("relationDropDownChoicePanel.relation");
     }
 
    protected void onValueChanged(AjaxRequestTarget target){

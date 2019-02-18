@@ -18,6 +18,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -244,9 +245,11 @@ public class ConnIdConfigurationTransformer {
 
 			if (SchemaConstants.NS_ICF_CONFIGURATION.equals(propertQName.getNamespaceURI())) {
 				String opName = propertQName.getLocalPart();
-				Class<? extends APIOperation> apiOpClass = ConnectorFactoryConnIdImpl.resolveApiOpClass(opName);
-				if (apiOpClass != null) {
-					apiConfig.setTimeout(apiOpClass, parseInt(prismProperty));
+				Collection<Class<? extends APIOperation>> apiOpClasses = ConnectorFactoryConnIdImpl.resolveApiOpClass(opName);
+				if (apiOpClasses != null) {
+					for (Class<? extends APIOperation> apiOpClass : apiOpClasses) {
+						apiConfig.setTimeout(apiOpClass, parseInt(prismProperty));
+					}
 				} else {
 					throw new SchemaException("Unknown operation name " + opName + " in "
 							+ ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
