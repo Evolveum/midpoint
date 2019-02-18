@@ -484,11 +484,11 @@ public class LocalNodeManager {
      *
      * @return
      */
-    Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
+    Collection<Task> getLocallyRunningTasks(OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasks");
 
-        Set<Task> retval = new HashSet<>();
+        List<Task> retval = new ArrayList<>();
 
         for (String oid : getLocallyRunningTasksOids(result)) {
             OperationResult result1 = result.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTask");

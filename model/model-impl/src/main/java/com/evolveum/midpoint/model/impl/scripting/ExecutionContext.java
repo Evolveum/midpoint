@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -124,7 +125,7 @@ public class ExecutionContext {
     }
 
     public boolean canRun() {
-        return task == null || task.canRun();
+        return !(task instanceof RunningTask) || ((RunningTask) task).canRun();
     }
 
     public void checkTaskStop() {

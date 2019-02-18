@@ -3985,7 +3985,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             }
         }, 10000);
         AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
-                taskManager.getLocallyRunningTasks(new OperationResult("dummy")));
+                new HashSet<>(taskManager.getLocallyRunningTasks(new OperationResult("dummy"))));
     }
 
     // TODO: test for missing/corrupt system configuration

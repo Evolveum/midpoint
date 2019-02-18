@@ -18,8 +18,8 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -78,10 +78,10 @@ public class StalledTasksWatcher {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "checkStalledTasks");
 
-        Map<String,TaskQuartzImpl> runningTasks = taskManager.getLocallyRunningTaskInstances();
+        Map<String, RunningTaskQuartzImpl> runningTasks = taskManager.getLocallyRunningTaskInstances();
         LOGGER.trace("checkStalledTasks: running tasks = {}", runningTasks);
 
-        for (TaskQuartzImpl task : runningTasks.values()) {
+        for (RunningTaskQuartzImpl task : runningTasks.values()) {
             long currentTimestamp = System.currentTimeMillis();
             long lastStartedTimestamp = task.getLastRunStartTimestamp() != null ? task.getLastRunStartTimestamp() : 0L;
             Long heartbeatProgressInfo = task.getHandler().heartbeat(task);

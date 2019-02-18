@@ -92,11 +92,11 @@ public class DeleteTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 		return runInternal(task);
 	}
 
-	private <O extends ObjectType> TaskRunResult runInternal(Task task) {
+	private <O extends ObjectType> TaskRunResult runInternal(RunningTask task) {
 		LOGGER.trace("Delete task run starting ({})", task);
 		long startTimestamp = System.currentTimeMillis();
 

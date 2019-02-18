@@ -90,7 +90,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 		LOGGER.info("Task run starting");
 
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");
@@ -285,11 +285,11 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     }
 
     private static class RunContext {
-		final Task task;
+		final RunningTask task;
 	    final Map<String, ObjectContext> objectContextMap = new HashMap<>();
 	    final PerformerCommentsFormatter commentsFormatter;
 
-	    RunContext(Task task, PerformerCommentsFormatter commentsFormatter) {
+	    RunContext(RunningTask task, PerformerCommentsFormatter commentsFormatter) {
 		    this.task = task;
 		    this.commentsFormatter = commentsFormatter;
 	    }

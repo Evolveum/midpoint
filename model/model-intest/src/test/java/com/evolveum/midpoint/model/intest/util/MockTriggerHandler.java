@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -71,7 +71,7 @@ public class MockTriggerHandler implements TriggerHandler {
 	 * @see com.evolveum.midpoint.model.trigger.TriggerHandler#handle(com.evolveum.midpoint.prism.PrismObject)
 	 */
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result) {
+	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
 		IntegrationTestTools.display("Mock trigger handler called with " + object);
 		lastObject = object.clone();
 		invocationCount.incrementAndGet();

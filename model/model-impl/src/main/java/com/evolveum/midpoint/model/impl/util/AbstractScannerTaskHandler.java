@@ -19,6 +19,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.RunningTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -74,7 +75,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 	}
 
     @Override
-	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected void finish(H handler, TaskRunResult runResult, RunningTask task, OperationResult opResult) throws SchemaException {
 		super.finish(handler, runResult, task, opResult);
 
 		if (task.canRun()) {

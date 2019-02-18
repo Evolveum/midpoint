@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -42,7 +43,7 @@ public class ReindexResultHandler extends AbstractSearchIterativeResultHandler<O
 
     private RepositoryService repositoryService;
 
-    public ReindexResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
+    public ReindexResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
                                 String contextDesc, TaskManager taskManager,
                                 RepositoryService repositoryService) {
         super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
@@ -51,7 +52,7 @@ public class ReindexResultHandler extends AbstractSearchIterativeResultHandler<O
     }
 
     @Override
-    protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult parentResult) throws CommonException {
+    protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
         repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), new ArrayList<>(),
                 RepoModifyOptions.createExecuteIfNoChanges(), result);
