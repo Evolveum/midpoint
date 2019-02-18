@@ -53,14 +53,19 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private static final String ID_TAG_REFRESH = "refreshTag";
 
 	private PageTaskEdit parentPage;
+	private IModel<AutoRefreshDto> refreshModel;
 
-	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model, IModel<AutoRefreshDto> refreshModel, final PageTaskEdit parentPage) {
+	public TaskSummaryPanel(String id, IModel<TaskType> model, IModel<AutoRefreshDto> refreshModel, final PageTaskEdit parentPage) {
 		super(id, TaskType.class, model, parentPage);
-		initLayoutCommon(parentPage);
 		this.parentPage = parentPage;
-		IModel<TaskType> containerModel = new ContainerableFromPrismObjectModel<>(model);
+		this.refreshModel = refreshModel;
+	}
 
-		SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_TAG_EXECUTION_STATUS, containerModel) {
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
+
+		SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_TAG_EXECUTION_STATUS, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
@@ -74,7 +79,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagExecutionStatus);
 
-		SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_TAG_RESULT, containerModel) {
+		SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_TAG_RESULT, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				OperationResultStatusType resultStatus = taskType.getResultStatus();
@@ -88,7 +93,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagResult);
 
-		SummaryTag<TaskType> tagOutcome = new SummaryTag<TaskType>(ID_TAG_WF_OUTCOME, containerModel) {
+		SummaryTag<TaskType> tagOutcome = new SummaryTag<TaskType>(ID_TAG_WF_OUTCOME, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				String icon, name;

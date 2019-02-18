@@ -42,12 +42,13 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 	private final IModel<WorkItemDto> dtoModel;
 
 	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel, ModelServiceLocator serviceLocator) {
-		super(id, model, serviceLocator, null);
+		super(id, model, null);
 		this.dtoModel = dtoModel;
+	}
 
-		initLayoutCommon(serviceLocator);
-
-		SummaryTag<WorkItemType> isAssignedTag = new SummaryTag<WorkItemType>(ID_ASSIGNED_TAG, model) {
+	@Override
+	protected void onInitialize(){
+		SummaryTag<WorkItemType> isAssignedTag = new SummaryTag<WorkItemType>(ID_ASSIGNED_TAG, getModel()) {
 			@Override
 			protected void initialize(WorkItemType workItem) {
 				if (workItem.getAssigneeRef() != null) {

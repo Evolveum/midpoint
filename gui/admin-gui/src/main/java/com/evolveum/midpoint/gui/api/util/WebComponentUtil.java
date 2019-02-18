@@ -3154,6 +3154,16 @@ public final class WebComponentUtil {
 		return displayType;
 	}
 
+	public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(O object, PageBase pageBase) {
+		if (object != null) {
+			ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
+			if (archetypePolicy != null) {
+				return archetypePolicy.getDisplay();
+			}
+		}
+		return null;
+	}
+
 	public static IModel<String> getIconUrlModel(IconType icon){
 		if (icon == null || StringUtils.isEmpty(icon.getImageUrl())){
 			return Model.of();

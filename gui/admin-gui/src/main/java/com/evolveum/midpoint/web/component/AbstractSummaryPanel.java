@@ -17,17 +17,16 @@ package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiFlexibleLabelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -69,13 +68,15 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected WebMarkupContainer tagBox;
     protected WebMarkupContainer iconBox;
 
-    public AbstractSummaryPanel(String id, IModel<C> model, ModelServiceLocator serviceLocator, SummaryPanelSpecificationType configuration) {
+    public AbstractSummaryPanel(String id, IModel<C> model, SummaryPanelSpecificationType configuration) {
         super(id, model);
         this.configuration = configuration;
         setOutputMarkupId(true);
     }
 
-    protected void initLayoutCommon(ModelServiceLocator serviceLocator) {
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
 
         box = new WebMarkupContainer(ID_BOX);
         add(box);
@@ -85,13 +86,13 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 	    if (getDisplayNameModel() != null) {
 		    box.add(new Label(ID_DISPLAY_NAME, getDisplayNameModel()));
 	    } else if (getDisplayNamePropertyName() != null) {
-		    box.add(new Label(ID_DISPLAY_NAME, createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME, serviceLocator)));
+		    box.add(new Label(ID_DISPLAY_NAME, createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME)));
 	    } else {
 		    box.add(new Label(ID_DISPLAY_NAME, " "));
 	    }
 
         WebMarkupContainer identifierPanel = new WebMarkupContainer(ID_IDENTIFIER_PANEL);
-        identifierPanel.add(new Label(ID_IDENTIFIER, createLabelModel(getIdentifierPropertyName(), SummaryPanelSpecificationType.F_IDENTIFIER, serviceLocator)));
+        identifierPanel.add(new Label(ID_IDENTIFIER, createLabelModel(getIdentifierPropertyName(), SummaryPanelSpecificationType.F_IDENTIFIER)));
         identifierPanel.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -105,7 +106,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 	    if (getTitleModel() != null) {
 		    box.add(new Label(ID_TITLE, getTitleModel()));
 	    } else if (getTitlePropertyName() != null) {
-        	box.add(new Label(ID_TITLE, createLabelModel(getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE_1, serviceLocator)));
+        	box.add(new Label(ID_TITLE, createLabelModel(getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE_1)));
         } else {
             box.add(new Label(ID_TITLE, " "));
         }
@@ -113,7 +114,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 	    if (getTitle2Model() != null) {
 		    box.add(new Label(ID_TITLE2, getTitle2Model()));
 	    } else if (getTitle2PropertyName() != null) {
-        	box.add(new Label(ID_TITLE, createLabelModel(getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE_2, serviceLocator)));
+        	box.add(new Label(ID_TITLE, createLabelModel(getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE_2)));
         } else {
             Label label = new Label(ID_TITLE2, " ");
             label.setVisible(false);
@@ -123,14 +124,14 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 	    if (getTitle3Model() != null) {
 		    box.add(new Label(ID_TITLE3, getTitle3Model()));
 	    } else if (getTitle3PropertyName() != null) {
-			box.add(new Label(ID_TITLE, createLabelModel(getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE_3, serviceLocator)));
+			box.add(new Label(ID_TITLE, createLabelModel(getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE_3)));
 		} else {
 			Label label = new Label(ID_TITLE3, " ");
 			label.setVisible(false);
 			box.add(label);
 		}
 
-		final IModel<String> parentOrgModel = getParentOrgModel(serviceLocator);
+		final IModel<String> parentOrgModel = getParentOrgModel();
         Label parentOrgLabel = new Label(ID_ORGANIZATION, parentOrgModel);
         parentOrgLabel.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
@@ -144,8 +145,12 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         iconBox = new WebMarkupContainer(ID_ICON_BOX);
         box.add(iconBox);
 
-        if (getIconBoxAdditionalCssClass() != null) {
-            iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + getIconBoxAdditionalCssClass()));
+        String archetypePolicyAdditionalCssClass = getArchetypePolicyAdditionalCssClass();
+        String iconAdditionalCssClass = getIconBoxAdditionalCssClass();
+        if (StringUtils.isNotEmpty(archetypePolicyAdditionalCssClass)){
+        	iconBox.add(AttributeModifier.append("style", "color: " + archetypePolicyAdditionalCssClass + ";"));
+		} else if (StringUtils.isNotEmpty(iconAdditionalCssClass)) {
+            iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + iconAdditionalCssClass));
         }
 
         Label icon = new Label(ID_ICON, "");
@@ -174,12 +179,12 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 		box.add(tagBox);
     }
 
-	private FlexibleLabelModel<C> createLabelModel(QName modelPropertyName, QName configurationPropertyName, ModelServiceLocator serviceLocator) {
-		return createFlexibleLabelModel(modelPropertyName, serviceLocator, getLabelConfiguration(configurationPropertyName));
+	private FlexibleLabelModel<C> createLabelModel(QName modelPropertyName, QName configurationPropertyName) {
+		return createFlexibleLabelModel(modelPropertyName, getLabelConfiguration(configurationPropertyName));
 	}
 
-	private FlexibleLabelModel<C> createFlexibleLabelModel(QName modelPropertyName, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
-		return new FlexibleLabelModel<C>(getModel(), ItemName.fromQName(modelPropertyName), serviceLocator, configuration) {
+	private FlexibleLabelModel<C> createFlexibleLabelModel(QName modelPropertyName, GuiFlexibleLabelType configuration) {
+		return new FlexibleLabelModel<C>(getModel(), ItemName.fromQName(modelPropertyName), getPageBase(), configuration) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
@@ -215,6 +220,14 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
 	public Component getTag(String id) {
 		return tagBox.get(id);
+	}
+
+	protected String getArchetypePolicyAdditionalCssClass(){
+    	if (getModelObject() instanceof ObjectType){
+			DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((ObjectType) getModelObject(), getPageBase());
+			return WebComponentUtil.getIconColor(displayType);
+		}
+		return "";
 	}
 
 	protected abstract String getIconCssClass();
@@ -263,10 +276,10 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return true;
     }
 
-    protected IModel<String> getParentOrgModel(ModelServiceLocator serviceLocator) {
+    protected IModel<String> getParentOrgModel() {
     	GuiFlexibleLabelType config = getLabelConfiguration(SummaryPanelSpecificationType.F_ORGANIZATION);
     	if (config != null) {
-    		return createFlexibleLabelModel(ObjectType.F_PARENT_ORG_REF, serviceLocator, config);
+    		return createFlexibleLabelModel(ObjectType.F_PARENT_ORG_REF, config);
     	} else {
     		return getDefaltParentOrgModel();
     	}

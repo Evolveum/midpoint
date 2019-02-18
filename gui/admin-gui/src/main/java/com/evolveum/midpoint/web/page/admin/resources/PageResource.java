@@ -47,6 +47,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -279,7 +280,7 @@ public class PageResource extends PageAdmin {
 
 	private ResourceSummaryPanel createResourceSummaryPanel(){
 		 ResourceSummaryPanel resourceSummaryPanel = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY,
-					resourceModel, this);
+				 Model.of(resourceModel.getObject().asObjectable()), this);
 		 resourceSummaryPanel.setOutputMarkupId(true);
 			return resourceSummaryPanel;
 	}

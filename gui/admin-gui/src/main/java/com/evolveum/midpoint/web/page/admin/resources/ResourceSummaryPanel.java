@@ -30,20 +30,17 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_UP_DOWN_TAG = "upDownTag";
-	private IModel<PrismObject<ResourceType>> model;
+	private IModel<ResourceType> model;
 
-	public ResourceSummaryPanel(String id, IModel<PrismObject<ResourceType>> model, ModelServiceLocator serviceLocator) {
+	public ResourceSummaryPanel(String id, IModel<ResourceType> model, ModelServiceLocator serviceLocator) {
 		super(id, ResourceType.class, model, serviceLocator);
-		initLayoutCommon(serviceLocator);
-		this.model = model;
 	}
-	
+
 	@Override
 	protected void onBeforeRender() {
 		super.onBeforeRender();
-		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
-		IModel<ResourceType> containerModel = new ContainerableFromPrismObjectModel<>(model);
-		SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_UP_DOWN_TAG, containerModel) {
+		boolean down = ResourceTypeUtil.isDown(getModelObject());
+		SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_UP_DOWN_TAG, getModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
