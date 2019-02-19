@@ -81,7 +81,11 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         box = new WebMarkupContainer(ID_BOX);
         add(box);
 
-        box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
+		String archetypePolicyAdditionalCssClass = getArchetypePolicyAdditionalCssClass();
+		box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
+		if (StringUtils.isNotEmpty(archetypePolicyAdditionalCssClass)){
+			box.add(AttributeModifier.append("style", "border-color: " + archetypePolicyAdditionalCssClass + ";"));
+		}
 
 	    if (getDisplayNameModel() != null) {
 		    box.add(new Label(ID_DISPLAY_NAME, getDisplayNameModel()));
@@ -145,16 +149,18 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         iconBox = new WebMarkupContainer(ID_ICON_BOX);
         box.add(iconBox);
 
-        String archetypePolicyAdditionalCssClass = getArchetypePolicyAdditionalCssClass();
         String iconAdditionalCssClass = getIconBoxAdditionalCssClass();
+		if (StringUtils.isNotEmpty(iconAdditionalCssClass)) {
+			iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + iconAdditionalCssClass));
+		}
         if (StringUtils.isNotEmpty(archetypePolicyAdditionalCssClass)){
-        	iconBox.add(AttributeModifier.append("style", "color: " + archetypePolicyAdditionalCssClass + ";"));
-		} else if (StringUtils.isNotEmpty(iconAdditionalCssClass)) {
-            iconBox.add(new AttributeModifier("class", ICON_BOX_CSS_CLASS + " " + iconAdditionalCssClass));
-        }
+        	iconBox.add(AttributeModifier.append("style", "background-color: " + archetypePolicyAdditionalCssClass + ";"));
+		}
 
         Label icon = new Label(ID_ICON, "");
-        icon.add(new AttributeModifier("class", getIconCssClass()));
+
+        String archetypeIconCssClass = getArchetypeIconCssClass();
+        icon.add(new AttributeModifier("class", StringUtils.isNotEmpty(archetypeIconCssClass) ? archetypeIconCssClass : getIconCssClass()));
         icon.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible(){
@@ -222,10 +228,18 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 		return tagBox.get(id);
 	}
 
-	protected String getArchetypePolicyAdditionalCssClass(){
-    	if (getModelObject() instanceof ObjectType){
-			DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((ObjectType) getModelObject(), getPageBase());
+	private String getArchetypePolicyAdditionalCssClass(){
+    	if (getModelObject() instanceof AssignmentHolderType){
+			DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
 			return WebComponentUtil.getIconColor(displayType);
+		}
+		return "";
+	}
+
+	private String getArchetypeIconCssClass(){
+		if (getModelObject() instanceof AssignmentHolderType){
+			DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
+			return WebComponentUtil.getIconCssClass(displayType);
 		}
 		return "";
 	}
