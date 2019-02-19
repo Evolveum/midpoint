@@ -12,9 +12,8 @@ public class SystemConfigurationSummaryPanel extends ObjectSummaryPanel<SystemCo
 
 	private static final long serialVersionUID = 1L;
 
-	public SystemConfigurationSummaryPanel(String id, Class type, IModel<PrismObject<SystemConfigurationType>> model, ModelServiceLocator serviceLocator) {
+	public SystemConfigurationSummaryPanel(String id, Class type, IModel<SystemConfigurationType> model, ModelServiceLocator serviceLocator) {
 		super(id, type, model, serviceLocator);
-		initLayoutCommon(serviceLocator);
 	}
 
 	@Override

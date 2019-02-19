@@ -2556,8 +2556,11 @@ public final class WebComponentUtil {
 			String expDateStr = subscriptionId.substring(2, 6);
 			dateFormat = new SimpleDateFormat("MMyy");
 			Date expDate = dateFormat.parse(expDateStr);
+			Calendar expireCalendarValue = Calendar.getInstance();
+			expireCalendarValue.setTime(expDate);
+			expireCalendarValue.add(Calendar.MONTH, 1);
 			Date currentDate = new Date(System.currentTimeMillis());
-			if (expDate.before(currentDate)) {
+			if (expireCalendarValue.getTime().before(currentDate) || expireCalendarValue.getTime().equals(currentDate)) {
 				return false;
 			}
 		} catch (Exception ex) {
@@ -3149,6 +3152,16 @@ public final class WebComponentUtil {
 
 		displayType.setTooltip(createPolyFromOrigString(title));
 		return displayType;
+	}
+
+	public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(O object, PageBase pageBase) {
+		if (object != null) {
+			ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
+			if (archetypePolicy != null) {
+				return archetypePolicy.getDisplay();
+			}
+		}
+		return null;
 	}
 
 	public static IModel<String> getIconUrlModel(IconType icon){

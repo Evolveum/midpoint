@@ -322,7 +322,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 	@Override
 	protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel() {
-		return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, Model.of(getObjectModel().getObject().getObject()), this);
+		return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
 	}
 
 	@Override
