@@ -48,6 +48,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 
 	@Override
 	protected void onInitialize(){
+		super.onInitialize();
+
 		SummaryTag<WorkItemType> isAssignedTag = new SummaryTag<WorkItemType>(ID_ASSIGNED_TAG, getModel()) {
 			@Override
 			protected void initialize(WorkItemType workItem) {
