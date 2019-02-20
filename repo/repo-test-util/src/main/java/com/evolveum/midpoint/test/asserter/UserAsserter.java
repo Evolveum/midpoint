@@ -169,8 +169,8 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	}
 	
 	@Override
-	public ActivationAsserter<UserType, UserAsserter<RA>, RA> activation() {
-		ActivationAsserter<UserType, UserAsserter<RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
+	public ActivationAsserter<UserAsserter<RA>> activation() {
+		ActivationAsserter<UserAsserter<RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
@@ -225,6 +225,16 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return this;
 	}
 	
+	public UserAsserter<RA> assertTitle(String expectedOrig) {
+		assertPolyStringProperty(UserType.F_TITLE, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoTitle() {
+		assertNoItem(UserType.F_TITLE);
+		return this;
+	}
+	
 	public UserAsserter<RA> assertLocality(String expectedOrig) {
 		assertPolyStringProperty(UserType.F_LOCALITY, expectedOrig);
 		return this;
@@ -232,6 +242,16 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	
 	public UserAsserter<RA> assertOrganizationalUnit(String expectedOrig) {
 		assertPolyStringProperty(UserType.F_ORGANIZATIONAL_UNIT, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertOrganizationalUnits(String... expectedOrig) {
+		assertPolyStringPropertyMulti(UserType.F_ORGANIZATIONAL_UNIT, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoOrganizationalUnit() {
+		assertNoItem(UserType.F_ORGANIZATIONAL_UNIT);
 		return this;
 	}
 	

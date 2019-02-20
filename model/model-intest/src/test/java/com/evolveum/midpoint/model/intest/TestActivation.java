@@ -2656,7 +2656,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> user1 = prismContext.createObject(UserType.class);
@@ -2668,13 +2668,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 				.applyTo((PrismObject) user1);
 
 		ObjectDelta<UserType> addDelta = user1.createAddDelta();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+		displayWhen(TEST_NAME);
+		Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(addDelta, null, task, result);
 
 		// THEN
-		user1 = getUser(user1.getOid());
+		displayThen(TEST_NAME);
+		user1 = getUser(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedChanges));
 		display("User after change execution", user1);
 
 		DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");

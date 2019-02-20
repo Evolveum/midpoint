@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2013-2017 Evolveum
+  ~ Copyright (c) 2013-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,26 +31,67 @@
     	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000021" type="LookupTableType"/>
     </item>
     
-    <mapping>
-    	<strength>weak</strength>
-    	<source>
-    		<path>name</path>
-    	</source>
-    	<source>
-    		<path>$focus/requestable</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					'Requestable role ' + name
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>description</path>
-    	</target>
-    	<condition>
-    		<path>$requestable</path>
-    	</condition>
-    </mapping>
+    <item>
+    	<ref>description</ref>
+	    <mapping>
+	    	<strength>weak</strength>
+	    	<source>
+	    		<path>name</path>
+	    	</source>
+	    	<source>
+	    		<path>$focus/requestable</path>
+	    	</source>
+	    	<expression>
+				<script>
+					<code>
+						'Requestable role ' + name
+					</code>
+	         	</script>
+			</expression>
+	    	<condition>
+	    		<path>$requestable</path>
+	    	</condition>
+	    </mapping>
+	</item>
+    
+    <!-- MID-5080 -->
+    <item>
+    	<ref>extension/riskVector</ref>
+    	<mapping>
+    		<name>role-risk-vector</name>
+	    	<strength>strong</strength>
+	    	<trace>true</trace>
+	    	<source>
+	    		<path>name</path>
+	    	</source>
+	    	<source>
+	    		<path>riskLevel</path>
+	    	</source>
+	    	<expression>
+				<script>
+					<code>
+						import com.evolveum.midpoint.prism.PrismContainerValue
+						import com.evolveum.midpoint.prism.PrismProperty
+						import javax.xml.namespace.QName
+						
+						PrismContainerValue cval = basic.getPrismContext().itemFactory().createContainerValue()
+						PrismProperty pRisk = basic.getPrismContext().itemFactory().createProperty(new QName(null, "risk"))
+						pRisk.setRealValue("X")
+						cval.add(pRisk)
+						PrismProperty pValue = basic.getPrismContext().itemFactory().createProperty(new QName(null, "value"))
+						pValue.setRealValue(riskLevel.toInteger())
+						cval.add(pValue)
+						return cval
+					</code>
+	         	</script>
+			</expression>
+	    	<condition>
+	    		<trace>true</trace>
+	    		<script>
+					<code>riskLevel != null</code>
+				</script>
+	    	</condition>
+	    </mapping>
+    </item>
+    
 </objectTemplate>

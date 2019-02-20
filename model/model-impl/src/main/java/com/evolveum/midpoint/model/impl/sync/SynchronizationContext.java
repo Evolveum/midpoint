@@ -19,6 +19,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -124,7 +125,7 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	//TODO multi-threded tasks?
 	private <T> T getTaskPropertyValue(QName propertyName) {
-		PrismProperty<T> prop = task.getExtensionProperty(propertyName);
+		PrismProperty<T> prop = task.getExtensionProperty(ItemName.fromQName(propertyName));
 		if (prop == null || prop.isEmpty()) {
 			return null;
 		}

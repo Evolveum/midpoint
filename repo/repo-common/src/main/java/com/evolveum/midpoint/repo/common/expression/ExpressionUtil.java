@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1007,14 +1007,31 @@ public class ExpressionUtil {
 	public static <T, V extends PrismValue> V convertToPrismValue(T value, ItemDefinition definition, String contextDescription, PrismContext prismContext) throws ExpressionEvaluationException {
 		if (definition instanceof PrismReferenceDefinition) {
 			return (V) ((ObjectReferenceType) value).asReferenceValue();
+			
 		} else if (definition instanceof PrismContainerDefinition) {
-			try {
-				prismContext.adopt((Containerable) value);
-				((Containerable) value).asPrismContainerValue().applyDefinition(definition);
-			} catch (SchemaException e) {
-				throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+			
+			if (value instanceof Containerable) {
+				try {
+					prismContext.adopt((Containerable) value);
+					((Containerable) value).asPrismContainerValue().applyDefinition(definition);
+				} catch (SchemaException e) {
+					throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+				}
+				return (V) ((Containerable) value).asPrismContainerValue();
+				
+			} else if (value instanceof PrismContainerValue<?>) {
+				try {
+					prismContext.adopt((PrismContainerValue) value);
+					((PrismContainerValue) value).applyDefinition(definition);
+				} catch (SchemaException e) {
+					throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+				}
+				return (V) ((PrismContainerValue) value);
+				
+			} else {
+				throw new ExpressionEvaluationException("Expected Containerable or PrismContainerValue as expression output, got "+value.getClass());
 			}
-			return (V) ((Containerable) value).asPrismContainerValue();
+			
 		} else {
 			return (V) prismContext.itemFactory().createPropertyValue(value);
 		}

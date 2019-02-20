@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
@@ -87,7 +88,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 
 	@Override
 	protected FocusSummaryPanel<RoleType> createSummaryPanel() {
-    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
     }
 
 	@Override

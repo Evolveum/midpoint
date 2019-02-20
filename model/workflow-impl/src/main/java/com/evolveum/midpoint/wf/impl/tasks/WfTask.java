@@ -108,7 +108,7 @@ public class WfTask {
     }
 
     public void commitChanges(OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        task.savePendingModifications(result);
+        task.flushPendingModifications(result);
     }
 
     public void resumeTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -121,7 +121,7 @@ public class WfTask {
 
     public void setCaseOid(String oid) throws SchemaException {
 		caseOid = oid;
-        task.addModification(
+        task.modify(
                 getPrismContext().deltaFor(TaskType.class)
                         .item(F_WORKFLOW_CONTEXT, F_CASE_OID).replace(oid)
                         .asItemDelta());
@@ -129,7 +129,7 @@ public class WfTask {
 
     public void setProcessInstanceEndTimestamp() throws SchemaException {
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-        task.addModification(
+        task.modify(
                 getPrismContext().deltaFor(TaskType.class)
                         .item(F_WORKFLOW_CONTEXT, F_END_TIMESTAMP).replace(now)
                         .asItemDelta());
@@ -149,7 +149,7 @@ public class WfTask {
     }
 
     public void computeTaskResultIfUnknown(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        OperationResult taskResult = task.getResult();
+        OperationResult taskResult = WfTaskUtil.getResult(task);
         if (result.isUnknown()) {
             result.computeStatus();
         }
@@ -232,14 +232,14 @@ public class WfTask {
 	}
 
     public void setOutcome(String outcome) throws SchemaException {
-        task.addModifications(getPrismContext().deltaFor(TaskType.class)
+        task.modify(getPrismContext().deltaFor(TaskType.class)
                 .item(F_WORKFLOW_CONTEXT, F_OUTCOME).replace(outcome)
                 .asItemDeltas());
     }
 
     public void setProcessInstanceStageInformation(Integer stageNumber)
 			throws SchemaException {
-        task.addModifications(getPrismContext().deltaFor(TaskType.class)
+        task.modify(getPrismContext().deltaFor(TaskType.class)
 				.item(F_WORKFLOW_CONTEXT, F_STAGE_NUMBER).replace(stageNumber)
 				.asItemDeltas());
     }

@@ -431,6 +431,10 @@ public class BasicExpressionFunctions {
         }
         return whateverString.isEmpty();
     }
+    
+    public PrismContext getPrismContext() {
+    	return prismContext;
+    }
 
     public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {
         return getExtensionPropertyValues(object, new javax.xml.namespace.QName(namespace, localPart));

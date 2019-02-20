@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 	@Override
 	protected void assertFinishedPropagationTask(Task finishedTask, OperationResultStatusType expectedStatus) {
 		super.assertFinishedPropagationTask(finishedTask, expectedStatus);
-		SearchFilterType filterType = finishedTask.getTaskType().getObjectRef().getFilter();
+		SearchFilterType filterType = finishedTask.getObjectRef().getFilter();
 		display("Propagation task filter", filterType);
 		
 		assertEquals("Unexpected propagation task progress", 1, finishedTask.getProgress());

@@ -1,0 +1,264 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<dashboard oid="e159a3ac-1d8a-11e9-83b6-e79f71fe88b7"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>System Status Dashboard</name>
+    <display>
+    	<!-- May be also given by archetype ... and display may be part of ObjectType later. -->
+    	<icon>...</icon>
+    </display>
+    <layout> <!-- TODO: dynamic grid, static grid, ... --></layout>
+    
+    <!-- Default visibility of all UI features is automatic, therefore we do not need to set it here. But we can change it if needed.
+    <defaultWidgetVisibility>automatic</defaultWidgetVisibility>
+    -->
+    
+    <widget>
+    	<identifier>audit-recent-errors</<identifier>
+    	
+    	<!-- Description is NOT displayed in anywhere the widget. It is just a comment for system admin. -->
+    	<description>Widget that shows recent errors. Data are taken from audit log.</description>
+    	
+    	<display>
+    		<label>Recent errors</label>
+    		<color>green</color>
+    		<icon>
+    			<cssClass>fa fa-ban</cssClass>
+    		</icon>
+    	</display>
+    	
+    	<data>
+    		<sourceType>auditSearch</sourceType>
+    		<auditSearch> <!-- EXPERIMENTAL!!! Will be most likely moved to a separate object a la ObjectCollectionType -->
+    			<search>
+    				QUERY <!-- TODO: hql for now? change later? -->
+    			</search>
+    			<domain>
+    				QUERY <!-- TODO: hql for now? change later? -->
+    			</domain>
+    			<interval>
+    				<last>P3D</last> <!-- means: last three days -->
+    				<!-- TODO: specify from-to specific dates? expressions? -->
+    			</interval>
+    		</auditSearch>
+    	</data>
+    	
+    	<presentation>
+	    	<dataField>
+				<fieldType>value</fieldType>
+				<!-- field types: 
+						value: 12345, 50%, 123.45, running, suspended
+						unit: requests, hits/second, up, down, running
+						details: 34% increase in last 2 hours, 24h average, ... (not used now)
+						
+					We want fixed data field type, as they must be processable by widgets but also widget-based reports.
+					Each widget should, in theory, have different fields. But the reports will pack all widgets into a single table.
+					And we want table columns to be fixed. Hence fixed dataField types.
+					We may add more field types in the future if needed.  -->
+				<expression>
+					<!-- Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
+					     But this is all experimental. Later it will probably get entire AuditSearchType object. -->
+					<proportional>
+						<!-- This expression evaluator may autodetect that input is a collection. TODO -->
+						<style>percentage</style>
+						<!-- proportional styles:
+							percentage: 42%    (default?)
+							value-only: 42
+							value-slash-domain: 42/100  (maybe allow to specify separator character)
+							value-of-domain: 42 of 100  (the "of" part should be localizable)-->
+					</proportional>
+				</expression>
+			</dataField>
+			<dataField>
+				<fieldType>unit</fieldType>
+				<expression>
+					<value>failed operations</value> <!-- This can be later replaced by <localizedMessage> expression evaluator that specifies translation key. -->
+				</expression>
+			</dataField>
+			
+			<!-- Variations defined different styles of widget presentation under different conditions. -->
+			<variation>
+				<condition>
+					<!-- Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
+					     But this is all experimental. Later it will probably get entire AuditSearchType object.
+					     To be at least a bit future-proof, the value of PropoprtionalValueType is in variable "proportional".
+					     And we will still populate that variable with IntegerStatType later. Therefore this script should work even in the future. -->
+					<script>
+						<code>proportional.getPercentage() > 5</code>
+					</script>
+				</condition>
+				<display>
+					<color>red</color>
+				</display>
+			</variation>
+		</presentation>
+    	
+    </widget>
+    
+    <widget>
+    	<!-- Identifier can be used to override widget specification in adminGuiConfig -->
+    	<!-- Some identifiers may even be hardcoded, e.g. end-user home widgets. -->
+    	<identifier>resources-up</<identifier>
+    	
+    	<description>Widget that shows all the resources that are up. Based on "Resources Up" object collection.</description>
+    	
+    	<display>
+    		<label>Resources</label>
+    		<!-- Color of default state of the widget. Unless there is warning/error we want this widget to be green.
+    		     This is different than icon color. -->
+    		<color>green</color>
+    		<icon>
+    			<cssClass>fa fa-database</cssClass>
+    			<!-- No need to define default widget color here.
+    			     The widget points to ResourceType collection. Therefore system could provide default
+    			     color for ResourceType as a color here.
+    			     But even that does not make much sense in the 4.0 default widgets. Icon color is not applied at all.
+    			     Only widget color matters. -->
+    		</icon>
+		</display>
+		
+		<data>
+			<sourceType>objectCollection</sourceType>
+			<!-- types: objectCollection, auditSearch, object, assignment, projection -->
+			<collection>
+				<collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="ObjectCollectionType"/> <!-- Collection: Resources Up -->
+			</collection>
+			<!-- "Resources Up" collection defines a domain. 
+			     Therefore we know that we need to count the resources that are up and compare that to the number of all resources.
+			     No need to define the domain here.
+			     -->
+		</data>
+		
+		<presentation>
+			<!-- TODO (later): widget style: info-box-light, info-box-dark, small-box, form, ... -->
+			<!-- TODO: form reference might be here. -->
+		
+			<dataField>
+				<fieldType>value</fieldType>
+				<expression>
+					<!-- expression gets ObjectCollectionType as an input. That contains IntegerStatType - either computed or cached. -->
+					<proportional>
+						<!-- This expression evaluator may autodetect that input is a ObjectCollectionType and find IntegerStatType inside. -->
+						<!-- If used with other objects, we can always add explicit <path> specification here. -->
+						<style>percentage</style>
+					</proportional>
+				</expression>
+			</dataField>
+			<dataField>
+				<fieldType>units</fieldType>
+				<expression>
+					<value>resources up and running</value>
+				</expression>
+			</dataField>
+			<!-- In the default widget style, the value and units is combined into text "99% resources up and running". Label is automatically derived from DisplayType. -->
+			
+	
+			<!-- Variations defined different styles of widget presentation under different conditions. -->
+			<variation>
+				<condition>
+					<!-- This condition relies on policySituation, as this is consistent with the policy rules.
+					     But we can have condition that directly queries IntegerStatType, e.g. to change color to yellow for warning. -->
+					<filter>
+						<equal>
+							<path>policySituation</path>
+							<value>#resourceHealthDanger</value>
+						</equal>
+					</filter>
+				</condition>
+				<display>
+					<color>red</color>
+				</display>
+			</variation>
+			<!-- For now the conditions should be mutually exclusive, so at most one variation is active. But we can perhaps improve on that later. -->
+		</presentation>
+		
+		<!-- We might want to define actions here. E.g. what to do when the widget is clicked. Or maybe some widgets may have small buttons to
+		     invoke actions, such as resume task, retry operations, refresh, etc. -->
+		<!-- But we do not need to define any explicit actions here. This is collection-based widget. Default action is to show the collection. -->
+		
+	</widget>
+	
+	<widget>
+    	<identifier>hr-sync</<identifier>
+    	
+    	<description>Widget that shows status of HR sync task.</description>
+    	
+    	<display>
+    		<label>HR synchronization</label>
+    		<color>red</color>
+    		<icon>
+    			<cssClass>fa fa-sync</cssClass>
+    		</icon>
+		</display>
+		
+		<widgetType>object</widgetType>
+		
+		<data>
+			<objectRef oid="846f6afe-22ea-11e9-86e2-3332ff1b6f50" type="TaskType"/> <!-- HR sync task -->
+		</data>
+		     
+		<dataField>
+			<fieldType>value</fieldType>
+			<expression>
+				<!-- expression gets object (TaskType) as an input -->
+				<path>executionStatus</path>
+			</expression>
+		</dataField>
+		
+		<variation>
+			<condition>
+				<filter>
+					<equal>
+						<path>executionStatus</path>
+						<value>runnable</value>
+					</equal>
+				</filter>
+			</condition>
+			<display>
+				<color>green</color>
+			</display>
+		</variation>
+		
+		<!-- No actions. Default click action is to open object details. -->
+		
+	</widget>
+	
+	<widget>
+    	<identifier>my-assignments</<identifier>
+    	
+    	<!-- WARNING: VERY EXPERIMENTAL ... just some very preliminary thoughts -->
+    	
+    	<description>Widget that shows assignments of a logged-in user. Very small table that lists the assignments in a couple of columns.</description>
+    	
+    	<display>
+    		<label>My assignments</label>
+		</display>
+		
+		<data>
+			<sourceType>assignments</sourceType>
+			<!-- some kind of "filter" that will specify that we want to display all assignments of current user -->
+		</data>
+		     
+		<!-- No dataField here. They make no sense. We need to specify columns, paging, sorting and so on. Maybe reuse the elements from view? -->
+				
+	</widget>
+	
+	<!-- adminGuiConfig may add additional widgets to this dashboard. Or it may redefine some aspects of widgets defined here (e.g. their visibility) -->
+	
+</dashboard>

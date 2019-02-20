@@ -464,8 +464,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public boolean isIdentifier(ResourceAttributeContainerDefinition objectDefinition) {
-		return refinedAttributeDefinition.isIdentifier(objectDefinition);
+	public boolean isPrimaryIdentifier(ResourceAttributeContainerDefinition objectDefinition) {
+		return refinedAttributeDefinition.isPrimaryIdentifier(objectDefinition);
 	}
 
 	@Override
@@ -495,8 +495,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public boolean isIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
-		return refinedAttributeDefinition.isIdentifier(objectDefinition);
+	public boolean isPrimaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
+		return refinedAttributeDefinition.isPrimaryIdentifier(objectDefinition);
 	}
 
 	@Override
@@ -520,8 +520,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public boolean isSecondaryIdentifier() {
-		return refinedAttributeDefinition.isSecondaryIdentifier();
+	public Boolean isSecondaryIdentifierOverride() {
+		return refinedAttributeDefinition.isSecondaryIdentifierOverride();
 	}
 
 	@Override

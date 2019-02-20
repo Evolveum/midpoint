@@ -17,6 +17,7 @@ package com.evolveum.midpoint.provisioning.impl.task;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.task.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,10 +26,6 @@ import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -74,7 +71,7 @@ public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHand
     }
     
     @Override
-	protected MultiPropagationResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
+	protected MultiPropagationResultHandler createHandler(TaskRunResult runResult, RunningTask coordinatorTask,
 			OperationResult opResult) {
     	
     	MultiPropagationResultHandler handler = new MultiPropagationResultHandler(coordinatorTask, getTaskOperationPrefix(), taskManager, repositoryService, shadowCache);

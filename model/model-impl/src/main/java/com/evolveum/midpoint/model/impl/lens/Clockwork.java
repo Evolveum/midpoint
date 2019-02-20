@@ -26,15 +26,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -63,7 +61,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptExecutor;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleStopExecutor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -80,8 +78,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -93,11 +89,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -165,7 +156,7 @@ public class Clockwork {
 	@Autowired private Migrator migrator;
 	@Autowired private ClockworkMedic medic;
 	@Autowired private PolicyRuleScriptExecutor policyRuleScriptExecutor;
-	@Autowired private PolicyRuleStopExecutor policyRuleStopExecutor;
+	@Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
 	@Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
 	
 	@Autowired(required = false)
@@ -258,7 +249,7 @@ public class Clockwork {
 				}
 			}
 
-			policyRuleStopExecutor.execute(context, task, result);
+			policyRuleSuspendTaskExecutor.execute(context, task, result);
 			
 		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
 				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
@@ -682,11 +673,11 @@ public class Clockwork {
 		switchState(context, ModelState.PRIMARY);
 	}
 
-	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException {
+	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException, ObjectNotFoundException, SchemaException {
 		// Nothing to do now. The context is already recomputed.
 		switchState(context, ModelState.SECONDARY);
 		
-		policyRuleStopExecutor.execute(context, task, result);
+		policyRuleSuspendTaskExecutor.execute(context, task, result);
 		
 	}
 
@@ -989,11 +980,11 @@ public class Clockwork {
 
 	private void setOperationContext(OperationExecutionType operation,
 			OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task) {
-		if (task.getParentForLightweightAsynchronousTask() != null) {
-			task = task.getParentForLightweightAsynchronousTask();
+		if (task instanceof RunningTask && ((RunningTask) task).getParentForLightweightAsynchronousTask() != null) {
+			task = ((RunningTask) task).getParentForLightweightAsynchronousTask();
 		}
 		if (task.isPersistent()) {
-			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject(), prismContext));
+			operation.setTaskRef(task.getSelfReference());
 		}
 		operation.setStatus(overallStatus);
 		operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));		// TODO what if the real initiator is different? (e.g. when executing approved changes)

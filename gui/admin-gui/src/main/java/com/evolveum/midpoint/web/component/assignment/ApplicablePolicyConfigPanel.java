@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -71,12 +71,11 @@ public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapper<Assi
                 List<ObjectReferenceType> policyGroupsList = new ArrayList<>();
                 OperationResult result = new OperationResult(OPERATION_LOAD_SYS_CONFIG);
                 try {
-                	ArchetypeInteractionSpecification archetypeSpec = getPageBase().getModelInteractionService().getInteractionSpecification(getMainPanelFocusObject(), result);
-                    if (archetypeSpec == null){
+                	ArchetypePolicyType archetypePolicy = getPageBase().getModelInteractionService().determineArchetypePolicy(getMainPanelFocusObject(), result);
+                    if (archetypePolicy == null){
                         return policyGroupsList;
                     } else {
-                    	ArchetypePolicyType archetypePolicy = archetypeSpec.getArchetypePolicy();
-                        if (archetypePolicy != null && archetypePolicy.getApplicablePolicies() != null){
+                        if (archetypePolicy.getApplicablePolicies() != null) {
                             return archetypePolicy.getApplicablePolicies().getPolicyGroupRef();
                         }
                     }

@@ -93,7 +93,7 @@ public class BaseHelper {
 
 		if (getConfiguration().getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
 			LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
-			session.doWork(connection -> connection.createStatement().execute("SET TRANSACTION ISOLATION LEVEL SNAPSHOT"));
+			session.doWork(connection -> RUtil.executeStatement(connection,"SET TRANSACTION ISOLATION LEVEL SNAPSHOT"));
 		}
 
 		if (readOnly) {
@@ -102,7 +102,7 @@ public class BaseHelper {
 			session.setHibernateFlushMode(FlushMode.MANUAL);
 
 			LOGGER.trace("Marking transaction as read only.");
-				session.doWork(connection -> connection.createStatement().execute("SET TRANSACTION READ ONLY"));
+				session.doWork(connection -> RUtil.executeStatement(connection, "SET TRANSACTION READ ONLY"));
 		}
 		return session;
 	}

@@ -18,14 +18,12 @@ package com.evolveum.midpoint.task.api;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -52,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
  * - A setter (set<property-name>) writes data to the in-memory representation, and prepares a PropertyDelta to be
  *   written into repository later (of course, only for persistent tasks).
  *
- * PropertyDeltas should be then written by calling savePendingModifications method.
+ * PropertyDeltas should be then written by calling flushPendingModifications method.
  *
  * In case you want to write property change into the repository immediately, you have to use
  * set<property-name>Immediate method. In that case, the property change does not go into
@@ -64,6 +62,8 @@ import org.jetbrains.annotations.Nullable;
  *
  */
 public interface Task extends DebugDumpable, StatisticsCollector {
+
+	String DOT_INTERFACE = Task.class.getName() + ".";
 
     // =================================================================== Basic information (ID, owner)
 
@@ -144,7 +144,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void setDescriptionImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
-     * Gets the policy rule defined for the task
+     * Gets the policy rule defined for the task (for running task the returned value is a clone).
      */
     PolicyRuleType getPolicyRule();
 
@@ -218,17 +218,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     String getNodeAsObserved();
 
-    /**
-     * Returns true if the task can run (was not interrupted).
-     *
-     * Will return false e.g. if shutdown was signaled.
-     *
-     * BEWARE: this flag is present only on the instance of the task that is being "executed", i.e. passed to
-     * task execution routine and task handler(s).
-     *
-     * @return true if the task can run
-     */
-    boolean canRun();
 
 
     // =================================================================== Persistence and asynchrony
@@ -286,7 +275,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	/**
 	 * Checks whether the task is a cyclic (recurrent) one.
 	 */
-	boolean isCycle();
+	boolean isRecurring();
 
     /**
      * Makes a task recurring, with a given schedule.
@@ -530,42 +519,50 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * business state or similar data that are out of scope of this
      * interface definition.
      *
+     * To maintain thread safety, for RunningTask this method returns extension clone.
+     * (So don't use the return value to modify the task extension.)
+     *
      * @return task extension
      */
-    <C extends Containerable> PrismContainer<C> getExtension();
+    PrismContainer<? extends ExtensionType> getExtension();
+    PrismContainer<? extends ExtensionType> getExtensionClone();
+
+    boolean hasExtension();
 
     /**
      * Returns specified property from the extension
      * @param propertyName
      * @return null if extension or property does not exist.
      */
-    <T> PrismProperty<T> getExtensionProperty(QName propertyName);
+    <T> PrismProperty<T> getExtensionProperty(ItemName propertyName);
 
     /**
      * Returns specified single-valued property real value from the extension
      * @param propertyName
      * @return null if extension or property does not exist.
      */
-    <T> T getExtensionPropertyRealValue(QName propertyName);
+    <T> T getExtensionPropertyRealValue(ItemName propertyName);
 
     /**
      * Returns specified single-valued container real value from the extension
-     * @param containerName
-     * @return null if extension or property does not exist.
+     * To ensure thread safety, in the case of running tasks the returned value is a clone of the live one.
+     *
+     * @return null if extension or container does not exist.
      */
-    <T extends Containerable> T getExtensionContainerRealValue(QName containerName);
+    <T extends Containerable> T getExtensionContainerRealValue(ItemName containerName);
 
     /**
      * Returns specified reference from the extension.
      * @param name
      * @return null if extension or reference does not exist.
      */
-    PrismReference getExtensionReference(QName name);
+    PrismReference getExtensionReference(ItemName name);
 
     /**
      * Returns specified item (property, reference or container) from the extension.
-     * @param propertyName
      * @return null if extension or item does not exist
+     *
+     * To maintain thread safety, for running tasks returns a clone of the original item.
      */
     <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(ItemName itemName);
 
@@ -743,7 +740,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     OperationResult getResult();
 
-    /**
+	void setResultTransient(OperationResult result);
+
+	/**
      * Returns the status of top-level OperationResult stored in the task.
      *
      * @return task operation result status
@@ -773,15 +772,16 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * Record progress of the task, storing it persistently if needed.
+     * @param value
      */
-    void setProgress(long value);
+    void setProgress(Long value);
 
     /**
      * "Immediate" version of the above method.
      */
-    void setProgressImmediate(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    void setProgressImmediate(Long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-    void setProgressTransient(long value);
+    void setProgressTransient(Long value);
 
     OperationStatsType getStoredOperationStats();
 
@@ -814,15 +814,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     Task createSubtask();
 
     /**
-     * Creates a transient subtask, ready to execute a given LightweightTaskHandler.
-     *
-     * Owner is inherited from parent task to subtask.
-     *
-     * @return
-     */
-    Task createSubtask(LightweightTaskHandler handler);
-
-    /**
      * Returns the identifier of the task's parent (or null of there is no parent task).
      * @return
      */
@@ -832,12 +823,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Returns the parent task, if any.
      */
     Task getParentTask(OperationResult result) throws SchemaException, ObjectNotFoundException;
-
-	/**
-	 * Returns the in-memory version of the parent task. Applicable only to lightweight subtasks.
-	 * EXPERIMENTAL (use with care)
-	 */
-	Task getParentForLightweightAsynchronousTask();
 
 	/**
      * Lists the (direct) subtasks of a given task.
@@ -953,6 +938,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     void setRequesteeTransient(PrismObject<UserType> user);
 
+    // not thread-safe!
 	LensContextType getModelOperationContext();
 
 	void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
@@ -965,11 +951,19 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * Returns backing task prism object.
-     * @return
+     * AVOID use of this method if possible.
+     * - for regular tasks it has to update operation result in the prism object (might be costly)
+     * - for running tasks it provides a clone of the actual prism object (even more costly and leads to lost changes
+     *   if the returned value is changed)
      */
     PrismObject<TaskType> getTaskPrismObject();
 
-    TaskType getTaskType();
+	/**
+	 * AVOID using this method for the same reasons as above.
+	 */
+	default TaskType getTaskType() {
+		return getTaskPrismObject().asObjectable();
+	}
 
 	/**
 	 * Re-reads the task state from the persistent storage.
@@ -989,8 +983,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	 * @param delta
 	 * @throws SchemaException
 	 */
-	void addModification(ItemDelta<?, ?> delta) throws SchemaException;
-	void addModifications(Collection<ItemDelta<?, ?>> deltas) throws SchemaException;
+	void modify(ItemDelta<?, ?> delta) throws SchemaException;
+	void modify(Collection<ItemDelta<?, ?>> deltas) throws SchemaException;
 
     /**
      * Changes in-memory and in-repo representations immediately.
@@ -998,12 +992,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @param parentResult
      * @throws SchemaException
      */
-    void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+    void modifyAndFlush(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
     /**
      * Saves modifications done against the in-memory version of the task into the repository.
      */
-	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
+	void flushPendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException, ObjectAlreadyExistsException;
 
     /**
@@ -1012,47 +1006,18 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     Collection<ItemDelta<?,?>> getPendingModifications();
 
-    LightweightTaskHandler getLightweightTaskHandler();
-
-    boolean isLightweightAsynchronousTask();
-
-    Set<? extends Task> getLightweightAsynchronousSubtasks();
-
-    Set<? extends Task> getRunningLightweightAsynchronousSubtasks();
-
-    boolean lightweightHandlerStartRequested();
-
-    /**
-     * Starts execution of a transient task carrying a LightweightTaskHandler.
-     * (just a shortcut to analogous call in TaskManager)
-     */
-    void startLightweightHandler();
-
-	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy);
-
-	void storeOperationStatsDeferred();
-
-	void storeOperationStats();
-
-    // stores operation statistics if the time has come
-    void storeOperationStatsIfNeeded();
-
-    Long getLastOperationStatsUpdateTimestamp();
-
-    void setOperationStatsUpdateInterval(long interval);
-
-    long getOperationStatsUpdateInterval();
-
+    // not thread-safe!
     WfContextType getWorkflowContext();
 
 	void setWorkflowContext(WfContextType context) throws SchemaException;
 
-	void incrementProgressAndStoreStatsIfNeeded();
-
+	// TODO move into RunningTask?
 	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+	// not thread-safe!
 	TaskWorkManagementType getWorkManagement();
 
+	// not thread-safe!
 	TaskWorkStateType getWorkState();
 
 	TaskKindType getKind();
@@ -1064,4 +1029,20 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	boolean isPartitionedMaster();
 
 	String getExecutionGroup();
+
+	/**
+	 * Gets information from the current task and - for running task - its transient subtasks (aka worker threads).
+	 */
+	OperationStatsType getAggregatedLiveOperationStats();
+
+	ObjectReferenceType getSelfReference();
+
+	String getVersion();
+
+	// not thread-safe!
+	Collection<? extends TriggerType> getTriggers();
+
+	Collection<? extends AssignmentType> getAssignments();
+
+	ObjectReferenceType getOwnerRef();
 }

@@ -74,7 +74,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
     private String description;
     private boolean isDefault;
     private boolean shared = true;			// experimental
-    @NotNull private final List<RefinedAttributeDefinition<?>> identifiers = new ArrayList<>();
+    @NotNull private final List<RefinedAttributeDefinition<?>> primaryIdentifiers = new ArrayList<>();
 	@NotNull private final List<RefinedAttributeDefinition<?>> secondaryIdentifiers = new ArrayList<>();
 	@NotNull private final List<ResourceObjectPattern> protectedObjectPatterns = new ArrayList<>();
 	private ResourceObjectReferenceType baseContext;
@@ -138,7 +138,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	@NotNull
 	@Override
 	public Collection<RefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
-		return identifiers;
+		return primaryIdentifiers;
 	}
 
 	@NotNull
@@ -599,7 +599,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		clone.displayName = this.displayName;
 		clone.description = this.description;
 		clone.isDefault = this.isDefault;
-		clone.identifiers.addAll(cloneDefinitions(this.identifiers));
+		clone.primaryIdentifiers.addAll(cloneDefinitions(this.primaryIdentifiers));
 		clone.secondaryIdentifiers.addAll(cloneDefinitions(this.secondaryIdentifiers));
 		clone.protectedObjectPatterns.addAll(this.protectedObjectPatterns);
 		clone.baseContext = this.baseContext;
@@ -1091,10 +1091,16 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	private void processIdentifiers(RefinedAttributeDefinition rAttrDef, ObjectClassComplexTypeDefinition objectClassDef) {
 		QName attrName = rAttrDef.getName();
+		
 		if (objectClassDef.isPrimaryIdentifier(attrName)) {
 			((Collection)getPrimaryIdentifiers()).add(rAttrDef);
 		}
-		if (objectClassDef.isSecondaryIdentifier(attrName) || rAttrDef.isSecondaryIdentifier()) {
+		
+		if (rAttrDef.isSecondaryIdentifierOverride() == null) {
+			if (objectClassDef.isSecondaryIdentifier(attrName)) {
+				((Collection)getSecondaryIdentifiers()).add(rAttrDef);
+			}
+		} else if (rAttrDef.isSecondaryIdentifierOverride()) {
 			((Collection)getSecondaryIdentifiers()).add(rAttrDef);
 		}
 	}
@@ -1203,7 +1209,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
 		result = prime * result
 				+ ((displayNameAttributeDefinition == null) ? 0 : displayNameAttributeDefinition.hashCode());
-		result = prime * result + ((identifiers == null) ? 0 : identifiers.hashCode());
+		result = prime * result + ((primaryIdentifiers == null) ? 0 : primaryIdentifiers.hashCode());
 		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
 		result = prime * result + (isDefault ? 1231 : 1237);
 		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
@@ -1266,11 +1272,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		} else if (!displayNameAttributeDefinition.equals(other.displayNameAttributeDefinition)) {
 			return false;
 		}
-		if (identifiers == null) {
-			if (other.identifiers != null) {
+		if (primaryIdentifiers == null) {
+			if (other.primaryIdentifiers != null) {
 				return false;
 			}
-		} else if (!identifiers.equals(other.identifiers)) {
+		} else if (!primaryIdentifiers.equals(other.primaryIdentifiers)) {
 			return false;
 		}
 		if (intent == null) {

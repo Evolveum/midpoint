@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -180,7 +182,7 @@ public class TaskSynchronizer {
      *
      * @return true if task info in Quartz was updated
      */
-    public boolean synchronizeTask(TaskQuartzImpl task, OperationResult parentResult) {
+    public boolean synchronizeTask(Task task, OperationResult parentResult) {
 
         if (!task.isPersistent()) {
             return false;               // transient tasks are not scheduled via Quartz!
@@ -194,7 +196,7 @@ public class TaskSynchronizer {
 
         try {
 
-            LOGGER.trace("Synchronizing task {}; isRecreateQuartzTrigger = {}", task, task.isRecreateQuartzTrigger());
+            LOGGER.trace("Synchronizing task {}; isRecreateQuartzTrigger = {}", task, isRecreateQuartzTrigger(task));
 
             Scheduler scheduler = taskManager.getExecutionManager().getQuartzScheduler();
             String oid = task.getOid();
@@ -268,7 +270,7 @@ public class TaskSynchronizer {
                     } else {
                         // we have to compare trigger parameters with the task's ones
                         Trigger triggerAsIs = scheduler.getTrigger(standardTriggerKey);
-						if (task.isRecreateQuartzTrigger() || TaskQuartzImplUtil.triggersDiffer(triggerAsIs, triggerToBe)) {
+						if (isRecreateQuartzTrigger(task) || TaskQuartzImplUtil.triggersDiffer(triggerAsIs, triggerToBe)) {
                             String m1 = "Existing trigger has incompatible parameters or was explicitly requested to be recreated; recreating it. Task = " + task;
                             LOGGER.trace(" - " + m1);
                             message += "[" + m1 + "] ";
@@ -302,6 +304,10 @@ public class TaskSynchronizer {
         }
 
         return changed;
+    }
+
+    private boolean isRecreateQuartzTrigger(Task task) {
+        return ((InternalTaskInterface) task).isRecreateQuartzTrigger();
     }
 
     private RepositoryService getRepositoryService() {

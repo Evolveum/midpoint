@@ -30,17 +30,20 @@ import java.util.Arrays;
 public class BaseMenuItem implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+    public static final String F_ICON_CLASS = "iconClass";
+
 	private IModel<String> nameModel;
     private Class<? extends WebPage> pageClass;
     private PageParameters params;
     private VisibleEnableBehaviour visibleEnable;
     private Class<? extends WebPage>[] aliases;
+    private String iconClass;
 
     public BaseMenuItem(IModel<String> name, Class<? extends WebPage> page) {
-        this(name, page, null, null);
+        this(name, "", page, null, null);
     }
 
-    public BaseMenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass,
+    public BaseMenuItem(IModel<String> nameModel, String iconClass, Class<? extends WebPage> pageClass,
                         PageParameters params, VisibleEnableBehaviour visibleEnable,
                         Class<? extends WebPage>... aliases) {
         this.aliases = aliases;
@@ -48,6 +51,7 @@ public class BaseMenuItem implements Serializable {
         this.pageClass = pageClass;
         this.params = params;
         this.visibleEnable = visibleEnable;
+        this.iconClass = iconClass;
     }
 
     /**
@@ -71,6 +75,10 @@ public class BaseMenuItem implements Serializable {
 
     public VisibleEnableBehaviour getVisibleEnable() {
         return visibleEnable;
+    }
+
+    public String getIconClass() {
+        return iconClass;
     }
 
     public boolean isMenuActive(WebPage page) {

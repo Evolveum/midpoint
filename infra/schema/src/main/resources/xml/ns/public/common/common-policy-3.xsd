@@ -235,6 +235,28 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="collectionStats" type="tns:CollectionStatsPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Constraints for collection stats (statistics). Can be used to trigger policy
+									rules on the number of objects in collection, percentage and so on.
+								</p>
+								<p>
+									Policy rules with this constraint are ignored during normal processing.
+									Evaluation of such policy rules require special handling (e.g. scanner task).
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.collectionStats</a:displayName>
+									<a:help>PolicyConstraintsType.collectionStats.help</a:help>
+									<a:since>4.0</a:since>
+									<a:experimental>true</a:experimental>
+								</xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -1126,6 +1148,47 @@
     </xsd:complexType>
     <xsd:element name="situationPolicyConstraint" type="tns:PolicySituationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
+	<xsd:complexType name="CollectionStatsPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+				<p>
+					Constraints for collection stats (statistics). Can be used to trigger policy
+					rules on the number of objects in collection, percentage and so on.
+				</p>
+				<p>
+					Policy rules with this constraint are ignored during normal processing.
+					Evaluation of such policy rules require special handling (e.g. scanner task).
+				</p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="collection" type="tns:CollectionSpecificationType"  minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Refers to "itself" as a collection. This means that it interprets the object
+                                to which the rule applies as a collection. And this element specifies the 
+                                details how the collection should be interpreted. E.g. whether we mean
+                                the list of objects that ObjectCollectionType refers to by filter. Or
+                                whether we mean assignees (owners/approvers) of that object.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>CollectionStatsPolicyConstraintType.collection</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+
     <xsd:complexType name="TransitionPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1180,6 +1243,141 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="transitionPolicyConstraint" type="tns:TransitionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+ 	<xsd:complexType name="PolicyThresholdType">
+        <xsd:annotation>
+            <xsd:documentation>
+				Specifies limits when is the action executed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="lowWaterMark" type="tns:WaterMarkType" minOccurs="0">
+            	<xsd:annotation>
+                	<xsd:documentation>
+                		Lower bound of the threshold.
+                		Lowest value for which the policy rule is activated. The policy rule
+                    	will be triggered for all values starting from this value up until the
+                    	high water mark (closed interval). If no low water mark is specified then
+                    	the policy rule will be activated for all values up to the high water mark.
+                    	Policy rule with a threshold that does not have any water marks will
+                    	never be activated.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyThresholdType.lowWaterMark</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="highWaterMark" type="tns:WaterMarkType" minOccurs="0">
+            	<xsd:annotation>
+                	<xsd:documentation>
+                    	Upper bound of the threshold.
+                    	Highest value for which the policy rule is activated. The policy rule
+                    	will be triggered for all values starting from low water mark up until 
+                    	this value (closed interval). If no high water mark is specified then
+                    	the policy rule will be activated for all values that are greater than
+                    	or equal to high water mark.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyThresholdType.highWaterMark</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="timeInterval" type="tns:TimeIntervalType" minOccurs="0">
+            	<xsd:annotation>
+                	<xsd:documentation>
+                    	TODO: time interval!
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyThresholdType.timeInterval</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+     	    </xsd:element>
+			<!--  later scope,... -->
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="policyThreshold" type="tns:PolicyThresholdType"/>
+
+	<xsd:complexType name="WaterMarkType">
+        <xsd:annotation>
+            <xsd:documentation>
+				Water mark (bound). Lowest or highest value defining an interval.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="count" type="xsd:int" minOccurs="0">
+            	<xsd:annotation>
+                	<xsd:documentation>
+                    	Absolute count of objects that triggers the watermark.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WaterMarkType.count</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="percentage" type="xsd:float" minOccurs="0">
+            	<xsd:annotation>
+                	<xsd:documentation>
+                    	Relative proportion (percentage) of objects that triggers
+                    	the watermark. Value in percents (0-100). The value is relative
+                    	to the "domain". This only works if a domain is specified.
+                    	E.g. it will work for object collections with a domain or
+                    	for processes where we know total count of all processed
+                    	objects. Percentage watermarks cannot be used if domain
+                    	is not specified.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WaterMarkType.percentage</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="TimeIntervalType">
+        <xsd:annotation>
+            <xsd:documentation>
+				Water mark (bound). Lowest or highest value defining an interval.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="interval" type="xsd:duration" minOccurs="0">
+            	<xsd:annotation>
+                	<xsd:documentation>
+                    	Time interval. Interpretation of this time interval depends on the context
+                    	in which it is used. E.g. for synchronization thresholds the interval of 1 hour
+                    	usually means "number of changes in one hour interval". For dashboards it may
+                    	mean "number of errors in last hour" and so on.
+                    	If there is a danger that the interval might be misinterpreted then the
+                    	precise interpretation may be specified by using additional items in this
+                    	data structure.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TimeIntervalType.interval</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+        	</xsd:element>
+        	<!-- TODO: specify how to interpret time interval. 
+        			Whether it is periodic (every 5min), relative to present time (last 24hours),
+        			relative to other point in time (first 3hours after system start) or absolute
+        			time range. -->
+        </xsd:sequence>
+    </xsd:complexType>
+
 
     <xsd:simpleType name="PolicyConstraintEnforcementType">
         <xsd:annotation>
@@ -1400,7 +1598,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="stop" type="tns:StopPolicyActionType" minOccurs="0">
+            <xsd:element name="suspendTask" type="tns:SuspendTaskPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Stop action. This action stops the operation after n executions and results with the error.
@@ -1467,19 +1665,6 @@
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-             <xsd:element name="count" type="xsd:integer" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Action is executed after reatching the limit
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:displayName>PolicyActionType.count</a:displayName>
-						<a:help>PolicyActionType.cunt.help</a:help>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
 		<xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -1505,7 +1690,7 @@
         </xsd:complexContent>
     </xsd:complexType>
     
-     <xsd:complexType name="StopPolicyActionType">
+     <xsd:complexType name="SuspendTaskPolicyActionType">
         <xsd:annotation>
             <xsd:documentation>
                 Stop action. This action stops the operation and results with the error.

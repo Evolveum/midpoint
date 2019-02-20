@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -46,6 +48,7 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -56,6 +59,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -591,27 +595,56 @@ public class ModelImplUtils {
 	}
 
 	public static boolean isDryRun(Task task) throws SchemaException {
-		Boolean dryRun = findItemValue(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		if (dryRun == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
-			dryRun = findItemValue(task.getParentForLightweightAsynchronousTask(), SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		}
+		Boolean dryRun = findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 		return dryRun != null ? dryRun : Boolean.FALSE;
 	}
 	
 	public static boolean isSimulateRun(Task task) throws SchemaException {
-		Boolean simulate = findItemValue(task, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
-		if (simulate == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
-			simulate = findItemValue(task.getParentForLightweightAsynchronousTask(), SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
-		}
+		Boolean simulate = findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
 		return simulate != null ? simulate : Boolean.FALSE;
 	}
-	
-	static Boolean findItemValue(Task task, QName path) throws SchemaException{
+
+	public static boolean canPerformStage(String stageUri, Task task) throws SchemaException {
+		PrismObject<TaskType> taskType = task.getTaskPrismObject();
+		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
+		if (stageType == null) {
+			return false;
+		}
+
+		String stageTypeRealValue = stageType.getRealValue();
+		return stageUri.equals(stageTypeRealValue);
+	}
+
+	public static String getStageUri(Task task) {
+		PrismObject<TaskType> taskType = task.getTaskPrismObject();
+		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
+		if (stageType == null) {
+			return ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
+		}
+
+		return stageType.getRealValue();
+	}
+
+	private static Boolean findExtensionItemValueInThisOrParent(Task task, QName path) throws SchemaException {
+		Boolean value = findExtensionItemValue(task, path);
+		if (value != null) {
+			return value;
+		}
+		if (task instanceof RunningTask) {
+			RunningTask runningTask = (RunningTask) task;
+			if (runningTask.isLightweightAsynchronousTask() && runningTask.getParentForLightweightAsynchronousTask() != null) {
+				return findExtensionItemValue(runningTask.getParentForLightweightAsynchronousTask(), path);
+			}
+		}
+		return null;
+	}
+
+	private static Boolean findExtensionItemValue(Task task, QName path) throws SchemaException{
 		Validate.notNull(task, "Task must not be null.");
-		if (task.getExtension() == null) {
+		if (!task.hasExtension()) {
 			return null;
 		}
-		PrismProperty<Boolean> item = task.getExtensionProperty(path);
+		PrismProperty<Boolean> item = task.getExtensionProperty(ItemName.fromQName(path));
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
@@ -626,7 +659,7 @@ public class ModelImplUtils {
 
 	public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
 		Validate.notNull(task, "Task must not be null.");
-		if (task.getExtension() == null) {
+		if (!task.hasExtension()) {
 			return null;
 		}
 		//LOGGER.info("Task:\n{}",task.debugDump(1));
@@ -716,6 +749,9 @@ public class ModelImplUtils {
 	
 		if (affectedElementContext != null) {
 			variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, affectedElementContext.getOperation().getValue());
+			// We do not want to add delta to all expressions. The delta may be tricky. Is it focus delta? projection delta? Primary? Secondary?
+			// It is better to leave delta to be accessed from the model context. And in cases when it is clear which delta is meant
+			// (e.g. provisioning scripts) we can still add the delta explicitly.
 		}
 	}
 
@@ -806,7 +842,7 @@ public class ModelImplUtils {
 	SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 		CriticalityType criticality;
 		if (resourceType == null) {
-			throwException(e, result);
+			RepoCommonUtils.throwException(e, result);
 			return CriticalityType.FATAL; // not reached
 		} else {
 			ErrorSelectorType errorSelector = ResourceTypeUtil.getConnectorErrorCriticality(resourceType);
@@ -825,62 +861,8 @@ public class ModelImplUtils {
 				criticality = ExceptionUtil.getCriticality(errorSelector, e, CriticalityType.FATAL);
 			}
 		}
-		switch (criticality) {
-			case FATAL:
-				LOGGER.debug("Exception {} criticality set as FATAL in {}, stopping evaluation; exception message: {}", e.getClass().getSimpleName(), resourceType, e.getMessage());
-				LOGGER.error("Fatal error while processing projection on {}: {}", resourceType, e.getMessage(), e);
-				throwException(e, result);
-				break; // not reached
-			case PARTIAL:
-				LOGGER.debug("Exception {} criticality set as PARTIAL in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), resourceType, e.getMessage());
-				if (result != null) {
-					result.recordPartialError(e);
-				}
-				LOGGER.warn("Partial error while processing projection on {}: {}", resourceType, e.getMessage(), e);
-				break;
-			case IGNORE:
-				LOGGER.debug("Exception {} criticality set as IGNORE in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), resourceType, e.getMessage());
-				if (result != null) {
-					result.recordHandledError(e);
-				}
-				LOGGER.debug("Ignored error while processing projection on {}: {}", resourceType, e.getMessage(), e);
-				break;
-		}
+		RepoCommonUtils.processErrorCriticality(resourceType, criticality, e, result);
 		return criticality;
-	}
-
-	static void throwException(Throwable e, OperationResult result) 
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
-				SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-				PreconditionViolationException {
-		if (result != null) {
-			result.recordFatalError(e);
-		}
-		if (e instanceof RuntimeException) {
-			throw (RuntimeException)e;
-		} else if (e instanceof Error) {
-			throw (Error)e;
-		} else if (e instanceof ObjectNotFoundException) {
-			throw (ObjectNotFoundException)e;
-		} else if (e instanceof CommunicationException) {
-			throw (CommunicationException)e;
-		} else if (e instanceof SchemaException) {
-			throw (SchemaException)e;
-		} else if (e instanceof ConfigurationException) {
-			throw (ConfigurationException)e;
-		} else if (e instanceof SecurityViolationException) {
-			throw (SecurityViolationException)e;
-		} else if (e instanceof PolicyViolationException) {
-			throw (PolicyViolationException)e;
-		} else if (e instanceof ExpressionEvaluationException) {
-			throw (ExpressionEvaluationException)e;
-		} else if (e instanceof ObjectAlreadyExistsException) {
-			throw (ObjectAlreadyExistsException)e;
-		} else if (e instanceof PreconditionViolationException) {
-			throw (PreconditionViolationException)e;
-		} else {
-			throw new SystemException(e.getMessage(), e);
-		}
 	}
 
 }

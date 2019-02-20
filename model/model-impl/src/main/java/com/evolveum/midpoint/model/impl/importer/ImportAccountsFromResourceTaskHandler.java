@@ -23,7 +23,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,7 +39,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -45,11 +46,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -147,7 +143,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         	PrismProperty<QName> objectclassProp = objectclassPropertyDefinition.instantiate();
         	objectclassProp.setRealValue(objectclass);
         	task.setExtensionProperty(objectclassProp);
-        	task.savePendingModifications(result);		// just to be sure (if the task was already persistent)
+        	task.flushPendingModifications(result);		// just to be sure (if the task was already persistent)
 //          task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
@@ -174,7 +170,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     }
 
 	@Override
-	protected SynchronizeAccountResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
+	protected SynchronizeAccountResultHandler createHandler(TaskRunResult runResult, RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
@@ -182,22 +178,29 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 			return null;
 		}
 
-        return createHandler(resource, null, runResult, coordinatorTask, opResult);
-	}
-
-    // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
-	private SynchronizeAccountResultHandler createHandler(ResourceType resource, PrismObject<ShadowType> shadowToImport,
-			TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
-
-		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, coordinatorTask, opResult);
+		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, null, runResult, coordinatorTask, opResult);
 		if (objectClass == null) {
 			return null;
 		}
+        return createHandler(resource, objectClass, coordinatorTask);
+	}
 
+    // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
+	private SynchronizeAccountResultHandler createHandlerForSingleShadow(@NotNull ResourceType resource, @NotNull PrismObject<ShadowType> shadowToImport,
+			TaskRunResult runResult, RunningTask task, OperationResult opResult) {
+		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, task, opResult);
+		if (objectClass == null) {
+			return null;
+		}
+		return createHandler(resource, objectClass, task);
+	}
+
+	private SynchronizeAccountResultHandler createHandler(@NotNull ResourceType resource, @NotNull ObjectClassComplexTypeDefinition objectClass,
+			RunningTask coordinatorTask) {
         LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
 
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
-                coordinatorTask, changeNotificationDispatcher, taskManager);
+                coordinatorTask, changeNotificationDispatcher, null, taskManager);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
         handler.setStopOnError(false);
@@ -299,7 +302,8 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 
     	// Create a result handler just for one object. Invoke the handle() method manually.
     	TaskRunResult runResult = new TaskRunResult();
-		SynchronizeAccountResultHandler resultHandler = createHandler(resource.asObjectable(), shadow, runResult, task, parentResult);
+    	RunningTask fakeRunningTask = taskManager.createFakeRunningTask(task);
+		SynchronizeAccountResultHandler resultHandler = createHandlerForSingleShadow(resource.asObjectable(), shadow, runResult, fakeRunningTask, parentResult);
 		if (resultHandler == null) {
 			return false;
 		}
@@ -316,7 +320,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 			return false;
 		}
 
-		finish(resultHandler, runResult, task, parentResult);
+		finish(resultHandler, runResult, fakeRunningTask, parentResult);
 
 		return true;
     }

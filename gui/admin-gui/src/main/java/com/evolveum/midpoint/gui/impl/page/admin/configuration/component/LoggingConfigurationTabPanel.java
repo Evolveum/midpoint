@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -88,7 +89,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<LoggingConfigurationType>> {
+public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePanel<ContainerWrapper<LoggingConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -127,7 +128,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     			new ContainerWrapperFromObjectWrapperModel<ClassLoggerConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER));
 
     	
-    	MultivalueContainerListPanel<ClassLoggerConfigurationType> loggersMultivalueContainerListPanel = new MultivalueContainerListPanel<ClassLoggerConfigurationType>(ID_LOGGERS, loggerModel,
+    	MultivalueContainerListPanel<ClassLoggerConfigurationType, S> loggersMultivalueContainerListPanel =
+				new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, loggerModel,
     			tableIdLoggers, pageStorageLoggers) {
 			
 			private static final long serialVersionUID = 1L;
@@ -203,7 +205,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel =
     			new ContainerWrapperFromObjectWrapperModel<AppenderConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER));
 
-    	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appendersMultivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>(ID_APPENDERS, appenderModel,
+    	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel =
+				new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, appenderModel,
     			tableIdAppenders, pageStorageAppenders) {
 			
 			private static final long serialVersionUID = 1L;
@@ -424,7 +427,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     
     
     protected void newAppendersClickPerformed(AjaxRequestTarget target) {
-    	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appenders = (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>) get(ID_APPENDERS);
+    	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appenders
+				= (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>) get(ID_APPENDERS);
     	DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getItemTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM ,ID_APPENDERS_CHOICE));
     	PrismContainerValue<AppenderConfigurationType> newObjectPolicy = null;
     	if(QNameUtil.match(appendersChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)){
@@ -443,7 +447,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     
     private MultivalueContainerDetailsPanel<AppenderConfigurationType> getAppendersMultivalueContainerDetailsPanel(
 			ListItem<ContainerValueWrapper<AppenderConfigurationType>> item) {
-    	MultivalueContainerDetailsPanel<AppenderConfigurationType> detailsPanel = new  MultivalueContainerDetailsPanel<AppenderConfigurationType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+    	MultivalueContainerDetailsPanel<AppenderConfigurationType> detailsPanel =
+				new  MultivalueContainerDetailsPanel<AppenderConfigurationType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -492,12 +497,12 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 	    return header;
 	}
     
-	private MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> getAppendersMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>)get(ID_APPENDERS));
+	private MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> getAppendersMultivalueContainerListPanel(){
+		return ((MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>)get(ID_APPENDERS));
 	}
 	
-	private MultivalueContainerListPanel<ClassLoggerConfigurationType> getLoggersMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanel<ClassLoggerConfigurationType>)get(ID_LOGGERS));
+	private MultivalueContainerListPanel<ClassLoggerConfigurationType, S> getLoggersMultivalueContainerListPanel(){
+		return ((MultivalueContainerListPanel<ClassLoggerConfigurationType, S>)get(ID_LOGGERS));
 	}
 
     private void initAppenderPaging() {

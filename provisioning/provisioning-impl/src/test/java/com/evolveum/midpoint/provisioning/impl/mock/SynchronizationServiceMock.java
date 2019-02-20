@@ -178,7 +178,7 @@ public class SynchronizationServiceMock implements ResourceObjectChangeListener,
 	    	
 	    	Validate.notNull(task, "Task must not be null.");
 	    	
-	    	if (task.getExtension() == null){
+	    	if (!task.hasExtension()) {
 	    		return false;
 	    	}
 			

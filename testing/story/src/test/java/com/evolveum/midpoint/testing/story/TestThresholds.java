@@ -30,20 +30,30 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathImpl;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.test.asserter.PrismObjectAsserter;
+import com.evolveum.midpoint.test.asserter.FocusAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -73,6 +83,7 @@ public class TestThresholds extends AbstractStoryTest {
 	private static final String ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID = "00000000-role-0000-0000-999111111223";
 
 	private PrismObject<ResourceType> resourceOpenDj;
+
 	
 	private static int defaultLdapUsers = 3;
 	
@@ -96,28 +107,28 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		repoAddObjectFromFile(ROLE_POLICY_RULE_CREATE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_POLICY_RULE_CHANGE_ACTIVATION_FILE, initResult);
+		
+		repoAddObjectFromFile(TASK_RECONCILE_OPENDJ_FILE, initResult);
 
 	}
 	
 	@Test
-	public void test100startReconSimulateTask() throws Exception {
-		final String TEST_NAME = "test100startReconSimulateTask";
+	public void test100assignPolicyRuleCreateToTask() throws Exception {
+		final String TEST_NAME = "test100assignPolicyRuleCreateToTask";
 		displayTestTitle(TEST_NAME);
-		
-		assertUsers(getNumberOfUsers());
-		
+
 		// WHEN
-        displayWhen(TEST_NAME);
-        
-        importObjectFromFile(TASK_RECONCILE_OPENDJ_FILE);
-        
-        // THEN
-		displayThen(TEST_NAME);
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		assignRole(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CREATE_OID, task, result);
 		
-		waitForTaskStart(TASK_RECONCILE_OPENDJ_OID, true);
+		//THEN
+		PrismObject<TaskType> taskAfter = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);
+		display("Task after:", taskAfter);
+		assertAssignments(taskAfter, 1);
+		assertAssigned(taskAfter, ROLE_POLICY_RULE_CREATE_OID, RoleType.COMPLEX_TYPE);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);		
 		
-		assertUsers(getNumberOfUsers());
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
 	}
 	
 	@Test
@@ -125,12 +136,15 @@ public class TestThresholds extends AbstractStoryTest {
 		final String TEST_NAME = "test110importAccountsSimulate";
 		displayTestTitle(TEST_NAME);
 		
-		//GIVEN
-		Task task = taskManager.createTaskInstance(TEST_NAME);
-		OperationResult result = task.getResult();
-		assignRole(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CREATE_OID, task, result);
 		
 		openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_FILE);
+		 
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+	    OperationResult result = task.getResult();
+		executeChanges(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+						.item(TaskType.F_EXECUTION_STATUS)
+							.replace(TaskExecutionStatusType.RUNNABLE)
+							.asObjectDelta(TASK_RECONCILE_OPENDJ_OID), null, task, result);
 		
 		assertUsers(getNumberOfUsers());
 		//WHEN
@@ -140,7 +154,16 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		//THEN
 		assertUsers(getNumberOfUsers());
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
+		
+		Task taskAfter = taskManager.getTaskWithResult(TASK_RECONCILE_OPENDJ_OID, result);
+		IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+		assertEquals(infoType.getTotalFailureCount(), 1);
+		
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 5);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 0);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
 	}
 	
 	
@@ -156,21 +179,31 @@ public class TestThresholds extends AbstractStoryTest {
         
         Task task = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = task.getResult();
-        ItemPath simulateBeforeExecutePath = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
-        modifyObjectReplaceProperty(TaskType.class, TASK_RECONCILE_OPENDJ_OID, simulateBeforeExecutePath, task, result, Boolean.FALSE);
+        PrismObject<TaskType> taskBefore = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);
+        TaskType taskTypeBefore = taskBefore.asObjectable();
+        List<TaskStageType> stages = taskTypeBefore.getStage();
+        TaskStageType simulateStage = null;
+        for (TaskStageType stage : stages) {
+        	if (ReconciliationTaskHandler.SIMULATE_URI.equals(stage.getStage())) {
+        		simulateStage  = stage;
+        		break;
+        	}
+        }
+        modifyObjectDeleteContainer(TaskType.class, TASK_RECONCILE_OPENDJ_OID, new ItemName(TaskType.F_STAGE), task, result, simulateStage.clone());
 
 		// THEN
 		displayThen(TEST_NAME);
 		
-		PrismObject<TaskType> taskPrism = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);		
-		assertNotNull(taskPrism, "Task not found");
+		PrismObject<TaskType> taskAfter = getObject(TaskType.class, TASK_RECONCILE_OPENDJ_OID);		
+		assertNotNull(taskAfter, "Task not found");
 		
-		PrismProperty<Boolean> simulateBeforeExecute = taskPrism.findProperty(simulateBeforeExecutePath);
-		assertNotNull(simulateBeforeExecute, "No simulateBeforeExecute set.");
+		TaskType taskTypeAfter = taskAfter.asObjectable();
+		List<TaskStageType> stagesAfter = taskTypeAfter.getStage();
+		assertEquals(stagesAfter.size(), 1, "Unexpected number of stages");
 		
-		Boolean simulateBeforeExecuteValue = simulateBeforeExecute.getRealValue();
-		assertTrue(simulateBeforeExecuteValue == null || !simulateBeforeExecuteValue.booleanValue(), "Unexpected simulate value");
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
+		TaskStageType stageAfter = stagesAfter.iterator().next();
+		assertEquals(ReconciliationTaskHandler.EXECUTE_URI, stageAfter.getStage(), "Unexpected stage.");
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
 				
 				
 	}
@@ -192,6 +225,7 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		//THEN
 		assertUsers(getNumberOfUsers() + 4);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
 	}
 	
 	
@@ -203,21 +237,28 @@ public class TestThresholds extends AbstractStoryTest {
 		//GIVEN
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
-		unassign(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CREATE_OID, task, result);
+		unassignRole(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CREATE_OID, task, result);
 		assignRole(TaskType.class, TASK_RECONCILE_OPENDJ_OID, ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID, task, result);
 		
 		openDJController.executeLdifChange(LDIF_CHANGE_ACTIVATION_FILE);
 		
 		//WHEN
 		displayWhen(TEST_NAME);
-		OperationResult reconResult = waitForTaskNextRun(TASK_RECONCILE_OPENDJ_OID, false, 10000, true);
+		OperationResult reconResult = waitForTaskNextRun(TASK_RECONCILE_OPENDJ_OID, false, 20000, true);
 		assertFailure(reconResult);
 		
 		//THEN
 		
-		Task reconTask = taskManager.getTaskWithResult(TASK_RECONCILE_OPENDJ_OID, result);
+		Task taskAfter = taskManager.getTaskWithResult(TASK_RECONCILE_OPENDJ_OID, result);
+//		recotaskAfternTask.getStoredOperationStats().getSynchronizationInformation().getCountLinked();	
 		
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
+		assertUsers(getNumberOfUsers() + 4);
 		
+//		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 4);
+//		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
+//		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 0);
+//		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
 		
 	}
 	

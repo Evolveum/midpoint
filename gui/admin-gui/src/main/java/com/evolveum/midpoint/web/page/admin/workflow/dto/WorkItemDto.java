@@ -114,16 +114,18 @@ public class WorkItemDto extends Selectable {
 	private String approverComment;
 	private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
 
+	private PageBase pageBase;
     private ObjectType focus;
 
-    public WorkItemDto(WorkItemType workItem) {
-        this(workItem, null, null);
+    public WorkItemDto(WorkItemType workItem, PageBase pageBase) {
+        this(workItem, null, null, pageBase);
     }
 
-	public WorkItemDto(WorkItemType workItem, TaskType taskType, List<TaskType> relatedTasks) {
+	public WorkItemDto(WorkItemType workItem, TaskType taskType, List<TaskType> relatedTasks, PageBase pageBase) {
 		this.workItem = workItem;
 		this.taskType = taskType;
 		this.relatedTasks = relatedTasks;
+		this.pageBase = pageBase;
 	}
 
 	public void prepareDeltaVisualization(String sceneNameKey, PrismContext prismContext,
@@ -163,19 +165,19 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getCreatedFormatted() {
-        return WebComponentUtil.getLocalizedDate(workItem.getCreateTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+        return WebComponentUtil.getShortDateTimeFormattedValue(workItem.getCreateTimestamp(), pageBase);
     }
 
     public String getDeadlineFormatted() {
-        return WebComponentUtil.getLocalizedDate(workItem.getDeadline(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+        return WebComponentUtil.getShortDateTimeFormattedValue(workItem.getDeadline(), pageBase);
     }
 
 	public String getCreatedFormattedFull() {
-		return WebComponentUtil.getLocalizedDate(workItem.getCreateTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
+		return WebComponentUtil.getLongDateTimeFormattedValue(workItem.getCreateTimestamp(), pageBase);
 	}
 
 	public String getDeadlineFormattedFull() {
-		return WebComponentUtil.getLocalizedDate(workItem.getDeadline(), DateLabelComponent.FULL_MEDIUM_STYLE);
+		return WebComponentUtil.getLongDateTimeFormattedValue(workItem.getDeadline(), pageBase);
 	}
 
 	public Date getCreatedDate() {
@@ -194,7 +196,7 @@ public class WorkItemDto extends Selectable {
     public String getStartedFormattedFull() {
 		WfContextType wfc = getWorkflowContext();
 		return wfc != null
-				? WebComponentUtil.getLocalizedDate(wfc.getStartTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE)
+				? WebComponentUtil.getLongDateTimeFormattedValue(wfc.getStartTimestamp(), pageBase)
 				: null;
     }
 
@@ -305,7 +307,7 @@ public class WorkItemDto extends Selectable {
 			if (workItemType.getExternalId() == null || workItemType.getExternalId().equals(getWorkItemId())) {
 				continue;
 			}
-			rv.add(new WorkItemDto(workItemType));
+			rv.add(new WorkItemDto(workItemType, pageBase));
 		}
 		return rv;
 	}
@@ -323,7 +325,7 @@ public class WorkItemDto extends Selectable {
 			if (StringUtils.equals(getProcessInstanceId(), task.getWorkflowContext().getCaseOid())) {
 				continue;
 			}
-			rv.add(new ProcessInstanceDto(task));
+			rv.add(new ProcessInstanceDto(task, WebComponentUtil.getShortDateTimeFormat(pageBase)));
 		}
 		return rv;
 	}

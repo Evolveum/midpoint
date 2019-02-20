@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
@@ -37,6 +38,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.getPageBase;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
@@ -103,7 +105,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, options, opTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
-                    getAvailableData().add(new ProcessInstanceDto(task.asObjectable()));
+                    getAvailableData().add(new ProcessInstanceDto(task.asObjectable(), WebComponentUtil.getShortDateTimeFormat(getPage())));
                 } catch (Exception e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing workflow task {}", e, task);
                     result.recordPartialError("Couldn't list process instance.", e);

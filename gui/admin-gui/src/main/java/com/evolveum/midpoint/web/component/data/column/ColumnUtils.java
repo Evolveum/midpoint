@@ -23,9 +23,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -120,8 +121,17 @@ public class ColumnUtils {
 
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId, IModel<SelectableBean<O>> rowModel) {
-				DisplayType displayType = getDisplayTypeForRowObject(rowModel, pageBase);
+				DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(rowModel.getObject().getValue(), pageBase);
 				if (displayType != null){
+					String disabledStyle = "";
+					if (rowModel.getObject().getValue() instanceof FocusType) {
+						disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)rowModel.getObject().getValue()).asPrismObject());
+						if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
+								disabledStyle != null){
+							displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
+							displayType.getIcon().setColor("");
+						}
+					}
 					cellItem.add(new ImagePanel(componentId, displayType));
 				} else {
 					super.populateItem(cellItem, componentId, rowModel);
@@ -146,19 +156,11 @@ public class ColumnUtils {
 
 	}
 
-	private static <O extends ObjectType> DisplayType getDisplayTypeForRowObject(IModel<SelectableBean<O>> rowModel, PageBase pageBase){
-		O object = rowModel.getObject().getValue();
-		if (object != null) {
-			ArchetypeInteractionSpecification archetypeSpec = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
-			if (archetypeSpec != null && archetypeSpec.getArchetypePolicy() != null) {
-				return archetypeSpec.getArchetypePolicy().getDisplay();
-			}
-		}
-		return null;
-	}
-
 	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel){
 		T object = rowModel.getObject().getValue();
+		if (object == null){
+			return "";
+		}
 		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
 		if (object == null && !ShadowType.class.equals(type)){
 			return null;

@@ -94,12 +94,12 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 	 * @return true if the attribute is a (primary) identifier.
 	 */
 	@Override
-	public boolean isIdentifier(ResourceAttributeContainerDefinition objectDefinition) {
-		return isIdentifier(objectDefinition.getComplexTypeDefinition());
+	public boolean isPrimaryIdentifier(ResourceAttributeContainerDefinition objectDefinition) {
+		return isPrimaryIdentifier(objectDefinition.getComplexTypeDefinition());
 	}
 
 	@Override
-	public boolean isIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
+	public boolean isPrimaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
 		for (ResourceAttributeDefinition<?> identifier : objectDefinition.getPrimaryIdentifiers()) {
 			if (this == identifier) {
 				return true;

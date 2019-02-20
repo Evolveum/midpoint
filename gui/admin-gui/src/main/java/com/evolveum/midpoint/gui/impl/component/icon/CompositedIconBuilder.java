@@ -31,15 +31,19 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 public class CompositedIconBuilder {
 	
 	private String basicIcon = "";
-	private List<String> layerIcons = new ArrayList<String>(); 
+	private List<String> layerIcons = new ArrayList<String>();
+	private String colorHtmlValue = "";
 	
 	public CompositedIcon build() {
-		return new CompositedIcon(basicIcon, layerIcons);
+		return new CompositedIcon(basicIcon, layerIcons, colorHtmlValue);
 	}
 	
 	private void setBasicIcon(String icon, String style) {
 		StringBuilder sb = new StringBuilder(icon);
-		sb.append(" ").append(style);
+		if (StringUtils.isNotEmpty(basicIcon)) {
+			sb.append(" ");
+		}
+		sb.append(style);
 		basicIcon = sb.toString();
 	}
 	
@@ -57,7 +61,11 @@ public class CompositedIconBuilder {
 	
 	public CompositedIconBuilder setBasicIcon(String icon, IconCssStyle style, String additionalCssClass) {
 		additionalCssClass = additionalCssClass + " " + validateInput(icon, style, true);
-		setBasicIcon(icon, style.getBasicCssClass() + " " + additionalCssClass);
+		if (additionalCssClass == null || StringUtils.isEmpty(additionalCssClass.trim())){
+			setBasicIcon(icon, style.getBasicCssClass());
+		} else {
+			setBasicIcon(icon, style.getBasicCssClass() + " " + additionalCssClass);
+		}
 		return this;
 	}
 	
@@ -74,6 +82,11 @@ public class CompositedIconBuilder {
 			sb.append(" ").append(additionalCssClass);
 		}
 		appendLayerIcon(0, sb.toString());
+		return this;
+	}
+
+	public CompositedIconBuilder appendColorHtmlValue(String colorHtmlValue){
+		this.colorHtmlValue = colorHtmlValue;
 		return this;
 	}
 	

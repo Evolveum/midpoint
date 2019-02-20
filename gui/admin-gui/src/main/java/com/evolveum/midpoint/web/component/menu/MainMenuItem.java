@@ -30,11 +30,9 @@ public class MainMenuItem extends BaseMenuItem {
 	private static final long serialVersionUID = 1L;
 
 	public static final String F_ITEMS = "items";
-    public static final String F_ICON_CLASS = "iconClass";
     public static final String F_BUBBLE_LABEL = "bubbleLabel";
 
     private boolean insertDefaultBackBreadcrumb = true;
-    private String iconClass;
     private List<MenuItem> items;
 
     public MainMenuItem(String iconClass, IModel<String> name) {
@@ -52,13 +50,8 @@ public class MainMenuItem extends BaseMenuItem {
 
     public MainMenuItem(String iconClass, IModel<String> name, Class<? extends PageBase> page,
                         List<MenuItem> items, VisibleEnableBehaviour visibleEnable) {
-        super(name, page, null, visibleEnable);
-        this.iconClass = iconClass;
+        super(name, iconClass, page, null, visibleEnable);
         this.items = items;
-    }
-
-    public String getIconClass() {
-        return iconClass;
     }
 
     public List<MenuItem> getItems() {

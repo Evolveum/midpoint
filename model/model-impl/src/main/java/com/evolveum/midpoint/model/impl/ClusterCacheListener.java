@@ -15,52 +15,33 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import javax.annotation.PostConstruct;
-import javax.ws.rs.core.Response;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.cxf.jaxrs.client.WebClient;
+import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.CacheListener;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
-import com.evolveum.midpoint.model.impl.security.RestAuthenticationMethod;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.CacheListener;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import javax.annotation.PostConstruct;
+import javax.ws.rs.core.Response;
 
 @Component
 public class ClusterCacheListener implements CacheListener {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ClusterCacheListener.class);
 	
-	@Autowired private ModelService modelService;
-	@Autowired private ModelInteractionService modelInteractionService;
 	@Autowired private TaskManager taskManager;
 	@Autowired private CacheDispatcher cacheDispatcher;
-	@Autowired private PrismContext prismContext;
+	@Autowired private ClusterExecutionHelper clusterExecutionHelper;
 	
 	@PostConstruct
 	public void addListener() {
@@ -75,8 +56,6 @@ public class ClusterCacheListener implements CacheListener {
 			return;
 		}
 		
-		String nodeId = taskManager.getNodeId();
-		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication instanceof NodeAuthenticationToken) {
 			LOGGER.trace("Skipping cluster-wide cache invalidation as this is already a remotely-invoked invalidateCache() call");
@@ -85,51 +64,13 @@ public class ClusterCacheListener implements CacheListener {
 
 		Task task = taskManager.createTaskInstance("invalidateCache");
 		OperationResult result = task.getResult();
-		
-		SearchResultList<PrismObject<NodeType>> otherClusterNodes;
-		try {
-			ObjectQuery query = prismContext.queryFor(NodeType.class).not().item(NodeType.F_NODE_IDENTIFIER).eq(nodeId).build();
-			otherClusterNodes = modelService.searchObjects(NodeType.class, query, null, task, result);
-		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException
-				| ConfigurationException | ExpressionEvaluationException e) {
-			LOGGER.warn("Cannot find nodes for clearing cache on them. Skipping.", e);
-			return;
-		}
-		
-		SystemConfigurationType systemConfig;
-		try {
-			systemConfig = modelInteractionService.getSystemConfiguration(result);
-		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.warn("Cannot load system configuration. Cannot determine the URL for REST calls without it"
-					+ " (unless specified explicitly for individual nodes)");
-			systemConfig = null;
-		}
 
-		for (PrismObject<NodeType> node : otherClusterNodes.getList()) {
-			NodeType nodeType = node.asObjectable();
-
-			String baseUrl;
-			if (nodeType.getUrl() != null) {
-				baseUrl = nodeType.getUrl();
-			} else {
-				String httpUrlPattern = systemConfig != null && systemConfig.getInfrastructure() != null
-						? systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern()
-						: null;
-				if (StringUtils.isBlank(httpUrlPattern)) {
-					LOGGER.warn("Node URL nor intra-cluster URL pattern specified, skipping cache clearing for node {}",
-							nodeType.getNodeIdentifier());
-					continue;
-				}
-				baseUrl = httpUrlPattern.replace("$host", nodeType.getHostname());
-			}
-
-			WebClient client = WebClient.create(baseUrl + "/ws/rest");
-			client.header("Authorization", RestAuthenticationMethod.CLUSTER.getMethod());// + " " + Base64Utility.encode((nodeIdentifier).getBytes()));
+		clusterExecutionHelper.execute((client, result1) -> {
 			client.path("/event/" + ObjectTypes.getRestTypeFromClass(type));
 			Response response = client.post(null);
-
 			LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
 					response.getStatusInfo().getReasonPhrase());
-		}
+			response.close();
+		}, "cache invalidation", result);
 	}
 }

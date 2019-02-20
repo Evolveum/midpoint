@@ -181,13 +181,13 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
         getMainForm().add(reportTypeSelect);
 
 
-        AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
+        ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
 
         	private static final long serialVersionUID = 1L;
 
             @Override
             protected InputStream initStream() {
-                return createReport(this);
+                return createReport();
             }
 
             @Override
@@ -205,18 +205,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
     }
 
     @Override
-    protected List<IColumn<SelectableBean<ReportOutputType>, String>> initColumns() {
-        return PageCreatedReports.this.initColumns(ajaxDownloadBehavior);
-    }
-
-    @Override
     protected void objectDetailsPerformed(AjaxRequestTarget target, ReportOutputType object) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    protected void newObjectActionPerformed(AjaxRequestTarget target) {
         // TODO Auto-generated method stub
 
     }
@@ -263,9 +252,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
     }
 
     //TODO - consider adding Author name, File Type and ReportType to columns
-    private List<IColumn<SelectableBean<ReportOutputType>, String>> initColumns(
-            final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
-        List<IColumn<SelectableBean<ReportOutputType>, String>> columns = new ArrayList<>();
+    protected List<IColumn<SelectableBean<ReportOutputType>, String>> initColumns() {
+            List<IColumn<SelectableBean<ReportOutputType>, String>> columns = new ArrayList<>();
 
          IColumn<SelectableBean<ReportOutputType>, String> column = new PropertyColumn<>(createStringResource("pageCreatedReports.table.description"), "value.description");
         columns.add(column);
@@ -291,7 +279,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
                         }
 
                         return XmlTypeConverter.toDate(metadata.getCreateTimestamp());                   }
-                }, DateLabelComponent.LONG_MEDIUM_STYLE));
+                }, WebComponentUtil.getShortDateTimeFormat(PageCreatedReports.this)));
             }
         };
         columns.add(column);
@@ -495,8 +483,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
     	return query;
     }
 
-    private InputStream createReport(AjaxDownloadBehaviorFromStream ajaxDownloadBehaviorFromStream) {
-		return createReport(currentReport, ajaxDownloadBehaviorFromStream, this);
+    private InputStream createReport() {
+		return createReport(currentReport, ajaxDownloadBehavior, this);
 	}
 
 	public static InputStream createReport(ReportOutputType report, AjaxDownloadBehaviorFromStream ajaxDownloadBehaviorFromStream, PageBase pageBase) {

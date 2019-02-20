@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_MaybeDelete;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -198,7 +199,7 @@ public class SynchronizationUtils {
 		
 		// kind
 		LOGGER.trace("Comparing kinds, policy kind: {}, current kind: {}", policyKind, kind);
-		if (kind != null && !policyKind.equals(kind)) {
+		if (kind != null && kind != ShadowKindType.UNKNOWN && !policyKind.equals(kind)) {
 			LOGGER.trace("Kinds don't match, skipping policy {}", synchronizationPolicy);
 			return false;
 		}
@@ -207,7 +208,7 @@ public class SynchronizationUtils {
 		// TODO is the intent always present in shadow at this time? [med]
 		LOGGER.trace("Comparing intents, policy intent: {}, current intent: {}", policyIntent, intent);
 		if (!strictIntent) {
-			if (intent != null && !MiscSchemaUtil.equalsIntent(intent, policyIntent)) {
+			if (intent != null && !SchemaConstants.INTENT_UNKNOWN.equals(intent) && !MiscSchemaUtil.equalsIntent(intent, policyIntent)) {
 				LOGGER.trace("Intents don't match, skipping policy {}", synchronizationPolicy);
 				return false;
 			}

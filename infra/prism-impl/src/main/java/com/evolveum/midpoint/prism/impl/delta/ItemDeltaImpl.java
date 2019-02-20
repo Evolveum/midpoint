@@ -64,6 +64,8 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	protected Collection<V> valuesToAdd = null;
 	protected Collection<V> valuesToDelete = null;
 	protected Collection<V> estimatedOldValues = null;
+	
+	private boolean immutable;
 
     transient private PrismContext prismContext;
 
@@ -128,6 +130,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void setElementName(QName elementName) {
+		checkMutability();
 		this.elementName = ItemName.fromQName(elementName);
 		this.fullPath = null;
 	}
@@ -137,6 +140,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void setParentPath(ItemPath parentPath) {
+		checkMutability();
 		this.parentPath = parentPath;
 		this.fullPath = null;
 	}
@@ -159,6 +163,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void setDefinition(D definition) {
+		checkMutability();
 		this.definition = definition;
 	}
 
@@ -266,6 +271,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void applyDefinition(D definition) throws SchemaException {
+		checkMutability();
 		this.definition = definition;
 		if (getValuesToAdd() != null) {
 			for (V pval : getValuesToAdd()) {
@@ -300,6 +306,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void clearValuesToAdd() {
+		checkMutability();
 		valuesToAdd = null;
 	}
 
@@ -308,6 +315,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void clearValuesToDelete() {
+		checkMutability();
 		valuesToDelete = null;
 	}
 
@@ -316,10 +324,12 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void clearValuesToReplace() {
+		checkMutability();
 		valuesToReplace = null;
 	}
 
 	public void addValuesToAdd(Collection<V> newValues) {
+		checkMutability();
 		if (newValues == null) {
 			return;
 		}
@@ -329,12 +339,14 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void addValuesToAdd(V... newValues) {
+		checkMutability();
 		for (V val : newValues) {
 			addValueToAdd(val);
 		}
 	}
 
 	public void addValueToAdd(V newValue) {
+		checkMutability();
 		if (valuesToReplace != null) {
 			throw new IllegalStateException("Delta " + this
 				+ " already has values to replace ("+valuesToReplace+"), attempt to add value ("+newValue+") is an error");
@@ -363,6 +375,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	private boolean removeValue(PrismValue valueToRemove, Collection<V> set, boolean toDelete) {
+		checkMutability();
 		boolean removed = false;
 		if (set == null) {
 			return false;
@@ -380,6 +393,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void mergeValuesToAdd(Collection<V> newValues) {
+		checkMutability();
 		if (newValues == null) {
 			return;
 		}
@@ -389,6 +403,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void mergeValuesToAdd(V[] newValues) {
+		checkMutability();
 		if (newValues == null) {
 			return;
 		}
@@ -398,6 +413,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void mergeValueToAdd(V newValue) {
+		checkMutability();
 		if (valuesToReplace != null) {
 			if (!PrismValueCollectionsUtil.containsRealValue(valuesToReplace, newValue)) {
 				valuesToReplace.add(newValue);
@@ -411,6 +427,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void addValuesToDelete(Collection<V> newValues) {
+		checkMutability();
 		if (newValues == null) {
 			return;
 		}
@@ -420,12 +437,14 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void addValuesToDelete(V... newValues) {
+		checkMutability();
 		for (V val : newValues) {
 			addValueToDelete(val);
 		}
 	}
 
 	public void addValueToDelete(V newValue) {
+		checkMutability();
 		if (valuesToReplace != null) {
 			throw new IllegalStateException("Delta " + this
 					+ " already has values to replace ("+valuesToReplace+"), attempt to set value to delete ("+newValue+")");
@@ -458,18 +477,21 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void mergeValuesToDelete(Collection<V> newValues) {
+		checkMutability();
 		for (V val : newValues) {
 			mergeValueToDelete(val);
 		}
 	}
 
 	public void mergeValuesToDelete(V[] newValues) {
+		checkMutability();
 		for (V val : newValues) {
 			mergeValueToDelete(val);
 		}
 	}
 
 	public void mergeValueToDelete(V newValue) {
+		checkMutability();
 		if (valuesToReplace != null) {
 			removeValueToReplace(newValue);
 		} else {
@@ -480,18 +502,22 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
     public void resetValuesToAdd() {
+    	checkMutability();
         valuesToAdd = null;
     }
 
 	public void resetValuesToDelete() {
+		checkMutability();
 		valuesToDelete = null;
 	}
 
 	public void resetValuesToReplace() {
+		checkMutability();
 		valuesToReplace = null;
 	}
 
 	public void setValuesToReplace(Collection<V> newValues) {
+		checkMutability();
 		if (newValues == null) {
 			return;
 		}
@@ -516,6 +542,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void setValuesToReplace(V... newValues) {
+		checkMutability();
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
 					+ " already has values to add, attempt to set value to replace");
@@ -540,6 +567,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * Sets empty value to replace. This efficiently means removing all values.
 	 */
 	public void setValueToReplace() {
+		checkMutability();
 		if (valuesToReplace == null) {
 			valuesToReplace = newValueCollection();
 		} else {
@@ -548,6 +576,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void setValueToReplace(V newValue) {
+		checkMutability();
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
 					+ " already has values to add, attempt to set value to replace");
@@ -569,6 +598,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void addValueToReplace(V newValue) {
+		checkMutability();
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
 					+ " already has values to add, attempt to set value to replace");
@@ -588,6 +618,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void mergeValuesToReplace(Collection<V> newValues) {
+		checkMutability();
 		// No matter what type the delta was before. We are just discarding all the previous
 		// state as the replace that we are applying will overwrite that anyway.
 		valuesToAdd = null;
@@ -596,6 +627,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void mergeValuesToReplace(V[] newValues) {
+		checkMutability();
 		// No matter what type the delta was before. We are just discarding all the previous
 		// state as the replace that we are applying will overwrite that anyway.
 		valuesToAdd = null;
@@ -604,6 +636,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void mergeValueToReplace(V newValue) {
+		checkMutability();
 		// No matter what type the delta was before. We are just discarding all the previous
 		// state as the replace that we are applying will overwrite that anyway.
 		valuesToAdd = null;
@@ -725,22 +758,26 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void setEstimatedOldValues(Collection<V> estimatedOldValues) {
+		checkMutability();
 		this.estimatedOldValues = estimatedOldValues;
 	}
 
 	public void addEstimatedOldValues(Collection<V> newValues) {
+		checkMutability();
 		for (V val : newValues) {
 			addEstimatedOldValue(val);
 		}
 	}
 
 	public void addEstimatedOldValues(V... newValues) {
+		checkMutability();
 		for (V val : newValues) {
 			addEstimatedOldValue(val);
 		}
 	}
 
 	public void addEstimatedOldValue(V newValue) {
+		checkMutability();
 		if (estimatedOldValues == null) {
 			estimatedOldValues = newValueCollection();
 		}
@@ -753,6 +790,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void normalize() {
+		checkMutability();
 		normalize(valuesToAdd);
 		normalize(valuesToDelete);
 		normalize(valuesToReplace);
@@ -780,6 +818,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void clear() {
+		checkMutability();
 		valuesToReplace = null;
 		valuesToAdd = null;
 		valuesToDelete = null;
@@ -800,6 +839,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
      * Returns null if the delta is not needed at all.
      */
     public ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, Comparator<V> comparator) {
+    	checkMutability();
 	    Item<V,D> currentItem = object.findItem(getPath());
     	if (currentItem == null) {
     		if (valuesToDelete != null) {
@@ -983,6 +1023,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * respect to provided existing values.
 	 */
 	public void distributeReplace(Collection<V> existingValues) {
+		checkMutability();
 		Collection<V> origValuesToReplace = getValuesToReplace();
 		// We have to clear before we distribute, otherwise there will be replace/add or replace/delete conflict
 		clearValuesToReplace();
@@ -1020,6 +1061,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * From the code it seems so.
 	 */
 	public void merge(ItemDelta<V,D> deltaToMerge) {
+		checkMutability();
 //		if (!getPath().equivalent(deltaToMerge.getPath())) {
 //			throw new AssertionError("Different paths in itemDelta merge: this=" + this + ", deltaToMerge=" + deltaToMerge);
 //		}
@@ -1141,6 +1183,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * single-value properties to replace delta.
 	 */
 	public void simplify() {
+		checkMutability();
 		ItemDefinition itemDefinition = getDefinition();
 		if (itemDefinition == null) {
 			throw new IllegalStateException("Attempt to simplify delta without a definition");
@@ -1347,6 +1390,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void filterValues(Function<V, Boolean> function) {
+		checkMutability();
 		filterValuesSet(this.valuesToAdd, function);
 		filterValuesSet(this.valuesToDelete, function);
 		filterValuesSet(this.valuesToReplace, function);
@@ -1693,6 +1737,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void addToReplaceDelta() {
+		checkMutability();
 		if (isReplace()) {
 			throw new IllegalStateException("Delta is a REPLACE delta, not an ADD one");
 		}
@@ -1750,10 +1795,33 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * Set origin type to all values and subvalues
 	 */
 	public void setOriginTypeRecursive(final OriginType originType) {
+		checkMutability();
 		accept((visitable) -> {
 			if (visitable instanceof PrismValue) {
 				((PrismValue)visitable).setOriginType(originType);
 			}
 		});
+	}
+	
+	@Override
+    public boolean isImmutable() {
+		return immutable;
+	}
+
+    @Override
+	public void setImmutable(boolean immutable) {
+		this.immutable = immutable;
+	}
+
+	protected void checkMutability() {
+		if (immutable) {
+			throw new IllegalStateException("An attempt to modify an immutable delta: " + toString());
+		}
+	}
+
+	public void checkImmutability() {
+		if (!immutable) {
+			throw new IllegalStateException("Item is not immutable even if it should be: " + this);
+		}
 	}
 }

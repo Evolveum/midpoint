@@ -117,7 +117,10 @@ public class XmlTypeConverter {
 		return false;
 	}
 
-    public static XMLGregorianCalendar createXMLGregorianCalendar(long timeInMillis) {
+    public static XMLGregorianCalendar createXMLGregorianCalendar(Long timeInMillis) {
+    	if (timeInMillis == null) {
+    		return null;
+	    }
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(timeInMillis);
         return createXMLGregorianCalendar(gregorianCalendar);
@@ -347,7 +350,7 @@ public class XmlTypeConverter {
 	}
 
 	@SuppressWarnings("unchecked")
-		public static <T> T toJavaValue(String stringContent, Class<T> type, boolean exceptionOnUnknown) {
+	public static <T> T toJavaValue(String stringContent, Class<T> type, boolean exceptionOnUnknown) {
 	    if (type.equals(String.class)) {
 	        return (T) stringContent;
 	    } else if (type.equals(char.class)) {

@@ -48,11 +48,12 @@ public class ProcessInstanceDto extends Selectable {
     @NotNull private final TaskType task;
     @NotNull private final WfContextType workflowContext;
 
-    private final PatternDateConverter converter = new PatternDateConverter
-            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.LONG_MEDIUM_STYLE), true );
+    private PatternDateConverter converter;
 
-    public ProcessInstanceDto(@NotNull TaskType task) {
+    public ProcessInstanceDto(@NotNull TaskType task, String dateTimeStyle) {
         this.task = task;
+        converter = new PatternDateConverter
+                (WebComponentUtil.getLocalizedDatePattern(dateTimeStyle), true );
         this.workflowContext = task.getWorkflowContext();
 	    Validate.notNull(this.workflowContext, "Task has no workflow context");
     }

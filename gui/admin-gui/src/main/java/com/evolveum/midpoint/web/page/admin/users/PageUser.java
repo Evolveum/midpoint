@@ -63,6 +63,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.*;
@@ -140,7 +141,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel() {
-    	return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    	return new UserSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {
@@ -359,8 +360,8 @@ public class PageUser extends PageAdminFocus<UserType> {
         boolean isAnythingChanged = false;
         for (AssignmentEditorDto dto : delegationsModel.getObject()) {
             if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
-                UserType user = dto.getDelegationOwner();
                 if (!previewOnly) {
+                    UserType user = dto.getDelegationOwner();
                     saveDelegationToUser(user.asPrismObject(), dto);
                 }
                 isAnythingChanged = true;
@@ -401,6 +402,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private void saveDelegationToUser(PrismObject<UserType> user, AssignmentEditorDto assignmentDto) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
         try {
+            getPrismContext().adopt(user);
             Collection<ObjectDelta<? extends ObjectType>> deltas = prepareDelegationDelta(user, assignmentDto);
             getModelService().executeChanges(deltas, getOptions(false), createSimpleTask(OPERATION_SAVE), result);
 

@@ -67,7 +67,9 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -655,11 +657,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Wrong validityStatus in activation in "+focus, expected, activationType.getValidityStatus());
 	}
 
-	protected void assertShadow(PrismObject<? extends ShadowType> shadow) {
-		assertObject(shadow);
+	/**
+	 * Deprecated: use ShadowAsserter instead.
+	 */
+	@Deprecated
+	protected void assertShadowSanity(PrismObject<? extends ShadowType> shadow) {
+		assertObjectSanity(shadow);
 	}
 
-	protected void assertObject(PrismObject<? extends ObjectType> object) {
+	/**
+	 * Deprecated: use ObjectAsserter instead.
+	 */
+	@Deprecated
+	protected void assertObjectSanity(PrismObject<? extends ObjectType> object) {
 		object.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
 		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
 		assertFalse("No OID", StringUtils.isEmpty(object.getOid()));
@@ -671,7 +681,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName, String location) {
-		assertObject(user);
+		assertObjectSanity(user);
 		UserType userType = user.asObjectable();
 		if (oid != null) {
 			assertEquals("Wrong " + user + " OID (prism)", oid, user.getOid());
@@ -720,7 +730,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
                                       QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
-		assertShadow(shadow);
+		assertShadowSanity(shadow);
 		if (oid != null) {
 			assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
 		}
@@ -1726,7 +1736,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
-		display("Operation result status", result.getStatus());
+		display("Operation " + result.getOperation() + " result status", result.getStatus());
 		TestUtil.assertSuccess(result);
 	}
 	
@@ -1734,7 +1744,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
-		display("Operation result status", result.getStatus());
+		display("Operation " + result.getOperation() + " result status", result.getStatus());
 		TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
 	}
 	
@@ -1742,7 +1752,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
-		display("Operation result status", result.getStatus());
+		display("Operation " + result.getOperation() + " result status", result.getStatus());
 		TestUtil.assertSuccess(result, depth);
 	}
 
@@ -1757,7 +1767,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
-		assertEquals("Unexpected result status", expectedStatus, result.getStatus());
+		assertEquals("Unexpected operation " + result.getOperation() + " result status", expectedStatus, result.getStatus());
 	}
 
 	protected String assertInProgress(OperationResult result) {
@@ -1765,7 +1775,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			result.computeStatus();
 		}
 		if (!OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
-			String message = "Expected IN_PROGRESS, but result status was " + result.getStatus();
+			String message = "Expected operation " + result.getOperation() + " status IN_PROGRESS, but result status was " + result.getStatus();
 			display (message, result);
 			fail(message);
 		}
@@ -2403,12 +2413,32 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     	assertEquals("Wrong relation "+qname+" label", expectedLabel, relDef.getDisplay().getLabel().getOrig());
 	}
 	
+	protected void initializeAsserter(AbstractAsserter<?> asserter) {
+		asserter.setPrismContext(prismContext);
+		asserter.setObjectResolver(repoSimpleObjectResolver);
+		asserter.setProtector(protector);
+	}
+	
+	protected RefinedResourceSchemaAsserter<Void> assertRefinedResourceSchema(PrismObject<ResourceType> resource, String details) throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
+		assertNotNull("No refined schema for "+resource+" ("+details+")", refinedSchema);
+		RefinedResourceSchemaAsserter<Void> asserter = new RefinedResourceSchemaAsserter(refinedSchema, resource.toString() + " ("+details+")");
+		initializeAsserter(asserter);
+		return asserter;
+	}
+	
+	protected ShadowAsserter<Void> assertShadow(PrismObject<ShadowType> shadow, String details) throws ObjectNotFoundException, SchemaException {
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, details);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+	
 	protected ShadowAsserter<Void> assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {
 		PrismObject<ShadowType> repoShadow = getShadowRepo(oid);
-		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "repository");
-		asserter
-			.display()
-			.assertBasicRepoProperties();
+		ShadowAsserter<Void> asserter = assertShadow(repoShadow, "repository");
+		initializeAsserter(asserter);
+		asserter.assertBasicRepoProperties();
 		return asserter;
 	}
 	

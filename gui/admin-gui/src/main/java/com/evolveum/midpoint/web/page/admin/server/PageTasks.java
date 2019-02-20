@@ -358,14 +358,14 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 	private List<IColumn<NodeDto, String>> initNodeColumns() {
 		List<IColumn<NodeDto, String>> columns = new ArrayList<>();
 
-		IColumn column = new CheckBoxHeaderColumn<>();
+		IColumn<NodeDto, String> column = new CheckBoxHeaderColumn<>();
 		columns.add(column);
 
-		column = new PropertyColumn<>(createStringResource("pageTasks.node.name"), "name", "name");
+		column = new PropertyColumn<>(createStringResource("pageTasks.node.name"), NodeDto.F_NAME, NodeDto.F_NAME);
 		columns.add(column);
 
 		columns.add(new EnumPropertyColumn<NodeDto>(createStringResource("pageTasks.node.executionStatus"),
-				"executionStatus") {
+				NodeDto.F_EXECUTION_STATUS) {
 
 			@Override
 			protected String translate(Enum en) {
@@ -373,27 +373,21 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			}
 		});
 
-		columns.add(new PropertyColumn(createStringResource("pageTasks.node.managementPort"), "managementPort"));
+		columns.add(new PropertyColumn<>(createStringResource("pageTasks.node.contact"), NodeDto.F_CONTACT));
 		columns.add(new AbstractColumn<NodeDto, String>(createStringResource("pageTasks.node.lastCheckInTime")) {
 
 			@Override
 			public void populateItem(Item<ICellPopulator<NodeDto>> item, String componentId,
 					final IModel<NodeDto> rowModel) {
-				item.add(new Label(componentId, new IModel<Object>() {
-
-					@Override
-					public Object getObject() {
-						return getLastCheckInTime(rowModel);
-					}
-				}));
+				item.add(new Label(componentId, (IModel<Object>) () -> getLastCheckInTime(rowModel)));
 			}
 		});
-		CheckBoxColumn check = new CheckBoxColumn(createStringResource("pageTasks.node.clustered"), "clustered");
+		CheckBoxColumn<NodeDto> check = new CheckBoxColumn<>(createStringResource("pageTasks.node.clustered"), NodeDto.F_CLUSTERED);
 		check.setEnabled(false);
 		columns.add(check);
-		columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "statusMessage"));
+		columns.add(new PropertyColumn<>(createStringResource("pageTasks.node.statusMessage"), NodeDto.F_STATUS_MESSAGE));
 
-		IColumn<NodeDto, String> menuColumn = new InlineMenuButtonColumn<NodeDto>(createNodesInlineMenu(), PageTasks.this);
+		IColumn<NodeDto, String> menuColumn = new InlineMenuButtonColumn<>(createNodesInlineMenu(), PageTasks.this);
 		columns.add(menuColumn);
 
 		return columns;
@@ -611,14 +605,14 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Date date = getCurrentRuntime(rowModel);
 						TaskDto task = rowModel.getObject();
 						if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED && date != null) {
-							((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString());
+							((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString() + " ");
 						} else if (date != null) {
 							((DateLabelComponent) item.get(componentId))
 									.setBefore(WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this));
 						}
 						return date;
 					}
-				}, DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+				}, WebComponentUtil.getShortDateTimeFormat(PageTasks.this));
 				item.add(dateLabel);
 			}
 
@@ -630,7 +624,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				if (date != null) {
 					if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
 						displayValue =
-								createStringResource("pageTasks.task.closedAt").getString() + WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
+								createStringResource("pageTasks.task.closedAt").getString() +
+										WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasks.this);
 					} else {
 						displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this);
 					}

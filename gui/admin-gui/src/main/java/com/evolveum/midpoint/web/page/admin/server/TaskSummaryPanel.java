@@ -22,11 +22,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
-import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.model.IModel;
 
 import java.util.Date;
@@ -55,14 +53,19 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private static final String ID_TAG_REFRESH = "refreshTag";
 
 	private PageTaskEdit parentPage;
+	private IModel<AutoRefreshDto> refreshModel;
 
-	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model, IModel<AutoRefreshDto> refreshModel, final PageTaskEdit parentPage) {
+	public TaskSummaryPanel(String id, IModel<TaskType> model, IModel<AutoRefreshDto> refreshModel, final PageTaskEdit parentPage) {
 		super(id, TaskType.class, model, parentPage);
-		initLayoutCommon(parentPage);
 		this.parentPage = parentPage;
-		IModel<TaskType> containerModel = new ContainerableFromPrismObjectModel<>(model);
+		this.refreshModel = refreshModel;
+	}
 
-		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_TAG_EXECUTION_STATUS, containerModel) {
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
+
+		SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_TAG_EXECUTION_STATUS, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
@@ -76,7 +79,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagExecutionStatus);
 
-		SummaryTagSimple<TaskType> tagResult = new SummaryTagSimple<TaskType>(ID_TAG_RESULT, containerModel) {
+		SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_TAG_RESULT, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				OperationResultStatusType resultStatus = taskType.getResultStatus();
@@ -90,7 +93,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagResult);
 
-		SummaryTagSimple<TaskType> tagOutcome = new SummaryTagSimple<TaskType>(ID_TAG_WF_OUTCOME, containerModel) {
+		SummaryTag<TaskType> tagOutcome = new SummaryTag<TaskType>(ID_TAG_WF_OUTCOME, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				String icon, name;
@@ -174,7 +177,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	public String getRequestedOn() {
-		return WebComponentUtil.getLocalizedDate(parentPage.getTaskDto().getRequestedOn(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+		return WebComponentUtil.getLongDateTimeFormattedValue(parentPage.getTaskDto().getRequestedOn(), parentPage);
 	}
 
 	@Override
@@ -272,19 +275,13 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				if (taskType.getExecutionStatus() == TaskExecutionStatusType.RUNNABLE && taskType.getNodeAsObserved() != null
 						|| finished == 0 || finished < started) {
 
-                    PatternDateConverter pdc = new PatternDateConverter
-                            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_MEDIUM_STYLE), true );
-                    String date = pdc.convertToString(new Date(started), WebComponentUtil.getCurrentLocale());
-                    return getString("TaskStatePanel.message.executionTime.notFinished", date,
+                    return getString("TaskStatePanel.message.executionTime.notFinished",
+							WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), parentPage),
 							DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
 				} else {
-                    PatternDateConverter pdc = new PatternDateConverter
-                            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_MEDIUM_STYLE), true );
-                    String startedDate = pdc.convertToString(new Date(started), WebComponentUtil.getCurrentLocale());
-                    String finishedDate = pdc.convertToString(new Date(finished), WebComponentUtil.getCurrentLocale());
-
-					return getString("TaskStatePanel.message.executionTime.finished",
-                            startedDate, finishedDate,
+                    return getString("TaskStatePanel.message.executionTime.finished",
+							WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), parentPage),
+							WebComponentUtil.getShortDateTimeFormattedValue(new Date(finished), parentPage),
 							DurationFormatUtils.formatDurationHMS(finished - started));
 				}
 			}

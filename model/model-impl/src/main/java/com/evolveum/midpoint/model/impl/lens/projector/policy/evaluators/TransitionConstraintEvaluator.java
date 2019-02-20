@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
@@ -54,8 +55,8 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 
 	@Override
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<TransitionPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<TransitionPolicyConstraintType> constraintElement,
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		TransitionPolicyConstraintType trans = constraintElement.getValue();
@@ -73,14 +74,14 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 		}
 	}
 
-	private <F extends FocusType> boolean evaluateState(TransitionPolicyConstraintType trans,
-			PolicyRuleEvaluationContext<F> rctx, ObjectState state, Boolean expected,
+	private <AH extends AssignmentHolderType> boolean evaluateState(TransitionPolicyConstraintType trans,
+			PolicyRuleEvaluationContext<AH> rctx, ObjectState state, Boolean expected,
 			List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (expected == null) {
 			return true;
 		}
-		PolicyRuleEvaluationContext<F> subContext = rctx.cloneWithStateConstraints(state);
+		PolicyRuleEvaluationContext<AH> subContext = rctx.cloneWithStateConstraints(state);
 		List<EvaluatedPolicyRuleTrigger<?>> subTriggers = policyRuleProcessor
 				.evaluateConstraints(trans.getConstraints(), true, subContext, result);
 		triggers.addAll(subTriggers);

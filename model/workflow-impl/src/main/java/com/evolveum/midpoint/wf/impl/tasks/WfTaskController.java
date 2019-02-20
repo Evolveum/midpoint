@@ -152,7 +152,7 @@ public class WfTaskController {
     /**
      * Beware, in order to make the change permanent, it is necessary to call commitChanges on
      * "executesFirst". It is advisable not to modify underlying tasks between 'addDependency'
-     * and 'commitChanges' because of the savePendingModifications() mechanism that is used here.
+     * and 'commitChanges' because of the flushPendingModifications() mechanism that is used here.
      */
     public void addDependency(WfTask executesFirst, WfTask executesSecond) {
         Validate.notNull(executesFirst.getTask());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -369,5 +371,29 @@ public enum ObjectTypes {
 
         return list;
     }
+    
+    /**
+     * Makes sure the QNames are full representation of object types, e.g. that they include proper namespace.
+     */
+    public static List<QName> canonizeObjectTypes(List<QName> inputQNames) {
+    	if (inputQNames == null) {
+    		return null;
+    	}
+    	List<QName> outputQNames = new ArrayList<>(inputQNames.size());
+    	for (QName inputQname : inputQNames) {
+    		outputQNames.add(canonizeObjectType(inputQname));
+    	}
+    	return outputQNames;
+	}
+
+    /**
+     * Makes sure the QName is full representation of object types, e.g. that it includes proper namespace.
+     */
+	public static QName canonizeObjectType(QName inputQName) {
+		if (!StringUtils.isBlank(inputQName.getNamespaceURI())) {
+			return inputQName;
+		}
+		return new QName(SchemaConstants.NS_C, inputQName.getLocalPart());
+	}
 }
 

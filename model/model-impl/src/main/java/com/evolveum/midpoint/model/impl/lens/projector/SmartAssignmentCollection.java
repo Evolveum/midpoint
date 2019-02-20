@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.internals.TestingPaths;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -44,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  *
  * @author Radovan Semancik
  */
-public class SmartAssignmentCollection<F extends FocusType> implements Iterable<SmartAssignmentElement>, DebugDumpable {
+public class SmartAssignmentCollection<F extends AssignmentHolderType> implements Iterable<SmartAssignmentElement>, DebugDumpable {
 
 	private Map<SmartAssignmentKey,SmartAssignmentElement> aMap = null;
 	private Map<Long,SmartAssignmentElement> idMap;

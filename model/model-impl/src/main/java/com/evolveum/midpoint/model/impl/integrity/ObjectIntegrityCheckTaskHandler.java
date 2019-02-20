@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -72,7 +73,7 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     }
 
 	@Override
-	protected ObjectIntegrityCheckResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+	protected ObjectIntegrityCheckResultHandler createHandler(TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
         return new ObjectIntegrityCheckResultHandler(coordinatorTask, ObjectIntegrityCheckTaskHandler.class.getName(),
 				"check object integrity", "check object integrity", taskManager, prismContext,
                 repositoryService, systemObjectCache, opResult);

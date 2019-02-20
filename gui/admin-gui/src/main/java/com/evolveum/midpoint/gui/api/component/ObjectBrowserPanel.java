@@ -58,6 +58,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	private PageBase parentPage;
 	private ObjectFilter queryFilter;
 	private List<O> selectedObjectsList = new ArrayList<>();
+	private Class<? extends O> defaultType;
+	private List<QName> supportedTypes = new ArrayList<>();
+	boolean multiselect;
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default
@@ -95,10 +98,17 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
 		};
 
-		initLayout(defaultType, supportedTypes, multiselect);
+		this.defaultType = defaultType;
+		this.supportedTypes = supportedTypes;
+		this.multiselect = multiselect;
 	}
 
-	private void initLayout(Class<? extends O> type, final List<QName> supportedTypes, final boolean multiselect) {
+	protected void onInitialize(){
+		super.onInitialize();
+		initLayout();
+	}
+
+	private void initLayout() {
 		List<ObjectTypes> supported = new ArrayList<>();
 		for (QName qname : supportedTypes) {
 			supported.add(ObjectTypes.getObjectTypeFromTypeQName(qname));
@@ -134,7 +144,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 		});
 		typePanel.add(typeSelect);
 
-		ObjectTypes objType = type != null ? ObjectTypes.getObjectType(type) : null;
+		ObjectTypes objType = defaultType != null ? ObjectTypes.getObjectType(defaultType) : null;
 		ObjectListPanel<O> listPanel = createObjectListPanel(objType, multiselect);
 		add(listPanel);
 

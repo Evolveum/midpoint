@@ -29,12 +29,12 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -109,10 +109,38 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	private static final String USER_NEWMAN_EMPLOYEE_NUMBER = "N00001";
 	private static final String USER_NEWMAN_SHIP = "Nova";
 	
-	private static final int BASIC_USERS_CONTAINERS = 9;
-	private static final int BASIC_SHADOW_CONTAINERS = 10;
-	private static final int BASIC_ORG_CONTAINERS = 15;
-	
+	private static final List<ItemPath> BASIC_USER_CONTAINERS_PATHS = Arrays.asList(
+			ItemPath.EMPTY_PATH,
+			UserType.F_EXTENSION,
+			UserType.F_METADATA,
+			UserType.F_ASSIGNMENT,
+			UserType.F_ACTIVATION,
+			UserType.F_CREDENTIALS,
+			UserType.F_ADMIN_GUI_CONFIGURATION);
+	private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
+			ItemPath.EMPTY_PATH,
+			ShadowType.F_EXTENSION,
+			ShadowType.F_METADATA,
+			ShadowType.F_PENDING_OPERATION,
+			ShadowType.F_ATTRIBUTES,
+			ShadowType.F_ASSOCIATION,
+			ShadowType.F_ACTIVATION,
+			ShadowType.F_CREDENTIALS);
+	private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
+			ItemPath.EMPTY_PATH,
+			OrgType.F_EXTENSION,
+			OrgType.F_METADATA,
+			OrgType.F_ASSIGNMENT,
+			OrgType.F_ACTIVATION,
+			OrgType.F_INDUCEMENT,
+			OrgType.F_AUTHORIZATION,
+			OrgType.F_EXCLUSION,
+			OrgType.F_CONDITION,
+			OrgType.F_POLICY_CONSTRAINTS,
+			OrgType.F_ADMIN_GUI_CONFIGURATION,
+			OrgType.F_DATA_PROTECTION,
+			OrgType.F_AUTOASSIGN);
+
 	private String userWallyOid;
 	private String accountWallyOid;
 
@@ -146,7 +174,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, BASIC_USERS_CONTAINERS, objectWrapper.getContainers().size());
+		assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
 
 		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, user, ContainerStatus.MODIFYING);
@@ -190,7 +218,17 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		display("Delta", objectDelta);
 		assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
 	}
-	
+
+	private void assertContainersPaths(ObjectWrapper<?> objectWrapper, Collection<ItemPath> expectedPaths) {
+		Set<UniformItemPath> expectedUniformPaths = expectedPaths.stream()
+				.map(p -> prismContext.toUniformPath(p))
+				.collect(Collectors.toSet());
+		Set<UniformItemPath> realUniformPaths = objectWrapper.getContainers().stream()
+				.map(c -> prismContext.toUniformPath(c.getPath()))
+				.collect(Collectors.toSet());
+		assertEquals("wrong container paths in "+objectWrapper, expectedUniformPaths, realUniformPaths);
+	}
+
 	/**
 	 * Create wrapper for brand new empty user.
 	 */
@@ -215,7 +253,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.ADDING);
-		assertEquals("wrong number of containers in "+objectWrapper, BASIC_USERS_CONTAINERS, objectWrapper.getContainers().size());
+		assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
 
 		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, user, ContainerStatus.ADDING);
@@ -293,7 +331,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.ADDING);
-		assertEquals("wrong number of containers in "+objectWrapper, BASIC_USERS_CONTAINERS, objectWrapper.getContainers().size());
+		assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
 
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, user, ContainerStatus.ADDING);
 		assertEquals("wrong number of containers in "+mainContainerWrapper, 1, mainContainerWrapper.getValues().size());
@@ -360,7 +398,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, BASIC_USERS_CONTAINERS, objectWrapper.getContainers().size());
+		assertContainersPaths(objectWrapper, BASIC_USER_CONTAINERS_PATHS);
 
 		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, user, ContainerStatus.MODIFYING);
@@ -419,7 +457,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "shadow display name", "shadow description", shadow, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, BASIC_SHADOW_CONTAINERS, objectWrapper.getContainers().size());
+		assertContainersPaths(objectWrapper, BASIC_SHADOW_CONTAINERS_PATHS);
 
 		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ATTRIBUTES);
 		assertEquals("wrong number of values in "+attributesContainerWrapper, 1, attributesContainerWrapper.getValues().size());
@@ -481,7 +519,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "org display name", "org description", org, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, BASIC_ORG_CONTAINERS, objectWrapper.getContainers().size());
+		assertContainersPaths(objectWrapper, BASIC_ORG_CONTAINERS_PATHS);
 
 		ContainerWrapper<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, getString("prismContainer.mainPanelDisplayName"), (ItemPath)null, org, ContainerStatus.MODIFYING);
@@ -570,7 +608,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "shadow display name", "shadow description", shadow, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, BASIC_SHADOW_CONTAINERS, objectWrapper.getContainers().size());
+		assertContainersPaths(objectWrapper, BASIC_SHADOW_CONTAINERS_PATHS);
 
 		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(ShadowType.F_ATTRIBUTES);
 		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "Attributes", ShadowType.F_ATTRIBUTES, shadow.findContainer(ShadowType.F_ATTRIBUTES),

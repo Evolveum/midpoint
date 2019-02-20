@@ -21,8 +21,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -43,12 +42,15 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 	private final IModel<WorkItemDto> dtoModel;
 
 	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel, ModelServiceLocator serviceLocator) {
-		super(id, model, serviceLocator, null);
+		super(id, model, null);
 		this.dtoModel = dtoModel;
+	}
 
-		initLayoutCommon(serviceLocator);
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
 
-		SummaryTagSimple<WorkItemType> isAssignedTag = new SummaryTagSimple<WorkItemType>(ID_ASSIGNED_TAG, model) {
+		SummaryTag<WorkItemType> isAssignedTag = new SummaryTag<WorkItemType>(ID_ASSIGNED_TAG, getModel()) {
 			@Override
 			protected void initialize(WorkItemType workItem) {
 				if (workItem.getAssigneeRef() != null) {
@@ -127,7 +129,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			public String getObject() {
 				WorkItemType workItem = getModelObject();
 				return getString("TaskSummaryPanel.requestedOn",
-						WebComponentUtil.getLocalizedDate(WfContextUtil.getWorkflowContext(workItem).getStartTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE));
+						WebComponentUtil.getLongDateTimeFormattedValue(WfContextUtil.getWorkflowContext(workItem).getStartTimestamp(),
+								WorkItemSummaryPanel.this.getPageBase()));
 			}
 		};
 	}
