@@ -26,6 +26,9 @@ import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	private static final long serialVersionUID = 1L;
 
@@ -36,11 +39,18 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 		super(id, ResourceType.class, model, serviceLocator);
 	}
 
+//	@Override
+//	protected void onBeforeRender() {
+//		super.onBeforeRender();
+//	}
+
 	@Override
-	protected void onBeforeRender() {
-		super.onBeforeRender();
+	protected List<SummaryTag<ResourceType>> getSummaryTagComponentList(){
 		boolean down = ResourceTypeUtil.isDown(getModelObject());
-		SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_UP_DOWN_TAG, getModel()) {
+
+		List<SummaryTag<ResourceType>> summaryTagList = new ArrayList<>();
+
+		SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_SUMMARY_TAG, getModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -54,8 +64,10 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 				}
 			}
 		};
-		addTag(summaryTag);
+		summaryTagList.add(summaryTag);
+		return summaryTagList;
 	}
+
 
 	@Override
 	protected String getIconCssClass() {

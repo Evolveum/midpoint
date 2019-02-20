@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -49,9 +50,10 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	}
 
 	@Override
-	protected void onInitialize(){
-		super.onInitialize();
-		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, getModel()) {
+	protected List<SummaryTag<UserType>> getSummaryTagComponentList(){
+		List<SummaryTag<UserType>> summaryTagList = super.getSummaryTagComponentList();
+
+		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_SUMMARY_TAG, getModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -92,9 +94,9 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				}
 			}
 		};
-		addTag(tagSecurity);
+		summaryTagList.add(tagSecurity);
 
-		SummaryTag<UserType> tagOrg = new SummaryTag<UserType>(ID_TAG_ORG, getModel()) {
+		SummaryTag<UserType> tagOrg = new SummaryTag<UserType>(ID_SUMMARY_TAG, getModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -127,7 +129,9 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				}
 			}
 		};
-		addTag(tagOrg);
+		summaryTagList.add(tagOrg);
+
+		return summaryTagList;
 	}
 
 	@Override

@@ -109,6 +109,9 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 
 	private String getDefaultValue() {
     	C object = model.getObject();
+    	if (object == null){
+    		return "";
+		}
 		PrismProperty<?> property;
         try {
             property = object.asPrismContainerValue().findOrCreateProperty(path);

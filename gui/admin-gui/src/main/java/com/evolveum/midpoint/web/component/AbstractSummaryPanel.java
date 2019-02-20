@@ -23,20 +23,26 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author semancik
@@ -48,6 +54,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 	protected static final String ID_BOX = "summaryBox";
     protected static final String ID_ICON_BOX = "summaryIconBox";
 	protected static final String ID_TAG_BOX = "summaryTagBox";
+	protected static final String ID_SUMMARY_TAG = "summaryTag";
     protected static final String ID_ICON = "summaryIcon";
     protected static final String ID_DISPLAY_NAME = "summaryDisplayName";
     protected static final String ID_IDENTIFIER = "summaryIdentifier";
@@ -65,7 +72,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected SummaryPanelSpecificationType configuration;
 
     protected WebMarkupContainer box;
-    protected WebMarkupContainer tagBox;
+    protected RepeatingView tagBox;
     protected WebMarkupContainer iconBox;
 
     public AbstractSummaryPanel(String id, IModel<C> model, SummaryPanelSpecificationType configuration) {
@@ -178,10 +185,18 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         });
         iconBox.add(img);
 
-		tagBox = new WebMarkupContainer(ID_TAG_BOX);
+		tagBox = new RepeatingView(ID_TAG_BOX);
+		getSummaryTagComponentList().forEach(summaryTag -> {
+			WebMarkupContainer summaryTagPanel = new WebMarkupContainer(tagBox.newChildId());
+			summaryTagPanel.setOutputMarkupId(true);
+
+			summaryTagPanel.add(summaryTag);
+			tagBox.add(summaryTagPanel);
+		});
 		if (getTagBoxCssClass() != null) {
 			tagBox.add(new AttributeModifier("class", getTagBoxCssClass()));
 		}
+		tagBox.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getSummaryTagComponentList())));
 		box.add(tagBox);
     }
 
@@ -198,6 +213,10 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 				AbstractSummaryPanel.this.addAdditionalExpressionVariables(variables);
 			}
 		};
+	}
+
+	protected List<SummaryTag<C>> getSummaryTagComponentList(){
+    	return new ArrayList<>();
 	}
 
     protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
@@ -219,10 +238,6 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 	protected String getTagBoxCssClass() {
 		return null;
 	}
-
-	public void addTag(Component tag) {
-        tagBox.add(tag);
-    }
 
 	public Component getTag(String id) {
 		return tagBox.get(id);
@@ -307,4 +322,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return new Model<>(null);
     }
 
+    protected WebMarkupContainer getSummaryBoxPanel(){
+    	return (WebMarkupContainer) get(ID_BOX);
+	}
 }

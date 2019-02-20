@@ -40,6 +40,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,19 +54,15 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 
 	private static final String ID_ACTIVATION_TAG = "activationTag";
 
-//	private IModel<ObjectWrapper<O>> wrapperModel;
-
 	public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, ModelServiceLocator serviceLocator) {
 		super(id, type, model, serviceLocator);
-
-//		this.wrapperModel = model;
 	}
 
 	@Override
-	protected void onInitialize(){
-		super.onInitialize();
+	protected List<SummaryTag<O>> getSummaryTagComponentList(){
+		List<SummaryTag<O>> summaryTagList = new ArrayList<>();
 
-		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_ACTIVATION_TAG, getModel()) {
+		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_SUMMARY_TAG, getModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -103,7 +100,8 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 				return isActivationVisible();
 			}
 		});
-		addTag(tagActivation);
+		summaryTagList.add(tagActivation);
+		return summaryTagList;
 	}
 
 	@Override

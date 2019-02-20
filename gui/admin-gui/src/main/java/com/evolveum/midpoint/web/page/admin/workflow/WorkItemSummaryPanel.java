@@ -28,6 +28,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.model.IModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -47,10 +50,9 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 	}
 
 	@Override
-	protected void onInitialize(){
-		super.onInitialize();
-
-		SummaryTag<WorkItemType> isAssignedTag = new SummaryTag<WorkItemType>(ID_ASSIGNED_TAG, getModel()) {
+	protected List<SummaryTag<WorkItemType>> getSummaryTagComponentList(){
+		List<SummaryTag<WorkItemType>> summaryTagList = new ArrayList<>();
+		SummaryTag<WorkItemType> isAssignedTag = new SummaryTag<WorkItemType>(ID_SUMMARY_TAG, getModel()) {
 			@Override
 			protected void initialize(WorkItemType workItem) {
 				if (workItem.getAssigneeRef() != null) {
@@ -62,7 +64,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 				}
 			}
 		};
-		addTag(isAssignedTag);
+		summaryTagList.add(isAssignedTag);
+		return summaryTagList;
 	}
 
 	@Override
