@@ -147,7 +147,7 @@ public class OperationsHelper {
                     context.getTask(), objectType);
         }
         if (context.getTask() != null) {
-            context.getTask().setProgress(context.getTask().getProgress() + 1);
+            context.getTask().incrementProgressAndStoreStatsIfNeeded();
         }
     }
 
