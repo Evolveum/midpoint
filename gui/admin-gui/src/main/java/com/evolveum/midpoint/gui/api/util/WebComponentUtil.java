@@ -73,6 +73,8 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
+import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -192,6 +194,7 @@ public final class WebComponentUtil {
 	private static RelationRegistry staticallyProvidedRelationRegistry;
 
 	private static Map<Class<?>, Class<? extends PageBase>> objectDetailsPageMap;
+	private static Map<Class<?>, Class<? extends PageBase>> createNewObjectPageMap;
 
 	static {
 		objectDetailsPageMap = new HashMap<>();
@@ -202,6 +205,12 @@ public final class WebComponentUtil {
 		objectDetailsPageMap.put(ResourceType.class, PageResource.class);
 		objectDetailsPageMap.put(TaskType.class, PageTaskEdit.class);
 		objectDetailsPageMap.put(ReportType.class, PageReport.class);
+		objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
+	}
+
+	static{
+		createNewObjectPageMap = new HashMap<>();
+		createNewObjectPageMap.put(ResourceType.class, PageResourceWizard.class);
 	}
 
 	// only pages that support 'advanced search' are currently listed here (TODO: generalize)
@@ -1970,16 +1979,36 @@ public final class WebComponentUtil {
 		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 	}
 
-	public static <AHT extends AssignmentHolderType> AHT createNewObjectWithCollectionRef(Class<AHT> type, PrismContext context,
-																						  ObjectReferenceType collectionRef){
-		if (UserType.class.equals(type) && collectionRef != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRef.getType())){
-			UserType user = new UserType(context);
-			AssignmentType assignment = new AssignmentType();
-			assignment.setTargetRef(collectionRef.clone());
-			user.getAssignment().add(assignment);
-			return (AHT) user;
+	public static <AHT extends AssignmentHolderType, O extends ObjectType> void initNewObjectWithReference(PageBase pageBase, O targetObject, QName type, Collection<QName> relations) throws SchemaException {
+		List<ObjectReferenceType> newReferences = new ArrayList<>();
+		for (QName relation : relations) {
+			newReferences.add(ObjectTypeUtil.createObjectRef(targetObject, relation));
 		}
-		return null;
+		initNewObjectWithReference(pageBase, type, newReferences);
+	}
+
+	public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, QName type, List<ObjectReferenceType> newReferences) throws SchemaException {
+		PrismContext prismContext = pageBase.getPrismContext();
+		PrismObjectDefinition<AHT> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
+		PrismObject<AHT> obj = def.instantiate();
+		AHT assignmentHolder = obj.asObjectable();
+		if (newReferences != null) {
+			newReferences.stream().forEach(ref -> {
+				AssignmentType assignment = new AssignmentType();
+				assignment.setTargetRef(ref);
+				assignmentHolder.getAssignment().add(assignment);
+
+				// Set parentOrgRef in any case. This is not strictly correct.
+				// The parentOrgRef should be added by the projector. But
+				// this is needed to successfully pass through security
+				// TODO: fix MID-3234
+				if (ref.getType() != null && OrgType.COMPLEX_TYPE.equals(ref.getType())) {
+					assignmentHolder.getParentOrgRef().add(ref.clone());
+				}
+			});
+		}
+
+		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, pageBase);
 	}
 
 	public static String createUserIconTitle(PrismObject<UserType> object) {
@@ -2304,7 +2333,7 @@ public final class WebComponentUtil {
 
 	// shows the actual object that is passed via parameter (not its state in repository)
 	public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, Component component) {
-		Class newObjectPageClass = getObjectDetailsPage(obj.getCompileTimeClass());
+		Class newObjectPageClass = isNewObject ? getNewlyCreatedObjectPage(obj.getCompileTimeClass()) : getObjectDetailsPage(obj.getCompileTimeClass());
 		if (newObjectPageClass == null) {
 			throw new IllegalArgumentException("Cannot determine details page for "+obj.getCompileTimeClass());
 		}
@@ -2376,6 +2405,10 @@ public final class WebComponentUtil {
 
 	public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
 		return objectDetailsPageMap.get(type);
+	}
+
+	public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {
+		return createNewObjectPageMap.get(type);
 	}
 
 	public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {

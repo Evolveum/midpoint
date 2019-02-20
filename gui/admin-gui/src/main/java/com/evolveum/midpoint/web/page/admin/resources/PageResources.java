@@ -152,12 +152,6 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 	}
 
 	@Override
-	protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-    	navigateToNext(PageResourceWizard.class);
-
-	}
-
-	@Override
 	protected Class<ResourceType> getType(){
     	return ResourceType.class;
 	}

@@ -109,8 +109,9 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 	@Override
 	protected IModel<String> getDefaltParentOrgModel() {
 		return new ReadOnlyModel<String>(() -> {
-			List<OrgType> parentOrgs = FocusSummaryPanel.this.getModel().getObject().getParentOrg();
-			if (parentOrgs.isEmpty()) {
+			O focusObject = FocusSummaryPanel.this.getModel().getObject();
+			List<OrgType> parentOrgs = focusObject != null ? focusObject.getParentOrg() : null;
+			if (parentOrgs == null || parentOrgs.isEmpty()) {
 				return "";
 			}
 			// Kinda hack now .. "functional" orgType always has preference
@@ -140,6 +141,9 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 			public AbstractResource getObject() {
 				byte[] jpegPhoto = null;
 				O object = getModel().getObject();
+				if (object == null){
+					return null;
+				}
 				if (object instanceof FocusType) {
 					jpegPhoto = ((FocusType) object).getJpegPhoto();
 				}

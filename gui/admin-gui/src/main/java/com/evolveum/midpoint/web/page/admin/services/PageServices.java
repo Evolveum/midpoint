@@ -100,11 +100,6 @@ public class PageServices extends PageAdminObjectList<ServiceType> {
 	}
 
 	@Override
-	protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-		navigateToNext(PageService.class);
-	}
-
-	@Override
 	protected Class<ServiceType> getType(){
 		return ServiceType.class;
 	}
