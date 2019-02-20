@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.prism.Containerable;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -22,13 +23,12 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
  *
  */
-public abstract class SummaryTag<O extends ObjectType> extends Panel {
+public abstract class SummaryTag<C extends Containerable> extends Panel {
 
 	private static final String ID_TAG_ICON = "summaryTagIcon";
 	private static final String ID_TAG_LABEL = "summaryTagLabel";
@@ -40,11 +40,11 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	private String color = null;
 	private boolean hideTag = false;
 
-	public SummaryTag(String id, final IModel<ObjectWrapper<O>> model) {
+	public SummaryTag(String id, final IModel<C> model) {
 		super(id, model);
 
 		Label tagIcon = new Label(ID_TAG_ICON, "");
-		tagIcon.add(new AttributeModifier("class", new SummaryTagWrapperModel<String>(model) {
+		tagIcon.add(new AttributeModifier("class", new SummaryTagModel<String>(model) {
 			@Override
 			protected String getValue() {
 				return getIconCssClass();
@@ -52,14 +52,14 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 		}));
 		add(tagIcon);
 
-		add(new Label(ID_TAG_LABEL, new SummaryTagWrapperModel<String>(model) {
+		add(new Label(ID_TAG_LABEL, new SummaryTagModel<String>(model) {
 			@Override
 			protected String getValue() {
 				return getLabel();
 			}
 		}));
 
-		add(new AttributeModifier("style", new SummaryTagWrapperModel<String>(model) {
+		add(new AttributeModifier("style", new SummaryTagModel<String>(model) {
 			@Override
 			protected String getValue() {
 				if (getColor() == null) {
@@ -69,7 +69,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 			}
 		}));
 
-		add(new AttributeModifier("class", new SummaryTagWrapperModel<String>(model) {
+		add(new AttributeModifier("class", new SummaryTagModel<String>(model) {
 			@Override
 			protected String getValue() {
 				return getCssClass();
@@ -127,18 +127,20 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 		this.hideTag = hideTag;
 	}
 
-	protected abstract void initialize(ObjectWrapper<O> objectWrapper);
+	protected abstract void initialize(C objectWrapper);
 
-	abstract class SummaryTagWrapperModel<T> extends ReadOnlyWrapperModel<T,O> {
+	abstract class SummaryTagModel<T> implements IModel<T> {
 
-		public SummaryTagWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
-			super(wrapperModel);
+		IModel<C> objectModel;
+
+		public SummaryTagModel(IModel<C> objectModel) {
+			this.objectModel = objectModel;
 		}
 
 		@Override
 		public T getObject() {
 			if (!initialized) {
-				initialize(getWrapper());
+				initialize(objectModel.getObject());
 			}
 			return getValue();
 		}
@@ -146,4 +148,5 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 		protected abstract T getValue();
 
 	}
+
 }

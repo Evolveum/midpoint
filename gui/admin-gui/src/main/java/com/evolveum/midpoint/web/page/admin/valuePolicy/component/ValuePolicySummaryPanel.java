@@ -27,9 +27,8 @@ import org.apache.wicket.model.IModel;
  */
 public class ValuePolicySummaryPanel extends ObjectSummaryPanel<ValuePolicyType> {
 
-    public ValuePolicySummaryPanel(String id, IModel<PrismObject<ValuePolicyType>> model, ModelServiceLocator serviceLocator) {
+    public ValuePolicySummaryPanel(String id, IModel<ValuePolicyType> model, ModelServiceLocator serviceLocator) {
         super(id, ValuePolicyType.class, model, serviceLocator);
-        initLayoutCommon(serviceLocator);
     }
 
     @Override

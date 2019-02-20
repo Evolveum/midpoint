@@ -30,10 +30,8 @@ public class ShadowSummaryPanel extends ObjectSummaryPanel<ShadowType> {
 
 	private static final long serialVersionUID = 1L;
 
-	public ShadowSummaryPanel(String id, IModel<PrismObject<ShadowType>> model, ModelServiceLocator locator) {
+	public ShadowSummaryPanel(String id, IModel<ShadowType> model, ModelServiceLocator locator) {
 		super(id, ShadowType.class, model, locator);
-
-		initLayoutCommon(locator);
 	}
 
 	@Override

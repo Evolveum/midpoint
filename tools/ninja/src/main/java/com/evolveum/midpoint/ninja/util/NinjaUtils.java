@@ -54,6 +54,7 @@ public class NinjaUtils {
         ConnectionOptions connection = new ConnectionOptions();
 
         JCommander.Builder builder = JCommander.newBuilder()
+                .expandAtSign(false)
                 .addObject(base)
                 .addObject(connection);
 
