@@ -2408,7 +2408,11 @@ public final class WebComponentUtil {
 	}
 
 	public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {
-		return createNewObjectPageMap.get(type);
+	    if (ResourceType.class.equals(type)) {
+            return createNewObjectPageMap.get(type);
+        } else {
+            return objectDetailsPageMap.get(type);
+        }
 	}
 
 	public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {
