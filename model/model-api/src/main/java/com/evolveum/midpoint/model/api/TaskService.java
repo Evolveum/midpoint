@@ -177,7 +177,7 @@ public interface TaskService {
     void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	/**
-	 * Synchronizes information in midPoint repository and activiti database.
+	 * Synchronizes information in midPoint repository (tasks vs cases).
 	 * Not needed to use during normal operation (only when problems occur).
 	 *
 	 * @param parentResult

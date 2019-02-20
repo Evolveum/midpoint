@@ -284,7 +284,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 		try {
 			processInstanceManager.cleanupWfCases(result);
 		} catch (Throwable t) {
-			result.recordFatalError("Couldn't cleanup Activiti processes: " + t.getMessage(), t);
+			result.recordFatalError("Couldn't cleanup wf cases: " + t.getMessage(), t);
 			throw t;
 		} finally {
 			result.recordSuccessIfUnknown();

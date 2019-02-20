@@ -22,25 +22,26 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareChildOperationTaskHandler;
 import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareRootOperationTaskHandler;
@@ -56,24 +56,16 @@ import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.activiti.engine.ActivitiException;
-import org.activiti.engine.TaskService;
-import org.activiti.engine.form.FormProperty;
-import org.activiti.engine.task.IdentityLink;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 import static com.evolveum.midpoint.schema.ObjectTreeDeltas.fromObjectTreeDeltasType;
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 
 /**
  * @author mederly
@@ -231,50 +223,6 @@ public class MiscDataUtil {
         }
         return prism.asObjectable();
     }
-
-    public Task getShadowTask(Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
-        if (oid != null) {
-            return taskManager.getTask(oid, result);
-        } else {
-            return null;
-        }
-    }
-
-    @NotNull
-	public static String refToString(@NotNull ObjectReferenceType ref) {
-    	return
-				(ref.getType() != null ? ref.getType().getLocalPart() : UserType.COMPLEX_TYPE.getLocalPart())
-				+ CommonProcessVariableNames.TYPE_NAME_SEPARATOR
-				+ ref.getOid();
-	}
-
-	public static List<String> refsToStrings(@NotNull Collection<ObjectReferenceType> refs) {
-    	return refs.stream().map(r -> refToString(r)).collect(Collectors.toList());
-	}
-
-	@NotNull
-	public static List<String> prismRefsToStrings(Collection<PrismReferenceValue> refs) {
-		List<String> rv = new ArrayList<>();
-		for (PrismReferenceValue ref : refs) {
-			addIgnoreNull(rv, refToString(ObjectTypeUtil.createObjectRef(ref)));
-		}
-		return rv;
-	}
-
-	@NotNull
-	public static ObjectReferenceType stringToRef(@NotNull String s) {
-    	String[] parts = s.split(CommonProcessVariableNames.TYPE_NAME_SEPARATOR);
-    	if (parts.length == 0 || parts.length > 2) {
-    		throw new IllegalArgumentException("Incorrect reference string representation: " + s);
-		} else if (parts.length == 1) {
-    		return new ObjectReferenceType().oid(parts[0]).type(UserType.COMPLEX_TYPE);
-		} else {
-			// TODO support namespaces other than c:
-    		QName type = StringUtils.isEmpty(parts[0]) ? UserType.COMPLEX_TYPE : new QName(SchemaConstants.NS_C, parts[0]);
-			return new ObjectReferenceType().oid(parts[1]).type(type);
-		}
-	}
 
 	public enum RequestedOperation {
     	COMPLETE(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS, null),

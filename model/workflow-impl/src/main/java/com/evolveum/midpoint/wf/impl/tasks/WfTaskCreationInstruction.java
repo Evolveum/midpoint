@@ -45,7 +45,6 @@ import java.util.*;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 
 /**
  * A generic instruction to start a background task; with or without a workflow process instance.

@@ -547,7 +547,7 @@ public class SqlRepositoryConfiguration {
 
 	/**
 	 * Prepares a prefix (first part) of JDBC URL for embedded database. Used also by configurator of tasks (quartz)
-	 * and workflow (activiti) modules; they add their own db names and parameters to this string.
+	 * module; it adds its own db names and parameters to this string.
 	 *
 	 * @return prefix of JDBC URL like jdbc:h2:file:d:\midpoint\midpoint
 	 */

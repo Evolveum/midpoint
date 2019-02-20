@@ -46,9 +46,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Manages everything related to a activiti process instance, including the task that monitors that process instance.
+ * Manages everything related to a process instance, including the task that monitors that process instance.
  *
- * This class provides a facade over ugly mess of code managing activiti + task pair describing a workflow process instance.
+ * This class provides a facade over ugly mess of code managing case + task pair describing a workflow process instance.
  *
  * @author mederly
  */

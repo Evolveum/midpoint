@@ -130,7 +130,7 @@ public class ProcessInstanceManager {
 	public void synchronizeWorkflowRequests(OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(OPERATION_SYNCHRONIZE_WORKFLOW_REQUESTS);
 		try {
-			LOGGER.info("Starting synchronization of workflow requests between repository and Activiti");
+			LOGGER.info("Starting synchronization of workflow requests in repository");
 			final Set<String> activeProcessInstances = new HashSet<>();
 			final Map<String,String> casesToTasks = getCasesToTasks(activeProcessInstances, result);
 			final Map<String,String> tasksToCases = getTasksToCases(result);

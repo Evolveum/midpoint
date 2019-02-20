@@ -473,8 +473,8 @@
                     <xsd:element name="externalWorkItemId" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Activiti ID of the work item (activiti task) this event is related to. Null for
-                                work items that have no external representation (i.e. they are present in midPoint repo only).
+                                ID of the work item (case work item) this event is related to.
+                                Will be removed!
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

@@ -47,7 +47,7 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
     }
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task) {
 		// this task handler serves only as a marker -- to be resolved later
 		throw new UnsupportedOperationException("Operation not supported.");
 	}

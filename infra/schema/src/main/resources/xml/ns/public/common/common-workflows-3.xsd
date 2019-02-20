@@ -1827,9 +1827,7 @@
 					<xsd:element name="externalId" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								Identifier of the work item assigned by the underlying workflow engine
-								(currently Activiti). MidPoint WorkItem is Activiti Task. So externalId is
-								taskId.
+								TODO remove
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>

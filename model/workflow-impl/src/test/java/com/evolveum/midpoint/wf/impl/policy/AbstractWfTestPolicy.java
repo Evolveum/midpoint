@@ -554,10 +554,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			return false;
 		}
 
-		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-			return null;
-		}
-
 		protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 			return null;
 		}
@@ -829,7 +825,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 			WfTestUtil
 					.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
-			// name is not known, as it is not stored in activiti (only OID is)
+			// name is not known
 			//WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
 			final TaskType subtaskType = WfContextUtil.getTask(workItem);
 			checkTask(subtaskType, "task in workItem", expectedWorkItems.get(i).task);

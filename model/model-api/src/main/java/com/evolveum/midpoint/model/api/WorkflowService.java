@@ -36,7 +36,7 @@ public interface WorkflowService {
 
     /**
      * Approves or rejects a work item (without supplying any further information).
-	 * @param taskId identifier of activiti task backing the work item
+	 * @param taskId identifier of work item
 	 * @param decision true = approve, false = reject
 	 * @param comment
 	 * @param additionalDelta
@@ -57,5 +57,5 @@ public interface WorkflowService {
     void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    void checkWorkflowProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 }

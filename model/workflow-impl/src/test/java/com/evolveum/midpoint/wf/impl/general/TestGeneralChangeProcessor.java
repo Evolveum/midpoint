@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.legacy.AbstractWfTestLegacy;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
-import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -101,8 +100,6 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Autowired
     private PrismContext prismContext;
-
-    private ActivitiUtil activitiUtil = new ActivitiUtil();                 // this is not a spring bean
 
     public TestGeneralChangeProcessor() throws JAXBException {
 		super();

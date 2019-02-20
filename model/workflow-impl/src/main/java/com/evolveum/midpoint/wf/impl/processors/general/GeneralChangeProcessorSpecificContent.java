@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.tasks.ProcessorSpecificContent;
-import com.evolveum.midpoint.wf.impl.util.JaxbValueContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessorSpecificStateType;
 
 import java.util.Map;
@@ -51,7 +50,7 @@ public class GeneralChangeProcessorSpecificContent implements ProcessorSpecificC
 			map.put(GcpProcessVariableNames.VARIABLE_MIDPOINT_SCENARIO_BEAN_NAME, scenarioBeanName);
 		}
 		if (modelContext != null) {
-			map.put(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<>(modelContext.toLensContextType(), prismContext));
+			map.put(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, modelContext.toLensContextType());
 		}
 	}
 }

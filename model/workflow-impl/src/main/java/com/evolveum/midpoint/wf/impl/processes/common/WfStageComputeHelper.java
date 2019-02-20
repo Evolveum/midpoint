@@ -38,7 +38,6 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.activiti.engine.delegate.DelegateExecution;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -64,14 +63,9 @@ public class WfStageComputeHelper {
 
 	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
 
-	public ExpressionVariables getDefaultVariables(@Nullable DelegateExecution execution, Task wfTask, OperationResult result)
+	public ExpressionVariables getDefaultVariables(Task wfTask, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
-		ExpressionVariables variables = getDefaultVariables(wfTask.getWorkflowContext(), wfTask.getChannel(), result);
-		// Activiti process instance variables (use with care)
-		if (execution != null) {
-			execution.getVariables().forEach((key, value) -> variables.addVariableDefinition(new QName("_" + key), value));
-		}
-		return variables;
+		return getDefaultVariables(wfTask.getWorkflowContext(), wfTask.getChannel(), result);
 	}
 
 	public ExpressionVariables getDefaultVariables(WfContextType wfContext, String requestChannel, OperationResult result)

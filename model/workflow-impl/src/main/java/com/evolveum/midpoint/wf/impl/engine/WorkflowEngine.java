@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.wf.impl.engine.dao.CompleteAction;
 import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.engine.processes.ItemApprovalProcessOrchestrator;
 import com.evolveum.midpoint.wf.impl.engine.processes.ProcessOrchestrator;
-import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
@@ -640,7 +640,7 @@ public class WorkflowEngine {
 		AbstractWorkItemOutputType output = workItem.getOutput();
 		if (realClosure || output != null) {
 			WorkItemCompletionEventType event = new WorkItemCompletionEventType();
-			ActivitiUtil.fillInWorkItemEvent(event, user, workItemExternalId, workItem, prismContext);
+			fillInWorkItemEvent(event, user, workItemExternalId, workItem, prismContext);
 			event.setCause(causeInformation);
 			event.setOutput(output);
 			ObjectDeltaType additionalDelta = output instanceof WorkItemResultType && ((WorkItemResultType) output).getAdditionalDeltas() != null ?
@@ -825,7 +825,7 @@ public class WorkflowEngine {
 
 		repositoryService.modifyObject(CaseType.class, ctx.getCaseOid(), workItemDeltas, result);
 
-		ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, workItem, prismContext);
+		fillInWorkItemEvent(event, principal, workItemId, workItem, prismContext);
 		MidpointUtil.recordEventInTask(event, null, ctx.wfTask.getOid(), result);
 
 		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(ctx.wfContext);
@@ -840,5 +840,19 @@ public class WorkflowEngine {
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
 		notificationHelper.notifyWorkItemAllocationChangeNewActors(workItemAfter, operationInfoAfter, sourceInfo, wfTaskAfter, result);
 	}
+
+	private static void fillInWorkItemEvent(WorkItemEventType event, MidPointPrincipal currentUser, String workItemId,
+			WorkItemType workItem, PrismContext prismContext) {
+		if (currentUser != null) {
+			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getUser(), prismContext));
+			event.setAttorneyRef(ObjectTypeUtil.createObjectRef(currentUser.getAttorney(), prismContext));
+		}
+		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		event.setExternalWorkItemId(workItemId);
+		event.setOriginalAssigneeRef(workItem.getOriginalAssigneeRef());
+		event.setStageNumber(workItem.getStageNumber());
+		event.setEscalationLevel(workItem.getEscalationLevel());
+	}
+
 
 }

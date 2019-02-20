@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
@@ -27,6 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
  */
 public interface SingleTriggerHandler extends TriggerHandler {
 
-	<O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result);
+	<O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result);
 
 }

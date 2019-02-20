@@ -58,7 +58,7 @@ public class WfTask {
     @NotNull private final WfTaskController wfTaskController;
     @NotNull private final Task task;
     @NotNull private final ChangeProcessor changeProcessor;
-    private String caseOid;                     // must be non-null for workflow-related tasks (and may be filled-in later, when activiti process is started)
+    private String caseOid;                     // must be non-null for workflow-related tasks (and may be filled-in later, when process is started)
 
     //region Constructors and basic getters
     WfTask(WfTaskController wfTaskController, Task task, ChangeProcessor changeProcessor) {

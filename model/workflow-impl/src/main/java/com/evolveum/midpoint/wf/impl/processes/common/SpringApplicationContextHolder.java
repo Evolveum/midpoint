@@ -49,10 +49,6 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 		return context;
 	}
 
-    public static WorkflowInterface getActivitiInterface() {
-        return getBean("activitiInterface", WorkflowInterface.class);
-    }
-
     private static<T> T getBean(Class<T> aClass) {
         String className = aClass.getSimpleName();
         String beanName = Character.toLowerCase(className.charAt(0)) + className.substring(1);

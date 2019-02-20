@@ -247,7 +247,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             instruction.setObjectRef(modelContext, result);     // TODO - or should we take shadow as an object?
             instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target, prismContext), result);
 
-            // set the names of midPoint task and activiti process instance
+            // set the names of midPoint task and process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
             instruction.setTaskName("Approval " + andExecuting + "of adding " + targetName + " to " + assigneeName);
             instruction.setProcessInstanceName("Adding " + targetName + " to " + assigneeName);

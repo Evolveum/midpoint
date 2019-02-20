@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -40,10 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.WfTimedActionTriggerHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.activiti.engine.delegate.DelegateTask;
 
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,17 +55,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType
 public class MidpointUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidpointUtil.class);
-
-	public static ApprovalStageDefinitionType getApprovalStageDefinition(String taskOid) {
-		RepositoryService cacheRepositoryService = getCacheRepositoryService();
-		OperationResult result = new OperationResult(MidpointUtil.class.getName() + ".getApprovalStageDefinition");
-		try {
-			PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, null, result);
-			return WfContextUtil.getCurrentStageDefinition(task.asObjectable().getWorkflowContext());
-		} catch (Exception e) {
-			throw new SystemException("Couldn't retrieve approval stage for task " + taskOid + ": " + e.getMessage(), e);
-		}
-	}
 
 	// additional delta is a bit hack ... TODO refactor (but without splitting the modify operation!)
 	public static void recordEventInTask(CaseEventType event, ObjectDeltaType additionalDelta, String taskOid, OperationResult result) {
@@ -136,12 +121,6 @@ public class MidpointUtil {
 		}
 	}
 
-	static void setTaskDeadline(DelegateTask delegateTask, Duration duration) {
-		XMLGregorianCalendar deadline = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-		deadline.add(duration);
-		delegateTask.setDueDate(XmlTypeConverter.toDate(deadline));
-	}
-
 	public static void createTriggersForTimedActions(String workItemId, int escalationLevel, Date workItemCreateTime,
 			Date workItemDeadline, Task wfTask, List<WorkItemTimedActionsType> timedActionsList, OperationResult result) {
 		LOGGER.trace("Creating triggers for timed actions for work item {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
@@ -177,17 +156,17 @@ public class MidpointUtil {
 		removeSelectedTriggers(wfTask, toDelete, result);
 	}
 
-//	// not necessary any more, as work item triggers are deleted when the work item (task) is deleted
-//	// (and there are currently no triggers other than work-item-related)
-//	public static void removeAllStageTriggersForWorkItem(Task wfTask, OperationResult result) {
-//		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
-//		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
-//			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
-//				toDelete.add(triggerType.clone().asPrismContainerValue());
-//			}
-//		}
-//		removeSelectedTriggers(wfTask, toDelete, result);
-//	}
+	// not necessary any more, as work item triggers are deleted when the work item (task) is deleted
+	// (and there are currently no triggers other than work-item-related)
+	public static void removeAllStageTriggersForWorkItem(Task wfTask, OperationResult result) {
+		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
+		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
+			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
+				toDelete.add(triggerType.clone().asPrismContainerValue());
+			}
+		}
+		removeSelectedTriggers(wfTask, toDelete, result);
+	}
 
 	private static void removeSelectedTriggers(Task wfTask, List<PrismContainerValue<TriggerType>> toDelete, OperationResult result) {
 		try {

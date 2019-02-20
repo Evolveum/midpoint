@@ -51,29 +51,4 @@ public class ItemApprovalProcessInterface {
 		}
     }
 
-//	@Override
-//	public WorkItemResultType extractWorkItemResult(Map<String, Object> variables) {
-//	    Boolean wasCompleted = ActivitiUtil.getVariable(variables, VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.class, prismContext);
-//	    if (BooleanUtils.isNotTrue(wasCompleted)) {
-//		    return null;
-//	    }
-//		WorkItemResultType result = new WorkItemResultType(prismContext);
-//		result.setOutcome(ActivitiUtil.getVariable(variables, FORM_FIELD_OUTCOME, String.class, prismContext));
-//		result.setComment(ActivitiUtil.getVariable(variables, FORM_FIELD_COMMENT, String.class, prismContext));
-//		String additionalDeltaString = ActivitiUtil.getVariable(variables, FORM_FIELD_ADDITIONAL_DELTA, String.class, prismContext);
-//		boolean isApproved = ApprovalUtils.isApproved(result);
-//		if (isApproved && StringUtils.isNotEmpty(additionalDeltaString)) {
-//			try {
-//				ObjectDeltaType additionalDelta = prismContext.parserFor(additionalDeltaString).parseRealValue(ObjectDeltaType.class);
-//				ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
-//				treeDeltas.setFocusPrimaryDelta(additionalDelta);
-//				result.setAdditionalDeltas(treeDeltas);
-//			} catch (SchemaException e) {
-//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse delta received from the activiti form:\n{}", e, additionalDeltaString);
-//				throw new SystemException("Couldn't parse delta received from the activiti form: " + e.getMessage(), e);
-//			}
-//		}
-//		return result;
-//    }
-
 }

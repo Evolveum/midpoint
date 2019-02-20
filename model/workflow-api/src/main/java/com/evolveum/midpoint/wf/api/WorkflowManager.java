@@ -64,7 +64,7 @@ public interface WorkflowManager {
 
 	/**
 	 * Approves or rejects a work item (without supplying any further information).
-	 * @param taskId       identifier of activiti task backing the work item
+	 * @param taskId       TODO
 	 * @param decision     true = approve, false = reject
 	 * @param comment
 	 * @param additionalDelta
