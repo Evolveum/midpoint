@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -68,6 +67,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     protected static final String BOX_CSS_CLASS = "col-xs-12 info-box";
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
+    protected static final String ARCHETYPE_ICON_FONT_SIZE = "font-size: 45px !important;";
 
     protected SummaryPanelSpecificationType configuration;
 
@@ -167,7 +167,12 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         Label icon = new Label(ID_ICON, "");
 
         String archetypeIconCssClass = getArchetypeIconCssClass();
-        icon.add(new AttributeModifier("class", StringUtils.isNotEmpty(archetypeIconCssClass) ? archetypeIconCssClass : getIconCssClass()));
+        if (StringUtils.isNotEmpty(archetypeIconCssClass)){
+			icon.add(AttributeModifier.append("class", archetypeIconCssClass));
+			icon.add(AttributeModifier.append("style", ARCHETYPE_ICON_FONT_SIZE));
+		} else {
+			icon.add(AttributeModifier.append("class", getIconCssClass()));
+		}
         icon.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible(){
@@ -186,7 +191,12 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         iconBox.add(img);
 
 		tagBox = new RepeatingView(ID_TAG_BOX);
-		getSummaryTagComponentList().forEach(summaryTag -> {
+		List<SummaryTag<C>> summaryTags = getSummaryTagComponentList();
+
+		if (getArchetypeSummaryTag() != null){
+			summaryTags.add(getArchetypeSummaryTag());
+		}
+		summaryTags.forEach(summaryTag -> {
 			WebMarkupContainer summaryTagPanel = new WebMarkupContainer(tagBox.newChildId());
 			summaryTagPanel.setOutputMarkupId(true);
 
@@ -196,7 +206,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 		if (getTagBoxCssClass() != null) {
 			tagBox.add(new AttributeModifier("class", getTagBoxCssClass()));
 		}
-		tagBox.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getSummaryTagComponentList())));
+		tagBox.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(summaryTags)));
 		box.add(tagBox);
     }
 
@@ -217,6 +227,26 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
 	protected List<SummaryTag<C>> getSummaryTagComponentList(){
     	return new ArrayList<>();
+	}
+
+	private SummaryTag<C> getArchetypeSummaryTag(){
+		String archetypeIconCssClass = getArchetypeIconCssClass();
+		String archetypeIconColor = getArchetypePolicyAdditionalCssClass();
+		String archetypeLabel = getArchetypeLabel();
+		if (StringUtils.isNotEmpty(archetypeLabel)){
+			SummaryTag<C> archetypeSummaryTag = new SummaryTag<C>(ID_SUMMARY_TAG, getModel()) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected void initialize(C object) {
+						setIconCssClass(archetypeIconCssClass);
+						setLabel(createStringResource(archetypeLabel).getString());
+						setColor(archetypeIconColor);
+				}
+			};
+			return archetypeSummaryTag;
+		}
+		return null;
 	}
 
     protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
@@ -247,6 +277,14 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     	if (getModelObject() instanceof AssignmentHolderType){
 			DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
 			return WebComponentUtil.getIconColor(displayType);
+		}
+		return "";
+	}
+
+	private String getArchetypeLabel(){
+		if (getModelObject() instanceof AssignmentHolderType){
+			DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
+			return displayType == null || displayType.getLabel() == null ? "" : displayType.getLabel().getOrig();
 		}
 		return "";
 	}
