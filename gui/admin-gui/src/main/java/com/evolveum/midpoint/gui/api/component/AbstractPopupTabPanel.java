@@ -92,6 +92,9 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 ObjectQuery queryWithFilters = AbstractPopupTabPanel.this.addFilterToContentQuery(query);
+                if (queryWithFilters == null){
+                    queryWithFilters = getPrismContext().queryFactory().createQuery();
+                }
                 List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
                 if (!CollectionUtils.isEmpty(archetypeRefList)){
                     List<ObjectFilter> archetypeRefFilterList = new ArrayList<>();
@@ -105,13 +108,15 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
                         archetypeRefFilterList.add(filter);
                     }
                     if (!CollectionUtils.isEmpty(archetypeRefFilterList)){
-                        if (queryWithFilters == null){
-                            queryWithFilters = getPrismContext().queryFactory().createQuery();
-                        }
                         OrFilter archetypeRefOrFilter =
                                 AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createOr(archetypeRefFilterList);
                         queryWithFilters.addFilter(archetypeRefOrFilter);
                     }
+                }
+
+                ObjectFilter subTypeFilter = getSubtypeFilter();
+                if (subTypeFilter != null){
+                    queryWithFilters.addFilter(subTypeFilter);
                 }
                 return queryWithFilters;
             }
@@ -157,6 +162,10 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     }
 
     protected List<ObjectReferenceType> getArchetypeRefList(){
+        return null;
+    }
+
+    protected ObjectFilter getSubtypeFilter(){
         return null;
     }
 

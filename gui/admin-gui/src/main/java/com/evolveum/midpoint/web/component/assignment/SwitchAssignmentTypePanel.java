@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -65,6 +66,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
     private static final String ID_FOCUS_MAPPING_ASSIGNMENTS = "focusMappingAssignments";
     private static final String ID_CONSENT_ASSIGNMENTS = "consentAssignments";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
+    private static final String ID_DATA_PROTECTION_ASSIGNMENTS = "dataProtectionAssignments";
 
     private String activeButtonId = ID_ALL_ASSIGNMENTS;
 
@@ -267,6 +269,36 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
         policyRuleTypeAssignmentsButton.add(new VisibleBehaviour(()  ->
                 getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
         buttonsContainer.add(policyRuleTypeAssignmentsButton);
+
+        AjaxButton dataProtectionButton = new AjaxButton(ID_DATA_PROTECTION_ASSIGNMENTS, createStringResource("pageAdminFocus.dataProtection")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                GenericAbstractRoleAssignmentPanel dataProtectionPanel =
+                        new GenericAbstractRoleAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void assignmentDetailsPerformed(AjaxRequestTarget target) {
+                                target.add(SwitchAssignmentTypePanel.this);
+                            }
+
+                            @Override
+                            protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
+                                target.add(SwitchAssignmentTypePanel.this);
+                            }
+                        };
+                dataProtectionPanel.setOutputMarkupId(true);
+                switchAssignmentTypePerformed(target, dataProtectionPanel, ID_DATA_PROTECTION_ASSIGNMENTS);
+
+            }
+        };
+        dataProtectionButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_DATA_PROTECTION_ASSIGNMENTS)));
+        dataProtectionButton.setOutputMarkupId(true);
+        dataProtectionButton.add(new VisibleBehaviour(()  ->
+                WebModelServiceUtils.isEnableExperimentalFeature(SwitchAssignmentTypePanel.this.getPageBase())));
+        buttonsContainer.add(dataProtectionButton);
 
         AjaxButton entitlementAssignmentsButton = new AjaxButton(ID_ENTITLEMENT_ASSIGNMENTS, createStringResource("AbstractRoleMainPanel.inducedEntitlements")) {
             private static final long serialVersionUID = 1L;
