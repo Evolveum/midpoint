@@ -359,7 +359,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
-					&& AssignmentsUtil.isAssignmentRelevant(assignment)) {
+					&& AssignmentsUtil.isAssignmentRelevant(assignment) && !AssignmentsUtil.isArchetypeAssignment(assignment)) {
 				rv++;
 			}
 		}
