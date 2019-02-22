@@ -423,6 +423,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 
 			@Override
+			protected ObjectFilter getSubtypeFilter(){
+				return AssignmentPanel.this.getSubtypeFilter();
+			}
+
+			@Override
 			protected boolean isEntitlementAssignment(){
 				return AssignmentPanel.this.isEntitlementAssignment();
 			}
@@ -935,5 +940,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		}
 		return actionPerformed ? (changedItems + selectedAssignmentsCount) > assignmentsRequestsLimit :
 				(changedItems + selectedAssignmentsCount)  >= assignmentsRequestsLimit;
+	}
+
+	protected ObjectFilter getSubtypeFilter(){
+		return null;
 	}
 }
