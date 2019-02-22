@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -54,6 +55,7 @@ public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements 
     private String targetDescription;
     private Class<? extends ObjectType> targetClass;
     private boolean direct;                                 // true if directly assigned; used only in some contexts
+    private ObjectType assignmentParent;
     private QName targetType;
     // for resource assignments
     private ShadowKindType kind;
@@ -105,6 +107,16 @@ public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements 
 
     public void setDirect(boolean direct) {
         this.direct = direct;
+    }
+
+    public void setAssignmentParent(AssignmentPath assignmentPath) {
+        if (assignmentPath.size() > 1 ) {
+            assignmentParent = assignmentPath.last().getSource();
+        }
+    }
+
+    public ObjectType getAssignmentParent() {
+        return assignmentParent;
     }
 
     public ShadowKindType getKind() {

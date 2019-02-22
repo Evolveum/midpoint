@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -55,6 +56,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.wicket.AttributeModifier;
 
 /**
  * Abstract superclass for dialogs that display a list of assignments.
@@ -156,6 +158,10 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
                                     createStringResource("AssignmentPreviewDialog.type.indirect").getString();
                         }
                     }));
+                    ObjectType assignmentParent = rowModel.getObject().getAssignmentParent();
+                    if (assignmentParent != null) {
+                        cellItem.add(AttributeModifier.replace("title", createStringResource("AssignmentPreviewDialog.tooltip.indirect.parent").getString() + ": " + assignmentParent.getName()));
+                    }
                 }
             });
         }
