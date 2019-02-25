@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -152,7 +153,8 @@ public class PageCertDefinition extends PageAdminCertification {
 	//region Layout
 	private void initLayout() {
 		CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(ID_SUMMARY_PANEL,
-				new PropertyModel<>(definitionModel, CertDefinitionDto.F_PRISM_OBJECT), this);
+				new PropertyModel<>(definitionModel, CertDefinitionDto.F_DEFINITION), this);
+		summaryPanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(definitionModel.getObject().getOldDefinition().getOid())));
 		add(summaryPanel);
 
 		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);

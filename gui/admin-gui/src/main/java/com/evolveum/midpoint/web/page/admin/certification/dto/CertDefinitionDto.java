@@ -51,6 +51,7 @@ import java.util.List;
 public class CertDefinitionDto implements Serializable {
 
     public static final String F_PRISM_OBJECT = "prismObject";
+    public static final String F_DEFINITION = "definition";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
