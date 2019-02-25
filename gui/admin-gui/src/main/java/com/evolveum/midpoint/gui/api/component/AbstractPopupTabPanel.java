@@ -93,7 +93,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 ObjectQuery queryWithFilters = AbstractPopupTabPanel.this.addFilterToContentQuery(query);
                 if (queryWithFilters == null){
-                    queryWithFilters = getPrismContext().queryFactory().createQuery();
+                    queryWithFilters = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
                 }
                 List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
                 if (!CollectionUtils.isEmpty(archetypeRefList)){
