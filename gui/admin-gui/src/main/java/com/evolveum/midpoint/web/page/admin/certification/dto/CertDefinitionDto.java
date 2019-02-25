@@ -283,6 +283,7 @@ public class CertDefinitionDto implements Serializable {
         dto.setIncludeRoles(true);
         dto.setIncludeOrgs(true);
         dto.setIncludeServices(true);
+        dto.setIncludeUsers(true);
         dto.setEnabledItemsOnly(true);
 
         if (scopeTypeObj != null) {
