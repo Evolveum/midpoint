@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -238,40 +239,39 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             }
 
             @Override
+            protected boolean isEnabledToEdit(){
+                Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = getRefinedAssociationDefinitions();
+                return CollectionUtils.isNotEmpty(refinedAssociationDefinitions);
+            }
+
+            @Override
+            protected IModel<String> getPanelTitle(){
+                Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = getRefinedAssociationDefinitions();
+                return CollectionUtils.isNotEmpty(refinedAssociationDefinitions) ? null : createStringResource("ExpressionValuePanel.associationDefenitionsNotDefined");
+            }
+
+            @Override
             protected ObjectQuery getChooseQuery() {
                 ObjectQuery query = new ObjectQuery();
 
                 ExpressionType expression = ExpressionValuePanel.this.getModelObject();
-                if (expression == null || construction == null){
-                    return new ObjectQuery();
-                }
                 PrismObject<ResourceType> resource = getResource();
-                if (resource == null){
+                if (expression == null || construction == null || resource == null){
                     return new ObjectQuery();
                 }
+                Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = getRefinedAssociationDefinitions();
 
-                try {
-                    RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-                    RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
-                    if (oc == null){
-                        return new ObjectQuery();
-                    }
-                    Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
+                for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
+                    S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
+                    List<ObjectFilter> orFilterClauses = new ArrayList<>();
+                    refinedAssociationDefinition.getIntents()
+                            .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+                    OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
 
-                    for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
-                        S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
-                        List<ObjectFilter> orFilterClauses = new ArrayList<>();
-                        refinedAssociationDefinition.getIntents()
-                                .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-                        OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
-
-                        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
-                                .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
-                        filter.addCondition(intentFilter);
-                        query.setFilter(filter);
-                    }
-                } catch (SchemaException ex) {
-                    LOGGER.error("Couldn't create query filter for ShadowType popup list: {}" , ex.getErrorTypeMessage());
+                    AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
+                            .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+                    filter.addCondition(intentFilter);
+                    query.setFilter(filter);
                 }
                 return query;
             }
@@ -293,6 +293,27 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             }
         };
         shadowRefValueContainer.add(removeButton);
+    }
+
+    private Collection<RefinedAssociationDefinition> getRefinedAssociationDefinitions(){
+        PrismObject<ResourceType> resource = getResource();
+        Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = null;
+        if (resource == null){
+            return refinedAssociationDefinitions;
+        }
+
+        try {
+            RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+            RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
+            if (oc == null){
+                return refinedAssociationDefinitions;
+            }
+            refinedAssociationDefinitions = oc.getAssociationDefinitions();
+
+        } catch (SchemaException ex) {
+            LOGGER.error("Couldn't create query filter for ShadowType popup list: {}" , ex.getErrorTypeMessage());
+        }
+        return refinedAssociationDefinitions;
     }
 
     private void initAssociationTargetSearchExpressionPanel(){
