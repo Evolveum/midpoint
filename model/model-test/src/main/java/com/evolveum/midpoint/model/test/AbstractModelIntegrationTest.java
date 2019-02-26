@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -180,53 +181,6 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
@@ -3299,6 +3253,35 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return aggregateResult;
 	}
 
+	public void waitForCaseClose(CaseType aCase) throws Exception {
+		waitForCaseClose(aCase, 60000);
+	}
+
+	public void waitForCaseClose(CaseType aCase, final int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForCaseClose");
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws CommonException {
+				CaseType currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult).asObjectable();
+				if (verbose) AbstractIntegrationTest.display("Case", currentCase);
+				return SchemaConstants.CASE_STATE_CLOSED.equals(currentCase.getState());
+			}
+			@Override
+			public void timeout() {
+				PrismObject<CaseType> currentCase;
+				try {
+					currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					throw new AssertionError("Couldn't retrieve case " + aCase, e);
+				}
+				LOGGER.debug("Timed-out case:\n{}", currentCase.debugDump());
+				assert false : "Timeout ("+timeout+") while waiting for "+currentCase+" to finish";
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for "+aCase+" finish", checker, timeout, 1000);
+	}
+
+
 	private String longTimeToString(Long longTime) {
 		if (longTime == null) {
 			return "null";
@@ -3531,6 +3514,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Task) result not success", result);
 		return retTask;
+	}
+
+	protected CaseType getCase(String oid) throws ObjectNotFoundException, SchemaException {
+		return repositoryService.getObject(CaseType.class, oid, null, new OperationResult("dummy")).asObjectable();
 	}
 
 	protected <T extends ObjectType> void assertObjectExists(Class<T> clazz, String oid) {
@@ -5308,29 +5295,39 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return modelService.searchObjects(TaskType.class, query, options, task, result);
 	}
 
-	protected TaskType getApprovalTask(List<PrismObject<TaskType>> tasks) {
-		List<TaskType> rv = tasks.stream()
+	protected List<PrismObject<CaseType>> getCasesForObject(String oid, QName type,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		ObjectQuery query = prismContext.queryFor(CaseType.class)
+				.item(CaseType.F_OBJECT_REF).ref(itemFactory().createReferenceValue(oid, type))
+				.build();
+		return modelService.searchObjects(CaseType.class, query, options, task, result);
+	}
+
+	protected CaseType getApprovalCase(List<PrismObject<CaseType>> cases) {
+		List<CaseType> rv = cases.stream()
 				.map(o -> o.asObjectable())
-				.filter(t -> t.getWorkflowContext() != null && t.getWorkflowContext().getCaseOid() != null)
+				.filter(c -> c.getWorkflowContext() != null && c.getWorkflowContext().getProcessSpecificState() != null)
 				.collect(Collectors.toList());
 		if (rv.isEmpty()) {
-			throw new AssertionError("No approval task found");
+			throw new AssertionError("No approval case found");
 		} else if (rv.size() > 1) {
-			throw new AssertionError("More than one approval task found: " + rv);
+			throw new AssertionError("More than one approval case found: " + rv);
 		} else {
 			return rv.get(0);
 		}
 	}
 
-	protected TaskType getRootTask(List<PrismObject<TaskType>> tasks) {
-		List<TaskType> rv = tasks.stream()
+	protected CaseType getRootCase(List<PrismObject<CaseType>> cases) {
+		List<CaseType> rv = cases.stream()
 				.map(o -> o.asObjectable())
-				.filter(t -> t.getParent() == null)
+				.filter(c -> c.getParentRef() == null)
 				.collect(Collectors.toList());
 		if (rv.isEmpty()) {
-			throw new AssertionError("No root task found");
+			throw new AssertionError("No root case found");
 		} else if (rv.size() > 1) {
-			throw new AssertionError("More than one root task found: " + rv);
+			throw new AssertionError("More than one root case found: " + rv);
 		} else {
 			return rv.get(0);
 		}

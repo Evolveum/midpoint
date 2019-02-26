@@ -32,28 +32,23 @@ import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.springframework.beans.factory.BeanNameAware;
@@ -78,41 +73,17 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
 
-    @Autowired
-    protected WfTaskUtil wfTaskUtil;
-
-    @Autowired
-    protected PrimaryChangeProcessor changeProcessor;
-
-    @Autowired
-    protected PrimaryChangeAspectHelper primaryChangeAspectHelper;
-
-    @Autowired
-    protected BaseConfigurationHelper baseConfigurationHelper;
-
-    @Autowired
-    protected PrismContext prismContext;
-
-    @Autowired
-    protected RelationRegistry relationRegistry;
-
-    @Autowired
-    protected ItemApprovalProcessInterface itemApprovalProcessInterface;
-
-    @Autowired
-    protected MiscDataUtil miscDataUtil;
-
-	@Autowired
-	protected BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
-
-	@Autowired
-	private SystemObjectCache systemObjectCache;
-
-	@Autowired
-	private MappingFactory mappingFactory;
-
-	@Autowired
-	protected ApprovalSchemaHelper approvalSchemaHelper;
+    @Autowired protected TemporaryHelper temporaryHelper;
+    @Autowired protected PrimaryChangeProcessor changeProcessor;
+    @Autowired protected PrimaryChangeAspectHelper primaryChangeAspectHelper;
+    @Autowired protected BaseConfigurationHelper baseConfigurationHelper;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected RelationRegistry relationRegistry;
+    @Autowired protected MiscDataUtil miscDataUtil;
+	@Autowired protected BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired protected ApprovalSchemaHelper approvalSchemaHelper;
 
 	@PostConstruct
     public void init() {
@@ -131,26 +102,6 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     public void setBeanName(String name) {
         this.beanName = name;
     }
-
-    @Override
-    public ObjectTreeDeltas prepareDeltaOut(WfContextType wfContext, PcpWfTask pcpJob, OperationResult result) throws SchemaException {
-        return primaryChangeAspectHelper.prepareDeltaOut(wfContext, pcpJob, result);
-    }
-
-//    @Override
-//    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
-//	    WfContextType wfc = job.getTask().getWorkflowContext();
-//	    List<ObjectReferenceType> rv = new ArrayList<>();
-//	    if (!ApprovalUtils.isApprovedFromUri(event.getOutcome())) {		// wfc.approved is not filled in yet
-//		    return rv;
-//	    }
-//	    for (WorkItemCompletionEventType completionEvent : WfContextUtil.getEvents(wfc, WorkItemCompletionEventType.class)) {
-//		    if (ApprovalUtils.isApproved(completionEvent.getOutput()) && completionEvent.getInitiatorRef() != null) {
-//			    rv.add(completionEvent.getInitiatorRef().clone());
-//		    }
-//	    }
-//	    return rv;
-//    }
 
     public PrimaryChangeProcessor getChangeProcessor() {
         return changeProcessor;
@@ -244,14 +195,14 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             }
             ObjectQuery query = q.build();
             LOGGER.trace("Looking for approvers for {} using query:\n{}", object, DebugUtil.debugDumpLazily(query));
-            List<PrismObject<FocusType>> objects = null;
+            List<PrismObject<FocusType>> objects;
             try {
                 objects = repositoryService.searchObjects(FocusType.class, query, null, result);
             } catch (SchemaException e) {
                 throw new SystemException("Couldn't retrieve approvers for " + object + ": " + e.getMessage(), e);
             }
-            Set<PrismObject<FocusType>> distinctObjects = new HashSet<>(objects);
-            LOGGER.trace("Found {} approver(s): {}", distinctObjects.size(), DebugUtil.toStringLazily(distinctObjects));
+            List<PrismObject<FocusType>> distinctObjects = ObjectTypeUtil.keepDistinctObjects(objects);
+            LOGGER.trace("Query evaluation resulted in {} approver(s): {}", distinctObjects.size(), DebugUtil.toStringLazily(distinctObjects));
             return distinctObjects.stream()
                     .map(object1 -> ObjectTypeUtil.createObjectRef(object1, prismContext))
                     .collect(Collectors.toList());

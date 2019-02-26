@@ -76,6 +76,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private static final String INDENT_STRING = "    ";
 
 	private static final String TASK_OID_PREFIX = "taskOid:";
+	private static final String CASE_OID_PREFIX = "caseOid:";
 
     /**
      * This constant provides count threshold for same subresults (same operation and
@@ -270,12 +271,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return null;
 	}
 
-	public boolean isTaskOid(String ref) {
+	public static boolean isTaskOid(String ref) {
 		return ref != null && ref.startsWith(TASK_OID_PREFIX);
 	}
 
-	public String referenceToTaskOid(String ref) {
+	public static String referenceToTaskOid(String ref) {
 		return isTaskOid(ref) ? ref.substring(TASK_OID_PREFIX.length()) : null;
+	}
+
+	public static String referenceToCaseOid(String ref) {
+		return ref != null && ref.startsWith(CASE_OID_PREFIX) ? ref.substring(CASE_OID_PREFIX.length()) : null;
 	}
 
 	/**
@@ -1724,6 +1729,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	public void setBackgroundTaskOid(String oid) {
 		setAsynchronousOperationReference(TASK_OID_PREFIX + oid);
 		addReturn(RETURN_BACKGROUND_TASK_OID, oid); // deprecated
+	}
+
+	public void setCaseOid(String oid) {
+		setAsynchronousOperationReference(CASE_OID_PREFIX + oid);
 	}
 
 	@Deprecated // use asynchronous operation reference

@@ -23,12 +23,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.wf.impl.tasks.StartInstruction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author mederly
@@ -47,12 +43,12 @@ public interface GcpScenarioBean {
      */
     boolean determineActivation(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task taskFromModel, OperationResult result);
 
-    AuditEventRecord prepareProcessInstanceAuditRecord(WfContextType wfContext, WfTask wfTask, AuditEventStage stage, OperationResult result);
+    AuditEventRecord prepareProcessInstanceAuditRecord(WfContextType wfContext, CaseType aCase, AuditEventStage stage, OperationResult result);
 
-    AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, OperationResult result);
+    AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase, OperationResult result);
 
-    AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            WfTask wfTask, OperationResult result);
+    AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+            CaseType aCase, OperationResult result);
 
-    WfTaskCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, WfTask rootWfTask, Task taskFromModel, OperationResult result) throws SchemaException;
+    StartInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, CaseType rootCase, Task taskFromModel, OperationResult result) throws SchemaException;
 }

@@ -192,7 +192,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 	}
 
 	private void appendDeadlineInformation(StringBuilder sb, WorkItemEvent event) {
-		WorkItemType workItem = event.getWorkItem();
+		CaseWorkItemType workItem = event.getWorkItem();
 		if (!isDone(event) && workItem.getDeadline() != null) {
 			appendDeadlineInformation(sb, workItem, textFormatter);
 		}
@@ -243,7 +243,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 	}
 
 	private void appendAssigneeInformation(StringBuilder sb, WorkItemEvent event, OperationResult result) {
-		WorkItemType workItem = event.getWorkItem();
+		CaseWorkItemType workItem = event.getWorkItem();
 		ObjectReferenceType originalAssignee = workItem.getOriginalAssigneeRef();
 		List<ObjectReferenceType> currentAssignees = workItem.getAssigneeRef();
 		boolean atLeastOne = false;
@@ -299,7 +299,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 	}
 
 	private void appendStageInformation(StringBuilder sb, WorkflowEvent workflowEvent) {
-    	String info = WfContextUtil.getStageInfo(workflowEvent.getWorkflowContext());
+    	String info = WfContextUtil.getStageInfo(workflowEvent.getCase());
     	if (info != null) {
     		sb.append("Stage: ").append(info).append("\n");
 		}

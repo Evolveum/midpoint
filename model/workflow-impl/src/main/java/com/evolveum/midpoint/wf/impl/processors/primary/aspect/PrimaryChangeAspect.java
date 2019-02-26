@@ -21,11 +21,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -64,23 +62,10 @@ public interface PrimaryChangeAspect {
      * @return list of start process instructions  @see WfTaskCreationInstruction
      */
     @NotNull
-    <T extends ObjectType> List<PcpChildWfTaskCreationInstruction<?>> prepareTasks(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
-            ModelInvocationContext<T> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
+    <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
+            @NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    /**
-     * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.
-     *
-     * @param event Current ProcessEvent providing information on what happened within wf process instance.
-     * @param job Reference to a job (pair of process instance and a task) in which the event happened.
-     * @param result Operation result - the method should report any errors here.
-     * @return List of resulting object deltas. Typically, when approved, resulting delta is the same as delta that had to be approved,
-     * and when rejected, the resulting delta list is empty. However, approver might requested a change in the delta, so the processing
-     * here may be more complex.
-     * @throws SchemaException if there is any problem with the schema.
-     */
-    ObjectTreeDeltas prepareDeltaOut(WfContextType wfContext, PcpWfTask job, OperationResult result) throws SchemaException;
-
-//    /**
+    //    /**
 //     * Returns a list of users who have approved the particular request. This information is then stored in the task by the wf module,
 //     * and eventually fetched from there and put into metadata (createApproverRef/modifyApproverRef) by the model ChangeExecutor.
 //     *

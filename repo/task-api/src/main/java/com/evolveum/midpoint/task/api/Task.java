@@ -943,10 +943,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
 
-	// temporary!
-	void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
-			throws SchemaException, ObjectNotFoundException;
-
 	// ====================================================================================== Other methods
 
     /**

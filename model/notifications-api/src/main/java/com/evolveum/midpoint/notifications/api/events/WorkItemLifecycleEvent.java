@@ -34,12 +34,12 @@ import java.util.Map;
 public class WorkItemLifecycleEvent extends WorkItemEvent {
 
     public WorkItemLifecycleEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-			@NotNull WorkItemType workItem,
+			@NotNull CaseWorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@NotNull WfContextType workflowContext, @NotNull TaskType workflowTask) {
+			@NotNull WfContextType workflowContext, @NotNull CaseType aCase) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator,
-				operationInfo, sourceInfo, workflowContext, workflowTask, null, null);
+				operationInfo, sourceInfo, workflowContext, aCase, null, null);
     }
 
 	@Override

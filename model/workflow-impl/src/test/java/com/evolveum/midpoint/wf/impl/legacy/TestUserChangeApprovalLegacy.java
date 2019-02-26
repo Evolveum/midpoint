@@ -29,9 +29,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -58,9 +56,9 @@ import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.*;
+import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -106,7 +104,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         login(userAdministrator);
        	executeTest("test010UserModifyAddRole", USER_JACK_OID, new TestDetails() {
             @Override
-            int subtaskCount() {
+            int subcasesCount() {
                 return 1;
             }
 
@@ -129,48 +127,47 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> subtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                assertNotAssignedRole(USER_JACK_OID, ROLE_R1_OID, rootTask, result);
-                assertWfContextAfterClockworkRun(rootTask, subtasks, result, enablePolicyRuleBasedAspect ? "Assigning role \"Role1\" to user \"jack\"" : "Assigning Role1 to jack");
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subtasks,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertTrue("There are modifications left in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
+                assertNotAssignedRole(USER_JACK_OID, ROLE_R1_OID, opTask, result);
+                assertWfContextAfterClockworkRun(rootCase, subtasks, result, "Assigning role \"Role1\" to user \"jack\"");
             }
 
             @Override
-            void assertsRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, rootTask, result);
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask, OperationResult result) throws Exception {
+                assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, opTask, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
-                checkUserApprovers(USER_JACK_OID, Arrays.asList(R1BOSS_OID), result);
-                assertWfContextAfterRootTaskFinishes(rootTask, subtasks, result, enablePolicyRuleBasedAspect ? "Assigning role \"Role1\" to user \"jack\"" : "Assigning Role1 to jack");
+                checkUserApprovers(USER_JACK_OID, singletonList(R1BOSS_OID), result);
+                assertWfContextAfterRootTaskFinishes(aCase, subcases, result, "Assigning role \"Role1\" to user \"jack\"");
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
-                return decideOnRoleApproval(wfContext);
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
         });
         displayAllNotifications();
         checkDummyTransportMessages("simpleWorkflowNotifier-Processes", 2);       // start + end
 	}
 
-    protected void assertWfContextAfterClockworkRun(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
-
-        final Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+    protected void assertWfContextAfterClockworkRun(CaseType rootCase, List<CaseType> subcases, OperationResult result, String... processNames) throws Exception {
 
         Task opTask = taskManager.createTaskInstance();
-        TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
-        display("rootTask", rootTaskType);
-        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getCaseOid() == null);
+        display("rootCase", rootCase);
+        // TODO-WF
+//        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getCaseOid() == null);
 
-        assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
+        assertEquals("Wrong # of wf subcases w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subcases.size());
         int i = 0;
-        for (Task subtask : subtasks) {
-            TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result).asObjectable();
-            display("Subtask #"+(i+1)+": ", subtaskType);
-            checkTask(subtaskType, subtask.toString(), processNames[i++]);
-            WfTestUtil.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
+        for (CaseType subcase : subcases) {
+            display("Subtask #"+(i+1)+": ", subcase);
+            checkCase(subcase, subcase.toString(), processNames[i++]);
+            WfTestUtil.assertRef("requester ref", subcase.getRequestorRef(), USER_ADMINISTRATOR_OID, false, false);
         }
 
         final Collection<SelectorOptions<GetOperationOptions>> options1 = schemaHelper.getOperationOptionsBuilder()
@@ -178,58 +175,48 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 .item(T_PARENT, F_TARGET_REF).resolve()
                 .item(F_ASSIGNEE_REF).resolve()
                 .item(F_ORIGINAL_ASSIGNEE_REF).resolve()
-                .item(T_PARENT, F_REQUESTER_REF).resolve()
+                .item(T_PARENT, F_REQUESTOR_REF).resolve()
                 .build();
-        List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, getOpenItemsQuery(), options1, opTask, result);
+        List<CaseWorkItemType> workItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), options1, opTask, result);
         assertEquals("Wrong # of work items", processNames.length, workItems.size());
         i = 0;
-        for (WorkItemType workItem : workItems) {
+        for (CaseWorkItemType workItem : workItems) {
             display("Work item #"+(i+1)+": ", workItem);
-            display("Task ref", WfContextUtil.getTask(workItem));
+            display("Case", CaseWorkItemUtil.getCase(workItem));
             WfTestUtil.assertRef("object reference", WfContextUtil.getObjectRef(workItem), USER_JACK_OID, true, true);
             WfTestUtil.assertRef("target reference", WfContextUtil.getTargetRef(workItem), ROLE_R1_OID, true, true);
             WfTestUtil.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), R1BOSS_OID, false, true);     // name is not known
             //WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
-            final TaskType subtaskType = WfContextUtil.getTask(workItem);
-            checkTask(subtaskType, "task in workItem", processNames[i++]);
-            WfTestUtil.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
+            final CaseType subcase = CaseWorkItemUtil.getCaseRequired(workItem);
+            checkCase(subcase, "case in workItem", processNames[i++]);
+            WfTestUtil.assertRef("requester ref", subcase.getRequestorRef(), USER_ADMINISTRATOR_OID, false, true);
         }
     }
 
-    private void checkTask(TaskType subtaskType, String subtaskName, String processName) {
-        assertEquals("Unexpected fetch result in wf subtask: " + subtaskName, null, subtaskType.getFetchResult());
-        WfContextType wfc = subtaskType.getWorkflowContext();
-        assertNotNull("Missing workflow context in wf subtask: " + subtaskName, wfc);
-        assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getCaseOid());
-        assertEquals("Wrong process ID name in subtask: " + subtaskName, processName, wfc.getProcessInstanceName());
-        assertNotNull("Missing process start time in subtask: " + subtaskName, wfc.getStartTimestamp());
-        assertNull("Unexpected process end time in subtask: " + subtaskName, wfc.getEndTimestamp());
-        assertEquals("Wrong outcome", null, wfc.getOutcome());
+    private void checkCase(CaseType subcase, String context, String processName) {
+        WfContextType wfc = subcase.getWorkflowContext();
+        assertNotNull("Missing workflow context in subcase: " + context, wfc);
+        assertEquals("Wrong process ID name in subtask: " + context, processName, subcase.getName().getOrig());
+        assertNotNull("Missing process start time in subtask: " + context, CaseTypeUtil.getStartTimestamp(subcase));
+        assertNull("Unexpected process end time in subtask: " + context, subcase.getCloseTimestamp());
+        assertEquals("Wrong outcome", null, subcase.getOutcome());
         //assertEquals("Wrong state", null, wfc.getState());
     }
 
-    protected void assertWfContextAfterRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
+    protected void assertWfContextAfterRootTaskFinishes(CaseType rootCase, List<CaseType> subcases, OperationResult result, String... processNames) throws Exception {
 
-        final Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
-
-        Task opTask = taskManager.createTaskInstance();
-        TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
-        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getCaseOid() == null);
-
-        assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
+        assertEquals("Wrong # of wf subcases w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subcases.size());
         int i = 0;
-        for (Task subtask : subtasks) {
-            TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result).asObjectable();
-            display("Subtask #"+(i+1)+": ", subtaskType);
-            assertNull("Unexpected fetch result in wf subtask: " + subtask, subtaskType.getFetchResult());
-            WfContextType wfc = subtaskType.getWorkflowContext();
-            assertNotNull("Missing workflow context in wf subtask: " + subtask, wfc);
-            assertNotNull("No process ID in wf subtask: " + subtask, wfc.getCaseOid());
-            assertEquals("Wrong process ID name in subtask: " + subtask, processNames[i++], wfc.getProcessInstanceName());
-            assertNotNull("Missing process start time in subtask: " + subtask, wfc.getStartTimestamp());
-            assertNotNull("Missing process end time in subtask: " + subtask, wfc.getEndTimestamp());
-            assertEquals("Wrong outcome", SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE, wfc.getOutcome());
+        for (CaseType subcase : subcases) {
+            display("Subtask #"+(i+1)+": ", subcase);
+            WfContextType wfc = subcase.getWorkflowContext();
+            assertNotNull("Missing workflow context in wf subcase: " + subcase, wfc);
+            // TODO-WF
+//            assertNotNull("No process ID in wf subcase: " + subcase, wfc.getCaseOid());
+            assertEquals("Wrong process ID name in subcase: " + subcase, processNames[i++], subcase.getName().getOrig());
+            assertNotNull("Missing process start time in subcase: " + subcase, CaseTypeUtil.getStartTimestamp(subcase));
+            assertNotNull("Missing process end time in subcase: " + subcase, subcase.getCloseTimestamp());
+            assertEquals("Wrong outcome", SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE, subcase.getOutcome());
         }
     }
 
@@ -244,7 +231,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         login(userAdministrator);
 
         executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 2; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -257,10 +244,13 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There is wrong number of modifications left in primary focus delta", 1, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                ItemDelta givenNameDelta = (ItemDelta) taskModelContext.getFocusContext().getPrimaryDelta().getModifications().iterator().next();
+            public void assertsAfterClockworkRun(CaseType rootCase, CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+                Collection<? extends ItemDelta<?, ?>> modifications = pcpGeneralHelper.retrieveResultingDeltas(case0)
+                        .getFocusChange().getModifications();
+                assertEquals("There is wrong number of modifications left in primary focus delta", 1,
+                        modifications.size());
+                ItemDelta givenNameDelta = modifications.iterator().next();
 
                 assertNotNull("givenName delta is incorrect (not a replace delta)", givenNameDelta.isReplace());
                 assertEquals("givenName delta is incorrect (wrong value)", "JACK", ((PrismPropertyValue<PolyString>) givenNameDelta.getValuesToReplace().iterator().next()).getValue().getOrig());
@@ -271,7 +261,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertNotAssignedRole(jack, ROLE_R2_OID);
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
@@ -282,8 +273,9 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
-                return decideOnRoleApproval(wfContext);
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
 
         });
@@ -294,7 +286,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
         login(userAdministrator);
         executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 2; }
+            @Override int subcasesCount() { return 2; }
             @Override boolean immediate() { return true; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -308,19 +300,21 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
             }
 
             @Override
-            void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
+            void assertsAfterImmediateExecutionFinished(CaseType task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertNotAssignedRole(jack, ROLE_R3_OID);
                 assertEquals("Wrong given name after immediate execution", "J-A-C-K", jack.asObjectable().getGivenName().getOrig());
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertAssignedRole(jack, ROLE_R3_OID);
 
@@ -330,8 +324,9 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
-                return decideOnRoleApproval(wfContext);
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
 
         });
@@ -343,7 +338,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test020UserModifyAddThreeRoles");
         login(userAdministrator);
         executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 2; }
+            @Override int subcasesCount() { return 3; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -357,10 +352,13 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There is wrong number of modifications left in primary focus delta", 2, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                Iterator<? extends ItemDelta> it = taskModelContext.getFocusContext().getPrimaryDelta().getModifications().iterator();
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+                Collection<? extends ItemDelta<?, ?>> modifications = pcpGeneralHelper.retrieveResultingDeltas(case0)
+                        .getFocusChange().getModifications();
+                assertEquals("There is wrong number of modifications left in case0", 2, modifications.size());
+                Iterator<? extends ItemDelta> it = modifications.iterator();
                 ItemDelta addRoleDelta = null, activationChange = null;
                 while (it.hasNext()) {
                     ItemDelta mod = it.next();
@@ -376,7 +374,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUserFromRepo(USER_JACK_OID, result);
                 assertNotAssignedRole(jack, ROLE_R1_OID);
                 assertNotAssignedRole(jack, ROLE_R2_OID);
@@ -390,8 +389,9 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
-                return decideOnRoleApproval(wfContext);
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
 
         });
@@ -402,7 +402,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test021UserModifyAddThreeRolesImmediate");
         login(userAdministrator);
         executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 3; }
+            @Override int subcasesCount() { return 3; }
             @Override boolean immediate() { return true; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -417,12 +417,13 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
             }
 
             @Override
-            void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
+            void assertsAfterImmediateExecutionFinished(CaseType task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertNotAssignedRole(jack, ROLE_R1_OID);
                 assertNotAssignedRole(jack, ROLE_R2_OID);
@@ -433,7 +434,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUserFromRepo(USER_JACK_OID, result);
                 assertNotAssignedRole(jack, ROLE_R1_OID);
                 assertNotAssignedRole(jack, ROLE_R2_OID);
@@ -447,8 +449,9 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
-                return decideOnRoleApproval(wfContext);
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
 
         });
@@ -459,7 +462,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test030UserAdd");
         login(userAdministrator);
         executeTest("test030UserAdd", null, new TestDetails() {
-            @Override int subtaskCount() { return 2; }
+            @Override int subcasesCount() { return 3; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return false; }
 
@@ -472,9 +475,12 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                PrismObject<UserType> objectToAdd = taskModelContext.getFocusContext().getPrimaryDelta().getObjectToAdd();
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+                //noinspection unchecked
+                PrismObject<UserType> objectToAdd = (PrismObject<UserType>) pcpGeneralHelper.retrieveResultingDeltas(case0)
+                        .getFocusChange().getObjectToAdd();
                 assertNotNull("There is no object to add left in primary focus delta", objectToAdd);
                 assertFalse("There is assignment of R1 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R1_OID));
                 assertFalse("There is assignment of R2 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R2_OID));
@@ -483,7 +489,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> bill = findUserInRepo("bill", result);
                 assertAssignedRole(bill, ROLE_R1_OID);
                 assertNotAssignedRole(bill, ROLE_R2_OID);
@@ -497,12 +504,13 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
-                return decideOnRoleApproval(wfContext);
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
 
             @Override
-            String getObjectOid(Task task, OperationResult result) throws SchemaException {
+            String getObjectOid(CaseType task, OperationResult result) throws SchemaException {
                 //return findUserInRepo("bill", result).getOid();
                 return DONT_CHECK;        // don't check in this case
             }
@@ -517,7 +525,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         deleteUserFromModel("bill");
 
         executeTest("test031UserAddImmediate", null, new TestDetails() {
-            @Override int subtaskCount() { return 3; }
+            @Override int subcasesCount() { return 3; }
             @Override boolean immediate() { return true; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -531,12 +539,13 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
             }
 
             @Override
-            void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception {
+            void assertsAfterImmediateExecutionFinished(CaseType task, OperationResult result) throws Exception {
                 PrismObject<UserType> bill = findUserInRepo("bill", result);
                 assertNotAssignedRole(bill, ROLE_R1_OID);
                 assertNotAssignedRole(bill, ROLE_R2_OID);
@@ -547,7 +556,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> bill = findUserInRepo("bill", result);
                 assertAssignedRole(bill, ROLE_R1_OID);
                 assertNotAssignedRole(bill, ROLE_R2_OID);
@@ -561,12 +571,13 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
-                return decideOnRoleApproval(wfContext);
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
 
             @Override
-            String getObjectOid(Task task, OperationResult result) throws SchemaException {
+            String getObjectOid(CaseType task, OperationResult result) throws SchemaException {
                 return findUserInRepo("bill", result).getOid();
             }
         });
@@ -582,7 +593,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         LOGGER.trace("password before test = " + originalPasswordValue);
 
         executeTest("test040UserModifyPasswordChangeBlocked", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -596,13 +607,16 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
                 ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
                 LOGGER.trace("password after test = " + afterTestPasswordValue);
@@ -615,7 +629,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 login(getUser(USER_ADMINISTRATOR_OID));
                 return false;
             }
@@ -631,7 +646,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         LOGGER.trace("password before test = " + originalPasswordValue);
 
         executeTest("test041UserModifyPasswordChange", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -645,13 +660,16 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
                 ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
                 LOGGER.trace("password after test = " + afterTestPasswordValue);
@@ -663,7 +681,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 login(getUser(USER_ADMINISTRATOR_OID));
                 return true;
             }
@@ -679,7 +698,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         LOGGER.trace("password before test = " + originalPasswordValue);
 
         executeTest("test050UserModifyAddRoleAndPasswordChange", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 2; }
+            @Override int subcasesCount() { return 2; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -694,13 +713,16 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
                 ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
                 LOGGER.trace("password after test = " + afterTestPasswordValue);
@@ -714,10 +736,11 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
-                ObjectReferenceType targetRef = wfContext.getTargetRef();
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
+                ObjectReferenceType targetRef = subcase.getTargetRef();
                 if (targetRef != null && RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
-                    return decideOnRoleApproval(wfContext);
+                    return decideOnRoleApproval(subcase, wfContext);
                 } else {
                     login(getUser(USER_ADMINISTRATOR_OID));
                     return true;
@@ -732,7 +755,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test060UserModifyAddRoleAutoApproval");
         login(userAdministrator);
         executeTest("test060UserModifyAddRoleAutoApproval", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -747,12 +770,15 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
                 // todo perhaps the role should be assigned even at this point?
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertAssignedRole(jack, ROLE_R10_OID);
 
@@ -760,7 +786,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -794,7 +821,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test062UserModifyAddRoleAutoApprovalFirstDecides");
         login(userAdministrator);
         executeTest("test062UserModifyAddRoleAutoApprovalFirstDecides", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -813,12 +840,15 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
                 // todo perhaps the role should be assigned even at this point?
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertAssignedRole(jack, ROLE_R11_OID);
 
@@ -826,7 +856,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -840,7 +871,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test064UserModifyAddRoleNoApproversAllMustAgree");
         login(userAdministrator);
         executeTest("test064UserModifyAddRoleNoApproversAllMustAgree", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -859,12 +890,15 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
                 // todo perhaps the role should be assigned even at this point?
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertAssignedRole(jack, ROLE_R12_OID);
 
@@ -872,7 +906,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -884,7 +919,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test065UserModifyAddRoleNoApproversFirstDecides");
         login(userAdministrator);
         executeTest("test065UserModifyAddRoleNoApproversFirstDecides", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -903,12 +938,15 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
                 // todo perhaps the role should be assigned even at this point?
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertAssignedRole(jack, ROLE_R13_OID);
 
@@ -916,7 +954,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -936,7 +975,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
         executeTest("test070UserModifyAssignment", USER_JACK_OID, new TestDetails() {
             @Override
-            int subtaskCount() {
+            int subcasesCount() {
                 return 1;
             }
 
@@ -965,15 +1004,18 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkNoAssignmentValidity(jack);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentValidity(jack, validFrom, validTo);
 
@@ -982,7 +1024,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 login(getUser(R1BOSS_OID));
                 return true;
             }
@@ -1048,7 +1091,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         TestUtil.displayTestTitle(this, "test080UserModifyAddResource");
         login(userAdministrator);
         executeTest("test080UserModifyAddResource", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
 
@@ -1061,22 +1104,25 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                assertNotAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, rootTask, result);
+            public void assertsAfterClockworkRun(CaseType rootCase, CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+                assertNotAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, opTask, result);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
+                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, opTask, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(DUMMYBOSS_OID), result);
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }
@@ -1095,7 +1141,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         final XMLGregorianCalendar validTo = XmlTypeConverter.createXMLGregorianCalendar(2015, 3, 25, 10, 0, 0);
 
         executeTest("test090UserModifyModifyResourceAssignmentValidity", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
             @Override boolean removeAssignmentsBeforeTest() { return false; }
@@ -1110,16 +1156,19 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkNoAssignmentValidity(jack);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
+                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, opTask, result);
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentValidity(jack, validFrom, validTo);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
@@ -1128,7 +1177,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }
@@ -1152,7 +1202,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         login(userAdministrator);
 
         executeTest(TEST_NAME, USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
             @Override boolean removeAssignmentsBeforeTest() { return false; }
@@ -1168,16 +1218,19 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkNoAssignmentConstruction(jack, "drink");
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
+                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, opTask, result);
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentConstruction(jack, "drink", "water");
                 checkDummyTransportMessages("simpleUserNotifier", 1);
@@ -1186,7 +1239,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            boolean decideOnApproval(WfContextType wfContext) throws Exception {
+            boolean decideOnApproval(CaseType subcase,
+                    WfContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }

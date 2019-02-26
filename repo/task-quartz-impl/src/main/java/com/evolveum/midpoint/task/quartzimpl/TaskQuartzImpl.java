@@ -1963,15 +1963,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 		}
 	}
 
-	@Override
-	public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
-		WfContextType wfContextType = new WfContextType(getPrismContext());
-		wfContextType.setCaseOid(processInstanceId);
-		setWorkflowContextImmediate(wfContextType, result);
-	}
-
-    /*
+	/*
     * Node
     */
 

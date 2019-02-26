@@ -33,34 +33,20 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 
 /**
- *
- * @author Pavol Mederly
+ *  Holds static configuration of workflows (from config.xml file).
  */
 @Component
 @DependsOn({ "midpointConfiguration" })
-
-public class WfConfiguration implements BeanFactoryAware {
+public class WfConfiguration {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
 
-    private static final String CHANGE_PROCESSORS_SECTION = "changeProcessors";         // deprecated
-
-    public static final String KEY_ENABLED = "enabled";
-    public static final String KEY_ALLOW_APPROVE_OTHERS_ITEMS = "allowApproveOthersItems";
-
-    public static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED);
-
-    public static final List<String> DEPRECATED_KEYS = Arrays.asList(CHANGE_PROCESSORS_SECTION, KEY_ALLOW_APPROVE_OTHERS_ITEMS);
+    private static final String KEY_ENABLED = "enabled";
+    private static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED);
+    private static final List<String> DEPRECATED_KEYS = Collections.emptyList();
 
     @Autowired
     private MidpointConfiguration midpointConfiguration;
-
-    private BeanFactory beanFactory;
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
-    }
 
     private boolean enabled;
 
@@ -68,32 +54,24 @@ public class WfConfiguration implements BeanFactoryAware {
 
     @PostConstruct
     void initialize() {
-
         Configuration c = midpointConfiguration.getConfiguration(MidpointConfiguration.WORKFLOW_CONFIGURATION);
-
-        checkAllowedKeys(c, KNOWN_KEYS, DEPRECATED_KEYS);
+        checkAllowedKeys(c);
 
         enabled = c.getBoolean(KEY_ENABLED, true);
         if (!enabled) {
             LOGGER.info("Workflows are disabled.");
-            return;
         }
-        validate();
     }
 
-    public void checkAllowedKeys(Configuration c, List<String> knownKeys, List<String> deprecatedKeys) {
-        Set<String> knownKeysSet = new HashSet<>(knownKeys);
-        Set<String> deprecatedKeysSet = new HashSet<>(deprecatedKeys);
+    private void checkAllowedKeys(Configuration c) {
+        Set<String> knownKeysSet = new HashSet<>(KNOWN_KEYS);
+        Set<String> deprecatedKeysSet = new HashSet<>(DEPRECATED_KEYS);
 
+        //noinspection unchecked
         Iterator<String> keyIterator = c.getKeys();
         while (keyIterator.hasNext())  {
             String keyName = keyIterator.next();
             String normalizedKeyName = StringUtils.substringBefore(keyName, ".");                       // because of subkeys
-            normalizedKeyName = StringUtils.substringBefore(normalizedKeyName, "[");                    // because of [@xmlns:c]
-            int colon = normalizedKeyName.indexOf(':');                                                 // because of c:generalChangeProcessorConfiguration
-            if (colon != -1) {
-                normalizedKeyName = normalizedKeyName.substring(colon + 1);
-            }
             if (deprecatedKeysSet.contains(keyName) || deprecatedKeysSet.contains(normalizedKeyName)) {
                 throw new SystemException("Deprecated key " + keyName + " in workflow configuration. Please see https://wiki.evolveum.com/display/midPoint/Workflow+configuration.");
             }
@@ -101,14 +79,6 @@ public class WfConfiguration implements BeanFactoryAware {
                 throw new SystemException("Unknown key " + keyName + " in workflow configuration");
             }
         }
-    }
-
-//    public Configuration getChangeProcessorsConfig() {
-//        Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
-//        return midpointConfiguration.getConfiguration(WORKFLOW_CONFIGURATION).subset(CHANGE_PROCESSORS_SECTION); // via subset, because getConfiguration puts 'midpoint.home' property to the result
-//    }
-
-    void validate() {
     }
 
     public boolean isEnabled() {
@@ -121,7 +91,6 @@ public class WfConfiguration implements BeanFactoryAware {
                 return cp;
             }
         }
-
         throw new IllegalStateException("Change processor " + processorClassName + " is not registered.");
     }
 

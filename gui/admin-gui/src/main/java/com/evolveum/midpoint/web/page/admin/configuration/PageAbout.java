@@ -295,7 +295,7 @@ public class PageAbout extends PageAdminConfiguration {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                checkWorkflowProcessesPerformed(target);
+//                checkWorkflowProcessesPerformed(target);
             }
         };
         add(checkWorkflowProcesses);
@@ -533,22 +533,6 @@ public class PageAbout extends PageAdminConfiguration {
 
         showResult(result);
 		target.add(getFeedbackPanel());
-    }
-
-
-    private void checkWorkflowProcessesPerformed(AjaxRequestTarget target) {
-		Task task = getTaskManager().createTaskInstance(OPERATION_CHECK_WORKFLOW_PROCESSES);
-        OperationResult result = task.getResult();
-        try {
-            WorkflowService workflowService = getWorkflowService();
-            workflowService.checkWorkflowProcesses(task, result);
-        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(e);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-        showResult(result);
-        target.add(getFeedbackPanel());
     }
 
     /**

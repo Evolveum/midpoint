@@ -31,14 +31,14 @@ public class ModelInvocationContext<T extends ObjectType> {
 	@NotNull public final PrismContext prismContext;
 	@NotNull public final ModelContext<T> modelContext;
 	@Nullable public final WfConfigurationType wfConfiguration;
-	@NotNull public final Task taskFromModel;
+	@NotNull public final Task task;
 
 	public ModelInvocationContext(@NotNull PrismContext prismContext, @NotNull ModelContext<T> modelContext,
 			@Nullable WfConfigurationType wfConfiguration,
-			@NotNull Task taskFromModel) {
+			@NotNull Task task) {
 		this.prismContext = prismContext;
 		this.modelContext = modelContext;
 		this.wfConfiguration = wfConfiguration;
-		this.taskFromModel = taskFromModel;
+		this.task = task;
 	}
 }

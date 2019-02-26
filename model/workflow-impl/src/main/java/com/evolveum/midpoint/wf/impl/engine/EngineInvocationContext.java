@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
@@ -30,54 +31,32 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EngineInvocationContext implements DebugDumpable {
 
-	public WfContextType wfContext;
-	public Task wfTask;
-	public CaseType wfCase;
-	public Task opTask;
+	@NotNull public CaseType aCase;
+	@NotNull public final Task opTask;
 	private boolean done;
 
-	public EngineInvocationContext(WfContextType wfContext, Task wfTask,
-			Task opTask) {
-		this.wfContext = wfContext;
-		this.wfTask = wfTask;
+	public EngineInvocationContext(@NotNull CaseType aCase, @NotNull Task opTask) {
+		this.aCase = aCase;
 		this.opTask = opTask;
 	}
 
 	public WfContextType getWfContext() {
-		return wfContext;
+		return aCase.getWorkflowContext();
 	}
 
-	public void setWfContext(WfContextType wfContext) {
-		this.wfContext = wfContext;
+	@NotNull
+	public CaseType getCase() {
+		return aCase;
 	}
 
-	public Task getWfTask() {
-		return wfTask;
-	}
-
-	public void setWfTask(Task wfTask) {
-		this.wfTask = wfTask;
-	}
-
-	public CaseType getWfCase() {
-		return wfCase;
-	}
-
-	public void setWfCase(CaseType wfCase) {
-		this.wfCase = wfCase;
-	}
-
+	@NotNull
 	public Task getOpTask() {
 		return opTask;
 	}
 
-	public void setOpTask(Task opTask) {
-		this.opTask = opTask;
-	}
-
 	@Override
 	public String debugDump(int indent) {
-		return wfContext.asPrismContainerValue().debugDump(indent);     // TODO
+		return aCase.getWorkflowContext().asPrismContainerValue().debugDump(indent);     // TODO
 	}
 
 	public String getChannel() {
@@ -95,25 +74,48 @@ public class EngineInvocationContext implements DebugDumpable {
 	@Override
 	public String toString() {
 		return "EngineInvocationContext{" +
-				"wfTask=" + wfTask +
-				", wfCase=" + wfCase +
+				"case=" + aCase +
 				", done=" + done +
 				'}';
 	}
 
 	public String getCaseOid() {
-		return wfCase.getOid();
+		return aCase.getOid();
 	}
 
 	@NotNull
 	public CaseWorkItemType findWorkItemById(long id) {
 		//noinspection unchecked
 		PrismContainerValue<CaseWorkItemType> workItemPcv = (PrismContainerValue<CaseWorkItemType>)
-				wfCase.asPrismContainerValue().find(ItemPath.create(CaseType.F_WORK_ITEM, id));
+				aCase.asPrismContainerValue().find(ItemPath.create(CaseType.F_WORK_ITEM, id));
 		if (workItemPcv == null) {
 			throw new IllegalStateException("No work item " + id + " in " + this);
 		} else {
 			return workItemPcv.asContainerable();
 		}
+	}
+
+	private WfStageComputeHelper.ComputationResult preStageComputationResult;
+	private String currentStageOutcome;
+
+	public String getCurrentStageOutcome() {
+		return currentStageOutcome;
+	}
+
+	public void setCurrentStageOutcome(String currentStageOutcome) {
+		this.currentStageOutcome = currentStageOutcome;
+	}
+
+	public WfStageComputeHelper.ComputationResult getPreStageComputationResult() {
+		return preStageComputationResult;
+	}
+
+	public void setPreStageComputationResult(
+			WfStageComputeHelper.ComputationResult preStageComputationResult) {
+		this.preStageComputationResult = preStageComputationResult;
+	}
+
+	public String getProcessInstanceName() {
+		return aCase.getName().getOrig();
 	}
 }

@@ -104,7 +104,7 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 //		WorkItemAllocationChangeOperationInfo operationInfo =
 //				new WorkItemAllocationChangeOperationInfo(operationKind, workItem.getAssigneeRef(), null);
 //		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
-//		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
+//		caseController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, AccessCertificationCampaignType campaign, Task triggerScannerTask,
@@ -167,10 +167,10 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 //		WorkItemEventCauseInformationType cause = createCauseInformation(notificationAction);
 //		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 //			for (ObjectReferenceType assignee : campaign.getAssigneeRef()) {
-//				wfTaskController.notifyWorkItemCustom(assignee, campaign, cause, wfTask, notificationAction, result);
+//				caseController.notifyWorkItemCustom(assignee, campaign, cause, wfTask, notificationAction, result);
 //			}
 //		} else {
-//			wfTaskController.notifyWorkItemCustom(null, campaign, cause, wfTask, notificationAction, result);
+//			caseController.notifyWorkItemCustom(null, campaign, cause, wfTask, notificationAction, result);
 //		}
 		// TODO implement
 		throw new UnsupportedOperationException("Not implemented yet.");

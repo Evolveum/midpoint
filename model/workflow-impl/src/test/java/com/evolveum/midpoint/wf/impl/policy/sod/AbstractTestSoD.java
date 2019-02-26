@@ -184,7 +184,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				switch (number) {
 					case 0:
 						if (yes) {
@@ -200,9 +200,9 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 
 					case 1:
 						if (yes) {
-							assertAssignedRole(userJackOid, rolePirateOid, rootTask, result);
+							assertAssignedRole(userJackOid, rolePirateOid, opTask, result);
 						} else {
-							assertNotAssignedRole(userJackOid, rolePirateOid, rootTask, result);
+							assertNotAssignedRole(userJackOid, rolePirateOid, opTask, result);
 						}
 						break;
 				}
@@ -300,13 +300,13 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				switch (number) {
 					case 1:
 						if (yes) {
-							assertAssignedRole(userJackOid, roleRespectableOid, rootTask, result);
+							assertAssignedRole(userJackOid, roleRespectableOid, opTask, result);
 						} else {
-							assertNotAssignedRole(userJackOid, roleRespectableOid, rootTask, result);
+							assertNotAssignedRole(userJackOid, roleRespectableOid, opTask, result);
 						}
 						break;
 				}

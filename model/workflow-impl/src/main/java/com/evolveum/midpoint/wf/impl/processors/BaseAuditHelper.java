@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,41 +58,42 @@ public class BaseAuditHelper {
 
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private PrismContext prismContext;
+    @Autowired private MiscHelper miscHelper;
 
     @Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, OperationResult result) {
 
-		WfContextType wfc = wfTask.getTask().getWorkflowContext();
+		WfContextType wfc = aCase.getWorkflowContext();
 
 		AuditEventRecord record = new AuditEventRecord();
         record.setEventType(WORKFLOW_PROCESS_INSTANCE);
         record.setEventStage(stage);
-		record.setInitiator(wfTask.getRequesterIfExists(result));           // set real principal in case of explicitly requested process termination (MID-4263)
+		record.setInitiator(miscHelper.getRequesterIfExists(aCase, result));           // set real principal in case of explicitly requested process termination (MID-4263)
 
-		ObjectReferenceType objectRef = resolveIfNeeded(wfc.getObjectRef(), result);
+		ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), result);
 		record.setTarget(objectRef.asReferenceValue());
 
         record.setOutcome(OperationResultStatus.SUCCESS);
 
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(wfc.getTargetRef(), result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), result));
 		if (stage == EXECUTION) {
-			String stageInfo = wfTask.getCompleteStageInfo();
+			String stageInfo = miscHelper.getCompleteStageInfo(aCase);
 			record.setParameter(stageInfo);
-			String answer = wfTask.getAnswerNice();
+			String answer = miscHelper.getAnswerNice(aCase);
 			record.setResult(answer);
 			record.setMessage(stageInfo != null ? stageInfo + " : " + answer : answer);
 
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, wfc.getStageNumber());
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, aCase.getStageNumber());
 			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, WfContextUtil.getStageCount(wfc));
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(wfc));
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(wfc));
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(aCase));
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(aCase));
 		}
-		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfc.getCaseOid());
-		OperationBusinessContextType businessContext = WfContextUtil.getBusinessContext(wfc);
+		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, aCase.getOid());
+		OperationBusinessContextType businessContext = WfContextUtil.getBusinessContext(aCase);
 		String requesterComment = businessContext != null ? businessContext.getComment() : null;
 		if (requesterComment != null) {
 			record.addPropertyValue(WorkflowConstants.AUDIT_REQUESTER_COMMENT, requesterComment);
@@ -123,7 +124,7 @@ public class BaseAuditHelper {
 				.collect(Collectors.toList());
 	}
 
-	public AuditEventRecord prepareWorkItemAuditRecordCommon(WorkItemType workItem, WfTask wfTask, AuditEventStage stage,
+	public AuditEventRecord prepareWorkItemAuditRecordCommon(CaseWorkItemType workItem, CaseType aCase, AuditEventStage stage,
 			OperationResult result) {
 
 		AuditEventRecord record = new AuditEventRecord();
@@ -134,7 +135,7 @@ public class BaseAuditHelper {
 		record.setTarget(objectRef.asReferenceValue());
 
 		record.setOutcome(OperationResultStatus.SUCCESS);
-		record.setParameter(wfTask.getCompleteStageInfo());
+		record.setParameter(miscHelper.getCompleteStageInfo(aCase));
 
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(WfContextUtil.getTargetRef(workItem), result));
@@ -147,25 +148,25 @@ public class BaseAuditHelper {
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, WfContextUtil.getEscalationLevelNumber(workItem));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, WfContextUtil.getEscalationLevelName(workItem));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, WfContextUtil.getEscalationLevelDisplayName(workItem));
-		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, workItem.getExternalId());
-		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, WfContextUtil.getProcessInstanceId(workItem));
+		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, WorkItemId.of(workItem).asString());
+		//record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, WfContextUtil.getProcessInstanceId(workItem));
 		return record;
 	}
 
 	// workItem contains taskRef, assignee, originalAssignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, OperationResult result) {
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase, OperationResult result) {
 
-        AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, wfTask, AuditEventStage.REQUEST, result);
-		record.setInitiator(wfTask.getRequesterIfExists(result));
-		record.setMessage(wfTask.getCompleteStageInfo());
+        AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, aCase, AuditEventStage.REQUEST, result);
+		record.setInitiator(miscHelper.getRequesterIfExists(aCase, result));
+		record.setMessage(miscHelper.getCompleteStageInfo(aCase));
         return record;
     }
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-			WfTask wfTask, OperationResult result) {
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+			CaseType aCase, OperationResult result) {
 
-        AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, wfTask, AuditEventStage.EXECUTION, result);
+        AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, aCase, AuditEventStage.EXECUTION, result);
 		setInitiatorAndAttorneyFromPrincipal(record);
 
 		if (cause != null) {
@@ -182,7 +183,7 @@ public class BaseAuditHelper {
 
 		// message + result
 		StringBuilder message = new StringBuilder();
-		String stageInfo = wfTask.getCompleteStageInfo();
+		String stageInfo = miscHelper.getCompleteStageInfo(aCase);
 		if (stageInfo != null) {
 			message.append(stageInfo).append(" : ");
 		}

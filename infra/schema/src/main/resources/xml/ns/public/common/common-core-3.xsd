@@ -381,7 +381,7 @@
 			<xsd:element name="lensContext" type="tns:LensContextType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
-						Model context descibing executed operation
+						Model context describing executed operation
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>4.0</a:since>

@@ -27,8 +27,8 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     private String beanName;
     private BeanFactory beanFactory;
 
-    @Autowired private MiscDataUtil miscDataUtil;
-	@Autowired private PrismContext prismContext;
+    @Autowired protected MiscDataUtil miscDataUtil;
+	@Autowired protected PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
 
     private boolean enabled = false;

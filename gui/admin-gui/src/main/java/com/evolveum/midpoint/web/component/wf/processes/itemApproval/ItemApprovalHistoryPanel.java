@@ -56,14 +56,15 @@ public class ItemApprovalHistoryPanel extends BasePanel<WfContextType> {
 	        if (wfContextType == null) {
 		        return rv;
 	        }
-	        if (!wfContextType.getEvent().isEmpty()) {
-		        wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e, getPageBase())));
-	        } else {
-		        ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
-		        if (instanceState != null) {
-			        instanceState.getDecisions().forEach(d -> addIgnoreNull(rv, DecisionDto.create(d)));
-		        }
-	        }
+	        // TODO
+//	        if (!wfContextType.getEvent().isEmpty()) {
+//		        wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e, getPageBase())));
+//	        } else {
+//		        ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
+//		        if (instanceState != null) {
+//			        instanceState.getDecisions().forEach(d -> addIgnoreNull(rv, DecisionDto.create(d)));
+//		        }
+//	        }
 	        return rv;
         }), tableId, pageSize));
     }

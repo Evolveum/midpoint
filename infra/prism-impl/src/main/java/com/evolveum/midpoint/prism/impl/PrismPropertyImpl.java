@@ -505,7 +505,8 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
 						sb.append(" (expression)");
 					} else {
 						T realValue = value.getValue();						
-						if (DebugUtil.isDetailedDebugDump()) {
+						if (DebugUtil.isDetailedDebugDump() ||
+								!(realValue instanceof ShortDumpable) && DebugUtil.getPrettyPrintBeansAs() != null) {
 							PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
 						} else {
 							PrettyPrinter.shortDump(sb, realValue);

@@ -22,16 +22,13 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper;
-import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessorSpecificContent;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
+import com.evolveum.midpoint.wf.impl.tasks.StartInstruction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,14 +41,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class BaseGcpScenarioBean implements GcpScenarioBean {
 
-    @Autowired
-    private GcpExternalizationHelper gcpExternalizationHelper;
-
-    @Autowired
-    private BaseAuditHelper baseAuditHelper;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private GcpExternalizationHelper gcpExternalizationHelper;
+    @Autowired private BaseAuditHelper baseAuditHelper;
+    @Autowired private PrismContext prismContext;
+    @Autowired private GeneralChangeProcessor generalChangeProcessor;
 
     @Override
     public boolean determineActivation(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, com.evolveum.midpoint.task.api.Task taskFromModel, OperationResult result) {
@@ -75,35 +68,31 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
 //    }
 
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(WfContextType wfContext, WfTask wfTask, AuditEventStage stage, OperationResult result) {
-        return baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, result);
+    public AuditEventRecord prepareProcessInstanceAuditRecord(WfContextType wfContext, CaseType aCase, AuditEventStage stage, OperationResult result) {
+        return baseAuditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
         // TODO what with missing data (delta, result)? We could at least attempt to determine them ...
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
 			OperationResult result) {
-        return baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
+        return baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
         // TODO fill-in missing delta somehow
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            WfTask wfTask, OperationResult result) {
-        return baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+            CaseType aCase, OperationResult result) {
+        return baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
         // TODO fill-in missing delta somehow
     }
 
     @Override
-    public WfTaskCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, WfTask rootWfTask, com.evolveum.midpoint.task.api.Task taskFromModel, OperationResult result) throws SchemaException {
+    public StartInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, CaseType rootCase, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        GeneralChangeProcessorSpecificContent processorInstruction = new GeneralChangeProcessorSpecificContent(context);
-        processorInstruction.setScenarioBeanName(scenarioType.getBeanName());
-
-        WfTaskCreationInstruction instruction = WfTaskCreationInstruction.createWfOnly(rootWfTask.getChangeProcessor(), processorInstruction, null);
-        instruction.setProcessName(scenarioType.getProcessName());
+        StartInstruction instruction = StartInstruction.create(generalChangeProcessor);
         instruction.setRequesterRef(taskFromModel.getOwner());
-        instruction.setTaskName("Workflow-monitoring task");
+        instruction.setName("Workflow-monitoring task");
         return instruction;
     }
 

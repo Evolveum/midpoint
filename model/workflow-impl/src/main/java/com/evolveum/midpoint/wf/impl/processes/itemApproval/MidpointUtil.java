@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -36,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.wf.impl.processes.common.WfTimedActionTriggerHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -45,8 +45,8 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getCacheRepositoryService;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.F_EVENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_EVENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
 
 /**
@@ -57,17 +57,17 @@ public class MidpointUtil {
 	private static final Trace LOGGER = TraceManager.getTrace(MidpointUtil.class);
 
 	// additional delta is a bit hack ... TODO refactor (but without splitting the modify operation!)
-	public static void recordEventInTask(CaseEventType event, ObjectDeltaType additionalDelta, String taskOid, OperationResult result) {
+	public static void recordEventInCase(CaseEventType event, ObjectDeltaType additionalDelta, String caseOid, OperationResult result) {
 		RepositoryService cacheRepositoryService = getCacheRepositoryService();
 		PrismContext prismContext = getPrismContext();
 		try {
-			S_ItemEntry deltaBuilder = getPrismContext().deltaFor(TaskType.class)
-					.item(F_WORKFLOW_CONTEXT, F_EVENT).add(event);
+			S_ItemEntry deltaBuilder = getPrismContext().deltaFor(CaseType.class)
+					.item(F_EVENT).add(event);
 
 			if (additionalDelta != null) {
-				PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, null, result);
+				PrismObject<CaseType> aCase = cacheRepositoryService.getObject(CaseType.class, caseOid, null, result);
 				WfPrimaryChangeProcessorStateType state = WfContextUtil
-						.getPrimaryChangeProcessorState(task.asObjectable().getWorkflowContext());
+						.getPrimaryChangeProcessorState(aCase.asObjectable().getWorkflowContext());
 				ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(state.getDeltasToProcess(),
 						additionalDelta, prismContext);
 				ItemPath deltasToProcessPath = ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE,
@@ -78,9 +78,9 @@ public class MidpointUtil {
 				deltaBuilder = deltaBuilder.item(deltasToProcessPath, deltasToProcessDefinition)
 						.replace(updatedDelta);
 			}
-			cacheRepositoryService.modifyObject(TaskType.class, taskOid, deltaBuilder.asItemDeltas(), result);
+			cacheRepositoryService.modifyObject(CaseType.class, caseOid, deltaBuilder.asItemDeltas(), result);
 		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-			throw new SystemException("Couldn't record decision to the task " + taskOid + ": " + e.getMessage(), e);
+			throw new SystemException("Couldn't record decision to the case " + caseOid + ": " + e.getMessage(), e);
 		}
 	}
 
@@ -121,64 +121,64 @@ public class MidpointUtil {
 		}
 	}
 
-	public static void createTriggersForTimedActions(String workItemId, int escalationLevel, Date workItemCreateTime,
-			Date workItemDeadline, Task wfTask, List<WorkItemTimedActionsType> timedActionsList, OperationResult result) {
+	public static void createTriggersForTimedActions(WorkItemId workItemId, int escalationLevel, Date workItemCreateTime,
+			Date workItemDeadline, CaseType wfCase, List<WorkItemTimedActionsType> timedActionsList, OperationResult result) {
 		LOGGER.trace("Creating triggers for timed actions for work item {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
 				workItemId, escalationLevel, workItemCreateTime, workItemDeadline, timedActionsList.size());
 		try {
 			PrismContext prismContext = getPrismContext();
 			List<TriggerType> triggers = WfContextUtil.createTriggers(escalationLevel, workItemCreateTime, workItemDeadline,
-					timedActionsList, prismContext, LOGGER, workItemId, WfTimedActionTriggerHandler.HANDLER_URI);
-			LOGGER.trace("Adding {} triggers to {}:\n{}", triggers.size(), wfTask,
+					timedActionsList, prismContext, LOGGER, workItemId.asString(), WfTimedActionTriggerHandler.HANDLER_URI);
+			LOGGER.trace("Adding {} triggers to {}:\n{}", triggers.size(), wfCase,
 					PrismUtil.serializeQuietlyLazily(prismContext, triggers));
 			if (!triggers.isEmpty()) {
 				List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 						.item(TaskType.F_TRIGGER).add(PrismContainerValue.toPcvList(triggers))
 						.asItemDeltas();
-				getCacheRepositoryService().modifyObject(TaskType.class, wfTask.getOid(), itemDeltas, result);
+				getCacheRepositoryService().modifyObject(CaseType.class, wfCase.getOid(), itemDeltas, result);
 			}
 		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
-			throw new SystemException("Couldn't add trigger(s) to " + wfTask + ": " + e.getMessage(), e);
+			throw new SystemException("Couldn't add trigger(s) to " + wfCase + ": " + e.getMessage(), e);
 		}
 	}
 
-	public static void removeTriggersForWorkItem(Task wfTask, String workItemId, OperationResult result) {
+	public static void removeTriggersForWorkItem(CaseType aCase, WorkItemId workItemId, OperationResult result) {
 		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
-		for (TriggerType triggerType : wfTask.getTriggers()) {
+		for (TriggerType triggerType : aCase.getTrigger()) {
 			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
 				PrismProperty workItemIdProperty = triggerType.getExtension().asPrismContainerValue()
 						.findProperty(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
-				if (workItemIdProperty != null && workItemId.equals(workItemIdProperty.getRealValue())) {
+				if (workItemIdProperty != null && workItemId.asString().equals(workItemIdProperty.getRealValue())) {
 					toDelete.add(triggerType.clone().asPrismContainerValue());
 				}
 			}
 		}
-		removeSelectedTriggers(wfTask, toDelete, result);
+		removeSelectedTriggers(aCase, toDelete, result);
 	}
 
 	// not necessary any more, as work item triggers are deleted when the work item (task) is deleted
 	// (and there are currently no triggers other than work-item-related)
-	public static void removeAllStageTriggersForWorkItem(Task wfTask, OperationResult result) {
+	public static void removeAllStageTriggersForWorkItem(CaseType aCase, OperationResult result) {
 		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
-		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
+		for (TriggerType triggerType : aCase.getTrigger()) {
 			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
 				toDelete.add(triggerType.clone().asPrismContainerValue());
 			}
 		}
-		removeSelectedTriggers(wfTask, toDelete, result);
+		removeSelectedTriggers(aCase, toDelete, result);
 	}
 
-	private static void removeSelectedTriggers(Task wfTask, List<PrismContainerValue<TriggerType>> toDelete, OperationResult result) {
-		try {
-			LOGGER.trace("About to delete {} triggers from {}: {}", toDelete.size(), wfTask, toDelete);
-			List<ItemDelta<?, ?>> itemDeltas = getPrismContext().deltaFor(TaskType.class)
-					.item(TaskType.F_TRIGGER).delete(toDelete)
-					.asItemDeltas();
-			getCacheRepositoryService().modifyObject(TaskType.class, wfTask.getOid(), itemDeltas, result);
-		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove triggers from task {}", e, wfTask);
+	private static void removeSelectedTriggers(CaseType aCase, List<PrismContainerValue<TriggerType>> toDelete, OperationResult result) {
+		LOGGER.trace("About to delete {} triggers from {}: {}", toDelete.size(), aCase, toDelete);
+		if (!toDelete.isEmpty()) {
+			try {
+				List<ItemDelta<?, ?>> itemDeltas = getPrismContext().deltaFor(TaskType.class)
+						.item(TaskType.F_TRIGGER).delete(toDelete)
+						.asItemDeltas();
+				getCacheRepositoryService().modifyObject(CaseType.class, aCase.getOid(), itemDeltas, result);
+			} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove triggers from {}", e, aCase);
+			}
 		}
 	}
-
-
 }

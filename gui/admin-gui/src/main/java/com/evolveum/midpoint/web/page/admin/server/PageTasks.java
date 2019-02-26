@@ -1584,12 +1584,12 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         OperationResult result = opTask.getResult();
 
 		try {
-			getTaskService().synchronizeWorkflowRequests(opTask, result);
+//			getTaskService().synchronizeWorkflowRequests(opTask, result);
 			result.computeStatusIfUnknown();
 			if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
 				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
 			}
-		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+		} catch (RuntimeException  e) {
 			result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(), e);
 		}
 		showResult(result);

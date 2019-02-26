@@ -16,53 +16,36 @@
 
 package com.evolveum.midpoint.wf.impl.util;
 
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.OidUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
-import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareChildOperationTaskHandler;
-import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareRootOperationTaskHandler;
+import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBException;
-import java.util.Collection;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 import static com.evolveum.midpoint.schema.ObjectTreeDeltas.fromObjectTreeDeltasType;
@@ -79,240 +62,12 @@ public class MiscDataUtil {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
-	@Autowired private SecurityEnforcer securityEnforcer;
-	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private WfConfiguration wfConfiguration;
 	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
-	@Autowired private RelationRegistry relationRegistry;
+	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;
 
 	//region ========================================================================== Miscellaneous
-    public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
-        if (oid == null) {
-            return null;
-        }
-        try {
-            return repositoryService.getObject(UserType.class, oid, null, result);
-        } catch (ObjectNotFoundException e) {
-            // there should be a note in result by now
-            LoggingUtils.logException(LOGGER, "Couldn't get user {} details because it couldn't be found", e, oid);
-            return null;
-        } catch (SchemaException e) {
-            // there should be a note in result by now
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
-            return null;
-        }
-    }
 
-
-    // returns oid when user cannot be retrieved
-    public String getUserNameByOid(String oid, OperationResult result) {
-        try {
-            PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-            return user.asObjectable().getName().getOrig();
-        } catch (ObjectNotFoundException e) {
-            // there should be a note in result by now
-            LoggingUtils.logException(LOGGER, "Couldn't get user {} details because it couldn't be found", e, oid);
-            return oid;
-        } catch (SchemaException e) {
-            // there should be a note in result by now
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
-            return oid;
-        }
-    }
-
-    public ObjectDelta getFocusPrimaryDelta(WfContextType workflowContext, boolean mayBeNull) throws JAXBException, SchemaException {
-        ObjectDeltaType objectDeltaType = getFocusPrimaryObjectDeltaType(workflowContext, mayBeNull);
-        return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
-    }
-
-    // mayBeNull=false means that the corresponding variable must be present (not that focus must be non-null)
-    // TODO: review/correct this!
-    public ObjectDeltaType getFocusPrimaryObjectDeltaType(WfContextType workflowContext, boolean mayBeNull) throws JAXBException, SchemaException {
-        ObjectTreeDeltasType deltas = getObjectTreeDeltaType(workflowContext, mayBeNull);
-        return deltas != null ? deltas.getFocusPrimaryDelta() : null;
-    }
-
-    public ObjectTreeDeltasType getObjectTreeDeltaType(WfContextType workflowContext, boolean mayBeNull) throws SchemaException {
-		WfProcessorSpecificStateType state = workflowContext.getProcessorSpecificState();
-		if (mayBeNull && state == null) {
-			return null;
-		}
-		if (!(state instanceof WfPrimaryChangeProcessorStateType)) {
-			throw new IllegalStateException("Expected WfPrimaryChangeProcessorStateType but got " + state);
-		}
-		return ((WfPrimaryChangeProcessorStateType) state).getDeltasToProcess();
-    }
-
-    public static String serializeObjectToXml(PrismObject<? extends ObjectType> object) {
-        return serializeObjectToXml(object, object.getPrismContext());
-    }
-
-    public static String serializeObjectToXml(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
-        try {
-            return prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't serialize a PrismObject " + object + " into XML", e);
-        }
-    }
-
-    public static String serializeContainerableToXml(Containerable containerable, PrismContext prismContext) {
-        try {
-            PrismContainerValue value = containerable.asPrismContainerValue();
-            return prismContext.xmlSerializer().serialize(value, value.getContainer().getElementName());
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't serialize a Containerable " + containerable + " into XML", e);
-        }
-    }
-
-    public static ObjectType deserializeObjectFromXml(String xml, PrismContext prismContext) {
-        try {
-            return (ObjectType) prismContext.parserFor(xml).xml().parse().asObjectable();
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
-        }
-    }
-
-//    public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
-//        try {
-//            return prismContext.processorFor(xml).xml().unmarshallContainer(null);			// TODO will 'null' work?
-//        } catch (SchemaException e) {
-//            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
-//        }
-//    }
-
-    public void resolveAssignmentTargetReferences(PrismObject<? extends UserType> object, OperationResult result) {
-        for (AssignmentType assignmentType : object.asObjectable().getAssignment()) {
-            if (assignmentType.getTarget() == null && assignmentType.getTargetRef() != null) {
-                PrismObject<? extends ObjectType> target = null;
-                try {
-                    target = repositoryService.getObject(ObjectType.class, assignmentType.getTargetRef().getOid(), null, result);
-                    assignmentType.setTarget(target.asObjectable());
-                } catch (ObjectNotFoundException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't resolve assignment " + assignmentType, e);
-                } catch (SchemaException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve assignment " + assignmentType, e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Retrieves focus object name from the model context.
-     */
-    public static String getFocusObjectName(ModelContext<? extends ObjectType> modelContext) {
-        ObjectType object = getFocusObjectNewOrOld(modelContext);
-        return object.getName() != null ? object.getName().getOrig() : null;
-    }
-
-    public static String getFocusObjectOid(ModelContext<?> modelContext) {
-        ModelElementContext<?> fc = modelContext.getFocusContext();
-        if (fc.getObjectNew() != null && fc.getObjectNew().getOid() != null) {
-            return fc.getObjectNew().getOid();
-        } else if (fc.getObjectOld() != null && fc.getObjectOld().getOid() != null) {
-            return fc.getObjectOld().getOid();
-        } else {
-            return null;
-        }
-    }
-
-    public static ObjectType getFocusObjectNewOrOld(ModelContext<? extends ObjectType> modelContext) {
-        ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
-        PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
-        if (prism == null) {
-            throw new IllegalStateException("No object (new or old) in model context");
-        }
-        return prism.asObjectable();
-    }
-
-	public enum RequestedOperation {
-    	COMPLETE(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS, null),
-		DELEGATE(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS, ModelAuthorizationAction.DELEGATE_OWN_WORK_ITEMS);
-
-    	ModelAuthorizationAction actionAll, actionOwn;
-		RequestedOperation(ModelAuthorizationAction actionAll, ModelAuthorizationAction actionOwn) {
-			this.actionAll = actionAll;
-			this.actionOwn = actionOwn;
-		}
-	}
-
-    public boolean isAuthorized(WorkItemType workItem, RequestedOperation operation, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        MidPointPrincipal principal;
-		try {
-			principal = securityContextManager.getPrincipal();
-		} catch (SecurityViolationException e) {
-			return false;
-		}
-        if (principal.getOid() == null) {
-            return false;
-        }
-		try {
-			if (securityEnforcer.isAuthorized(operation.actionAll.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result)) {
-				return true;
-			}
-			if (operation.actionOwn != null && !securityEnforcer.isAuthorized(operation.actionOwn.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result)) {
-				return false;
-			}
-		} catch (SchemaException e) {
-			throw new SystemException(e.getMessage(), e);
-		}
-		for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-			if (isEqualOrDeputyOf(principal, assignee.getOid(), relationRegistry)) {
-				return true;
-			}
-		}
-		return isAmongCandidates(principal, workItem);
-    }
-
-	public boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid,
-			RelationRegistry relationRegistry) {
-		return principal.getOid().equals(eligibleUserOid)
-				|| DeputyUtils.isDelegationPresent(principal.getUser(), eligibleUserOid, relationRegistry);
-	}
-
-	public WfConfigurationType getWorkflowConfiguration(SystemObjectCache systemObjectCache, OperationResult result) throws SchemaException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-    	if (systemConfiguration == null) {
-    		return null;
-    	}
-    	return systemConfiguration.asObjectable().getWorkflowConfiguration();
-    }
-
-    // principal != null, principal.getOid() != null, principal.getUser() != null
-    private boolean isAmongCandidates(MidPointPrincipal principal, WorkItemType workItem) {
-	    for (ObjectReferenceType candidateRef : workItem.getCandidateRef()) {
-		    if (principal.getOid().equals(candidateRef.getOid())
-		            || isMemberOrDeputyOf(principal.getUser(), candidateRef)) {
-			    return true;
-		    }
-	    }
-        return false;
-    }
-
-    public boolean isAuthorizedToClaim(WorkItemType workItem) {
-        MidPointPrincipal principal;
-        try {
-            principal = securityContextManager.getPrincipal();
-        } catch (SecurityViolationException e) {
-            return false;
-        }
-        String currentUserOid = principal.getOid();
-        if (currentUserOid == null) {
-            return false;
-        }
-        return isAmongCandidates(principal, workItem);
-    }
-
-
-    private boolean isMemberOrDeputyOf(UserType userType, ObjectReferenceType userOrRoleRef) {
-        return userType.getRoleMembershipRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref))
-				|| userType.getDelegatedRef().stream().anyMatch(ref -> matches(userOrRoleRef, ref));
-    }
-
-	public boolean matches(ObjectReferenceType userOrRoleRef, ObjectReferenceType targetRef) {
-    	// TODO check also the reference target type (user vs. abstract role)
-		return (relationRegistry.isMember(targetRef.getRelation()) || relationRegistry.isDelegation(targetRef.getRelation()))
-				&& targetRef.getOid().equals(userOrRoleRef.getOid());
-	}
 
 	public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
 		return resolveObjectReference(ref, false, result);
@@ -320,10 +75,6 @@ public class MiscDataUtil {
 
 	public PrismObject resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {
 		return resolveObjectReference(ref, true, result);
-	}
-
-	public void resolveAndStoreObjectReferences(@NotNull Collection<ObjectReferenceType> references, OperationResult result) {
-    	references.forEach(ref -> resolveObjectReference(ref, true, result));
 	}
 
     private PrismObject resolveObjectReference(ObjectReferenceType ref, boolean storeBack, OperationResult result) {
@@ -407,39 +158,41 @@ public class MiscDataUtil {
 			throws SchemaException, ObjectNotFoundException {
 		ChangesByState rv = new ChangesByState(prismContext);
 
-		final WfContextType wfc = childTask.getWorkflowContext();
-		if (wfc != null && wfc.getCaseOid() != null) {
-			Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
-			if (isApproved == null) {
-				if (wfc.getEndTimestamp() == null) {
-					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
-				} else {
-					recordChangesCanceled(rv, wfc, prismContext);
-				}
-			} else if (isApproved) {
-				if (rootTask.getModelOperationContext() != null) {
-					// this is "execute after all approvals"
-					if (rootTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
-						recordResultingChanges(rv.getApplied(), wfc, prismContext);
-					} else if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI)) {
-						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
-					} else {
-						recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
-					}
-				} else {
-					// "execute immediately"
-					if (childTask.getModelOperationContext() == null || childTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
-						recordResultingChanges(rv.getApplied(), wfc, prismContext);
-					} else if (!containsHandler(childTask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
-						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
-					} else {
-						recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
-					}
-				}
-			} else {
-				recordChangesRejected(rv, wfc, prismContext);
-			}
-		}
+		// TODO implement this!
+
+//		final WfContextType wfc = childTask.getWorkflowContext();
+//		if (wfc != null) {
+//			Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
+//			if (isApproved == null) {
+//				if (wfc.getEndTimestamp() == null) {
+//					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
+//				} else {
+//					recordChangesCanceled(rv, wfc, prismContext);
+//				}
+//			} else if (isApproved) {
+//				if (rootTask.getModelOperationContext() != null) {
+//					// this is "execute after all approvals"
+//					if (rootTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
+//						recordResultingChanges(rv.getApplied(), wfc, prismContext);
+//					} else if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI)) {
+//						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
+//					} else {
+//						recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
+//					}
+//				} else {
+//					// "execute immediately"
+//					if (childTask.getModelOperationContext() == null || childTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
+//						recordResultingChanges(rv.getApplied(), wfc, prismContext);
+//					} else if (!containsHandler(childTask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
+//						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
+//					} else {
+//						recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
+//					}
+//				}
+//			} else {
+//				recordChangesRejected(rv, wfc, prismContext);
+//			}
+//		}
 		return rv;
 	}
 
@@ -451,10 +204,10 @@ public class MiscDataUtil {
 		for (TaskType subtask : rootTask.getSubtask()) {
 			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, task, result);
 			final WfContextType wfc = subtask.getWorkflowContext();
-			if (wfc != null && wfc.getCaseOid() != null) {
-				Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
+			if (wfc != null) {
+				Boolean isApproved = null; // todo take outcome from CaseType! ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
 				if (isApproved == null) {
-					if (wfc.getEndTimestamp() == null) {
+					if (true /* TODO wfc.getEndTimestamp() == null*/ ) {
 						recordChangesWaitingToBeApproved(rv, wfc, prismContext);
 					} else {
 						recordChangesCanceled(rv, wfc, prismContext);
@@ -470,14 +223,15 @@ public class MiscDataUtil {
 	}
 
 	private void recordChangesApprovedIfNeeded(ChangesByState rv, TaskType subtask, TaskType rootTask, PrismContext prismContext) throws SchemaException {
-		if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI) &&
-				!containsHandler(subtask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
-			return;			// these changes were already incorporated into one of model contexts
-		}
-		if (subtask.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
-			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) subtask.getWorkflowContext().getProcessorSpecificState();
-			rv.getWaitingToBeApplied().merge(fromObjectTreeDeltasType(ps.getResultingDeltas(), prismContext));
-		}
+    	// TODO implement this!
+//		if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI) &&
+//				!containsHandler(subtask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
+//			return;			// these changes were already incorporated into one of model contexts
+//		}
+//		if (subtask.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
+//			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) subtask.getWorkflowContext().getProcessorSpecificState();
+//			rv.getWaitingToBeApplied().merge(fromObjectTreeDeltasType(ps.getResultingDeltas(), prismContext));
+//		}
 	}
 
 	private boolean containsHandler(TaskType taskType, String handlerUri) {

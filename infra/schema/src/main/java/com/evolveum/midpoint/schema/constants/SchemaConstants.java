@@ -28,9 +28,6 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
-
 /**
  * @author Vilo Repan
  * @author Radovan Semancik
@@ -543,7 +540,6 @@ public abstract class SchemaConstants {
 
 	public static final QName SAMPLES_SSN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "ssn");
 	public static final QName SAMPLES_DOMAIN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "domain");
-	public static final ItemPath PATH_WORKFLOW_CONTEXT_WORK_ITEM = ItemPath.create(F_WORKFLOW_CONTEXT, F_WORK_ITEM);
 
 	// Misc
 

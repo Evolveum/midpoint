@@ -233,7 +233,7 @@ class ApprovalSchemaBuilder {
 		}
 		fragmentStageDefs.sort(Comparator.comparing(s -> getNumber(s), Comparator.nullsLast(naturalOrder())));
 		RelationResolver relationResolver = primaryChangeAspect.createRelationResolver(firstFragment.target, result);
-		ReferenceResolver referenceResolver = primaryChangeAspect.createReferenceResolver(ctx.modelContext, ctx.taskFromModel, result);
+		ReferenceResolver referenceResolver = primaryChangeAspect.createReferenceResolver(ctx.modelContext, ctx.task, result);
 		int from = getStages(resultingSchemaType).size() + 1;
 		int i = from;
 		for (ApprovalStageDefinitionType stageDef : fragmentStageDefs) {

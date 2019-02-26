@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -248,19 +249,19 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("Wrong policy situation", emptyList(), roleAfter.asObjectable().getPolicySituation());
 		assertEquals("Wrong triggered policy rules", emptyList(), roleAfter.asObjectable().getTriggeredPolicyRule());
 
-		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
-				.build();
-		List<PrismObject<TaskType>> tasks = getTasksForObject(roleCorrectOid, RoleType.COMPLEX_TYPE, options, task, result);
-		display("tasks for role", tasks);
-		assertEquals("Wrong # of approval tasks for role", 2, tasks.size());
+//		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+//				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+//				.build();
+		List<PrismObject<CaseType>> cases = getCasesForObject(roleCorrectOid, RoleType.COMPLEX_TYPE, null, task, result);
+		display("cases for role", cases);
+		assertEquals("Wrong # of approval cases for role", 2, cases.size());
 
-		TaskType approvalTask = getApprovalTask(tasks);
-		TaskType rootTask = getRootTask(tasks);
-		WfContextType wfc = approvalTask.getWorkflowContext();
+		CaseType approvalCase = getApprovalCase(cases);
+		CaseType rootCase = getRootCase(cases);
+		WfContextType wfc = approvalCase.getWorkflowContext();
 		//assertEquals("Modification of correct", wfc.getProcessInstanceName());            // MID-4200
-		assertEquals("wrong # of work items", 1, wfc.getWorkItem().size());
-		WorkItemType workItem = wfc.getWorkItem().get(0);
+		assertEquals("wrong # of work items", 1, approvalCase.getWorkItem().size());
+		CaseWorkItemType workItem = approvalCase.getWorkItem().get(0);
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
 		assertEquals("wrong # of approval stages", 1, info.getApprovalSchema().getStage().size());
 		assertEquals("wrong # of attached policy rules", 1, info.getPolicyRules().getEntry().size());
@@ -269,8 +270,8 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
 		// TODO check trigger
 
-		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
-		waitForTaskFinish(rootTask.getOid(), false);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
+		waitForCaseClose(rootCase, 60000);
 
 		PrismObject<RoleType> roleAfterApproval = getRole(roleCorrectOid);
 		display("role after approval", roleAfterApproval);
@@ -330,31 +331,30 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("Wrong triggered policy rules", emptyList(), roleAfter.asObjectable().getTriggeredPolicyRule());
 
 		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
 				.build();
-		List<PrismObject<TaskType>> tasks = getTasksForObject(roleCorrectHighRiskOid, RoleType.COMPLEX_TYPE, options, task, result);
-		display("tasks for role", tasks);
-		assertEquals("Wrong # of approval tasks for role", 2, tasks.size());
+		List<PrismObject<CaseType>> cases = getCasesForObject(roleCorrectHighRiskOid, RoleType.COMPLEX_TYPE, options, task, result);
+		display("cases for role", cases);
+		assertEquals("Wrong # of approval cases for role", 2, cases.size());
 
-		TaskType approvalTask = getApprovalTask(tasks);
-		WfContextType wfc = approvalTask.getWorkflowContext();
+		CaseType approvalCase = getApprovalCase(cases);
+		WfContextType wfc = approvalCase.getWorkflowContext();
 		// assertEquals("Modification of correct-high-risk", wfc.getProcessInstanceName());             // MID-4200
-		assertEquals("wrong # of work items", 1, wfc.getWorkItem().size());
-		WorkItemType workItem = wfc.getWorkItem().get(0);
+		assertEquals("wrong # of work items", 1, approvalCase.getWorkItem().size());
+		CaseWorkItemType workItem = approvalCase.getWorkItem().get(0);
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
 		assertEquals("wrong # of approval stages", 2, info.getApprovalSchema().getStage().size());
 		assertEquals("wrong # of attached policy rules", 2, info.getPolicyRules().getEntry().size());
 
-		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
-		approvalTask = modelService.getObject(TaskType.class, approvalTask.getOid(), options, task, result).asObjectable();
-		wfc = approvalTask.getWorkflowContext();
-		assertEquals("wrong # of work items", 1, wfc.getWorkItem().size());
-		workItem = wfc.getWorkItem().get(0);
-		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+		approvalCase = modelService.getObject(CaseType.class, approvalCase.getOid(), options, task, result).asObjectable();
+		wfc = approvalCase.getWorkflowContext();
+		assertEquals("wrong # of work items", 1, approvalCase.getWorkItem().size());
+		workItem = approvalCase.getWorkItem().get(0);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
-		TaskType rootTask = getRootTask(tasks);
-		waitForTaskFinish(rootTask.getOid(), false);
+		CaseType rootCase = getRootCase(cases);
+		waitForCaseClose(rootCase, 60000);
 
 		PrismObject<RoleType> roleAfterApproval = getRole(roleCorrectHighRiskOid);
 		display("role after approval", roleAfterApproval);

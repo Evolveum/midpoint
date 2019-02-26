@@ -49,36 +49,36 @@ public class WfContextUtil {
 	private static final Trace LOGGER = TraceManager.getTrace(WfContextUtil.class);
 
 	@Nullable
-	public static String getStageInfo(WfContextType wfc) {
-		if (wfc == null || hasFinished(wfc)) {
+	public static String getStageInfo(CaseType aCase) {
+		if (aCase == null || isClosed(aCase)) {
 			return null;
 		}
-		return getStageInfo(wfc.getStageNumber(), getStageCount(wfc), getStageName(wfc), getStageDisplayName(wfc));
+		return getStageInfo(aCase.getStageNumber(), getStageCount(aCase.getWorkflowContext()), getStageName(aCase), getStageDisplayName(aCase));
 	}
 
 	@Nullable
-	public static String getStageInfo(WorkItemType workItem) {
+	public static String getStageInfo(CaseWorkItemType workItem) {
 		if (workItem == null) {
 			return null;
 		}
-		return getStageInfo(getWorkflowContext(workItem));
+		return getStageInfo(CaseWorkItemUtil.getCase(workItem));
 	}
 
-	public static Integer getStageCount(WorkItemType workItem) {
+	public static Integer getStageCount(CaseWorkItemType workItem) {
 		return getStageCount(getWorkflowContext(workItem));
 	}
 
-	public static String getStageName(WorkItemType workItem) {
-		return getStageName(getWorkflowContext(workItem));
+	public static String getStageName(CaseWorkItemType workItem) {
+		return getStageName(CaseWorkItemUtil.getCaseRequired(workItem));
 	}
 
-	public static String getStageName(WfContextType wfc) {
-		ApprovalStageDefinitionType def = getCurrentStageDefinition(wfc);
+	public static String getStageName(CaseType aCase) {
+		ApprovalStageDefinitionType def = getCurrentStageDefinition(aCase);
 		return def != null ? def.getName() : null;
 	}
 
-	public static String getStageDisplayName(WfContextType wfc) {
-		ApprovalStageDefinitionType def = getCurrentStageDefinition(wfc);
+	public static String getStageDisplayName(CaseType aCase) {
+		ApprovalStageDefinitionType def = getCurrentStageDefinition(aCase);
 		return def != null ? def.getDisplayName() : null;
 	}
 
@@ -92,8 +92,8 @@ public class WfContextUtil {
 		return schema != null ? schema.getStage().size() : null;
 	}
 
-	public static String getStageDisplayName(WorkItemType workItem) {
-		return getStageDisplayName(getWorkflowContext(workItem));
+	public static String getStageDisplayName(CaseWorkItemType workItem) {
+		return getStageDisplayName(CaseWorkItemUtil.getCase(workItem));
 	}
 
 	// wfc is used to retrieve approval schema (if needed)
@@ -131,18 +131,41 @@ public class WfContextUtil {
 		}
 	}
 
-	public static boolean hasFinished(WfContextType wfc) {
-		return wfc.getEndTimestamp() != null;
+	public static boolean isClosed(WfContextType wfc) {
+		return CaseTypeUtil.isClosed(getCase(wfc));
+	}
+
+	public static boolean isClosed(CaseType aCase) {
+		return CaseTypeUtil.isClosed(aCase);
+	}
+
+	private static CaseType getCase(WfContextType wfc) {
+		PrismContainerable parent = wfc != null ? wfc.asPrismContainerValue().getParent() : null;
+		if (parent == null) {
+			return null;
+		} else if (!(parent instanceof PrismContainer<?>)) {
+			throw new IllegalStateException("Expected PrismContainer as a parent of workflow context, got: " + parent);
+		}
+		PrismContainerValue<?> grandParent = ((PrismContainer<?>) parent).getParent();
+		if (grandParent == null) {
+			return null;
+		}
+		Containerable c = grandParent.asContainerable();
+		if (!(c instanceof CaseType)) {
+			throw new IllegalStateException("Expected CaseType as a grandparent of workflow context, got: " + c);
+		} else {
+			return (CaseType) c;
+		}
 	}
 
 	@Nullable
-	public static String getCompleteStageInfo(WfContextType wfc) {
-		if (wfc == null || hasFinished(wfc)) {
+	public static String getCompleteStageInfo(CaseType aCase) {
+		if (aCase == null || isClosed(aCase)) {
 			return null;
 		}
-		Integer stageNumber = wfc.getStageNumber();
-		String stageName = getStageName(wfc);
-		String stageDisplayName = getStageDisplayName(wfc);
+		Integer stageNumber = aCase.getStageNumber();
+		String stageName = getStageName(aCase);
+		String stageDisplayName = getStageDisplayName(aCase);
 		if (stageNumber == null && stageName == null && stageDisplayName == null) {
 			return null;
 		}
@@ -154,7 +177,7 @@ public class WfContextUtil {
 		} else if (stageDisplayName != null) {
 			sb.append(stageDisplayName);
 		}
-		appendNumber(stageNumber, getStageCount(wfc), sb);
+		appendNumber(stageNumber, getStageCount(aCase.getWorkflowContext()), sb);
 		return sb.toString();
 	}
 
@@ -193,6 +216,18 @@ public class WfContextUtil {
 	}
 
 	@NotNull
+	public static WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorStateRequired(WfContextType wfc) {
+		if (wfc == null) {
+			throw new IllegalStateException("No workflow context");
+		}
+		WfProcessorSpecificStateType processorState = wfc.getProcessorSpecificState();
+		if (!(processorState instanceof WfPrimaryChangeProcessorStateType)) {
+			throw new IllegalStateException("Expected " + WfPrimaryChangeProcessorStateType.class + " but got " + processorState);
+		}
+		return (WfPrimaryChangeProcessorStateType) processorState;
+	}
+
+	@NotNull
 	public static List<SchemaAttachedPolicyRuleType> getAttachedPolicyRules(WfContextType workflowContext, int order) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(workflowContext);
 		if (info == null || info.getPolicyRules() == null) {
@@ -204,11 +239,11 @@ public class WfContextUtil {
 				.collect(Collectors.toList());
 	}
 
-	public static ApprovalStageDefinitionType getCurrentStageDefinition(WfContextType wfc) {
-		if (wfc == null || wfc.getStageNumber() == null) {
+	public static ApprovalStageDefinitionType getCurrentStageDefinition(CaseType aCase) {
+		if (aCase == null || aCase.getStageNumber() == null) {
 			return null;
 		}
-		return getStageDefinition(wfc, wfc.getStageNumber());
+		return getStageDefinition(aCase.getWorkflowContext(), aCase.getStageNumber());
 	}
 
 	// expects already normalized definition (using non-deprecated items, numbering stages from 1 to N)
@@ -236,52 +271,56 @@ public class WfContextUtil {
 
 	// we must be strict here; in case of suspicion, throw an exception
 	@SuppressWarnings("unchecked")
-	public static <T extends CaseEventType> List<T> getEventsForCurrentStage(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
-		if (wfc.getStageNumber() == null) {
-			throw new IllegalArgumentException("No stage number in workflow context; pid = " + wfc.getCaseOid());
+	public static <T extends CaseEventType> List<T> getEventsForCurrentStage(@NotNull CaseType aCase, @NotNull Class<T> clazz) {
+		WfContextType wfc = aCase.getWorkflowContext();
+		if (wfc == null) {
+			throw new IllegalArgumentException("No workflow context in case " + aCase);
 		}
-		int stageNumber = wfc.getStageNumber();
-		return wfc.getEvent().stream()
+		if (aCase.getStageNumber() == null) {
+			throw new IllegalArgumentException("No stage number in workflow context");
+		}
+		int stageNumber = aCase.getStageNumber();
+		return aCase.getEvent().stream()
 				.filter(e -> clazz.isAssignableFrom(e.getClass()) && e.getStageNumber() != null && stageNumber == e.getStageNumber())
 				.map(e -> (T) e)
 				.collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T extends CaseEventType> List<T> getEvents(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
-		return wfc.getEvent().stream()
+	public static <T extends CaseEventType> List<T> getEvents(@NotNull CaseType aCase, @NotNull Class<T> clazz) {
+		return aCase.getEvent().stream()
 				.filter(e -> clazz.isAssignableFrom(e.getClass()))
 				.map(e -> (T) e)
 				.collect(Collectors.toList());
 	}
 
-	public static <T extends WorkItemEventType> List<T> getWorkItemEvents(@NotNull WfContextType wfc, @NotNull String workItemId, Class<T> clazz) {
-		return wfc.getEvent().stream()
+	public static <T extends WorkItemEventType> List<T> getWorkItemEvents(@NotNull CaseType aCase, @NotNull String workItemId, Class<T> clazz) {
+		return aCase.getEvent().stream()
 				.filter(e -> clazz.isAssignableFrom(e.getClass()) && workItemId.equals(((WorkItemEventType) e).getExternalWorkItemId()))
 				.map(e -> (T) e)
 				.collect(Collectors.toList());
 	}
 
-	public static String getBriefDiagInfo(WfContextType wfc) {
-		if (wfc == null) {
+	public static String getBriefDiagInfo(CaseType aCase) {
+		if (aCase == null) {
 			return "null";
 		}
-		return "pid: " + wfc.getCaseOid() + ", name: " + wfc.getProcessInstanceName() + ", stage: " + wfc.getStageNumber();
+		return "process: " + aCase.getName() + ", stage: " + aCase.getStageNumber();
 	}
 
 	/**
 	 *  @pre !stageEvents.isEmpty()
  	 */
 	@NotNull
-	public static String getCurrentStageOutcome(WfContextType wfc, List<StageCompletionEventType> stageEvents) {
+	public static String getCurrentStageOutcome(CaseType aCase, List<StageCompletionEventType> stageEvents) {
 		Set<String> outcomes = stageEvents.stream()
 				.filter(e -> e.getOutcome() != null)
 				.map(e -> e.getOutcome())
 				.collect(Collectors.toSet());
 		if (outcomes.size() > 1) {
-			throw new IllegalStateException("More than one stage outcome in " + getBriefDiagInfo(wfc) + ": " + outcomes + " (" + stageEvents + ")");
+			throw new IllegalStateException("More than one stage outcome in " + getBriefDiagInfo(aCase) + ": " + outcomes + " (" + stageEvents + ")");
 		} else if (outcomes.isEmpty()) {
-			throw new IllegalStateException("No outcome for stage-level event in " + getBriefDiagInfo(wfc));
+			throw new IllegalStateException("No outcome for stage-level event in " + getBriefDiagInfo(aCase));
 		} else {
 			return outcomes.iterator().next();
 		}
@@ -351,11 +390,11 @@ public class WfContextUtil {
 //		}
 //	}
 
-	public static OperationBusinessContextType getBusinessContext(WfContextType wfc) {
-		if (wfc == null) {
+	public static OperationBusinessContextType getBusinessContext(CaseType aCase) {
+		if (aCase == null) {
 			return null;
 		}
-		for (CaseEventType event : wfc.getEvent()) {
+		for (CaseEventType event : aCase.getEvent()) {
 			if (event instanceof CaseCreationEventType) {
 				return ((CaseCreationEventType) event).getBusinessContext();
 			}
@@ -368,90 +407,66 @@ public class WfContextUtil {
 		return getStageInfo(stageNumber, null, null, null);
 	}
 
-	public static String getProcessInstanceId(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getCaseOid();
+//	public static String getProcessInstanceId(WorkItemType workItem) {
+//		return getWorkflowContext(workItem).getCaseOid();
+//	}
+
+	public static WfContextType getWorkflowContext(CaseWorkItemType workItem) {
+		return CaseWorkItemUtil.getCaseRequired(workItem).getWorkflowContext();
+//		PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(workItem.asPrismContainerValue());
+//		if (parent == null) {
+//			LOGGER.error("No workflow context for workItem {}", workItem);
+//			// this is only a workaround, FIXME MID-4030
+//			return new WfContextType(workItem.asPrismContainerValue().getPrismContext());
+//		}
+//		Containerable parentReal = parent.asContainerable();
+//		if (!(parentReal instanceof CaseType)) {
+//			throw new IllegalStateException("WorkItem's parent is not a CaseType; it is " + parentReal);
+//		}
+//		return (WfContextType) parentReal;
 	}
 
-	public static WfContextType getWorkflowContext(WorkItemType workItem) {
-		PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(workItem.asPrismContainerValue());
-		if (parent == null) {
-			LOGGER.error("No workflow context for workItem {}", workItem);
-			// this is only a workaround, FIXME MID-4030
-			return new WfContextType(workItem.asPrismContainerValue().getPrismContext());
+	public static CaseType getCase(ApprovalSchemaExecutionInformationType info) {
+		if (info == null || info.getCaseRef() == null || info.getCaseRef().asReferenceValue().getObject() == null) {
+			return null;
 		}
-		Containerable parentReal = parent.asContainerable();
-		if (!(parentReal instanceof WfContextType)) {
-			throw new IllegalStateException("WorkItem's parent is not a WfContextType; it is " + parentReal);
-		}
-		return (WfContextType) parentReal;
+		return (CaseType) info.getCaseRef().asReferenceValue().getObject().asObjectable();
 	}
 
 	public static WfContextType getWorkflowContext(ApprovalSchemaExecutionInformationType info) {
-		if (info == null || info.getTaskRef() == null || info.getTaskRef().asReferenceValue().getObject() == null) {
-			return null;
-		}
-		@SuppressWarnings({ "unchecked", "raw" })
-		PrismObject<TaskType> task = info.getTaskRef().asReferenceValue().getObject();
-		return task.asObjectable().getWorkflowContext();
+		CaseType aCase = getCase(info);
+		return aCase != null ? aCase.getWorkflowContext() : null;
 	}
 
-	@Nullable
-	public static String getTaskOid(WorkItemType workItem) {
-		TaskType task = getTask(workItem);
-		return task != null ? task.getOid() : null;
+	public static ObjectReferenceType getObjectRef(CaseWorkItemType workItem) {
+		return CaseWorkItemUtil.getCaseRequired(workItem).getObjectRef();
 	}
 
-	@Nullable
-	public static TaskType getTask(WorkItemType workItem) {
-		return getTask(getWorkflowContext(workItem));
-	}
-
-	@Nullable
-	public static TaskType getTask(WfContextType wfc) {
-		if (wfc == null) {
-			return null;
-		}
-		PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(wfc.asPrismContainerValue());
-		if (parent == null) {
-			LOGGER.error("No containing task for " + wfc);
-			return null;
-		}
-		Containerable parentReal = parent.asContainerable();
-		if (!(parentReal instanceof TaskType)) {
-			throw new IllegalStateException("WfContextType's parent is not a TaskType; it is " + parentReal);
-		}
-		return (TaskType) parentReal;
-	}
-
-	public static ObjectReferenceType getObjectRef(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getObjectRef();
-	}
-
-	public static ObjectReferenceType getObjectRef(PrismContainerValue<WorkItemType> workItem) {
+	public static ObjectReferenceType getObjectRef(PrismContainerValue<CaseWorkItemType> workItem) {
 		return getObjectRef(workItem.asContainerable());
 	}
 
-	public static ObjectReferenceType getTargetRef(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getTargetRef();
+	public static ObjectReferenceType getTargetRef(CaseWorkItemType workItem) {
+		return CaseWorkItemUtil.getCaseRequired(workItem).getTargetRef();
 	}
 
-	public static ObjectReferenceType getTargetRef(PrismContainerValue<WorkItemType> workItem) {
+	public static ObjectReferenceType getTargetRef(PrismContainerValue<CaseWorkItemType> workItem) {
 		return getTargetRef(workItem.asContainerable());
 	}
 
-	public static ObjectReferenceType getRequesterRef(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getRequesterRef();
+	public static ObjectReferenceType getRequesterRef(CaseWorkItemType workItem) {
+		return CaseWorkItemUtil.getCaseRequired(workItem).getRequestorRef();
 	}
 
-	public static ObjectReferenceType getRequesterRef(PrismContainerValue<WorkItemType> workItem) {
+	public static ObjectReferenceType getRequesterRef(PrismContainerValue<CaseWorkItemType> workItem) {
 		return getRequesterRef(workItem.asContainerable());
 	}
 
-	public static XMLGregorianCalendar getStartTimestamp(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getStartTimestamp();
+	public static XMLGregorianCalendar getStartTimestamp(CaseWorkItemType workItem) {
+		return CaseTypeUtil.getStartTimestamp(CaseWorkItemUtil.getCase(workItem));
 	}
 
-	public static XMLGregorianCalendar getStartTimestamp(PrismContainerValue<WorkItemType> workItem) {
+	public static XMLGregorianCalendar getStartTimestamp(PrismContainerValue<CaseWorkItemType> workItem) {
 		return getStartTimestamp(workItem.asContainerable());
 	}
 
@@ -737,29 +752,29 @@ public class WfContextUtil {
 		return rv;
 	}
 
-	public static boolean isInStageBeforeLastOne(WfContextType wfc) {
-		if (wfc == null || wfc.getStageNumber() == null) {
+	public static boolean isInStageBeforeLastOne(CaseType aCase) {
+		if (aCase == null || aCase.getStageNumber() == null) {
 			return false;
 		}
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
+		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(aCase.getWorkflowContext());
 		if (info == null) {
 			return false;
 		}
-		return wfc.getStageNumber() < info.getApprovalSchema().getStage().size();
+		return aCase.getStageNumber() < info.getApprovalSchema().getStage().size();
 	}
 
 	public static String getProcessName(ApprovalSchemaExecutionInformationType info) {
-		return info != null ? getOrig(ObjectTypeUtil.getName(info.getTaskRef())) : null;
+		return info != null ? getOrig(ObjectTypeUtil.getName(info.getCaseRef())) : null;
 	}
 
 	public static String getTargetName(ApprovalSchemaExecutionInformationType info) {
-		WfContextType wfc = getWorkflowContext(info);
-		return wfc != null ? getOrig(ObjectTypeUtil.getName(wfc.getTargetRef())) : null;
+		CaseType aCase = getCase(info);
+		return aCase != null ? getOrig(ObjectTypeUtil.getName(aCase.getTargetRef())) : null;
 	}
 
 	public static String getOutcome(ApprovalSchemaExecutionInformationType info) {
-		WfContextType wfc = getWorkflowContext(info);
-		return wfc != null ? wfc.getOutcome() : null;
+		CaseType aCase = getCase(info);
+		return aCase != null ? aCase.getOutcome() : null;
 	}
 
 	public static List<EvaluatedPolicyRuleType> getAllRules(SchemaAttachedPolicyRulesType policyRules) {
@@ -800,8 +815,8 @@ public class WfContextUtil {
 	// Do not use in approval expressions, because they are evaluated also on process start/preview.
 	// Use explicit stage number instead.
 	@NotNull
-	public static List<EvaluatedPolicyRuleType> getRulesForCurrentStage(WfContextType wfc) {
-		return getRulesForStage(wfc, wfc.getStageNumber());
+	public static List<EvaluatedPolicyRuleType> getRulesForCurrentStage(CaseType aCase) {
+		return getRulesForStage(aCase.getWorkflowContext(), aCase.getStageNumber());
 	}
 
 	@NotNull

@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
+import com.evolveum.midpoint.wf.impl.tasks.WfCase;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
@@ -78,15 +78,15 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
             OperationResult result = WfTaskUtil.getResult(task);
 
-            WfTask rootWfTask = wfTaskController.recreateRootWfTask(task);
-            List<WfTask> children = rootWfTask.listChildren(result);
+            WfCase rootWfTask = wfTaskController.recreateRootWfTask(task);
+            List<WfCase> children = rootWfTask.listChildren(result);
 
             LensContext rootContext = (LensContext) rootWfTask.retrieveModelContext(result);
 
             List<ObjectTreeDeltas> deltasToMerge = new ArrayList<>();
 
             boolean changed = false;
-            for (WfTask child : children) {
+            for (WfCase child : children) {
 
                 if (child.getTaskExecutionStatus() != TaskExecutionStatus.CLOSED) {
                     throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getTaskExecutionStatus());

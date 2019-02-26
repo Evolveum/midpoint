@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -34,13 +35,14 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.wf.impl.engine.dao.CompleteAction;
-import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemManager;
-import com.evolveum.midpoint.wf.impl.engine.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.api.CompleteAction;
+import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
+import com.evolveum.midpoint.wf.impl.processors.MiscHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfNotificationHelper;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -66,13 +68,13 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 	private static final transient Trace LOGGER = TraceManager.getTrace(WfTimedActionTriggerHandler.class);
 
 	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
-	@Autowired private WorkItemProvider workItemProvider;
+	@Autowired private WorkflowEngine workflowEngine;
 	@Autowired private WorkItemManager workItemManager;
-	@Autowired private WfTaskController wfTaskController;
 	@Autowired private WfNotificationHelper notificationHelper;
 	@Autowired private TaskManager taskManager;
 	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
 	@Autowired private WfStageComputeHelper stageComputeHelper;
+	@Autowired private MiscHelper miscHelper;
 
 	@PostConstruct
 	private void initialize() {
@@ -80,12 +82,12 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 	}
 
 	@Override
-	public <O extends ObjectType> Collection<TriggerType> handle(PrismObject<O> object, Collection<TriggerType> triggers, RunningTask triggerScannerTask, OperationResult parentResult) {
-		if (!(object.asObjectable() instanceof TaskType)) {
-			throw new IllegalArgumentException("Unexpected object type: should be TaskType: " + object);
+	public <O extends ObjectType> Collection<TriggerType> handle(PrismObject<O> object, Collection<TriggerType> triggers, RunningTask opTask, OperationResult parentResult) {
+		if (!(object.asObjectable() instanceof CaseType)) {
+			throw new IllegalArgumentException("Unexpected object type: should be CaseType: " + object);
 		}
-		TaskType wfTaskType = (TaskType) object.asObjectable();
-		WfContextType wfc = wfTaskType.getWorkflowContext();
+		CaseType aCase = (CaseType) object.asObjectable();
+		WfContextType wfc = aCase.getWorkflowContext();
 		if (wfc == null) {
 			LOGGER.warn("Task without workflow context; ignoring it: " + object);
 			return triggers;
@@ -101,27 +103,18 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 			 * a special code to treat this.)
 			 */
 			List<CompleteAction> completeActions = new ArrayList<>();
-			Task wfTask;
-			try {
-				wfTask = taskManager.createTaskInstance(wfTaskType.asPrismObject(), triggersResult);
-			} catch (SchemaException e) {
-				String message = "Exception while handling work item triggers: " + e.getMessage();
-				triggersResult.recordFatalError(message, e);
-				throw new SystemException(message, e);
-			}
-
 			for (TriggerType trigger : triggers) {
 				boolean ok = true;
-				OperationResult triggerResult = triggersResult
+				OperationResult opResult = triggersResult
 						.createSubresult(WfTimedActionTriggerHandler.class.getName() + ".handleTrigger");
 				String workItemId = ObjectTypeUtil
 						.getExtensionItemRealValue(trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
 				if (workItemId == null) {
 					LOGGER.warn("Trigger without workItemId; ignoring it: " + trigger);
-					triggerResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No work item ID");
+					opResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No work item ID");
 				} else {
 					try {
-						WorkItemType workItem = workItemProvider.getWorkItem(workItemId, triggerResult);
+						CaseWorkItemType workItem = workflowEngine.getWorkItem(WorkItemId.create(workItemId), opResult);
 						Duration timeBeforeAction = ObjectTypeUtil
 								.getExtensionItemRealValue(trigger.getExtension(),
 										SchemaConstants.MODEL_EXTENSION_TIME_BEFORE_ACTION);
@@ -133,7 +126,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 								LOGGER.warn("Notification trigger without workItemAction; ignoring it: {}", trigger);
 								continue;
 							}
-							executeNotifications(timeBeforeAction, action, workItem, wfTask, triggerResult);
+							executeNotifications(timeBeforeAction, action, workItem, aCase, opTask, opResult);
 						} else {
 							WorkItemActionsType actions = ObjectTypeUtil
 									.getExtensionItemRealValue(trigger.getExtension(),
@@ -142,13 +135,13 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 								LOGGER.warn("Trigger without workItemActions; ignoring it: " + trigger);
 								continue;
 							}
-							executeActions(actions, workItem, wfTask, completeActions, triggerScannerTask, triggerResult);
+							executeActions(actions, workItem, aCase, completeActions, opTask, opResult);
 						}
-						triggerResult.computeStatusIfUnknown();
+						opResult.computeStatusIfUnknown();
 					} catch (RuntimeException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException e) {
 						String message =
 								"Exception while handling work item trigger for ID " + workItemId + ": " + e.getMessage();
-						triggerResult.recordPartialError(message, e);
+						opResult.recordPartialError(message, e);
 						ok = false;
 					}
 				}
@@ -161,7 +154,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 				OperationResult result = triggersResult
 						.createSubresult(WfTimedActionTriggerHandler.class.getName() + ".handleCompletions");
 				try {
-					workItemManager.completeWorkItems(completeActions, triggerScannerTask, result);
+					workItemManager.completeWorkItems(completeActions, opTask, result);
 					result.recordSuccessIfUnknown();
 				} catch (Throwable t) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't handler work item completion", t);
@@ -177,67 +170,68 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		}
 	}
 
-	private void executeNotifications(Duration timeBeforeAction, AbstractWorkItemActionType action, WorkItemType workItem,
-			Task wfTask, OperationResult result) throws SchemaException {
+	private void executeNotifications(Duration timeBeforeAction, AbstractWorkItemActionType action, CaseWorkItemType workItem,
+			CaseType aCase, RunningTask opTask, OperationResult result) throws SchemaException {
 		WorkItemOperationKindType operationKind = WfContextUtil.getOperationKind(action);
 		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(action);
-		List<ObjectReferenceType> assigneesAndDeputies = wfTaskController.getAssigneesAndDeputies(workItem, wfTask, result);
+		List<ObjectReferenceType> assigneesAndDeputies = miscHelper.getAssigneesAndDeputies(workItem, opTask, result);
 		WorkItemAllocationChangeOperationInfo operationInfo =
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
 		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
-		notificationHelper.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
+		notificationHelper.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction,
+				aCase, opTask, result);
 	}
 
-	private void executeActions(WorkItemActionsType actions, WorkItemType workItem, Task wfTask,
-			List<CompleteAction> completeActions, Task triggerScannerTask, OperationResult result)
+	private void executeActions(WorkItemActionsType actions, CaseWorkItemType workItem, CaseType aCase,
+			List<CompleteAction> completeActions, Task opTask, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 		for (WorkItemNotificationActionType notificationAction : actions.getNotify()) {
-			executeNotificationAction(workItem, notificationAction, wfTask, result);
+			executeNotificationAction(workItem, notificationAction, aCase, opTask, result);
 		}
 		if (actions.getDelegate() != null) {
-			executeDelegateAction(workItem, actions.getDelegate(), false, wfTask, triggerScannerTask, result);
+			executeDelegateAction(workItem, actions.getDelegate(), false, aCase, opTask, result);
 		}
 		if (actions.getEscalate() != null) {
-			executeDelegateAction(workItem, actions.getEscalate(), true, wfTask, triggerScannerTask, result);
+			executeDelegateAction(workItem, actions.getEscalate(), true, aCase, opTask, result);
 		}
 		CompleteWorkItemActionType complete = actions.getComplete();
 		if (complete != null) {
-			completeActions.add(new CompleteAction(workItem,
+			completeActions.add(new CompleteAction(WorkItemId.of(workItem), workItem,
 					defaultIfNull(complete.getOutcome(), SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT),
 					null, null, WfContextUtil.createCause(complete)));
 		}
 	}
 
-//	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
+//	private void executeCompleteAction(CaseWorkItemType workItem, CompleteWorkItemActionType completeAction,
 //			OperationResult result)
 //			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
 //			CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 //		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? ApprovalUtils.fromUri(completeAction.getOutcome()) : WorkItemOutcomeType.REJECT;
-//		workItemManager.completeWorkItem(workItem.getExternalId(), ApprovalUtils.toUri(outcome),
+//		workItemManager.completeWorkItem(WorkItemId.of(workItem), ApprovalUtils.toUri(outcome),
 //				null, null, WfContextUtil.createCause(completeAction), result);
 //	}
 
-	private void executeDelegateAction(WorkItemType workItem, DelegateWorkItemActionType delegateAction, boolean escalate,
-			Task wfTask, Task triggerScannerTask, OperationResult result)
+	private void executeDelegateAction(CaseWorkItemType workItem, DelegateWorkItemActionType delegateAction, boolean escalate,
+			CaseType aCase, Task opTask, OperationResult result)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		WorkItemEscalationLevelType escLevel = escalate ? WfContextUtil.createEscalationLevelInformation(delegateAction) : null;
-		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, wfTask, triggerScannerTask, result);
-		workItemManager.delegateWorkItem(workItem.getExternalId(), delegates,
+		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, aCase, opTask, result);
+		workItemManager.delegateWorkItem(WorkItemId.of(workItem), delegates,
 				delegateAction.getDelegationMethod(), escLevel,
-				delegateAction.getDuration(), WfContextUtil.createCause(delegateAction), result);
+				delegateAction.getDuration(), WfContextUtil.createCause(delegateAction), opTask, result);
 	}
 
-	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, WorkItemType workItem,
-			Task wfTask, Task triggerScannerTask, OperationResult result)
+	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, CaseWorkItemType workItem,
+			CaseType aCase, Task opTask, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		rv.addAll(CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef()));
 		if (!delegateAction.getApproverExpression().isEmpty()) {
-			ExpressionVariables variables = stageComputeHelper.getDefaultVariables(wfTask, result);
+			ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, aCase.getWorkflowContext(), getChannel(opTask), result);
 			variables.addVariableDefinition(SchemaConstants.C_WORK_ITEM, workItem);
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
-					variables, "computing delegates", triggerScannerTask, result));
+					variables, "computing delegates", opTask, result));
 		}
 //		if (!delegateAction.getApproverRelation().isEmpty()) {
 //			throw new UnsupportedOperationException("Approver relation in delegate/escalate action is not supported yet.");
@@ -245,16 +239,23 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		return rv;
 	}
 
-	private void executeNotificationAction(WorkItemType workItem, @NotNull WorkItemNotificationActionType notificationAction, Task wfTask,
+	private String getChannel(Task opTask) {
+		// TODO TODO TODO here we should put the original channel (determined from the root model context!)
+		return opTask.getChannel();
+	}
+
+	private void executeNotificationAction(CaseWorkItemType workItem, @NotNull WorkItemNotificationActionType notificationAction,
+			CaseType aCase, Task opTask,
 			OperationResult result) throws SchemaException {
+		WorkItemTypeUtil.assertHasCaseOid(workItem);
 		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
-			List<ObjectReferenceType> assigneesAndDeputies = wfTaskController.getAssigneesAndDeputies(workItem, wfTask, result);
+			List<ObjectReferenceType> assigneesAndDeputies = miscHelper.getAssigneesAndDeputies(workItem, opTask, result);
 			for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
-				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, wfTask, notificationAction, result);
+				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, aCase, opTask, notificationAction, result);
 			}
 		} else {
-			notificationHelper.notifyWorkItemCustom(null, workItem, cause, wfTask, notificationAction, result);
+			notificationHelper.notifyWorkItemCustom(null, workItem, cause, aCase, opTask, notificationAction, result);
 		}
 
 	}

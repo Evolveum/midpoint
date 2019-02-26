@@ -21,10 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -44,57 +41,57 @@ public class WfNotificationHelper {
 	private Set<ProcessListener> processListeners = ConcurrentHashMap.newKeySet();
 	private Set<WorkItemListener> workItemListeners = ConcurrentHashMap.newKeySet();
 
-	public void notifyProcessStart(Task task, OperationResult result) {
+	public void notifyProcessStart(CaseType aCase, Task opTask, OperationResult result) {
 		for (ProcessListener processListener : processListeners) {
-			processListener.onProcessInstanceStart(task, result);
+			processListener.onProcessInstanceStart(aCase, opTask, result);
 		}
 	}
 
-	public void notifyProcessEnd(WfTask wfTask, OperationResult result) {
+	public void notifyProcessEnd(CaseType aCase, Task opTask, OperationResult result) {
 		for (ProcessListener processListener : processListeners) {
-			processListener.onProcessInstanceEnd(wfTask.getTask(), result);
+			processListener.onProcessInstanceEnd(aCase, opTask, result);
 		}
 	}
 
-	public void notifyWorkItemCreated(ObjectReferenceType originalAssigneeRef, WorkItemType workItem,
-			WfTask wfTask, OperationResult result) {
+	public void notifyWorkItemCreated(ObjectReferenceType originalAssigneeRef, CaseWorkItemType workItem,
+			CaseType aCase, Task opTask, OperationResult result) {
 		for (WorkItemListener workItemListener : workItemListeners) {
-			workItemListener.onWorkItemCreation(originalAssigneeRef, workItem, wfTask.getTask(), result);
+			workItemListener.onWorkItemCreation(originalAssigneeRef, workItem, aCase, opTask, result);
 		}
 	}
 
-	public void notifyWorkItemDeleted(ObjectReferenceType assignee, WorkItemType workItem,
+	public void notifyWorkItemDeleted(ObjectReferenceType assignee, CaseWorkItemType workItem,
 			WorkItemOperationInfo operationInfo, WorkItemOperationSourceInfo sourceInfo,
-			WfTask wfTask, OperationResult result) {
+			CaseType aCase, Task opTask, OperationResult result) {
 		for (WorkItemListener workItemListener : workItemListeners) {
-			workItemListener.onWorkItemDeletion(assignee, workItem, operationInfo, sourceInfo, wfTask.getTask(), result);
+			workItemListener.onWorkItemDeletion(assignee, workItem, operationInfo, sourceInfo, aCase, opTask, result);
 		}
 	}
 
-	public void notifyWorkItemAllocationChangeCurrentActors(WorkItemType workItem,
+	public void notifyWorkItemAllocationChangeCurrentActors(CaseWorkItemType workItem,
 			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
 			WorkItemOperationSourceInfo sourceInfo, Duration timeBefore,
-			Task wfTask, OperationResult result) {
+			CaseType aCase, Task opTask, OperationResult result) {
 		for (WorkItemListener workItemListener : workItemListeners) {
-			workItemListener.onWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBefore, wfTask, result);
+			workItemListener.onWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBefore, aCase, opTask, result);
 		}
 	}
 
-	public void notifyWorkItemAllocationChangeNewActors(WorkItemType workItem,
+	public void notifyWorkItemAllocationChangeNewActors(CaseWorkItemType workItem,
 			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
 			@Nullable WorkItemOperationSourceInfo sourceInfo,
-			Task wfTask, OperationResult result) {
+			CaseType aCase, Task opTask, OperationResult result) {
 		for (WorkItemListener workItemListener : workItemListeners) {
-			workItemListener.onWorkItemAllocationChangeNewActors(workItem, operationInfo, sourceInfo, wfTask, result);
+			workItemListener.onWorkItemAllocationChangeNewActors(workItem, operationInfo, sourceInfo, aCase, opTask, result);
 		}
 	}
 
-	public void notifyWorkItemCustom(@Nullable ObjectReferenceType assignee, WorkItemType workItem,
-			WorkItemEventCauseInformationType cause, Task wfTask,
+	public void notifyWorkItemCustom(@Nullable ObjectReferenceType assignee, CaseWorkItemType workItem,
+			WorkItemEventCauseInformationType cause, CaseType aCase, Task opTask,
 			@NotNull WorkItemNotificationActionType notificationAction,
 			OperationResult result) {
 		for (WorkItemListener workItemListener : workItemListeners) {
-			workItemListener.onWorkItemCustomEvent(assignee, workItem, notificationAction, cause, wfTask, result);
+			workItemListener.onWorkItemCustomEvent(assignee, workItem, notificationAction, cause, aCase, opTask, result);
 		}
 	}
 

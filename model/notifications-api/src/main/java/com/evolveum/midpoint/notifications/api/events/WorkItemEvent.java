@@ -38,7 +38,7 @@ import java.util.Map;
  */
 public class WorkItemEvent extends WorkflowEvent {
 
-    @NotNull protected final WorkItemType workItem;
+    @NotNull protected final CaseWorkItemType workItem;
     // (Currently) Each work item event is related to at most one assignee. So, if a work item has more assignees,
 	// more events will be generated. This might change in a future.
 	protected final SimpleObjectRef assignee;
@@ -52,13 +52,13 @@ public class WorkItemEvent extends WorkflowEvent {
 	protected final Duration timeBefore;
 
     WorkItemEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-			@NotNull WorkItemType workItem,
+			@NotNull CaseWorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
 			@NotNull WfContextType workflowContext,
-		    @NotNull TaskType workflowTask,
+		    @NotNull CaseType aCase,
 		    @Nullable EventHandlerType handler, @Nullable Duration timeBefore) {
-        super(lightweightIdentifierGenerator, changeType, workflowContext, workflowTask, handler);
+        super(lightweightIdentifierGenerator, changeType, workflowContext, aCase, handler);
 	    Validate.notNull(workItem);
         this.workItem = workItem;
 		this.assignee = assignee;
@@ -73,7 +73,7 @@ public class WorkItemEvent extends WorkflowEvent {
     }
 
 	@NotNull
-	public WorkItemType getWorkItem() {
+	public CaseWorkItemType getWorkItem() {
 		return workItem;
 	}
 

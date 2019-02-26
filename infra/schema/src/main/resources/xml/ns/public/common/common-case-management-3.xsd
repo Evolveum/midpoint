@@ -56,7 +56,27 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <!-- TODO payload -->
-
+                    <xsd:element name="localizableName" type="tns:LocalizableMessageType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Localizable name of the case. To be used e.g. in GUI.
+                                Consider moving this to ObjectType.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="parentRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parent case, if any.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:CaseType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -66,12 +86,11 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
-                                <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
                                 <a:displayName>CaseType.objectRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Target that the case is associated with. It might be e.g. shadow, if the case
@@ -79,8 +98,21 @@
                                 EXPERIMENTAL. May change in future.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
                                 <a:displayName>CaseType.targetRef</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestorRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User who requested the respective operation was carried out.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                                <xsd:appinfo>
+                                    <a:since>4.0</a:since>
+                                    <a:displayName>CaseType.requestorRef</a:displayName>
+                                </xsd:appinfo>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -149,6 +181,16 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="workflowContext" type="tns:WfContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Workflow context for wf-related cases.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -160,7 +202,37 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <!-- stage number -->
+                    <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Stage number - if process can be conceptually divided into stages. Starts at 1.
+                                Null if not applicable. (Stored in process variable "stageNumber".)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="prerequisiteRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Cases that must be completed before this one can be. For example, if case A requests
+                                object creation and case B its modification, then A is a prerequisite for B.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:CaseType</a:objectReferenceTargetType>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="modelContext" type="tns:LensContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Model context describing the operation that is related to this case.
+                                (E.g. for approvals it is the operation that should continue after approval is made.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- deadline -->
                 </xsd:sequence>
             </xsd:extension>

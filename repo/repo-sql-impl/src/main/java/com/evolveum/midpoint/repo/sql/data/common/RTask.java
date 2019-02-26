@@ -438,15 +438,14 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 
-        WfContextType wfc = jaxb.getWorkflowContext();
-        if (wfc != null) {
-            repo.setWfProcessInstanceId(wfc.getCaseOid());
-            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), repositoryContext.relationRegistry));
-            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), repositoryContext.relationRegistry));
-            repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), repositoryContext.relationRegistry));
-            repo.setWfStartTimestamp(wfc.getStartTimestamp());
-            repo.setWfEndTimestamp(wfc.getEndTimestamp());
-        }
+//        WfContextType wfc = jaxb.getWorkflowContext();
+//        if (wfc != null) {
+//            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), repositoryContext.relationRegistry));
+//            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), repositoryContext.relationRegistry));
+//            repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), repositoryContext.relationRegistry));
+//            repo.setWfStartTimestamp(wfc.getStartTimestamp());
+//            repo.setWfEndTimestamp(wfc.getEndTimestamp());
+//        }
 
         RUtil.copyResultFromJAXB(TaskType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
     }

@@ -23,9 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
@@ -77,21 +75,21 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		assertNotAssignedRole(userJackOid, roleRole2Oid, task, result);
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
 
 		// WHEN
-		workflowManager.completeWorkItem(workItem.getExternalId(), true, "OK", null, null, result);
+		workflowManager.completeWorkItem(WorkItemId.of(workItem), true, "OK", null, null, task, result);
 
 		// THEN
-		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
-		display("workflow context", wfTask.getWorkflowContext());
-		List<? extends CaseEventType> events = wfTask.getWorkflowContext().getEvent();
+		CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
+		display("workflow context", aCase.getWorkflowContext());
+		List<? extends CaseEventType> events = aCase.getEvent();
 		assertEquals("Wrong # of events", 2, events.size());
 
 		CaseCreationEventType event1 = (CaseCreationEventType) events.get(0);
 		display("Event 1", event1);
-		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(wfTask.getWorkflowContext()).getComment());
+		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(aCase).getComment());
 
 		WorkItemEventType event2 = (WorkItemEventType) events.get(1);
 		display("Event 2", event2);
@@ -108,8 +106,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 					record.getPropertyValues(WorkflowConstants.AUDIT_REQUESTER_COMMENT));
 		}
 
-		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
-		waitForTaskFinish(parent.getOid(), false);
+		CaseType parentCase = getCase(aCase.getParentRef().getOid());
+		waitForCaseClose(parentCase);
 
 		AssignmentType assignment = assertAssignedRole(userJackOid, roleRole2Oid, task, result);
 		display("assignment after creation", assignment);
@@ -144,21 +142,21 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		assertNotAssignedRole(userJackOid, roleRole3Oid, task, result);
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
 
 		// WHEN
-		workflowManager.completeWorkItem(workItem.getExternalId(), true, "OK", null, null, result);
+		workflowManager.completeWorkItem(WorkItemId.of(workItem), true, "OK", null, null, task, result);
 
 		// THEN
-		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
-		display("workflow context", wfTask.getWorkflowContext());
-		List<? extends CaseEventType> events = wfTask.getWorkflowContext().getEvent();
+		CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
+		display("workflow context", aCase.getWorkflowContext());
+		List<? extends CaseEventType> events = aCase.getEvent();
 		assertEquals("Wrong # of events", 2, events.size());
 
 		CaseCreationEventType event1 = (CaseCreationEventType) events.get(0);
 		display("Event 1", event1);
-		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(wfTask.getWorkflowContext()).getComment());
+		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(aCase).getComment());
 
 		WorkItemEventType event2 = (WorkItemEventType) events.get(1);
 		display("Event 2", event2);
@@ -175,8 +173,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 					record.getPropertyValues(WorkflowConstants.AUDIT_REQUESTER_COMMENT));
 		}
 
-		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
-		waitForTaskFinish(parent.getOid(), false);
+		CaseType parentCase = getCase(aCase.getParentRef().getOid());
+		waitForCaseClose(parentCase);
 
 		AssignmentType assignment = assertAssignedRole(userJackOid, roleRole3Oid, task, result);
 		display("assignment after creation", assignment);
@@ -216,12 +214,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		assertNotAssignedRole(userJackOid, roleRole2aOid, task, result);
 
 		// complete the work item related to assigning role-2a
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		workflowManager.completeWorkItem(workItem.getExternalId(), true, null, null, null, result);
-		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
-		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
-		waitForTaskFinish(parent.getOid(), false);
+		workflowManager.completeWorkItem(WorkItemId.of(workItem), true, null, null, null, task, result);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		CaseType rootCase = getCase(aCase.getParentRef().getOid());
+		waitForCaseClose(rootCase);
 
 		assertNotAssignedRole(userJackOid, roleRole2Oid, task, result);			// should be pruned without approval
 	}

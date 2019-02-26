@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.wf.impl.processes.common;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,11 +40,10 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Function;
@@ -62,43 +63,51 @@ public class WfStageComputeHelper {
 	private static final transient Trace LOGGER = TraceManager.getTrace(WfStageComputeHelper.class);
 
 	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
+	@Autowired private PrismContext prismContext;
 
-	public ExpressionVariables getDefaultVariables(Task wfTask, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
-		return getDefaultVariables(wfTask.getWorkflowContext(), wfTask.getChannel(), result);
-	}
-
-	public ExpressionVariables getDefaultVariables(WfContextType wfContext, String requestChannel, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
+	public ExpressionVariables getDefaultVariables(CaseType aCase,
+			WfContextType wfContext, String requestChannel, OperationResult result)
+			throws SchemaException {
 
 		MiscDataUtil miscDataUtil = getMiscDataUtil();
 
 		ExpressionVariables variables = new ExpressionVariables();
-
 		variables.addVariableDefinition(C_REQUESTER,
-				miscDataUtil.resolveObjectReference(wfContext.getRequesterRef(), result));
-
+				miscDataUtil.resolveObjectReference(aCase.getRequestorRef(), result));
 		variables.addVariableDefinition(C_OBJECT,
-				miscDataUtil.resolveObjectReference(wfContext.getObjectRef(), result));
-
+				miscDataUtil.resolveObjectReference(aCase.getObjectRef(), result));
 		// might be null
 		variables.addVariableDefinition(C_TARGET,
-				miscDataUtil.resolveObjectReference(wfContext.getTargetRef(), result));
-
-		ObjectDelta objectDelta;
-		try {
-			objectDelta = miscDataUtil.getFocusPrimaryDelta(wfContext, true);
-		} catch (JAXBException e) {
-			throw new SchemaException("Couldn't get object delta: " + e.getMessage(), e);
-		}
-		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, objectDelta);
-
+				miscDataUtil.resolveObjectReference(aCase.getTargetRef(), result));
+		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, getFocusPrimaryDelta(wfContext));
 		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, requestChannel);
-
 		variables.addVariableDefinition(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext);
 		// todo other variables?
 
 		return variables;
+	}
+
+	private ObjectDelta getFocusPrimaryDelta(WfContextType workflowContext) throws SchemaException {
+		ObjectDeltaType objectDeltaType = getFocusPrimaryObjectDeltaType(workflowContext);
+		return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
+	}
+
+	// mayBeNull=false means that the corresponding variable must be present (not that focus must be non-null)
+	// TODO: review/correct this!
+	private ObjectDeltaType getFocusPrimaryObjectDeltaType(WfContextType workflowContext) {
+		ObjectTreeDeltasType deltas = getObjectTreeDeltaType(workflowContext);
+		return deltas != null ? deltas.getFocusPrimaryDelta() : null;
+	}
+
+	private ObjectTreeDeltasType getObjectTreeDeltaType(WfContextType workflowContext) {
+		WfProcessorSpecificStateType state = workflowContext.getProcessorSpecificState();
+		if (state == null) {
+			return null;
+		} else if (!(state instanceof WfPrimaryChangeProcessorStateType)) {
+			throw new IllegalStateException("Expected WfPrimaryChangeProcessorStateType but got " + state);
+		} else {
+			return ((WfPrimaryChangeProcessorStateType) state).getDeltasToProcess();
+		}
 	}
 
 	// TODO name

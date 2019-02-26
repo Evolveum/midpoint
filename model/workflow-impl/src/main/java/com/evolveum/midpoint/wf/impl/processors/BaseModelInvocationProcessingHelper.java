@@ -18,10 +18,14 @@ package com.evolveum.midpoint.wf.impl.processors;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,14 +35,14 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
+import com.evolveum.midpoint.wf.impl.tasks.StartInstruction;
+import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +51,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 
@@ -65,9 +70,10 @@ public class BaseModelInvocationProcessingHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseModelInvocationProcessingHelper.class);
 
-    @Autowired protected WfTaskController wfTaskController;
-	@Autowired private WfTaskUtil wfTaskUtil;
+	@Autowired private TemporaryHelper temporaryHelper;
+	@Autowired private WorkflowEngine workflowEngine;
 	@Autowired private LocalizationService localizationService;
+	@Autowired private PrismContext prismContext;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -79,49 +85,61 @@ public class BaseModelInvocationProcessingHelper {
 	private static final String CHANGE_OF_KEY = "ChangeOf";
 
 	/**
+	 * Retrieves focus object name from the model context.
+	 */
+	public static String getFocusObjectName(ModelContext<? extends ObjectType> modelContext) {
+	    ObjectType object = getFocusObjectNewOrOld(modelContext);
+	    return object.getName() != null ? object.getName().getOrig() : null;
+	}
+
+	public static String getFocusObjectOid(ModelContext<?> modelContext) {
+	    ModelElementContext<?> fc = modelContext.getFocusContext();
+	    if (fc.getObjectNew() != null && fc.getObjectNew().getOid() != null) {
+	        return fc.getObjectNew().getOid();
+	    } else if (fc.getObjectOld() != null && fc.getObjectOld().getOid() != null) {
+	        return fc.getObjectOld().getOid();
+	    } else {
+	        return null;
+	    }
+	}
+
+	public static ObjectType getFocusObjectNewOrOld(ModelContext<? extends ObjectType> modelContext) {
+	    ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
+	    PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
+	    if (prism == null) {
+	        throw new IllegalStateException("No object (new or old) in model context");
+	    }
+	    return prism.asObjectable();
+	}
+
+	/**
      * Creates a root job creation instruction.
      *
      * @param changeProcessor reference to the change processor responsible for the whole operation
-     * @param modelContext model context in which the original model operation is carried out
-     * @param taskFromModel task in which the original model operation is carried out
-     * @param contextForRoot model context that should be put into the root task (might be different from the modelContext)
+     * @param modelContext model context that should be put into the root task (might be different from the modelContext)
+     * @param task task in which the original model operation is carried out
      * @return the job creation instruction
      * @throws SchemaException
      */
-    public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, ModelContext contextForRoot, OperationResult result) throws SchemaException {
+    public StartInstruction createInstructionForRoot(ChangeProcessor changeProcessor, @NotNull ModelContext<?> modelContext,
+		    Task task, OperationResult result) throws SchemaException {
+        StartInstruction instruction = StartInstruction.create(changeProcessor);
+        instruction.setModelContext(modelContext);
 
-        WfTaskCreationInstruction<?, ?> instruction;
-        if (contextForRoot != null) {
-            instruction = WfTaskCreationInstruction.createModelOnly(changeProcessor, contextForRoot);
-        } else {
-            instruction = WfTaskCreationInstruction.createEmpty(changeProcessor);
-        }
-
-	    LocalizableMessage rootTaskName = determineRootTaskName(modelContext);
-	    String rootTaskNameInDefaultLocale = localizationService.translate(rootTaskName, Locale.getDefault());
-	    instruction.setLocalizableTaskName(rootTaskName);
-	    instruction.setTaskName(rootTaskNameInDefaultLocale);
-        instruction.setTaskObject(determineRootTaskObject(modelContext));
-        instruction.setTaskOwner(taskFromModel.getOwner());
-        instruction.setCreateTaskAsWaiting();
-
-	    instruction.setObjectRef(modelContext, result);
-		instruction.setRequesterRef(getRequester(taskFromModel, result));
+	    LocalizableMessage rootCaseName = determineRootCaseName(modelContext);
+	    String rootCaseNameInDefaultLocale = localizationService.translate(rootCaseName, Locale.getDefault());
+	    instruction.setLocalizableName(rootCaseName);
+	    instruction.setName(rootCaseNameInDefaultLocale);
+	    instruction.setObjectRef(modelContext);
+		instruction.setRequesterRef(getRequester(task, result));
         return instruction;
-    }
-
-    /**
-     * More specific version of the previous method, having contextForRoot equals to modelContext.
-     */
-    public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, OperationResult result) throws SchemaException {
-        return createInstructionForRoot(changeProcessor, modelContext, taskFromModel, modelContext, result);
     }
 
     /**
      * Determines the root task name (e.g. "Workflow for adding XYZ (started 1.2.2014 10:34)")
      * TODO allow change processor to influence this name
      */
-    private LocalizableMessage determineRootTaskName(ModelContext<?> context) {
+    private LocalizableMessage determineRootCaseName(ModelContext<?> context) {
         String operationKey;
         if (context.getFocusContext() != null && context.getFocusContext().getPrimaryDelta() != null
 				&& context.getFocusContext().getPrimaryDelta().getChangeType() != null) {
@@ -134,7 +152,7 @@ public class BaseModelInvocationProcessingHelper {
         } else {
             operationKey = CHANGE_OF_KEY;
         }
-	    ObjectType focus = MiscDataUtil.getFocusObjectNewOrOld(context);
+	    ObjectType focus = getFocusObjectNewOrOld(context);
 	    DateTimeFormatter formatter = DateTimeFormat.forStyle("MM").withLocale(Locale.getDefault());
 	    String time = formatter.print(System.currentTimeMillis());
 
@@ -156,10 +174,10 @@ public class BaseModelInvocationProcessingHelper {
 //        // -- in that case, it would not wait for its workflow-related children (but that's its problem, because children could finish even before
 //        // that task is switched to background)
 //
-//        if (taskFromModel.isTransient()) {
+//        if (task.isTransient()) {
 //            return null;
 //        } else {
-//            return taskFromModel;
+//            return task;
 //        }
 
 	    /*
@@ -189,45 +207,46 @@ public class BaseModelInvocationProcessingHelper {
      * Puts a reference to the workflow root task to the model task.
      *
      * @param rootInstruction instruction to use
-     * @param taskFromModel (potential) parent task
-     * @param wfConfigurationType
+     * @param task (potential) parent task
 	 * @param result
 	 * @return reference to a newly created job
      * @throws SchemaException
      * @throws ObjectNotFoundException
      */
-    public WfTask submitRootTask(WfTaskCreationInstruction rootInstruction, Task taskFromModel, WfConfigurationType wfConfigurationType,
-			OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        WfTask rootWfTask = wfTaskController.submitWfTask(rootInstruction, determineParentTaskForRoot(taskFromModel), wfConfigurationType, taskFromModel.getChannel(), result);
-		result.setBackgroundTaskOid(rootWfTask.getTask().getOid());
-		wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootWfTask.getTask().getOid(), result);
-        return rootWfTask;
+    public CaseType addRoot(StartInstruction rootInstruction, Task task,
+		    OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        CaseType rootCase = addCase(rootInstruction, task, result);
+		result.setCaseOid(rootCase.getOid());
+		//wfTaskUtil.setRootTaskOidImmediate(task, rootCase.getOid(), result);
+        return rootCase;
     }
 
-    public void logJobsBeforeStart(WfTask rootWfTask, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    public void logJobsBeforeStart(CaseType rootCase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("===[ Situation just before root task starts waiting for subtasks ]===\n");
-        sb.append("Root job = ").append(rootWfTask).append("; task = ").append(rootWfTask.getTask().debugDump()).append("\n");
-        if (rootWfTask.hasModelContext()) {
-            sb.append("Context in root task: \n").append(rootWfTask.retrieveModelContext(result).debugDump(1)).append("\n");
-        }
-        List<WfTask> children = rootWfTask.listChildren(result);
+        sb.append("===[ Situation just after case tree creation ]===\n");
+        sb.append("Root case:\n").append(rootCase.asPrismObject().debugDump(1)).append("\n");
+        List<CaseType> children = listChildren(rootCase, result);
         for (int i = 0; i < children.size(); i++) {
-            WfTask child = children.get(i);
-            sb.append("Child job #").append(i).append(" = ").append(child).append(", its task:\n").append(child.getTask().debugDump(1));
-            if (child.hasModelContext()) {
-                sb.append("Context in child task:\n").append(child.retrieveModelContext(result).debugDump(2));
-            }
+            CaseType child = children.get(i);
+            sb.append("Child job #").append(i).append(":\n").append(child.asPrismObject().debugDump(1));
         }
         LOGGER.trace("\n{}", sb.toString());
-        LOGGER.trace("Now the root task starts waiting for child tasks");
     }
+
+	public List<CaseType> listChildren(CaseType aCase, OperationResult result) throws SchemaException {
+		ObjectQuery query = prismContext.queryFor(CaseType.class)
+				.item(CaseType.F_PARENT_REF).ref(aCase.getOid())
+				.build();
+		SearchResultList<PrismObject<CaseType>> objects = repositoryService
+				.searchObjects(CaseType.class, query, null, result);
+		return objects.stream().map(o -> o.asObjectable()).collect(Collectors.toList());
+	}
+
 
 	public PrismObject<UserType> getRequester(Task task, OperationResult result) {
 		if (task.getOwner() == null) {
@@ -263,5 +282,23 @@ public class BaseModelInvocationProcessingHelper {
 		return objectTreeDeltas;
 	}
 
+	/**
+	 * TODO
+	 * @param parentCase the task that will be the parent of the task of newly created wf-task; it may be null
+	 * @param instruction the wf task creation instruction
+	 * @param task
+	 */
+	public CaseType addCase(StartInstruction instruction, Task task, OperationResult result)
+			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		LOGGER.trace("Processing start instruction:\n{}", instruction.debugDumpLazily());
+		CaseType aCase = instruction.getCase();
+		repositoryService.addObject(aCase.asPrismObject(), null, result);
+
+		if (instruction.startsWorkflowProcess()) {
+			EngineInvocationContext ctx = new EngineInvocationContext(aCase, task);
+			workflowEngine.startProcessInstance(ctx, result);
+		}
+		return aCase;
+	}
 
 }

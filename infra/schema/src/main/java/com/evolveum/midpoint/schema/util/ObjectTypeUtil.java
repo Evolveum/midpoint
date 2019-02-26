@@ -819,4 +819,32 @@ public class ObjectTypeUtil {
 	            .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
 	            .build();
 	}
+
+	public static <T extends Objectable> List<PrismObject<T>> keepDistinctObjects(Collection<PrismObject<T>> objects) {
+		List<PrismObject<T>> rv = new ArrayList<>();
+    	Set<String> oids = new HashSet<>(objects.size());
+		for (PrismObject<T> object : emptyIfNull(objects)) {
+			if (object.getOid() == null) {
+				throw new IllegalArgumentException("Unexpected OID-less object");
+			} else if (!oids.contains(object.getOid())) {
+				rv.add(object);
+				oids.add(object.getOid());
+			}
+		}
+		return rv;
+	}
+
+	public static List<ObjectReferenceType> keepDistinctReferences(Collection<ObjectReferenceType> references) {
+		List<ObjectReferenceType> rv = new ArrayList<>();
+    	Set<String> oids = new HashSet<>(references.size());
+		for (ObjectReferenceType reference : emptyIfNull(references)) {
+			if (reference.getOid() == null) {
+				throw new IllegalArgumentException("Unexpected OID-less reference");
+			} else if (!oids.contains(reference.getOid())) {
+				rv.add(reference);
+				oids.add(reference.getOid());
+			}
+		}
+		return rv;
+	}
 }

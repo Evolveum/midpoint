@@ -17,11 +17,13 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,7 +77,8 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 		String processName = WfContextUtil.getProcessName(info);
 		String targetName = WfContextUtil.getTargetName(info);
 		WfContextType wfc = WfContextUtil.getWorkflowContext(info);
-		boolean running = wfc != null && wfc.getEndTimestamp() == null;
+		CaseType aCase = WfContextUtil.getCase(info);
+		boolean running = aCase != null && !SchemaConstants.CASE_STATE_CLOSED.equals(aCase.getState());
 		EvaluatedTriggerGroupDto triggers = EvaluatedTriggerGroupDto.initializeFromRules(WfContextUtil.getAllRules(info.getPolicyRules()), false, new EvaluatedTriggerGroupDto.UniquenessFilter());
 		ApprovalProcessExecutionInformationDto rv =
 				new ApprovalProcessExecutionInformationDto(wholeProcess, currentStageNumber, numberOfStages, processName,

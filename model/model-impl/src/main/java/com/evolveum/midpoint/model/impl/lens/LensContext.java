@@ -20,7 +20,10 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -38,7 +41,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -46,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -192,6 +193,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	transient private boolean preview;
 
 	transient private Map<String,Collection<Containerable>> hookPreviewResultsMap;
+
+	@NotNull transient private final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
+	@NotNull transient private final List<String> operationApproverComments = new ArrayList<>();
 
 	public LensContext(Class<F> focusClass, PrismContext prismContext,
 			ProvisioningService provisioningService) {
@@ -1111,7 +1115,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	/**
 	 * 'reduced' means
-	 * - no projection contexts except those with primary or sync deltas
 	 * - no full object values (focus, shadow).
 	 *
 	 * This mode is to be used for re-starting operation after primary-stage approval (here all data are re-loaded; maybe
@@ -1137,10 +1140,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer = lensContextTypeContainer
 				.findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
 		for (LensProjectionContext lensProjectionContext : projectionContexts) {
-			// primary delta can be null because of delta reduction algorithm (when approving associations)
-			if (!reduced || lensProjectionContext.getPrimaryDelta() != null || !ObjectDelta.isEmpty(lensProjectionContext.getSyncDelta())) {
-				lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, reduced);
-			}
+			lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, reduced);
 		}
 		lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
 		lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
@@ -1464,5 +1464,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		for (LensProjectionContext projectionContext : projectionContexts) {
 			projectionContext.finishBuild();
 		}
+	}
+
+	@NotNull
+	public List<ObjectReferenceType> getOperationApprovedBy() {
+		return operationApprovedBy;
+	}
+
+	@NotNull
+	public List<String> getOperationApproverComments() {
+		return operationApproverComments;
 	}
 }

@@ -21,11 +21,15 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -34,6 +38,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.Arrays;
+
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  *
@@ -207,18 +213,17 @@ public class TestDelivery extends AbstractStoryTest {
 
 		assignRole(userBobOid, roleIt1Oid, task, result);         // approval constraint
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
 		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
 		display("workflow context", workflowContext);
 
-		ObjectReferenceType ref = task.getWorkflowContext().getRootTaskRef();
-		Task rootTask = taskManager.getTask(ref.getOid(), result);
-		display("root task", rootTask);
+		CaseType rootCase = getRootCase(result);
+		display("root case", rootCase);
 
-		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
-		waitForTaskCloseOrSuspend(rootTask.getOid());
+		waitForCaseClose(rootCase, 60000);
 		assertAssignedRole(userBobOid, roleIt1Oid, task, result);
 	}
 
@@ -235,25 +240,24 @@ public class TestDelivery extends AbstractStoryTest {
 
 		assignRole(userCarlaOid, roleIt3Oid, task, result);         // two approval constraints
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
 		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
 		display("workflow context", workflowContext);
 
-		ObjectReferenceType ref = task.getWorkflowContext().getRootTaskRef();
-		Task rootTask = taskManager.getTask(ref.getOid(), result);
-		display("root task", rootTask);
+		CaseType rootCase = getRootCase(result);
+		display("root case", rootCase);
 
-		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
-		WorkItemType workItem2 = getWorkItem(task, result);
+		CaseWorkItemType workItem2 = getWorkItem(task, result);
 		display("work item2", workItem2);
 		WfContextType workflowContext2 = WfContextUtil.getWorkflowContext(workItem2);
 		display("workflow context2", workflowContext2);
 
-		workflowService.completeWorkItem(workItem2.getExternalId(), true, null, null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem2), true, null, null, task, result);
 
-		waitForTaskCloseOrSuspend(rootTask.getOid());
+		waitForCaseClose(rootCase, 60000);
 		assertAssignedRole(userCarlaOid, roleIt3Oid, task, result);
 	}
 
@@ -270,18 +274,17 @@ public class TestDelivery extends AbstractStoryTest {
 
 		assignRole(userBarkeeperOid, roleIt4Oid, task, result);         // approval constraint
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
 		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
 		display("workflow context", workflowContext);
 
-		ObjectReferenceType ref = task.getWorkflowContext().getRootTaskRef();
-		Task rootTask = taskManager.getTask(ref.getOid(), result);
-		display("root task", rootTask);
+		CaseType rootCase = getRootCase(result);
+		display("root case", rootCase);
 
-		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
-		waitForTaskCloseOrSuspend(rootTask.getOid());
+		waitForCaseClose(rootCase, 60000);
 		assertAssignedRole(userBarkeeperOid, roleIt4Oid, task, result);
 	}
 
@@ -298,19 +301,24 @@ public class TestDelivery extends AbstractStoryTest {
 
 		assignRole(userBarkeeperOid, roleIt5Oid, task, result);         // approval constraint
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
 		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
 		display("workflow context", workflowContext);
 
-		ObjectReferenceType ref = task.getWorkflowContext().getRootTaskRef();
-		Task rootTask = taskManager.getTask(ref.getOid(), result);
-		display("root task", rootTask);
+		CaseType rootCase = getRootCase(result);
+		display("root case", rootCase);
 
-		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
-		waitForTaskCloseOrSuspend(rootTask.getOid());
+		waitForCaseClose(rootCase, 60000);
 		assertAssignedRole(userBarkeeperOid, roleIt5Oid, task, result);
 	}
 
+	@NotNull
+	public CaseType getRootCase(OperationResult result) throws ObjectNotFoundException, SchemaException {
+		String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+		assertNotNull("Case OID is not set in operation result", caseOid);
+		return repositoryService.getObject(CaseType.class, caseOid, null, result).asObjectable();
+	}
 }

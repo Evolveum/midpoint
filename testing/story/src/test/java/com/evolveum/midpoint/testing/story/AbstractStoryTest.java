@@ -130,15 +130,15 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 
 	//region TODO deduplicate with AbstractWfTestPolicy
 
-	public void displayWorkItems(String title, List<WorkItemType> workItems) {
+	public void displayWorkItems(String title, List<CaseWorkItemType> workItems) {
 		workItems.forEach(wi -> display(title, wi));
 	}
 
-	protected WorkItemType getWorkItem(Task task, OperationResult result) throws Exception {
-		SearchResultList<WorkItemType> itemsAll = getWorkItems(task, result);
+	protected CaseWorkItemType getWorkItem(Task task, OperationResult result) throws Exception {
+		SearchResultList<CaseWorkItemType> itemsAll = getWorkItems(task, result);
 		if (itemsAll.size() != 1) {
 			System.out.println("Unexpected # of work items: " + itemsAll.size());
-			for (WorkItemType workItem : itemsAll) {
+			for (CaseWorkItemType workItem : itemsAll) {
 				System.out.println(PrismUtil.serializeQuietly(prismContext, workItem));
 			}
 		}
@@ -146,8 +146,8 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		return itemsAll.get(0);
 	}
 
-	protected SearchResultList<WorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
-		return modelService.searchContainers(WorkItemType.class, null, null, task, result);
+	protected SearchResultList<CaseWorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
+		return modelService.searchContainers(CaseWorkItemType.class, null, null, task, result);
 	}
 
 	protected ObjectReferenceType ort(String oid) {
@@ -172,8 +172,8 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		return ref(Collections.singletonList(ort));
 	}
 
-	protected Map<String, WorkItemType> sortByOriginalAssignee(Collection<WorkItemType> workItems) {
-		Map<String, WorkItemType> rv = new HashMap<>();
+	protected Map<String, CaseWorkItemType> sortByOriginalAssignee(Collection<CaseWorkItemType> workItems) {
+		Map<String, CaseWorkItemType> rv = new HashMap<>();
 		workItems.forEach(wi -> rv.put(wi.getOriginalAssigneeRef().getOid(), wi));
 		return rv;
 	}

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
  * @author mederly
@@ -68,4 +69,9 @@ public class WorkItemTypeUtil {
 		return output != null ? output.getOutcome() : null;
 	}
 
+	public static void assertHasCaseOid(CaseWorkItemType workItem) {
+		if (CaseTypeUtil.getCase(workItem) == null) {
+			throw new AssertionError("No parent case for work item " + workItem);
+		}
+	}
 }

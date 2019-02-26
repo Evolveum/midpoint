@@ -42,10 +42,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
+import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,36 +68,15 @@ public class PrimaryChangeAspectHelper {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired
-    private WfTaskUtil wfTaskUtil;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private ExpressionFactory expressionFactory;
+    @Autowired private TemporaryHelper temporaryHelper;
+    @Autowired private PrismContext prismContext;
+    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private PcpGeneralHelper generalHelper;
 
     //region ========================================================================== Jobs-related methods
     //endregion
 
     //region ========================================================================== Default implementation of aspect methods
-    /**
-     * Prepares deltaOut from deltaIn, based on process instance variables.
-     * (Default implementation of the method from PrimaryChangeAspect.)
-     *
-     * In the default case, mapping deltaIn -> deltaOut is extremely simple.
-     * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
-     * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
-     */
-    public ObjectTreeDeltas prepareDeltaOut(WfContextType wfContext,
-            PcpWfTask pcpJob, OperationResult result) throws SchemaException {
-        ObjectTreeDeltas deltaIn = pcpJob.retrieveDeltasToProcess();
-        if (ApprovalUtils.isApprovedFromUri(wfContext.getOutcome())) {
-            return deltaIn;
-        } else {
-            return null;
-        }
-    }
 
     //endregion
 

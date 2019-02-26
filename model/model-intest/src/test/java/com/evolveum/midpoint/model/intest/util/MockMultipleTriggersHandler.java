@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -74,7 +75,7 @@ public class MockMultipleTriggersHandler implements MultipleTriggersHandler {
 	}
 
 	@Override
-	public <O extends ObjectType> Collection<TriggerType> handle(PrismObject<O> object, Collection<TriggerType> triggers, Task task,
+	public <O extends ObjectType> Collection<TriggerType> handle(PrismObject<O> object, Collection<TriggerType> triggers, RunningTask task,
 			OperationResult result) {
 		IntegrationTestTools.display("Mock multiple triggers handler called with " + object);
 		lastTriggers = CloneUtil.cloneCollectionMembers(triggers);

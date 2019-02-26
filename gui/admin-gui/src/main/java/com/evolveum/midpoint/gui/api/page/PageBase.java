@@ -369,10 +369,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             protected Integer load() {
                 try {
                     Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
+                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
                             OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry()).build();
-                    return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
+                    return getModelService().countContainers(CaseWorkItemType.class, query, null, task, task.getResult());
                 } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
                     return null;

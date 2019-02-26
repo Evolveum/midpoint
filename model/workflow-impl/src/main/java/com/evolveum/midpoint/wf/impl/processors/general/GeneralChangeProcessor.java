@@ -28,10 +28,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.tasks.StartInstruction;
+import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
 import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBean;
@@ -50,32 +48,14 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(GeneralChangeProcessor.class);
 
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private WfTaskUtil wfTaskUtil;
-
-    @Autowired
-    private WfTaskController wfTaskController;
-
-    @Autowired
-    private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
-
-    @Autowired
-    private BaseConfigurationHelper baseConfigurationHelper;
-
-    @Autowired
-    private BaseAuditHelper baseAuditHelper;
-
-    @Autowired
-    private GcpConfigurationHelper gcpConfigurationHelper;
-
-    @Autowired
-    private GcpExpressionHelper gcpExpressionHelper;
-
-    @Autowired
-    private GcpExternalizationHelper gcpExternalizationHelper;
+    @Autowired private PrismContext prismContext;
+    @Autowired private TemporaryHelper temporaryHelper;
+    @Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+    @Autowired private BaseConfigurationHelper baseConfigurationHelper;
+    @Autowired private BaseAuditHelper baseAuditHelper;
+    @Autowired private GcpConfigurationHelper gcpConfigurationHelper;
+    @Autowired private GcpExpressionHelper gcpExpressionHelper;
+    @Autowired private GcpExternalizationHelper gcpExternalizationHelper;
 
     //region Initialization and Configuration
     @PostConstruct
@@ -107,7 +87,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     //region Processing model invocation
     @Override
-    public HookOperationMode processModelInvocation(@NotNull ModelContext context, WfConfigurationType wfConfigurationType, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(@NotNull ModelContext context, WfConfigurationType wfConfigurationType, @NotNull Task task, @NotNull OperationResult result) throws SchemaException {
 
         if (wfConfigurationType != null && wfConfigurationType.getGeneralChangeProcessor() != null && Boolean.FALSE.equals(wfConfigurationType.getGeneralChangeProcessor().isEnabled())) {
             LOGGER.trace("{} is disabled", getBeanName());
@@ -124,13 +104,13 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             GcpScenarioBean scenarioBean = findScenarioBean(scenarioType.getBeanName());
             if (Boolean.FALSE.equals(scenarioType.isEnabled())) {
                 LOGGER.trace("scenario {} is disabled, skipping", scenarioType.getName());
-            } else if (!gcpExpressionHelper.evaluateActivationCondition(scenarioType, context, taskFromModel, result)) {
+            } else if (!gcpExpressionHelper.evaluateActivationCondition(scenarioType, context, task, result)) {
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
-            } else if (!scenarioBean.determineActivation(scenarioType, context, taskFromModel, result)) {
+            } else if (!scenarioBean.determineActivation(scenarioType, context, task, result)) {
                 LOGGER.trace("scenarioBean decided to skip scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
-                return applyScenario(scenarioType, scenarioBean, context, taskFromModel, wfConfigurationType, result);
+                return applyScenario(scenarioType, scenarioBean, context, task, wfConfigurationType, result);
             }
         }
         LOGGER.trace("No scenario found to be applicable, exiting the change processor.");
@@ -138,23 +118,26 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     private HookOperationMode applyScenario(GeneralChangeProcessorScenarioType scenarioType, GcpScenarioBean scenarioBean, ModelContext context,
-			Task taskFromModel, WfConfigurationType wfConfigurationType, OperationResult result) {
+			Task task, WfConfigurationType wfConfigurationType, OperationResult result) {
 
         try {
             // ========== preparing root task ===========
 
-            WfTaskCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, result);
-            WfTask rootWfTask = baseModelInvocationProcessingHelper.submitRootTask(rootInstruction, taskFromModel, wfConfigurationType, result);
+            StartInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, task, result);
+            CaseType rootWfCase = baseModelInvocationProcessingHelper.addRoot(rootInstruction, task, result);
 
             // ========== preparing child task, starting WF process ===========
 
-            WfTaskCreationInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootWfTask, taskFromModel, result);
-            wfTaskController.submitWfTask(instruction, rootWfTask, wfConfigurationType, result);
+            StartInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootWfCase, task, result);
+            instruction.setParent(rootWfCase);
+            baseModelInvocationProcessingHelper.addCase(instruction, task, result);
 
             // ========== complete the action ===========
 
-            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootWfTask, result);
-            rootWfTask.startWaitingForSubtasks(result);
+            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootWfCase, task, result);
+            if (true) {
+                throw new IllegalStateException("Call workflow engine here");   // TODO
+            }
 
             return HookOperationMode.BACKGROUND;
 
@@ -171,7 +154,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     @Override
     public void onProcessEnd(EngineInvocationContext ctx, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        Task task = ctx.wfTask;
+        Task task = ctx.opTask;
         // we simply put model context back into parent task
         // (or if it is null, we set the task to skip model context processing)
 
@@ -183,10 +166,10 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         LensContextType lensContextType = processorSpecificState != null ? processorSpecificState.getModelContext() : null;
         if (lensContextType == null) {
             LOGGER.debug(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT + " not present in process, this means we should stop processing. Task = {}", rootTask);
-            wfTaskUtil.storeModelContext(rootTask, null, false);
+            temporaryHelper.storeModelContext(rootTask, null, false);
         } else {
             LOGGER.debug("Putting (changed or unchanged) value of model context into the task {}", rootTask);
-            wfTaskUtil.storeModelContext(rootTask, lensContextType);
+            temporaryHelper.storeModelContext(rootTask, lensContextType);
         }
         rootTask.flushPendingModifications(result);
         LOGGER.trace("onProcessEnd ending for task {}", task);
@@ -195,22 +178,22 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     //region Auditing
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
-        return getScenarioBean(wfContext).prepareProcessInstanceAuditRecord(wfContext, wfTask, stage, result);
+    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
+        return getScenarioBean(wfContext).prepareProcessInstanceAuditRecord(wfContext, aCase, stage, result);
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
             OperationResult result) {
-        return getScenarioBean(wfTask.getTask().getWorkflowContext()).prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
+        return getScenarioBean(aCase.getWorkflowContext()).prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            WfTask wfTask,
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+            CaseType aCase,
             OperationResult result) {
-        return getScenarioBean(wfTask.getTask().getWorkflowContext())
-                .prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
+        return getScenarioBean(aCase.getWorkflowContext())
+                .prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
     }
     //endregion
 }

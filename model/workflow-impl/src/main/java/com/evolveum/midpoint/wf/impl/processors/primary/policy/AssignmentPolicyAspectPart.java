@@ -52,11 +52,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -71,8 +69,8 @@ import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectNewOrOld;
-import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectOid;
+import static com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper.getFocusObjectNewOrOld;
+import static com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper.getFocusObjectOid;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
@@ -90,13 +88,12 @@ public class AssignmentPolicyAspectPart {
 	@Autowired protected ApprovalSchemaHelper approvalSchemaHelper;
 	@Autowired protected MiscDataUtil miscDataUtil;
 	@Autowired protected PrismContext prismContext;
-	@Autowired protected ItemApprovalProcessInterface itemApprovalProcessInterface;
 	@Autowired protected BaseConfigurationHelper baseConfigurationHelper;
 	@Autowired protected LocalizationService localizationService;
 	@Autowired protected ModelInteractionService modelInteractionService;
 
 	void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<UserType> requester,
-			List<PcpChildWfTaskCreationInstruction<?>> instructions, ModelInvocationContext ctx, OperationResult result)
+			List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext).getEvaluatedAssignmentTriple();
@@ -119,26 +116,25 @@ public class AssignmentPolicyAspectPart {
 					createInstructionFromAssignment(assignmentModified, PlusMinusZero.ZERO, objectTreeDeltas, requester, ctx, result));
 		}
 		int instructionsAdded = instructions.size() - instructionsBefore;
-		LOGGER.trace("Assignment-related approval instructions: {}", instructionsAdded);
 		CompiledUserProfile adminGuiConfiguration;
 		try {
-			adminGuiConfiguration = modelInteractionService.getCompiledUserProfile(ctx.taskFromModel, result);
+			adminGuiConfiguration = modelInteractionService.getCompiledUserProfile(ctx.task, result);
 		} catch (CommunicationException | ConfigurationException | SecurityViolationException
 				| ExpressionEvaluationException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
 		Integer limit = adminGuiConfiguration.getRoleManagement() != null ?
 				adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit() : null;
-		LOGGER.trace("Allowed approval instructions: {}", limit);
+		LOGGER.trace("Assignment-related approval instructions: {}; limit is {}", instructionsAdded, limit);
 		if (limit != null && instructionsAdded > limit) {
 			// TODO think about better error reporting
 			throw new IllegalStateException("Assignment approval request limit (" + limit + ") exceeded: you are trying to submit " + instructionsAdded + " requests");
 		}
 	}
 
-	private PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createInstructionFromAssignment(
+	private PcpStartInstruction createInstructionFromAssignment(
 			EvaluatedAssignment<?> evaluatedAssignment, PlusMinusZero assignmentMode, @NotNull ObjectTreeDeltas<?> objectTreeDeltas,
-			PrismObject<UserType> requester, ModelInvocationContext ctx, OperationResult result) throws SchemaException {
+			PrismObject<UserType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
 
 		// We collect all target rules; hoping that only relevant ones are triggered.
 		// For example, if we have assignment policy rule on induced role, it will get here.
@@ -180,7 +176,7 @@ public class AssignmentPolicyAspectPart {
 		if (focusDelta.isAdd()) {
 			miscDataUtil.generateFocusOidIfNeeded(ctx.modelContext, focusDelta);
 		}
-		return prepareAssignmentRelatedTaskInstruction(approvalSchemaResult, evaluatedAssignment, deltaToApprove,
+		return prepareAssignmentRelatedStartInstruction(approvalSchemaResult, evaluatedAssignment, deltaToApprove,
 				assignmentMode, requester, ctx, result);
 	}
 
@@ -290,7 +286,7 @@ public class AssignmentPolicyAspectPart {
 		return builder.buildSchema(ctx, result);
 	}
 
-	private PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> prepareAssignmentRelatedTaskInstruction(
+	private PcpStartInstruction prepareAssignmentRelatedStartInstruction(
 			ApprovalSchemaBuilder.Result builderResult,
 			EvaluatedAssignment<?> evaluatedAssignment, ObjectDelta<? extends ObjectType> deltaToApprove,
 			PlusMinusZero assignmentMode, PrismObject<UserType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
@@ -306,27 +302,26 @@ public class AssignmentPolicyAspectPart {
 		}
 		String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());
 
-		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
-				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(main.getChangeProcessor(), processNameInDefaultLocale,
+		PcpStartInstruction instruction =
+				PcpStartInstruction
+						.createItemApprovalInstruction(main.getChangeProcessor(), processNameInDefaultLocale,
 						builderResult.schemaType, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(main, modelContext, requester);
 
 		instruction.setDeltasToProcess(deltaToApprove);
 
-		instruction.setObjectRef(modelContext, result);
+		instruction.setObjectRef(modelContext);
 		instruction.setTargetRef(createObjectRef(target, prismContext), result);
 
-		String taskNameInDefaultLocale = localizationService.translate(
-				new LocalizableMessageBuilder()
-						.key(instruction.isExecuteApprovedChangeImmediately() ? "ApprovalAndExecutionOf" : "ApprovalOf")
-						.arg(processNameInDefaultLocale)
-						.build(), Locale.getDefault());
-		instruction.setTaskName(taskNameInDefaultLocale);
-		instruction.setProcessInstanceName(processNameInDefaultLocale);
-		instruction.setLocalizableProcessInstanceName(processName);
+//		String taskNameInDefaultLocale = localizationService.translate(
+//				new LocalizableMessageBuilder()
+//						.key(instruction.isExecuteApprovedChangeImmediately() ? "ApprovalAndExecutionOf" : "ApprovalOf")
+//						.arg(processNameInDefaultLocale)
+//						.build(), Locale.getDefault());
 
-		itemApprovalProcessInterface.prepareStartInstruction(instruction);
+		instruction.setName(processNameInDefaultLocale);
+		instruction.setLocalizableName(processName);
 
 		return instruction;
 	}

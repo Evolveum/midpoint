@@ -19,7 +19,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -27,19 +26,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.Checker;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.WfTestHelper;
 import com.evolveum.midpoint.wf.impl.legacy.AbstractWfTestLegacy;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
+import com.evolveum.midpoint.wf.impl.processors.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -80,26 +76,15 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     private static final String DONT_CHECK = "dont-check";
 
-    @Autowired(required = true)
-	private Clockwork clockwork;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
-    @Autowired
-    private WfTaskUtil wfTaskUtil;
-
-    @Autowired
-    private MiscDataUtil miscDataUtil;
-
-    @Autowired
-    private PrimaryChangeProcessor primaryChangeProcessor;
-
-    @Autowired
-    private GeneralChangeProcessor generalChangeProcessor;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private Clockwork clockwork;
+    @Autowired private TaskManager taskManager;
+    @Autowired private TemporaryHelper temporaryHelper;
+    @Autowired private MiscDataUtil miscDataUtil;
+    @Autowired private MiscHelper miscHelper;
+    @Autowired private PrimaryChangeProcessor primaryChangeProcessor;
+    @Autowired private GeneralChangeProcessor generalChangeProcessor;
+    @Autowired private PrismContext prismContext;
+    @Autowired private WfTestHelper testHelper;
 
     public TestGeneralChangeProcessor() throws JAXBException {
 		super();
@@ -142,7 +127,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
+            void completeWorkItem(CaseWorkItemType workItem, String taskId, OperationResult result) throws Exception {
 //                WorkItemContents contents = (WorkItemContents) workItem.getContents();
 //                PrismObject<? extends QuestionFormType> qFormObject = contents.getQuestionForm().asPrismObject();
 //                LOGGER.trace("workItemContents = " + qFormObject.debugDump());
@@ -170,7 +155,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(CaseType aCase, Task task, OperationResult result) throws Exception {
                 assertAssignedRole(USER_JACK_OID, AbstractWfTestLegacy.ROLE_R2_OID, task, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(AbstractWfTestLegacy.ROLE_R1_OID, WorkflowResult.APPROVED));
@@ -200,7 +185,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
+            void completeWorkItem(CaseWorkItemType workItem, String taskId, OperationResult result) throws Exception {
 //
 //                PrismObject<? extends WorkItemContents> workItemContents = workItem.getContents().asPrismObject();
 //                display("workItemContents", workItemContents);
@@ -223,7 +208,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(CaseType aCase, Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
 //                assertAssignedRole(USER_JACK_OID, AbstractWfTestLegacy.ROLE_R2_OID, task, result);
                 assertNoLinkedAccount(jack);
@@ -300,7 +285,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
+            void completeWorkItem(CaseWorkItemType workItem, String taskId, OperationResult result) throws Exception {
 //
 //                PrismObject<? extends WorkItemContents> workItemContents = workItem.getContents().asPrismObject();
 //                display("workItemContents", workItemContents);
@@ -323,7 +308,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(CaseType aCase, Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
 //                assertAssignedRole(USER_JACK_OID, AbstractWfTestLegacy.ROLE_R2_OID, task, result);
                 assertAccount(jack, RESOURCE_DUMMY_OID);
@@ -356,15 +341,15 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         LensContext createModelContext(OperationResult result) throws Exception { return null; }
         void assertsAfterClockworkRun(ModelContext context, Task task, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
-        void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception { }
+        void assertsRootTaskFinishes(CaseType aCase, Task task, OperationResult result) throws Exception { }
         String getObjectOid(Task task, OperationResult result) throws SchemaException { return null; };
 
-        abstract void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception;
+        abstract void completeWorkItem(CaseWorkItemType workItem, String taskId, OperationResult result) throws Exception;
     }
 
-	private void executeTest(String testName, String oid, int subtaskCount, boolean immediate, boolean checkObjectOnSubtasks, ContextCreator contextCreator) throws Exception {
+	private void executeTest(String testName, String oid, int subcasesCount, boolean immediate, boolean checkObjectOnSubtasks, ContextCreator contextCreator) throws Exception {
 
-        int workflowSubtaskCount = immediate ? subtaskCount-1 : subtaskCount;
+        int workflowSubtaskCount = immediate ? subcasesCount-1 : subcasesCount;
 
 		// GIVEN
         prepareNotifications();
@@ -372,44 +357,39 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         OperationResult result = new OperationResult("execution");
 
-        Task modelTask = taskManager.createTaskInstance(TestGeneralChangeProcessor.class.getName() + "."+testName);
-        display("Model task after creation", modelTask);
+        Task task = taskManager.createTaskInstance(TestGeneralChangeProcessor.class.getName() + "."+testName);
+        display("Model task after creation", task);
 
         LensContext<UserType> context = (LensContext<UserType>) contextCreator.createModelContext(result);
-        modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
+        task.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         display("Input context", context);
         assertFocusModificationSanity(context);
 
         // WHEN
 
-       	HookOperationMode mode = clockwork.run(context, modelTask, result);
+       	HookOperationMode mode = clockwork.run(context, task, result);
 
         // THEN
 
-        contextCreator.assertsAfterClockworkRun(context, modelTask, result);
+        contextCreator.assertsAfterClockworkRun(context, task, result);
         assertEquals("Wrong mode after clockwork.run in " + context.getState(), HookOperationMode.BACKGROUND, mode);
-        modelTask.refresh(result);
-        display("Model task after clockwork runs", modelTask);
+        task.refresh(result);
+        display("Model task after clockwork runs", task);
 
-        Task rootTask = taskManager.getTask(wfTaskUtil.getRootTaskOid(modelTask), result);
-        display("Workflow root task created by clockwork run", rootTask);
+        CaseType rootCase = testHelper.getRootCase(result);
+        display("Workflow root case created by clockwork run", rootCase);
 
-        assertTrue("Workflow root task is not persistent", rootTask.isPersistent());
-        assertEquals("Invalid current handler", ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, rootTask.getHandlerUri());
-
-        ModelContext taskModelContext = immediate ? null : wfTaskUtil.getModelContext(rootTask, result);
+        ModelContext taskModelContext = immediate ? null : temporaryHelper.getModelContext(rootCase, task, result);
         assertNotNull("Model context is not present in root task", taskModelContext);
 
-        List<Task> subtasks = rootTask.listSubtasks(result);
-        assertEquals("Incorrect number of subtasks", subtaskCount, subtasks.size());
+        List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
+        assertEquals("Incorrect number of subcases", subcasesCount, subcases.size());
 
-        for (int subtaskIndex = 0; subtaskIndex < subtasks.size(); subtaskIndex++) {
-            Task subtask = subtasks.get(subtaskIndex);
+        for (int subcaseIndex = 0; subcaseIndex < subcases.size(); subcaseIndex++) {
+            CaseType subcase = subcases.get(subcaseIndex);
 
             // now check the workflow state
-            String pid = wfTaskUtil.getCaseOid(subtask);
-            assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
 /*
             WfProcessInstanceType processInstance = null; //workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
@@ -430,35 +410,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 */
         }
 
-        waitForTaskClose(rootTask, 60000);
-        contextCreator.assertsRootTaskFinishes(rootTask, result);
+        testHelper.waitForCaseClose(rootCase, 60000);
+        contextCreator.assertsRootTaskFinishes(rootCase, task, result);
     }
-
-    protected void waitForTaskClose(final Task task, final int timeout) throws Exception {
-        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskClose");
-        Checker checker = new Checker() {
-            @Override
-            public boolean check() throws CommonException {
-                task.refresh(waitResult);
-                OperationResult result = task.getResult();
-                if (verbose) display("Check result", result);
-                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-            }
-            @Override
-            public void timeout() {
-                try {
-                    task.refresh(waitResult);
-                } catch (ObjectNotFoundException e) {
-                    LOGGER.error("Exception during task refresh: {}", e,e);
-                } catch (SchemaException e) {
-                    LOGGER.error("Exception during task refresh: {}", e,e);
-                }
-                OperationResult result = task.getResult();
-                LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
-                assert false : "Timeout ("+timeout+") while waiting for "+task+" to finish. Last result "+result;
-            }
-        };
-        IntegrationTestTools.waitFor("Waiting for " + task + " finish", checker, timeout, 1000);
-    }
-
 }

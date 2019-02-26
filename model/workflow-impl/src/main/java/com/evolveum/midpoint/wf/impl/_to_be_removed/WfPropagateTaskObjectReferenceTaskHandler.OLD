@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
+import com.evolveum.midpoint.wf.impl.tasks.WfCase;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -82,7 +82,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
         OperationResult result = WfTaskUtil.getResult(task).createSubresult(WfPropagateTaskObjectReferenceTaskHandler.class + ".run");
 
-        WfTask wfTask = wfTaskController.recreateWfTask(task);
+        WfCase wfTask = wfTaskController.recreateWfCase(task);
 
         LOGGER.trace("WfPropagateTaskObjectReferenceTaskHandler starting... job = {}", wfTask);
 
@@ -119,7 +119,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
                     LOGGER.warn("object reference in task " + task + " is already set, although it shouldn't be");
                 }
 
-                List<WfTask> dependents;
+                List<WfCase> dependents;
                 try {
                     dependents = wfTask.listDependents(result);
                     dependents.add(wfTask.getParentJob(result));
@@ -127,7 +127,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
                     return reportException("Couldn't get dependents from job " + wfTask, task, result, e);
                 }
 
-                for (WfTask dependent : dependents) {
+                for (WfCase dependent : dependents) {
                     if (dependent.getTask().getObjectRef() == null) {
                         try {
                             dependent.getTask().setObjectRefImmediate(objectReferenceType, result);

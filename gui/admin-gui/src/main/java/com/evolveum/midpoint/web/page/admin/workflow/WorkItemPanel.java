@@ -43,8 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -210,7 +208,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 
 		add(new AjaxFallbackLink(ID_SHOW_REQUEST) {
 			public void onClick(Optional target) {
-				String oid = WorkItemPanel.this.getModelObject().getTaskOid();
+				String oid = WorkItemPanel.this.getModelObject().getCaseOid();
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
@@ -242,7 +240,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			LOGGER.debug("Ignoring getModelObject exception because we're in constructor. It will occur later and will be correctly processed then.", t);
 			getSession().getFeedbackMessages().clear();
 		}
-		ApprovalStageDefinitionType level = dto != null ? WfContextUtil.getCurrentStageDefinition(dto.getWorkflowContext()) : null;
+		ApprovalStageDefinitionType level = dto != null ? WfContextUtil.getCurrentStageDefinition(dto.getCase()) : null;
 		WebMarkupContainer additionalAttributes = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);
 		add(additionalAttributes);
 		additionalAttributes.add(new VisibleEnableBehaviour() {

@@ -14,27 +14,36 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.engine.dao;
+package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- *
- */
-public class CompleteAction {
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
-	@NotNull private final WorkItemType workItem;
+/**
+ *  Describes the "complete work item" action.
+ */
+public class CompleteAction implements Serializable {
+
+	@NotNull private final WorkItemId workItemId;
+	@NotNull private final CaseWorkItemType workItem;
 	@NotNull private final String outcome;
 	private final String comment;
-	private final ObjectDelta additionalDelta;
+	private final ObjectDelta<? extends ObjectType> additionalDelta;
 	private final WorkItemEventCauseInformationType causeInformation;
 
-	public CompleteAction(@NotNull WorkItemType workItem, @NotNull String outcome, String comment,
-			ObjectDelta additionalDelta,
+	public CompleteAction(@NotNull WorkItemId workItemId, @NotNull CaseWorkItemType workItem,
+			@NotNull String outcome, String comment, ObjectDelta<? extends ObjectType> additionalDelta,
 			WorkItemEventCauseInformationType causeInformation) {
+		this.workItemId = workItemId;
 		this.workItem = workItem;
 		this.outcome = outcome;
 		this.comment = comment;
@@ -43,7 +52,12 @@ public class CompleteAction {
 	}
 
 	@NotNull
-	public WorkItemType getWorkItem() {
+	public WorkItemId getWorkItemId() {
+		return workItemId;
+	}
+
+	@NotNull
+	public CaseWorkItemType getWorkItem() {
 		return workItem;
 	}
 
@@ -56,7 +70,7 @@ public class CompleteAction {
 		return comment;
 	}
 
-	public ObjectDelta getAdditionalDelta() {
+	public ObjectDelta<? extends ObjectType> getAdditionalDelta() {
 		return additionalDelta;
 	}
 
@@ -73,5 +87,9 @@ public class CompleteAction {
 				", additionalDelta=" + additionalDelta +
 				", causeInformation=" + causeInformation +
 				'}';
+	}
+
+	public static List<CaseWorkItemType> getWorkItems(Collection<CompleteAction> actions) {
+		return actions.stream().map(a -> a.getWorkItem()).collect(Collectors.toList());
 	}
 }

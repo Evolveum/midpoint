@@ -20,6 +20,9 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,17 +35,20 @@ public class WfAuditHelper {
 
 	@Autowired private AuditService auditService;
 
-	public void auditProcessStart(WfTask wfTask, WfContextType wfContext, OperationResult result) {
-		auditProcessStartEnd(wfTask, AuditEventStage.REQUEST, wfContext, result);
+	public void auditProcessStart(CaseType aCase, WfContextType wfContext,
+			ChangeProcessor changeProcessor, Task opTask, OperationResult result) {
+		auditProcessStartEnd(aCase, AuditEventStage.REQUEST, wfContext, changeProcessor, opTask, result);
 	}
 
-	public void auditProcessEnd(WfTask wfTask, WfContextType wfContext, OperationResult result) {
-		auditProcessStartEnd(wfTask, AuditEventStage.EXECUTION, wfContext, result);
+	public void auditProcessEnd(CaseType aCase, WfContextType wfContext, ChangeProcessor changeProcessor, Task opTask,
+			OperationResult result) {
+		auditProcessStartEnd(aCase, AuditEventStage.EXECUTION, wfContext, changeProcessor, opTask, result);
 	}
 
-	private void auditProcessStartEnd(WfTask wfTask, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
-		AuditEventRecord auditEventRecord = wfTask.getChangeProcessor().prepareProcessInstanceAuditRecord(wfTask, stage, wfContext, result);
-		auditService.audit(auditEventRecord, wfTask.getTask());
+	private void auditProcessStartEnd(CaseType aCase, AuditEventStage stage, WfContextType wfContext,
+			ChangeProcessor changeProcessor, Task opTask, OperationResult result) {
+		AuditEventRecord auditEventRecord = changeProcessor.prepareProcessInstanceAuditRecord(aCase, stage, wfContext, result);
+		auditService.audit(auditEventRecord, opTask);
 	}
 
 }

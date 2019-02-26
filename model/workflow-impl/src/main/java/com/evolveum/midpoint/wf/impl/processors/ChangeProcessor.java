@@ -21,6 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,13 +33,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A change processor can be viewed as a kind of framework supporting customer-specific
@@ -69,8 +67,8 @@ public interface ChangeProcessor {
      * and arranges everything to carry out that interaction.
      *
      * @param context Model context of the operation.
-     * @param wfConfigurationType
-     * @param taskFromModel Task in context of which the operation is carried out.
+     * @param wfConfigurationType Current workflow configuration (part of the system configuration).
+     * @param task Task in context of which the operation is carried out.
      * @param result Where to put information on operation execution.
      * @return non-null value if it processed the request;
      *              BACKGROUND = the process was "caught" by the processor, and continues in background,
@@ -81,7 +79,8 @@ public interface ChangeProcessor {
      * Actually, the FOREGROUND return value is quite unusual, because the change processor cannot
      * know in advance whether other processors would not want to process the invocation from the model.
      */
-    HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType, @NotNull Task taskFromModel, @NotNull OperationResult result)
+    @Nullable
+    HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType, @NotNull Task task, @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
@@ -93,28 +92,29 @@ public interface ChangeProcessor {
      * @param result Here should be stored information about whether the finalization was successful or not
      * @throws SchemaException
      */
-    void onProcessEnd(EngineInvocationContext ctx, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+    void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
+		    throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException;
 
     /**
      * Prepares a process instance-related audit record.
      *
-     * @param wfTask
-     * @param stage
      * @param variables
+     * @param aCase
+     * @param stage
      * @param result
      * @return
      */
-    AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, WfContextType wfContext, OperationResult result);
+    AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, WfContextType wfContext, OperationResult result);
 
     /**
      * Prepares a work item-related audit record.
      */
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem,
-            WfTask wfTask, OperationResult result);
+    AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem,
+            CaseType aCase, OperationResult result);
 
-    AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            WfTask wfTask, OperationResult result);
+    AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+            CaseType aCase, OperationResult result);
 
     /**
      * Auxiliary method to access autowired Spring beans from within non-spring java objects.

@@ -53,4 +53,8 @@ public class CaseWorkItemUtil {
         PrismContainerValue<CaseType> parentParentPcv = (PrismContainerValue<CaseType>) parentParent;
         return parentParentPcv.asContainerable();
     }
+
+    public static WorkItemId getId(CaseWorkItemType workItem) {
+        return WorkItemId.of(workItem);
+    }
 }
