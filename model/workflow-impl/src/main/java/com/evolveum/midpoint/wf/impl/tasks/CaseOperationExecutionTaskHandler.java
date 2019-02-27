@@ -35,9 +35,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.processors.MiscHelper;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.ApprovalMetadataHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -67,7 +66,6 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 	@Autowired private ApprovalMetadataHelper metadataHelper;
 	@Autowired private Clockwork clockwork;
 	@Autowired private MiscHelper miscHelper;
-	@Autowired private TemporaryHelper temporaryHelper;
 	@Autowired private PcpGeneralHelper pcpGeneralHelper;
 	@Autowired private ApprovalMetadataHelper approvalMetadataHelper;
 	@Autowired private WorkflowEngine workflowEngine;
@@ -109,7 +107,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 			SecurityViolationException {
 		CaseType rootCase = repositoryService.getObject(CaseType.class, subcase.getParentRef().getOid(), null, result)
 				.asObjectable();
-		LensContext<?> modelContext = (LensContext<?>) temporaryHelper.getModelContext(rootCase, task, result);
+		LensContext<?> modelContext = (LensContext<?>) miscHelper.getModelContext(rootCase, task, result);
 		ObjectTreeDeltas<?> deltas = pcpGeneralHelper.retrieveResultingDeltas(subcase);
 		if (deltas == null) {
 			throw new IllegalStateException("No deltas to be executed in " + subcase);
@@ -137,7 +135,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			ExpressionEvaluationException {
 		List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
-		LensContext<?> rootContext = (LensContext<?>) temporaryHelper.getModelContext(rootCase, task, result);
+		LensContext<?> rootContext = (LensContext<?>) miscHelper.getModelContext(rootCase, task, result);
 		List<ObjectTreeDeltas> deltasToMerge = new ArrayList<>();
 
 		for (CaseType subcase : subcases) {

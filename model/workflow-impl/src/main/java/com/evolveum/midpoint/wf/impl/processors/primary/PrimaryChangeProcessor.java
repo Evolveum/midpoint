@@ -46,14 +46,15 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.engine.AuditHelper;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.tasks.CaseOperationExecutionTaskHandler;
-import com.evolveum.midpoint.wf.impl.tasks.StartInstruction;
-import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
+import com.evolveum.midpoint.wf.impl.processors.StartInstruction;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -76,11 +77,10 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
-	@Autowired private BaseConfigurationHelper baseConfigurationHelper;
-	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
-	@Autowired private BaseAuditHelper baseAuditHelper;
-	@Autowired private TemporaryHelper temporaryHelper;
-	@Autowired private WfStageComputeHelper stageComputeHelper;
+	@Autowired private ConfigurationHelper configurationHelper;
+	@Autowired private ModelHelper modelHelper;
+	@Autowired private AuditHelper auditHelper;
+	@Autowired private StageComputeHelper stageComputeHelper;
 	@Autowired private PcpGeneralHelper generalHelper;
 	@Autowired private MiscHelper miscHelper;
 	@Autowired private WorkflowEngine workflowEngine;
@@ -93,7 +93,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Configuration
     @PostConstruct
     public void init() {
-        baseConfigurationHelper.registerProcessor(this);
+        configurationHelper.registerProcessor(this);
     }
     //endregion
 
@@ -101,52 +101,49 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Processing model invocation
 
 	// beware, may damage model context during execution
-	public List<PcpStartInstruction> previewModelInvocation(@NotNull ModelContext<?> context,
-			WfConfigurationType configuration, @NotNull Task opTask, @NotNull OperationResult result)
+	public List<PcpStartInstruction> previewModelInvocation(@NotNull ModelInvocationContext<?> context,
+			@NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 		List<PcpStartInstruction> rv = new ArrayList<>();
-		previewOrProcessModelInvocation(context, configuration, true, rv, opTask, result);
+		previewOrProcessModelInvocation(context, true, rv, result);
 		return rv;
 	}
 
     @Override
-    public HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType configuration,
-			@NotNull Task task, @NotNull OperationResult result)
+    public HookOperationMode processModelInvocation(@NotNull ModelInvocationContext<?> ctx, @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 		    ConfigurationException, SecurityViolationException {
-	    if (context.getState() == PRIMARY) {
-		    return previewOrProcessModelInvocation(context, configuration, false, null, task, result);
+	    if (ctx.modelContext.getState() == PRIMARY) {
+		    return previewOrProcessModelInvocation(ctx, false, null, result);
 	    } else {
     		return null;
 	    }
     }
 
-    private <O extends ObjectType> HookOperationMode previewOrProcessModelInvocation(@NotNull ModelContext<O> context,
-		    WfConfigurationType configuration, boolean previewOnly, List<PcpStartInstruction> startInstructionsHolder,
-		    @NotNull Task task, @NotNull OperationResult result)
+    private <O extends ObjectType> HookOperationMode previewOrProcessModelInvocation(@NotNull ModelInvocationContext<O> ctx,
+		    boolean previewOnly, List<PcpStartInstruction> startInstructionsHolder, @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 		    ConfigurationException, SecurityViolationException {
 
-        if (context.getFocusContext() == null) {
+        if (ctx.modelContext.getFocusContext() == null) {
             return null;
         }
 
 		PrimaryChangeProcessorConfigurationType processorConfig =
-				configuration != null ? configuration.getPrimaryChangeProcessor() : null;
+				ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
 		if (processorConfig != null && Boolean.FALSE.equals(processorConfig.isEnabled())) {
 			LOGGER.debug("Primary change processor is disabled.");
 			return null;
 		}
 
-		ObjectTreeDeltas<O> objectTreeDeltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(context);
+		ObjectTreeDeltas<O> objectTreeDeltas = ctx.modelContext.getTreeDeltas();
         if (objectTreeDeltas.isEmpty()) {
             return null;
         }
 
         // examine the request using process aspects
         ObjectTreeDeltas<O> changesBeingDecomposed = objectTreeDeltas.clone();
-        ModelInvocationContext<O> ctx = new ModelInvocationContext<>(getPrismContext(), context, configuration, task);
         List<PcpStartInstruction> startInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
 
         // start the process(es)
@@ -159,7 +156,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         	startInstructionsHolder.addAll(startInstructions);
         	return null;
         } else {
-	        return executeStartInstructions(startInstructions, context, changesBeingDecomposed, task, result);
+	        return executeStartInstructions(startInstructions, ctx, changesBeingDecomposed, result);
         }
     }
 
@@ -178,7 +175,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
 	// skippability because of no approvers was already tested; see ApprovalSchemaHelper.shouldBeSkipped
 	public boolean isEmpty(PcpStartInstruction instruction,
-			WfStageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
+			StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ItemApprovalProcessStateType state = instruction.getItemApprovalProcessState();
 		if (state == null) {
@@ -203,7 +200,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
 	private String evaluateAutoCompleteExpression(CaseType aCase,
 			ApprovalStageDefinitionType stageDef, PcpStartInstruction instruction,
-			WfStageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
+			StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, instruction.getWfContext(), ctx.task.getChannel(), result);
 		return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.task, result);
@@ -246,13 +243,13 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private HookOperationMode executeStartInstructions(List<PcpStartInstruction> instructions, ModelContext<?> context,
-		    ObjectTreeDeltas<?> changesWithoutApproval, Task task, OperationResult result) {
+    private HookOperationMode executeStartInstructions(List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx,
+		    ObjectTreeDeltas<?> changesWithoutApproval, OperationResult result) {
         try {
 			// prepare root case and case0
-            CaseType rootCase = addRoot(context, task, result);
-	        PcpStartInstruction instruction0 = createInstruction0(context, changesWithoutApproval, rootCase);
-            CaseType case0 = instruction0 != null ? baseModelInvocationProcessingHelper.addCase(instruction0, task, result) : null;
+            CaseType rootCase = addRoot(ctx, result);
+	        PcpStartInstruction instruction0 = createInstruction0(ctx, changesWithoutApproval, rootCase);
+            CaseType case0 = instruction0 != null ? modelHelper.addCase(instruction0, ctx.task, result) : null;
 
 	        CaseType objectCreationCase = instruction0 != null && instruction0.isObjectCreationInstruction() ? case0 : null;
 
@@ -262,7 +259,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	        // create the regular (approval) child cases
             for (PcpStartInstruction instruction : instructions) {
             	instruction.setParent(rootCase);
-				CaseType wfCase = baseModelInvocationProcessingHelper.addCase(instruction, task, result);
+				CaseType wfCase = modelHelper.addCase(instruction, ctx.task, result);
                 allSubcases.add(wfCase);
                 if (instruction.isObjectCreationInstruction()) {
 	                if (objectCreationCase == null) {
@@ -287,14 +284,14 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	        }
 
 	        if (case0 != null) {
-	        	if (ModelExecuteOptions.isExecuteImmediatelyAfterApproval(context.getOptions())) {
+	        	if (ModelExecuteOptions.isExecuteImmediatelyAfterApproval(ctx.modelContext.getOptions())) {
 	        		submitExecutionTask(case0, false, result);
 		        } else {
-	        		workflowEngine.closeCaseInternal(case0, task, result);
+	        		workflowEngine.closeCaseInternal(case0, ctx.task, result);
 		        }
 	        }
 
-            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootCase, task, result);
+            modelHelper.logJobsBeforeStart(rootCase, ctx.task, result);
             return HookOperationMode.BACKGROUND;
 
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException |
@@ -307,20 +304,20 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private CaseType addRoot(ModelContext<?> context, Task task, OperationResult result)
+    private CaseType addRoot(ModelInvocationContext<?> ctx, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-	    LensContext<?> contextForRoot = contextCopyWithNoDelta(context);
+	    LensContext<?> contextForRoot = contextCopyWithNoDelta(ctx.modelContext);
         StartInstruction instructionForRoot =
-		        baseModelInvocationProcessingHelper.createInstructionForRoot(this, contextForRoot, task, result);
-		return baseModelInvocationProcessingHelper.addRoot(instructionForRoot, task, result);
+		        modelHelper.createInstructionForRoot(this, ctx, contextForRoot, result);
+		return modelHelper.addRoot(instructionForRoot, ctx.task, result);
     }
 
-    private PcpStartInstruction createInstruction0(ModelContext<?> context, ObjectTreeDeltas<?> changesWithoutApproval,
+    private PcpStartInstruction createInstruction0(ModelInvocationContext<?> ctx, ObjectTreeDeltas<?> changesWithoutApproval,
 		    CaseType rootCase) throws SchemaException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty()) {
             PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this);
             instruction0.setName("Changes that do not require approval");
-	        instruction0.setObjectRef(context);
+	        instruction0.setObjectRef(ctx);
 	        instruction0.setDeltasToProcess(changesWithoutApproval);
 	        instruction0.setResultingDeltas(changesWithoutApproval);
 	        instruction0.setParent(rootCase);
@@ -458,7 +455,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     //region Auditing
     @Override
     public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
+        AuditEventRecord auditEventRecord = auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
 
         ObjectTreeDeltas<?> deltas;
         try {
@@ -482,7 +479,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
 		    OperationResult result) {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
+        AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
         try {
             addDeltasToEventRecord(auditEventRecord, generalHelper.retrieveDeltasToProcess(aCase));
         } catch (SchemaException e) {
@@ -494,7 +491,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
 		    CaseType aCase, OperationResult result) {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
+        AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
         try {
 			AbstractWorkItemOutputType output = workItem.getOutput();
         	// TODO - or merge with original deltas?
@@ -532,8 +529,5 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		}
     }
 
-    TemporaryHelper getTemporaryHelper() {     // ugly hack - used in PcpJob
-        return temporaryHelper;
-    }
     //endregion
 }

@@ -41,8 +41,8 @@ import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.api.CompleteAction;
 import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.processors.MiscHelper;
-import com.evolveum.midpoint.wf.impl.tasks.WfNotificationHelper;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
+import com.evolveum.midpoint.wf.impl.engine.NotificationHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -70,10 +70,10 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
 	@Autowired private WorkflowEngine workflowEngine;
 	@Autowired private WorkItemManager workItemManager;
-	@Autowired private WfNotificationHelper notificationHelper;
+	@Autowired private NotificationHelper notificationHelper;
 	@Autowired private TaskManager taskManager;
-	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
-	@Autowired private WfStageComputeHelper stageComputeHelper;
+	@Autowired private ExpressionEvaluationHelper evaluationHelper;
+	@Autowired private StageComputeHelper stageComputeHelper;
 	@Autowired private MiscHelper miscHelper;
 
 	@PostConstruct

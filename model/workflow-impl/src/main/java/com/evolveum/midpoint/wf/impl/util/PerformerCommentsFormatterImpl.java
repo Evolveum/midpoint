@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -44,12 +44,12 @@ public class PerformerCommentsFormatterImpl implements PerformerCommentsFormatte
 
 	@Nullable private final PerformerCommentsFormattingType formatting;
 	@NotNull private final RepositoryService repositoryService;
-	@NotNull private final WfExpressionEvaluationHelper expressionEvaluationHelper;
+	@NotNull private final ExpressionEvaluationHelper expressionEvaluationHelper;
 
 	private final Map<String, ObjectType> performersCache = new HashMap<>();
 
 	public PerformerCommentsFormatterImpl(@Nullable PerformerCommentsFormattingType formatting,
-			@NotNull RepositoryService repositoryService, @NotNull WfExpressionEvaluationHelper expressionEvaluationHelper) {
+			@NotNull RepositoryService repositoryService, @NotNull ExpressionEvaluationHelper expressionEvaluationHelper) {
 		this.formatting = formatting;
 		this.repositoryService = repositoryService;
 		this.expressionEvaluationHelper = expressionEvaluationHelper;

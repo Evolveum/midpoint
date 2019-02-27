@@ -129,7 +129,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
             public void assertsAfterClockworkRun(CaseType rootCase,
                     CaseType case0, List<CaseType> subcases,
                     Task opTask, OperationResult result) throws Exception {
-                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+                ModelContext taskModelContext = miscHelper.getModelContext(rootCase, opTask, result);
                 IntegrationTestTools.display("model context from the root task", taskModelContext);
 //                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
 //                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
@@ -209,7 +209,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
             public void assertsAfterClockworkRun(CaseType rootCase,
                     CaseType case0, List<CaseType> subcases,
                     Task opTask, OperationResult result) throws Exception {
-                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+                ModelContext taskModelContext = miscHelper.getModelContext(rootCase, opTask, result);
                 IntegrationTestTools.display("model context from the root task", taskModelContext);
 //                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
 //                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));

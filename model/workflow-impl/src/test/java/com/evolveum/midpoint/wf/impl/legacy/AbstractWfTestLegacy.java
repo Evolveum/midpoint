@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.wf.impl.legacy;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
@@ -45,12 +44,10 @@ import com.evolveum.midpoint.wf.impl.WfTestHelper;
 import com.evolveum.midpoint.wf.impl.WfTestUtil;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
-import com.evolveum.midpoint.wf.impl.processors.MiscHelper;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,9 +79,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     @Autowired protected Clockwork clockwork;
 	@Autowired protected TaskManager taskManager;
     @Autowired protected WorkflowManager workflowManager;
-    @Autowired protected TemporaryHelper temporaryHelper;
     @Autowired protected WorkflowEngine workflowEngine;
-    @Autowired protected MiscDataUtil miscDataUtil;
     @Autowired protected MiscHelper miscHelper;
     @Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
     @Autowired protected GeneralChangeProcessor generalChangeProcessor;

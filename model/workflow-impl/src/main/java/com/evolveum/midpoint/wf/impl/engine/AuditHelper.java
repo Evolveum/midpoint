@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors;
+package com.evolveum.midpoint.wf.impl.engine;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -36,6 +38,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
+import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,34 +53,55 @@ import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
 import static com.evolveum.midpoint.audit.api.AuditEventType.WORKFLOW_PROCESS_INSTANCE;
 
 /**
- * @author mederly
+ *  Deals with preparation and recording of audit events.
  */
 @Component
-public class BaseAuditHelper {
+public class AuditHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(BaseAuditHelper.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AuditHelper.class);
 
-    @Autowired private SecurityContextManager securityContextManager;
-    @Autowired private PrismContext prismContext;
-    @Autowired private MiscHelper miscHelper;
+	@Autowired private AuditService auditService;
+	@Autowired private SecurityContextManager securityContextManager;
+	@Autowired private PrismContext prismContext;
+	@Autowired private MiscHelper miscHelper;
 
-    @Autowired
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, OperationResult result) {
+	//region Recoding of audit events
+	public void auditProcessStart(CaseType aCase, WfContextType wfContext,
+			ChangeProcessor changeProcessor, Task opTask, OperationResult result) {
+		auditProcessStartEnd(aCase, AuditEventStage.REQUEST, wfContext, changeProcessor, opTask, result);
+	}
+
+	public void auditProcessEnd(CaseType aCase, WfContextType wfContext, ChangeProcessor changeProcessor, Task opTask,
+			OperationResult result) {
+		auditProcessStartEnd(aCase, AuditEventStage.EXECUTION, wfContext, changeProcessor, opTask, result);
+	}
+
+	private void auditProcessStartEnd(CaseType aCase, AuditEventStage stage, WfContextType wfContext,
+			ChangeProcessor changeProcessor, Task opTask, OperationResult result) {
+		AuditEventRecord auditEventRecord = changeProcessor.prepareProcessInstanceAuditRecord(aCase, stage, wfContext, result);
+		auditService.audit(auditEventRecord, opTask);
+	}
+	//endregion
+
+
+	//region Preparation of audit events
+	public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, OperationResult result) {
 
 		WfContextType wfc = aCase.getWorkflowContext();
 
 		AuditEventRecord record = new AuditEventRecord();
-        record.setEventType(WORKFLOW_PROCESS_INSTANCE);
-        record.setEventStage(stage);
+		record.setEventType(WORKFLOW_PROCESS_INSTANCE);
+		record.setEventStage(stage);
 		record.setInitiator(miscHelper.getRequesterIfExists(aCase, result));           // set real principal in case of explicitly requested process termination (MID-4263)
 
 		ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), result);
 		record.setTarget(objectRef.asReferenceValue());
 
-        record.setOutcome(OperationResultStatus.SUCCESS);
+		record.setOutcome(OperationResultStatus.SUCCESS);
 
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), result));
@@ -99,7 +124,7 @@ public class BaseAuditHelper {
 			record.addPropertyValue(WorkflowConstants.AUDIT_REQUESTER_COMMENT, requesterComment);
 		}
 		return record;
-    }
+	}
 
 	private ObjectReferenceType resolveIfNeeded(ObjectReferenceType ref, OperationResult result) {
 		if (ref == null || ref.getOid() == null || ref.asReferenceValue().getObject() != null || ref.getType() == null) {
@@ -112,7 +137,7 @@ public class BaseAuditHelper {
 		try {
 			return ObjectTypeUtil.createObjectRef(
 					repositoryService.getObject(types.getClassDefinition(), ref.getOid(), null, result), prismContext);
-		} catch (ObjectNotFoundException|SchemaException e) {
+		} catch (ObjectNotFoundException | SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve {}", e, ref);
 			return ref;
 		}
@@ -124,7 +149,7 @@ public class BaseAuditHelper {
 				.collect(Collectors.toList());
 	}
 
-	public AuditEventRecord prepareWorkItemAuditRecordCommon(CaseWorkItemType workItem, CaseType aCase, AuditEventStage stage,
+	private AuditEventRecord prepareWorkItemAuditRecordCommon(CaseWorkItemType workItem, CaseType aCase, AuditEventStage stage,
 			OperationResult result) {
 
 		AuditEventRecord record = new AuditEventRecord();
@@ -154,19 +179,19 @@ public class BaseAuditHelper {
 	}
 
 	// workItem contains taskRef, assignee, originalAssignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase, OperationResult result) {
+	public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase, OperationResult result) {
 
-        AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, aCase, AuditEventStage.REQUEST, result);
+		AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, aCase, AuditEventStage.REQUEST, result);
 		record.setInitiator(miscHelper.getRequesterIfExists(aCase, result));
 		record.setMessage(miscHelper.getCompleteStageInfo(aCase));
-        return record;
-    }
+		return record;
+	}
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+	public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
 			CaseType aCase, OperationResult result) {
 
-        AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, aCase, AuditEventStage.EXECUTION, result);
+		AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, aCase, AuditEventStage.EXECUTION, result);
 		setInitiatorAndAttorneyFromPrincipal(record);
 
 		if (cause != null) {
@@ -200,8 +225,8 @@ public class BaseAuditHelper {
 			message.append("(no decision)");		// TODO
 		}
 		record.setMessage(message.toString());
-        return record;
-    }
+		return record;
+	}
 
 	private void setInitiatorAndAttorneyFromPrincipal(AuditEventRecord record) {
 		try {
@@ -215,4 +240,6 @@ public class BaseAuditHelper {
 			LOGGER.warn("No initiator known for auditing work item event: " + e.getMessage(), e);
 		}
 	}
+	//endregion
+
 }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -32,8 +33,9 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
+import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
+import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -56,9 +58,10 @@ public class ApprovalSchemaExecutionInformationHelper {
 	@Autowired private ModelService modelService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private SchemaHelper schemaHelper;
-	@Autowired private WfStageComputeHelper computeHelper;
+	@Autowired private StageComputeHelper computeHelper;
 	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;
-	@Autowired private BaseConfigurationHelper baseConfigurationHelper;
+	@Autowired private ConfigurationHelper configurationHelper;
+	@Autowired private RepositoryService repositoryService;
 
 	ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String caseOid, Task opTask,
 			OperationResult result)
@@ -72,8 +75,11 @@ public class ApprovalSchemaExecutionInformationHelper {
 
 	List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		WfConfigurationType wfConfiguration = baseConfigurationHelper.getWorkflowConfiguration(modelContext, result);
-		List<PcpStartInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(modelContext, wfConfiguration, opTask, result);
+		WfConfigurationType wfConfiguration = configurationHelper.getWorkflowConfiguration(modelContext, result);
+		ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfiguration, prismContext, repositoryService,
+				opTask
+		);
+		List<PcpStartInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(ctx, result);
 		List<ApprovalSchemaExecutionInformationType> rv = new ArrayList<>();
 		for (PcpStartInstruction taskInstruction : taskInstructions) {
 			OperationResult childResult = result.createMinorSubresult(ApprovalSchemaExecutionInformationHelper.class + ".getApprovalSchemaPreview");
@@ -143,7 +149,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 			ApprovalStageDefinitionType stageDef, Task opTask, OperationResult result) {
 		ApprovalStageExecutionPreviewType rv = new ApprovalStageExecutionPreviewType(prismContext);
 		try {
-			WfStageComputeHelper.ComputationResult computationResult = computeHelper
+			StageComputeHelper.ComputationResult computationResult = computeHelper
 					.computeStageApprovers(stageDef, () -> computeHelper.getDefaultVariables(aCase, wfc, requestChannel, result), opTask, result);
 			rv.getExpectedApproverRef().addAll(computationResult.getApproverRefs());
 			rv.setExpectedAutomatedOutcome(computationResult.getPredeterminedOutcome());

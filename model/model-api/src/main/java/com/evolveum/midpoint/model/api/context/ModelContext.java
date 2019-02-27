@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -92,4 +93,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 	<T> T getHookPreviewResult(@NotNull Class<T> clazz);
 
 	boolean isPreview();
+
+	@NotNull
+	ObjectTreeDeltas<F> getTreeDeltas();
 }

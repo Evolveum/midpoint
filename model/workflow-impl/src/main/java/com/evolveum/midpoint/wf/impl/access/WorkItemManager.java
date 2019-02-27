@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.wf.api.CompleteAction;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +54,6 @@ public class WorkItemManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(WorkItemManager.class);
 
-    @Autowired private MiscDataUtil miscDataUtil;
     @Autowired private AuthorizationHelper authorizationHelper;
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private PrismContext prismContext;

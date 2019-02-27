@@ -34,11 +34,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfTestHelper;
 import com.evolveum.midpoint.wf.impl.legacy.AbstractWfTestLegacy;
-import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
-import com.evolveum.midpoint.wf.impl.processors.MiscHelper;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -78,8 +76,6 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Autowired private Clockwork clockwork;
     @Autowired private TaskManager taskManager;
-    @Autowired private TemporaryHelper temporaryHelper;
-    @Autowired private MiscDataUtil miscDataUtil;
     @Autowired private MiscHelper miscHelper;
     @Autowired private PrimaryChangeProcessor primaryChangeProcessor;
     @Autowired private GeneralChangeProcessor generalChangeProcessor;
@@ -380,7 +376,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         CaseType rootCase = testHelper.getRootCase(result);
         display("Workflow root case created by clockwork run", rootCase);
 
-        ModelContext taskModelContext = immediate ? null : temporaryHelper.getModelContext(rootCase, task, result);
+        ModelContext taskModelContext = immediate ? null : miscHelper.getModelContext(rootCase, task, result);
         assertNotNull("Model context is not present in root task", taskModelContext);
 
         List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);

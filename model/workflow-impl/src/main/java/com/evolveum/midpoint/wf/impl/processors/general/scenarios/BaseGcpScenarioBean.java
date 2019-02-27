@@ -24,10 +24,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
+import com.evolveum.midpoint.wf.impl.engine.AuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
-import com.evolveum.midpoint.wf.impl.tasks.StartInstruction;
+import com.evolveum.midpoint.wf.impl.processors.StartInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 public class BaseGcpScenarioBean implements GcpScenarioBean {
 
     @Autowired private GcpExternalizationHelper gcpExternalizationHelper;
-    @Autowired private BaseAuditHelper baseAuditHelper;
+    @Autowired private AuditHelper auditHelper;
     @Autowired private PrismContext prismContext;
     @Autowired private GeneralChangeProcessor generalChangeProcessor;
 
@@ -69,21 +69,21 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
 
     @Override
     public AuditEventRecord prepareProcessInstanceAuditRecord(WfContextType wfContext, CaseType aCase, AuditEventStage stage, OperationResult result) {
-        return baseAuditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
+        return auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
         // TODO what with missing data (delta, result)? We could at least attempt to determine them ...
     }
 
     @Override
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
 			OperationResult result) {
-        return baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
+        return auditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
         // TODO fill-in missing delta somehow
     }
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
             CaseType aCase, OperationResult result) {
-        return baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
+        return auditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
         // TODO fill-in missing delta somehow
     }
 

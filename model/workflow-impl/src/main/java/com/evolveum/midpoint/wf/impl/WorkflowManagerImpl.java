@@ -33,12 +33,11 @@ import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.access.ProcessInstanceManager;
 import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
-import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.access.AuthorizationHelper;
-import com.evolveum.midpoint.wf.impl.tasks.WfNotificationHelper;
-import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
+import com.evolveum.midpoint.wf.impl.engine.NotificationHelper;
 import com.evolveum.midpoint.wf.impl.util.PerformerCommentsFormatterImpl;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.impl.util.ChangesSorter;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
@@ -62,15 +61,14 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Autowired private PrismContext prismContext;
 	@Autowired private WfConfiguration wfConfiguration;
 	@Autowired private ProcessInstanceManager processInstanceManager;
-	@Autowired private WfNotificationHelper notificationHelper;
+	@Autowired private NotificationHelper notificationHelper;
 	@Autowired private WorkItemManager workItemManager;
-	@Autowired private TemporaryHelper temporaryHelper;
-	@Autowired private MiscDataUtil miscDataUtil;
+	@Autowired private ChangesSorter changesSorter;
 	@Autowired private AuthorizationHelper authorizationHelper;
 	@Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
 	@Autowired private TaskManager taskManager;
 	@Autowired private RepositoryService repositoryService;
-	@Autowired private WfExpressionEvaluationHelper expressionEvaluationHelper;
+	@Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -134,14 +132,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
         return prismContext;
     }
 
-    public TemporaryHelper getTemporaryHelper() {
-        return temporaryHelper;
-    }
-
-    public MiscDataUtil getMiscDataUtil() {
-        return miscDataUtil;
-    }
-
     @Override
     public void registerProcessListener(ProcessListener processListener) {
         notificationHelper.registerProcessListener(processListener);
@@ -172,7 +162,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		// TODO op subresult
-		return miscDataUtil.getChangesByStateForRoot(rootTask, modelInteractionService, prismContext, task, result);
+		return changesSorter.getChangesByStateForRoot(rootTask, modelInteractionService, prismContext, task, result);
 	}
 
 	@Override
@@ -180,7 +170,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		// TODO op subresult
-		return miscDataUtil.getChangesByStateForChild(childTask, rootTask, modelInteractionService, prismContext, result);
+		return changesSorter.getChangesByStateForChild(childTask, rootTask, modelInteractionService, prismContext, result);
 	}
 
 	@Override

@@ -35,11 +35,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
-import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
+import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ProcessSpecification;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang3.tuple.Pair;
@@ -54,7 +53,6 @@ import java.util.Locale;
 
 import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
-import static com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper.getFocusObjectNewOrOld;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
@@ -68,9 +66,8 @@ public class ObjectPolicyAspectPart {
 
 	@Autowired private PolicyRuleBasedAspect main;
 	@Autowired protected ApprovalSchemaHelper approvalSchemaHelper;
-	@Autowired protected MiscDataUtil miscDataUtil;
 	@Autowired protected PrismContext prismContext;
-	@Autowired protected BaseConfigurationHelper baseConfigurationHelper;
+	@Autowired protected ConfigurationHelper configurationHelper;
 	@Autowired protected LocalizationService localizationService;
 
 	<T extends ObjectType> void extractObjectBasedInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
@@ -109,7 +106,7 @@ public class ObjectPolicyAspectPart {
 				}
 				buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
 			}
-		} else if (baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
+		} else if (configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 			// default rule
 			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
 			if (builder.addPredefined(object, RelationKindType.OWNER, result)) {
@@ -180,7 +177,7 @@ public class ObjectPolicyAspectPart {
 		for (ObjectDelta<T> deltaToApprove : deltasToApprove) {
 			LocalizableMessage processName = main.createProcessName(builderResult, null, ctx, result);
 			if (main.useDefaultProcessName(processName)) {
-				processName = createDefaultProcessName(modelContext, deltaToApprove);
+				processName = createDefaultProcessName(ctx, deltaToApprove);
 			}
 			String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());
 
@@ -193,7 +190,7 @@ public class ObjectPolicyAspectPart {
 
 			instruction.setDeltasToProcess(deltaToApprove);
 
-			instruction.setObjectRef(modelContext);
+			instruction.setObjectRef(ctx);
 
 //			String taskNameInDefaultLocale = localizationService.translate(
 //					new LocalizableMessageBuilder()
@@ -209,9 +206,9 @@ public class ObjectPolicyAspectPart {
 		}
 	}
 
-	private <T extends ObjectType> LocalizableMessage createDefaultProcessName(ModelContext<T> modelContext,
+	private <T extends ObjectType> LocalizableMessage createDefaultProcessName(ModelInvocationContext<T> ctx,
 			ObjectDelta<T> deltaToApprove) {
-		ObjectType focus = getFocusObjectNewOrOld(modelContext);
+		ObjectType focus = ctx.getFocusObjectNewOrOld();
 		String opKey;
 		if (deltaToApprove.isAdd()) {
 			opKey = "Added";

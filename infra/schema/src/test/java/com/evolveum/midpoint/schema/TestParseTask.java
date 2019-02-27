@@ -64,7 +64,7 @@ public class TestParseTask {
 	}
 
 
-	@Test
+	@Test(enabled = false)
 	public void testParseTaskFile() throws Exception {
 		System.out.println("===[ testParseTaskFile ]===");
 
@@ -85,7 +85,7 @@ public class TestParseTask {
 		task.getValue().applyDefinition(taskDef);
 	}
 
-	@Test
+	@Test(enabled = false)
 	public void testParseTaskDom() throws SchemaException {
 		System.out.println("===[ testParseTaskDom ]===");
 

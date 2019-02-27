@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
@@ -95,7 +95,7 @@ public class EngineInvocationContext implements DebugDumpable {
 		}
 	}
 
-	private WfStageComputeHelper.ComputationResult preStageComputationResult;
+	private StageComputeHelper.ComputationResult preStageComputationResult;
 	private String currentStageOutcome;
 
 	public String getCurrentStageOutcome() {
@@ -106,12 +106,12 @@ public class EngineInvocationContext implements DebugDumpable {
 		this.currentStageOutcome = currentStageOutcome;
 	}
 
-	public WfStageComputeHelper.ComputationResult getPreStageComputationResult() {
+	public StageComputeHelper.ComputationResult getPreStageComputationResult() {
 		return preStageComputationResult;
 	}
 
 	public void setPreStageComputationResult(
-			WfStageComputeHelper.ComputationResult preStageComputationResult) {
+			StageComputeHelper.ComputationResult preStageComputationResult) {
 		this.preStageComputationResult = preStageComputationResult;
 	}
 

@@ -19,11 +19,13 @@ package com.evolveum.midpoint.wf.impl.engine;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -47,14 +49,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
 import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.wf.api.CompleteAction;
-import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
-import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
-import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
-import com.evolveum.midpoint.wf.impl.processors.MiscHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.impl.tasks.WfAuditHelper;
-import com.evolveum.midpoint.wf.impl.tasks.WfNotificationHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -69,6 +67,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.wf.api.CompleteAction.getWorkItems;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.F_EVENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.ESCALATE;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -86,11 +87,13 @@ public class WorkflowEngine {
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 	@Autowired private AuditService auditService;
-	@Autowired private WfAuditHelper auditHelper;
-	@Autowired private WfNotificationHelper notificationHelper;
-	@Autowired private WfStageComputeHelper stageComputeHelper;
+	@Autowired private AuditHelper auditHelper;
+	@Autowired private NotificationHelper notificationHelper;
+	@Autowired private StageComputeHelper stageComputeHelper;
 	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;   // todo
 	@Autowired private MiscHelper miscHelper;
+	@Autowired private TriggerHelper triggerHelper;
+	@Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
 
 	public <CTX extends EngineInvocationContext> void startProcessInstance(CTX ctx, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
 
@@ -348,7 +351,7 @@ public class WorkflowEngine {
 		ApprovalStageDefinitionType stageDef = WfContextUtil.getCurrentStageDefinition(ctx.aCase);
 //		List<StageCompletionEventType> stageEvents = WfContextUtil.getEventsForCurrentStage(ctx.wfContext, StageCompletionEventType.class);
 		boolean approved;
-		WfStageComputeHelper.ComputationResult preStageComputationResult = ctx.getPreStageComputationResult();
+		StageComputeHelper.ComputationResult preStageComputationResult = ctx.getPreStageComputationResult();
 		if (preStageComputationResult != null) {
 			ApprovalLevelOutcomeType outcome = preStageComputationResult.getPredeterminedOutcome();
 			switch (outcome) {
@@ -391,7 +394,7 @@ public class WorkflowEngine {
 			}
 		}
 
-		MidpointUtil.removeAllStageTriggersForWorkItem(ctx.aCase, result);
+		triggerHelper.removeAllStageTriggersForWorkItem(ctx.aCase, result);
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Closing the stage for approval process instance {} (case oid {}), stage {}: result of this stage: {}",
@@ -494,10 +497,10 @@ public class WorkflowEngine {
 			event.setOutput(output);
 			ObjectDeltaType additionalDelta = output instanceof WorkItemResultType && ((WorkItemResultType) output).getAdditionalDeltas() != null ?
 					((WorkItemResultType) output).getAdditionalDeltas().getFocusPrimaryDelta() : null;
-			MidpointUtil.recordEventInCase(event, additionalDelta, ctx.getCaseOid(), result);
+			recordEventInCase(event, additionalDelta, ctx.getCaseOid(), result);
 		}
 
-		MidpointUtil.removeTriggersForWorkItem(ctx.aCase, workItemId, result);
+		triggerHelper.removeTriggersForWorkItem(ctx.aCase, workItemId, result);
 
 		LOGGER.trace("--- onWorkItemClosure EXIT: workItem={}, ctx={}, realClosure={}", workItem, ctx, realClosure);
 	}
@@ -723,10 +726,10 @@ public class WorkflowEngine {
 		repositoryService.modifyObject(CaseType.class, ctx.getCaseOid(), workItemDeltas, result);
 
 		fillInWorkItemEvent(event, principal, workItemId, workItem, prismContext);
-		MidpointUtil.recordEventInCase(event, null, ctx.getCaseOid(), result);
+		recordEventInCase(event, null, ctx.getCaseOid(), result);
 
 		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(ctx.aCase);
-		MidpointUtil.createTriggersForTimedActions(workItemId, escalationLevel,
+		triggerHelper.createTriggersForTimedActions(workItemId, escalationLevel,
 				XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
 				XmlTypeConverter.toDate(workItem.getDeadline()), ctx.aCase, level.getTimedActions(), result);
 
@@ -768,7 +771,7 @@ public class WorkflowEngine {
 
 		ApprovalStageDefinitionType stageDef = WfContextUtil.getCurrentStageDefinition(ctx.aCase);
 
-		WfStageComputeHelper.ComputationResult computationResult =
+		StageComputeHelper.ComputationResult computationResult =
 				stageComputeHelper.computeStageApprovers(stageDef,
 						() -> stageComputeHelper.getDefaultVariables(ctx.aCase, ctx.getWfContext(), ctx.opTask.getChannel(), result), ctx.opTask, result);
 
@@ -822,10 +825,8 @@ public class WorkflowEngine {
 			}
 			if (stageDef.getAdditionalInformation() != null) {
 				try {
-					WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
-					WfStageComputeHelper stageComputer = SpringApplicationContextHolder.getStageComputeHelper();
-					ExpressionVariables variables = stageComputer.getDefaultVariables(ctx.aCase, ctx.getWfContext(), ctx.getChannel(), result);
-					List<InformationType> additionalInformation = evaluator.evaluateExpression(stageDef.getAdditionalInformation(), variables,
+					ExpressionVariables variables = stageComputeHelper.getDefaultVariables(ctx.aCase, ctx.getWfContext(), ctx.getChannel(), result);
+					List<InformationType> additionalInformation = expressionEvaluationHelper.evaluateExpression(stageDef.getAdditionalInformation(), variables,
 							"additional information expression", InformationType.class, InformationType.COMPLEX_TYPE,
 							true, this::createInformationType, ctx.opTask, result);
 					workItem.getAdditionalInformation().addAll(additionalInformation);
@@ -837,7 +838,7 @@ public class WorkflowEngine {
 		}
 		createWorkItems(ctx, workItems, result);
 		for (CaseWorkItemType workItem : workItems) {
-			MidpointUtil.createTriggersForTimedActions(createWorkItemId(ctx, workItem), 0,
+			triggerHelper.createTriggersForTimedActions(createWorkItemId(ctx, workItem), 0,
 					XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
 					XmlTypeConverter.toDate(workItem.getDeadline()), ctx.aCase, stageDef.getTimedActions(), result);
 		}
@@ -887,7 +888,7 @@ public class WorkflowEngine {
 		event.setStageNumber(stageNumber);
 		event.setAutomatedDecisionReason(reason);
 		event.setOutcome(ApprovalUtils.toUri(outcome));
-		MidpointUtil.recordEventInCase(event, null, taskOid, opResult);
+		recordEventInCase(event, null, taskOid, opResult);
 	}
 
 	@NotNull
@@ -901,6 +902,32 @@ public class WorkflowEngine {
 			throw new ObjectNotFoundException("No work item " + id.id + " in " + caseObject);
 		}
 		return pcv.asContainerable();
+	}
+
+	// additional delta is a bit hack ... TODO refactor (but without splitting the modify operation!)
+	private void recordEventInCase(CaseEventType event, ObjectDeltaType additionalDelta, String caseOid, OperationResult result) {
+		try {
+			S_ItemEntry deltaBuilder = prismContext.deltaFor(CaseType.class)
+					.item(F_EVENT).add(event);
+
+			if (additionalDelta != null) {
+				PrismObject<CaseType> aCase = repositoryService.getObject(CaseType.class, caseOid, null, result);
+				WfPrimaryChangeProcessorStateType state = WfContextUtil
+						.getPrimaryChangeProcessorState(aCase.asObjectable().getWorkflowContext());
+				ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(state.getDeltasToProcess(),
+						additionalDelta, prismContext);
+				ItemPath deltasToProcessPath = ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE,
+						WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);		// assuming it already exists!
+				ItemDefinition<?> deltasToProcessDefinition = prismContext.getSchemaRegistry()
+						.findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
+						.findItemDefinition(WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);
+				deltaBuilder = deltaBuilder.item(deltasToProcessPath, deltasToProcessDefinition)
+						.replace(updatedDelta);
+			}
+			repositoryService.modifyObject(CaseType.class, caseOid, deltaBuilder.asItemDeltas(), result);
+		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+			throw new SystemException("Couldn't record decision to the case " + caseOid + ": " + e.getMessage(), e);
+		}
 	}
 
 }

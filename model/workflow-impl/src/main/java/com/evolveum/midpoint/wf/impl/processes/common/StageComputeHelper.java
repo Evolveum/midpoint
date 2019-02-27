@@ -16,28 +16,25 @@
 
 package com.evolveum.midpoint.wf.impl.processes.common;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -45,40 +42,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getMiscDataUtil;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 
 /**
- * @author mederly
+ * Helps with computing things needed for stage approval (e.g. approvers, auto-approval result, ...)
  */
 @Component
-public class WfStageComputeHelper {
+public class StageComputeHelper {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(WfStageComputeHelper.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(StageComputeHelper.class);
 
-	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
+	@Autowired private ExpressionEvaluationHelper evaluationHelper;
 	@Autowired private PrismContext prismContext;
+	@Autowired private MiscHelper miscHelper;
+	@Autowired private RepositoryService repositoryService;
 
 	public ExpressionVariables getDefaultVariables(CaseType aCase,
 			WfContextType wfContext, String requestChannel, OperationResult result)
 			throws SchemaException {
 
-		MiscDataUtil miscDataUtil = getMiscDataUtil();
-
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(C_REQUESTER,
-				miscDataUtil.resolveObjectReference(aCase.getRequestorRef(), result));
-		variables.addVariableDefinition(C_OBJECT,
-				miscDataUtil.resolveObjectReference(aCase.getObjectRef(), result));
+		variables.addVariableDefinition(C_REQUESTER, miscHelper.resolveObjectReference(aCase.getRequestorRef(), result));
+		variables.addVariableDefinition(C_OBJECT, miscHelper.resolveObjectReference(aCase.getObjectRef(), result));
 		// might be null
-		variables.addVariableDefinition(C_TARGET,
-				miscDataUtil.resolveObjectReference(aCase.getTargetRef(), result));
+		variables.addVariableDefinition(C_TARGET, miscHelper.resolveObjectReference(aCase.getTargetRef(), result));
 		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, getFocusPrimaryDelta(wfContext));
 		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, requestChannel);
 		variables.addVariableDefinition(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext);
@@ -199,7 +196,7 @@ public class WfStageComputeHelper {
 
 			LOGGER.trace("Approvers at the stage {} (before potential group expansion) are: {}", stageDef, rv.approverRefs);
 			if (stageDef.getGroupExpansion() == GroupExpansionType.ON_WORK_ITEM_CREATION) {
-				rv.approverRefs = MidpointUtil.expandGroups(rv.approverRefs);       // see MID-4105
+				rv.approverRefs = expandGroups(rv.approverRefs);       // see MID-4105
 				LOGGER.trace("Approvers at the stage {} (after group expansion) are: {}", stageDef, rv.approverRefs);
 			}
 
@@ -244,5 +241,43 @@ public class WfStageComputeHelper {
 			}
 		};
 	}
+
+	private Set<ObjectReferenceType> expandGroups(Set<ObjectReferenceType> approverRefs) {
+		Set<ObjectReferenceType> rv = new HashSet<>();
+		for (ObjectReferenceType approverRef : approverRefs) {
+			@SuppressWarnings({ "unchecked", "raw" })
+			Class<? extends Containerable> clazz = (Class<? extends Containerable>)
+					prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(approverRef.getType());
+			if (clazz == null) {
+				throw new IllegalStateException("Unknown object type " + approverRef.getType());
+			}
+			if (UserType.class.isAssignableFrom(clazz)) {
+				rv.add(approverRef.clone());
+			} else if (AbstractRoleType.class.isAssignableFrom(clazz)) {
+				rv.addAll(expandAbstractRole(approverRef));
+			} else {
+				LOGGER.warn("Unexpected type {} for approver: {}", clazz, approverRef);
+				rv.add(approverRef.clone());
+			}
+		}
+		return rv;
+	}
+
+	private Collection<ObjectReferenceType> expandAbstractRole(ObjectReferenceType approverRef) {
+		ObjectQuery query = prismContext.queryFor(UserType.class)
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverRef.asReferenceValue())
+				.build();
+		try {
+			return repositoryService
+					.searchObjects(UserType.class, query, null, new OperationResult("dummy"))
+					.stream()
+					.map(o -> ObjectTypeUtil.createObjectRef(o, prismContext))
+					.collect(Collectors.toList());
+		} catch (SchemaException e) {
+			throw new SystemException("Couldn't resolve " + approverRef + ": " + e.getMessage(), e);
+		}
+	}
+
+
 }
 

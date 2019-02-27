@@ -44,11 +44,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
+import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
+import com.evolveum.midpoint.wf.impl.processors.ModelHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.impl._temp.TemporaryHelper;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.springframework.beans.factory.BeanNameAware;
@@ -73,14 +71,12 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     @Qualifier("cacheRepositoryService")
     protected RepositoryService repositoryService;
 
-    @Autowired protected TemporaryHelper temporaryHelper;
     @Autowired protected PrimaryChangeProcessor changeProcessor;
     @Autowired protected PrimaryChangeAspectHelper primaryChangeAspectHelper;
-    @Autowired protected BaseConfigurationHelper baseConfigurationHelper;
+    @Autowired protected ConfigurationHelper configurationHelper;
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
-    @Autowired protected MiscDataUtil miscDataUtil;
-	@Autowired protected BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+	@Autowired protected ModelHelper modelHelper;
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private MappingFactory mappingFactory;
 	@Autowired protected ApprovalSchemaHelper approvalSchemaHelper;

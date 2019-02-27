@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +80,7 @@ public interface ChangeProcessor {
      * know in advance whether other processors would not want to process the invocation from the model.
      */
     @Nullable
-    HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType, @NotNull Task task, @NotNull OperationResult result)
+    HookOperationMode processModelInvocation(@NotNull ModelInvocationContext<?> ctx, @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
@@ -116,12 +116,7 @@ public interface ChangeProcessor {
     AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
             CaseType aCase, OperationResult result);
 
-    /**
-     * Auxiliary method to access autowired Spring beans from within non-spring java objects.
-     *
-     * @return
-     */
-    MiscDataUtil getMiscDataUtil();
+    MiscHelper getMiscHelper();
 
     PrismContext getPrismContext();
 

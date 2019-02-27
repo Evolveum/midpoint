@@ -28,16 +28,16 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.impl.processors.MiscHelper;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -156,7 +156,7 @@ public class ApprovalMetadataHelper {
         List<String> rv = new ArrayList<>();
         for (CaseWorkItemType workItem : aCase.getWorkItem()) {
             if (ApprovalUtils.isApproved(workItem.getOutput()) && StringUtils.isNotBlank(workItem.getOutput().getComment())) {
-                rv.add(formatter.formatComment(workItem, task, result));
+                CollectionUtils.addIgnoreNull(rv, formatter.formatComment(workItem, task, result));
             }
         }
         LOGGER.trace("approver comments = {}", rv);

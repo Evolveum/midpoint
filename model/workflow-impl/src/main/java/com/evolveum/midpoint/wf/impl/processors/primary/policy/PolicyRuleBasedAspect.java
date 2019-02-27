@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 import static com.evolveum.midpoint.schema.util.LocalizationUtil.createLocalizableMessageType;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
-import static com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper.getFocusObjectNewOrOld;
 
 /**
  *
@@ -93,7 +92,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		List<PcpStartInstruction> instructions = new ArrayList<>();
 		if (objectTreeDeltas.getFocusChange() != null) {
-			PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(ctx.task, result);
+			PrismObject<UserType> requester = ctx.getRequestor(result);
 			assignmentPolicyAspectPart.extractAssignmentBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
 			objectPolicyAspectPart.extractObjectBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
 		}
@@ -143,8 +142,10 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			return null;
 		}
 		Map<QName, Object> variables = new HashMap<>();
-		variables.put(ExpressionConstants.VAR_OBJECT, getFocusObjectNewOrOld(ctx.modelContext));
-		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(asPrismObject(getFocusObjectNewOrOld(ctx.modelContext)), false)));
+		ObjectType focusObject = ctx.getFocusObjectNewOrOld();
+		variables.put(ExpressionConstants.VAR_OBJECT, focusObject);
+		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION,
+				createLocalizableMessageType(createDisplayInformation(asPrismObject(focusObject), false)));
 		if (evaluatedAssignment != null) {
 			variables.put(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget());
 			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(evaluatedAssignment.getTarget(), false)));

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -1475,4 +1476,20 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public List<String> getOperationApproverComments() {
 		return operationApproverComments;
 	}
+
+	@Override
+	@NotNull
+	public ObjectTreeDeltas<F> getTreeDeltas() {
+		ObjectTreeDeltas<F> objectTreeDeltas = new ObjectTreeDeltas<>(getPrismContext());
+		if (getFocusContext() != null && getFocusContext().getPrimaryDelta() != null) {
+			objectTreeDeltas.setFocusChange(getFocusContext().getPrimaryDelta().clone());
+		}
+		for (ModelProjectionContext projectionContext : getProjectionContexts()) {
+			if (projectionContext.getPrimaryDelta() != null) {
+				objectTreeDeltas.addProjectionChange(projectionContext.getResourceShadowDiscriminator(), projectionContext.getPrimaryDelta());
+			}
+		}
+		return objectTreeDeltas;
+	}
+
 }

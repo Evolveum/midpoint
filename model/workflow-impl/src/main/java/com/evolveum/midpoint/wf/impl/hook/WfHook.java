@@ -23,6 +23,8 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,8 +40,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
+import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
@@ -67,11 +70,13 @@ public class WfHook implements ChangeHook {
 
     private static final String WORKFLOW_HOOK_URI = "http://midpoint.evolveum.com/model/workflow-hook-1";        // todo
 
+    @Autowired private PrismContext prismContext;
     @Autowired private WfConfiguration wfConfiguration;
-    @Autowired private BaseConfigurationHelper baseConfigurationHelper;
+    @Autowired private ConfigurationHelper configurationHelper;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private WorkflowManager workflowManager;
     @Autowired private ClockworkMedic medic;
+    @Autowired private RepositoryService repositoryService;
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
     private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
@@ -96,7 +101,7 @@ public class WfHook implements ChangeHook {
         result.addParam("task", task.toString());
         result.addArbitraryObjectAsContext("model state", context.getState());
         try {
-            WfConfigurationType wfConfigurationType = baseConfigurationHelper.getWorkflowConfiguration(context, result);
+            WfConfigurationType wfConfigurationType = configurationHelper.getWorkflowConfiguration(context, result);
             // TODO consider this if it's secure enough
             if (wfConfigurationType != null && Boolean.FALSE.equals(wfConfigurationType.isModelHookEnabled())) {
                 LOGGER.info("Workflow model hook is disabled. Proceeding with operation execution as if everything is approved.");
@@ -163,13 +168,16 @@ public class WfHook implements ChangeHook {
     }
 
     private HookOperationMode processModelInvocation(@NotNull ModelContext<? extends ObjectType> modelContext,
-            WfConfigurationType wfConfigurationType, @NotNull Task taskFromModel, @NotNull OperationResult result) {
+            WfConfigurationType wfConfigurationType, @NotNull Task opTask, @NotNull OperationResult result) {
         try {
             modelContext.reportProgress(new ProgressInformation(WORKFLOWS, ENTERING));
+            ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfigurationType, prismContext, repositoryService,
+                    opTask
+            );
             for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
                 LOGGER.trace("Trying change processor: {}", changeProcessor.getClass().getName());
                 try {
-                    HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(modelContext, wfConfigurationType, taskFromModel, result);
+                    HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(ctx, result);
                     if (hookOperationMode != null) {
                         return hookOperationMode;
                     }

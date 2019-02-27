@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.tasks;
+package com.evolveum.midpoint.wf.impl.engine;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -34,9 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 @Component
-public class WfNotificationHelper {
+public class NotificationHelper {
 
-	private static final Trace LOGGER = TraceManager.getTrace(WfNotificationHelper.class);
+	private static final Trace LOGGER = TraceManager.getTrace(NotificationHelper.class);
 
 	private Set<ProcessListener> processListeners = ConcurrentHashMap.newKeySet();
 	private Set<WorkItemListener> workItemListeners = ConcurrentHashMap.newKeySet();

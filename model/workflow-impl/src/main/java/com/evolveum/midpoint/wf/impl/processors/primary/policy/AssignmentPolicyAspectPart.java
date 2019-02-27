@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -52,10 +54,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
-import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
+import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -66,11 +67,10 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
+import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper.getFocusObjectNewOrOld;
-import static com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper.getFocusObjectOid;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
@@ -86,9 +86,8 @@ public class AssignmentPolicyAspectPart {
 
 	@Autowired private PolicyRuleBasedAspect main;
 	@Autowired protected ApprovalSchemaHelper approvalSchemaHelper;
-	@Autowired protected MiscDataUtil miscDataUtil;
 	@Autowired protected PrismContext prismContext;
-	@Autowired protected BaseConfigurationHelper baseConfigurationHelper;
+	@Autowired protected ConfigurationHelper configurationHelper;
 	@Autowired protected LocalizationService localizationService;
 	@Autowired protected ModelInteractionService modelInteractionService;
 
@@ -174,10 +173,28 @@ public class AssignmentPolicyAspectPart {
 
 		ObjectDelta<? extends ObjectType> focusDelta = objectTreeDeltas.getFocusChange();
 		if (focusDelta.isAdd()) {
-			miscDataUtil.generateFocusOidIfNeeded(ctx.modelContext, focusDelta);
+			generateFocusOidIfNeeded(ctx.modelContext, focusDelta);
 		}
 		return prepareAssignmentRelatedStartInstruction(approvalSchemaResult, evaluatedAssignment, deltaToApprove,
 				assignmentMode, requester, ctx, result);
+	}
+
+	private void generateFocusOidIfNeeded(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change) {
+		if (modelContext.getFocusContext().getOid() != null) {
+			return;
+		}
+
+		String newOid = OidUtil.generateOid();
+		LOGGER.trace("This is ADD operation with no focus OID provided. Generated new OID to be used: {}", newOid);
+		if (change.getChangeType() != ADD) {
+			throw new IllegalStateException("Change type is not ADD for no-oid focus situation: " + change);
+		} else if (change.getObjectToAdd() == null) {
+			throw new IllegalStateException("Object to add is null for change: " + change);
+		} else if (change.getObjectToAdd().getOid() != null) {
+			throw new IllegalStateException("Object to add has already an OID present: " + change);
+		}
+		change.getObjectToAdd().setOid(newOid);
+		((LensFocusContext<?>) modelContext.getFocusContext()).setOid(newOid);
 	}
 
 	private <T extends ObjectType> ObjectDelta<T> factorOutAssignmentModifications(EvaluatedAssignment<?> evaluatedAssignment,
@@ -217,7 +234,7 @@ public class AssignmentPolicyAspectPart {
 					+ "\nPrimary delta:\n" + objectTreeDeltas.debugDump();
 			throw new IllegalStateException(message);
 		}
-		String objectOid = getFocusObjectOid(ctx.modelContext);
+		String objectOid = ctx.getFocusObjectOid();
 		return assignmentToDelta(ctx.modelContext.getFocusClass(),
 				evaluatedAssignment.getAssignmentType(), assignmentRemoved, objectOid);
 	}
@@ -248,7 +265,7 @@ public class AssignmentPolicyAspectPart {
 
 		// (1) legacy approvers (only if adding)
 		LegacyApproversSpecificationUsageType configuredUseLegacyApprovers =
-				baseConfigurationHelper.getUseLegacyApproversSpecification(ctx.wfConfiguration);
+				configurationHelper.getUseLegacyApproversSpecification(ctx.wfConfiguration);
 		boolean useLegacyApprovers = configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.ALWAYS
 				|| configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION
 				&& triggeredApprovalRules.isEmpty();
@@ -271,7 +288,7 @@ public class AssignmentPolicyAspectPart {
 
 		// (2) default policy action (only if adding)
 		if (triggeredApprovalRules.isEmpty() && assignmentMode == PLUS
-				&& baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
+				&& configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 			if (builder.addPredefined(targetObject, RelationKindType.APPROVER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found for {}", evaluatedAssignment);
 			}
@@ -298,7 +315,7 @@ public class AssignmentPolicyAspectPart {
 
 		LocalizableMessage processName = main.createProcessName(builderResult, evaluatedAssignment, ctx, result);
 		if (main.useDefaultProcessName(processName)) {
-			processName = createDefaultProcessName(modelContext, assignmentMode, target);
+			processName = createDefaultProcessName(ctx, assignmentMode, target);
 		}
 		String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());
 
@@ -311,7 +328,7 @@ public class AssignmentPolicyAspectPart {
 
 		instruction.setDeltasToProcess(deltaToApprove);
 
-		instruction.setObjectRef(modelContext);
+		instruction.setObjectRef(ctx);
 		instruction.setTargetRef(createObjectRef(target, prismContext), result);
 
 //		String taskNameInDefaultLocale = localizationService.translate(
@@ -326,10 +343,10 @@ public class AssignmentPolicyAspectPart {
 		return instruction;
 	}
 
-	private LocalizableMessage createDefaultProcessName(ModelContext<?> modelContext, PlusMinusZero assignmentMode,
+	private LocalizableMessage createDefaultProcessName(ModelInvocationContext<?> ctx, PlusMinusZero assignmentMode,
 			PrismObject<? extends ObjectType> target) {
 
-		ObjectType focus = getFocusObjectNewOrOld(modelContext);
+		ObjectType focus = ctx.getFocusObjectNewOrOld();
 
 		String operationKey;
 		switch (assignmentMode) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.tasks;
+package com.evolveum.midpoint.wf.impl.processors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -31,8 +31,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
-import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
@@ -106,13 +104,13 @@ public class StartInstruction implements DebugDumpable {
     }
 
 	public void setObjectRef(ObjectReferenceType ref, OperationResult result) {
-		ref = getChangeProcessor().getMiscDataUtil().resolveObjectReferenceName(ref, result);
+		ref = getChangeProcessor().getMiscHelper().resolveObjectReferenceName(ref, result);
 		aCase.setObjectRef(ref);
 	}
 
-	public void setObjectRef(ModelContext<?> modelContext) {
-		ObjectType focus = BaseModelInvocationProcessingHelper.getFocusObjectNewOrOld(modelContext);
-		ObjectDelta<?> primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
+	public void setObjectRef(ModelInvocationContext<?> ctx) {
+		ObjectType focus = ctx.getFocusObjectNewOrOld();
+		ObjectDelta<?> primaryDelta = ctx.modelContext.getFocusContext().getPrimaryDelta();
 		ObjectReferenceType ref;
 		if (primaryDelta != null && primaryDelta.isAdd()) {
 			ref = ObjectTypeUtil.createObjectRefWithFullObject(focus, getPrismContext());
@@ -123,7 +121,7 @@ public class StartInstruction implements DebugDumpable {
 	}
 
 	public void setTargetRef(ObjectReferenceType ref, OperationResult result) {
-		ref = getChangeProcessor().getMiscDataUtil().resolveObjectReferenceName(ref, result);
+		ref = getChangeProcessor().getMiscHelper().resolveObjectReferenceName(ref, result);
 		aCase.setTargetRef(ref);
 	}
 

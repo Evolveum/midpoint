@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary.entitlements;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,18 +27,20 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
-import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -71,12 +74,12 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     public List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas objectTreeDeltas,
 			@NotNull ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         List<Request> approvalRequestList =
-                getApprovalRequests(ctx.modelContext, baseConfigurationHelper.getPcpConfiguration(ctx.wfConfiguration),
+                getApprovalRequests(ctx.modelContext, configurationHelper.getPcpConfiguration(ctx.wfConfiguration),
                         objectTreeDeltas, ctx.task, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }
-        return prepareJobCreateInstructions(ctx.modelContext, ctx.task, result, approvalRequestList);
+        return prepareJobCreateInstructions(ctx, result, approvalRequestList);
     }
 
     private List<Request> getApprovalRequests(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType,
@@ -115,10 +118,26 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             if (isAssociationRelevant(config, itemToApprove, rsd, modelContext, taskFromModel, result)) {
                 approvalRequestList.add(createApprovalRequest(config, itemToApprove, modelContext, taskFromModel, result));
                 associationIterator.remove();
-                miscDataUtil.generateProjectionOidIfNeeded(modelContext, shadowType, rsd);
+                generateProjectionOidIfNeeded(modelContext, shadowType, rsd);
             }
         }
         return approvalRequestList;
+    }
+
+    private void generateProjectionOidIfNeeded(ModelContext<?> modelContext, ShadowType shadow, ResourceShadowDiscriminator rsd) {
+        if (shadow.getOid() != null) {
+            return;
+        }
+        String newOid = OidUtil.generateOid();
+        LOGGER.trace("This is ADD operation with no shadow OID for {} provided. Generated new OID to be used: {}", rsd, newOid);
+        shadow.setOid(newOid);
+        LensProjectionContext projCtx = ((LensProjectionContext) modelContext.findProjectionContext(rsd));
+        if (projCtx == null) {
+            throw new IllegalStateException("No projection context for " + rsd + " could be found");
+        } else if (projCtx.getOid() != null) {
+            throw new IllegalStateException("No projection context for " + rsd + " has already an OID: " + projCtx.getOid());
+        }
+        projCtx.setOid(newOid);
     }
 
     private AssociationAdditionType createItemToApprove(ShadowAssociationType a, ResourceShadowDiscriminator rsd) {
@@ -202,14 +221,13 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         }
     }
 
-    private List<PcpStartInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel,
-                                 OperationResult result, List<Request> approvalRequestList)
+    private List<PcpStartInstruction> prepareJobCreateInstructions(ModelInvocationContext<?> ctx, OperationResult result,
+            List<Request> approvalRequestList)
             throws SchemaException, ObjectNotFoundException {
 
         List<PcpStartInstruction> instructions = new ArrayList<>();
-        String assigneeName = BaseModelInvocationProcessingHelper.getFocusObjectName(modelContext);
-        //String assigneeOid = BaseModelInvocationProcessingHelper.getFocusObjectOid(modelContext);
-        PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
+        String assigneeName = ctx.getFocusObjectName();
+        PrismObject<UserType> requester = ctx.getRequestor(result);
 
         for (Request approvalRequest : approvalRequestList) {
 
@@ -230,13 +248,13 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 							approvalRequest.schema, null);
 
             // set some common task/process attributes
-            instruction.prepareCommonAttributes(this, modelContext, requester);
+            instruction.prepareCommonAttributes(this, ctx.modelContext, requester);
 
             // prepare and set the delta that has to be approved
-            ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(modelContext, associationAddition);
+            ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(ctx.modelContext, associationAddition);
             instruction.setDeltasToProcess(objectTreeDeltas);
 
-            instruction.setObjectRef(modelContext);     // TODO - or should we take shadow as an object?
+            instruction.setObjectRef(ctx);     // TODO - or should we take shadow as an object?
             instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target, prismContext), result);
 
             // set the names of midPoint task and process instance
@@ -296,8 +314,23 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
     private ShadowType getAssociationApprovalTarget(ShadowAssociationType association, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return primaryChangeAspectHelper.resolveTargetUnchecked(association, result);
+        if (association == null) {
+            return null;
+        }
+        ObjectReferenceType shadowRef = association.getShadowRef();
+        if (shadowRef == null || shadowRef.getOid() == null) {
+            throw new IllegalStateException("None or null-OID shadowRef in " + association);
+        }
+        PrismObject<ShadowType> shadow = shadowRef.asReferenceValue().getObject();
+        if (shadow == null) {
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+                    GetOperationOptions.createNoFetch());
+            shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), options, result);
+            shadowRef.asReferenceValue().setObject(shadow);
+        }
+        return shadow.asObjectable();
     }
+
 
     @NotNull
     private ApprovalSchemaType getSchemaFromConfig(PcpAspectConfigurationType config, @NotNull PrismContext prismContext) {

@@ -16,13 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.processors;
 
-import java.util.Arrays;
-import java.util.List;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,6 +25,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Helper class used to configure a change processor. (Expects the processor to be a subclass of BaseChangeProcessor;
@@ -41,18 +37,12 @@ import com.evolveum.midpoint.wf.impl.WfConfiguration;
  */
 
 @Component
-public class BaseConfigurationHelper {
+public class ConfigurationHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(BaseConfigurationHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ConfigurationHelper.class);
 
-    private static final String KEY_ENABLED = "enabled";
-    private static final List<String> KNOWN_KEYS = Arrays.asList(KEY_ENABLED);
-
-    @Autowired
-    private WfConfiguration wfConfiguration;
-
-    @Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
+    @Autowired private WfConfiguration wfConfiguration;
+    @Autowired private SystemObjectCache systemObjectCache;
 
     public void registerProcessor(BaseChangeProcessor changeProcessor) {
         wfConfiguration.registerProcessor(changeProcessor);
@@ -63,7 +53,7 @@ public class BaseConfigurationHelper {
             SystemConfigurationType systemConfigurationType = context.getSystemConfiguration().asObjectable();
             return systemConfigurationType.getWorkflowConfiguration();
         }
-        PrismObject<SystemConfigurationType> systemConfigurationTypePrismObject = null;
+        PrismObject<SystemConfigurationType> systemConfigurationTypePrismObject;
         try {
             systemConfigurationTypePrismObject = systemObjectCache.getSystemConfiguration(result);
         } catch (SchemaException e) {

@@ -30,7 +30,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType;
@@ -46,15 +45,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChan
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_RESULTING_DELTAS;
 
 /**
- * Temporarily no responsibilities here.
- *
- * @author mederly
+ * Methods generally useful for Primary change processor and its components.
  */
 @Component
 public class PcpGeneralHelper {
     private static final Trace LOGGER = TraceManager.getTrace(PcpGeneralHelper.class);
 
-    @Autowired private BaseConfigurationHelper baseConfigurationHelper;
     @Autowired private PrismContext prismContext;
     @Autowired private RepositoryService repositoryService;
 

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -45,13 +46,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getExpressionFactory;
-
 /**
  * @author mederly
  */
 @Component
-public class WfExpressionEvaluationHelper {
+public class ExpressionEvaluationHelper {
+
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private PrismContext prismContext;
 
 	public List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
 			ExpressionVariables variables, String contextDescription,
@@ -77,8 +79,6 @@ public class WfExpressionEvaluationHelper {
 			boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
 			OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ExpressionFactory expressionFactory = getExpressionFactory();
-		PrismContext prismContext = expressionFactory.getPrismContext();
 		MutableItemDefinition<?> resultDef;
 		ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
 		if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {
