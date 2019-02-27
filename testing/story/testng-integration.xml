@@ -29,7 +29,8 @@
             <class name="com.evolveum.midpoint.testing.story.TestUniversity"/>
             <class name="com.evolveum.midpoint.testing.story.TestUnix"/>
             <class name="com.evolveum.midpoint.testing.story.TestUnixTolerantAux"/>
-            <class name="com.evolveum.midpoint.testing.story.TestUuid"/>
+            <class name="com.evolveum.midpoint.testing.story.uuid.TestUuidClient"/>
+            <class name="com.evolveum.midpoint.testing.story.uuid.TestUuidExtension"/>
             <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapFlat"/>
             <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapNested"/>
             <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapHierarchical"/>

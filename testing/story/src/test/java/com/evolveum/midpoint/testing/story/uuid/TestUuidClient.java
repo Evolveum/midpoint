@@ -1,6 +1,6 @@
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.testing.story.uuid;
 /*
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -33,6 +34,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -45,19 +47,13 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestUuid extends AbstractStoryTest {
-	
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "uuid");
-	
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
-	
-	public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
-	public static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
-		
-	protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-		
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
+public class TestUuidClient extends AbstractUuidTest {
+
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration-client.xml");
+
+	protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj-client.xml");
+
 	public static final File ROLE_CLIENT_FILE = new File(TEST_DIR, "role-client.xml");
 	public static final String ROLE_CLIENT_OID = "10000000-0000-0000-0000-000000000601";
 	public static final String ROLE_CLIENT_NAME = "Client";
@@ -86,35 +82,14 @@ public class TestUuid extends AbstractStoryTest {
 	private static final String USER_MARTY_NAME = "marty";
 	private static final String USER_MARTY_GIVEN_NAME = "Mad";
 	private static final String USER_MARTY_FAMILY_NAME = "Marty";
-	
-	protected ResourceType resourceOpenDjType;
-	protected PrismObject<ResourceType> resourceOpenDj;
-	
+
 	protected String userRappOid;
 	protected String userMancombOid;
 	
 	@Override
-    protected void startResources() throws Exception {
-        openDJController.startCleanServer();
-    }
-
-    @AfterClass
-    public static void stopResources() throws Exception {
-        openDJController.stop();
-    }
-	
-	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
-		// Resources		
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
-		
-		// Object Templates
-		importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
-				
+
 		// Role
 		importObjectFromFile(ROLE_CLIENT_FILE, initResult);
 				
@@ -124,28 +99,20 @@ public class TestUuid extends AbstractStoryTest {
 	}
 	
 	@Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_FILE;
+	protected File getResourceOpenDjFile() {
+		return RESOURCE_OPENDJ_FILE;
 	}
 
-	@Test
-    public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
-        
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
-        TestUtil.assertSuccess(testResultOpenDj);
-        
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
+	@Override
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
 	}
 	
 	@Test
     public void test100AddUserRapp() throws Exception {
 		final String TEST_NAME = "test100AddUserRapp";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> user = createNoNameUser(USER_RAPP_GIVEN_NAME, USER_RAPP_FAMILY_NAME, true);
@@ -154,9 +121,8 @@ public class TestUuid extends AbstractStoryTest {
         addObject(user, task, result);
         
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        assertSuccess(result);
+
         userRappOid = user.getOid();
         
         user = getUser(userRappOid);
@@ -166,8 +132,8 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test101RappAssignRoleClient() throws Exception {
 		final String TEST_NAME = "test101RappAssignRoleClient";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -187,9 +153,9 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test107RappUnAssignRoleClient() throws Exception {
 		final String TEST_NAME = "test107RappUnAssignRoleClient";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
-        
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+
         // WHEN
         unassignRole(userRappOid, ROLE_CLIENT_OID);
         
@@ -202,8 +168,8 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test110AddMancombWithRoleClient() throws Exception {
 		final String TEST_NAME = "test110AddMancombWithRoleClient";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> user = createClientUser(null, null, USER_MANCOMB_GIVEN_NAME, USER_MANCOMB_FAMILY_NAME, true);
@@ -212,8 +178,7 @@ public class TestUuid extends AbstractStoryTest {
         addObject(user, task, result);
         
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
         userMancombOid = user.getOid();
         
         PrismObject<UserType> userAfter = getUser(userMancombOid);
@@ -228,8 +193,8 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test112RenameMancomb() throws Exception {
 		final String TEST_NAME = "test112RenameMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         try {
@@ -251,29 +216,28 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test119MancombDelete() throws Exception {
 		final String TEST_NAME = "test119MancombDelete";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
         deleteObject(UserType.class, userMancombOid, task, result);
         
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        assertSuccess(result);
+
         assertNoObject(UserType.class, userMancombOid, task, result);
         openDJController.assertNoEntry("uid="+userMancombOid+",ou=clients,dc=example,dc=com");
 	}
 	
 	/**
-	 * Kate nas a name. But no OID.
+	 * Kate has a name. But no OID.
 	 */
 	@Test
     public void test120AddKateWithRoleClient() throws Exception {
 		final String TEST_NAME = "test120AddKateWithRoleClient";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> user = createClientUser(null, USER_KATE_NAME, USER_KATE_GIVEN_NAME, USER_KATE_FAMILY_NAME, true);
@@ -282,9 +246,8 @@ public class TestUuid extends AbstractStoryTest {
         addObject(user, task, result);
         
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        assertSuccess(result);
+
         PrismObject<UserType> userAfter = getUser(USER_KATE_NAME);
         assertUser(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
         assertLdapClient(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
@@ -296,8 +259,8 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test122AddWallyWithRoleClient() throws Exception {
 		final String TEST_NAME = "test122AddWallyWithRoleClient";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> user = createClientUser(USER_WALLY_OID, null, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME, true);
@@ -306,9 +269,8 @@ public class TestUuid extends AbstractStoryTest {
         addObject(user, task, result);
         
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        assertSuccess(result);
+
         PrismObject<UserType> userAfter = getUser(USER_WALLY_OID);
         assertUser(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
         assertLdapClient(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
@@ -320,8 +282,8 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test124AddRogersWithRoleClient() throws Exception {
 		final String TEST_NAME = "test124AddMartyWithRoleClient";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> user = createClientUser(USER_ROGERS_OID, USER_ROGERS_OID, USER_ROGERS_GIVEN_NAME, USER_ROGERS_FAMILY_NAME, true);
@@ -330,9 +292,8 @@ public class TestUuid extends AbstractStoryTest {
         addObject(user, task, result);
         
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        assertSuccess(result);
+
         PrismObject<UserType> userAfter = getUser(USER_ROGERS_OID);
         assertUser(userAfter, USER_ROGERS_GIVEN_NAME, USER_ROGERS_FAMILY_NAME);
         assertLdapClient(userAfter, USER_ROGERS_GIVEN_NAME, USER_ROGERS_FAMILY_NAME);
@@ -344,8 +305,8 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test126AddMartyWithRoleClient() throws Exception {
 		final String TEST_NAME = "test124AddMartyWithRoleClient";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> user = createClientUser(USER_MARTY_OID, USER_MARTY_NAME, USER_MARTY_GIVEN_NAME, USER_MARTY_FAMILY_NAME, true);
@@ -357,8 +318,7 @@ public class TestUuid extends AbstractStoryTest {
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// This is expected
-        	result.computeStatus();
-        	TestUtil.assertFailure(result);
+        	assertFailure(result);
         }
         
         // THEN
@@ -386,6 +346,10 @@ public class TestUuid extends AbstractStoryTest {
 		display("OpenDJ shadow linked to "+user, shadow);
 		IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid="+user.getOid()+",ou=clients,dc=example,dc=com");
 		// TODO: cn, sn, givenName
+		
+		// MID-5114
+		assertAttribute(resourceOpenDj, shadow.asObjectable(), ATTR_ROOM_NUMBER, user.getOid());
+		assertAttribute(resourceOpenDj, shadow.asObjectable(), ATTR_MOBILE, user.getOid());
 	}
 	
 	private void assertNoLdapClient(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {

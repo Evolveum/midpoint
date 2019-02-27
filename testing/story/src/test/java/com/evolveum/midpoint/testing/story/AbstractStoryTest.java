@@ -74,6 +74,10 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 	
 	protected static final File TASK_VALIDITY_SCANNER_FILE = new File(COMMON_DIR, "task-validity-scanner.xml");
 	protected static final String TASK_VALIDITY_SCANNER_OID = "00000000-0000-0000-0000-000000000006";
+	
+	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+	protected static final QName PIRACY_SHIP_QNAME = new QName(NS_PIRACY, "ship");
+	protected static final ItemPath PATH_EXTENSION_SHIP = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_SHIP_QNAME);
 
 	protected MatchingRule<String> caseIgnoreMatchingRule;
 	
