@@ -50,7 +50,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task coordinatorTask, TaskPartitionDefinitionType partition) {
+	public TaskRunResult run(RunningTask coordinatorTask, TaskPartitionDefinitionType partition) {
 		OperationResult opResult = new OperationResult(OperationConstants.AUDIT_REINDEX + ".run");
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
@@ -79,10 +79,10 @@ public class AuditReindexTaskHandler implements TaskHandler {
 		try {
 			LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
 
-			coordinatorTask.setProgress(0);
+			coordinatorTask.setProgress(0L);
 			coordinatorTask.setExpectedTotal(expectedTotal);
 			try {
-				coordinatorTask.savePendingModifications(opResult);
+				coordinatorTask.flushPendingModifications(opResult);
 			} catch (ObjectAlreadyExistsException e) { // other exceptions are handled in the outer try block
 				throw new IllegalStateException(
 						"Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal",

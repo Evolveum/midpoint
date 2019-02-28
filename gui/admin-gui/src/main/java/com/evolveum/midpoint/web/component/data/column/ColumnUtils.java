@@ -121,7 +121,7 @@ public class ColumnUtils {
 
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId, IModel<SelectableBean<O>> rowModel) {
-				DisplayType displayType = getDisplayTypeForRowObject(rowModel, pageBase);
+				DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(rowModel.getObject().getValue(), pageBase);
 				if (displayType != null){
 					String disabledStyle = "";
 					if (rowModel.getObject().getValue() instanceof FocusType) {
@@ -154,17 +154,6 @@ public class ColumnUtils {
 			}
 		};
 
-	}
-
-	private static <O extends ObjectType> DisplayType getDisplayTypeForRowObject(IModel<SelectableBean<O>> rowModel, PageBase pageBase){
-		O object = rowModel.getObject().getValue();
-		if (object != null) {
-			ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
-			if (archetypePolicy != null) {
-				return archetypePolicy.getDisplay();
-			}
-		}
-		return null;
 	}
 
 	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel){
@@ -215,7 +204,7 @@ public class ColumnUtils {
 						createStringResource("ThreeStateBooleanPanel.true") : createStringResource("ThreeStateBooleanPanel.false");
 
 		}
-		return null;
+		return Model.of();
 	}
 
 	private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){

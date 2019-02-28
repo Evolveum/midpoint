@@ -200,7 +200,7 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
         WizardSteps steps = (WizardSteps) get(createComponentPath(ID_FORM, ID_STEPS));
         IModel<List<WizardStepDto>> stepsModel = steps.getModel();
         stepsModel.getObject().get(index).setActive(true);
-        steps.updateModal();
+//        steps.updateModal();
     }
 
     @Override

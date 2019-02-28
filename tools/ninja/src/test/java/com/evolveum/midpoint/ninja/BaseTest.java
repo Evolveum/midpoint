@@ -27,7 +27,7 @@ public class BaseTest {
 
     private static final File TARGET_HOME = new File("./target/home");
 
-    public static final String RESOURCES_FOLDER = "./target/test-classes/xml";
+    public static final String RESOURCES_FOLDER = "./target/test-classes";
 
     private List<String> systemOut;
     private List<String> systemErr;
@@ -140,6 +140,8 @@ public class BaseTest {
                 }
             } catch (IOException ex) {
             }
+            systemOut.forEach(s -> System.out.println(s));
+            systemErr.forEach(s -> System.err.println(s));
         }
     }
 

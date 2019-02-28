@@ -68,6 +68,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
@@ -854,6 +855,21 @@ public class RepositoryCache implements RepositoryService {
 			globalCache.remove(key);
 
 			throw ex;
+		}
+	}
+
+	@Override
+	public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		delay(modifyRandomDelayRange);
+		Long startTime = repoOpStart();
+		try {
+			repositoryService.addDiagnosticInformation(type, oid, information, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
+			// the object in cache
+			invalidateCacheEntry(type, oid);
 		}
 	}
 }

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,9 +66,9 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private ObjectClassComplexTypeDefinition objectClassDef;
 	private QName sourceChannel;
 	private boolean forceAdd;
-	
+
 	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
-			String processShortName, Task coordinatorTask, ResourceObjectChangeListener objectChangeListener,
+			String processShortName, RunningTask coordinatorTask, ResourceObjectChangeListener objectChangeListener,
 			TaskPartitionDefinitionType stageType, TaskManager taskManager) {
 		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, stageType, taskManager);
 		this.objectChangeListener = objectChangeListener;
@@ -113,14 +113,14 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		return objectClassDef;
 	}
 
-	
+
 	/**
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account
 	 * was created and invoke notification interface.
 	 */
 	@Override
-	protected boolean handleObject(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
+	protected boolean handleObject(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
 		long started = System.currentTimeMillis();
 		try {
 			workerTask.recordIterativeOperationStart(accountShadow.asObjectable());
@@ -138,7 +138,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		}
 	}
 
-	protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
+	protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), accountShadow.debugDump(1));
@@ -207,20 +207,20 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		objectChangeListener.notifyChange(change, workerTask, result);
 		
 		LOGGER.info("#### notify chnage finished.");
-		
+
 		// No exception thrown here. The error is indicated in the result. Will be processed by superclass.
 		return workerTask.canRun();
 	}
-	
+
 	private boolean isShadowUnknown(ShadowType shadowType) {
 		if (ShadowKindType.UNKNOWN == shadowType.getKind()) {
 			return true;
 		}
-		
+
 		if (SchemaConstants.INTENT_UNKNOWN.equals(shadowType.getIntent())) {
 			return true;
 		}
-		
+
 		return false;
 	}
 }

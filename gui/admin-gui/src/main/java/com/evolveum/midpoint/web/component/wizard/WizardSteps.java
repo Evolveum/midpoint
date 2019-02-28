@@ -115,6 +115,7 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHelpPerformed(target);
+                updateModal();
             }
         };
         add(help);
@@ -130,8 +131,8 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
     public void updateModal(){
         WizardHelpDialog window = (WizardHelpDialog)get(ID_HELP_MODAL);
 
-        if(window != null){
-            AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).get();
+        if(window != null && getRequestCycle().find(AjaxRequestTarget.class).isPresent()){
+        	AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).get();
             window.updateModal(target ,getActiveStep());
         }
     }

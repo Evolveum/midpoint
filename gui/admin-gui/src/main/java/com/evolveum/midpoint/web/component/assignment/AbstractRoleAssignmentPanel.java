@@ -200,7 +200,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         RefFilter targetRefFilter = null;
         if (targetType != null){
             ObjectReferenceType ort = new ObjectReferenceType();
-            ort.setType(getAssignmentType());
+            ort.setType(targetType);
             ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
             targetRefFilter = (RefFilter) getParentPage().getPrismContext().queryFor(AssignmentType.class)
                     .item(AssignmentType.F_TARGET_REF)

@@ -27,12 +27,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -65,6 +68,7 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -91,6 +95,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -110,6 +115,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
@@ -1243,5 +1249,73 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check conflicts for {}", e, watcher.getOid());
 	    }
 	    return watcher.hasConflict();
+    }
+
+    /**
+     * This is an approximate implementation, not taking care of two clients appending the diag information concurrently.
+     * So there could be situations when obsolete information is not removed because of this.
+     */
+    @Override
+    public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information,
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = parentResult.createMinorSubresult(ADD_DIAGNOSTIC_INFORMATION);
+        try {
+            PrismObject<T> object = getObject(type, oid, null, result);
+            boolean canStoreInfo = pruneDiagnosticInformation(type, oid, information,
+                    object.asObjectable().getDiagnosticInformation(), result);
+            if (canStoreInfo) {
+                List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(type)
+                        .item(ObjectType.F_DIAGNOSTIC_INFORMATION).add(information)
+                        .asItemDeltas();
+                modifyObject(type, oid, modifications, result);
+            }
+            result.computeStatus();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't add diagnostic information: " + t.getMessage(), t);
+            throw t;
+        }
+    }
+
+    // TODO replace by something in system configuration (postponing until this feature is used more)
+
+    private static final Map<String,Integer> DIAG_INFO_CLEANUP_POLICY = new HashMap<>();
+    static {
+        DIAG_INFO_CLEANUP_POLICY.put(SchemaConstants.TASK_THREAD_DUMP_URI, 5);
+        DIAG_INFO_CLEANUP_POLICY.put(null, 2);
+    }
+
+    // returns true if the new information can be stored
+    private <T extends ObjectType> boolean pruneDiagnosticInformation(Class<T> type, String oid,
+            DiagnosticInformationType newInformation, List<DiagnosticInformationType> oldInformationList,
+            OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        String infoType = newInformation.getType();
+        if (infoType == null) {
+            throw new IllegalArgumentException("Diagnostic information type is not specified");
+        }
+        Integer limit;
+        if (DIAG_INFO_CLEANUP_POLICY.containsKey(infoType)) {
+            limit = DIAG_INFO_CLEANUP_POLICY.get(infoType);
+        } else {
+            limit = DIAG_INFO_CLEANUP_POLICY.get(null);
+        }
+        LOGGER.trace("Limit for diagnostic information of type '{}': {}", infoType, limit);
+        if (limit != null) {
+            List<DiagnosticInformationType> oldToPrune = oldInformationList.stream()
+                    .filter(i -> infoType.equals(i.getType()))
+                    .collect(Collectors.toList());
+            int pruneToSize = limit > 0 ? limit-1 : 0;
+            if (oldToPrune.size() > pruneToSize) {
+                oldToPrune.sort(Comparator.nullsFirst(Comparator.comparing(i -> XmlTypeConverter.toDate(i.getTimestamp()))));
+                List<DiagnosticInformationType> toDelete = oldToPrune.subList(0, oldToPrune.size() - pruneToSize);
+                LOGGER.trace("Going to delete {} diagnostic information values", toDelete.size());
+                List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(type)
+                        .item(ObjectType.F_DIAGNOSTIC_INFORMATION).deleteRealValues(toDelete)
+                        .asItemDeltas();
+                modifyObject(type, oid, modifications, result);
+            }
+            return limit > 0;
+        } else {
+            return true;
+        }
     }
 }

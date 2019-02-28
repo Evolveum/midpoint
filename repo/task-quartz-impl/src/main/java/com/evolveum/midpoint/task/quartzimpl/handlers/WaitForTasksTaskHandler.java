@@ -51,7 +51,7 @@ public class WaitForTasksTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
 		OperationResult result = task.getResult().createSubresult(WaitForTasksTaskHandler.class.getName()+".run");
         result.recordInProgress();

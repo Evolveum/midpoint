@@ -20,6 +20,7 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
@@ -126,7 +127,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 
 					@Override
 					protected ObjectFilter getCustomFilter(){
-						return getAssignableItemsFilter();
+						return OrgTreeAssignablePanel.this.getCustomFilter();
 					}
 				};
 
@@ -141,7 +142,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 
 			@Override
 			protected ObjectFilter getAssignableItemsFilter(){
-				return OrgTreeAssignablePanel.this.getAssignableItemsFilter();
+				return OrgTreeAssignablePanel.this.getCustomFilter();
 			}
 
 			@Override
@@ -193,15 +194,32 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 
 	}
 
-	private ObjectFilter getAssignableItemsFilter(){
-		if (getAssignmentOwnerObject() == null){
-			return null;
+	private ObjectFilter getCustomFilter(){
+		ObjectFilter assignableItemsFilter = null;
+		if (getAssignmentOwnerObject() != null){
+			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ITEMS);
+			OperationResult result = task.getResult();
+			assignableItemsFilter = WebComponentUtil.getAssignableRolesFilter(getAssignmentOwnerObject().asPrismObject(), OrgType.class,
+					isInducement() ? WebComponentUtil.AssignmentOrder.INDUCEMENT : WebComponentUtil.AssignmentOrder.ASSIGNMENT,
+					result, task, getPageBase());
 		}
-		Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ITEMS);
-		OperationResult result = task.getResult();
-		return WebComponentUtil.getAssignableRolesFilter(getAssignmentOwnerObject().asPrismObject(), OrgType.class,
-				isInducement() ? WebComponentUtil.AssignmentOrder.INDUCEMENT : WebComponentUtil.AssignmentOrder.ASSIGNMENT,
-				result, task, getPageBase());
+
+		ObjectFilter subTypeFilter = getSubtypeFilter();
+		if (subTypeFilter == null){
+			return assignableItemsFilter;
+		} else if (assignableItemsFilter == null) {
+			return subTypeFilter;
+		} else {
+			ObjectQuery query = getPageBase().getPrismContext().queryFactory().createQuery();
+
+			query.addFilter(assignableItemsFilter);
+			query.addFilter(subTypeFilter);
+			return query.getFilter();
+		}
+	}
+
+	protected ObjectFilter getSubtypeFilter(){
+		return null;
 	}
 
 	protected boolean isInducement(){

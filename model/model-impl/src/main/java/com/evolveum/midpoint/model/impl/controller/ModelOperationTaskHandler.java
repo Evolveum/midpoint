@@ -25,11 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,8 +65,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 	@Autowired private Clockwork clockwork;
 
 	@Override
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
-
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
@@ -118,7 +113,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 clockwork.run(context, task, result);
 
 				task.setModelOperationContext(context.toLensContextType(context.getState() == ModelState.FINAL));
-                task.savePendingModifications(result);
+                task.flushPendingModifications(result);
 
                 if (result.isUnknown()) {
                     result.computeStatus();

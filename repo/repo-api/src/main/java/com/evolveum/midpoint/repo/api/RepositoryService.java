@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
@@ -157,6 +158,7 @@ public interface RepositoryService {
 	String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + "advanceSequence";
 	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
 	String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
+	String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
 
 	String KEY_DIAG_DATA = "repositoryDiagData";			// see GetOperationOptions.attachDiagData
 
@@ -655,4 +657,10 @@ public interface RepositoryService {
 	void unregisterConflictWatcher(ConflictWatcher watcher);
 
 	boolean hasConflict(ConflictWatcher watcher, OperationResult result);
+
+	/**
+	 * Adds a diagnostic information, honoring cleanup rules (deleting obsolete records).
+	 */
+	<T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 }

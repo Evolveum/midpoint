@@ -3134,6 +3134,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return taskResult;
 	}
 
+	protected OperationResult waitForTaskNextRun(final String taskOid) throws Exception {
+		return waitForTaskNextRun(taskOid, false, DEFAULT_TASK_WAIT_TIMEOUT, false);
+	}
+	
 	protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
 		return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
 	}

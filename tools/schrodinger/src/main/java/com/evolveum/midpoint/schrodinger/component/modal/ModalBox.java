@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.schrodinger.component.common;
+package com.evolveum.midpoint.schrodinger.component.modal;
 
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.Component;

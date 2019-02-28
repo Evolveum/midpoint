@@ -77,7 +77,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
     //region Body
     @Override
-    public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
         TaskRunResult.TaskRunResultStatus status = TaskRunResult.TaskRunResultStatus.FINISHED;
 

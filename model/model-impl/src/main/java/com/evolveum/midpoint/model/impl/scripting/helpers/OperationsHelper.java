@@ -29,6 +29,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -134,8 +136,9 @@ public class OperationsHelper {
 
     public void recordEnd(ExecutionContext context, ObjectType objectType, long started, Throwable ex) {
         if (context.isRecordProgressAndIterationStatistics()) {
-            if (context.getTask() != null && objectType != null) {
-                context.getTask().recordIterativeOperationEnd(
+            Task task = context.getTask();
+            if (task != null && objectType != null) {
+                task.recordIterativeOperationEnd(
                         PolyString.getOrig(objectType.getName()),
                         StatisticsUtil.getDisplayName(objectType.asPrismObject()),
                         StatisticsUtil.getObjectType(objectType, prismContext),
@@ -143,10 +146,14 @@ public class OperationsHelper {
                         started, ex);
             } else {
                 LOGGER.warn("Couldn't record operation end in script execution; task = {}, objectType = {}",
-                        context.getTask(), objectType);
+                        task, objectType);
             }
-            if (context.getTask() != null) {
-                context.getTask().setProgress(context.getTask().getProgress() + 1);
+            if (task != null) {
+                if (task instanceof RunningTask) {
+                    ((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+                } else {
+                    task.setProgress(task.getProgress() + 1);
+                }
             }
         }
     }

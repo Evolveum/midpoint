@@ -58,8 +58,7 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
 	@Autowired private ModelService modelService;
 
 	@Override
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
-
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 

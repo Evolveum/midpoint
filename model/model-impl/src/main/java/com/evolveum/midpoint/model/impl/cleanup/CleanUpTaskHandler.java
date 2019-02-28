@@ -74,7 +74,7 @@ public class CleanUpTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		LOGGER.trace("CleanUpTaskHandler.run starting");
 		
 		OperationResult opResult = new OperationResult(OperationConstants.CLEANUP);

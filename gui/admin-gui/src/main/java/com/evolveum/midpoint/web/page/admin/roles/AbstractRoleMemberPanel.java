@@ -566,8 +566,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 					target.add(getPageBase().getFeedbackPanel());
 					return;
 				}
+				AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
 				try {
-					MemberOperationsHelper.initObjectForAdd(AbstractRoleMemberPanel.this.getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), type, relations, target);
+					WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), type, relations);
 				} catch (SchemaException e) {
 					throw new SystemException(e.getMessage(), e);
 				}

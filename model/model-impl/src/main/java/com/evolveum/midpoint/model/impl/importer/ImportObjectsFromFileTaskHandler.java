@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Task handler for "Import objects from file" task.
@@ -122,7 +121,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         	PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
         	filenameProp.setRealValue(input.getAbsolutePath());
         	task.setExtensionProperty(filenameProp);
-        	task.savePendingModifications(result);
+        	task.flushPendingModifications(result);
 //            task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
@@ -151,8 +150,8 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
      * The body of the task. This will start the import "loop".
      */
     @Override
-    public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
-
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    
         LOGGER.debug("Import objects from file run (task {})", task);
 
         // This is an operation result for the entire import task. Therefore use the constant for

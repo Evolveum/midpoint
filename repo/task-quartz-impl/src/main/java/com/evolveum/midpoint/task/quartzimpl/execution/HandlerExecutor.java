@@ -23,12 +23,13 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.task.api.WorkBucketAwareTaskHandler;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -58,7 +59,7 @@ public class HandlerExecutor {
 	@Autowired private TaskManagerQuartzImpl taskManagerImpl;
 	
 	
-	public TaskRunResult executeHandler(TaskQuartzImpl task, TaskPartitionDefinitionType partition, TaskHandler handler, OperationResult executionResult) {
+	public TaskRunResult executeHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType partition, TaskHandler handler, OperationResult executionResult) {
 
 		if (handler instanceof WorkBucketAwareTaskHandler) {
 			return executeWorkBucketAwareTaskHandler(task, partition, (WorkBucketAwareTaskHandler) handler, executionResult);
@@ -67,7 +68,7 @@ public class HandlerExecutor {
 		return executePlainTaskHandler(task, partition, handler);
 	}
 
-	private TaskRunResult executePlainTaskHandler(TaskQuartzImpl task, TaskPartitionDefinitionType partition, TaskHandler handler) {
+	private TaskRunResult executePlainTaskHandler(RunningTask task, TaskPartitionDefinitionType partition, TaskHandler handler) {
 		TaskRunResult runResult;
 		try {
 			LOGGER.trace("Executing handler {}", handler.getClass().getName());
@@ -83,7 +84,7 @@ public class HandlerExecutor {
 		return runResult;
 	}
 
-	private TaskRunResult executeWorkBucketAwareTaskHandler(TaskQuartzImpl task, TaskPartitionDefinitionType taskPartition, WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
+	private TaskRunResult executeWorkBucketAwareTaskHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType taskPartition, WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
 		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
 		
 		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
@@ -152,7 +153,7 @@ public class HandlerExecutor {
 		}
 	}
 	
-	private TaskRunResult createFailureTaskRunResult(TaskQuartzImpl task, String message, Throwable t) {
+	private TaskRunResult createFailureTaskRunResult(RunningTask task, String message, Throwable t) {
         TaskRunResult runResult = new TaskRunResult();
         OperationResult opResult;
         if (task.getResult() != null) {
@@ -170,7 +171,7 @@ public class HandlerExecutor {
         return runResult;
     }
 
-	private TaskRunResult createSuccessTaskRunResult(TaskQuartzImpl task) {
+	private TaskRunResult createSuccessTaskRunResult(RunningTask task) {
         TaskRunResult runResult = new TaskRunResult();
         OperationResult opResult;
         if (task.getResult() != null) {
@@ -184,7 +185,7 @@ public class HandlerExecutor {
         return runResult;
     }
 
-	private TaskRunResult createInterruptedTaskRunResult(TaskQuartzImpl task) {
+	private TaskRunResult createInterruptedTaskRunResult(RunningTask task) {
         TaskRunResult runResult = new TaskRunResult();
         OperationResult opResult;
         if (task.getResult() != null) {

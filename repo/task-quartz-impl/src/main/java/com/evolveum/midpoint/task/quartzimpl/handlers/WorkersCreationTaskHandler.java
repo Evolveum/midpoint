@@ -56,8 +56,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
-		
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {		
 		OperationResult opResult = new OperationResult(WorkersCreationTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setProgress(task.getProgress());
@@ -96,7 +95,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 			options.setDontCloseWorkersWhenWorkDone(true);
 			taskManager.reconcileWorkers(task.getOid(), options, opResult);
 			task.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
-			task.savePendingModifications(opResult);
+			task.flushPendingModifications(opResult);
 			taskManager.resumeTasks(TaskUtil.tasksToOids(task.listSubtasks(true, opResult)), opResult);
 			LOGGER.info("Worker tasks were successfully created for coordinator {}", task);
 		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
@@ -119,7 +118,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 					.item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
 					.replace(TaskKindType.COORDINATOR)
 					.asItemDelta();
-			task.addModificationImmediate(itemDelta, opResult);
+			task.modifyAndFlush(itemDelta, opResult);
 		} else if (taskKind != TaskKindType.COORDINATOR) {
 			throw new IllegalStateException("Task has incompatible task kind; expected " + TaskKindType.COORDINATOR +
 					" but having: " + task.getWorkManagement() + " in " + task);

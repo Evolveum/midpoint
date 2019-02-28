@@ -5,7 +5,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.component.common.ModalBox;
+import com.evolveum.midpoint.schrodinger.component.modal.ModalBox;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;

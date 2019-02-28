@@ -372,8 +372,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			LOGGER.error("Cannot search for forced roles", e);
 		}
     	
-    	Collection<AssignmentType> taskAssignments = ctx.task.getTaskType().getAssignment();
-    	for (AssignmentType taskAssignment : taskAssignments) {
+    	for (AssignmentType taskAssignment : ctx.task.getAssignments()) {
     		try {
 				forcedRoles.add(objectResolver.resolve(taskAssignment.getTargetRef(), 
 						getPrismContext().getSchemaRegistry().determineClassForType(taskAssignment.getTargetRef().getType()), null, " resolve task assignemnts ", ctx.task, ctx.result));

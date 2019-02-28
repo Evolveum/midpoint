@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 
+import com.evolveum.midpoint.task.api.*;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -78,11 +79,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -145,8 +141,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
-        // TODO Auto-generated method stub
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         OperationResult parentResult = task.getResult();
         OperationResult result = parentResult.createSubresult(ReportCreateTaskHandler.class.getSimpleName() + ".run");
 
@@ -172,7 +167,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
                     for (Item item : items) {
                         PrismProperty pp = (PrismProperty) item;
                         String paramName = pp.getPath().lastName().getLocalPart();
-                        Object value = null;
+                        Object value;
                         if (isSingleValue(paramName, jasperReport.getParameters())) {
                         	value = pp.getRealValues().iterator().next();
                         } else {

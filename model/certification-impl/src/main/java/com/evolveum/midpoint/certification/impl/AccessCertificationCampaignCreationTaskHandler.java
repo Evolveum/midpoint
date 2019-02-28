@@ -63,7 +63,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 	}
 
 	@Override
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		LOGGER.trace("Task run starting");
 
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");

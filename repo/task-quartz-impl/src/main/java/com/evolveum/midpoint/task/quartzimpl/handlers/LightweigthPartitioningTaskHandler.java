@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskConstants;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
@@ -64,7 +66,7 @@ public class LightweigthPartitioningTaskHandler implements TaskHandler {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 	
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType taskPartition) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType taskPartition) {
 		OperationResult opResult = new OperationResult(LightweigthPartitioningTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 		
@@ -100,7 +102,7 @@ public class LightweigthPartitioningTaskHandler implements TaskHandler {
 		partitions.sort(comparator);
 		for (TaskPartitionDefinitionType partition : partitions) {
 			TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
-			TaskRunResult subHandlerResult = handlerExecutor.executeHandler((TaskQuartzImpl) task, partition, handler, opResult);
+			TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
 //			TaskRunResult subHandlerResult = handler.run(task, partition);
 			OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
 			opResult.addSubresult(subHandlerOpResult);
@@ -124,7 +126,7 @@ public class LightweigthPartitioningTaskHandler implements TaskHandler {
 		return runResult;
 	}
 	
-	private boolean canContinue(Task task, TaskRunResult runResult) {
+	private boolean canContinue(RunningTask task, TaskRunResult runResult) {
 		if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResultStatus.INTERRUPTED) {
             // first, if a task was interrupted, we do not want to change its status
             LOGGER.trace("Task was interrupted, exiting the execution cycle. Task = {}", task);

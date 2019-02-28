@@ -62,7 +62,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task masterTask, TaskPartitionDefinitionType partition) {
+	public TaskRunResult run(RunningTask masterTask, TaskPartitionDefinitionType partition) {
 		
 		OperationResult opResult = new OperationResult(PartitioningTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
@@ -115,7 +115,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 					.item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
 					.replace(TaskKindType.PARTITIONED_MASTER)
 					.asItemDelta();
-			masterTask.addModificationImmediate(itemDelta, opResult);
+			masterTask.modifyAndFlush(itemDelta, opResult);
 		} else if (taskKind != TaskKindType.PARTITIONED_MASTER) {
 			throw new IllegalStateException("Partitioned task has incompatible task kind: " + masterTask.getWorkManagement() + " in " + masterTask);
 		}
@@ -149,7 +149,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 			throw t;
 		}
 		masterTask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
-		masterTask.savePendingModifications(opResult);
+		masterTask.flushPendingModifications(opResult);
 		List<Task> subtasksToResume = subtasksCreated.stream()
 				.filter(t -> t.getExecutionStatus() == TaskExecutionStatus.SUSPENDED)
 				.collect(Collectors.toList());
@@ -175,14 +175,14 @@ public class PartitioningTaskHandler implements TaskHandler {
 	private void scheduleSubtasksNow(List<Task> subtasks, Task masterTask, OperationResult opResult) throws SchemaException,
 			ObjectAlreadyExistsException, ObjectNotFoundException {
 		masterTask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
-		masterTask.savePendingModifications(opResult);
+		masterTask.flushPendingModifications(opResult);
 
 		Set<String> dependents = getDependentTasksIdentifiers(subtasks);
 		// first set dependents to waiting, and only after that start runnables
 		for (Task subtask : subtasks) {
 			if (dependents.contains(subtask.getTaskIdentifier())) {
 				subtask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
-				subtask.savePendingModifications(opResult);
+				subtask.flushPendingModifications(opResult);
 			}
 		}
 		for (Task subtask : subtasks) {
@@ -229,10 +229,10 @@ public class PartitioningTaskHandler implements TaskHandler {
 				subtask.addDependent(dependent.getTaskIdentifier());
 				if (dependent.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
 					dependent.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
-					dependent.savePendingModifications(opResult);
+					dependent.flushPendingModifications(opResult);
 				}
 			}
-			subtask.savePendingModifications(opResult);
+			subtask.flushPendingModifications(opResult);
 		}
 		return subtasks;
 	}
@@ -246,7 +246,6 @@ public class PartitioningTaskHandler implements TaskHandler {
 
 		TaskPartitionDefinition partition = partitionsDefinition.getPartition(masterTask, index);
 
-		TaskType masterTaskBean = masterTask.getTaskType();
 		TaskType subtask = new TaskType(getPrismContext());
 
 		String nameTemplate = applyDefaults(
@@ -285,9 +284,9 @@ public class PartitioningTaskHandler implements TaskHandler {
 		subtask.setWorkManagement(workManagement);
 
 		subtask.setExecutionStatus(TaskExecutionStatusType.SUSPENDED);
-		subtask.setOwnerRef(CloneUtil.clone(masterTaskBean.getOwnerRef()));
+		subtask.setOwnerRef(CloneUtil.clone(masterTask.getOwnerRef()));
 		subtask.setCategory(masterTask.getCategory());
-		subtask.setObjectRef(CloneUtil.clone(masterTaskBean.getObjectRef()));
+		subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRef()));
 		subtask.setRecurrence(TaskRecurrenceType.SINGLE);
 		subtask.setParent(masterTask.getTaskIdentifier());
 		boolean copyMasterExtension = applyDefaults(
@@ -295,9 +294,9 @@ public class PartitioningTaskHandler implements TaskHandler {
 				ps -> ps.isCopyMasterExtension(masterTask),
 				false, partition, partitionsDefinition);
 		if (copyMasterExtension) {
-			PrismContainer<Containerable> masterExtension = masterTaskBean.asPrismObject().findContainer(TaskType.F_EXTENSION);
-			if (masterTaskBean.getExtension() != null) {
-				subtask.asPrismObject().add(masterExtension.clone());
+			PrismContainer<?> masterExtension = masterTask.getExtensionClone();
+			if (masterExtension != null) {
+				subtask.asPrismObject().add(masterExtension);
 			}
 		}
 

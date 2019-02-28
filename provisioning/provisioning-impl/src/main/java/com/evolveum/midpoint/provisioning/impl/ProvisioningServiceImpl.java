@@ -388,12 +388,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings("rawtypes")
 	private PrismProperty getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-		PrismProperty tokenProperty = null;
-		if (task.getExtension() != null) {
-			tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
-		}
+		PrismProperty tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 
-		if (tokenProperty != null && (tokenProperty.getAnyRealValue() == null)) {
+		if (tokenProperty != null && tokenProperty.getAnyRealValue() == null) {
 			LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Empty sync token property:\n{}", tokenProperty.debugDump());

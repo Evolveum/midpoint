@@ -15,6 +15,18 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import java.util.Collection;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -24,18 +36,15 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -57,12 +66,25 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
+import com.evolveum.midpoint.task.api.WorkBucketAwareTaskHandler;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -70,23 +92,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * The task handler for reconciliation.
@@ -110,7 +117,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	public static final String DRY_RUN_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#dryRun";
 	public static final String SIMULATE_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#simulate";
 	public static final String EXECUTE_URI = ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
-	
+
 	/**
 	 * Just for testability. Used in tests. Injected by explicit call to a
 	 * setter.
@@ -167,7 +174,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	
 	
 	@Override
-	public TaskWorkBucketProcessingResult run(Task localCoordinatorTask, WorkBucketType workBucket,
+	public TaskWorkBucketProcessingResult run(RunningTask localCoordinatorTask, WorkBucketType workBucket,
 			TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult) {
 				
 		String handlerUri = localCoordinatorTask.getHandlerUri();
@@ -177,7 +184,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		Stage stage = getStage(handlerUri);
 		LOGGER.trace("ReconciliationTaskHandler.run starting (stage: {})", stage);
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
-		
+
 		LOGGER.info("Recon task: {}", localCoordinatorTask.getTaskPrismObject().debugDump());
 
 		if (BooleanUtils.isTrue(localCoordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY))) {
@@ -390,7 +397,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	private void setExpectedTotalToNull(Task coordinatorTask, OperationResult opResult) {
 		coordinatorTask.setExpectedTotal(null);
 		try {
-			coordinatorTask.savePendingModifications(opResult);
+			coordinatorTask.flushPendingModifications(opResult);
 		} catch (Throwable t) {
 			throw new SystemException("Couldn't update the task: " + t.getMessage(), t);
 		}
@@ -421,7 +428,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
 		try {
 			task.setExtensionPropertyValue(ModelConstants.OBJECTCLASS_PROPERTY_NAME, objectclass);
-			task.savePendingModifications(result);		// just to be sure (if the task was already persistent)
+			task.flushPendingModifications(result);		// just to be sure (if the task was already persistent)
 		} catch (ObjectNotFoundException e) {
 			LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
 			result.recordFatalError("Task object not found", e);
@@ -461,7 +468,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         recordProgress(task, task.getProgress() + 1, opResult);
     }
 
-    private void processInterruption(TaskRunResult runResult, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
+    private void processInterruption(TaskRunResult runResult, PrismObject<ResourceType> resource, RunningTask task, OperationResult opResult) {
         opResult.recordWarning("Interrupted");
         if (LOGGER.isWarnEnabled()) {
             LOGGER.warn("Reconciliation on {} interrupted", resource);
@@ -471,7 +478,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     }
 
     private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
-			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
+			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, RunningTask task, OperationResult opResult) {
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
@@ -501,7 +508,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	// returns false in case of execution interruption
 	private boolean performResourceReconciliation(PrismObject<ResourceType> resource,
 			ObjectClassComplexTypeDefinition objectclassDef, 
-			ReconciliationTaskResult reconResult, Task localCoordinatorTask,
+			ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
 			TaskPartitionDefinitionType partitionDefinition, WorkBucketType workBucket, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
@@ -565,7 +572,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     // returns false in case of execution interruption
 	private boolean performShadowReconciliation(final PrismObject<ResourceType> resource,
 			final ObjectClassComplexTypeDefinition objectclassDef,
-			long startTimestamp, long endTimestamp, ReconciliationTaskResult reconResult, final Task localCoordinatorTask,
+			long startTimestamp, long endTimestamp, ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
 			WorkBucketType workBucket, OperationResult result) throws SchemaException, ObjectNotFoundException {
         boolean interrupted;
 
@@ -711,7 +718,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	 * Scans shadows for unfinished operations and tries to finish them.
      * Returns false if the reconciliation was interrupted.
 	 */
-	private boolean scanForUnfinishedOperations(Task task, String resourceOid, ReconciliationTaskResult reconResult,
+	private boolean scanForUnfinishedOperations(RunningTask task, String resourceOid, ReconciliationTaskResult reconResult,
 			OperationResult result) throws SchemaException {
 		LOGGER.trace("Scan for unfinished operations starting");
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".repoReconciliation");

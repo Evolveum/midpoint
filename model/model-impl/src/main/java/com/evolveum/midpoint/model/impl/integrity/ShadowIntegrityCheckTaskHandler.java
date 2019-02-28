@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -91,7 +92,7 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     }
 
 	@Override
-	protected ShadowIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+	protected ShadowIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
         return new ShadowIntegrityCheckResultHandler(coordinatorTask, ShadowIntegrityCheckTaskHandler.class.getName(),
 				"check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
                 matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache, opResult);

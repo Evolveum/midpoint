@@ -169,7 +169,7 @@ public class WfTaskUtil {
                 .findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
                 .findPropertyDefinition(F_RESULTING_DELTAS);
         ItemPath path = ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS);
-        task.addModification(prismContext.deltaFor(TaskType.class)
+        task.modify(prismContext.deltaFor(TaskType.class)
                 .item(path, def).replace(deltasType)
                 .asItemDelta());
         if (LOGGER.isTraceEnabled()) {
@@ -202,7 +202,7 @@ public class WfTaskUtil {
         if (StringUtils.isNotEmpty(oid)) {
             values.add(createObjectRef(oid, TASK).asReferenceValue());
         }
-        task.addModificationImmediate(
+        task.modifyAndFlush(
                 prismContext.deltaFor(TaskType.class)
                         .item(F_WORKFLOW_CONTEXT, F_ROOT_TASK_REF).replace(values)
                         .asItemDelta(),

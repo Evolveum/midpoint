@@ -90,7 +90,7 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
 	@Override
 	protected FocusSummaryPanel<ServiceType> createSummaryPanel() {
-    	return new ServiceSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    	return new ServiceSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
     }
 
 	@Override

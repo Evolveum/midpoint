@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -183,7 +184,21 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){}
+    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){
+        if (collectionView == null){
+            collectionView = getCollectionViewObject();
+        }
+        ObjectReferenceType collectionViewReference = collectionView != null && collectionView.getCollection() != null ?
+                collectionView.getCollection().getCollectionRef() : null;
+        try {
+            WebComponentUtil.initNewObjectWithReference(PageAdminObjectList.this,
+                    WebComponentUtil.classToQName(getPrismContext(), getType()),
+                    collectionViewReference != null ? Arrays.asList(collectionViewReference) : null);
+        } catch (SchemaException ex){
+            getFeedbackPanel().getFeedbackMessages().error(PageAdminObjectList.this, ex.getUserFriendlyMessage());
+            target.add(getFeedbackPanel());
+        }
+    }
 
     protected ObjectFilter getArchetypeViewFilter(){
         CompiledObjectCollectionView view = getCollectionViewObject();

@@ -432,6 +432,18 @@
 				</xsd:annotation>
 			</xsd:element>
 
+			<xsd:element name="diagnosticInformation" type="tns:DiagnosticInformationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Diagnostic information attached to this object.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
 		</xsd:sequence>
                
         <xsd:attribute name="oid" type="xsd:string" use="optional">
@@ -2750,6 +2762,68 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
+
+	<xsd:complexType name="DiagnosticInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				A diagnostic information attached to an object.
+				It can be put there because of a user request or by midPoint itself.
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="timestamp" type="xsd:dateTime">
+				<xsd:annotation>
+					<xsd:documentation>
+						When the information was created.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="type" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Type of the information (e.g. thread dump).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="cause" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Cause of the information being created (e.g. a user request).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="nodeIdentifier" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identifier of a node where the information was captured.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--<xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Initiator of the attachment of this diagnostic information (if known and applicable).-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+			<xsd:element name="content" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						A textual representation of the information.
+						(It can be augmented/replaced by more structured form using a subclass of DiagnosticInformationType.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:complexType name="TaskExecutionConstraintsType">
 		<xsd:annotation>

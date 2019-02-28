@@ -67,7 +67,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 

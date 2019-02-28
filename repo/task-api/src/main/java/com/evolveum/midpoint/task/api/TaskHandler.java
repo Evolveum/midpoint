@@ -30,12 +30,13 @@ import java.util.List;
  */
 public interface TaskHandler {
 
-	default TaskRunResult run(Task task) {
-		return run(task);
+
+	default TaskRunResult run(RunningTask task) {
+		return run(task, null);
 	}
 	
 	@Experimental
-	TaskRunResult run(Task task, TaskPartitionDefinitionType partitionDefinition);
+	TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition);
 
 	default Long heartbeat(Task task) {
 		return null;

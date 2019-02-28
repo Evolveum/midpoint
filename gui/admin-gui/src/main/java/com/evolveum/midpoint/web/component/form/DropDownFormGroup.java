@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
@@ -76,6 +77,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
                             boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
                             boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        labelContainer.add(new VisibleBehaviour(() -> label != null && StringUtils.isNotEmpty(label.getObject())));
         add(labelContainer);
 
         Label l = new Label(ID_LABEL, label);

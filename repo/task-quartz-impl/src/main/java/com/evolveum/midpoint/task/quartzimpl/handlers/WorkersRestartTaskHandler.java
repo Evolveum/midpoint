@@ -60,7 +60,7 @@ public class WorkersRestartTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		
 		OperationResult opResult = new OperationResult(WorkersRestartTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();

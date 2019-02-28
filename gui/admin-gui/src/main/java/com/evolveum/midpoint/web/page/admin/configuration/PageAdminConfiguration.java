@@ -84,7 +84,7 @@ public class PageAdminConfiguration extends PageAdmin {
 		task.setExtensionProperty(rawProp);
 
 		task.setName(taskName);
-		task.savePendingModifications(result);
+		task.flushPendingModifications(result);
 
 		TaskManager taskManager = getTaskManager();
 		taskManager.switchToBackground(task, result);

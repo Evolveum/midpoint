@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.sync;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.task.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,15 +31,10 @@ import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHan
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -94,13 +90,14 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 	}
 
 	@Override
-	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
-				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
+				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", partition, taskManager) {
+			
 			@Override
-			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+			protected boolean handleObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
 				recompute(object, getOptions(coordinatorTask), workerTask, partition, result);
 				return true;
 			}

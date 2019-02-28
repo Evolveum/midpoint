@@ -52,7 +52,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
 	@FunctionalInterface
 	public interface Processor {
-    	void process(Task task, WorkBucketType bucket, int index);
+    	void process(RunningTask task, WorkBucketType bucket, int index);
 	}
 
 	private Processor processor;
@@ -78,7 +78,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 	}
 
 	@Override
-	public TaskWorkBucketProcessingResult run(Task task, WorkBucketType workBucket,
+	public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
 			TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
 		LOGGER.info("Run starting (id = {}); task = {}", id, task);
 
