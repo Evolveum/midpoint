@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationPolicyAc
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -256,7 +257,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	@NotNull
 	@Override
-	protected AbstractScannerResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractScannerResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractScannerResultHandler<FocusType> handler = new AbstractScannerResultHandler<FocusType>(

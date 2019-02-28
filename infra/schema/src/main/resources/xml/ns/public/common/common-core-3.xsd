@@ -1209,6 +1209,7 @@
 			<!--</xsd:element>-->
 		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="TaskWorkManagementType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -2744,21 +2745,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="stage" type="tns:TaskStageType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Stage of the task. Some task can have different processing stages. E.g. reconciliation
-								task can have:
-									- situation stage in which only the situation for shadows is computed
-									- simulation stage in which all changes are computed but nothing is executed
-									- execution state in which the full reconciliation is run
-								Supported stages are defined per task type.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>4.0</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -3303,42 +3289,6 @@
         </xsd:sequence>
     </xsd:complexType>    
 
-    <xsd:complexType name="TaskStageType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Stage type of the task.
-            </xsd:documentation>
-            <xsd:appinfo>
-            	<a:since>4.0</a:since>
-            	<a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="stage" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name identifying task stage.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="errorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines which errors are critical and should stop the task in the defined stage.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processingOption" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Define if the specified stage is executed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-         
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="UriStack">
         <xsd:annotation>
             <xsd:documentation>
@@ -3649,8 +3599,85 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			 <xsd:element name="stage" type="tns:ExecutionModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name identifying task stage.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="errorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines which errors are critical and should stop the task in the defined stage.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processingOption" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Define if the specified stage is executed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	 <xsd:simpleType name="ExecutionModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that indicates the activation status of a particular entity.
+                The activation status determines whether the entity is active (enabled)
+                or inactive (disabled, archived, etc.). Please see documentation of individual
+                enumeration values for more details.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="dryRun">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Nothing is executed. Just metadata are handled. E.g. during reconciliation
+                			only situations in shadows are set.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DRY_RUN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="simulate">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Changes are computed, but nothing is executed. E.g. preview changes is run for
+	                		objects and the computed deltas are stored to be processed later. E.g. simulate
+	                		how many changes will be processed during the reconciliation. After reconciliation
+	                		finished, proper action is taked to show results during simulation.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SIMULATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="execute">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Full execution mode. Cahnges are computed and also executed.
+                		</p> 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 	<xsd:complexType name="SchedulerInformationType">
 		<xsd:annotation>

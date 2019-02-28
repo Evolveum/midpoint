@@ -3323,6 +3323,69 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		return result;
 	}
+	
+	protected OperationResult waitForTaskResume(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskResume");
+		Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
+		
+		final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
+		final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
+		
+		taskManager.resumeTask(origTask, waitResult);
+		
+		final Holder<OperationResult> taskResultHolder = new Holder<>();
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws CommonException {
+				Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+				OperationResult taskResult = freshTask.getResult();
+//				display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp)
+//						+ " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+				if (verbose) display("Check result", taskResult);
+				taskResultHolder.setValue(taskResult);
+				if (isError(taskResult, checkSubresult)) {
+                    return true;
+                }
+				if (isUnknown(taskResult, checkSubresult)) {
+					return false;
+				}
+				if (freshTask.getLastRunFinishTimestamp() == null) {
+					return false;
+				}
+				if (freshTask.getLastRunStartTimestamp() == null) {
+					return false;
+				}
+				return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
+						&& !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
+						&& freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
+			}
+			@Override
+			public void timeout() {
+				try {
+					Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+					OperationResult result = freshTask.getResult();
+					LOGGER.debug("Timed-out task:\n{}", freshTask.debugDump());
+					display("Times", "origLastRunStartTimestamp="+longTimeToString(origLastRunStartTimestamp)
+					+ ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
+					+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+					+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" next run. Last result "+result;
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e, e);
+				}
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for task " + origTask + " resume", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+
+		Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+		LOGGER.debug("Final task:\n{}", freshTask.debugDump());
+		display("Times", "origLastRunStartTimestamp="+longTimeToString(origLastRunStartTimestamp)
+		+ ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
+		+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+		+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+
+		return taskResultHolder.getValue();
+	}
 
 	protected void restartTask(String taskOid) throws CommonException {
 

@@ -18,19 +18,38 @@ package com.evolveum.midpoint.repo.api;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * <p>Identity Repository Interface.</p>

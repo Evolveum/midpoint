@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class MockLongTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
 		LOGGER.info("MockLong.run starting (id = {}, progress = {})", id, task.getProgress());
 
 		OperationResult opResult = new OperationResult(MockLongTaskHandler.class.getName()+".run");

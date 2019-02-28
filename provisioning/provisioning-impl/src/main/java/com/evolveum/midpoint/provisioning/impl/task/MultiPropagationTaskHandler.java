@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Task handler for provisioning propagation of many resources.
@@ -74,7 +75,7 @@ public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHand
     }
     
     @Override
-	protected MultiPropagationResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
+	protected MultiPropagationResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
     	
     	MultiPropagationResultHandler handler = new MultiPropagationResultHandler(coordinatorTask, getTaskOperationPrefix(), taskManager, repositoryService, shadowCache);

@@ -62,7 +62,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task masterTask) {
+	public TaskRunResult run(Task masterTask, TaskPartitionDefinitionType partition) {
 		
 		OperationResult opResult = new OperationResult(PartitioningTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();

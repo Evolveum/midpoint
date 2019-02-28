@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,7 +133,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	}
 
 	@Override
-	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<ObjectType>(

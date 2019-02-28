@@ -58,7 +58,7 @@ public class PolicyRuleSuspendTaskExecutor {
 		}
 		
 		for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
-			CounterSepcification counterSpec = counterManager.getCounterSpec(task, policyRule.getPolicyRule());
+			CounterSepcification counterSpec = counterManager.getCounterSpec(task, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
 			LOGGER.trace("Found counter specification {} for {}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
 			
 			int counter = 1;

@@ -64,6 +64,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -174,7 +175,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     }
 
 	@Override
-	protected SynchronizeAccountResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
+	protected SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
 
 		ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
@@ -182,11 +183,11 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 			return null;
 		}
 
-        return createHandler(resource, null, runResult, coordinatorTask, opResult);
+        return createHandler(partition, resource, null, runResult, coordinatorTask, opResult);
 	}
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
-	private SynchronizeAccountResultHandler createHandler(ResourceType resource, PrismObject<ShadowType> shadowToImport,
+	private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, ResourceType resource, PrismObject<ShadowType> shadowToImport,
 			TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
 
 		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, coordinatorTask, opResult);
@@ -197,13 +198,13 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
 
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
-                coordinatorTask, changeNotificationDispatcher, null, taskManager);
+                coordinatorTask, changeNotificationDispatcher, partition, taskManager);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);
         handler.setLogObjectProgress(true);
-
+        
         return handler;
 	}
 
@@ -299,7 +300,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 
     	// Create a result handler just for one object. Invoke the handle() method manually.
     	TaskRunResult runResult = new TaskRunResult();
-		SynchronizeAccountResultHandler resultHandler = createHandler(resource.asObjectable(), shadow, runResult, task, parentResult);
+		SynchronizeAccountResultHandler resultHandler = createHandler(null, resource.asObjectable(), shadow, runResult, task, parentResult);
 		if (resultHandler == null) {
 			return false;
 		}

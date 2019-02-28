@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Task handler for provisioning propagation of one resource.
@@ -82,7 +83,7 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
     }
     
     @Override
-	protected PropagationResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
+	protected PropagationResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
     	
     	String resourceOid = coordinatorTask.getObjectOid();

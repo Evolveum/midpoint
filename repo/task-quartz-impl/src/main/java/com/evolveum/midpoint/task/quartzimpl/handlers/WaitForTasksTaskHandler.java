@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * This is very simple task handler that causes the process to enter WAITING for OTHER_TASKS state.
@@ -50,7 +51,7 @@ public class WaitForTasksTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
 
 		OperationResult result = task.getResult().createSubresult(WaitForTasksTaskHandler.class.getName()+".run");
         result.recordInProgress();

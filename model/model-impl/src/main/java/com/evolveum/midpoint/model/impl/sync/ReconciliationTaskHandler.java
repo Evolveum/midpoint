@@ -69,7 +69,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -164,14 +164,16 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 				.maintainSynchronizationStatistics()
 				.maintainActionsExecutedStatistics();
 	}
-
+	
+	
 	@Override
 	public TaskWorkBucketProcessingResult run(Task localCoordinatorTask, WorkBucketType workBucket,
-			TaskWorkBucketProcessingResult previousRunResult) {
-		
-//		counterManager.registerCounter(localCoordinatorTask, false);
-		
+			TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult) {
+				
 		String handlerUri = localCoordinatorTask.getHandlerUri();
+		if (partitionDefinition != null && partitionDefinition.getHandlerUri() != null) {
+			handlerUri = partitionDefinition.getHandlerUri();
+		}
 		Stage stage = getStage(handlerUri);
 		LOGGER.trace("ReconciliationTaskHandler.run starting (stage: {})", stage);
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
@@ -199,28 +201,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		String resourceOid = localCoordinatorTask.getObjectOid();
 		opResult.addContext("resourceOid", resourceOid);
 		
-		try {
-			
-			Collection<EvaluatedAssignment<TaskType>> evaluatedAssignments = assignmentCollector.collect(localCoordinatorTask.getTaskPrismObject(), systemObjectCache.getSystemConfiguration(opResult), false, localCoordinatorTask, opResult);
-			Set<EvaluatedPolicyRule> evaluatedPolicyRules = new HashSet<>(); 
-			
-			LOGGER.info("Evaluated assignments for task: {}", DebugUtil.debugDumpLazily(evaluatedAssignments));
-			
-			for (EvaluatedAssignment<TaskType> evaluatedAssignment : evaluatedAssignments) {
-				LOGGER.info("Evaluated other policy rules for task: {}", DebugUtil.debugDumpLazily(evaluatedAssignment.getOtherTargetsPolicyRules()));
-				evaluatedPolicyRules.addAll(evaluatedAssignment.getOtherTargetsPolicyRules());
-				
-				LOGGER.info("Evaluated focus policy rules for task: {}", DebugUtil.debugDumpLazily(evaluatedAssignment.getFocusPolicyRules()));
-				evaluatedPolicyRules.addAll(evaluatedAssignment.getFocusPolicyRules());
-				
-				LOGGER.info("Evaluated this policy rules for task: {}", DebugUtil.debugDumpLazily(evaluatedAssignment.getThisTargetPolicyRules()));
-				evaluatedPolicyRules.addAll(evaluatedAssignment.getThisTargetPolicyRules());
-			}
-			evaluatedPolicyRules.forEach(policyRule -> counterManager.registerCounter(localCoordinatorTask, policyRule.getPolicyRule()));
-		} catch (SchemaException e) {
-			throw new SystemException("Cannot collect task thresholds.");
-		}
-
 		if (localCoordinatorTask.getChannel() == null) {
 			localCoordinatorTask.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON_URI);
 		}
@@ -313,7 +293,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		long afterShadowReconTimestamp;
 		try {
 			if (isStage(stage, Stage.SECOND) && !performResourceReconciliation(resource, objectclassDef, reconResult,
-					localCoordinatorTask, workBucket, opResult)) {
+					localCoordinatorTask, partitionDefinition, workBucket, opResult)) {
                 processInterruption(runResult, resource, localCoordinatorTask, opResult);
                 return runResult;
             }
@@ -518,39 +498,11 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		runResult.setRunResultStatus(runResultStatus);
 	}
 	
-	private boolean performResourceReconciliation(PrismObject<ResourceType> resource,
-			ObjectClassComplexTypeDefinition objectclassDef,
-			ReconciliationTaskResult reconResult, Task localCoordinatorTask,
-			WorkBucketType workBucket, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
-	
-		List<TaskStageType> stages = localCoordinatorTask.getTaskType().getStage();
-		if (CollectionUtils.isEmpty(stages)) {
-			TaskStageType defaultStage = new TaskStageType(prismContext);
-			defaultStage.setStage(EXECUTE_URI);
-			return performResourceReconciliationInternal(resource, objectclassDef, defaultStage, 
-					reconResult, localCoordinatorTask, workBucket, result);
-		}
-		
-		boolean canContinue = true;
-		for (TaskStageType stage : stages) {
-			canContinue = performResourceReconciliationInternal(resource, objectclassDef, stage, 
-					reconResult, localCoordinatorTask, workBucket, result);
-			if (!canContinue) {
-				break;
-			}
-		}
-		
-		return canContinue;
-	
-	}
-	
 	// returns false in case of execution interruption
-	private boolean performResourceReconciliationInternal(PrismObject<ResourceType> resource,
-			ObjectClassComplexTypeDefinition objectclassDef, TaskStageType stage,
+	private boolean performResourceReconciliation(PrismObject<ResourceType> resource,
+			ObjectClassComplexTypeDefinition objectclassDef, 
 			ReconciliationTaskResult reconResult, Task localCoordinatorTask,
-			WorkBucketType workBucket, OperationResult result)
+			TaskPartitionDefinitionType partitionDefinition, WorkBucketType workBucket, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
@@ -561,7 +513,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		// Instantiate result handler. This will be called with every search
 		// result in the following iterative search
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
-				objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, stage, taskManager);
+				objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, partitionDefinition, taskManager);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
 		handler.setEnableSynchronizationStatistics(true);
@@ -573,7 +525,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
 			ObjectQuery query = objectclassDef.createShadowSearchQuery(resource.getOid());
 			query = narrowQueryForBucket(query, localCoordinatorTask, workBucket, objectclassDef, opResult);
-
+			
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
 			handler.createWorkerThreads(localCoordinatorTask, searchResult);
@@ -849,4 +801,5 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.RECONCILIATION;
     }
+
 }

@@ -16,6 +16,21 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work;
 
+import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.findBucketByNumber;
+import static java.util.Collections.singletonList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -36,14 +51,14 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
-import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.FoundExisting;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NewBuckets;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
 import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -52,21 +67,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.findBucketByNumber;
-import static java.util.Collections.singletonList;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkAllocationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * Responsible for managing task work state.

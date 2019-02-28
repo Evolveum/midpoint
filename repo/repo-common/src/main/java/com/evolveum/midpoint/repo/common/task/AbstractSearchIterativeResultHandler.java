@@ -47,7 +47,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +91,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 	private List<OperationResult> workerSpecificResults;
 	
-	private TaskStageType stageType;
+	private TaskPartitionDefinitionType stageType;
 
 	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
 			String contextDesc, TaskManager taskManager) {
@@ -99,7 +99,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 	
 	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
-			String contextDesc, TaskStageType taskStageType, TaskManager taskManager) {
+			String contextDesc, TaskPartitionDefinitionType taskStageType, TaskManager taskManager) {
 		super();
 		this.coordinatorTask = coordinatorTask;
 		this.taskOperationPrefix = taskOperationPrefix;
@@ -360,10 +360,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				// Alternative way how to indicate an error.
 				if (isRecordIterationStatistics()) {
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
-							null /* TODO */, object.getOid(), startTime, getException(result));
+							null /* TODO */, object.getOid(), startTime, RepoCommonUtils.getResultException(result));
 				}
 				
-				cont = processError(object, workerTask, getException(result), result);
+				cont = processError(object, workerTask, RepoCommonUtils.getResultException(result), result);
 			} else {
 				if (isRecordIterationStatistics()) {
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
@@ -439,16 +439,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 
 	// TODO implement better
-	protected Throwable getException(OperationResult result) {
-		if (result.getCause() != null) {
-			return result.getCause();
-		} else if (result.getLastSubresult().getCause() != null) {
-			return result.getLastSubresult().getCause();
-		} else {
-			return new SystemException(result.getMessage());
-		}
-	}
-
+	
 	// @pre: result is "error" or ex is not null
 	private boolean processError(PrismObject<O> object, Task task, Throwable ex, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 		int errorsCount = errors.incrementAndGet();
@@ -488,7 +479,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	/**
 	 * @return the stageType
 	 */
-	public TaskStageType getStageType() {
+	public TaskPartitionDefinitionType getStageType() {
 		return stageType;
 	}
 	

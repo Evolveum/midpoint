@@ -59,6 +59,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -92,7 +93,7 @@ public class DeleteTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
 		return runInternal(task);
 	}
 

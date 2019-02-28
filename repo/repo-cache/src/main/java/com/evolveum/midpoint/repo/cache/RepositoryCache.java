@@ -15,15 +15,47 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.ConflictWatcher;
+import com.evolveum.midpoint.repo.api.ModificationPrecondition;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.api.RepositoryPerformanceMonitor;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -35,18 +67,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * Read-through write-through per-session repository cache.

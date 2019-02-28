@@ -28,6 +28,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.impl.messages.QueryProcessCommand;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -87,7 +89,7 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
      *
      */
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
 
 		OperationResult taskResult = WfTaskUtil.getResult(task);
 

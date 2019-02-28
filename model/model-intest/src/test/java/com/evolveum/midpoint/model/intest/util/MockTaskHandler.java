@@ -34,6 +34,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * This task handler does nothing. Used in the tests.
@@ -56,7 +57,7 @@ public class MockTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
 		LOGGER.trace("MockTaskHandler.run starting");
 
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);

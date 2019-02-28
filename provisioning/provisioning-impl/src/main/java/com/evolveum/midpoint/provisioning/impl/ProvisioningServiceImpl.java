@@ -53,6 +53,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -92,6 +93,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Implementation of provisioning service.
@@ -330,8 +332,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 
 		Validate.notNull(shadowCoordinates, "Coordinates oid must not be null.");
 		String resourceOid = shadowCoordinates.getResourceOid();
@@ -349,7 +351,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// Resolve resource
 			PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
 			ResourceType resourceType = resource.asObjectable();
-
+ 
 			LOGGER.trace("Start synchronization of resource {} ", resourceType);
 
 			// getting token form task
@@ -359,20 +361,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-			processedChanges = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, result);
+			processedChanges = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
 			LOGGER.debug("Synchronization of {} done, token {}, {} changes", resource, tokenProperty, processedChanges);
 
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
 			throw e;
 		} catch (ObjectAlreadyExistsException | EncryptionException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
 			throw new SystemException(e);
 		} catch (GenericFrameworkException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result,
 					"Synchronization error: generic connector framework error: " + e.getMessage(), e);
+			result.summarize(true);
 			throw new GenericConnectorException(e.getMessage(), e);
-		}
+		} 
 
 		result.recordSuccess();
 		result.cleanupResult();

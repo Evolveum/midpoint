@@ -16,6 +16,36 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.jdbc.Work;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
@@ -35,13 +65,32 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.api.ConflictWatcher;
+import com.evolveum.midpoint.repo.api.ModificationPrecondition;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.repo.sql.helpers.*;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever;
+import com.evolveum.midpoint.repo.sql.helpers.ObjectUpdater;
+import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
+import com.evolveum.midpoint.repo.sql.helpers.SequenceHelper;
 import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.LabeledString;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,30 +110,16 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.Validate;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.hibernate.jdbc.Work;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import javax.xml.namespace.QName;
-
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * @author lazyman

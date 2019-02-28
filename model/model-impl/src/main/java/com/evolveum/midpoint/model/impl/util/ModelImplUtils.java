@@ -600,26 +600,26 @@ public class ModelImplUtils {
 		return dryRun != null ? dryRun : Boolean.FALSE;
 	}
 	
-	public static boolean canPerformStage(String stageUri, Task task) throws SchemaException {
-		PrismObject<TaskType> taskType = task.getTaskPrismObject();
-		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
-		if (stageType == null) {
-			return false;
-		}
-		
-		String stageTypeRealValue = stageType.getRealValue();
-		return stageUri.equals(stageTypeRealValue);
-	}
+//	public static boolean canPerformStage(String stageUri, Task task) throws SchemaException {
+//		PrismObject<TaskType> taskType = task.getTaskPrismObject();
+//		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
+//		if (stageType == null) {
+//			return false;
+//		}
+//		
+//		String stageTypeRealValue = stageType.getRealValue();
+//		return stageUri.equals(stageTypeRealValue);
+//	}
 	
-	public static String getStageUri(Task task) {
-		PrismObject<TaskType> taskType = task.getTaskPrismObject();
-		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
-		if (stageType == null) {
-			return ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
-		}
-		
-		return stageType.getRealValue();
-	}
+//	public static String getStageUri(Task task) {
+//		PrismObject<TaskType> taskType = task.getTaskPrismObject();
+//		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
+//		if (stageType == null) {
+//			return ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
+//		}
+//		
+//		return stageType.getRealValue();
+//	}
 	
 	static Boolean findItemValue(Task task, QName path) throws SchemaException{
 		Validate.notNull(task, "Task must not be null.");

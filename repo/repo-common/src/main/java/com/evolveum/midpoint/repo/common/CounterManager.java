@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.repo.common;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.datatype.Duration;
@@ -43,52 +45,26 @@ public class CounterManager {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(CounterManager.class);
 
-//	private Map<String, CounterSepcification> countersMapOld = new ConcurrentHashMap<>();
-//	
 	private Map<CounterKey, CounterSepcification> countersMap = new ConcurrentHashMap<>();
-//	
-//	public synchronized void registerCounter(Task task, boolean timeCounter) {
-//		CounterSepcification counterSpec = countersMapOld.get(task.getOid());
-//		if (counterSpec == null) {	
-//			counterSpec = new CounterSepcification();
-//			counterSpec.setCounterStart(clock.currentTimeMillis());
-//			countersMapOld.put(task.getOid(), counterSpec);
-//			return;
-//		} 
-//		
-//		if (timeCounter) {
-//			long currentInMillis = clock.currentTimeMillis();
-//			long start = counterSpec.getCounterStart();
-//			if (start + 3600 * 1000 < currentInMillis) {
-//				counterSpec = new CounterSepcification();
-//				counterSpec.setCounterStart(clock.currentTimeMillis());
-//				countersMapOld.replace(task.getOid(), counterSpec);
-//			}
-//			return;
-//		}
-//		
-//		counterSpec = new CounterSepcification();
-//		counterSpec.setCounterStart(clock.currentTimeMillis());
-//		countersMapOld.replace(task.getOid(), counterSpec);
-//	}
 	
-	public synchronized void registerCounter(Task task, PolicyRuleType policyRule) {
+	public synchronized CounterSepcification registerCounter(Task task, String policyRuleId, PolicyRuleType policyRule) {
 		
 		if (task.getOid() == null) {
 			LOGGER.trace("Not persistent task, skipping registering counter.");
-			return;
+			return null;
 		}
 		
-		CounterKey key = new CounterKey(task.getOid(), policyRule);
+		CounterKey key = new CounterKey(task.getOid(), policyRuleId);
 		CounterSepcification counterSpec = countersMap.get(key);
 		if (counterSpec == null) {	
-			initCleanCounter(policyRule, task);
-			return;
+			return initCleanCounter(key, policyRule);
 		} 
 		
 		if (isResetCounter(counterSpec)) {
-			refreshCounter(key, counterSpec);
+			return refreshCounter(key, counterSpec);
 		}
+		
+		throw new IllegalStateException("Cannot register counter.");
 		
 	}
 	
@@ -102,10 +78,10 @@ public class CounterManager {
 		TimeIntervalType timeInterval = threshold.getTimeInterval();
 		
 		if (timeInterval == null) {
-			return true;
+			return false;
 		}
 		if (timeInterval.getInterval() == null) {
-			return true;
+			return false;
 		}
 		
 		Duration interval = timeInterval.getInterval();
@@ -113,37 +89,65 @@ public class CounterManager {
 		
 	}
 	
-	private CounterSepcification initCleanCounter(PolicyRuleType policyRule, Task task) {
+	public void cleanupCounters(String taskOid) {
+		Set<CounterKey> keys = countersMap.keySet();
+		
+		Set<CounterKey> counersToRemove = new HashSet<>();
+		for (CounterKey key : keys) {
+			if (taskOid.equals(key.oid)) {
+				counersToRemove.add(key);
+			}
+		}
+				
+		for (CounterKey counterToRemove : counersToRemove) {
+			countersMap.remove(counterToRemove);
+		}
+	}
+	
+	private CounterSepcification initCleanCounter(CounterKey key, PolicyRuleType policyRule) {
 		CounterSepcification counterSpec = new CounterSepcification();
 		counterSpec.setCounterStart(clock.currentTimeMillis());
 		counterSpec.setPolicyThreshold(policyRule.getPolicyThreshold());
-		countersMap.put(new CounterKey(task.getOid(), policyRule), counterSpec);
+		countersMap.put(key, counterSpec);
 		return counterSpec;
 	}
 	
-	private void refreshCounter(CounterKey key, CounterSepcification counterSpec) {
+	private CounterSepcification refreshCounter(CounterKey key, CounterSepcification counterSpec) {
 		counterSpec.reset(clock.currentTimeMillis());
 		countersMap.replace(key, counterSpec);
+		return counterSpec;
 	}
 	
-	public CounterSepcification getCounterSpec(Task task, PolicyRuleType policyRule) {
+	public CounterSepcification getCounterSpec(Task task, String policyRuleId, PolicyRuleType policyRule) {
 		if (task.getOid() == null) {
 			LOGGER.trace("Cannot get counter spec for task without oid");
 			return null;
 		}
 		
 		LOGGER.trace("Getting counter spec for {} and {}", task, policyRule);
-		return countersMap.get(new CounterKey(task.getOid(), policyRule));
+		CounterKey key = new CounterKey(task.getOid(), policyRuleId);
+		CounterSepcification counterSpec = countersMap.get(key);
+		
+		if (counterSpec == null) {
+			return registerCounter(task, policyRuleId, policyRule);
+		}
+		
+		if (isResetCounter(counterSpec)) {
+			counterSpec = refreshCounter(key, counterSpec);
+		}
+		
+		
+		return counterSpec;
 	}
 	
 	class CounterKey {
 		
 		private String oid;
-		private PolicyRuleType policyRule;
+		private String policyRuleId;
 		
-		public CounterKey(String oid, PolicyRuleType policyRule) {
+		public CounterKey(String oid, String policyRuleId) {
 			this.oid = oid;
-			this.policyRule = policyRule;
+			this.policyRuleId = policyRuleId;
 		}
 		
 		@Override
@@ -155,16 +159,16 @@ public class CounterManager {
 
 			CounterKey cacheKey = (CounterKey) o;
 
-			if (policyRule != null ? !policyRule.equals(cacheKey.policyRule) : cacheKey.policyRule != null)
+			if (policyRuleId != null ? !policyRuleId.equals(cacheKey.policyRuleId) : cacheKey.policyRuleId != null)
 				return false;
 			return oid != null ? oid.equals(cacheKey.oid) : cacheKey.oid == null;
 		}
 
 		@Override
 		public int hashCode() {
-			int result = policyRule != null ? policyRule.hashCode() : 0;
+			int result = policyRuleId != null ? policyRuleId.hashCode() : 0;
 			result = 31 * result + (oid != null ? oid.hashCode() : 0);
-			LOGGER.trace("hashCode {} for {}{}", result, oid, policyRule);
+			LOGGER.trace("hashCode {} for {}{}", result, oid, policyRuleId);
 			return result;
 		}
 	}

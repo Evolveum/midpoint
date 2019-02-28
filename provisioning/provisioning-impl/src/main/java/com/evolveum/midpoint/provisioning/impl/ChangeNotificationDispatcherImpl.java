@@ -29,6 +29,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -269,7 +271,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			Task task, OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectNotFoundException,
-			GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+			GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 		Validate.notNull(eventDescription, "Event description must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {

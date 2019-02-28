@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Scanner that looks for pending operations in the shadows and updates the status.
@@ -95,7 +96,7 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 	}
 
 	@Override
-	protected AbstractScannerResultHandler<ShadowType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractScannerResultHandler<ShadowType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractScannerResultHandler<ShadowType> handler = new AbstractScannerResultHandler<ShadowType>(

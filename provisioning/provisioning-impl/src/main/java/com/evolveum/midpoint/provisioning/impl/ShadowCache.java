@@ -36,7 +36,9 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -48,6 +50,7 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -2329,13 +2332,17 @@ public class ShadowCache {
 	///////////////////////////////////////////////////////////////////////////
 
 	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, PrismProperty<?> lastToken,
-			Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+			Task task, TaskPartitionDefinitionType partition, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 					GenericFrameworkException, SchemaException, ConfigurationException,
-					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
+					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException, PolicyViolationException, PreconditionViolationException {
 
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
 		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
+		boolean isSimulate = false;
+		if (partition != null && ExecutionModeType.SIMULATE == partition.getStage()) {
+			isSimulate = true;
+		}
 
 		List<Change> changes;
 		try {
@@ -2350,7 +2357,9 @@ public class ShadowCache {
 
 				if (change.isTokenOnly()) {
 					LOGGER.trace("Found token-only change: {}", change);
-					task.setExtensionProperty(change.getToken());
+					if (!isSimulate) {
+						task.setExtensionProperty(change.getToken());
+					}
 					continue;
 				}
 
@@ -2396,20 +2405,23 @@ public class ShadowCache {
 							"Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
 				}
-				boolean isSuccess = processSynchronization(shadowCtx, change, parentResult);
-                                
-                                boolean retryUnhandledError = true;
-                                if (task.getExtension() != null) {
-                                      PrismProperty tokenRetryUnhandledErrProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED);
-                                      
-                                      if (tokenRetryUnhandledErrProperty != null) {
-                                          retryUnhandledError = (boolean) tokenRetryUnhandledErrProperty.getRealValue(); 
-                                      }                                                                     
-                                }     
-                                
-				if (!retryUnhandledError || isSuccess) {                                    
-					// get updated token from change, create property modification from new token and replace old token with the new one
-					task.setExtensionProperty(change.getToken());
+				boolean isSuccess = processSynchronization(shadowCtx, isSimulate, change, task, partition, parentResult);
+
+				boolean retryUnhandledError = true;
+				if (task.getExtension() != null) {
+					PrismProperty tokenRetryUnhandledErrProperty = task
+							.getExtensionProperty(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED);
+
+					if (tokenRetryUnhandledErrProperty != null) {
+						retryUnhandledError = (boolean) tokenRetryUnhandledErrProperty.getRealValue();
+					}
+				}
+
+				if (!retryUnhandledError || isSuccess) {                       
+					if (!isSimulate) {
+						// get updated token from change, create property modification from new token and replace old token with the new one
+						task.setExtensionProperty(change.getToken());
+					}
 					processedChanges++;
 					task.incrementProgressAndStoreStatsIfNeeded();
 				}
@@ -2431,9 +2443,9 @@ public class ShadowCache {
 	}
 
 	@SuppressWarnings("rawtypes")
-	boolean processSynchronization(ProvisioningContext ctx, Change change, OperationResult parentResult)
+	boolean processSynchronization(ProvisioningContext ctx, boolean isSimulate, Change change, Task task, TaskPartitionDefinitionType partition, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
-			CommunicationException, ConfigurationException, ExpressionEvaluationException {
+			CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException, PolicyViolationException, PreconditionViolationException {
 
 		OperationResult result = parentResult.createSubresult(OP_PROCESS_SYNCHRONIZATION);
 		
@@ -2441,18 +2453,19 @@ public class ShadowCache {
 		try {
 			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 					change, ctx.getResource(), ctx.getChannel());
+			shadowChangeDescription.setSimulate(isSimulate);
 	
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Created resource object shadow change description {}",
 						SchemaDebugUtil.prettyPrint(shadowChangeDescription));
 			}
-			OperationResult notifyChangeResult = new OperationResult(
-					ShadowCache.class.getName() + "notifyChange");
+			OperationResult notifyChangeResult = result.createMinorSubresult(
+					ShadowCache.class.getName() + ".notifyChange");
 			notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription.toString());
 	
 			try {
 				notifyResourceObjectChangeListeners(shadowChangeDescription, ctx.getTask(), notifyChangeResult);
-				notifyChangeResult.recordSuccess();
+				notifyChangeResult.computeStatusIfUnknown();
 			} catch (RuntimeException ex) {
 				// recordFatalError(LOGGER, notifyChangeResult, "Synchronization
 				// error: " + ex.getMessage(), ex);
@@ -2482,15 +2495,29 @@ public class ShadowCache {
 				result.computeStatus();
 			}
 			
+			validateResult(notifyChangeResult, task, partition);
+			
 		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException |
 				CommunicationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
+		
 			
 		return successfull;
 	}
 
+	private void validateResult(OperationResult result, Task task, TaskPartitionDefinitionType partition) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+		
+		if (result.isSuccess() || result.isHandledError()) {
+			return;
+		}
+		
+		Throwable ex = RepoCommonUtils.getResultException(result);
+		CriticalityType criticality = ExceptionUtil.getCriticality(partition.getErrorCriticality(), ex, CriticalityType.PARTIAL);
+		RepoCommonUtils.processErrorCriticality(task.getTaskType(), criticality, ex, result);
+	}
+	
 	private void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change, Task task,
 			OperationResult parentResult) {
 		changeNotificationDispatcher.notifyChange(change, task, parentResult);

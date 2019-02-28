@@ -90,7 +90,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(Task task, TaskPartitionDefinitionType partition) {
 		LOGGER.info("Task run starting");
 
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");

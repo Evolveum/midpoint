@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +70,7 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 
 	@NotNull
 	@Override
-	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 
 		PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionProperty(SchemaConstants.SE_EXECUTE_SCRIPT);
