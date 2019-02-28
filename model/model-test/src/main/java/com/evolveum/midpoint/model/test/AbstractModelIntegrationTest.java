@@ -479,16 +479,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         OperationResult result = task.getResult();
         final MutableInt count = new MutableInt(0);
 		// Cannot convert to lambda here. Java does not want to understand the generic types properly.
-		SearchResultMetadata searchMetadata = modelService.searchObjectsIterative(type, query, new ResultHandler<O>() {
-				@Override
-				public boolean handle(PrismObject<O> object, OperationResult oresult) {
-					count.increment();
-					if (handler != null) {
-						handler.accept(object);
-					}
-					return true;
-				}
-			}, null, task, result);
+		SearchResultMetadata searchMetadata = modelService.searchObjectsIterative(type, query, (object, oresult) -> {
+			count.increment();
+			if (handler != null) {
+				handler.accept(object);
+			}
+			return true;
+		}, null, task, result);
         if (verbose) display(type.getSimpleName()+"s", count.getValue());
         assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfObjects, count.getValue());
     }
@@ -2056,12 +2053,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void displayUsers() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".displayUsers");
 		OperationResult result = task.getResult();
-		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
-			@Override
-			public boolean handle(PrismObject<UserType> user, OperationResult parentResult) {
-				display("User", user);
-				return true;
-			}
+		ResultHandler<UserType> handler = (user, parentResult) -> {
+			display("User", user);
+			return true;
 		};
 		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
 		result.computeStatus();
@@ -3963,12 +3957,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".displayAllUsers");
 		OperationResult result = task.getResult();
-		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
-			@Override
-			public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
-				display("User", object);
-				return true;
-			}
+		ResultHandler<UserType> handler = (object, parentResult) -> {
+			display("User", object);
+			return true;
 		};
 		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
 		result.computeStatus();

@@ -278,15 +278,8 @@ public class SqlRepositoryConfiguration {
     }
 
     private void computeDefaultIterativeSearchParameters() {
-        if (isUsingH2()) {
-            iterativeSearchByPaging = true;
-            iterativeSearchByPagingBatchSize = 50;
-        } else if (isUsingMySQL() || isUsingMariaDB()) {
-            iterativeSearchByPaging = true;
-            iterativeSearchByPagingBatchSize = 50;
-        } else {
-            iterativeSearchByPaging = false;
-        }
+	    iterativeSearchByPaging = true;
+	    iterativeSearchByPagingBatchSize = 50;
     }
 
     /**

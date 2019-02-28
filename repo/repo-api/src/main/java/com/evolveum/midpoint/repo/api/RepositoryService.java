@@ -297,17 +297,41 @@ public interface RepositoryService {
 	 * @param handler
 	 *            result handler
 	 * @param strictlySequential
-	 * 			  takes care not to skip any object nor to process objects more than once;
-	 * 			  currently requires paging NOT to be used - uses its own paging
+	 * 			  takes care not to skip any object nor to process objects more than once; see below
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
-	 * @return all objects of specified type that match search criteria (subject
-	 *         to paging)
+	 * @return all objects of specified type that match search criteria (subject to paging)
 	 *
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 * @throws SchemaException
 	 *             unknown property used in search query
+	 *
+	 * A note related to iteration method:
+	 *
+	 * There are three iteration methods (see IterationMethodType):
+	 * - SINGLE_TRANSACTION: Fetches objects in single DB transaction. Not supported for all DBMSs.
+	 * - SIMPLE_PAGING: Uses the "simple paging" method: takes objects (e.g.) numbered 0 to 49, then 50 to 99,
+	 * 		then 100 to 149, and so on. The disadvantage is that if the order of objects is changed
+	 * 		during operation (e.g. by inserting/deleting some of them) then some objects can be
+	 * 		processed multiple times, where others can be skipped.
+	 * - STRICTLY_SEQUENTIAL_PAGING: Uses the "strictly sequential paging" method: sorting returned objects by OID. This
+	 * 		is (almost) reliable in such a way that no object would be skipped. However, custom
+	 * 		paging cannot be used in this mode.
+	 *
+	 * If GetOperationOptions.iterationMethod is specified, it is used without any further considerations.
+	 * Otherwise, the repository configuration determines whether to use SINGLE_TRANSACTION or a paging. In the latter case,
+	 * strictlySequential flag determines between SIMPLE_PAGING (if false) and STRICTLY_SEQUENTIAL_PAGING (if true).
+	 *
+	 * If explicit GetOperationOptions.iterationMethod is not provided, and paging is prescribed, and strictlySequential flag
+	 * is true and client-provided paging conflicts with the paging used by the iteration method, a warning is issued, and
+	 * iteration method is switched to SIMPLE_PAGING.
+	 *
+	 * Sources of conflicts:
+	 *  - ordering is specified
+	 *  - offset is specified
+	 * (limit is not a problem)
+	 *
 	 */
 
 	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,

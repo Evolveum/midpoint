@@ -149,7 +149,7 @@ public class ScriptExpressionFactory implements Cacheable{
 		};
 		try {
 			repositoryService.searchObjectsIterative(FunctionLibraryType.class, null, functionLibraryHandler,
-					SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), false, subResult);
+					SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), true, subResult);
 			subResult.recordSuccessIfUnknown();
 		} catch (SchemaException | RuntimeException e) {
 			subResult.recordFatalError("Failed to initialize custom functions", e);

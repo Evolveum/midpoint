@@ -191,7 +191,7 @@ public class AccCertCaseOperationsHelper {
 			}
 			return true;
 		};
-        repositoryService.searchObjectsIterative(objectClass, query, resultHandler, null, false, result);
+        repositoryService.searchObjectsIterative(objectClass, query, resultHandler, null, true, result);
 
         AccessCertificationReviewerSpecificationType reviewerSpec =
                 reviewersHelper.findReviewersSpecification(campaign, 1, task, result);

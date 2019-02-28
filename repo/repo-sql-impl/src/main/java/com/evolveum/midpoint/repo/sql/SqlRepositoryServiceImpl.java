@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -368,12 +369,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return;
         }
 
-        LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{
-                (query == null ? "undefined" : query.debugDump()),
-                (paging != null ? paging.debugDump() : "undefined")});
+        LOGGER.trace("Full query\n{}\nFull paging\n{}",
+                query == null ? "undefined" : query.debugDump(),
+                paging != null ? paging.debugDump() : "undefined");
 
         if (iterative) {
-            LOGGER.trace("Iterative search by paging: {}, batch size {}",
+            LOGGER.trace("Iterative search by paging defined by the configuration: {}, batch size {}",
                     getConfiguration().isIterativeSearchByPaging(),
                     getConfiguration().getIterativeSearchByPagingBatchSize());
         }
@@ -813,20 +814,32 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	    // against DB that does not support it, or if he requests simple paging where strictly sequential one is
 	    // indicated, we will obey (with a warning in some cases).
 	    IterationMethodType iterationMethod;
-	    IterationMethodType specificIterationMethod = GetOperationOptions.getIterationMethod(SelectorOptions.findRootOptions(options));
-        if (specificIterationMethod == null || specificIterationMethod == IterationMethodType.DEFAULT) {
+	    IterationMethodType explicitIterationMethod = GetOperationOptions.getIterationMethod(SelectorOptions.findRootOptions(options));
+        if (explicitIterationMethod == null || explicitIterationMethod == IterationMethodType.DEFAULT) {
 	        if (getConfiguration().isIterativeSearchByPaging()) {
-		        iterationMethod = strictlySequential ? IterationMethodType.STRICTLY_SEQUENTIAL_PAGING : IterationMethodType.SIMPLE_PAGING;
+		        if (strictlySequential) {
+		        	if (isCustomPagingOkWithPagedSeqIteration(query)) {
+				        iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
+			        } else {
+		        		// TODO switch to LOGGER.error
+		        		throw new IllegalArgumentException("Iterative search was defined in the repository configuration, and strict sequentiality "
+						        + "was requested. However, a custom paging precludes its application. Therefore switching to "
+						        + "simple paging iteration method. Paging requested: " + query.getPaging());
+				        //iterationMethod = IterationMethodType.SIMPLE_PAGING;
+			        }
+		        } else {
+		        	iterationMethod = IterationMethodType.SIMPLE_PAGING;
+		        }
 	        } else {
 		        iterationMethod = IterationMethodType.SINGLE_TRANSACTION;
 	        }
         } else {
-        	iterationMethod = specificIterationMethod;
+        	iterationMethod = explicitIterationMethod;
         }
 
         if (strictlySequential && iterationMethod == IterationMethodType.SIMPLE_PAGING) {
         	LOGGER.warn("Using simple paging where strictly sequential one is indicated: type={}, query={}", type, query);
-        } else if (getConfiguration().isIterativeSearchByPaging() && specificIterationMethod == IterationMethodType.SINGLE_TRANSACTION) {
+        } else if (getConfiguration().isIterativeSearchByPaging() && explicitIterationMethod == IterationMethodType.SINGLE_TRANSACTION) {
         	// we should introduce some 'native iteration supported' flag for the DB configuration to avoid false warnings here
 	        // based on 'iterativeSearchByPaging' setting for databases that support native iteration
 	        LOGGER.warn("Using single transaction iteration where DB indicates paging should be used: type={}, query={}", type, query);
@@ -842,6 +855,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 	    return null;
     }
+
+	public static boolean isCustomPagingOkWithPagedSeqIteration(ObjectQuery query) {
+    	if (query == null || query.getPaging() == null) {
+    		return true;
+	    }
+		ObjectPaging paging = query.getPaging();
+    	return !paging.hasOrdering() && !paging.hasGrouping() && paging.getOffset() == null;
+	}
 
 	@Nullable
 	private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(Class<T> type,

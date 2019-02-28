@@ -85,7 +85,7 @@ public class RepoObjectResolver implements ObjectResolver {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
-		cacheRepositoryService.searchObjectsIterative(type, query, handler, options, false, parentResult);
+		cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
 
 	}
 

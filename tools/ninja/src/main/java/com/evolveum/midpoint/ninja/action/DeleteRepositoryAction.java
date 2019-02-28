@@ -82,7 +82,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     }
 
     private void deleteByFilter(ObjectTypes type, ObjectQuery query, OperationStatus operation, OperationResult result)
-            throws SchemaException, IOException {
+            throws SchemaException {
 
         ResultHandler handler = (prismObject, operationResult) -> {
 
@@ -119,7 +119,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
         }
 
         RepositoryService repository = context.getRepository();
-        repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, false, result);
+        repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, true, result);
     }
 
     private State askForState(PrismObject object) throws IOException {

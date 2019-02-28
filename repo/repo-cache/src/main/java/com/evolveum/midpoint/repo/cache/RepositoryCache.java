@@ -220,12 +220,9 @@ public class RepositoryCache implements RepositoryService {
 		// TODO use cached query result if applicable
 		log("Cache: PASS searchObjectsIterative ({})", type.getSimpleName());
 		final Cache cache = getCache();
-		ResultHandler<T> myHandler = new ResultHandler<T>() {
-			@Override
-			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-				cacheObject(cache, object, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
-				return handler.handle(object, parentResult);
-			}
+		ResultHandler<T> myHandler = (object, parentResult1) -> {
+			cacheObject(cache, object, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
+			return handler.handle(object, parentResult1);
 		};
 		return repository.searchObjectsIterative(type, query, myHandler, options, strictlySequential, parentResult);
 	}

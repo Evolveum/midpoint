@@ -309,18 +309,15 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		}
 		extendOptions(options, searchOnResource);
 
-		ResultHandler<O> handler = new ResultHandler<O>() {
-			@Override
-			public boolean handle(PrismObject<O> object, OperationResult parentResult) {
-				if (rawResult != null) {
-					rawResult.add(object);
-				}
-				list.add(createPrismValue(object.getOid(), targetTypeQName, additionalAttributeDeltas, params));
-
-				// TODO: we should count results and stop after some reasonably high number?
-
-				return true;
+		ResultHandler<O> handler = (object, parentResult) -> {
+			if (rawResult != null) {
+				rawResult.add(object);
 			}
+			list.add(createPrismValue(object.getOid(), targetTypeQName, additionalAttributeDeltas, params));
+
+			// TODO: we should count results and stop after some reasonably high number?
+
+			return true;
 		};
 
 		try {

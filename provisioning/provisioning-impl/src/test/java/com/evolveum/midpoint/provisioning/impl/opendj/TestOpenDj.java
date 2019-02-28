@@ -1312,14 +1312,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = new OperationResult(TestOpenDj.class.getName() + ".assertShadows");
 		int actualCount = repositoryService.countObjects(ShadowType.class, null, null, result);
 		if (actualCount != expectedCount) {
-			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-				@Override
-				public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
-					display("Repo shadow", object);
-					return true;
-				}
+			ResultHandler<ShadowType> handler = (object, parentResult) -> {
+				display("Repo shadow", object);
+				return true;
 			};
-			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, false, result);
+			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, true, result);
 			assertEquals("Unexpected number of shadows in the repo", expectedCount, actualCount);
 		}
 	}
