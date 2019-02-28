@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -945,8 +946,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return taskOperationResult;
     }
 
-	public PrismProperty getExtensionProperty(QName propertyName) {
-		return taskType.asPrismObject().findProperty(ItemPath.create(TaskType.F_EXTENSION, propertyName));
+	public Item getExtensionItem(QName itemName) {
+		return taskType.asPrismObject().findItem(ItemPath.create(TaskType.F_EXTENSION, itemName));
+	}
+
+	public PrismProperty getExtensionProperty(QName itemName) {
+		return taskType.asPrismObject().findProperty(ItemPath.create(TaskType.F_EXTENSION, itemName));
 	}
 
 	public <T> T getExtensionPropertyRealValue(QName propertyName, Class<T> clazz) {
@@ -1205,7 +1210,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public boolean isFocusValidityScanner() {
-		return getHandlerUriList().contains(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI);
+		return getHandlerUriList().contains(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI)
+				|| getHandlerUriList().contains(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI);
 	}
 
 	public boolean isJdbcPing() {

@@ -88,7 +88,7 @@ public class ContainerWrapperFactory {
 
         result = new OperationResult(CREATE_PROPERTIES);
         
-        ContainerWrapper<C> cWrapper = new ContainerWrapper(objectWrapper, container, objectWrapper.getStatus(), status, path);
+        ContainerWrapper<C> cWrapper = new ContainerWrapper(objectWrapper, container, objectWrapper != null ? objectWrapper.getStatus() : status, status, path);
         
         List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
