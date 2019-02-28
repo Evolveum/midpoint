@@ -21,8 +21,10 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -30,6 +32,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -37,6 +40,7 @@ import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -73,6 +77,17 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
                 true, getPageBase()) {
 
             private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<IColumn<SelectableBean<O>, String>> createColumns() {
+                if (AbstractRoleType.class.isAssignableFrom(getType())){
+                    List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
+                    columns.addAll((Collection)ColumnUtils.getDefaultAbstractRoleColumns(false));
+                    return columns;
+                } else {
+                    return super.createColumns();
+                }
+            }
 
             @Override
             protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
