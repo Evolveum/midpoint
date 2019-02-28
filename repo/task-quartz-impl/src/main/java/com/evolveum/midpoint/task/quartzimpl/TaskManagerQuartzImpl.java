@@ -1342,8 +1342,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     		return ((Task) task).listSubtasks(result);
 	    } else if (task instanceof TaskType) {
     		return listPersistentSubtasksForTask(((TaskType) task).getTaskIdentifier(), result);
+	    } else if (task instanceof PrismObject<?>) {
+		    //noinspection unchecked
+		    return listPersistentSubtasksForTask(((PrismObject<TaskType>) task).asObjectable().getTaskIdentifier(), result);
 	    } else {
-    		throw new IllegalArgumentException("task: " + task);
+    		throw new IllegalArgumentException("task: " + task + " (of class " + (task != null ? task.getClass() : "null") + ")");
 	    }
     }
 
