@@ -2,5 +2,5 @@
 policyItemsDefinition:
   policyItemDefinition:
   - target:
-      path: "credentials/password/value"
-    execute: true
+      path: "credentials/securityQuestions/questionAnswer[1]/questionAnswer"
+    value: "another"

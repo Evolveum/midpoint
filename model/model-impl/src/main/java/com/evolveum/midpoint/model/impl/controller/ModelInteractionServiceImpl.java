@@ -1132,15 +1132,20 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		CredentialsPolicyType policy = null;
 		PrismObject<UserType> user = null;
 		if (object != null && object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
+			LOGGER.trace("Start to resolve policy for user");
 			user = (PrismObject<UserType>) object;
 			policy = getCredentialsPolicy(user, task, parentResult);
+			LOGGER.trace("Resolved user policy: {}", policy);
 		}
+		
+		
 
 		SystemConfigurationType systemConfigurationType = getSystemConfiguration(parentResult);
 		if (!containsValuePolicyDefinition(policy)) {
 			SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(user, systemConfigurationType.asPrismObject(), task, parentResult);
 			if (securityPolicy != null) {
 				policy = securityPolicy.getCredentials();
+				LOGGER.trace("Resolved policy from global security policy: {}", policy);
 			}
 		}
 
@@ -1148,6 +1153,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			SecurityPolicyType securityPolicy = securityHelper.locateGlobalPasswordPolicy(systemConfigurationType, task, parentResult);
 			if (securityPolicy != null) {
 				policy = securityPolicy.getCredentials();
+				LOGGER.trace("Resolved global password policy: {}", policy);
 			}
 		}
 
@@ -1278,15 +1284,34 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			evaluator.setOriginResolver(getOriginResolver(object));
 			evaluator.setTask(task);
 			evaluator.setShortDesc(" rest validate ");
-			if (object != null && path != null && path.isSuperPathOrEquivalent(SchemaConstants.PATH_PASSWORD)) {
-				evaluator.setSecurityPolicy(getSecurityPolicy((PrismObject<UserType>) object, task, parentResult));
-				PrismContainer<PasswordType> password = object.findContainer(SchemaConstants.PATH_PASSWORD);
-				PasswordType passwordType = null;
-				if (password != null) {
-					PrismContainerValue<PasswordType> passwordPcv = password.getValue();
-					passwordType = passwordPcv != null ? passwordPcv.asContainerable() : null;
+			if (object != null && path != null) {
+				if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_PASSWORD)) {
+				
+					evaluator.setSecurityPolicy(getSecurityPolicy((PrismObject<UserType>) object, task, parentResult));
+					PrismContainer<PasswordType> password = object.findContainer(SchemaConstants.PATH_PASSWORD);
+					PasswordType passwordType = null;
+					if (password != null) {
+						PrismContainerValue<PasswordType> passwordPcv = password.getValue();
+						passwordType = passwordPcv != null ? passwordPcv.asContainerable() : null;
+					}
+					evaluator.setOldCredentialType(passwordType);
+				} else if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_SECURITY_QUESTIONS)) {
+						LOGGER.trace("Setting security questions related policy.");
+						SecurityPolicyType securityPolicy = getSecurityPolicy((PrismObject<UserType>) object, task, parentResult);
+						evaluator.setSecurityPolicy(securityPolicy);
+						PrismContainer<SecurityQuestionsCredentialsType> securityQuestionsContainer = object.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS);
+						SecurityQuestionsCredentialsType securityQuestions = null;
+						if (securityQuestionsContainer != null) {
+							PrismContainerValue<SecurityQuestionsCredentialsType> secQestionPcv = securityQuestionsContainer.getValue();
+							securityQuestions = secQestionPcv != null ? secQestionPcv.asContainerable() : null;
+						}
+						//evaluator.setOldCredentialType(securityQuestions);
+						
+						ValuePolicyType valuePolicy = resolveSecurityQuestionsPolicy(securityPolicy, task, parentResult);
+						if (valuePolicy != null) {
+							evaluator.setValuePolicy(valuePolicy);
+						}
 				}
-				evaluator.setOldCredentialType(passwordType);
 			}
 			evaluator.setNow(clock.currentTimeXMLGregorianCalendar());
 			LOGGER.trace("Validating value started");
@@ -1308,6 +1333,39 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		return parentResult.isAcceptable();
 
+	}
+
+	/**
+	 * @param securityPolicy
+	 * @return
+	 * @throws ExpressionEvaluationException 
+	 * @throws SecurityViolationException 
+	 * @throws ConfigurationException 
+	 * @throws CommunicationException 
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
+	 */
+	private ValuePolicyType resolveSecurityQuestionsPolicy(SecurityPolicyType securityPolicy, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		if (securityPolicy == null) {
+			return null;
+		}
+		
+		CredentialsPolicyType credentialsPolicy  = securityPolicy.getCredentials();
+		if (credentialsPolicy == null) {
+			return null;
+		}
+		
+		SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = credentialsPolicy.getSecurityQuestions();
+		if (securityQuestionsPolicy == null) {
+			return null;
+		}
+		
+		ObjectReferenceType policyRef = securityQuestionsPolicy.getValuePolicyRef();
+		if (policyRef == null) {
+			return null;
+		}
+		
+		return objectResolver.resolve(policyRef, ValuePolicyType.class, null, " resolve value policy for security questions", task, result);
 	}
 
 	private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> getOriginResolver(PrismObject<O> object) {

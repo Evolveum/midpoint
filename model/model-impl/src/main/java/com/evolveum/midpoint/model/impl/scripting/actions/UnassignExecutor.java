@@ -25,7 +25,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,7 +40,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
@@ -129,8 +137,55 @@ public class UnassignExecutor extends BaseActionExecutor {
         return input;           // TODO updated objects?
     }
 
-    private ObjectDelta<? extends ObjectType> createDelta(ObjectType object, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException {
-		// TODO implement delta creation
-        return null;
+    private ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException {
+    	if (relations == null || relations.isEmpty()) {
+    		QName defaultRelation = prismContext.getDefaultRelation() != null ?
+				    prismContext.getDefaultRelation() : RelationTypes.MEMBER.getRelation();
+    		relations = Collections.singletonList(QNameUtil.qNameToUri(defaultRelation));
+	    }
+    	List<AssignmentType> assignmentsForDelete = new ArrayList<>();
+
+    	List<AssignmentType> oldAssignments = object.getAssignment();
+	    for (AssignmentType oldAssignment : oldAssignments) {
+		    ObjectReferenceType targetRef = oldAssignment.getTargetRef();
+		    if (targetRef != null) {
+			    if (roles != null) {
+				    outerloop:
+				    for (ObjectReferenceType roleRef : roles) {
+					    if (targetRef.getOid() != null && targetRef.getOid().equals(roleRef.getOid())) {
+						    for (String relationQuery : relations) {
+							    if (prismContext.relationMatches(QNameUtil.uriToQName(relationQuery, true), targetRef.getRelation())) {
+								    assignmentsForDelete.add(oldAssignment.clone());
+								    break outerloop;
+							    }
+						    }
+					    }
+				    }
+			    }
+		    } else if (oldAssignment.getConstruction() != null) {
+			    if (resources != null) {
+				    for (ObjectReferenceType resourceRef : resources) {
+					    if (oldAssignment.getConstruction().getResourceRef() != null &&
+							    oldAssignment.getConstruction().getResourceRef().getOid() != null &&
+							    oldAssignment.getConstruction().getResourceRef().getOid().equals(resourceRef.getOid())) {
+						    assignmentsForDelete.add(oldAssignment.clone());
+						    break;
+					    }
+				    }
+			    }
+		    }
+	    }
+
+    	ObjectDelta<? extends ObjectType> delta;
+    	
+        try {
+        	delta = prismContext.deltaFor(object.getClass())
+			        .item(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT))
+        	    	.deleteRealValues(assignmentsForDelete)
+			        .asObjectDelta(object.getOid());
+        } catch (SchemaException e) {
+            throw new ScriptExecutionException("Couldn't prepare modification to delete resource/role assignments", e);
+        }
+        return delta;
     }
 }
