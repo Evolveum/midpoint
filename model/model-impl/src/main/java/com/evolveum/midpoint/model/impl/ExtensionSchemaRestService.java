@@ -102,9 +102,9 @@ public class ExtensionSchemaRestService {
                     .entity("Name not defined").build();
         }
 
-        if (!name.toLowerCase().endsWith("\\.xsd")) {
+        if (!name.toLowerCase().endsWith(".xsd") && name.length() > 4) {
             return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE)
-                    .entity("Name must be and xsd schema (.xsd extension expected)").build();
+                    .entity("Name must be an xsd schema (.xsd extension expected)").build();
         }
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
