@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -67,6 +68,11 @@ public class OrgTreeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
             @Override
             protected boolean isInducement(){
                 return OrgTreeAssignmentPopupTabPanel.this.isInducement();
+            }
+
+            @Override
+            protected ObjectFilter getSubtypeFilter(){
+                return OrgTreeAssignmentPopupTabPanel.this.getSubtypeFilter();
             }
         };
         orgTreePanel.setOutputMarkupId(true);

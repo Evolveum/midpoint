@@ -280,11 +280,26 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	protected ObjectQuery createObjectQuery(){
 		Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
 				.getAllRelationsFor(RelationKindType.DELEGATION);
-		return getParentPage().getPrismContext().queryFor(AssignmentType.class)
+
+
+		//do not show archetype assignments
+		ObjectReferenceType archetypeRef = new ObjectReferenceType();
+		archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
+		archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+		RefFilter archetypeFilter = (RefFilter) getParentPage().getPrismContext().queryFor(AssignmentType.class)
+				.item(AssignmentType.F_TARGET_REF)
+				.ref(archetypeRef.asReferenceValue())
+				.buildFilter();
+		archetypeFilter.setOidNullAsAny(true);
+		archetypeFilter.setRelationNullAsAny(true);
+
+		ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
 				.not()
 				.item(AssignmentType.F_TARGET_REF)
 				.ref(delegationRelations.toArray(new QName[0]))
 				.build();
+		query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
+		return query;
 	}
 
 	protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target){
@@ -420,6 +435,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			@Override
 			protected List<ObjectReferenceType> getArchetypeRefList(){
 				return assignmentTargetRelation != null ? assignmentTargetRelation.getArchetypeRefs() : null;
+			}
+
+			@Override
+			protected ObjectFilter getSubtypeFilter(){
+				return AssignmentPanel.this.getSubtypeFilter();
 			}
 
 			@Override
@@ -935,5 +955,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		}
 		return actionPerformed ? (changedItems + selectedAssignmentsCount) > assignmentsRequestsLimit :
 				(changedItems + selectedAssignmentsCount)  >= assignmentsRequestsLimit;
+	}
+
+	protected ObjectFilter getSubtypeFilter(){
+		return null;
 	}
 }

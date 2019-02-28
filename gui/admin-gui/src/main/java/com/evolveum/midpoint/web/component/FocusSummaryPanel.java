@@ -40,6 +40,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,19 +54,15 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 
 	private static final String ID_ACTIVATION_TAG = "activationTag";
 
-//	private IModel<ObjectWrapper<O>> wrapperModel;
-
 	public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, ModelServiceLocator serviceLocator) {
 		super(id, type, model, serviceLocator);
-
-//		this.wrapperModel = model;
 	}
 
 	@Override
-	protected void onInitialize(){
-		super.onInitialize();
+	protected List<SummaryTag<O>> getSummaryTagComponentList(){
+		List<SummaryTag<O>> summaryTagList = new ArrayList<>();
 
-		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_ACTIVATION_TAG, getModel()) {
+		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_SUMMARY_TAG, getModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -103,14 +100,16 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 				return isActivationVisible();
 			}
 		});
-		addTag(tagActivation);
+		summaryTagList.add(tagActivation);
+		return summaryTagList;
 	}
 
 	@Override
 	protected IModel<String> getDefaltParentOrgModel() {
 		return new ReadOnlyModel<String>(() -> {
-			List<OrgType> parentOrgs = FocusSummaryPanel.this.getModel().getObject().getParentOrg();
-			if (parentOrgs.isEmpty()) {
+			O focusObject = FocusSummaryPanel.this.getModel().getObject();
+			List<OrgType> parentOrgs = focusObject != null ? focusObject.getParentOrg() : null;
+			if (parentOrgs == null || parentOrgs.isEmpty()) {
 				return "";
 			}
 			// Kinda hack now .. "functional" orgType always has preference
@@ -140,6 +139,9 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 			public AbstractResource getObject() {
 				byte[] jpegPhoto = null;
 				O object = getModel().getObject();
+				if (object == null){
+					return null;
+				}
 				if (object instanceof FocusType) {
 					jpegPhoto = ((FocusType) object).getJpegPhoto();
 				}

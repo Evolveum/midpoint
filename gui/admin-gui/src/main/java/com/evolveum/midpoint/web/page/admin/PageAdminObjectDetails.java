@@ -198,7 +198,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 
 	public void initialize(final PrismObject<O> objectToEdit) {
-		boolean isNewObject = objectToEdit == null;
+		boolean isNewObject = objectToEdit == null && StringUtils.isEmpty(getObjectOidParameter());
 
 		initialize(objectToEdit, isNewObject, false);
 	}

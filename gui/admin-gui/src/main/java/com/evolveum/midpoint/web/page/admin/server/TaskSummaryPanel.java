@@ -37,7 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author mederly
@@ -65,7 +67,21 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	protected void onInitialize(){
 		super.onInitialize();
 
-		SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_TAG_EXECUTION_STATUS, getModel()) {
+		final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage, true);
+		refreshTag.setOutputMarkupId(true);
+		refreshTag.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return parentPage.getTaskDto().getWorkflowOutcome() == null;		// because otherwise there are too many tags to fit into window
+			}
+		} );
+		getSummaryBoxPanel().add(refreshTag);
+	}
+
+	@Override
+	protected List<SummaryTag<TaskType>> getSummaryTagComponentList(){
+		List<SummaryTag<TaskType>> summaryTagList = new ArrayList<>();
+		SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
@@ -77,9 +93,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				// TODO setColor
 			}
 		};
-		addTag(tagExecutionStatus);
+		summaryTagList.add(tagExecutionStatus);
 
-		SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_TAG_RESULT, getModel()) {
+		SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				OperationResultStatusType resultStatus = taskType.getResultStatus();
@@ -91,9 +107,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				// TODO setColor
 			}
 		};
-		addTag(tagResult);
+		summaryTagList.add(tagResult);
 
-		SummaryTag<TaskType> tagOutcome = new SummaryTag<TaskType>(ID_TAG_WF_OUTCOME, getModel()) {
+		SummaryTag<TaskType> tagOutcome = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				String icon, name;
@@ -119,17 +135,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				return parentPage.getTaskDto().getWorkflowOutcome() != null;
 			}
 		});
-		addTag(tagOutcome);
+		summaryTagList.add(tagOutcome);
 
-		final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage, true);
-		refreshTag.setOutputMarkupId(true);
-		refreshTag.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return parentPage.getTaskDto().getWorkflowOutcome() == null;		// because otherwise there are too many tags to fit into window
-			}
-		} );
-		addTag(refreshTag);
+		return summaryTagList;
 	}
 
 	private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
@@ -291,6 +299,6 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	public AutoRefreshPanel getRefreshPanel() {
-		return (AutoRefreshPanel) getTag(ID_TAG_REFRESH);
+		return (AutoRefreshPanel) getSummaryBoxPanel().get(ID_TAG_REFRESH);
 	}
 }

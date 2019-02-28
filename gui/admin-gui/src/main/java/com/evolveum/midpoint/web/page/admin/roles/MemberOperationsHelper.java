@@ -124,37 +124,7 @@ public class MemberOperationsHelper {
 		browser.setOutputMarkupId(true);
 		pageBase.showMainPopup(browser, target);
 	}
-	
-	public static <O extends ObjectType, R extends AbstractRoleType> void initObjectForAdd(PageBase pageBase, R targetObject, QName type, Collection<QName> relations, AjaxRequestTarget target) throws SchemaException {
-		pageBase.hideMainPopup(target);
-		PrismContext prismContext = pageBase.getPrismContext();
-		PrismObjectDefinition<O> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
-		PrismObject<O> obj = def.instantiate();
-		List<ObjectReferenceType> newReferences = new ArrayList<>();
-		for (QName relation : relations) {
-			newReferences.add(createReference(targetObject, relation));
-		}
-		ObjectType objType = (ObjectType) obj.asObjectable();
-		if (FocusType.class.isAssignableFrom(obj.getCompileTimeClass())) {
-			newReferences.stream().forEach(ref -> {
-				AssignmentType assignment = new AssignmentType();
-				assignment.setTargetRef(ref);
-				((FocusType) objType).getAssignment().add(assignment);
-				
-				// Set parentOrgRef in any case. This is not strictly correct.
-				// The parentOrgRef should be added by the projector. But
-				// this is needed to successfully pass through security
-				// TODO: fix MID-3234
-				if (ref.getType() != null && OrgType.COMPLEX_TYPE.equals(ref.getType())) {
-					objType.getParentOrgRef().add(ref.clone());
-				}
-			});
-			
-		}
 
-		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, pageBase);
-	}
-	
 	public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectViewDto<OrgType> tenant, ObjectViewDto<OrgType> project, PrismContext prismContext) {
 		// We assume tenantRef.relation and orgRef.relation are always default ones (see also MID-3581)
 		S_FilterEntry q0;
