@@ -111,6 +111,21 @@ public class MidPointAsserts {
 			}
 		}
 	}
+	
+	public static <F extends FocusType> void assertNotAssigned(PrismObject<F> user, String targetOid, QName refType, QName relation) {
+		F userType = user.asObjectable();
+		for (AssignmentType assignmentType: userType.getAssignment()) {
+			ObjectReferenceType targetRef = assignmentType.getTargetRef();
+			if (targetRef != null) {
+				if (QNameUtil.match(refType, targetRef.getType())) {
+					if (targetOid.equals(targetRef.getOid()) &&
+							getPrismContext().relationMatches(targetRef.getRelation(), relation)) {
+						AssertJUnit.fail(user + " does have assigned "+refType.getLocalPart()+" "+targetOid+", relation "+relation+"while not expecting it");
+					}
+				}
+			}
+		}
+	}
 
 	public static <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		F userType = user.asObjectable();
