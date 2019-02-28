@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,17 +28,9 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskConstants;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,14 +42,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefini
  *
  */
 @Component
-public class LightweigthPartitioningTaskHandler implements TaskHandler {
+public class LightweightPartitioningTaskHandler implements TaskHandler {
 	
-	private static final transient Trace LOGGER  = TraceManager.getTrace(LightweigthPartitioningTaskHandler.class);
+	private static final transient Trace LOGGER  = TraceManager.getTrace(LightweightPartitioningTaskHandler.class);
 	
 	private static final String HANDLER_URI = TaskConstants.LIGHTWEIGTH_PARTITIONING_TASK_HANDLER_URI;
 	
 	@Autowired private PrismContext prismContext;
-	@Autowired private TaskManagerQuartzImpl taskManager;
+	@Autowired private TaskManager taskManager;
 	@Autowired private HandlerExecutor handlerExecutor;
 //	@Autowired private TaskManager taskManager;
 
@@ -67,7 +60,7 @@ public class LightweigthPartitioningTaskHandler implements TaskHandler {
 	}
 	
 	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType taskPartition) {
-		OperationResult opResult = new OperationResult(LightweigthPartitioningTaskHandler.class.getName()+".run");
+		OperationResult opResult = new OperationResult(LightweightPartitioningTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 		
 		runResult.setProgress(task.getProgress());
@@ -101,16 +94,14 @@ public class LightweigthPartitioningTaskHandler implements TaskHandler {
 				
 		partitions.sort(comparator);
 		for (TaskPartitionDefinitionType partition : partitions) {
-			TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
+			TaskHandler handler = ((TaskManagerQuartzImpl) taskManager).getHandler(partition.getHandlerUri());
 			TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
 //			TaskRunResult subHandlerResult = handler.run(task, partition);
 			OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
 			opResult.addSubresult(subHandlerOpResult);
-			if (subHandlerResult != null) {
-				runResult = subHandlerResult;
-				runResult.setProgress(task.getProgress());
-			}
-			
+			runResult = subHandlerResult;
+			runResult.setProgress(task.getProgress());
+
 			if (!canContinue(task, subHandlerResult)) {
 				break;
 			}
@@ -170,7 +161,7 @@ public class LightweigthPartitioningTaskHandler implements TaskHandler {
 	public String getCategoryName(Task task) {
 		// TODO Auto-generated method stub
 		return null;
-	};
+	}
 	
 	
 //		private void processErrorCriticality(Task task, TaskPartitionDefinitionType partitionDefinition, Throwable ex, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {

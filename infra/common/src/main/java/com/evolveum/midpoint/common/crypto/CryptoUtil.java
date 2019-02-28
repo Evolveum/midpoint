@@ -200,7 +200,7 @@ public class CryptoUtil {
 		    @SuppressWarnings("unchecked")
 		    PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
             ProtectedStringType ps = psPval.getValue();
-            if (ps.getClearValue() != null) {
+            if (ps != null && ps.getClearValue() != null) {
                 throw new IllegalStateException("Unencrypted value in field " + propName);
             }
         } else if (itemDef.getTypeName().equals(MailConfigurationType.COMPLEX_TYPE)) {

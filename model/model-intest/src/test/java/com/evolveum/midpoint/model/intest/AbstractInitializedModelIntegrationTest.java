@@ -82,6 +82,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected UserType userTypeBarbossa;
 	protected UserType userTypeGuybrush;
 	protected UserType userTypeElaine;
+	protected UserType userTypeWill;
 
 	protected DummyResourceContoller dummyResourceCtl;
 
@@ -230,6 +231,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		userTypeBarbossa = repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult).asObjectable();
 		userTypeGuybrush = repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
 		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILE, UserType.class, initResult).asObjectable();
+		userTypeWill = repoAddObjectFromFile(USER_WILL_FILE, UserType.class, true, initResult).asObjectable();
 
 		// Roles
 		repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);

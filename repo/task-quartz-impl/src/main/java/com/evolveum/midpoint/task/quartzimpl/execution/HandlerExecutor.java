@@ -17,21 +17,17 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import java.util.List;
 
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
-import com.evolveum.midpoint.task.api.WorkBucketAwareTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -56,9 +52,9 @@ public class HandlerExecutor {
 	private static final long FREE_BUCKET_WAIT_TIME = -1;        // indefinitely
 	
 	@Autowired private PrismContext prismCtx;
-	@Autowired private TaskManagerQuartzImpl taskManagerImpl;
-	
-	
+	@Autowired private TaskManager taskManager;
+
+	@NotNull
 	public TaskRunResult executeHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType partition, TaskHandler handler, OperationResult executionResult) {
 
 		if (handler instanceof WorkBucketAwareTaskHandler) {
@@ -68,6 +64,7 @@ public class HandlerExecutor {
 		return executePlainTaskHandler(task, partition, handler);
 	}
 
+	@NotNull
 	private TaskRunResult executePlainTaskHandler(RunningTask task, TaskPartitionDefinitionType partition, TaskHandler handler) {
 		TaskRunResult runResult;
 		try {
@@ -84,8 +81,9 @@ public class HandlerExecutor {
 		return runResult;
 	}
 
+	@NotNull
 	private TaskRunResult executeWorkBucketAwareTaskHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType taskPartition, WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
-		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
+		WorkStateManager workStateManager = ((TaskManagerQuartzImpl) taskManager).getWorkStateManager();
 		
 		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
 			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
@@ -142,7 +140,7 @@ public class HandlerExecutor {
 				return runResult;
 			}
 			try {
-				taskManagerImpl.getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+				((TaskManagerQuartzImpl) taskManager).getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
 			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
 				return createFailureTaskRunResult(task, "Couldn't complete work bucket: " + e.getMessage(), e);
@@ -152,7 +150,8 @@ public class HandlerExecutor {
 			}
 		}
 	}
-	
+
+	@NotNull
 	private TaskRunResult createFailureTaskRunResult(RunningTask task, String message, Throwable t) {
         TaskRunResult runResult = new TaskRunResult();
         OperationResult opResult;
@@ -171,6 +170,7 @@ public class HandlerExecutor {
         return runResult;
     }
 
+	@NotNull
 	private TaskRunResult createSuccessTaskRunResult(RunningTask task) {
         TaskRunResult runResult = new TaskRunResult();
         OperationResult opResult;
@@ -185,6 +185,7 @@ public class HandlerExecutor {
         return runResult;
     }
 
+	@NotNull
 	private TaskRunResult createInterruptedTaskRunResult(RunningTask task) {
         TaskRunResult runResult = new TaskRunResult();
         OperationResult opResult;
