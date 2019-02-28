@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -95,6 +96,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 //                return "";
 //            }
 //        });
+        name.add(AttributeAppender.append("title", getPanelTitle()));
         name.setOutputMarkupId(true);
 
 
@@ -112,6 +114,8 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
                 attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
             }
         };
+        choose.add(new EnableBehaviour(() -> isEnabledToEdit()));
+        choose.add(AttributeAppender.append("title", getPanelTitle()));
         choose.setOutputMarkupId(true);
 
         AjaxLink<String> remove = new AjaxLink<String>(ID_LINK_REMOVE) {
@@ -161,6 +165,14 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 
     protected void executeCustomAction(AjaxRequestTarget target, T object) {
 
+    }
+
+    protected boolean isEnabledToEdit(){
+        return true;
+    }
+
+    protected IModel<String> getPanelTitle(){
+        return null;
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){
