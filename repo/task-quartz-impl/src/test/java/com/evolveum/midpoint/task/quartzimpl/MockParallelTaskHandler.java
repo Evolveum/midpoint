@@ -15,25 +15,29 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.LightweightTaskHandler;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author Pavol Mederly
@@ -110,7 +114,7 @@ public class MockParallelTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(RunningTask task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		LOGGER.info("MockParallelTaskHandler.run starting (id = " + id + ")");
 
 		OperationResult opResult = new OperationResult(MockParallelTaskHandler.class.getName()+".run");

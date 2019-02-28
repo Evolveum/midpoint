@@ -98,6 +98,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.fill.JRAbstractLRUVirtualizer;
@@ -140,8 +141,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(RunningTask task) {
-        // TODO Auto-generated method stub
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         OperationResult parentResult = task.getResult();
         OperationResult result = parentResult.createSubresult(ReportCreateTaskHandler.class.getSimpleName() + ".run");
 

@@ -75,7 +75,7 @@ public class JobExecutor implements InterruptableJob {
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
     private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
-	private static final long FREE_BUCKET_WAIT_TIME = -1;        // indefinitely
+
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -538,9 +538,8 @@ mainCycle:
 
 				LOGGER.trace("CycleRunner loop: start");
 
-                TaskRunResult runResult;
                 recordCycleRunStart(executionResult, handler);
-                runResult = executeHandler(handler, executionResult);
+                TaskRunResult runResult = executeHandler(handler, executionResult);
                 boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
                 if (!canContinue) { // in case of task disappeared
                     break;
@@ -661,101 +660,96 @@ mainCycle:
 		    task.setResultTransient(task.createUnnamedTaskResult());
 	    }
 
-	    TaskRunResult runResult;
-		if (handler instanceof WorkBucketAwareTaskHandler) {
-			runResult = executeWorkBucketAwareTaskHandler((WorkBucketAwareTaskHandler) handler, executionResult);
-		} else {
-			runResult = executePlainTaskHandler(handler);
-		}
+	    TaskRunResult runResult = taskManagerImpl.getHandlerExecutor().executeHandler(task, null, handler, executionResult);
 
-        waitForTransientChildrenAndCloseThem(executionResult);
+	    waitForTransientChildrenAndCloseThem(executionResult);
         return runResult;
 	}
-
-	private TaskRunResult executePlainTaskHandler(TaskHandler handler) {
-		TaskRunResult runResult;
-		try {
-			LOGGER.trace("Executing handler {}", handler.getClass().getName());
-			runResult = handler.run(task);
-			if (runResult == null) {				// Obviously an error in task handler
-				LOGGER.error("Unable to record run finish: task returned null result");
-				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-			}
-		} catch (Throwable t) {
-			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-			runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
-		}
-		return runResult;
-	}
-
-	private TaskRunResult executeWorkBucketAwareTaskHandler(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
-		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
-
-		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
-			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
-			try {
-				List<ItemDelta<?, ?>> itemDeltas = taskManagerImpl.getPrismContext().deltaFor(TaskType.class)
-						.item(TaskType.F_WORK_STATE).replace()
-						.asItemDeltas();
-				task.applyDeltasImmediate(itemDeltas, executionResult);
-			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
-			}
-		}
-
-		boolean initialBucket = true;
-		TaskWorkBucketProcessingResult runResult = null;
-		for (;;) {
-			WorkBucketType bucket;
-			try {
-				try {
-					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
-				} catch (InterruptedException e) {
-					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
-					if (task.canRun()) {
-						throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
-					} else {
-						return createInterruptedTaskRunResult();
-					}
-				}
-			} catch (Throwable t) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
-				return createFailureTaskRunResult("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
-			}
-			initialBucket = false;
-			if (bucket == null) {
-				LOGGER.trace("No (next) work bucket within {}, exiting", task);
-				runResult = handler.onNoMoreBuckets(task, runResult);
-				return runResult != null ? runResult : createSuccessTaskRunResult();
-			}
-			try {
-				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
-				runResult = handler.run(task, bucket, runResult);
-				LOGGER.trace("runResult is {} for {}", runResult, task);
-				if (runResult == null) {                // Obviously an error in task handler
-					LOGGER.error("Unable to record run finish: task returned null result");
-					//releaseWorkBucketChecked(bucket, executionResult);
-					return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-				}
-			} catch (Throwable t) {
-				LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-				//releaseWorkBucketChecked(bucket, executionResult);
-				return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
-			}
-			if (!runResult.isBucketComplete()) {
-				return runResult;
-			}
-			try {
-				taskManagerImpl.getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
-			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
-				return createFailureTaskRunResult("Couldn't complete work bucket: " + e.getMessage(), e);
-			}
-			if (!task.canRun() || !runResult.isShouldContinue()) {
-				return runResult;
-			}
-		}
-	}
+//
+//	private TaskRunResult executePlainTaskHandler(TaskHandler handler) {
+//		TaskRunResult runResult;
+//		try {
+//			LOGGER.trace("Executing handler {}", handler.getClass().getName());
+//			runResult = handler.run(task);
+//			if (runResult == null) {				// Obviously an error in task handler
+//				LOGGER.error("Unable to record run finish: task returned null result");
+//				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+//			}
+//		} catch (Throwable t) {
+//			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+//			runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+//		}
+//		return runResult;
+//	}
+//
+//	private TaskRunResult executeWorkBucketAwareTaskHandler(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
+//		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
+//
+//		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
+//			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
+//			try {
+//				List<ItemDelta<?, ?>> itemDeltas = taskManagerImpl.getPrismContext().deltaFor(TaskType.class)
+//						.item(TaskType.F_WORK_STATE).replace()
+//						.asItemDeltas();
+//				task.applyDeltasImmediate(itemDeltas, executionResult);
+//			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
+//			}
+//		}
+//
+//		boolean initialBucket = true;
+//		TaskWorkBucketProcessingResult runResult = null;
+//		for (;;) {
+//			WorkBucketType bucket;
+//			try {
+//				try {
+//					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
+//				} catch (InterruptedException e) {
+//					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+//					if (task.canRun()) {
+//						throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
+//					} else {
+//						return createInterruptedTaskRunResult();
+//					}
+//				}
+//			} catch (Throwable t) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
+//				return createFailureTaskRunResult("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
+//			}
+//			initialBucket = false;
+//			if (bucket == null) {
+//				LOGGER.trace("No (next) work bucket within {}, exiting", task);
+//				runResult = handler.onNoMoreBuckets(task, runResult);
+//				return runResult != null ? runResult : createSuccessTaskRunResult();
+//			}
+//			try {
+//				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
+//				runResult = handler.run(task, bucket, runResult);
+//				LOGGER.trace("runResult is {} for {}", runResult, task);
+//				if (runResult == null) {                // Obviously an error in task handler
+//					LOGGER.error("Unable to record run finish: task returned null result");
+//					//releaseWorkBucketChecked(bucket, executionResult);
+//					return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+//				}
+//			} catch (Throwable t) {
+//				LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+//				//releaseWorkBucketChecked(bucket, executionResult);
+//				return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+//			}
+//			if (!runResult.isBucketComplete()) {
+//				return runResult;
+//			}
+//			try {
+//				taskManagerImpl.getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+//			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
+//				return createFailureTaskRunResult("Couldn't complete work bucket: " + e.getMessage(), e);
+//			}
+//			if (!task.canRun() || !runResult.isShouldContinue()) {
+//				return runResult;
+//			}
+//		}
+//	}
 
 //	private void releaseWorkBucketChecked(AbstractWorkBucketType bucket, OperationResult executionResult) {
 //		try {
@@ -764,53 +758,6 @@ mainCycle:
 //			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't release work bucket for task {}", e, task);
 //		}
 //	}
-
-	private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
-        TaskRunResult runResult = new TaskRunResult();
-        OperationResult opResult;
-        if (task.getResult() != null) {
-            opResult = task.getResult();
-        } else {
-            opResult = createOperationResult(DOT_CLASS + "executeHandler");
-        }
-        if (t != null) {
-            opResult.recordFatalError(message, t);
-        } else {
-            opResult.recordFatalError(message);
-        }
-        runResult.setOperationResult(opResult);
-        runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-        return runResult;
-    }
-
-	private TaskRunResult createSuccessTaskRunResult() {
-        TaskRunResult runResult = new TaskRunResult();
-        OperationResult opResult;
-        if (task.getResult() != null) {
-            opResult = task.getResult();
-        } else {
-            opResult = createOperationResult(DOT_CLASS + "executeHandler");
-        }
-        opResult.recordSuccess();
-        runResult.setOperationResult(opResult);
-        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        return runResult;
-    }
-
-	private TaskRunResult createInterruptedTaskRunResult() {
-        TaskRunResult runResult = new TaskRunResult();
-        OperationResult opResult;
-        if (task.getResult() != null) {
-            opResult = task.getResult();
-        } else {
-            opResult = createOperationResult(DOT_CLASS + "executeHandler");
-        }
-        opResult.recordSuccess();
-        runResult.setOperationResult(opResult);
-        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);
-        return runResult;
-    }
-
 
     private OperationResult createOperationResult(String methodName) {
 		return new OperationResult(DOT_CLASS + methodName);

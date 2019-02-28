@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -58,7 +59,7 @@ public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(RunningTask task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
 		OperationResult opResult = new OperationResult(WaitForSubtasksByPollingTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();

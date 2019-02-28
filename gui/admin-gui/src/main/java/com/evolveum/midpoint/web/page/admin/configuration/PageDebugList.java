@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -697,7 +698,8 @@ public class PageDebugList extends PageAdminConfiguration {
 	private void exportSelected(AjaxRequestTarget target, DebugObjectItem item) {
 		List<DebugObjectItem> selected = getSelectedData(target, item);
 		if (selected.isEmpty()) {
-			return;
+			RepositoryObjectDataProvider provider = getTableDataProvider();
+			selected = IteratorUtils.toList(provider.internalIterator(0, provider.size()));
 		}
 
 		List<String> oids = new ArrayList<>();
@@ -737,18 +739,14 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		items = WebComponentUtil.getSelectedData(getListTable());
-		if (items.isEmpty()) {
-			warn(getString("pageDebugList.message.nothingSelected"));
-			target.add(getFeedbackPanel());
-		}
-
 		return items;
 	}
 
 	private void deleteSelected(AjaxRequestTarget target, DebugObjectItem item) {
 		List<DebugObjectItem> selected = getSelectedData(target, item);
 		if (selected.isEmpty()) {
-			return;
+			RepositoryObjectDataProvider provider = getTableDataProvider();
+			selected = IteratorUtils.toList(provider.internalIterator(0, provider.size()));
 		}
 
 		DebugSearchDto searchDto = searchModel.getObject();

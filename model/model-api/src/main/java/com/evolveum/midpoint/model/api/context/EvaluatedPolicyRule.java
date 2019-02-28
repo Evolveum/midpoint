@@ -97,4 +97,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
 	// use only if you know what you're doing
 	void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger);
+	
+	//experimental
+	String getPolicyRuleIdentifier();
 }

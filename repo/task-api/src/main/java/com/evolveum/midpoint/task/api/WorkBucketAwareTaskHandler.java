@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
@@ -27,9 +28,15 @@ public interface WorkBucketAwareTaskHandler extends TaskHandler {
 	default TaskRunResult run(RunningTask task) {
 		throw new UnsupportedOperationException("run with no work bucket is not supported here");
 	}
+	
+	@Override
+	default TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
+		throw new UnsupportedOperationException("run with no work bucket is not supported here");
+	}
 
-	TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket, TaskWorkBucketProcessingResult previousRunResult);
 
+	TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket, TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
+	
 	default TaskWorkBucketProcessingResult onNoMoreBuckets(Task task, TaskWorkBucketProcessingResult previousRunResult) {
 		return previousRunResult;
 	}

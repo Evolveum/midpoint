@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +84,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(RunningTask task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		LOGGER.trace("Task run starting");
 
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");

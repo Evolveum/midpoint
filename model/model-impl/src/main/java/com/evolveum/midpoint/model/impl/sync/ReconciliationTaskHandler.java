@@ -15,6 +15,18 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import java.util.Collection;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -24,12 +36,15 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
+import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -51,32 +66,34 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
+import com.evolveum.midpoint.task.api.WorkBucketAwareTaskHandler;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * The task handler for reconciliation.
@@ -118,6 +135,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	private RepositoryService repositoryService;
 	
 	@Autowired private CounterManager counterManager;
+	@Autowired private AssignmentCollector assignmentCollector;
+	@Autowired private SystemObjectCache systemObjectCache;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
@@ -152,14 +171,16 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 				.maintainSynchronizationStatistics()
 				.maintainActionsExecutedStatistics();
 	}
-
+	
+	
 	@Override
 	public TaskWorkBucketProcessingResult run(RunningTask localCoordinatorTask, WorkBucketType workBucket,
-			TaskWorkBucketProcessingResult previousRunResult) {
-		
-		counterManager.registerCounter(localCoordinatorTask, false);
-		
+			TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult) {
+				
 		String handlerUri = localCoordinatorTask.getHandlerUri();
+		if (partitionDefinition != null && partitionDefinition.getHandlerUri() != null) {
+			handlerUri = partitionDefinition.getHandlerUri();
+		}
 		Stage stage = getStage(handlerUri);
 		LOGGER.trace("ReconciliationTaskHandler.run starting (stage: {})", stage);
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
@@ -186,7 +207,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
 		String resourceOid = localCoordinatorTask.getObjectOid();
 		opResult.addContext("resourceOid", resourceOid);
-
+		
 		if (localCoordinatorTask.getChannel() == null) {
 			localCoordinatorTask.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON_URI);
 		}
@@ -279,7 +300,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		long afterShadowReconTimestamp;
 		try {
 			if (isStage(stage, Stage.SECOND) && !performResourceReconciliation(resource, objectclassDef, reconResult,
-					localCoordinatorTask, workBucket, opResult)) {
+					localCoordinatorTask, partitionDefinition, workBucket, opResult)) {
                 processInterruption(runResult, resource, localCoordinatorTask, opResult);
                 return runResult;
             }
@@ -484,39 +505,11 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		runResult.setRunResultStatus(runResultStatus);
 	}
 	
-	private boolean performResourceReconciliation(PrismObject<ResourceType> resource,
-			ObjectClassComplexTypeDefinition objectclassDef,
-			ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
-			WorkBucketType workBucket, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
-	
-		List<TaskStageType> stages = localCoordinatorTask.getTaskType().getStage();
-		if (CollectionUtils.isEmpty(stages)) {
-			TaskStageType defaultStage = new TaskStageType(prismContext);
-			defaultStage.setStage(EXECUTE_URI);
-			return performResourceReconciliationInternal(resource, objectclassDef, defaultStage,
-					reconResult, localCoordinatorTask, workBucket, result);
-		}
-
-		boolean canContinue = true;
-		for (TaskStageType stage : stages) {
-			canContinue = performResourceReconciliationInternal(resource, objectclassDef, stage,
-					reconResult, localCoordinatorTask, workBucket, result);
-			if (!canContinue) {
-				break;
-			}
-		}
-
-		return canContinue;
-
-	}
-	
 	// returns false in case of execution interruption
-	private boolean performResourceReconciliationInternal(PrismObject<ResourceType> resource,
-			ObjectClassComplexTypeDefinition objectclassDef, TaskStageType stage,
+	private boolean performResourceReconciliation(PrismObject<ResourceType> resource,
+			ObjectClassComplexTypeDefinition objectclassDef, 
 			ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
-			WorkBucketType workBucket, OperationResult result)
+			TaskPartitionDefinitionType partitionDefinition, WorkBucketType workBucket, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
@@ -527,7 +520,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		// Instantiate result handler. This will be called with every search
 		// result in the following iterative search
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
-				objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, stage, taskManager);
+				objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, partitionDefinition, taskManager);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
 		handler.setEnableSynchronizationStatistics(true);
@@ -539,7 +532,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
 			ObjectQuery query = objectclassDef.createShadowSearchQuery(resource.getOid());
 			query = narrowQueryForBucket(query, localCoordinatorTask, workBucket, objectclassDef, opResult);
-
+			
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
 			handler.createWorkerThreads(localCoordinatorTask, searchResult);
@@ -815,4 +808,5 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.RECONCILIATION;
     }
+
 }

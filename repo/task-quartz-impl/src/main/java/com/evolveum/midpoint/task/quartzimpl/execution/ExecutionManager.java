@@ -16,14 +16,41 @@
 
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerKey;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.*;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManagerException;
+import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.task.api.UseThreadInterrupt;
+import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -33,13 +60,15 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.quartz.*;
-
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Manages task threads (clusterwide). Concerned mainly with stopping threads and querying their state.

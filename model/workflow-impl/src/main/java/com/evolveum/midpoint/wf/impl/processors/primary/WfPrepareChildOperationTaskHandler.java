@@ -35,6 +35,8 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,7 +75,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     //region Body
     @SuppressWarnings("unchecked")
     @Override
-    public TaskRunResult run(RunningTask task) {
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
         TaskRunResult.TaskRunResultStatus status = TaskRunResult.TaskRunResultStatus.FINISHED;
 

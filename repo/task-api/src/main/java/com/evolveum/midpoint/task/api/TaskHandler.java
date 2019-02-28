@@ -17,6 +17,11 @@ package com.evolveum.midpoint.task.api;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import java.util.List;
 
 /**
@@ -25,7 +30,13 @@ import java.util.List;
  */
 public interface TaskHandler {
 
-	TaskRunResult run(RunningTask task);
+
+	default TaskRunResult run(RunningTask task) {
+		return run(task, null);
+	}
+	
+	@Experimental
+	TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition);
 
 	default Long heartbeat(Task task) {
 		return null;
@@ -56,4 +67,5 @@ public interface TaskHandler {
 	default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
 		return new StatisticsCollectionStrategy();
 	}
+
 }

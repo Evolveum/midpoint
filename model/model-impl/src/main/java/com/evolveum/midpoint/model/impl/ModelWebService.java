@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -426,7 +427,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 
 		try {
 			model.notifyChange(changeDescription, parentResult, task);
-			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error ex) {
+			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error | PolicyViolationException | PreconditionViolationException ex) {
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
 				throwFault(ex, parentResult);

@@ -87,6 +87,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	@Nullable private final ObjectType directOwner;
 	private final transient PrismContext prismContextForDebugDump;     // if null, nothing serious happens
 	
+	private String policyRuleId;
+	
 	@NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();          // computed only when necessary (typically when triggered)
 
 	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath,
@@ -95,6 +97,15 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		this.assignmentPath = assignmentPath;
 		this.prismContextForDebugDump = prismContext;
 		this.directOwner = computeDirectOwner();
+		this.policyRuleId = computePolicyRuleId();
+	}
+	
+	private String computePolicyRuleId() {
+		if (directOwner == null) {
+			return null;
+		}
+		
+		return directOwner.getOid() + policyRuleType.asPrismContainerValue().getId();
 	}
 
 	public EvaluatedPolicyRuleImpl clone() {
@@ -445,5 +456,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			LOGGER.trace("Adding action {} into the enabled action list.", action);
 			enabledActions.add(action);
 		}
+	}
+	
+	//experimental
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule#getPolicyRuleIdentifier()
+	 */
+	@Override
+	public String getPolicyRuleIdentifier() {
+		return policyRuleId;
 	}
 }

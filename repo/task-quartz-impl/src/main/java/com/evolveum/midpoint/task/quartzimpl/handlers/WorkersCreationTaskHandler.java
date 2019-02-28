@@ -56,8 +56,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(RunningTask task) {
-		
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {		
 		OperationResult opResult = new OperationResult(WorkersCreationTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setProgress(task.getProgress());

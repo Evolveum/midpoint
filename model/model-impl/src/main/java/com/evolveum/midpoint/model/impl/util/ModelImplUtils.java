@@ -598,33 +598,6 @@ public class ModelImplUtils {
 		Boolean dryRun = findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 		return dryRun != null ? dryRun : Boolean.FALSE;
 	}
-	
-	public static boolean isSimulateRun(Task task) throws SchemaException {
-		Boolean simulate = findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
-		return simulate != null ? simulate : Boolean.FALSE;
-	}
-
-	public static boolean canPerformStage(String stageUri, Task task) throws SchemaException {
-		PrismObject<TaskType> taskType = task.getTaskPrismObject();
-		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
-		if (stageType == null) {
-			return false;
-		}
-
-		String stageTypeRealValue = stageType.getRealValue();
-		return stageUri.equals(stageTypeRealValue);
-	}
-
-	public static String getStageUri(Task task) {
-		PrismObject<TaskType> taskType = task.getTaskPrismObject();
-		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
-		if (stageType == null) {
-			return ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
-		}
-
-		return stageType.getRealValue();
-	}
-
 	private static Boolean findExtensionItemValueInThisOrParent(Task task, QName path) throws SchemaException {
 		Boolean value = findExtensionItemValue(task, path);
 		if (value != null) {
@@ -638,8 +611,23 @@ public class ModelImplUtils {
 		}
 		return null;
 	}
-
+	
 	private static Boolean findExtensionItemValue(Task task, QName path) throws SchemaException{
+		Validate.notNull(task, "Task must not be null.");
+		if (!task.hasExtension()) {
+			return null;
+		}
+		PrismProperty<Boolean> item = task.getExtensionProperty(ItemName.fromQName(path));
+		if (item == null || item.isEmpty()) {
+			return null;
+		}
+		if (item.getValues().size() > 1) {
+			throw new SchemaException("Unexpected number of values for option 'dry run'.");
+		}
+		return item.getValues().iterator().next().getValue();
+	}
+		
+	static Boolean findItemValue(RunningTask task, QName path) throws SchemaException{
 		Validate.notNull(task, "Task must not be null.");
 		if (!task.hasExtension()) {
 			return null;

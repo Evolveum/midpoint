@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,8 +65,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 	@Autowired private Clockwork clockwork;
 
 	@Override
-	public TaskRunResult run(RunningTask task) {
-
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 

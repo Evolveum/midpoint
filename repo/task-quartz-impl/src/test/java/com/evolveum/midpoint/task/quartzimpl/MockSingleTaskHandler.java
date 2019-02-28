@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.apache.commons.lang.Validate;
 
@@ -69,7 +70,7 @@ public class MockSingleTaskHandler implements TaskHandler {
     private int executions = 0;
 
 	@Override
-	public TaskRunResult run(RunningTask task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");

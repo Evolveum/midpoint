@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
@@ -58,7 +59,7 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 
 	@Override
 	public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
-			TaskWorkBucketProcessingResult previousRunResult) {
+			TaskPartitionDefinitionType taskPartition, TaskWorkBucketProcessingResult previousRunResult) {
 
 		String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4
 
