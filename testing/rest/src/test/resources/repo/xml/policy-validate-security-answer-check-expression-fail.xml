@@ -7,8 +7,9 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<policyItemDefinition>
 		<target>
-			<path>credentials/password/value</path>
+			<path>credentials/securityQuestions/questionAnswer[1]/questionAnswer</path>
 		</target>
-		<execute>true</execute>
+		<value>darthadder</value>
 	</policyItemDefinition>
+	
 </policyItemsDefinition>
