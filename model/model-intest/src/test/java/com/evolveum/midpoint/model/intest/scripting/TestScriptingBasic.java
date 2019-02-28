@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
+import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -91,6 +93,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File RECOMPUTE_JACK_FILE = new File(TEST_DIR, "recompute-jack.xml");
     private static final File ASSIGN_TO_JACK_FILE = new File(TEST_DIR, "assign-to-jack.xml");
     private static final File ASSIGN_TO_JACK_2_FILE = new File(TEST_DIR, "assign-to-jack-2.xml");
+    private static final File UNASSIGN_FROM_WILL_FILE = new File(TEST_DIR, "unassign-from-will.xml");
+    private static final File UNASSIGN_FROM_WILL_2_FILE = new File(TEST_DIR, "unassign-from-will-2.xml");
+    private static final File UNASSIGN_FROM_WILL_3_FILE = new File(TEST_DIR, "unassign-from-will-3.xml");
     private static final File PURGE_DUMMY_BLACK_SCHEMA_FILE = new File(TEST_DIR, "purge-dummy-black-schema.xml");
     private static final File TEST_DUMMY_RESOURCE_FILE = new File(TEST_DIR, "test-dummy-resource.xml");
     private static final File NOTIFICATION_ABOUT_JACK_FILE = new File(TEST_DIR, "notification-about-jack.xml");
@@ -550,7 +555,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertAssignedAccount(jack, "10000000-0000-0000-0000-000000000104");
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-55555555cccc");
     }
-
+    
     @Test
     public void test370AssignToJackInBackground() throws Exception {
     	final String TEST_NAME = "test370AssignToJackInBackground";
@@ -600,6 +605,81 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("jack after disable script", jack);
         assertAdministrativeStatusDisabled(jack);
+    }
+    
+    @Test
+    public void test390UnassignFromWill() throws Exception {
+    	final String TEST_NAME = "test390UnassignFromJack";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+        PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_FILE);
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+
+        // THEN
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> will = getUser(USER_WILL_OID);
+        display("will after unassign assignment", will);
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MEMBER.getRelation());
+        MidPointAsserts.assertAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
+        MidPointAsserts.assertAssignedResource(will, "10000000-0000-0000-0000-000000000004");
+    }
+    
+    @Test
+    public void test391UnassignFromWill() throws Exception {
+    	final String TEST_NAME = "test391UnassignFromJack";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+        PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_2_FILE);
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+
+        // THEN
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> will = getUser(USER_WILL_OID);
+        display("will after unassign assignment", will);
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MEMBER.getRelation());
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
+        MidPointAsserts.assertAssignedResource(will, "10000000-0000-0000-0000-000000000004");
+    }
+    
+    @Test
+    public void test392UnassignFromWill() throws Exception {
+    	final String TEST_NAME = "test392UnassignFromJack";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+        PrismProperty<ScriptingExpressionType> expression = parseAnyData(UNASSIGN_FROM_WILL_3_FILE);
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+
+        // THEN
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> will = getUser(USER_WILL_OID);
+        display("will after unassign assignment", will);
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MEMBER.getRelation());
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
+        MidPointAsserts.assertNotAssignedResource(will, "10000000-0000-0000-0000-000000000004");
     }
 
     @Test
