@@ -313,7 +313,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
 
-        assertUsers(7);
+        assertUsers(8);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -370,7 +370,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertAccount(userMancomb, RESOURCE_DUMMY_BLUE_OID);
         assertAccount(userMancomb, RESOURCE_DUMMY_GREEN_OID);
 
-        assertUsers(7);
+        assertUsers(8);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -409,7 +409,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // Dummy resource has some extra users that may be created in recon, so let's give it a chance to do it now
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
 
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 	}
 
 	/**
@@ -464,7 +464,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
 
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 	}
 
 //	@Test
@@ -592,7 +592,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyBlue);
         assertLinked(userWally, accountWallyDefault);
 
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 
         // notifications
         notificationManager.setDisabled(true);
@@ -667,7 +667,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyBlue);
         assertLinked(userWally, accountWallyDefault);
 
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 
         notificationManager.setDisabled(true);
     }
@@ -742,7 +742,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyBlue);
         assertLinked(userWally, accountWallyDefault);
 
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 
         notificationManager.setDisabled(true);
     }
@@ -798,7 +798,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
 
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 
         // notifications
         notificationManager.setDisabled(true);
@@ -884,7 +884,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
 		assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), task, result);
 
-        assertUsers(6 + getNumberOfExtraDummyUsers());
+        assertUsers(7 + getNumberOfExtraDummyUsers());
 
         if (isReconciliation()) {
         	if (takResultBlue.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
@@ -942,7 +942,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinks(userWally, 1);
         assertLinked(userWally, accountWallyGreen);
 
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 
 //        sync = ResourceTypeUtil.determineSynchronization(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME).asObjectable(), UserType.class);
 //        if (sync != null){
@@ -965,7 +965,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         prepareNotifications();
 
         // Preconditions
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 
         DummyAccount account = new DummyAccount(ACCOUNT_CALYPSO_DUMMY_USERNAME);
 		account.setEnabled(true);
@@ -993,7 +993,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         display("User calypso", userCalypso);
         assertNull("User calypso was created, it should not", userCalypso);
 
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 	}
 
 	/**
@@ -1011,7 +1011,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         prepareNotifications();
 
         // Preconditions
-        assertUsers(7 + getNumberOfExtraDummyUsers());
+        assertUsers(8 + getNumberOfExtraDummyUsers());
 
         DummyAccount account = new DummyAccount("Xjojo");
 		account.setEnabled(true);
@@ -1044,7 +1044,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         assertLinked(userAfter, accountAfter);
 
-        assertUsers(8 + getNumberOfExtraDummyUsers());
+        assertUsers(9 + getNumberOfExtraDummyUsers());
 
         // notifications
         notificationManager.setDisabled(true);

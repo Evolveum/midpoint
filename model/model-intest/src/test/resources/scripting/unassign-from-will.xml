@@ -23,7 +23,7 @@
     <s:searchFilter>
         <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
             <path>c:name</path>
-            <value>will</value>
+            <value>willTurner</value>
         </equal>
     </s:searchFilter>
     <s:action>
