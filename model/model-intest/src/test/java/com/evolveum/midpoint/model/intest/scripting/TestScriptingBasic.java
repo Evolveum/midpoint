@@ -819,7 +819,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         result.computeStatus();
 		TestUtil.assertSuccess(result);
 		PipelineData data = output.getFinalOutput();
-		assertEquals("Unexpected # of items in output", 5, data.getData().size());
+		assertEquals("Unexpected # of items in output", 6, data.getData().size());
 		Set<String> realOids = new HashSet<>();
         for (PipelineItem item : data.getData()) {
             PrismValue value = item.getValue();
@@ -829,7 +829,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 			assertSuccess(item.getResult());
 		}
 		assertEquals("Unexpected OIDs in output",
-				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
+				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID, USER_WILL_OID)),
 				realOids);
 	}
 
@@ -947,7 +947,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         result.computeStatus();
 		TestUtil.assertSuccess(result);
 		PipelineData data = output.getFinalOutput();
-		assertEquals("Unexpected # of items in output", 5, data.getData().size());
+		assertEquals("Unexpected # of items in output", 6, data.getData().size());
 		Set<String> realOids = new HashSet<>();
         for (PipelineItem item : data.getData()) {
             PrismValue value = item.getValue();
@@ -957,7 +957,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
             realOids.add(user.getOid());
 		}
 		assertEquals("Unexpected OIDs in output",
-				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
+				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID, USER_WILL_OID)),
 				realOids);
 	}
 

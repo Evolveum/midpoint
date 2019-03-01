@@ -143,7 +143,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         prepareNotifications();
 
         // Preconditions
-        assertUsers(5);
+        assertUsers(6);
 
         DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 		account.setEnabled(true);
@@ -181,7 +181,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         assertLinked(userMancomb, accountMancomb);
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
 		displayAllNotifications();
@@ -251,7 +251,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
         assertLinks(userWally, 1);
 
-        assertUsers(7);
+        assertUsers(8);
 
         assertLinked(userWally, accountWallyGreen);
 

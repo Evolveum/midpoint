@@ -68,7 +68,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 
-	private static final int NUMBER_OF_IMPORTED_USERS = 4;
+	private static final int NUMBER_OF_IMPORTED_USERS = 5;
 	private static final int NUMBER_OF_IMPORTED_ROLES = 16;
 
 	@Autowired protected MappingFactory mappingFactory;

@@ -25,6 +25,7 @@
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
 			<historyLength>3</historyLength>
+			<valuePolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffb" type="ValuePolicyType"/>
 		</password>
 		<nonce>
 			<maxAge>P30D</maxAge>
@@ -38,6 +39,7 @@
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
 			<questionNumber>1</questionNumber>
+			<valuePolicyRef oid="50505050-76e0-59e2-8888-3d4f02d3fffb" type="ValuePolicyType"/>
 			<question>
 				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
 				<enabled>true</enabled>
