@@ -226,7 +226,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
             return false;
         }
         GuiObjectListViewType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
-        return def != null && def.isDisableSorting();
+        return def != null && def.isDisableSorting() != null && def.isDisableSorting();
     }
 
     protected ObjectPaging createPaging(long offset, long pageSize) {
