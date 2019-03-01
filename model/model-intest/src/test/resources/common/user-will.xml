@@ -24,7 +24,6 @@
 		xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>will</name>
 	<!-- No full name -->
-	<subtype>PIRATE</subtype>
     <givenName>Will</givenName>
     <familyName>Turner</familyName>
     <assignment>
