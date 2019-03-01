@@ -17,13 +17,17 @@
 package com.evolveum.midpoint.web.component.input;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
@@ -49,7 +53,8 @@ public class DropDownChoicePanel<T> extends InputPanel {
                                boolean allowNull) {
         super(id);
 
-        DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model, choices, renderer) {
+        DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model,
+                Model.ofList(sortChoices(choices, renderer)), renderer) {
 
         	private static final long serialVersionUID = 1L;
 
@@ -69,6 +74,18 @@ public class DropDownChoicePanel<T> extends InputPanel {
         };
         input.setNullValid(allowNull);
         add(input);
+    }
+
+    private List<T> sortChoices(IModel<? extends List<? extends T>> choicesModel, IChoiceRenderer<T> renderer){
+        List<T> sortedList = choicesModel.getObject().stream().sorted((choice1, choice2) -> {
+            Validate.notNull(choice1);
+            Validate.notNull(choice2);
+
+            return String.CASE_INSENSITIVE_ORDER.compare(renderer.getDisplayValue(choice1).toString(), renderer.getDisplayValue(choice2).toString());
+
+
+        }).collect(Collectors.toList());
+        return sortedList;
     }
 
     @Override
