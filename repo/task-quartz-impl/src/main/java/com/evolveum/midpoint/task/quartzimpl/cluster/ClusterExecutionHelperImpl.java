@@ -118,7 +118,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
 			}
 			String secret;
 			try {
-				secret = protector.decryptString(node.getSecret());
+				secret = protector.decryptString(protectedSecret);
 			} catch (EncryptionException e) {
 				throw new SystemException("Couldn't decrypt local node secret: " + e.getMessage(), e);
 			}
