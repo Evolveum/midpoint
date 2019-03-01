@@ -89,11 +89,11 @@ public class PrimaryChangeAspectHelper {
             LOGGER.trace("Configuration getter method for {} not found, trying generic configuration", aspectName);
         }
 
-        for (GenericPcpAspectConfigurationType genericConfig : processorConfigurationType.getOtherAspect()) {
-            if (aspectName.equals(genericConfig.getName())) {
-                return genericConfig;
-            }
-        }
+//        for (GenericPcpAspectConfigurationType genericConfig : processorConfigurationType.getOtherAspect()) {
+//            if (aspectName.equals(genericConfig.getName())) {
+//                return genericConfig;
+//            }
+//        }
         return null;
     }
 

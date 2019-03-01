@@ -52,8 +52,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemType>
 	}
 
 	@Override
-	protected List<SummaryTag<WorkItemType>> getSummaryTagComponentList(){
-		List<SummaryTag<WorkItemType>> summaryTagList = new ArrayList<>();
+	protected List<SummaryTag<CaseWorkItemType>> getSummaryTagComponentList(){
+		List<SummaryTag<CaseWorkItemType>> summaryTagList = new ArrayList<>();
 		SummaryTag<CaseWorkItemType> isAssignedTag = new SummaryTag<CaseWorkItemType>(ID_SUMMARY_TAG, getModel()) {
 			@Override
 			protected void initialize(CaseWorkItemType workItem) {
