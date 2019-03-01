@@ -1532,35 +1532,45 @@ public final class WebComponentUtil {
 		return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
 	}
 
-	public static String getShortDateTimeFormatValue(XMLGregorianCalendar date, PageBase pageBase) {
-		return getShortDateTimeFormatValue(XmlTypeConverter.toDate(date), pageBase);
+	public static String getShortDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getShortDateTimeFormattedValue(XmlTypeConverter.toDate(date), pageBase);
 	}
 
-	public static String getShortDateTimeFormatValue(Date date, PageBase pageBase) {
+	public static String getShortDateTimeFormattedValue(Date date, PageBase pageBase) {
 		if (date == null) {
 			return "";
 		}
+		String shortDateTimeFortam = getShortDateTimeFormat(pageBase);
+		return getLocalizedDate(date, shortDateTimeFortam);
+	}
+
+	public static String getLongDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getLongDateTimeFormattedValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getLongDateTimeFormattedValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		String longDateTimeFormat = getLongDateTimeFormat(pageBase);
+		return getLocalizedDate(date, longDateTimeFormat);
+	}
+
+	public static String getShortDateTimeFormat(PageBase pageBase){
 		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getAdminGuiConfiguration().getDisplayFormats();
 		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getShortDateTimeFormat())){
-			return getLocalizedDate(date, DateLabelComponent.SHORT_MEDIUM_STYLE);
+			return DateLabelComponent.SHORT_MEDIUM_STYLE;
 		} else {
-			return getLocalizedDate(date, displayFormats.getShortDateTimeFormat());
+			return displayFormats.getShortDateTimeFormat();
 		}
 	}
 
-	public static String getLongDateTimeFormatValue(XMLGregorianCalendar date, PageBase pageBase) {
-		return getLongDateTimeFormatValue(XmlTypeConverter.toDate(date), pageBase);
-	}
-
-	public static String getLongDateTimeFormatValue(Date date, PageBase pageBase) {
-		if (date == null) {
-			return "";
-		}
+	public static String getLongDateTimeFormat(PageBase pageBase){
 		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getAdminGuiConfiguration().getDisplayFormats();
 		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getLongDateTimeFormat())){
-			return getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
+			return DateLabelComponent.LONG_MEDIUM_STYLE;
 		} else {
-			return getLocalizedDate(date, displayFormats.getLongDateTimeFormat());
+			return displayFormats.getLongDateTimeFormat();
 		}
 	}
 
