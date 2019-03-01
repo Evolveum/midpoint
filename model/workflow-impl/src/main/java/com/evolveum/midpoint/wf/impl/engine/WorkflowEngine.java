@@ -51,6 +51,7 @@ import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.wf.api.CompleteAction;
 import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
+import com.evolveum.midpoint.wf.impl.processors.ModelHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -92,6 +93,7 @@ public class WorkflowEngine {
 	@Autowired private StageComputeHelper stageComputeHelper;
 	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;   // todo
 	@Autowired private MiscHelper miscHelper;
+	@Autowired private ModelHelper modelHelper;
 	@Autowired private TriggerHelper triggerHelper;
 	@Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
 
@@ -314,7 +316,23 @@ public class WorkflowEngine {
 		if (!keepStageOpen) {
 			onStageClose(ctx, result);
 		}
+
+		if (LOGGER.isTraceEnabled()) {
+			logCtx(ctx, "After completing work items: " + actions, result);
+		}
 		LOGGER.trace("--- completeWorkItems EXIT");
+	}
+
+	private void logCtx(EngineInvocationContext ctx, String message, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		String rootOid = ctx.aCase.getParentRef() != null ? ctx.aCase.getParentRef().getOid() : ctx.aCase.getOid();
+		CaseType rootCase = repositoryService.getObject(CaseType.class, rootOid, null, result).asObjectable();
+		LOGGER.trace("###### [ {} ] ######", message);
+		LOGGER.trace("Root case:\n{}", modelHelper.dumpCase(rootCase));
+		for (CaseType subcase : miscHelper.getSubcases(rootCase, result)) {
+			LOGGER.trace("Subcase:\n{}", modelHelper.dumpCase(subcase));
+		}
+		LOGGER.trace("###### [ END OF {} ] ######", message);
 	}
 
 	public void onStageClose(EngineInvocationContext ctx, OperationResult result)

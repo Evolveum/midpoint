@@ -147,14 +147,28 @@ public class ModelHelper {
         StringBuilder sb = new StringBuilder();
 
         sb.append("===[ Situation just after case tree creation ]===\n");
-        sb.append("Root case:\n").append(rootCase.asPrismObject().debugDump(1)).append("\n");
+        sb.append("Root case:\n").append(dumpCase(rootCase)).append("\n");
         List<CaseType> children = miscHelper.getSubcases(rootCase, result);
         for (int i = 0; i < children.size(); i++) {
             CaseType child = children.get(i);
-            sb.append("Child job #").append(i).append(":\n").append(child.asPrismObject().debugDump(1));
+            sb.append("Child job #").append(i).append(":\n").append(dumpCase(child));
         }
         LOGGER.trace("\n{}", sb.toString());
     }
+
+    private static final boolean USE_DEBUG_DUMP = false;
+
+	public String dumpCase(CaseType aCase) {
+		if (USE_DEBUG_DUMP) {
+			return aCase.asPrismObject().debugDump(1);
+		} else {
+			try {
+				return prismContext.xmlSerializer().serialize(aCase.asPrismObject());
+			} catch (SchemaException e) {
+				return "schema exception: " + e;
+			}
+		}
+	}
 
 	/**
 	 * TODO
