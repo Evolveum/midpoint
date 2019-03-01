@@ -83,7 +83,7 @@ public class HandlerExecutor {
 
 	@NotNull
 	private TaskRunResult executeWorkBucketAwareTaskHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType taskPartition, WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
-		WorkStateManager workStateManager = ((TaskManagerQuartzImpl) taskManager).getWorkStateManager();
+		WorkStateManager workStateManager = (WorkStateManager) taskManager.getWorkStateManager();
 		
 		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
 			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
@@ -140,7 +140,7 @@ public class HandlerExecutor {
 				return runResult;
 			}
 			try {
-				((TaskManagerQuartzImpl) taskManager).getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+				((WorkStateManager) taskManager.getWorkStateManager()).completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
 			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
 				return createFailureTaskRunResult(task, "Couldn't complete work bucket: " + e.getMessage(), e);
