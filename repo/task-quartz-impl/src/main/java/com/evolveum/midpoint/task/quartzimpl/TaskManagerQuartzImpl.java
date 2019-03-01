@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -1342,6 +1343,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     		return ((Task) task).listSubtasks(result);
 	    } else if (task instanceof TaskType) {
     		return listPersistentSubtasksForTask(((TaskType) task).getTaskIdentifier(), result);
+	    } else if (task instanceof PrismObject<?>) {
+		    //noinspection unchecked
+		    return listPersistentSubtasksForTask(((PrismObject<TaskType>) task).asObjectable().getTaskIdentifier(), result);
 	    } else {
     		throw new IllegalArgumentException("task: " + task);
 	    }
@@ -2185,7 +2189,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         List<PrismObject<TaskType>> obsoleteTasks;
         try {
             ObjectQuery obsoleteTasksQuery = prismContext.queryFor(TaskType.class)
-					.item(TaskType.F_COMPLETION_TIMESTAMP).le(timeXml)
+					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED)
+					.and().item(TaskType.F_COMPLETION_TIMESTAMP).le(timeXml)
 					.and().item(TaskType.F_PARENT).isNull()
 					.build();
             obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, null, result);
@@ -2482,5 +2487,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		return createRunningTask(task);
 	}
 
-
+	@Override
+	public NodeType getLocalNode() {
+		return ObjectTypeUtil.asObjectable(clusterManager.getLocalNodeObject());
+	}
 }
