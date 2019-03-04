@@ -25,8 +25,12 @@
             	</modification>
             </policyConstraints>
             <policyThreshold>
-            	<count>4</count>
-            	<period>PT1H</period>
+<!--             	<timeInterval> -->
+<!--             		<interval>PT1H</interval> -->
+<!--             	</timeInterval> -->
+            	<lowWaterMark>
+            		<count>5</count>
+            	</lowWaterMark>
             </policyThreshold>
             <policyActions>
                 <suspendTask/>

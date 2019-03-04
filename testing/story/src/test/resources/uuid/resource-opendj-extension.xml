@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,7 +28,8 @@
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
-          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
 
     <name>Embedded Test OpenDJ</name>
 
@@ -84,9 +85,39 @@
 			<attribute>
 				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
-				<description>No mapping for name. The mapping is present in the roles.</description>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<!-- MID-5114 -->
+					<source>
+                		<path>extension/piracy:ship</path>
+                	</source>
+					<expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',ship))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
 			</attribute>
+			
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
+                	<source>
+                		<path>extension/piracy:ship</path>
+                	</source>
+                </outbound>
+            </attribute>
 			
 			<attribute>
                 <ref>ri:cn</ref>
@@ -115,16 +146,14 @@
                 	</source>
                 </outbound>
             </attribute>
-
+            
             <attribute>
-                <ref>ri:uid</ref>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
+				<!-- MID-5114 -->
+                <ref>ri:departmentNumber</ref>
                 <outbound>
-                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
-                	     as a side-effect as it is a naming attribute. -->
-                	<strength>weak</strength>
+                	<strength>strong</strength>
                 	<source>
-                		<path>$user/name</path>
+                		<path>extension/piracy:ship</path>
                 	</source>
                 </outbound>
             </attribute>

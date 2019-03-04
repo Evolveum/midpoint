@@ -46,8 +46,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -88,14 +90,15 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 	}
 
 	@Override
-	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskRunResult runResult, RunningTask coordinatorTask,
+	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
-				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
+				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", partition, taskManager) {
+			
 			@Override
 			protected boolean handleObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
-				recompute(object, getOptions(coordinatorTask), workerTask, result);
+				recompute(object, getOptions(coordinatorTask), workerTask, partition, result);
 				return true;
 			}
 
@@ -115,7 +118,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 		return modelExecuteOptions;
 	}
 
-	private void recompute(PrismObject<FocusType> focalObject, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException,
+	private void recompute(PrismObject<FocusType> focalObject, ModelExecuteOptions options, Task task, TaskPartitionDefinitionType partition, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
 			ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
 		LOGGER.trace("Recomputing object {}", focalObject);
@@ -124,7 +127,12 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Recomputing object {}: context:\n{}", focalObject, syncContext.debugDump());
 		}
-		clockwork.run(syncContext, task, result);
+		
+		if (partition != null && ExecutionModeType.SIMULATE == partition.getStage()) {
+			clockwork.previewChanges(syncContext, null, task, result);
+		} else {
+			clockwork.run(syncContext, task, result);
+		}
 		LOGGER.trace("Recomputation of object {}: {}", focalObject, result.getStatus());
 	}
 

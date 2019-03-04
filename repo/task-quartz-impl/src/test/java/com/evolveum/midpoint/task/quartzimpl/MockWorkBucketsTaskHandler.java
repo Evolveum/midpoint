@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,7 +79,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
 	@Override
 	public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
-			TaskWorkBucketProcessingResult previousRunResult) {
+			TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
 		LOGGER.info("Run starting (id = {}); task = {}", id, task);
 
 		if (ensureSingleRunner) {

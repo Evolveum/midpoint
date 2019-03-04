@@ -16,7 +16,19 @@
     "givenName" : "Jack",
     "familyName" : "Sparrow",
     "additionalNames" : [ "Captain", "Jackie" ],
-    "polyName" : "Džek Sperou",
+    "polyName" : {
+    	"@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+    	"orig" : "Džek Sperou",
+    	"norm" : "dzek sperou",
+    	"translation" : {
+    		"key" : "JACK",
+    		"fallback" : "Jack",
+    		"argument" : [ {
+    			"value" : "Sparrow"
+    			}
+    		]
+    	}
+    },
     "assignment" : [ {
       "id" : 1111,
       "description" : "Assignment 1"

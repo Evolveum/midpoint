@@ -15,6 +15,14 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -22,19 +30,21 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -730,4 +740,11 @@ public interface TaskManager {
 	 * Use only for tests. Otherwise considered to be an ugly hack.
 	 */
 	RunningTask createFakeRunningTask(Task task);
+
+	TaskHandler getHandler(String handlerUri);
+
+	NodeType getLocalNode();
+
+	// TEMPORARY HACK -- DO NOT USE OUTSIDE task-quartz-impl module
+	Object getWorkStateManager();
 }

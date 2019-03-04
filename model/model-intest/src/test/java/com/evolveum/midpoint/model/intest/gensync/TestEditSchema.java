@@ -1579,7 +1579,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
-		assertEquals("Unexepected number of users found", 6, users.size());
+		assertEquals("Unexepected number of users found", 7, users.size());
 
 		for (final PrismObject<UserType> user: users) {
 			assertProperty(user, UserType.F_NAME, new Validator<PrismPropertyDefinition<PolyString>>() {

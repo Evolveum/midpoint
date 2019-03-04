@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,10 +35,11 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Iterative search result handler for account synchronization. Works both for
@@ -67,7 +69,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 
 	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
 			String processShortName, RunningTask coordinatorTask, ResourceObjectChangeListener objectChangeListener,
-			TaskStageType stageType, TaskManager taskManager) {
+			TaskPartitionDefinitionType stageType, TaskManager taskManager) {
 		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, stageType, taskManager);
 		this.objectChangeListener = objectChangeListener;
 		this.resourceReadOnly = resource;
@@ -125,7 +127,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			boolean rv = handleObjectInternal(accountShadow, workerTask, result);
 			result.computeStatusIfUnknown();
 			if (result.isError()) {
-				workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, getException(result));
+				workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, RepoCommonUtils.getResultException(result));
 			} else {
 				workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, null);
 			}
@@ -168,7 +170,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
 		change.setResource(getResourceWorkingCopy().asPrismObject());
-		if (getStageType() != null && ReconciliationTaskHandler.SIMULATE_URI.equals(getStageType().getStage())) {
+		if (getStageType() != null && ExecutionModeType.SIMULATE == getStageType().getStage()) {
 			change.setSimulate(true);
 		}
 

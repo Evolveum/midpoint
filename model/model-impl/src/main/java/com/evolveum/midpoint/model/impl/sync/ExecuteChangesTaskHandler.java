@@ -49,6 +49,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -84,7 +85,7 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
 
 	@NotNull
 	@Override
-	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskRunResult runResult, RunningTask coordinatorTask,
+	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(

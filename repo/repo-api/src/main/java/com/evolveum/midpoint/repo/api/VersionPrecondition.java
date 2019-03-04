@@ -16,11 +16,12 @@
 
 package com.evolveum.midpoint.repo.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.io.Serializable;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author mederly

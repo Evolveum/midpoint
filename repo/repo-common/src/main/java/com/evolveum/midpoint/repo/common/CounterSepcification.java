@@ -15,14 +15,21 @@
  */
 package com.evolveum.midpoint.repo.common;
 
+import java.time.Duration;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
+
 /**
  * @author katka
  *
  */
-public class CounterSepcification {
+public class CounterSepcification implements DebugDumpable {
 	
 	private int count = 0;
-	private long counterStart = 0;
+	private long counterStart;
+	private PolicyThresholdType policyThreshold; 
 	
 	public int getCount() {
 		return count;
@@ -36,7 +43,33 @@ public class CounterSepcification {
 	public void setCounterStart(long counterStart) {
 		this.counterStart = counterStart;
 	}
+
+	/**
+	 * @return the policyThreshold
+	 */
+	public PolicyThresholdType getPolicyThreshold() {
+		return policyThreshold;
+	}
 	
+	/**
+	 * @param policyThreshold the policyThreshold to set
+	 */
+	public void setPolicyThreshold(PolicyThresholdType policyThreshold) {
+		this.policyThreshold = policyThreshold;
+	}
 	
+	public void reset(long currentTimeMillis) {
+		count = 0;
+		counterStart = currentTimeMillis;
+	}
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Current count: ").append(count).append("\n");
+		sb.append("Counter start: ").append(XmlTypeConverter.createXMLGregorianCalendar(counterStart)).append("\n");
+		sb.append("Thresholds: \n").append(policyThreshold.toString());
+		return sb.toString();
+	}
 	
 }

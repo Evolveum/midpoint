@@ -21,7 +21,16 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
 import static java.util.Collections.singleton;
 
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,17 +42,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
-import com.evolveum.midpoint.task.quartzimpl.work.workers.WorkersManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -60,22 +59,61 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.LightweightTaskHandler;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskDeletionListener;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskListener;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskManagerException;
+import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.task.api.TaskPartitionsDefinition;
+import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskWaitingReason;
+import com.evolveum.midpoint.task.api.WorkersReconciliationOptions;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
+import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
 import com.evolveum.midpoint.task.quartzimpl.execution.StalledTasksWatcher;
+import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
+import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
+import com.evolveum.midpoint.task.quartzimpl.work.workers.WorkersManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -87,6 +125,20 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InfrastructureConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -181,6 +233,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	@Autowired
 	@Qualifier("securityContextManager")
 	private SecurityContextManager securityContextManager;
+	
+	// fixme " how to properly initialize handler executer for jobexecutor?
+	@Autowired private HandlerExecutor handlerExecutor; 
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
@@ -239,8 +294,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             postInit(result);
         }
     }
-
-	@PreDestroy
+    
+    @PreDestroy
 	public void destroy() {
 		systemConfigurationChangeDispatcher.unregisterListener(this);
 	}
@@ -1342,8 +1397,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     		return ((Task) task).listSubtasks(result);
 	    } else if (task instanceof TaskType) {
     		return listPersistentSubtasksForTask(((TaskType) task).getTaskIdentifier(), result);
+	    } else if (task instanceof PrismObject<?>) {
+		    //noinspection unchecked
+		    return listPersistentSubtasksForTask(((PrismObject<TaskType>) task).asObjectable().getTaskIdentifier(), result);
 	    } else {
-    		throw new IllegalArgumentException("task: " + task);
+    		throw new IllegalArgumentException("task: " + task + " (of class " + (task != null ? task.getClass() : "null") + ")");
 	    }
     }
 
@@ -2384,6 +2442,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	public WorkStateManager getWorkStateManager() {
 		return workStateManager;
 	}
+	
+	/**
+	 * @return the handlerExecutor
+	 */
+	public HandlerExecutor getHandlerExecutor() {
+		return handlerExecutor;
+	}
 
 	@Override
 	public ObjectQuery narrowQueryForWorkBucket(ObjectQuery query, Class<? extends ObjectType> type,
@@ -2483,5 +2548,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		return createRunningTask(task);
 	}
 
-
+	@Override
+	public NodeType getLocalNode() {
+		return ObjectTypeUtil.asObjectable(clusterManager.getLocalNodeObject());
+	}
 }
