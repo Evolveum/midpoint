@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -97,7 +98,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
 		ItemPath attributePath = ShadowType.F_ATTRIBUTES;
 
-		for (ItemDefinition def : (List<ItemDefinition>) ocDef.getDefinitions()) {
+		for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
 			if (!(def instanceof PrismPropertyDefinition) && !(def instanceof PrismReferenceDefinition)) {
 				continue;
 			}

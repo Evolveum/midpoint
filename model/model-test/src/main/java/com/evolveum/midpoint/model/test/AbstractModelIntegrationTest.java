@@ -345,6 +345,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		securityContext.setAuthentication(null);
 	}
 
+	protected void initDummyResource(String name, DummyResourceContoller controller) {
+		dummyResourceCollection.initDummyResource(name, controller);
+	}
+	
 	protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
 			FailableProcessor<DummyResourceContoller> controllerInitLambda,
 			Task task, OperationResult result) throws Exception {
