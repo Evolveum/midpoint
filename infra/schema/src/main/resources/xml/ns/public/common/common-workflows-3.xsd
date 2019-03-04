@@ -662,31 +662,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processCheckInterval" minOccurs="0" type="xsd:int" default="10">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        For "dumb" wf processes, which require active shadowing tasks, sets the process
-                        instance check interval (in seconds).
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>WfConfigurationType.processCheckInterval</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="allowCompleteOthersItems" minOccurs="0" type="xsd:boolean" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Whether appropriately privileged users (e.g. the administrator) can approve/reject work items
-                        assigned to other users.
-                        DEPRECATED. Use authorizations to limit ability to approve/reject arbitrary work items.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.5</a:deprecatedSince>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="useLegacyApproversSpecification" minOccurs="0" type="tns:LegacyApproversSpecificationUsageType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1136,146 +1111,11 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-                    <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
                     <xsd:element name="addAssociationAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addAssociationAspect</a:displayName>
 								<a:displayOrder>210</a:displayOrder>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1501,53 +1341,6 @@
     </xsd:complexType>
     <xsd:element name="wfContextType" type="tns:WfContextType" />
 
-	<xsd:complexType name="DecisionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Basic information on a user (or automated) decision in context of a work item.
-
-                This structure is meant to describe the outcome of a work items in various contexts,
-                although currently it is used only within the generalized item approval process.
-
-	            DEPRECATED. Use WorkItemCompletionEventType (or other kinds of wf events) instead.
-            </xsd:documentation>
-	        <xsd:appinfo>
-		        <a:deprecated>true</a:deprecated>
-		        <a:deprecatedSince>3.6</a:deprecatedSince>
-	        </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="approverRef" type="c:ObjectReferenceType">
-                <xsd:annotation>
-					<xsd:documentation>
-						User who actually decided on this work item. May be empty in the case of automated decision.
-					</xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="approved" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Boolean representation of the decision, if applicable.
-                        True = approved, false = rejected, null = either unknown or not applicable.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="resultAsString" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        String representation of the result. Used in cases where the result is not simple 'approved' or 'rejected'.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="dateTime" type="xsd:dateTime" />
-		</xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="decisionType" type="tns:DecisionType" />
-
     <xsd:complexType name="WfProcessorSpecificStateType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -1636,35 +1429,11 @@
 				<xsd:sequence>
 					<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
 					<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType"/>
-					<xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.6</a:deprecatedSince>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 	<xsd:element name="itemApprovalProcessState" type="tns:ItemApprovalProcessStateType" />
-
-	<!--<xsd:complexType name="ItemApprovalRequestType">-->
-        <!--<xsd:annotation>-->
-            <!--<xsd:appinfo>-->
-                <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
-            <!--<xsd:documentation>-->
-                <!--TODO-->
-            <!--</xsd:documentation>-->
-        <!--</xsd:annotation>-->
-        <!--<xsd:sequence>-->
-            <!--<xsd:element name="itemToApprove" type="xsd:anyType"/>          &lt;!&ndash; Containerable &ndash;&gt;-->
-            <!--<xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" />-->
-        <!--</xsd:sequence>-->
-    <!--</xsd:complexType>-->
-    <!--<xsd:element name="itemApprovalRequest" type="tns:ItemApprovalRequestType" />-->
 
     <xsd:complexType name="InformationType">
 		<xsd:annotation>
@@ -1697,7 +1466,7 @@
 	<xsd:complexType name="InformationPartType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO Replace by forms before 3.6 release.
+				TODO Replace by forms eventually.
 				TEMPORARY
 			</xsd:documentation>
 		</xsd:annotation>

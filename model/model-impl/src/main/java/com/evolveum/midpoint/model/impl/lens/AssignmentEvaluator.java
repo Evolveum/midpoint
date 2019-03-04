@@ -447,7 +447,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 					}
 					if (segment.isMatchingOrderForTarget()) {
 						collectPolicyRule(false, segment, ctx);
-					}
+					} 
 				}
 			}
 			if (assignmentType.getTarget() != null || assignmentType.getTargetRef() != null) {

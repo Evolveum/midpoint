@@ -41,6 +41,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.ApprovalMetadataHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -72,7 +73,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 	@Autowired private RepositoryService repositoryService;
 
 	@Override
-	public TaskRunResult run(RunningTask task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 		try {

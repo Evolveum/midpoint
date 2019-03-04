@@ -80,7 +80,7 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
         prepareNotifications();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
 
 		/// WHEN
         displayWhen(TEST_NAME);
@@ -112,7 +112,7 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
 
         assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);

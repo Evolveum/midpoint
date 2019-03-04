@@ -30,7 +30,7 @@
         <xsd:documentation>
             Basic Prism types.
             
-            Version: 3.9
+            Version: 4.0-SNAPSHOT
             Recommended namespace prefix: t
         </xsd:documentation>
     </xsd:annotation>
@@ -87,6 +87,16 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="translation" type="tns:PolyStringTranslationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition of string value by using localization key and parameters. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -96,6 +106,67 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:any>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="PolyStringTranslationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of string value by using localization key and parameters.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="key" type="xsd:string" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Key used to look up the localized message format in the localization catalogs.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallback" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Value of the string to be used in case that the key is not found in the localization catalogs.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="argument" type="tns:PolyStringTranslationArgumentType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Arguments for the translation. Arguments refer to placeholders in the format string in the localization catalog.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="PolyStringTranslationArgumentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Arguments for localization translation. Arguments refer to placeholders in the format string in the localization catalog.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="value" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Literal value for the localization argument.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="translation" type="tns:PolyStringTranslationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Value of the localization argument is to be determined by using another localization key.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 	

@@ -19,28 +19,38 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.P
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -89,6 +99,8 @@ public class Projector {
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic medic;
 
+    @Autowired private CounterManager counterManager;
+    
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 
 	/**
@@ -152,6 +164,8 @@ public class Projector {
 		String traceTitle = fromStart ? "projector start" : "projector resume";
 		medic.traceContext(LOGGER, activityDescription, traceTitle, false, context, false);
 
+//		setupCounters(now, context.getPrismContext(), task, parentResult);
+		
 		if (consistencyChecks) context.checkConsistence();
 
 		if (fromStart) {
@@ -295,7 +309,33 @@ public class Projector {
         }
 
 	}
-
+//
+//	private synchronized void setupCounters(XMLGregorianCalendar now, PrismContext prismContext, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+//		
+//		if (task.getOid() == null) {
+//			return;
+//		}
+//		
+//		TaskType taskType = task.getTaskType();
+//		LOGGER.trace("Collecting counters for {}", task);
+//		
+//		AssignmentTripleEvaluator<TaskType> ate = new AssignmentTripleEvaluator<>();
+//		ate.setNow(now);
+//		ate.setPrismContext(prismContext);
+//		ate.setResult(result);
+//		ate.setSource(taskType);
+//		ate.setTask(task);
+//		DeltaSetTriple<EvaluatedAssignmentImpl<TaskType>> evaluatedAssignments = ate.preProcessAssignments(task.getTaskPrismObject());
+//		
+//		Set<EvaluatedPolicyRule> evaluatedPolicyRules = new HashSet<>(); 
+//		
+//		for (EvaluatedAssignmentImpl<TaskType> evaluatedAssignment : evaluatedAssignments.union()) {
+//			evaluatedPolicyRules.addAll(evaluatedAssignment.getOtherTargetsPolicyRules());
+//		}
+//		evaluatedPolicyRules.forEach(policyRule -> counterManager.registerCounter(task, policyRule.getPolicyRule()));
+//		
+//	}
+//	
 	private <F extends ObjectType> void projectProjection(LensContext<F> context, LensProjectionContext projectionContext,
 			PartialProcessingOptionsType partialProcessingOptions,
 			XMLGregorianCalendar now, String activityDescription, Task task, OperationResult parentResult) 

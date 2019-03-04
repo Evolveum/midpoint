@@ -55,6 +55,8 @@ import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationArgumentType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -300,9 +302,13 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	}
 
 	public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
+		assertUserJack(user, expectRawInConstructions, true);
+	}
+	
+	public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions, boolean expectFullPolyName) throws SchemaException {
 		user.checkConsistence();
 		user.assertDefinitions("test");
-		assertUserJackContent(user, expectRawInConstructions);
+		assertUserJackContent(user, expectRawInConstructions, expectFullPolyName);
 		assertUserJackExtension(user);
 		assertVisitor(user, 71);
 
@@ -321,7 +327,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 //				NameItemPathSegment.WILDCARD), false, 5);
 	}
 
-	public static void assertUserJackContent(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
+	public static void assertUserJackContent(PrismObject<UserType> user, boolean expectRawInConstructions, boolean expectFullPolyName) throws SchemaException {
 		PrismContext prismContext = user.getPrismContext();
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
@@ -340,7 +346,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertPropertyValue(user, "special", "got it!");
         assertPropertyDefinition(user, "special", DOMUtil.XSD_STRING, 0, 1);
 
-		assertPropertyValue(user, "polyName", new PolyString("Džek Sperou","dzek sperou"));
+        asssertJackPolyName(user, expectFullPolyName);
 		assertPropertyDefinition(user, "polyName", PolyStringType.COMPLEX_TYPE, 0, 1);
 
 		ItemPath enabledPath = USER_ENABLED_PATH;
@@ -420,6 +426,31 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		assertEquals("Wrong accountRef description", "This is a reference with a filter", accountRefVal2.getDescription());
 		assertNotNull("No filter in accountRef", accountRefVal2.getFilter());
 
+	}
+
+	private static void asssertJackPolyName(PrismObject<UserType> user, boolean expectFullPolyName) {
+		ItemName propQName = new ItemName(NS_FOO, "polyName");
+		PrismProperty<PolyString> polyNameProp = user.findProperty(propQName);
+		asssertJackPolyName(polyNameProp, user, expectFullPolyName);
+	}
+		
+	public static void asssertJackPolyName(PrismProperty<PolyString> polyNameProp, PrismObject<UserType> user, boolean expectFullPolyName) {
+		assertNotNull("No polyName in "+user, polyNameProp);
+		PolyString polyName = polyNameProp.getAnyRealValue();
+		assertEquals("Wrong polyName.orig in "+user, "Džek Sperou", polyName.getOrig());
+		assertEquals("Wrong polyName.norm in "+user, "dzek sperou", polyName.getNorm());
+		if (expectFullPolyName) {
+			PolyStringTranslationType translation = polyName.getTranslation();
+			assertNotNull("No polyName.translation in "+user, translation);
+			assertEquals("Wrong polyName.translation.key in "+user, "JACK", translation.getKey());
+			assertEquals("Wrong polyName.translation.fallback in "+user, "Jack", translation.getFallback());
+			List<PolyStringTranslationArgumentType> arguments = translation.getArgument();
+			assertNotNull("No polyName.translation.argument list in "+user, arguments);
+			assertEquals("Wrong number of polyName.translation.argument in "+user, 1, arguments.size());
+			PolyStringTranslationArgumentType argument = arguments.get(0);
+			assertNotNull("No polyName.translation.argument in "+user, argument);
+			assertEquals("Wrong polyName.translation.argument.value in "+user, "Sparrow", argument.getValue());
+		}
 	}
 
 	private static void assertUserJackExtension(PrismObject<UserType> user) throws SchemaException {

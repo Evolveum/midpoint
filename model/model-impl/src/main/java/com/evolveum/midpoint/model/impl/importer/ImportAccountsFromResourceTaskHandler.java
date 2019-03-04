@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -170,7 +171,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     }
 
 	@Override
-	protected SynchronizeAccountResultHandler createHandler(TaskRunResult runResult, RunningTask coordinatorTask,
+	protected SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
@@ -178,11 +179,18 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 			return null;
 		}
 
-		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, null, runResult, coordinatorTask, opResult);
+        return createHandler(partition, resource, null, runResult, coordinatorTask, opResult);
+	}
+
+    // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
+	private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, ResourceType resource, PrismObject<ShadowType> shadowToImport,
+			TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
+
+		ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, coordinatorTask, opResult);
 		if (objectClass == null) {
 			return null;
 		}
-        return createHandler(resource, objectClass, coordinatorTask);
+        return createHandler(partition, resource, objectClass, coordinatorTask);
 	}
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
@@ -192,21 +200,21 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 		if (objectClass == null) {
 			return null;
 		}
-		return createHandler(resource, objectClass, task);
+		return createHandler(null, resource, objectClass, task);
 	}
 
-	private SynchronizeAccountResultHandler createHandler(@NotNull ResourceType resource, @NotNull ObjectClassComplexTypeDefinition objectClass,
+	private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, @NotNull ResourceType resource, @NotNull ObjectClassComplexTypeDefinition objectClass,
 			RunningTask coordinatorTask) {
         LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
 
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
-                coordinatorTask, changeNotificationDispatcher, null, taskManager);
+                coordinatorTask, changeNotificationDispatcher, partition, taskManager);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);
         handler.setLogObjectProgress(true);
-
+        
         return handler;
 	}
 

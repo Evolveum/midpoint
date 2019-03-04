@@ -204,7 +204,7 @@ public class ColumnUtils {
 						createStringResource("ThreeStateBooleanPanel.true") : createStringResource("ThreeStateBooleanPanel.false");
 
 		}
-		return null;
+		return Model.of();
 	}
 
 	private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){

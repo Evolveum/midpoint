@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -149,8 +150,8 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
      * The body of the task. This will start the import "loop".
      */
     @Override
-    public TaskRunResult run(RunningTask task) {
-
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    
         LOGGER.debug("Import objects from file run (task {})", task);
 
         // This is an operation result for the entire import task. Therefore use the constant for
