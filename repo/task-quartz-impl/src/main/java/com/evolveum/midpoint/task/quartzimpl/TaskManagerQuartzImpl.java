@@ -42,6 +42,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -90,7 +91,6 @@ import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -2548,5 +2548,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		return createRunningTask(task);
 	}
 
-
+	@Override
+	public NodeType getLocalNode() {
+		return ObjectTypeUtil.asObjectable(clusterManager.getLocalNodeObject());
+	}
 }

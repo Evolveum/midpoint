@@ -25,7 +25,15 @@ user:
   familyName: "Sparrow"
   additionalNames:
   - "Jackie"
-  polyName: "Džek Sperou"
+  polyName:
+    '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+    orig: "Džek Sperou"
+    norm: "dzek sperou"
+    translation:
+      key: "JACK"
+      fallback: "Jack"
+      argument:
+      - value: "Sparrow"
   locality: "World's End"
   assignment:
   - id: 1111

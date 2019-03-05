@@ -22,9 +22,8 @@
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
 		xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-    <name>will</name>
+    <name>willTurner</name>
 	<!-- No full name -->
-	<subtype>PIRATE</subtype>
     <givenName>Will</givenName>
     <familyName>Turner</familyName>
     <assignment>

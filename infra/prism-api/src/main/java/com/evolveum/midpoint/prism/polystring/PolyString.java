@@ -25,6 +25,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
@@ -50,9 +52,11 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
 	public static final ItemName F_ORIG = new ItemName(PrismConstants.NS_TYPES, "orig");
 	public static final ItemName F_NORM = new ItemName(PrismConstants.NS_TYPES, "norm");
+	public static final ItemName F_TRANSLATION = new ItemName(PrismConstants.NS_TYPES, "translation");
 
 	private final String orig;
 	private String norm = null;
+	private PolyStringTranslationType translation;
 
 	public PolyString(String orig) {
 		super();
@@ -70,6 +74,11 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		this.orig = orig;
 		this.norm = norm;
 	}
+	
+	public PolyString(String orig, String norm, PolyStringTranslationType translation) {
+		this(orig, norm);
+		this.translation = translation;
+	}
 
 	public String getOrig() {
 		return orig;
@@ -77,6 +86,19 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
 	public String getNorm() {
 		return norm;
+	}
+
+	public PolyStringTranslationType getTranslation() {
+		return translation;
+	}
+
+	/**
+	 * Do NOT rely on this method too much. It may disappear later, e.g. when we align PolyString and PolyString type and
+	 * make PolyString really immutable.
+	 */
+	@Experimental
+	public void setTranslation(PolyStringTranslationType translation) {
+		this.translation = translation;
 	}
 
 	public boolean isEmpty() {
@@ -111,6 +133,8 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			return orig;
 		} else if (QNameUtil.match(F_NORM, itemName)) {
 			return norm;
+		} else if (QNameUtil.match(F_TRANSLATION, itemName)) {
+			return translation;
 		} else {
 			throw new IllegalArgumentException("Unknown path segment "+itemName);
 		}
@@ -184,6 +208,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		int result = 1;
 		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
 		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
+		result = prime * result + ((translation == null) ? 0 : translation.hashCode());
 		return result;
 	}
 
@@ -205,6 +230,11 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			if (other.orig != null)
 				return false;
 		} else if (!orig.equals(other.orig))
+			return false;
+		if (translation == null) {
+			if (other.translation != null)
+				return false;
+		} else if (!translation.equals(other.translation))
 			return false;
 		return true;
 	}
@@ -240,6 +270,10 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		if (norm != null) {
 			sb.append(",");
 			sb.append(norm);
+		}
+		if (translation != null) {
+			sb.append(";translation=");
+			sb.append(translation.getKey());
 		}
 		sb.append(")");
 		return sb.toString();
@@ -278,6 +312,15 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return Pattern.matches(regex, norm) || Pattern.matches(regex, orig);
 	}
 
+	/**
+	 * Returns true if the PolyString form contains only simple string.
+	 * I.e. returns true if the polystring can be serialized in a simplified form of a single string.
+	 * Returns true in case that there are language mutations, translation, etc.
+	 */
+	public boolean isSimple() {
+		return translation == null;
+	}
+
 	@Override
 	public void checkConsistence() {
 		if (orig == null) {
@@ -299,4 +342,5 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public static PolyString fromOrig(String orig) {
 		return new PolyString(orig);
 	}
+
 }

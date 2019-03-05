@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1156,7 +1156,12 @@ public class BeanUnmarshaller {
 			throw new SchemaException("Null polystring orig in "+map);
 		}
 		String norm = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
-		Object value = new PolyStringType(new PolyString(orig, norm));
+		PolyStringTranslationType translation = null;
+		XNodeImpl xTranslation = map.get(QNameUtil.nullNamespace(PolyString.F_TRANSLATION));
+		if (xTranslation != null) {
+			translation = unmarshal(xTranslation, PolyStringTranslationType.class, pc);
+		}
+		Object value = new PolyStringType(new PolyString(orig, norm, translation));
 		return toCorrectPolyStringClass(value, beanClass, map);
 	}
 

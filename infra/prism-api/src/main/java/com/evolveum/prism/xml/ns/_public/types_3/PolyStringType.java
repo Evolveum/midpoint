@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,15 +86,21 @@ import org.w3c.dom.Element;
 @XmlType(name = "PolyStringType", propOrder = {
     "orig",
     "norm",
+    "translation",
     "any"
 })
 public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
+	private static final long serialVersionUID = 1L;
 
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringType");
 
     @XmlElement(required = true)
     protected String orig;
+    
     protected String norm;
+    
+    protected PolyStringTranslationType translation;
+
     @XmlAnyElement(lax = true)
     protected List<Object> any;
 
@@ -111,6 +117,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
     public PolyStringType(PolyString polyString) {
     	this.orig = polyString.getOrig();
     	this.norm = polyString.getNorm();
+    	this.translation = polyString.getTranslation();
     }
 
     /**
@@ -160,8 +167,16 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
     public void setNorm(String value) {
         this.norm = value;
     }
+    
+    public PolyStringTranslationType getTranslation() {
+		return translation;
+	}
 
-    /**
+	public void setTranslation(PolyStringTranslationType translation) {
+		this.translation = translation;
+	}
+
+	/**
      * Gets the value of the any property.
      *
      * <p>
@@ -197,6 +212,15 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 		return orig.isEmpty();
 	}
     
+	/**
+	 * Returns true if the PolyString form contains only simple string.
+	 * I.e. returns true if the polystring can be serialized in a simplified form of a single string.
+	 * Returns true in case that there are language mutations, translation, etc.
+	 */
+	public boolean isSimple() {
+		return translation == null;
+	}
+    
     /**
      * Plus method for ease of use of PolyStrings in groovy (mapped from + operator).
      */
@@ -215,7 +239,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
     }
 
     public PolyString toPolyString() {
-    	return new PolyString(orig, norm);
+    	return new PolyString(orig, norm, translation);
     }
 
     /**
@@ -232,11 +256,6 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
@@ -245,6 +264,10 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 		if (norm != null) {
 			sb.append(",");
 			sb.append(norm);
+		}
+		if (translation != null) {
+			sb.append(";translation=");
+			sb.append(translation.getKey());
 		}
 		sb.append(")");
 		return sb.toString();
@@ -256,6 +279,9 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
         PolyStringType poly = new PolyStringType();
         poly.setNorm(getNorm());
         poly.setOrig(getOrig());
+        if (translation != null) {
+        	poly.setTranslation(translation.clone());
+        }
         copyContent(getAny(), poly.getAny());
 
         return poly;
@@ -504,6 +530,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 		result = prime * result + ((any == null || any.isEmpty()) ? 0 : any.hashCode());
 		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
 		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
+		result = prime * result + ((translation == null) ? 0 : translation.hashCode());
 		return result;
 	}
 
@@ -534,10 +561,16 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 				return false;
 		} else if (!orig.equals(other.orig))
 			return false;
+		if (translation == null) {
+			if (other.translation != null)
+				return false;
+		} else if (!translation.equals(other.translation))
+			return false;
 		return true;
 	}
 
 	public static PolyStringType fromOrig(String name) {
 		return name != null ? new PolyStringType(name) : null;
 	}
+
 }

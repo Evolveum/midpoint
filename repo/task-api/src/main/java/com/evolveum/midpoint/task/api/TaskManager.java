@@ -740,4 +740,11 @@ public interface TaskManager {
 	 * Use only for tests. Otherwise considered to be an ugly hack.
 	 */
 	RunningTask createFakeRunningTask(Task task);
+
+	TaskHandler getHandler(String handlerUri);
+
+	NodeType getLocalNode();
+
+	// TEMPORARY HACK -- DO NOT USE OUTSIDE task-quartz-impl module
+	Object getWorkStateManager();
 }

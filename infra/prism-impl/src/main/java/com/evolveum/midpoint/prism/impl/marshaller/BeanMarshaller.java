@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,9 +89,13 @@ public class BeanMarshaller {
 
 		// avoiding chatty PolyString serializations (namespace declaration + orig + norm)
 		if (bean instanceof PolyString) {
-			bean = (T) ((PolyString) bean).getOrig();
+			if (((PolyString)bean).isSimple()) {
+				bean = (T) ((PolyString) bean).getOrig();
+			}
 		} else if (bean instanceof PolyStringType) {
-			bean = (T) ((PolyStringType) bean).getOrig();
+			if (((PolyStringType)bean).isSimple()) {
+				bean = (T) ((PolyStringType) bean).getOrig();
+			}
 		}
 
 		if (bean instanceof Containerable) {

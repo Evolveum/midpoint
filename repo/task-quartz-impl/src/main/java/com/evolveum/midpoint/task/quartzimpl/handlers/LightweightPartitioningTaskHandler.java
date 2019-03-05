@@ -94,7 +94,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 				
 		partitions.sort(comparator);
 		for (TaskPartitionDefinitionType partition : partitions) {
-			TaskHandler handler = ((TaskManagerQuartzImpl) taskManager).getHandler(partition.getHandlerUri());
+			TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
 			TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
 //			TaskRunResult subHandlerResult = handler.run(task, partition);
 			OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();

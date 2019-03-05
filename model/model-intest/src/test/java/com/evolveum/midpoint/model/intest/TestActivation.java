@@ -2265,7 +2265,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNull("Unexpected user mancomb before import", userMancomb);
 
@@ -2286,7 +2286,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No user mancomb after import", userMancomb);
         userMancombOid = userMancomb.getOid();
 
-        assertUsers(7);
+        assertUsers(8);
 
         assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
