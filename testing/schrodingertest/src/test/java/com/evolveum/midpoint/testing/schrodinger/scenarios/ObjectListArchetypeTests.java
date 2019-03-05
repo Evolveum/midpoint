@@ -57,8 +57,8 @@ public class ObjectListArchetypeTests extends TestBase {
         SelenideElement newGuiObjectListViewPropertiesPanel = prismForm.getPrismPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_KEY);
         newGuiObjectListViewPropertiesPanel
                 .$(Schrodinger.byDataResourceKey("Type"))
-                .$(Schrodinger.byElementAttributeValue("select", "data-s-id", "input"))
-                .selectOption("User");
+                .$(By.tagName("select"))
+                .selectOptionContainingText("User");
 
         //set archetypeRef
         SelenideElement collectionRefPropertyPanel = prismForm.findProperty(COLLECTION_REF_ATTRIBUTE_NAME);
@@ -157,15 +157,16 @@ public class ObjectListArchetypeTests extends TestBase {
         SelenideElement newObjectButton = userListPage
                 .table()
                     .getToolbarButton("fa fa-plus");
-        newObjectButton.click();
+
+        newObjectButton.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         newObjectButton
-                .$(By.tagName("ul"))
-                .shouldBe(Condition.visible)
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                     .$(Schrodinger.byElementAttributeValue("i", "class", ARCHETYPE_ICON_CSS_STYLE))
-                    .$(Schrodinger.byElementAttributeValue("i", "class", "fa fa-user")); //standard user icon
+                    .exists();
 
+        newObjectButton
+                .$(Schrodinger.byElementAttributeValue("i", "class", "fa fa-user")) //standard user icon
+                .exists();
     }
 
 }
