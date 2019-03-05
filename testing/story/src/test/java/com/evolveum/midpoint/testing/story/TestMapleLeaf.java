@@ -397,7 +397,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		passwd = new ProtectedStringType();
 		passwd.setClearValue("somenewValue");
 		userDelta = createModifyUserReplaceDelta(USER_JACK_OID, SchemaConstants.PATH_PASSWORD_VALUE, passwd);
-		userDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD, PasswordType.F_FORCE_CHANGE, Boolean.TRUE);
+		userDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE, Boolean.TRUE);
 		
 		executeChanges(userDelta, null, task, result);
 		
