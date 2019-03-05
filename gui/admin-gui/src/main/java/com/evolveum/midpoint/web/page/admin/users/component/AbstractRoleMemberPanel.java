@@ -37,6 +37,8 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceRelationsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -495,6 +497,23 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
 					memberQuery, delta, options, category, getPageBase());
 			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+		} catch (SchemaException e) {
+			parentResult.recordFatalError(parentResult.getOperation(), e);
+			LoggingUtils.logUnexpectedException(LOGGER,
+					"Failed to execute operation " + parentResult.getOperation(), e);
+			target.add(getPageBase().getFeedbackPanel());
+		}
+
+		target.add(getPageBase().getFeedbackPanel());
+	}
+	
+	protected void executeMemberOperation(Task operationalTask, QName type,
+			ObjectQuery memberQuery, ScriptingExpressionType script, AjaxRequestTarget target) {
+
+		OperationResult parentResult = operationalTask.getResult();
+
+		try {
+			WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, script, parentResult, getPageBase());
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(parentResult.getOperation(), e);
 			LoggingUtils.logUnexpectedException(LOGGER,

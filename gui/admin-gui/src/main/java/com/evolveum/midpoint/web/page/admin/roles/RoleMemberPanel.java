@@ -22,21 +22,30 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,6 +62,10 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -66,6 +79,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -83,6 +97,10 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	private static final String ID_PROJECT = "project";
 	private static final String ID_INDIRECT_MEMBERS_CONTAINER = "indirectMembersContainer";
 	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
+	
+	private static final String UNASSIGN_OPERATION = "unassign";
+	private static final String ROLE_PARAMETER = "role";
+	private static final String RELATION_PARAMETER = "relation";
 
 	public RoleMemberPanel(String id, IModel<T> model) {
 		super(id, TableId.ROLE_MEMEBER_PANEL, model);
@@ -375,11 +393,43 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target) {
+	protected void removeMembersPerformed(QueryScope scope, List<QName> relations, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope));
-		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, relation, MemberOperation.REMOVE, operationalTask.getResult());
-		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope, relation), delta,
-				TaskCategory.EXECUTE_CHANGES, target);
+		
+		SearchExpressionType script = new SearchExpressionType();
+		script.setType(FocusType.COMPLEX_TYPE);
+		ActionExpressionType expression = new ActionExpressionType();
+		expression.setType(UNASSIGN_OPERATION);
+		
+		//hack using fake definition because of type
+		PrismPropertyDefinition<Object> def = new PrismPropertyDefinitionImpl<>(
+				new QName(SchemaConstantsGenerated.NS_COMMON, "role_oid"), DOMUtil.XSD_STRING, getPageBase().getPrismContext());
+		PrismValue value = new PrismPropertyValue<String>(getModelObject().getOid());
+		try {
+			value.applyDefinition(def);
+		} catch (SchemaException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Can not aply definition " + def, e);
+			operationalTask.getResult().recordFatalError("Can not aply definition " + def, e);
+		}
+		expression.parameter(new ActionParameterValueType().name(ROLE_PARAMETER).value(
+				new RawType(value, DOMUtil.XSD_STRING, getPageBase().getPrismContext())));
+		if(relations != null) {
+			relations.forEach(relation -> {
+				expression.parameter(new ActionParameterValueType().name(RELATION_PARAMETER).value(QNameUtil.qNameToUri(relation)));
+			});
+		}
+		script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
+				ActionExpressionType.class, expression));
+		
+		ObjectQuery query = getActionQuery(scope, relations);
+		try {
+			script.setQuery(QueryJaxbConvertor.createQueryType(query, getPageBase().getPrismContext()));
+		} catch (SchemaException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
+			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
+		}
+		
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, query, script, target);
 
 	}
 

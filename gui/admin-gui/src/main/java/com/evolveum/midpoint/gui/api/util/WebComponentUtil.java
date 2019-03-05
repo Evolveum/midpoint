@@ -55,11 +55,14 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -140,8 +143,14 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -589,9 +598,35 @@ public final class WebComponentUtil {
 			prismTask.findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS))
 					.setRealValue(options.toModelExecutionOptionsType());
 		}
-
 		return task;
+	}
+	
+	public static void executeBulkAction(PageBase pageBase, ScriptingExpressionType script, Task task, OperationResult result ){
+		try {
+			pageBase.getScriptingService().evaluateExpressionInBackground(script, task, result);
+		} catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException
+				| CommunicationException | ConfigurationException e) {
+			result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.submit").getString(), e);
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
+		}
+	}
+	
+	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
+			ScriptingExpressionType script, OperationResult parentResult, PageBase pageBase) throws SchemaException {
+		TaskType taskType = new TaskType(pageBase.getPrismContext());
 
+		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+		operationalTask.setOwner(owner.getUser().asPrismObject());
+		
+		operationalTask.setBinding(TaskBinding.LOOSE);
+		operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+		operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
+		ScheduleType schedule = new ScheduleType();
+		schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
+		operationalTask.makeSingle(schedule);
+		operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
+		
+		executeBulkAction(pageBase, script, operationalTask, parentResult);
 	}
 
 	public static boolean isAuthorized(String... action) {
