@@ -180,7 +180,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 
 	@Test
     public void test011importInactiveUserChappie() throws Exception {
-		final String TEST_NAME = "test020ResourceOpenDjGet";
+		final String TEST_NAME = "test011importInactiveUserChappie";
         TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
