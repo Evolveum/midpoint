@@ -42,6 +42,7 @@ import javax.xml.namespace.QName;
 @XmlType(name = "PolyStringTranslationType", propOrder = {
     "key",
     "fallback",
+    "fallbackTranslation",
     "argument"
 })
 public class PolyStringTranslationType implements Serializable, Cloneable {
@@ -52,6 +53,7 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
 	@XmlElement(required = true)
     protected String key;
     protected String fallback;
+    protected PolyStringTranslationType fallbackTranslation;
     protected final List<PolyStringTranslationArgumentType> argument = new ArrayList<>();
 
 	public String getKey() {
@@ -69,17 +71,26 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
 	public void setFallback(String fallback) {
 		this.fallback = fallback;
 	}
+	
+	public PolyStringTranslationType getFallbackTranslation() {
+		return fallbackTranslation;
+	}
+
+	public void setFallbackTranslation(PolyStringTranslationType fallbackTranslation) {
+		this.fallbackTranslation = fallbackTranslation;
+	}
 
 	public List<PolyStringTranslationArgumentType> getArgument() {
 		return argument;
 	}
 
-	@Override
+    @Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((argument == null) ? 0 : argument.hashCode());
 		result = prime * result + ((fallback == null) ? 0 : fallback.hashCode());
+		result = prime * result + ((fallbackTranslation == null) ? 0 : fallbackTranslation.hashCode());
 		result = prime * result + ((key == null) ? 0 : key.hashCode());
 		return result;
 	}
@@ -103,6 +114,11 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
 				return false;
 		} else if (!fallback.equals(other.fallback))
 			return false;
+		if (fallbackTranslation == null) {
+			if (other.fallbackTranslation != null)
+				return false;
+		} else if (!fallbackTranslation.equals(other.fallbackTranslation))
+			return false;
 		if (key == null) {
 			if (other.key != null)
 				return false;
@@ -111,9 +127,10 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
 		return true;
 	}
 
-    @Override
+	@Override
 	public String toString() {
-		return "PolyStringTranslationType(key=" + key + ", fallback=" + fallback + ", argument=" + argument + ")";
+		return "PolyStringTranslationType(key=" + key + ", fallback=" + fallback + ", fallbackTranslation="
+				+ fallbackTranslation + ", argument=" + argument + ")";
 	}
 
 	@Override
@@ -121,6 +138,9 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
         PolyStringTranslationType cloned = new PolyStringTranslationType();
         cloned.setKey(getKey());
         cloned.setFallback(getFallback());
+        if (getFallbackTranslation() != null) {
+        	cloned.setFallbackTranslation(getFallbackTranslation().clone());
+        }
         for (PolyStringTranslationArgumentType argument : getArgument()) {
             cloned.getArgument().add(argument.clone());
         }

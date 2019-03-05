@@ -717,6 +717,42 @@ public final class WebComponentUtil {
 
 	}
 
+	public static List<QName> createAssignmentHolderTypeQnamesList() {
+
+		List<ObjectTypes> objectTypes = createAssignmentHolderTypesList();
+		List<QName> types = new ArrayList<>();
+		objectTypes.forEach(objectType -> {
+			types.add(objectType.getTypeQName());
+		});
+
+		return types.stream().sorted((type1, type2) -> {
+				Validate.notNull(type1);
+				Validate.notNull(type2);
+
+				return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1), QNameUtil.qNameToUri(type2));
+
+
+		}).collect(Collectors.toList());
+
+	}
+
+	public static List<ObjectTypes> createAssignmentHolderTypesList(){
+		List<ObjectTypes> objectTypes = new ArrayList<>();
+		for (ObjectTypes t : ObjectTypes.values()) {
+			if (AssignmentHolderType.class.isAssignableFrom(t.getClassDefinition())) {
+				objectTypes.add(t);
+			}
+		}
+		return objectTypes.stream().sorted((type1, type2) -> {
+			Validate.notNull(type1);
+			Validate.notNull(type2);
+
+			return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1.getTypeQName()), QNameUtil.qNameToUri(type2.getTypeQName()));
+
+
+		}).collect(Collectors.toList());
+	}
+
 	// TODO: move to schema component
 	public static List<QName> createFocusTypeList() {
 		return createFocusTypeList(false);

@@ -133,6 +133,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="fallbackTranslation" type="tns:PolyStringTranslationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Translation to be used in case that the key is not found in the localization catalogs.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="argument" type="tns:PolyStringTranslationArgumentType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
