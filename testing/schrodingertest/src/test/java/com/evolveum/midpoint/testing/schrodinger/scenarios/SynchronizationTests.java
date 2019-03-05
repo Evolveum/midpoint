@@ -34,7 +34,7 @@ public class SynchronizationTests extends TestBase {
     private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
     private static final String DIRECTORY_CURRENT_TEST = "synchronizationTests";
 
-    @Test
+    @Test(priority = 0)
     public void setUpResourceAndSynchronizationTask() throws ConfigurationException, IOException {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
@@ -71,7 +71,7 @@ public class SynchronizationTests extends TestBase {
     }
 
 
-    @Test (dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
+    @Test (priority = 1, dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
     public void newResourceAccountUserCreated() throws IOException {
 
     FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
@@ -90,7 +90,7 @@ public class SynchronizationTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
+    @Test (priority = 2, dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
     public void protectedAccountAdded(){
 
         ListUsersPage usersPage = basicPage.listUsers();
@@ -125,7 +125,7 @@ public class SynchronizationTests extends TestBase {
     }
 
 
-    @Test (dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
+    @Test (priority = 3, dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
     public void newResourceAccountCreatedLinked() throws IOException {
 
         ListUsersPage usersPage = basicPage.listUsers();
@@ -170,7 +170,7 @@ public class SynchronizationTests extends TestBase {
 
     }
 
-    @Test (dependsOnMethods = {NEW_USER_ACCOUNT_CREATED_LINKED_DEPENDENCY})
+    @Test (priority = 4, dependsOnMethods = {NEW_USER_ACCOUNT_CREATED_LINKED_DEPENDENCY})
     public void alreadyLinkedResourceAccountModified() throws IOException {
 
         FileUtils.copyFile(CSV_UPDATED_SOURCE_FILE,CSV_TARGET_FILE);
@@ -192,7 +192,7 @@ public class SynchronizationTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {LINKED_USER_ACCOUNT_MODIFIED})
+    @Test (priority = 5, dependsOnMethods = {LINKED_USER_ACCOUNT_MODIFIED})
     public void alreadyLinkedResourceAccountDeleted() throws IOException {
 
         FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
@@ -211,7 +211,7 @@ public class SynchronizationTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
+    @Test (priority = 6, dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
     public void resourceAccountDeleted(){
 
         ListUsersPage usersPage = basicPage.listUsers();
@@ -270,7 +270,7 @@ public class SynchronizationTests extends TestBase {
 
 
 
-@Test(dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
+@Test(priority = 7, dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
     public void resourceAccountCreatedWhenResourceUnreachable() throws IOException {
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME,  ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath()+"err", false);
@@ -316,7 +316,7 @@ public class SynchronizationTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {RESOURCE_ACCOUNT_CREATED_WHEN_UNREACHABLE})
+    @Test (priority = 8, dependsOnMethods = {RESOURCE_ACCOUNT_CREATED_WHEN_UNREACHABLE})
     public void resourceAccountCreatedWhenResourceUnreachableToBeLinked() throws IOException {
 
         ListUsersPage listUsersPage= basicPage.listUsers();
