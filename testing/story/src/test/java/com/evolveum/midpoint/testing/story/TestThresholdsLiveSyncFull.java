@@ -19,6 +19,10 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
@@ -27,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInfor
  * @author katka
  *
  */
+@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholdsLiveSyncFull extends TestThresholds {
 	
 	private static final File TASK_LIVESYNC_OPENDJ_FULL_FILE = new File(TEST_DIR, "task-opendj-livesync-full.xml");

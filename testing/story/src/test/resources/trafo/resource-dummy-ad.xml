@@ -172,7 +172,6 @@ else {
 				<attribute>
 					<ref>ri:groups</ref>
 					<displayName>Groups</displayName>
-
 					<limitations>
 						<access>
 							<read>true</read>
@@ -180,8 +179,9 @@ else {
 							<modify>true</modify>
 						</access>
 					</limitations>
-					<tolerant>true</tolerant>
 					<matchingRule>mr:stringIgnoreCase</matchingRule>
+					<tolerant>true</tolerant>
+					
 					<outbound>
 						<strength>strong</strength><!-- See above -->
 						<source>
@@ -220,7 +220,6 @@ return null;
 				<attribute>
 					<ref>icfs:name</ref>
 					<displayName>Distinguished Name</displayName>
-
 					<limitations>
 						<access>
 							<read>true</read>
@@ -228,8 +227,8 @@ return null;
 							<modify>true</modify>
 						</access>
 					</limitations>
-
 					<matchingRule>mr:stringIgnoreCase</matchingRule>
+
 					<outbound>
 						<!--<strength>weak</strength>-->
 						<source>

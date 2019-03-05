@@ -434,7 +434,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 			.assertDescription(SERVICE_BARELLIUM_DESCRIPTION)
 			.assertLinks(0);
 		
-		assertNoServiceByName(ACCOUNT_BARELLIUM_DUMMY_USERNAME);
+		assertNoDummyAccount(ACCOUNT_BARELLIUM_DUMMY_USERNAME);
 	}
 	
 }
