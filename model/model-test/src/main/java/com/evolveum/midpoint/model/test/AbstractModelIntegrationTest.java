@@ -3680,7 +3680,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<O> addDelta = object.createAddDelta();
         assertFalse("Immutable object provided?",addDelta.getObjectToAdd().isImmutable());
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(addDelta, options, task, result);
-        object.setOid(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas));
+        object.setOid(ObjectDeltaOperation.findAddDeltaOid(executedDeltas, object));
         return object.getOid();
 	}
 
