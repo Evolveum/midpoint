@@ -74,9 +74,9 @@ public class MemberOperationsHelper {
 
 	}
 	
-	public static <R extends AbstractRoleType> void unassignOtherOrgMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope, ObjectQuery query, Collection<QName> relations, AjaxRequestTarget target) {
-		unassignMembersPerformed(pageBase, targetObject, scope, query, relations, ObjectType.COMPLEX_TYPE, target);
-	}
+//	public static <R extends AbstractRoleType> void unassignOtherOrgMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope, ObjectQuery query, Collection<QName> relations, AjaxRequestTarget target) {
+//		unassignMembersPerformed(pageBase, targetObject, scope, query, relations, ObjectType.COMPLEX_TYPE, target);
+//	}
 	
 	public static <R extends AbstractRoleType> void unassignMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope, ObjectQuery query, Collection<QName> relations, QName type, AjaxRequestTarget target) {
 		Task operationalTask = pageBase.createSimpleTask(getTaskName("Remove", scope));
@@ -386,7 +386,6 @@ public class MemberOperationsHelper {
 			ScriptingExpressionType script, AjaxRequestTarget target) {
 
 		OperationResult parentResult = operationalTask.getResult();
-
 		try {
 			WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, script, parentResult, modelServiceLocator);
 		} catch (SchemaException e) {
