@@ -601,19 +601,16 @@ public final class WebComponentUtil {
 		return task;
 	}
 	
-	public static void executeBulkAction(PageBase pageBase, ScriptingExpressionType script, Task task, OperationResult result ){
-		try {
-			pageBase.getScriptingService().evaluateExpressionInBackground(script, task, result);
-		} catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException
-				| CommunicationException | ConfigurationException e) {
-			result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.submit").getString(), e);
-	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
-		}
+
+	public static void executeBulkAction(PageBase pageBase, ScriptingExpressionType script, Task task, OperationResult result ) 
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException{
+		
+		pageBase.getScriptingService().evaluateExpressionInBackground(script, task, result);
 	}
 	
 	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
 			ScriptingExpressionType script, OperationResult parentResult, PageBase pageBase) throws SchemaException {
-		TaskType taskType = new TaskType(pageBase.getPrismContext());
 
 		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 		operationalTask.setOwner(owner.getUser().asPrismObject());
@@ -625,8 +622,18 @@ public final class WebComponentUtil {
 		schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
 		operationalTask.makeSingle(schedule);
 		operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
-		
-		executeBulkAction(pageBase, script, operationalTask, parentResult);
+	
+		try {
+			executeBulkAction(pageBase, script, operationalTask, parentResult);
+			parentResult.recordInProgress();
+			parentResult.setBackgroundTaskOid(operationalTask.getOid());
+			pageBase.showResult(parentResult);
+		} catch (ObjectNotFoundException | SchemaException
+			| ExpressionEvaluationException | CommunicationException | ConfigurationException
+			| SecurityViolationException e) {
+			parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.submit").getString(), e);
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
+		}
 	}
 
 	public static boolean isAuthorized(String... action) {
