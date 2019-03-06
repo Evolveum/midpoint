@@ -144,6 +144,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="messageProcessingConfiguration" type="tns:MessageProcessingConfigurationType"/>
 
     <xsd:complexType name="DataMessageType">
         <xsd:annotation>
@@ -158,6 +159,7 @@
             <!-- currently there are no common attributes now -->
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="dataMessage" type="tns:DataMessageType"/>
 
     <xsd:complexType name="Amqp091MessageType">
         <xsd:annotation>
@@ -178,13 +180,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="attribute" type="tns:DataMessagePropertyType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Message attributes (key-value pairs), other than the standard ones.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="body" type="xsd:base64Binary" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -196,6 +191,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="amqp091Message" type="tns:Amqp091MessageType"/>
 
     <xsd:complexType name="Amqp091MessageAttributesType">
         <xsd:annotation>

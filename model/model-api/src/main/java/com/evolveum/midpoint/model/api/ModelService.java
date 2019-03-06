@@ -722,7 +722,13 @@ public interface ModelService {
 			String mergeConfigurationName, Task task, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException;
 
-	void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task)
+	void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, Task task, OperationResult parentResult)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
+			PreconditionViolationException;
+
+	void notifyChange(DataMessageType message, MessageProcessingConfigurationType processing,
+			ResourceType resourceType, Task task, OperationResult parentResult)
 			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
 			PreconditionViolationException;

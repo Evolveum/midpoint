@@ -29,9 +29,9 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.messaging.MessageProcessor;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -87,8 +87,6 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -159,7 +157,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private CacheRegistry cacheRegistry;
 	@Autowired private ClockworkMedic clockworkMedic;
 	@Autowired private ChangeNotificationDispatcher dispatcher;
-
+	@Autowired private MessageProcessor messageProcessor;
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
@@ -2326,7 +2324,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	//endregion
 
-	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task)
+	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, Task task, OperationResult parentResult)
 			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
 			PreconditionViolationException {
@@ -2364,12 +2362,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					ChangeType.toChangeType(deltaType.getChangeType()));
 
 			if (delta.getChangeType() == ChangeType.ADD) {
-				if (deltaType.getObjectToAdd() == null){
+				if (deltaType.getObjectToAdd() == null) {
 					LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
 					throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
 				}
 				Object objToAdd = deltaType.getObjectToAdd();
-				if (!(objToAdd instanceof ShadowType)){
+				if (!(objToAdd instanceof ShadowType)) {
 					LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
 					throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
 				}
@@ -2393,4 +2391,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		task.setResult(parentResult);
 	}
 
+	@Override
+	public void notifyChange(DataMessageType message, MessageProcessingConfigurationType processing, ResourceType resource, Task task,
+			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
+			PreconditionViolationException {
+		messageProcessor.processMessage(message, processing, resource, task, parentResult);
+	}
 }

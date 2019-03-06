@@ -33,23 +33,23 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.io.IOUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.List;
 
 /**
- *  Tests model.notifyChange using artificially constructed ResourceObjectShadowChangeDescriptionType objects.
+ *  Tests model.notifyChange using real AMQP messages.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrationTest {
+public class TestMessagingFromMessages extends AbstractInitializedModelIntegrationTest {
 
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "messaging");
 
@@ -70,6 +70,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 	protected ResourceType resourceDummyGrouperType;
 	protected PrismObject<ResourceType> resourceDummyGrouper;
 
+	protected static final File PROCESSING_FILE = new File(TEST_DIR, "message-processing.xml");
 	protected static final File SHADOW_BANDERSON_FILE = new File(TEST_DIR, "shadow-banderson.xml");
 	protected static final File SHADOW_BANDERSON_WITH_GROUPS_FILE = new File(TEST_DIR, "shadow-banderson-with-groups.xml");
 	protected static final File SHADOW_JLEWIS685_FILE = new File(TEST_DIR, "shadow-jlewis685.xml");
@@ -77,6 +78,8 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 	protected static final File SHADOW_STAFF_FILE = new File(TEST_DIR, "shadow-staff.xml");
 
 	private String lewisShadowOid;
+
+	private MessageProcessingConfigurationType messageProcessing;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -91,31 +94,34 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 		resourceDummyGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID, initTask, initResult);
 		resourceDummyGrouperType = resourceDummyGrouper.asObjectable();
 		dummyResourceCtlGrouper.setResource(resourceDummyGrouper);
+
+		messageProcessing = prismContext.parserFor(PROCESSING_FILE).parseRealValue();
 	}
 
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingFromMessages.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
         TestUtil.assertSuccess(testResultGrouper);
 	}
 
 	/**
-	 * MEMBER_ADD event for banderson.
+	 * The first MEMBERSHIP_ADD event for banderson.
 	 */
 	@Test
     public void test100AddAnderson() throws Exception {
 		final String TEST_NAME = "test100AddAnderson";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingFromMessages.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
 
-        PrismObject<ShadowType> bandersonShadow = prismContext.parseObject(SHADOW_BANDERSON_FILE);
+		DataMessageType message = getMessage("100_banderson_super_add.json");
+		PrismObject<ShadowType> bandersonShadow = prismContext.parseObject(SHADOW_BANDERSON_FILE);
 		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
 		ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(bandersonShadow);
 		change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
@@ -123,7 +129,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 
 		// WHEN
 
-		modelService.notifyChange(change, task, result);
+		modelService.notifyChange(message, messageProcessing, dummyResourceCtlGrouper.getResourceType(), task, result);
 
         // THEN
 
@@ -135,20 +141,28 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 				.links()
 					.single()
 					.resolveTarget()
+						.display()
 						.assertKind(ShadowKindType.ACCOUNT)
-						.assertIntent(GROUPER_USER_INTENT)
-						.assertResource(RESOURCE_GROUPER_OID)
-						.display();
+//						.assertIntent(GROUPER_USER_INTENT)
+						.assertResource(RESOURCE_GROUPER_OID);
+	}
+
+	private DataMessageType getMessage(String filename) throws IOException {
+		Amqp091MessageType msg = new Amqp091MessageType();
+		List<String> lines = IOUtils.readLines(new BufferedReader(new FileReader(new File(TEST_DIR, filename))));
+		String content = String.join("\n", lines);
+		msg.setBody(content.getBytes(Charset.forName("UTF-8")));
+		return msg;
 	}
 
 	/**
 	 * MEMBER_ADD event for jlewis685.
 	 */
-	@Test
+	@Test(enabled = false)
     public void test105AddLewis() throws Exception {
 		final String TEST_NAME = "test105AddLewis";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingFromMessages.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -185,11 +199,11 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 	/**
 	 * GROUP_ADD event for ref:alumni.
 	 */
-	@Test
+	@Test(enabled = false)
     public void test110AddAlumni() throws Exception {
 		final String TEST_NAME = "test110AddAlumni";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingFromMessages.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -223,11 +237,11 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 	/**
 	 * GROUP_ADD event for ref:staff.
 	 */
-	@Test
+	@Test(enabled = false)
     public void test120AddStaff() throws Exception {
 		final String TEST_NAME = "test120AddStaff";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingFromMessages.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -261,11 +275,11 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 	/**
 	 * Adding ref:alumni and ref:staff membership for banderson "the old way" (i.e. by providing full current shadow).
 	 */
-	@Test
+	@Test(enabled = false)
 	public void test200AddGroupsForAnderson() throws Exception {
 		final String TEST_NAME = "test200AddGroupsForAnderson";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestMessagingFromMessages.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// GIVEN
@@ -299,11 +313,11 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 	/**
 	 * Adding ref:alumni membership for jlewis685 "the new way" (i.e. by a delta).
 	 */
-	@Test
+	@Test(enabled = false)
 	public void test210AddGroupsForLewis() throws Exception {
 		final String TEST_NAME = "test210AddGroupsForLewis";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestMessagingFromMessages.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// GIVEN

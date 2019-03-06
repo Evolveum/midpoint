@@ -426,7 +426,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		OperationResult parentResult = task.getResult();
 
 		try {
-			modelService.notifyChange(changeDescription, parentResult, task);
+			modelService.notifyChange(changeDescription, task, parentResult);
 		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
 				SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException |
 				RuntimeException | Error | PolicyViolationException | PreconditionViolationException ex) {

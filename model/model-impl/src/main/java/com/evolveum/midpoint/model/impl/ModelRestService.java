@@ -647,7 +647,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			modelService.notifyChange(changeDescription, parentResult, task);
+			modelService.notifyChange(changeDescription, task, parentResult);
 			response = RestServiceUtil.createResponse(Response.Status.OK, parentResult);
 //			return Response.ok().build();
 //			String oldShadowOid = changeDescription.getOldShadowOid();
