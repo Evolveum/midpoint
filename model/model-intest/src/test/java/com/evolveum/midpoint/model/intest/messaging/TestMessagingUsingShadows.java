@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.model.intest.messaging;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.impl.ModelCrudService;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,20 +47,15 @@ import java.io.File;
 /**
  *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestGrouper extends AbstractStoryTest {
+public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrationTest {
 
-	@Autowired private ModelCrudService modelCrudService;
-
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "grouper");
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "messaging");
 
 	protected static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper.xml");
 	protected static final String RESOURCE_GROUPER_ID = "Grouper";
 	protected static final String RESOURCE_GROUPER_OID = "bbb9900a-b53d-4453-b60b-908725e3950e";
-
-	public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
-	public static final String ORG_TOP_OID = "8fe3acc3-c689-4f77-9512-3d06b5d00dc2";
 
 	public static final String BANDERSON_USERNAME = "banderson";
 	public static final String JLEWIS685_USERNAME = "jlewis685";
@@ -85,11 +79,6 @@ public class TestGrouper extends AbstractStoryTest {
 	private String lewisShadowOid;
 
 	@Override
-	protected String getTopOrgOid() {
-		return ORG_TOP_OID;
-	}
-
-	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
@@ -102,21 +91,16 @@ public class TestGrouper extends AbstractStoryTest {
 		resourceDummyGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID, initTask, initResult);
 		resourceDummyGrouperType = resourceDummyGrouper.asObjectable();
 		dummyResourceCtlGrouper.setResource(resourceDummyGrouper);
-
-		// Org
-		importObjectFromFile(ORG_TOP_FILE, initResult);
 	}
 
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
         TestUtil.assertSuccess(testResultGrouper);
-
-        dumpOrgTree();
 	}
 
 	/**
@@ -126,7 +110,7 @@ public class TestGrouper extends AbstractStoryTest {
     public void test100AddAnderson() throws Exception {
 		final String TEST_NAME = "test100AddAnderson";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -153,7 +137,8 @@ public class TestGrouper extends AbstractStoryTest {
 					.resolveTarget()
 						.assertKind(ShadowKindType.ACCOUNT)
 						.assertIntent(GROUPER_USER_INTENT)
-						.assertResource(RESOURCE_GROUPER_OID);
+						.assertResource(RESOURCE_GROUPER_OID)
+						.display();
 	}
 
 	/**
@@ -163,7 +148,7 @@ public class TestGrouper extends AbstractStoryTest {
     public void test105AddLewis() throws Exception {
 		final String TEST_NAME = "test105AddLewis";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -191,6 +176,7 @@ public class TestGrouper extends AbstractStoryTest {
 						.assertKind(ShadowKindType.ACCOUNT)
 						.assertIntent(GROUPER_USER_INTENT)
 						.assertResource(RESOURCE_GROUPER_OID)
+						.display()
 					.end()
 					.getOid();
 		System.out.println("lewis shadow OID = " + lewisShadowOid);
@@ -203,7 +189,7 @@ public class TestGrouper extends AbstractStoryTest {
     public void test110AddAlumni() throws Exception {
 		final String TEST_NAME = "test110AddAlumni";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -230,7 +216,8 @@ public class TestGrouper extends AbstractStoryTest {
 					.resolveTarget()
 						.assertKind(ShadowKindType.ENTITLEMENT)
 						.assertIntent(GROUPER_GROUP_INTENT)
-						.assertResource(RESOURCE_GROUPER_OID);
+						.assertResource(RESOURCE_GROUPER_OID)
+						.display();
 	}
 
 	/**
@@ -240,7 +227,7 @@ public class TestGrouper extends AbstractStoryTest {
     public void test120AddStaff() throws Exception {
 		final String TEST_NAME = "test120AddStaff";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -267,7 +254,8 @@ public class TestGrouper extends AbstractStoryTest {
 					.resolveTarget()
 						.assertKind(ShadowKindType.ENTITLEMENT)
 						.assertIntent(GROUPER_GROUP_INTENT)
-						.assertResource(RESOURCE_GROUPER_OID);
+						.assertResource(RESOURCE_GROUPER_OID)
+						.display();
 	}
 
 	/**
@@ -277,7 +265,7 @@ public class TestGrouper extends AbstractStoryTest {
 	public void test200AddGroupsForAnderson() throws Exception {
 		final String TEST_NAME = "test200AddGroupsForAnderson";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// GIVEN
@@ -315,7 +303,7 @@ public class TestGrouper extends AbstractStoryTest {
 	public void test210AddGroupsForLewis() throws Exception {
 		final String TEST_NAME = "test210AddGroupsForLewis";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestGrouper.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// GIVEN
