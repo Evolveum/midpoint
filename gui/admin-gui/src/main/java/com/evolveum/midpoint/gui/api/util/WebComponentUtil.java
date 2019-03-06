@@ -2413,27 +2413,30 @@ public final class WebComponentUtil {
 
 		Constructor constructor;
 		try {
-			constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+			PageBase page;
+			if (ResourceType.class.equals(obj.getCompileTimeClass())) {
+				constructor = newObjectPageClass.getConstructor(PageParameters.class);
+				page = (PageBase) constructor.newInstance(new PageParameters());
 
+			} else {
+				constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+				page = (PageBase) constructor.newInstance(obj, isNewObject);
+
+			}
+			if (component.getPage() instanceof PageBase) {
+				// this way we have correct breadcrumbs
+				PageBase pb = (PageBase) component.getPage();
+				pb.navigateToNext(page);
+			} else {
+				component.setResponsePage(page);
+			}
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new SystemException("Unable to locate constructor (PrismObject) in " + newObjectPageClass
-					+ ": " + e.getMessage(), e);
-		}
 
-		PageBase page;
-		try {
-			page = (PageBase) constructor.newInstance(obj, isNewObject);
+					+ ": " + e.getMessage(), e);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
 			throw new SystemException("Error instantiating " + newObjectPageClass + ": " + e.getMessage(), e);
-		}
-
-		if (component.getPage() instanceof PageBase) {
-			// this way we have correct breadcrumbs
-			PageBase pb = (PageBase) component.getPage();
-			pb.navigateToNext(page);
-		} else {
-			component.setResponsePage(page);
 		}
 	}
 

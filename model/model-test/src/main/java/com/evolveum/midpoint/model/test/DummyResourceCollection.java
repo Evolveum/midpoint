@@ -75,6 +75,13 @@ public class DummyResourceCollection {
 		map.put(name, controller);
 		return controller;
 	}
+	
+	public void initDummyResource(String name, DummyResourceContoller controller) {
+		if (map.containsKey(name)) {
+			throw new IllegalArgumentException("Dummy resource "+name+" already initialized");
+		}
+		map.put(name, controller);
+	}
 
 	public DummyResourceContoller get(String name) {
 		DummyResourceContoller contoller = map.get(name);

@@ -102,13 +102,13 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList);
 	}
 
-	@Override
-	protected void unassignMembersPerformed(QName objectType, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-		super.unassignMembersPerformed(objectType, scope, relations, target);
-		if (relations != null && relations.size() > 0) {
-			MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
-		}
-	}
+//	@Override
+//	protected void unassignMembersPerformed(QName objectType, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+//		super.unassignMembersPerformed(objectType, scope, relations, target);
+////		if (relations != null && relations.size() > 0) {
+////			MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
+////		}
+//	}
 
 	@Override
 	protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {

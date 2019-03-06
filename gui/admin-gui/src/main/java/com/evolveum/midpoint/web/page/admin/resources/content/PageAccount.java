@@ -55,6 +55,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -99,6 +100,11 @@ public class PageAccount extends PageAdmin {
 				return loadAccount(parameters);
 			}
 		};
+	}
+
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
 		initLayout();
 	}
 
@@ -131,7 +137,7 @@ public class PageAccount extends PageAdmin {
 	}
 
 	private void initLayout() {
-		add(new ShadowSummaryPanel(ID_SUMMARY, new PropertyModel<>(accountModel, "object"), this));
+		add(new ShadowSummaryPanel(ID_SUMMARY, Model.of(accountModel.getObject().getObject().asObjectable()), this));
 
 
 		WebMarkupContainer protectedMessage = new WebMarkupContainer(ID_PROTECTED_MESSAGE);
