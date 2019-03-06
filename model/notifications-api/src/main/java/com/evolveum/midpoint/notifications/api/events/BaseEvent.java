@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -175,36 +176,55 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         return requestee.getOid();
     }
 
-	public ObjectType getRequesteeObject() {
-		if (requestee == null) {
+	@Nullable
+	private ObjectType resolveObject(SimpleObjectRef ref) {
+		if (ref == null) {
 			return null;
 		}
-		return requestee.resolveObjectType(new OperationResult(BaseEvent.class + ".getRequesteeObject"), true);
+		return ref.resolveObjectType(new OperationResult(BaseEvent.class + ".resolveObject"), true);
+	}
+
+	public ObjectType getRequesteeObject() {
+		return resolveObject(requestee);
+	}
+
+	public ObjectType getRequesterObject() {
+		return resolveObject(requester);
 	}
 
 	public PolyStringType getRequesteeDisplayName() {
-		if (requestee == null) {
+		return getDisplayName(getRequesteeObject());
+	}
+
+	public PolyStringType getRequesterDisplayName() {
+		return getDisplayName(getRequesterObject());
+	}
+
+	@Nullable
+	private PolyStringType getDisplayName(ObjectType object) {
+		if (object == null) {
 			return null;
 		}
-		ObjectType requesteeObject = getRequesteeObject();
-		if (requesteeObject == null) {
-			return null;
-		}
-		if (requesteeObject instanceof UserType) {
-			return ((UserType) requesteeObject).getFullName();
-		} else if (requesteeObject instanceof AbstractRoleType) {
-			return ((AbstractRoleType) requesteeObject).getDisplayName();
+		if (object instanceof UserType) {
+			return ((UserType) object).getFullName();
+		} else if (object instanceof AbstractRoleType) {
+			return ((AbstractRoleType) object).getDisplayName();
 		} else {
-			return requesteeObject.getName();
+			return object.getName();
 		}
 	}
 
+	@Nullable
+	private PolyStringType getName(ObjectType object) {
+		return object != null ? object.getName() : null;
+	}
+
 	public PolyStringType getRequesteeName() {
-		if (requestee == null) {
-			return null;
-		}
-		ObjectType requesteeObject = getRequesteeObject();
-		return requesteeObject != null ? requesteeObject.getName() : null;
+		return getName(getRequesteeObject());
+	}
+
+	public PolyStringType getRequesterName() {
+		return getName(getRequesterObject());
 	}
 
     public void setRequestee(SimpleObjectRef requestee) {
