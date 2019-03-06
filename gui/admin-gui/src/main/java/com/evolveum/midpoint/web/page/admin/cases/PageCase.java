@@ -1,50 +1,34 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import com.evolveum.midpoint.gui.api.ComponentConstants;
+import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigurationSummaryPanel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeAssignmentsTabPanel;
+import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -158,14 +142,9 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 
     @Override
     protected AbstractObjectMainPanel<CaseType> createMainPanel(String id) {
-        return new AbstractObjectMainPanel<CaseType>(id, getObjectModel(), this) {
+        return new AssignmentHolderTypeMainPanel<CaseType>(id, getObjectModel(), this) {
 
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<ITab> createTabs(PageAdminObjectDetails<CaseType> parentPage) {
-                return getCaseTabs();
-            }
 
             @Override
             protected boolean getOptionsPanelVisibility() {
@@ -180,20 +159,6 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
         };
     }
 
-    private List<ITab> getCaseTabs(){
-        List<ITab> tabs = new ArrayList<>();
-        tabs.add(
-                new PanelTab(createStringResource("pageAdminFocus.basic")){
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new CaseBasicTabPanel(panelId, getMainPanel().getMainForm(), getObjectModel(), PageCase.this);
-                    }
-                });
-        return tabs;
-    }
 //    private void savePerformed(AjaxRequestTarget target) {
 //        LOGGER.debug("Saving case changes.");
 //

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -40,24 +41,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * @author semancik
  */
-public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
+public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel<AHT> {
 	private static final long serialVersionUID = 1L;
 
 	protected static final String ID_FOCUS_FORM = "focusDetails";	
 
-	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderTypeDetailsTabPanel.class);
 
-	public FocusDetailsTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-			PageBase pageBase) {
-		super(id, mainForm, focusWrapperModel, projectionModel, pageBase);
+	public AssignmentHolderTypeDetailsTabPanel(String id, Form mainForm,
+											   LoadableModel<ObjectWrapper<AHT>> focusWrapperModel,
+											   PageBase pageBase) {
+		super(id, mainForm, focusWrapperModel, pageBase);
 		initLayout();
 	}
 
 	private void initLayout() {
 				
-		PrismPanel<F> panel = new PrismPanel<F>(ID_FOCUS_FORM,  new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
+		PrismPanel<AHT> panel = new PrismPanel<AHT>(ID_FOCUS_FORM,  new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
 				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), 
 				null, getPageBase());
 		add(panel);
