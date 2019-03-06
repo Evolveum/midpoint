@@ -69,6 +69,36 @@
                     </target>
                 </inbound>
             </attribute>
+		    <association>
+                <c:ref>ri:group_in_roles</c:ref>
+                <displayName>Roles for group</displayName>
+                <kind>entitlement</kind>
+                <intent>Role</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:grouproles</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <c:ref>ri:group_in_projects</c:ref>
+                <displayName>Projects for group</displayName>
+                <kind>entitlement</kind>
+                <intent>Project</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:groupprojects</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <c:ref>ri:users_in_group</c:ref>
+                <displayName>Group members</displayName>
+                <kind>account</kind>
+                <intent>default</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:group_members</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
         </objectType>
         <objectType>
             <kind>account</kind>
@@ -123,6 +153,27 @@
                 <valueAttribute>icfs:uid</valueAttribute>
                 <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
+            <association>
+                <c:ref>ri:user_in_roles</c:ref>
+                <displayName>Roles for user</displayName>
+                <kind>entitlement</kind>
+                <intent>Role</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:userroles</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <c:ref>ri:user_in_projects</c:ref>
+                <displayName>Projects for user</displayName>
+                <kind>entitlement</kind>
+                <intent>Project</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:userprojects</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+			
             <protected>
                 <filter>
                     <q:equal>
