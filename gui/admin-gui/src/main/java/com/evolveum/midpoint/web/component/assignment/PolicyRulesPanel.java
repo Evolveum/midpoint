@@ -158,12 +158,6 @@ public class PolicyRulesPanel extends AssignmentPanel {
     }
 
 	@Override
-	protected IModel<ContainerWrapperImpl> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
-		ContainerWrapperImpl<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
-		return Model.of(policyRuleWrapper);
-	}
-
-	@Override
 	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
 		List<SearchItemDefinition> defs = new ArrayList<>();
 

@@ -103,7 +103,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Preconditions
-        assertUsers(5);
+        assertUsers(6);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 
@@ -201,7 +201,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
-        assertUsers(6);
+        assertUsers(7);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -235,7 +235,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         	}
 
         }
-        assertEquals("Unexpected number of audit modifications", 6, modifications);
+        assertEquals("Unexpected number of audit modifications", 7, modifications);
 
         deleteObject(TaskType.class, TASK_USER_RECOMPUTE_OID, task, result);
 	}
@@ -260,7 +260,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
 
@@ -302,7 +302,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         // Only captains are recomputed. Therefore herman stays unrecomputed
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
 
-        assertUsers(6);
+        assertUsers(7);
 
 	}
 
@@ -320,7 +320,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		prepareNotifications();
 
 		// Preconditions
-		assertUsers(6);
+		assertUsers(7);
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
 
@@ -361,7 +361,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Wrong success count", 1, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
 		assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
 
-		assertUsers(6);
+		assertUsers(7);
 
 		displayAllNotifications();
 		assertSingleDummyTransportMessageContaining("simpleAccountNotifier-SUCCESS", "Channel: " + SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
@@ -381,7 +381,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		OperationResult result = task.getResult();
 
 		// Preconditions
-		assertUsers(6);
+		assertUsers(7);
 
 		PrismObject<UserType> usetJackBefore = getUser(USER_JACK_OID);
 		display("User jack before", usetJackBefore);
@@ -436,7 +436,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
 		TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_LIGHT_OID).asObjectable();
-		assertEquals("Wrong success count", 6, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
+		assertEquals("Wrong success count", 7, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
 		assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
 
 		PrismObject<UserType> usetJackAfter = getUser(USER_JACK_OID);
@@ -451,7 +451,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		assertAssignedOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
 	    assertHasOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
 
-		assertUsers(6);
+		assertUsers(7);
 
 	}
 

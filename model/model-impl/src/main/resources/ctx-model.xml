@@ -368,13 +368,29 @@
         </jaxrs:features>
     </jaxrs:server>
 
+    <jaxrs:server id="clusterRestServer" address="/cluster/">
+        <jaxrs:serviceBeans>
+            <ref bean="clusterRestService"/>
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <ref bean="jaxbProvider"/>
+            <ref bean="jsonProvider"/>
+            <ref bean="yamlProvider"/>
+            <ref bean="restAuthenticationHandler"/>
+        </jaxrs:providers>
+        <jaxrs:features>
+            <ref bean="loggingFeature"/>
+        </jaxrs:features>
+    </jaxrs:server>
+
     <bean id="extensionSchemaRestService" class="com.evolveum.midpoint.model.impl.ExtensionSchemaRestService"/>
-     
-      <bean id="modelRestService" class="com.evolveum.midpoint.model.impl.ModelRestService"/>
-     <bean id="jaxbProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider"/>
-     <bean id="yamlProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointYamlProvider"/>
-     <bean id="jsonProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointJsonProvider"/>
-     <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler"/>
+    <bean id="clusterRestService" class="com.evolveum.midpoint.model.impl.ClusterRestService"/>
+    <bean id="modelRestService" class="com.evolveum.midpoint.model.impl.ModelRestService"/>
+
+    <bean id="jaxbProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider"/>
+    <bean id="yamlProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointYamlProvider"/>
+    <bean id="jsonProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointJsonProvider"/>
+    <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler"/>
 
     <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
         <constructor-arg>

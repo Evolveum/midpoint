@@ -17,6 +17,7 @@ package com.evolveum.midpoint.provisioning.impl.task;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.task.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,10 +30,6 @@ import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -45,6 +42,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Task handler for provisioning propagation of one resource.
@@ -82,7 +80,7 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
     }
     
     @Override
-	protected PropagationResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
+	protected PropagationResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
 			OperationResult opResult) {
     	
     	String resourceOid = coordinatorTask.getObjectOid();

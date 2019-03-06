@@ -16,12 +16,41 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.persistence.PersistenceException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.api.ModificationPrecondition;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
@@ -33,7 +62,9 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -43,21 +74,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.query.NativeQuery;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.persistence.PersistenceException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import java.lang.reflect.Method;
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author lazyman, mederly
@@ -384,18 +405,18 @@ public class ObjectUpdater {
                 //
                 // So the first step is to retrieve the current value of photo - we obviously do this only if the modifications
                 // deal with the jpegPhoto property.
-                Collection<SelectorOptions<GetOperationOptions>> options;
+                GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder();
                 boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
                 if (containsFocusPhotoModification) {
-                    options = schemaHelper.getOperationOptionsBuilder()
-                            .item(FocusType.F_JPEG_PHOTO).retrieve()
-                            .build();
-                } else {
-                    options = null;
+                    optionsBuilder = optionsBuilder.item(FocusType.F_JPEG_PHOTO).retrieve();
+                }
+                if (reindex) {
+                    LOGGER.trace("Setting 'raw' option for object fetching because reindex is being applied");
+                    optionsBuilder = optionsBuilder.root().raw();
                 }
 
                 // get object
-                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
+                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, optionsBuilder.build(), true, result);
                 if (precondition != null && !precondition.holds(prismObject)) {
                 	throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
                 }

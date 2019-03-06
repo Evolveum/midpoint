@@ -17,8 +17,8 @@ package com.evolveum.midpoint.testing.rest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.util.TestUtil.displayTestTitle;
-import static com.evolveum.midpoint.test.util.TestUtil.displayWhen;
 import static com.evolveum.midpoint.test.util.TestUtil.displayThen;
+import static com.evolveum.midpoint.test.util.TestUtil.displayWhen;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -34,17 +34,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -52,7 +41,12 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -60,10 +54,33 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 
 public abstract class TestAbstractRestService extends RestServiceInitializer {
@@ -101,6 +118,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_PASSWORD_PASSWORD_HISTORY_CONFLICT = "policy-validate-password-history-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI = "policy-validate-implicit-multi";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT = "policy-validate-implicit-multi-conflict";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_SECURITY_ANSWER_CHECK_EXPRESSION_FAIL = "policy-validate-security-answer-check-expression-fail";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_SECURITY_ANSWER_CHECK_EXPRESSION = "policy-validate-security-answer-check-expression";
 
 	public static final String SCRIPT_GENERATE_PASSWORDS = "script-generate-passwords";
 	public static final String SCRIPT_MODIFY_VALID_TO = "script-modify-validTo";
@@ -1303,7 +1322,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
-
+		addObject(SECURITY_POLICY, RepoAddOptions.createOverwrite(), result);
 
 		display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
@@ -1330,12 +1349,9 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-		display("Audit", getDummyAuditService());
-		getDummyAuditService().assertRecords(4);
-		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
-
 		ExecuteScriptResponseType responseData = response.readEntity(ExecuteScriptResponseType.class);
 		display("Response", getPrismContext().xmlSerializer().serializeRealValue(responseData));
+		LOGGER.info("Response: {}", getPrismContext().xmlSerializer().serializeRealValue(responseData));
 
 		List<PipelineItemType> items = responseData.getOutput().getDataOutput().getItem();
 		assertEquals("Wrong # of processed items", 2, items.size());
@@ -1352,13 +1368,20 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		ItemProcessingResult<PasswordGenerationData> second = extractedResults.get(1);
 		assertEquals("Wrong OID in second result", USER_JACK_OID, second.oid);
 		assertEquals("Wrong name in second result", "jack", second.name);
+		LOGGER.info("pwd in second result {}", second.data.password);
 		assertNotNull("Missing password in second result", second.data.password);
+		
 		assertEquals("Wrong status in second result", OperationResultStatusType.SUCCESS, second.status);
 
 		UserType jackAfter = getRepositoryService()
 				.getObject(UserType.class, USER_JACK_OID, null, new OperationResult("getObject")).asObjectable();
 		display("jack after", jackAfter);
 		assertNotNull("password not set", jackAfter.getCredentials().getPassword().getValue());
+		
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+
 	}
 
 	@Test
@@ -1645,6 +1668,55 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		PrismObject<UserType> userRepoAfter = getObjectRepo(UserType.class, USER_DARTHADDER_OID);
 		display("User after", userRepoAfter);
 		assertSecurityQuestionAnswer(userRepoAfter.asObjectable(), "you would not believe what happens next");
+	}
+	
+	@Test
+	public void test607validateSecurityAnswerCheckExpressionFail() throws Exception {
+		final String TEST_NAME = "test607validateSecurityAnswerCheckExpressionFail";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+
+		getDummyAuditService().clear();
+
+		displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_SECURITY_ANSWER_CHECK_EXPRESSION_FAIL));
+
+		displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+
+		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
+
+
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test608validateSecurityAnswerCheckExpression() throws Exception {
+		final String TEST_NAME = "test607validateSecurityAnswerCheckExpression";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+
+		getDummyAuditService().clear();
+
+		displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_SECURITY_ANSWER_CHECK_EXPRESSION));
+
+		displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
 	private void assertSecurityQuestionAnswer(UserType userType, String expectedAnswer) throws EncryptionException {

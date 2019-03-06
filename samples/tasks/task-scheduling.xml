@@ -132,7 +132,7 @@ these tasks via admin GUI.
 			<noop:delay xsi:type="xsd:int">20000</noop:delay>
 			<noop:steps xsi:type="xsd:int">3</noop:steps>
 		</extension>
-        <taskIdentifier>10000000-0000-0000-0000-123450000005</taskIdentifier>
+        <taskIdentifier>10000000-0000-0000-0000-123450000006</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
 

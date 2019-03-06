@@ -432,6 +432,18 @@
 				</xsd:annotation>
 			</xsd:element>
 
+			<xsd:element name="diagnosticInformation" type="tns:DiagnosticInformationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Diagnostic information attached to this object.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
 		</xsd:sequence>
                
         <xsd:attribute name="oid" type="xsd:string" use="optional">
@@ -1209,6 +1221,7 @@
 			<!--</xsd:element>-->
 		</xsd:sequence>
 	</xsd:complexType>
+	
 	<xsd:complexType name="TaskWorkManagementType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -1997,13 +2010,24 @@
                     <xsd:element name="url" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                URL of midPoint that can be used by other nodes to contact this node over the
-                                network. It is manually configured. If not present, it is automatically derived by
-								infrastructure/intraClusterHttpUrlPattern system configuration property.
-
-								Use only if really necessary. Support for this item is currently limited
-								to clusterwide cache invalidation.
+                                URL of midPoint that can be used by other nodes to contact this node over the network.
+								It is either provided manually (see urlOverride), constructed using
+								infrastructure/intraClusterHttpUrlPattern configuration property, or determined
+								automatically.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="urlOverride" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value to override constructed or determined URL.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ipAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -2018,6 +2042,10 @@
                             <xsd:documentation>
                                 Port at which this node can be contacted via JMX.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>4.0</a:deprecatedSince>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastCheckInTime" type="xsd:dateTime" minOccurs="0">
@@ -2082,6 +2110,26 @@
 							<xsd:documentation>
 								Information about midPoint build running on this node.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="secret" type="t:ProtectedStringType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								The secret used for intra-cluster authentication.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="secretUpdateTimestamp" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								When was the secret created or last changed.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="taskExecutionLimitations" type="tns:TaskExecutionLimitationsType" minOccurs="0">
@@ -2709,26 +2757,73 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="stage" type="tns:TaskStageType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Stage of the task. Some task can have different processing stages. E.g. reconciliation
-								task can have:
-									- situation stage in which only the situation for shadows is computed
-									- simulation stage in which all changes are computed but nothing is executed
-									- execution state in which the full reconciliation is run
-								Supported stages are defined per task type.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>4.0</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
+
+	<xsd:complexType name="DiagnosticInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				A diagnostic information attached to an object.
+				It can be put there because of a user request or by midPoint itself.
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="timestamp" type="xsd:dateTime">
+				<xsd:annotation>
+					<xsd:documentation>
+						When the information was created.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="type" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Type of the information (e.g. thread dump).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="cause" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Cause of the information being created (e.g. a user request).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="nodeIdentifier" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identifier of a node where the information was captured.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--<xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Initiator of the attachment of this diagnostic information (if known and applicable).-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+			<xsd:element name="content" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						A textual representation of the information.
+						(It can be augmented/replaced by more structured form using a subclass of DiagnosticInformationType.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:complexType name="TaskExecutionConstraintsType">
 		<xsd:annotation>
@@ -3268,42 +3363,6 @@
         </xsd:sequence>
     </xsd:complexType>    
 
-    <xsd:complexType name="TaskStageType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Stage type of the task.
-            </xsd:documentation>
-            <xsd:appinfo>
-            	<a:since>4.0</a:since>
-            	<a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="stage" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name identifying task stage.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="errorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines which errors are critical and should stop the task in the defined stage.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processingOption" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Define if the specified stage is executed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-         
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="UriStack">
         <xsd:annotation>
             <xsd:documentation>
@@ -3614,8 +3673,115 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			 <xsd:element name="stage" type="tns:ExecutionModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name identifying task stage.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="errorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines which errors are critical and should stop the task in the defined stage.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processingOption" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Define if the specified stage is executed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	 <xsd:simpleType name="ExecutionModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that indicates the activation status of a particular entity.
+                The activation status determines whether the entity is active (enabled)
+                or inactive (disabled, archived, etc.). Please see documentation of individual
+                enumeration values for more details.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="dryRun">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Nothing is executed. Just metadata are handled. E.g. during reconciliation
+                			only situations in shadows are set.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DRY_RUN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="simulate">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Changes are computed, but nothing is executed. E.g. preview changes is run for
+	                		objects and the computed deltas are stored to be processed later. E.g. simulate
+	                		how many changes will be processed during the reconciliation. After reconciliation
+	                		finished, proper action is taked to show results during simulation.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SIMULATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="execute">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Full execution mode. Cahnges are computed and also executed.
+                		</p> 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+	<xsd:complexType name="SchedulerInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes the state of the (local) scheduler.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="node" type="tns:NodeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Information on the current node. Some security-sensitive or potentially large items might be omitted.
+						(Currently this means secret, secret update timestamp, and task execution limitations.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="executingTask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Locally executing tasks. Currently only task OIDs are filled-in here due to performance optimization.
+						But later we may provide more information.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="schedulerInformation" type="tns:SchedulerInformationType"/>
 
 	<xsd:complexType name="AssignmentHolderType" abstract="true">
         <xsd:annotation>
@@ -9507,7 +9673,7 @@
 	                    Reference to the value policy that should be used to generate the value.
 	                </xsd:documentation>
 	                <xsd:appinfo>
-	        			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+	        			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
         	</xsd:element>
@@ -20881,6 +21047,8 @@
                 			</xsd:appinfo>
                 		</xsd:annotation>
                 	</xsd:element>
+                	
+                	<!-- Following elements are jasper-specific. -->
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
@@ -20897,8 +21065,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                    
-
                     <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
 	                    <xsd:annotation>
                     		<xsd:documentation>
@@ -20915,7 +21081,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                       
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
     				    <xsd:annotation>
                             <xsd:documentation>
@@ -20945,7 +21110,6 @@
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
-                    
             		<xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -20993,6 +21157,19 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- End of jasper-specific elements. -->
+                    
+                    <xsd:element name="dashboard" type="tns:DashboardReportEngineConfigurationType" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Configuration for dashboard-based reports. Only applicable if reportEngine=dashboard.
+                			</xsd:documentation>
+                			<xsd:appinfo>
+                				<a:since>4.0</a:since>
+                			</xsd:appinfo>
+                		</xsd:annotation>
+                	</xsd:element>
+                    
 					<xsd:element name="postReportScript" type="tns:CommandLineScriptType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -21060,6 +21237,31 @@
         <xsd:sequence>
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
             </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DashboardReportEngineConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuraiton of dashboard-based reports.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container>true</a:container>
+            	<a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="dashboardRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Referrence to dashboard definition that should be used as a basis for the report.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:objectReferenceTargetType>tns:DashboardType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: other elements to configure the report -->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -22551,7 +22753,7 @@
             			</p>
             		</xsd:documentation>
 					<xsd:appinfo>
-						<a:displayName>DisplayType.label</a:displayName>
+						<a:displayName>DisplayType.pluralLabel</a:displayName>
 					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>

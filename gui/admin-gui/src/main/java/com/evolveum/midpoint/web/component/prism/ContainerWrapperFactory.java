@@ -95,7 +95,8 @@ public class ContainerWrapperFactory {
 
         result = new OperationResult(CREATE_PROPERTIES);
         
-        ContainerWrapperImpl<C> cWrapper = new ContainerWrapperImpl(objectWrapper, container, objectWrapper.getStatus(), status, path);
+
+        ContainerWrapperImpl<C> cWrapper = new ContainerWrapperImpl(objectWrapper, container, objectWrapper != null ? objectWrapper.getStatus() : status, status, path);
         
         List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
@@ -211,7 +212,7 @@ public class ContainerWrapperFactory {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
-		ContainerWrapperImpl<C> cWrapper = new ContainerWrapperImpl<>(objectWrapper, container, objectWrapper == null ? status : objectWrapper.getStatus(), status, path, readonly);
+		ContainerWrapperImpl<C> cWrapper = new ContainerWrapperImpl<C>(objectWrapper, container, objectWrapper == null ? status : objectWrapper.getStatus(), status, path, readonly);
 
 		List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
@@ -319,10 +320,12 @@ public class ContainerWrapperFactory {
 		});
 
 		Collections.sort(propertyOrReferenceWrappers, new ItemWrapperComparator());
-		Collections.sort(containerWrappers, new ItemWrapperComparator());
+		//TODO:
+//		Collections.sort(containerWrappers, new ItemWrapperComparator());
 
 		properties.addAll(propertyOrReferenceWrappers);
-		properties.addAll(containerWrappers);
+		//TODO:
+//		properties.addAll(containerWrappers);
 
 		result.recomputeStatus();
 		result.recordSuccessIfUnknown();

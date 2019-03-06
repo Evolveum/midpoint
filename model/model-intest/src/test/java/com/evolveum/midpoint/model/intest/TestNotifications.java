@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -59,6 +61,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -659,7 +662,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		assertSingleDummyTransportMessage("check-variables", "variables ok");
 	}
 
-	@Test(enabled = false)
+	@Test
 	public void test400StringAttachment() throws Exception {
 		final String TEST_NAME = "test400StringAttachment";
 		TestUtil.displayTestTitle(this, TEST_NAME);
@@ -689,7 +692,134 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 		Message message = dummyTransport.getMessages("dummy:string-attachment").get(0);
 		assertEquals("Wrong # of attachments", 1, message.getAttachments().size());
-		// TODO check contentType, content, file name, etc.
+		assertEquals("Wrong contentType of attachment", "text/plain", message.getAttachments().get(0).getContentType());
+		Object content = RawType.getValue(message.getAttachments().get(0).getContent());
+		assertEquals("Wrong content of attachments", "Hello world", content);
+		assertEquals("Wrong fileName of attachments", "plain.txt", message.getAttachments().get(0).getFileName());
+		assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
+	}
+	
+	@Test
+	public void test410ByteAttachment() throws Exception {
+		final String TEST_NAME = "test410ByteAttachment";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<UserType> user = new UserType(prismContext)
+				.name("testByteAttachmentUser")
+				.asPrismObject();
+		addObject(user);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("addObject result", result);
+
+		// Check notifications
+		display("Notifications", dummyTransport);
+
+		notificationManager.setDisabled(true);
+		checkDummyTransportMessages("byte-attachment", 1);
+
+		Message message = dummyTransport.getMessages("dummy:byte-attachment").get(0);
+		assertEquals("Wrong # of attachments", 1, message.getAttachments().size());
+		assertEquals("Wrong contentType of attachment", "image/jpeg", message.getAttachments().get(0).getContentType());
+		String origJPEGString = "/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQ"
+				+ "IBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAw"
+				+ "YMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAAFAAUDASIAAhEBAxEB/8"
+				+ "QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBka"
+				+ "EII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJip"
+				+ "KTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQ"
+				+ "EBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUv"
+				+ "AVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJ"
+				+ "maoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDg/hn471"
+				+ "A6fqljY22i28kWq3V9NPNayTNcG6fzlU4lU/uwfLBJOVVeFxyUUV5OXcXZxSw8YU8RJLXRW6tt9O55nEnhZwnicxqVsRgKcpPlu2"
+				+ "m3pFJat9Ekl5H/2Q==";
+		byte[] origJPEG = Base64.getDecoder().decode(origJPEGString);
+		Object content = RawType.getValue(message.getAttachments().get(0).getContent());
+		if(!(content instanceof byte[]) || !Arrays.equals(origJPEG, (byte[])content)) {
+			throw new AssertionError("Wrong content of attachments expected:" + origJPEG  + " but was:" + content);
+		}
+		assertEquals("Wrong fileName of attachments", "alf.jpg", message.getAttachments().get(0).getFileName());
+		assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
+	}
+	
+	@Test
+	public void test420AttachmentFromFile() throws Exception {
+		final String TEST_NAME = "test420AttachmentFromFile";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<UserType> user = new UserType(prismContext)
+				.name("testAttachmentFromFileUser")
+				.asPrismObject();
+		addObject(user);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("addObject result", result);
+
+		// Check notifications
+		display("Notifications", dummyTransport);
+
+		notificationManager.setDisabled(true);
+		checkDummyTransportMessages("attachment-from-file", 1);
+
+		Message message = dummyTransport.getMessages("dummy:attachment-from-file").get(0);
+		assertEquals("Wrong # of attachments", 1, message.getAttachments().size());
+		assertEquals("Wrong contentType of attachment", "image/png", message.getAttachments().get(0).getContentType());
+		assertEquals("Wrong fileName of attachments", "alf.png", message.getAttachments().get(0).getFileName());
+		assertEquals("Wrong fileName of attachments", "/home/user/example.png", message.getAttachments().get(0).getContentFromFile());
+		assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContent());
+	}
+	
+	@Test
+	public void test430ExpressionAttachment() throws Exception {
+		final String TEST_NAME = "test430ExpressionAttachment";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<UserType> user = new UserType(prismContext)
+				.name("testExpressionAttachmentUser")
+				.asPrismObject();
+		addObject(user);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("addObject result", result);
+
+		// Check notifications
+		display("Notifications", dummyTransport);
+
+		notificationManager.setDisabled(true);
+		checkDummyTransportMessages("expression-attachment", 1);
+
+		Message message = dummyTransport.getMessages("dummy:expression-attachment").get(0);
+		assertEquals("Wrong # of attachments", 1, message.getAttachments().size());
+		assertEquals("Wrong contentType of attachment", "text/html", message.getAttachments().get(0).getContentType());
+		assertEquals("Wrong content of attachments", "<!DOCTYPE html><html><body>Hello World!</body></html>", message.getAttachments().get(0).getContent());
+		assertEquals("Wrong fileName of attachments", "hello_world.html", message.getAttachments().get(0).getFileName());
+		assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
 	}
 
 	// TODO binary attachment, attachment from file, attachment from expression

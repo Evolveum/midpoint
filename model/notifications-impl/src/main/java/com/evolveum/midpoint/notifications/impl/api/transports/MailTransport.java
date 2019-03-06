@@ -237,22 +237,17 @@ public class MailTransport implements Transport {
                 		String fileName = null;
                 		BodyPart attachmentBody = new MimeBodyPart();
                 		if(attachment.getContent() != null) {
-                			Object content = null;
-                			if(attachment.getContent() instanceof RawType) {
 								try {
-									content = TransportUtil.getStringOrByteArrayFromRawType((RawType)attachment.getContent());
+									Object content = RawType.getValue(attachment.getContent());
 									if(content == null) {
 										LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
 										return;
 									}
+									attachmentBody.setContent(content, attachment.getContentType());
 								} catch (SchemaException e) {
 									LOGGER.warn("RawType " + attachment.getContent() + " isn't possible to parse.");
 									return;
 								}
-                			} else {
-                				content = attachment.getContent();
-                			}
-                			attachmentBody.setContent(content, attachment.getContentType());
                 			if(StringUtils.isBlank(attachment.getFileName())) {
                             	fileName = "attachment";
                             } else {

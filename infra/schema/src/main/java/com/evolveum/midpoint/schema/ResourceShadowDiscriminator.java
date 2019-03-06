@@ -51,7 +51,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	private QName objectClass;
 	private boolean tombstone;
 	private int order = 0;
-
+	
 	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, boolean tombstone) {
 		this.resourceOid = resourceOid;
 		this.tombstone = tombstone;
@@ -150,7 +150,6 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	public boolean isWildcard() {
 		return kind == null && objectClass == null;
 	}
-
 
     public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
         ShadowDiscriminatorType rsdt = new ShadowDiscriminatorType();

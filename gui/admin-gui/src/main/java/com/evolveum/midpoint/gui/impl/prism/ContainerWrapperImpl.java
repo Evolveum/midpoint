@@ -90,7 +90,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		return objectWrapper;
 	}
 
-	ContainerWrapperImpl(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+	public ContainerWrapperImpl(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(container.getDefinition(), "container definition must not be null.");
@@ -103,7 +103,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 
 	}
 
-	ContainerWrapperImpl(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
+	public ContainerWrapperImpl(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
 		this(objectWrapper, container, objectStatus, status, path);
 		this.readonly = readOnly;
 	}

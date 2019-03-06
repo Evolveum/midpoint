@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 public class OrgSummaryPanel extends FocusSummaryPanel<OrgType> {
 	private static final long serialVersionUID = -5457446213855746564L;
 
-	public OrgSummaryPanel(String id, IModel model, ModelServiceLocator serviceLocator) {
+	public OrgSummaryPanel(String id, IModel<OrgType> model, ModelServiceLocator serviceLocator) {
 		super(id, OrgType.class, model, serviceLocator);
 	}
 

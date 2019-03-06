@@ -20,20 +20,19 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -95,17 +94,20 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 			return map;
 		}
 
-		ItemPath attributePath = ShadowType.F_ATTRIBUTES;
-
-		for (ItemDefinition def : (List<ItemDefinition>) ocDef.getDefinitions()) {
-			if (!(def instanceof PrismPropertyDefinition) && !(def instanceof PrismReferenceDefinition)) {
-				continue;
-			}
-
-			map.add(new SearchItemDefinition(ItemPath.create(attributePath, def.getName()), def, null));
+		for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
+			map.add(new SearchItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def, null));
 		}
 
 		return map;
+	}
+	
+	private ItemName getAttributeName(ResourceAttributeDefinition def) {
+		if (def.getNativeAttributeName() != null) {
+			return ItemName.fromQName(new QName(MidPointConstants.NS_RI, def.getNativeAttributeName()));
+		}
+		
+		return def.getName();
+		
 	}
 
 	@Override

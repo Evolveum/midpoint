@@ -21,12 +21,15 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
-import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.model.IModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -42,12 +45,14 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 	private final IModel<WorkItemDto> dtoModel;
 
 	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel, ModelServiceLocator serviceLocator) {
-		super(id, model, serviceLocator, null);
+		super(id, model, null);
 		this.dtoModel = dtoModel;
+	}
 
-		initLayoutCommon(serviceLocator);
-
-		SummaryTagSimple<WorkItemType> isAssignedTag = new SummaryTagSimple<WorkItemType>(ID_ASSIGNED_TAG, model) {
+	@Override
+	protected List<SummaryTag<WorkItemType>> getSummaryTagComponentList(){
+		List<SummaryTag<WorkItemType>> summaryTagList = new ArrayList<>();
+		SummaryTag<WorkItemType> isAssignedTag = new SummaryTag<WorkItemType>(ID_SUMMARY_TAG, getModel()) {
 			@Override
 			protected void initialize(WorkItemType workItem) {
 				if (workItem.getAssigneeRef() != null) {
@@ -59,7 +64,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 				}
 			}
 		};
-		addTag(isAssignedTag);
+		summaryTagList.add(isAssignedTag);
+		return summaryTagList;
 	}
 
 	@Override

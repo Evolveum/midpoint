@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -69,7 +72,7 @@ public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<
     }
 
 	@Override
-	protected ReindexResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
+	protected ReindexResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, coordinatorTask, opResult);
         return new ReindexResultHandler(coordinatorTask, ReindexTaskHandler.class.getName(),

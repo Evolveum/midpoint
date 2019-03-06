@@ -766,8 +766,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (lensContext == null) {
 			return null;
 		}
-		PrismObject o;
-		o.asObjectable();
 		return (ModelElementContext<F>) lensContext.getFocusContext();
 	}
 	

@@ -602,11 +602,23 @@ public abstract class SchemaConstants {
 
 	public static final ItemPath PATH_PARENT = ItemPath.create(PrismConstants.T_PARENT);
 	public static final ItemPath PATH_OBJECT_REFERENCE = ItemPath.create(PrismConstants.T_OBJECT_REFERENCE);
-	
+
+	// diagnostic information types
+
+	public static final QName TASK_THREAD_DUMP = new QName(NS_C, "taskThreadDump");
+	public static final String TASK_THREAD_DUMP_URI = QNameUtil.qNameToUri(TASK_THREAD_DUMP);
+
+	// diagnostic information causes
+
+	public static final QName USER_REQUEST = new QName(NS_C, "userRequest");
+	public static final String USER_REQUEST_URI = QNameUtil.qNameToUri(USER_REQUEST);
+	public static final QName INTERNAL = new QName(NS_C, "internal");
+	public static final String INTERNAL_URI = QNameUtil.qNameToUri(INTERNAL);
+
 	//task stages
 	private static final String RECON_HANDLER = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3";
 	public static final String DRY_RUN_URI = RECON_HANDLER + "#dryRun";
 	public static final String SIMULATE_URI = RECON_HANDLER + "#simulate";
 	public static final String EXECUTE_URI = RECON_HANDLER + "#execute";
-	
+
 }

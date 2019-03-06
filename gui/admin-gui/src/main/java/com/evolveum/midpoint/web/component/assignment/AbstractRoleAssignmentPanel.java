@@ -187,7 +187,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         RefFilter targetRefFilter = null;
         if (targetType != null){
             ObjectReferenceType ort = new ObjectReferenceType();
-            ort.setType(getAssignmentType());
+            ort.setType(targetType);
             ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
             targetRefFilter = (RefFilter) getParentPage().getPrismContext().queryFor(AssignmentType.class)
                     .item(AssignmentType.F_TARGET_REF)
@@ -236,31 +236,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 //	protected List<ObjectTypes> getObjectTypesList(){
 //        return WebComponentUtil.createAssignableTypesList();
 //    }
-
-	@Override
-	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
-		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
-		specificContainers.add(getSpecificContainerPanel(modelObject));
-		return specificContainers;
-	}
-	
-	@Override
-	protected IModel<ContainerWrapperImpl> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
-		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-			ContainerWrapperImpl<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-					AssignmentType.F_CONSTRUCTION));
-
-			return Model.of(constructionWrapper);
-		}
-
-		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-			ContainerWrapperImpl<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-					AssignmentType.F_PERSONA_CONSTRUCTION));
-
-			return Model.of(personasWrapper);
-		}
-		return Model.of();
-	}
 
 	@Override
 	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {

@@ -19,7 +19,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,12 +50,13 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
 	private RepositoryService repositoryService;
 	@Autowired private TaskManager taskManager;
 	@Autowired private SecurityHelper securityHelper;
+	@Autowired private Protector protector;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(NodeAuthenticationEvaluatorImpl.class);
 	
 	private static final String OPERATION_SEARCH_NODE = NodeAuthenticationEvaluatorImpl.class.getName() + ".searchNode";
 	
-	public boolean authenticate(String remoteName, String remoteAddress, String operation) {
+	public boolean authenticate(@Nullable String remoteName, String remoteAddress, @NotNull String credentials, String operation) {
 		LOGGER.debug("Checking if {} ({}) is a known node", remoteName, remoteAddress);
 		OperationResult result = new OperationResult(OPERATION_SEARCH_NODE);
 		
@@ -58,20 +64,52 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
 		
 		try {
 			List<PrismObject<NodeType>> allNodes = repositoryService.searchObjects(NodeType.class, null, null, result);
-			List<PrismObject<NodeType>> matchingNodes = getMatchingNodes(allNodes, remoteName, remoteAddress, operation);
-			
-			if (matchingNodes.size() == 1 || matchingNodes.size() >= 1 && taskManager.isLocalNodeClusteringEnabled()) {
-				PrismObject<NodeType> actualNode = allNodes.iterator().next();
+			List<PrismObject<NodeType>> matchingNodes = getMatchingNodes(allNodes, remoteName, remoteAddress);
+
+			if (matchingNodes.isEmpty()) {
+				LOGGER.debug("Authenticity cannot be established: No matching nodes for remote name '{}' and remote address '{}'",
+						remoteName, remoteAddress);
+			} else if (matchingNodes.size() > 1 && !taskManager.isLocalNodeClusteringEnabled()) {
+				LOGGER.debug("Authenticity cannot be established: More than one matching node for remote name '{}' and "
+						+ "remote address '{}' with local-node clustering disabled: {}", remoteName, remoteAddress, matchingNodes);
+			} else {
+				assert matchingNodes.size() == 1 || matchingNodes.size() > 1 && taskManager.isLocalNodeClusteringEnabled();
 				LOGGER.trace(
-						"Matching result: The node {} was recognized as a known node (remote host name {} or IP address {} matched). Attempting to execute the requested operation: {}",
-						actualNode.asObjectable().getName(), actualNode.asObjectable().getHostname(), remoteAddress, operation);
-				NodeAuthenticationToken authNtoken = new NodeAuthenticationToken(actualNode, remoteAddress,
-						Collections.emptyList());
-				SecurityContextHolder.getContext().setAuthentication(authNtoken);
-				securityHelper.auditLoginSuccess(actualNode.asObjectable(), connEnv);
-				return true;
+						"Matching result: Node(s) {} recognized as known (remote host name {} or IP address {} matched).",
+						matchingNodes, remoteName, remoteAddress);
+				PrismObject<NodeType> actualNode = null;
+				for (PrismObject<NodeType> matchingNode : matchingNodes) {
+					ProtectedStringType encryptedSecret = matchingNode.asObjectable().getSecret();
+					if (encryptedSecret != null) {
+						String plainSecret;
+						try {
+							plainSecret = protector.decryptString(encryptedSecret);
+						} catch (EncryptionException e) {
+							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt node secret for {}", e, matchingNode);
+							continue;
+						}
+						if (credentials.equals(plainSecret)) {
+							LOGGER.debug("Node secret matches for {}", matchingNode);
+							actualNode = matchingNode;
+							break;
+						} else {
+							LOGGER.debug("Node secret does not match for {}", matchingNode);
+						}
+					} else {
+						LOGGER.debug("No secret known for node {}", matchingNode);
+					}
+				}
+				if (actualNode != null) {
+					LOGGER.trace("Established authenticity for remote {}", actualNode);
+					NodeAuthenticationToken authNtoken = new NodeAuthenticationToken(actualNode, remoteAddress,
+							Collections.emptyList());
+					SecurityContextHolder.getContext().setAuthentication(authNtoken);
+					securityHelper.auditLoginSuccess(actualNode.asObjectable(), connEnv);
+					return true;
+				} else {
+					LOGGER.debug("Authenticity for {} couldn't be established: none of the secrets match", matchingNodes);
+				}
 			}
-			
 		} catch (RuntimeException | SchemaException e) {
 			LOGGER.error("Unhandled exception when listing nodes");
 			LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing nodes", e);
@@ -80,27 +118,24 @@ public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvalua
 		return false;
 	}
 	
-private List<PrismObject<NodeType>> getMatchingNodes(List<PrismObject<NodeType>> knownNodes, String remoteName, String remoteAddress, String operation) {
-	List<PrismObject<NodeType>> matchingNodes = new ArrayList<>();
-	for (PrismObject<NodeType> node : knownNodes) {
-		NodeType actualNode = node.asObjectable();
-        if (remoteName != null && remoteName.equalsIgnoreCase(actualNode.getHostname())) {
-            LOGGER.trace("The node {} was recognized as a known node (remote host name {} matched). Attempting to execute the requested operation: {} ",
-                    actualNode.getName(), actualNode.getHostname(), operation);
-            matchingNodes.add(node);
-            continue;
-        }
-        if (actualNode.getIpAddress().contains(remoteAddress)) {
-            LOGGER.trace("The node {} was recognized as a known node (remote host address {} matched). Attempting to execute the requested operation: {} ",
-                    actualNode.getName(), remoteAddress, operation);
-            matchingNodes.add(node);
-            continue;
-        }
-    }
-	
-	return matchingNodes;
-}
-
-	
-	
+	private List<PrismObject<NodeType>> getMatchingNodes(List<PrismObject<NodeType>> knownNodes, String remoteName,
+			String remoteAddress) {
+		List<PrismObject<NodeType>> matchingNodes = new ArrayList<>();
+		for (PrismObject<NodeType> node : knownNodes) {
+			NodeType actualNode = node.asObjectable();
+			if (remoteName != null && remoteName.equalsIgnoreCase(actualNode.getHostname())) {
+				LOGGER.trace("The node {} was recognized as a known node (remote host name {} matched).",
+						actualNode.getName(), actualNode.getHostname());
+				matchingNodes.add(node);
+				continue;
+			}
+			if (actualNode.getIpAddress().contains(remoteAddress)) {
+				LOGGER.trace("The node {} was recognized as a known node (remote host address {} matched).",
+						actualNode.getName(), remoteAddress);
+				matchingNodes.add(node);
+				continue;
+			}
+		}
+		return matchingNodes;
+	}
 }

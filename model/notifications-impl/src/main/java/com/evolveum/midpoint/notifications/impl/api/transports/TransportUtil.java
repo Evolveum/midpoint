@@ -95,18 +95,4 @@ public class TransportUtil {
 		return "================ " + new Date() + " ======= [" + transport + "]\n" + message.debugDump() + "\n\n";
 	}
 	
-	public static Object getStringOrByteArrayFromRawType(RawType raw) throws SchemaException {
-		Object object = null;
-		XNode xnode = raw.getXnode();
-		if(!(xnode instanceof PrimitiveXNode)) {
-			return null;
-		}
-			object = ((PrimitiveXNode<?>) xnode).getValue();
-			System.out.println("XX object: " + object);
-		if(!(object instanceof String) && !(object instanceof byte[])) {
-			return null;
-		}
-		return object;
-	}
-
 }

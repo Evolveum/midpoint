@@ -163,7 +163,8 @@ public class PageValuePolicy extends PageAdmin {
 
     protected void initLayout() {
         // TODO should be used if valuePolicyObject is edited
-        ValuePolicySummaryPanel summaryPanel = new ValuePolicySummaryPanel(ID_SUMMARY_PANEL,  Model.of(valuePolicyModel.getObject().getObject()), this);
+        ValuePolicySummaryPanel summaryPanel = new ValuePolicySummaryPanel(ID_SUMMARY_PANEL,
+                Model.of(valuePolicyModel.getObject().getObject().asObjectable()), this);
         add(summaryPanel);
 
         Form mainForm = new Form(ID_MAIN_FORM);

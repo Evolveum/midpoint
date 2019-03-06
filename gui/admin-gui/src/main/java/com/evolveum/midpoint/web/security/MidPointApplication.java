@@ -40,6 +40,7 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.Set;
 
+import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
 import org.apache.commons.configuration.Configuration;
@@ -149,6 +150,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+>>>>>>> origin/master
 
 /**
  * @author lazyman
@@ -365,6 +367,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         // for schrodinger selenide library
         initializeSchrodinger();
+
+        ServletContext servletContext = getServletContext();
+        if (servletContext != null) {
+            taskManager.setWebContextPath(servletContext.getContextPath());
+        }
     }
 
     public DeploymentInformationType getDeploymentInfo() {

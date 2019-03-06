@@ -23,6 +23,7 @@ import org.apache.commons.collections.CollectionUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
@@ -158,6 +159,38 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 	public void reset() {
 		assignmentEvaluator.reset();
 	}
+	
+//	public DeltaSetTriple<EvaluatedAssignmentImpl<AH>> preProcessAssignments(PrismObject<TaskType> taskType) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+//
+////		LensFocusContext<AH> focusContext = context.getFocusContext();
+//
+//		SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
+//        
+////        Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(focusContext.getLifecycleModel(),
+////        		getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(), 
+////        		prismContext, task, result);
+//                
+//        assignmentCollection.collectAssignmentsForPreprocessing(taskType.findContainer(TaskType.F_ASSIGNMENT), null);
+//        
+//
+//		if (LOGGER.isTraceEnabled()) {
+//			LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDump(1));
+//		}
+//
+//		// Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
+//        // therefore it contains all three types of assignments (plus, minus and zero). As it is an union each assignment
+//        // will be processed only once. Inside the loop we determine whether it was added, deleted or remains unchanged.
+//        // This is a first step of the processing. It takes all the account constructions regardless of the resource and
+//        // account type (intent). Therefore several constructions for the same resource and intent may appear in the resulting
+//        // sets. This is not good as we want only a single account for each resource/intent combination. But that will be
+//        // sorted out later.
+//        DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple = prismContext.deltaFactory().createDeltaSetTriple();
+//        for (SmartAssignmentElement assignmentElement : assignmentCollection) {
+//        	processAssignment(evaluatedAssignmentTriple, null, null, assignmentElement);
+//        }
+//
+//        return evaluatedAssignmentTriple;
+//	}
 
 	public DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
@@ -177,14 +210,14 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         		prismContext, task, result);
         
         TaskType taskType = task.getTaskType();
-        LOGGER.info("Task for process: {}", taskType.asPrismObject().debugDump());
+        LOGGER.trace("Task for process: {}", taskType.asPrismObject().debugDumpLazily());
         AssignmentType taskAssignment = null;
         if (CollectionUtils.isNotEmpty(taskType.getAssignment())) {
         	taskAssignment = new AssignmentType(prismContext);
         	taskAssignment.setTarget(taskType);
         }
         
-        LOGGER.info("Task assignemnt: {}", taskAssignment);
+        LOGGER.trace("Task assignment: {}", taskAssignment);
         
         assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignment);
 

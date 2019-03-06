@@ -604,6 +604,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         cleanupDelete(UserType.class, USER_RAPP_OID, task, result);
         cleanupDelete(UserType.class, USER_MANCOMB_OID, task, result);
         cleanupDelete(UserType.class, USER_CAPSIZE_OID, task, result);
+        cleanupDelete(UserType.class, USER_WILL_OID, task, result);
         cleanupAdd(USER_LARGO_FILE, task, result);
         cleanupAdd(USER_LECHUCK_FILE, task, result);
         cleanupAdd(USER_ESTEVAN_FILE, task, result);

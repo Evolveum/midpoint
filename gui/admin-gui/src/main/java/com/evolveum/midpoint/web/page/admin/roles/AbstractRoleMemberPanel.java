@@ -26,17 +26,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -91,8 +88,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
 
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
@@ -240,28 +235,21 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 					}
 
 					@Override
-					protected String getDefaultButtonStyle() {
-						return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
+					protected DisplayType getMainButtonDisplayType(){
+						return getAssignMemberButtonDisplayType();
 					}
 
 					@Override
-					protected String getAdditionalButtonStyle(AssignmentObjectRelation assignmentTargetRelation) {
-						DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-						if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())) {
-							return display.getIcon().getCssClass();
-						}
-						return "";
+					protected DisplayType getAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation){
+						return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation, AbstractRoleMemberPanel.this.getPageBase());
 					}
 
 					@Override
-					protected String getAdditionalButtonTitle(AssignmentObjectRelation assignmentTargetRelation) {
-						DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-						if (display != null && display.getTooltip() != null) {
-							return display.getTooltip().getOrig();
-						}
-						return "";
+					protected DisplayType getDefaultObjectButtonDisplayType(){
+						return getAssignMemberButtonDisplayType();
 					}
 				};
+				assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
 
 
 //				AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ASSIGN), 	//TODO change icon class
@@ -337,6 +325,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	
 	protected QName getComplexTypeQName() {
 		return getModelObject().asPrismObject().getComplexTypeDefinition().getTypeName();
+	}
+
+	private DisplayType getAssignMemberButtonDisplayType(){
+		return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+				AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember").getString());
 	}
 
     private List<InlineMenuItem> createRowActions() {
@@ -506,7 +499,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
 				unassignMembersPerformed(type, scope, relations, target);
-
+			}
+			
+			@Override
+			protected QName getDefaultObjectType() {
+				return WebComponentUtil.classToQName(AbstractRoleMemberPanel.this.getPrismContext(),
+					AbstractRoleMemberPanel.this.getDefaultObjectType());
 			}
 		};
 
@@ -538,6 +536,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			protected boolean isFocusTypeSelectorVisible() {
 				return !QueryScope.SELECTED.equals(scope);
 			}
+			
+			@Override
+			protected QName getDefaultObjectType() {
+				return WebComponentUtil.classToQName(AbstractRoleMemberPanel.this.getPrismContext(),
+					AbstractRoleMemberPanel.this.getDefaultObjectType());
+			}
 
 		};
 
@@ -568,8 +572,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 					target.add(getPageBase().getFeedbackPanel());
 					return;
 				}
+				AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
 				try {
-					MemberOperationsHelper.initObjectForAdd(AbstractRoleMemberPanel.this.getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), type, relations, target);
+					WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), type, relations);
 				} catch (SchemaException e) {
 					throw new SystemException(e.getMessage(), e);
 				}

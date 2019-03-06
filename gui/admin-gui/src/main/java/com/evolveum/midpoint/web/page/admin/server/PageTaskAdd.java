@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -221,15 +222,9 @@ public class PageTaskAdd extends PageAdminTasks {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_FORM_MAIN);
         add(mainForm);
 
-        final DropDownChoice resource = new DropDownChoice<>(ID_RESOURCE,
+        final DropDownChoicePanel resource = new DropDownChoicePanel<TaskAddResourcesDto>(ID_RESOURCE,
             new PropertyModel<>(model, TaskAddDto.F_RESOURCE),
-                new IModel<List<TaskAddResourcesDto>>() {
-
-                    @Override
-                    public List<TaskAddResourcesDto> getObject() {
-                        return createResourceList();
-                    }
-                }, new ChoiceableChoiceRenderer<>());
+                Model.ofList(createResourceList()), new ChoiceableChoiceRenderer<>());
         resource.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -241,7 +236,7 @@ public class PageTaskAdd extends PageAdminTasks {
                 return sync || recon || importAccounts;
             }
         });
-        resource.add(new AjaxFormComponentUpdatingBehavior("change") {
+        resource.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

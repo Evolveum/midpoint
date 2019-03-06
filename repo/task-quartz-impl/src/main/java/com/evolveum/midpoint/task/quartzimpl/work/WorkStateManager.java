@@ -16,6 +16,21 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work;
 
+import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.findBucketByNumber;
+import static java.util.Collections.singletonList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -34,16 +49,17 @@ import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
-import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.FoundExisting;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NewBuckets;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
 import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -52,21 +68,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.findBucketByNumber;
-import static java.util.Collections.singletonList;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkAllocationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * Responsible for managing task work state.
@@ -162,7 +172,7 @@ public class WorkStateManager {
 	}
 
 	private WorkBucketType findSelfAllocatedBucket(Context ctx) {
-		TaskWorkStateType workState = ctx.workerTask.getTaskType().getWorkState();
+		TaskWorkStateType workState = ctx.workerTask.getWorkState();
 		if (workState == null || workState.getBucket().isEmpty()) {
 			return null;
 		}
@@ -190,7 +200,7 @@ waitForAvailableBucket:    // this cycle exits when something is found OR when a
 		    int retry = 0;
 waitForConflictLessUpdate: // this cycle exits when coordinator task update succeeds
 			for (;;) {
-				TaskWorkStateType coordinatorWorkState = getWorkStateOrNew(ctx.coordinatorTask.getTaskPrismObject());
+				TaskWorkStateType coordinatorWorkState = getWorkStateOrNew(ctx.coordinatorTask);
 				globalAttempt++;
 				GetBucketResult response = workStateStrategy.getBucket(coordinatorWorkState);
 				LOGGER.trace("getWorkBucketMultiNode: workStateStrategy returned {} for worker task {}, coordinator {}", response, ctx.workerTask, ctx.coordinatorTask);
@@ -371,7 +381,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			// the whole task tree.
 			repositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
 					bucketsReplaceDeltas(newState.getBucket()),
-					new VersionPrecondition<>(coordinatorTask.getTaskPrismObject().getVersion()), null, result);
+					new VersionPrecondition<>(coordinatorTask.getVersion()), null, result);
 		}
 		return reclaiming > 0;
 	}
@@ -380,7 +390,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		WorkSegmentationStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkManagement());
 		setOrUpdateEstimatedNumberOfBuckets(ctx.workerTask, workStateStrategy, result);
-		TaskWorkStateType workState = getWorkStateOrNew(ctx.workerTask.getTaskPrismObject());
+		TaskWorkStateType workState = getWorkStateOrNew(ctx.workerTask);
 		GetBucketResult response = workStateStrategy.getBucket(workState);
 		LOGGER.trace("getWorkBucketStandalone: workStateStrategy returned {} for standalone task {}", response, ctx.workerTask);
 		if (response instanceof FoundExisting) {
@@ -465,7 +475,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		} catch (PreconditionViolationException e) {
 			throw new IllegalStateException("Unexpected concurrent modification of work bucket " + bucket + " in " + ctx.coordinatorTask, e);
 		}
-		ItemDeltaCollectionsUtil.applyTo(modifications, ctx.coordinatorTask.getTaskPrismObject());
+		((InternalTaskInterface) ctx.coordinatorTask).applyModificationsTransient(modifications);
 		compressCompletedBuckets(ctx.coordinatorTask, result);
 
 		TaskWorkStateType workerWorkState = getWorkState(ctx.workerTask);
@@ -492,7 +502,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 		Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(bucket, WorkBucketStateType.COMPLETE);
 		repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(), modifications, null, result);
-		ItemDeltaCollectionsUtil.applyTo(modifications, ctx.workerTask.getTaskPrismObject());
+		((InternalTaskInterface) ctx.workerTask).applyModificationsTransient(modifications);
 		compressCompletedBuckets(ctx.workerTask, result);
 	}
 
@@ -580,7 +590,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 	private ModificationPrecondition<TaskType> bucketsReplacePrecondition(List<WorkBucketType> originalBuckets) {
 		// performance is not optimal but OK for precondition checking
-		return taskObject -> cloneNoId(originalBuckets).equals(cloneNoId(getWorkStateOrNew(taskObject).getBucket()));
+		return taskObject -> cloneNoId(originalBuckets).equals(cloneNoId(getWorkStateOrNew(taskObject.asObjectable()).getBucket()));
 	}
 
 	private Collection<ItemDelta<?, ?>> bucketStateChangeDeltas(WorkBucketType bucket, WorkBucketStateType newState) throws SchemaException {
@@ -597,7 +607,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 	private ModificationPrecondition<TaskType> bucketUnchangedPrecondition(WorkBucketType originalBucket) {
 		return taskObject -> {
-			WorkBucketType currentBucket = findBucketByNumber(getWorkStateOrNew(taskObject).getBucket(),
+			WorkBucketType currentBucket = findBucketByNumber(getWorkStateOrNew(taskObject.asObjectable()).getBucket(),
 					originalBucket.getSequentialNumber());
 			// performance is not optimal but OK for precondition checking
 			return currentBucket != null && cloneNoId(currentBucket).equals(cloneNoId(originalBucket));
@@ -614,9 +624,18 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	}
 
 	@NotNull
-	private TaskWorkStateType getWorkStateOrNew(PrismObject<TaskType> task) {
-		if (task.asObjectable().getWorkState() != null) {
-			return task.asObjectable().getWorkState();
+	private TaskWorkStateType getWorkStateOrNew(Task task) {
+		if (task.getWorkState() != null) {
+			return task.getWorkState();
+		} else {
+			return new TaskWorkStateType(prismContext);
+		}
+	}
+
+	@NotNull
+	private TaskWorkStateType getWorkStateOrNew(TaskType task) {
+		if (task.getWorkState() != null) {
+			return task.getWorkState();
 		} else {
 			return new TaskWorkStateType(prismContext);
 		}

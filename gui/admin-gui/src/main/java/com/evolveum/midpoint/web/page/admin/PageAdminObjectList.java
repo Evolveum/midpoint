@@ -22,8 +22,10 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -113,28 +115,17 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected String getNewObjectButtonStyle(){
+            protected DisplayType getNewObjectButtonStandardDisplayType(){
                 if (isCollectionViewPage()){
-                    return getCollectionViewIconClass(getCollectionViewObject());
+                    return getCollectionViewDisplayType(getCollectionViewObject());
                 } else {
-                    return WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(PageAdminObjectList.this.getPrismContext(),
-                            getType()));
+                    return super.getNewObjectButtonStandardDisplayType();
                 }
             }
 
             @Override
-            protected String getNewObjectSpecificStyle(CompiledObjectCollectionView collectionView){
-                return getCollectionViewIconClass(collectionView);
-            }
-
-            @Override
-            protected String getNewObjectSpecificTitle(CompiledObjectCollectionView collectionView){
-                if (collectionView == null || collectionView.getDisplay() == null
-                        || collectionView.getDisplay().getLabel() == null){
-                    return "";
-                }
-
-                return collectionView.getDisplay().getLabel().getOrig();
+            protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView collectionView){
+                return getCollectionViewDisplayType(collectionView);
             }
 
             @Override
@@ -193,7 +184,21 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){}
+    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){
+        if (collectionView == null){
+            collectionView = getCollectionViewObject();
+        }
+        ObjectReferenceType collectionViewReference = collectionView != null && collectionView.getCollection() != null ?
+                collectionView.getCollection().getCollectionRef() : null;
+        try {
+            WebComponentUtil.initNewObjectWithReference(PageAdminObjectList.this,
+                    WebComponentUtil.classToQName(getPrismContext(), getType()),
+                    collectionViewReference != null ? Arrays.asList(collectionViewReference) : null);
+        } catch (SchemaException ex){
+            getFeedbackPanel().getFeedbackMessages().error(PageAdminObjectList.this, ex.getUserFriendlyMessage());
+            target.add(getFeedbackPanel());
+        }
+    }
 
     protected ObjectFilter getArchetypeViewFilter(){
         CompiledObjectCollectionView view = getCollectionViewObject();
@@ -244,12 +249,18 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return collectionNameParam != null && !collectionNameParam.isEmpty();
     }
 
-    private String getCollectionViewIconClass(CompiledObjectCollectionView view){
-        if (view == null || view.getDisplay() == null ||
-                view.getDisplay().getIcon() == null){
-            return "";
+    private DisplayType getCollectionViewDisplayType(CompiledObjectCollectionView view){
+        DisplayType displayType = view != null ? view.getDisplay() : null;
+        if (displayType == null){
+            displayType = WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
         }
-
-        return view.getDisplay().getIcon().getCssClass();
+        if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())){
+            StringBuilder sb = new StringBuilder();
+            sb.append(createStringResource("MainObjectListPanel.newObject").getString());
+            sb.append(" ");
+            sb.append(displayType.getLabel().getOrig().toLowerCase());
+            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb.toString()));
+        }
+       return view != null ? view.getDisplay() : null;
     }
 }

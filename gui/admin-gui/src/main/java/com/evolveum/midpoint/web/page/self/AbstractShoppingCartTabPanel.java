@@ -28,26 +28,25 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.assignment.GridViewComponent;
-import com.evolveum.midpoint.web.component.assignment.RoleCatalogItemButton;
+import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
@@ -65,6 +64,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
     private static final String ID_ADD_ALL_BUTTON = "addAllButton";
+    private static final String ID_GO_TO_SHOPPING_CART_BUTTON = "goToShoppingCart";
+    private static final String ID_PARAMETERS_PANEL = "parametersPanel";
+    private static final String ID_RELATION_CONTAINER = "relationContainer";
+    private static final String ID_RELATION = "relation";
+    private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
 
     private static final String DOT_CLASS = AbstractShoppingCartTabPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
@@ -96,7 +100,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
         initSearchPanel(shoppingCartContainer);
         initShoppingCartItemsPanel(shoppingCartContainer);
-        initAddAllButton(shoppingCartContainer);
+        initParametersPanel(shoppingCartContainer);
     }
 
     protected void initLeftSidePanel(){
@@ -169,7 +173,81 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         shoppingCartContainer.add(catalogItemsGrid);
     }
 
-    private void initAddAllButton(WebMarkupContainer shoppingCartContainer){
+    private void initParametersPanel(WebMarkupContainer shoppingCartContainer){
+        WebMarkupContainer parametersPanel = new WebMarkupContainer(ID_PARAMETERS_PANEL);
+        parametersPanel.setOutputMarkupId(true);
+        shoppingCartContainer.add(parametersPanel);
+
+        initTargetUserSelectionPanel(parametersPanel);
+        initRelationPanel(parametersPanel);
+        initButtonsPanel(parametersPanel);
+    }
+
+    private void initTargetUserSelectionPanel(WebMarkupContainer parametersPanel){
+        UserSelectionButton targetUserPanel = new UserSelectionButton(ID_TARGET_USER_PANEL,
+                new IModel<List<UserType>>() {
+                    @Override
+                    public List<UserType> getObject() {
+                        return getRoleCatalogStorage().getTargetUserList();
+                    }
+                },
+                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getUserButtonLabel(){
+                return getTargetUserSelectionButtonLabel(getModelObject());
+            }
+
+            @Override
+            protected String getTargetUserButtonClass(){
+                return "btn-sm";
+            }
+
+            @Override
+            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
+                super.onDeleteSelectedUsersPerformed(target);
+                getRoleCatalogStorage().setTargetUserList(new ArrayList<>());
+
+                target.add(AbstractShoppingCartTabPanel.this);
+//                target.add(parametersPanel.get(ID_TARGET_USER_PANEL));
+            }
+
+            @Override
+            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
+                getRoleCatalogStorage().setTargetUserList(usersList);
+                target.add(AbstractShoppingCartTabPanel.this);
+//                target.add(parametersPanel.get(ID_TARGET_USER_PANEL));
+            }
+
+        };
+        targetUserPanel.setOutputMarkupId(true);
+        parametersPanel.add(targetUserPanel);
+    }
+
+    private void initRelationPanel(WebMarkupContainer parametersPanel){
+        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
+        relationContainer.setOutputMarkupId(true);
+        parametersPanel.add(relationContainer);
+
+        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getRoleCatalogStorage().getSelectedRelation(),
+                availableRelations, false){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onValueChanged(AjaxRequestTarget target){
+                getRoleCatalogStorage().setSelectedRelation(getRelationValue());
+            }
+
+            @Override
+            protected IModel<String> getRelationLabelModel(){
+                return Model.of();
+            }
+        });
+    }
+
+    private void initButtonsPanel(WebMarkupContainer parametersPanel){
         AjaxButton addAllButton = new AjaxButton(ID_ADD_ALL_BUTTON, createStringResource("AbstractShoppingCartTabPanel.addAllButton")) {
             private static final long serialVersionUID = 1L;
 
@@ -203,7 +281,50 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         });
         addAllButton.add(AttributeAppender.append("title",
                 AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(getPageBase())));
-        shoppingCartContainer.add(addAllButton);
+        parametersPanel.add(addAllButton);
+
+        AjaxButton goToShoppingCartButton = new AjaxButton(ID_GO_TO_SHOPPING_CART_BUTTON, createStringResource("AbstractShoppingCartTabPanel.goToShoppingCartButton")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                AbstractShoppingCartTabPanel.this.getPageBase().navigateToNext(new PageAssignmentsList(true));
+            }
+        };
+        goToShoppingCartButton.setOutputMarkupId(true);
+        goToShoppingCartButton.add(new VisibleBehaviour(() -> {
+            boolean isShoppingCartEmpty = AbstractShoppingCartTabPanel.this.getRoleCatalogStorage().getAssignmentShoppingCart().size() == 0;
+            return !isShoppingCartEmpty;
+        }));
+        parametersPanel.add(goToShoppingCartButton);
+    }
+
+    private String getTargetUserSelectionButtonLabel(List<UserType> usersList){
+        if (usersList == null || usersList.size() == 0){
+            return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
+        } else if (usersList.size() == 1){
+            if (usersList.get(0).getOid().equals(getPageBase().loadUserSelf().getOid())){
+                return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
+            } else {
+                return usersList.get(0).getName().getOrig();
+            }
+        } else {
+            return createStringResource("AssignmentCatalogPanel.requestForMultiple",
+                    usersList.size()).getString();
+        }
+    }
+
+    private QName getRelationParameterValue(){
+        return getRelationDropDown().getRelationValue();
+    }
+
+    private RelationDropDownChoicePanel getRelationDropDown(){
+        return (RelationDropDownChoicePanel)get(createComponentPath(ID_SHOPPING_CART_CONTAINER, ID_PARAMETERS_PANEL, ID_RELATION_CONTAINER, ID_RELATION));
     }
 
     private void addAllAssignmentsPerformed(AjaxRequestTarget target){
@@ -319,6 +440,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
+        getPageBase().reloadShoppingCartIcon(target);
+        target.add(AbstractShoppingCartTabPanel.this);
     }
 
     protected QName getNewAssignmentRelation() {

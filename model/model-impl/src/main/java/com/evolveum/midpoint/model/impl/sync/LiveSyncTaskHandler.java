@@ -21,31 +21,38 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.CounterManager;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * The task handler for a live synchronization.
@@ -83,11 +90,12 @@ public class LiveSyncTaskHandler implements TaskHandler {
 				.maintainActionsExecutedStatistics();
 	}
 
+	
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		LOGGER.trace("LiveSyncTaskHandler.run starting");
 		
-		counterManager.registerCounter(task, true);
+//		counterManager.registerCounter(task, true);
 
 		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
 		TaskRunResult runResult = new TaskRunResult();
@@ -182,51 +190,66 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// It will use extension of task to store synchronization state
 
             ModelImplUtils.clearRequestee(task);
-			changesProcessed = provisioningService.synchronize(coords, task, opResult);
+            
+			changesProcessed = provisioningService.synchronize(coords, task, partition, opResult);
 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Live Sync: A required object does not exist, OID: {}", ex.getOid());
             LOGGER.error("Exception stack trace", ex);
 			// This is bad. The resource or task or something like that does not exist. Permanent problem.
 			opResult.recordFatalError("A required object does not exist, OID: " + ex.getOid(), ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			setRunResultStatus(ex, partition, CriticalityType.FATAL, runResult);
 			return runResult;
 		} catch (CommunicationException ex) {
 			LOGGER.error("Live Sync: Communication error:",ex);
 			// Error, but not critical. Just try later.
 			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			setRunResultStatus(ex, partition, CriticalityType.PARTIAL, runResult);
 			return runResult;
 		} catch (SchemaException ex) {
 			LOGGER.error("Live Sync: Error dealing with schema:",ex);
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
 			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			setRunResultStatus(ex, partition, CriticalityType.PARTIAL, runResult);
+			return runResult;
+		} catch (PolicyViolationException ex) {
+			LOGGER.error("Live Sync: Policy violation:",ex);
+			// Not sure about this. But most likely it is a misconfigured resource or connector
+			// It may be worth to retry. Error is fatal, but may not be permanent.
+			opResult.recordFatalError("Live Sync: Policy violation: "+ex.getMessage(),ex);
+			setRunResultStatus(ex, partition, CriticalityType.PARTIAL, runResult);
+			return runResult;
+		} catch (PreconditionViolationException ex) {
+			LOGGER.error("Live Sync: Error dealing with schema:",ex);
+			// Not sure about this. But most likely it is a misconfigured resource or connector
+			// It may be worth to retry. Error is fatal, but may not be permanent.
+			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
+			setRunResultStatus(ex, partition, CriticalityType.PARTIAL, runResult);
 			return runResult;
 		} catch (RuntimeException ex) {
 			LOGGER.error("Live Sync: Internal Error:", ex);
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense to retry.
 			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			setRunResultStatus(ex, partition, CriticalityType.FATAL, runResult);
 			return runResult;
 		} catch (ConfigurationException ex) {
 			LOGGER.error("Live Sync: Configuration error:",ex);
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
 			opResult.recordFatalError("Configuration error: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			setRunResultStatus(ex, partition, CriticalityType.PARTIAL, runResult);
 			return runResult;
 		} catch (SecurityViolationException ex) {
 			LOGGER.error("Recompute: Security violation: {}",ex.getMessage(),ex);
 			opResult.recordFatalError("Security violation: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			setRunResultStatus(ex, partition, CriticalityType.FATAL, runResult);
 			return runResult;
 		} catch (ExpressionEvaluationException ex) {
 			LOGGER.error("Recompute: Expression error: {}",ex.getMessage(),ex);
 			opResult.recordFatalError("Expression error: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			setRunResultStatus(ex, partition, CriticalityType.FATAL, runResult);
 			return runResult;
 		}
 
@@ -237,6 +260,26 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", resourceOid);
 		return runResult;
+	}
+	
+	private void setRunResultStatus(Throwable ex, TaskPartitionDefinitionType partition, CriticalityType defaultCriticality, TaskRunResult runResult) {
+		CriticalityType criticality = null;
+		if (partition == null) {
+			criticality = defaultCriticality;
+		} else {
+			criticality = ExceptionUtil.getCriticality(partition.getErrorCriticality(), ex, defaultCriticality);
+		}
+		
+		switch (criticality) {
+			case PARTIAL:
+				runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+				break;
+			case FATAL:
+				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+				break;
+			default:
+				runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+		}
 	}
 
 	@Override

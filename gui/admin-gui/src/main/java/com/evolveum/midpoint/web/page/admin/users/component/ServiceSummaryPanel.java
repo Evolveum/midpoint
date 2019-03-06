@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 public class ServiceSummaryPanel extends FocusSummaryPanel<ServiceType> {
 	private static final long serialVersionUID = -5457446213855746564L;
 
-	public ServiceSummaryPanel(String id, IModel model, ModelServiceLocator serviceLocator) {
+	public ServiceSummaryPanel(String id, IModel<ServiceType> model, ModelServiceLocator serviceLocator) {
 		super(id, ServiceType.class, model, serviceLocator);
 	}
 

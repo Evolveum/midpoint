@@ -46,7 +46,17 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
         this.title = title;
         this.icon =icon;
+        
+        add(AttributeAppender.append("class", new IModel<String>() {
 
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return " position-relative ";
+            }
+        }));
+        
         add(AttributeAppender.append("class", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
@@ -74,6 +84,9 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         CompositedIcon icon = this.icon;
         if(icon.hasBasicIcon()) {
         	sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
+        	if (icon.hasBasicIconHtmlColor()){
+        	    sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
+            }
         	sb.append("></i> ");
         }
 

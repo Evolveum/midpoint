@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class RoleSummaryPanel extends FocusSummaryPanel<RoleType> {
 	private static final long serialVersionUID = 8087858942603720878L;
 
-	public RoleSummaryPanel(String id, IModel model, ModelServiceLocator serviceLocator) {
+	public RoleSummaryPanel(String id, IModel<RoleType> model, ModelServiceLocator serviceLocator) {
 		super(id, RoleType.class, model, serviceLocator);
 	}
 

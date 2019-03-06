@@ -1,0 +1,10 @@
+dn: uid=kraken,ou=People,dc=example,dc=com
+uid: kraken
+cn: Kraken Krakenoff
+sn: Kraken
+givenname: Krakenoff
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+

@@ -1813,7 +1813,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.resources"), null);
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class){
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"),
+                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -1959,7 +1960,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.users"), null);
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class){
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"),
+                GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -2010,7 +2012,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         });
         submenu.add(edit);
-        MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageClass, null, new VisibleEnableBehaviour() {
+        MenuItem newMenu = new MenuItem(createStringResource(newKey), GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null, new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -2090,8 +2092,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.users.org"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.users.org.tree", PageOrgTree.class);
-
+        MenuItem orgTree = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"),
+                GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgTree.class);
+        item.getItems().add(orgTree);
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
                 PageOrgUnit.class, true);
 
@@ -2105,7 +2108,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.roles"), null);
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class){
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"),
+                GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -2132,7 +2136,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.services"), null);
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"), PageServices.class){
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"),
+                GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -2187,9 +2192,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewIdentifier());
 
-            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
-                    ? createStringResource(viewDisplayType.getLabel())
-                    : createStringResource("MenuItem.noName"), redirectToPage, pageParameters, null){
+            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getPluralLabel())
+                    ? createStringResource(viewDisplayType.getPluralLabel())
+                    : createStringResource("MenuItem.noName"),
+                    WebComponentUtil.getIconCssClass(viewDisplayType), redirectToPage, pageParameters, null){
                 private static final long serialVersionUID = 1L;
 
                 @Override

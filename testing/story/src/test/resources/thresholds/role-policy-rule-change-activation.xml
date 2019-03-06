@@ -26,7 +26,9 @@
             	</modification>
             </policyConstraints>
             <policyThreshold>
-            	<count>3</count>
+            	<lowWaterMark>
+            		<count>3</count>
+            	</lowWaterMark>
             </policyThreshold>
             <policyActions>
                 <suspendTask/>

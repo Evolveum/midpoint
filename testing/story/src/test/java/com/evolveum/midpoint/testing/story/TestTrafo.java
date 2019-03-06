@@ -168,6 +168,7 @@ public class TestTrafo extends AbstractStoryTest {
 		resourceDummyAd = importAndGetObjectFromFileIgnoreWarnings(ResourceType.class, RESOURCE_DUMMY_AD_FILE, RESOURCE_DUMMY_AD_OID, initTask, initResult);
 		resourceDummyAdType = resourceDummyAd.asObjectable();
 		dummyResourceCtlAd.setResource(resourceDummyAd);
+		initDummyResource(RESOURCE_DUMMY_AD_ID, dummyResourceCtlAd);
 
 		dummyResourceCtlMail = DummyResourceContoller.create(RESOURCE_DUMMY_MAIL_ID, resourceDummyMail);
 		dummyResourceCtlMail.populateWithDefaultSchema();
@@ -186,6 +187,7 @@ public class TestTrafo extends AbstractStoryTest {
 		resourceDummyMail = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_MAIL_FILE, RESOURCE_DUMMY_MAIL_OID, initTask, initResult);
 		resourceDummyMailType = resourceDummyMail.asObjectable();
 		dummyResourceCtlMail.setResource(resourceDummyMail);
+		initDummyResource(RESOURCE_DUMMY_MAIL_ID, dummyResourceCtlMail);
 
 	}
 

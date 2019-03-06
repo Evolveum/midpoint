@@ -38,9 +38,7 @@ import org.springframework.boot.actuate.autoconfigure.endpoint.web.servlet.WebMv
 import org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.servlet.ServletManagementContextAutoConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
@@ -71,7 +69,6 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
-import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -255,20 +252,10 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
 
     @Bean
-    public ServletRegistrationBean<ReportPeerQueryInterceptor> reportPeerQueryInterceptor() {
-        ServletRegistrationBean<ReportPeerQueryInterceptor> registration = new ServletRegistrationBean<>();
-        registration.setServlet(new ReportPeerQueryInterceptor(nodeAuthenticator));
-        registration.addUrlMappings("/report");
-
-        return registration;
-    }
-    
-    @Bean
     public ErrorPageRegistrar errorPageRegistrar() {
     	return new MidPointErrorPageRegistrar();
     }
 
-    
     @Component
     public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
     	

@@ -15,23 +15,12 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -43,10 +32,22 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
  * Created by honchar
@@ -65,6 +66,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<As
     private static final String ID_FOCUS_MAPPING_ASSIGNMENTS = "focusMappingAssignments";
     private static final String ID_CONSENT_ASSIGNMENTS = "consentAssignments";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
+    private static final String ID_DATA_PROTECTION_ASSIGNMENTS = "dataProtectionAssignments";
 
     private String activeButtonId = ID_ALL_ASSIGNMENTS;
 
@@ -268,6 +270,36 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<As
                 getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
         buttonsContainer.add(policyRuleTypeAssignmentsButton);
 
+        AjaxButton dataProtectionButton = new AjaxButton(ID_DATA_PROTECTION_ASSIGNMENTS, createStringResource("pageAdminFocus.dataProtection")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                GenericAbstractRoleAssignmentPanel dataProtectionPanel =
+                        new GenericAbstractRoleAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void assignmentDetailsPerformed(AjaxRequestTarget target) {
+                                target.add(SwitchAssignmentTypePanel.this);
+                            }
+
+                            @Override
+                            protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
+                                target.add(SwitchAssignmentTypePanel.this);
+                            }
+                        };
+                dataProtectionPanel.setOutputMarkupId(true);
+                switchAssignmentTypePerformed(target, dataProtectionPanel, ID_DATA_PROTECTION_ASSIGNMENTS);
+
+            }
+        };
+        dataProtectionButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_DATA_PROTECTION_ASSIGNMENTS)));
+        dataProtectionButton.setOutputMarkupId(true);
+        dataProtectionButton.add(new VisibleBehaviour(()  ->
+                WebModelServiceUtils.isEnableExperimentalFeature(SwitchAssignmentTypePanel.this.getPageBase())));
+        buttonsContainer.add(dataProtectionButton);
+
         AjaxButton entitlementAssignmentsButton = new AjaxButton(ID_ENTITLEMENT_ASSIGNMENTS, createStringResource("AbstractRoleMainPanel.inducedEntitlements")) {
             private static final long serialVersionUID = 1L;
 
@@ -361,6 +393,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<As
                             @Override
                             protected boolean isNewObjectButtonVisible(PrismObject focusObject){
                                 return false;
+                            }
+
+                            @Override
+                            protected QName getAssignmentType() {
+                                return AssignmentType.F_FOCUS_MAPPINGS;
                             }
 
                         };

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -26,13 +27,14 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.sql.*;
-import java.util.List;
 
 /**
  * @author Pavol Mederly
@@ -84,7 +86,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
 		OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName()+".run");
 
@@ -180,7 +182,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private <T> T get(Task task, QName propertyName, T defaultValue) {
+	private <T> T get(Task task, ItemName propertyName, T defaultValue) {
 		PrismProperty<T> property = task.getExtensionProperty(propertyName);
 		if (property == null) {
 			return defaultValue;

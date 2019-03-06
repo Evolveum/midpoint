@@ -33,7 +33,7 @@ public class ViewResourcePage extends BasicPage {
         return new ResourceWizardPage();
     }
 
-    public ResourceAccountsTab<ViewResourcePage> clicAccountsTab() {
+    public ResourceAccountsTab<ViewResourcePage> clickAccountsTab() {
 
         $(Schrodinger.byDataResourceKey("schrodinger", "PageResource.tab.content.account")).parent()
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();

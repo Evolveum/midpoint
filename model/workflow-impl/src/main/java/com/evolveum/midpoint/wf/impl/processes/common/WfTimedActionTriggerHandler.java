@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -72,7 +73,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	}
 
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task triggerScannerTask, OperationResult parentResult) {
+	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask triggerScannerTask, OperationResult parentResult) {
 		if (!(object.asObjectable() instanceof TaskType)) {
 			throw new IllegalArgumentException("Unexpected object type: should be TaskType: " + object);
 		}

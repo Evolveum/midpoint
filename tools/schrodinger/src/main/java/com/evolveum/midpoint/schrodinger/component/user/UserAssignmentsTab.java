@@ -20,11 +20,12 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.FocusSetAssignmentsModal;
+import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionButtons;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.apache.http.util.Asserts;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -75,12 +76,20 @@ public class UserAssignmentsTab extends Component<UserPage> {
     }
 
     public FocusSetAssignmentsModal<UserAssignmentsTab> clickAddAssignemnt() {
-        $(Schrodinger.byElementAttributeValue("i", "class", "fa fa-plus"))
+        $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new FocusSetAssignmentsModal<>(this, modalElement);
+    }
+
+    public boolean assignmentExists(String assignmentName){
+        SelenideElement assignmentSummaryDisplayName = table()
+                .clickByName(assignmentName)
+                    .getParentElement()
+                        .$(Schrodinger.byDataId("displayName"));
+        return assignmentName.equals(assignmentSummaryDisplayName.getText());
     }
 }

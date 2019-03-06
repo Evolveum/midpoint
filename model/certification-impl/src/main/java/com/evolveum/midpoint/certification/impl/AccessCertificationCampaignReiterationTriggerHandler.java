@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -56,7 +56,7 @@ public class AccessCertificationCampaignReiterationTriggerHandler implements Tri
 	}
 
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, Task task, OperationResult result) {
+	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, RunningTask task, OperationResult result) {
 		try {
 			ObjectType object = prismObject.asObjectable();
 			if (!(object instanceof AccessCertificationCampaignType)) {

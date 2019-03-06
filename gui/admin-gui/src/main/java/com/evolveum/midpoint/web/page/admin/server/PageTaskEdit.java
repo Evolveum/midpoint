@@ -106,48 +106,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	public PageTaskEdit(PageParameters parameters) {
 		taskOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
-		taskDtoModel = new LoadableModel<TaskDto>(false) {
-			@Override
-			protected TaskDto load() {
-				try {
-					previousTaskDto = currentTaskDto;
-					final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
-					final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
-					final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
-					currentTaskDto = prepareTaskDto(taskType, true, operationTask, result);
-					result.computeStatusIfUnknown();
-					if (!result.isSuccess()) {
-						showResult(result);
-					}
-					return currentTaskDto;
-				} catch (SchemaException e) {
-					throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
-				}
-			}
-		};
-		objectWrapperModel = new LoadableModel<ObjectWrapperImpl<TaskType>>() {
-			@Override
-			protected ObjectWrapperImpl<TaskType> load() {
-				final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
-				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), operationTask, new OperationResult("loadObjectWrapper"));
-			}
-		};
-		showAdvancedFeaturesModel = new Model<>(false);		// todo save setting in session
-		nodeListModel = new LoadableModel<List<NodeType>>(false) {
-			@Override
-			protected List<NodeType> load() {
-				OperationResult result = new OperationResult(OPERATION_LOAD_NODES);
-				Task opTask = getTaskManager().createTaskInstance(OPERATION_LOAD_NODES);
-				try {
-					return PrismObject.asObjectableList(
-							getModelService().searchObjects(NodeType.class, null, null, opTask, result));
-				} catch (Throwable t) {
-					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve nodes", t);
-					return Collections.emptyList();
-				}
-			}
-		};
-		initLayout();
 	}
 
 	@Override
@@ -206,17 +164,58 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 
-	protected void initLayout() {
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+
+		taskDtoModel = new LoadableModel<TaskDto>(false) {
+			@Override
+			protected TaskDto load() {
+				try {
+					previousTaskDto = currentTaskDto;
+					final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
+					final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
+					final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
+					currentTaskDto = prepareTaskDto(taskType, true, operationTask, result);
+					result.computeStatusIfUnknown();
+					if (!result.isSuccess()) {
+						showResult(result);
+					}
+					return currentTaskDto;
+				} catch (SchemaException e) {
+					throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
+				}
+			}
+		};
+		objectWrapperModel = new LoadableModel<ObjectWrapperImpl<TaskType>>() {
+			@Override
+			protected ObjectWrapperImpl<TaskType> load() {
+				final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
+				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), operationTask, new OperationResult("loadObjectWrapper"));
+			}
+		};
+		showAdvancedFeaturesModel = new Model<>(false);		// todo save setting in session
+		nodeListModel = new LoadableModel<List<NodeType>>(false) {
+			@Override
+			protected List<NodeType> load() {
+				OperationResult result = new OperationResult(OPERATION_LOAD_NODES);
+				Task opTask = getTaskManager().createTaskInstance(OPERATION_LOAD_NODES);
+				try {
+					return PrismObject.asObjectableList(
+							getModelService().searchObjects(NodeType.class, null, null, opTask, result));
+				} catch (Throwable t) {
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve nodes", t);
+					return Collections.emptyList();
+				}
+			}
+		};
 		refreshModel = new Model<>(new AutoRefreshDto());
 		refreshModel.getObject().setInterval(getRefreshInterval());
 
-		IModel<PrismObject<TaskType>> prismObjectModel = new IModel<PrismObject<TaskType>>() {
-			@Override
-			public PrismObject<TaskType> getObject() {
-				return objectWrapperModel.getObject().getObject();
-			}
-		};
-		final TaskSummaryPanel summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL, prismObjectModel, refreshModel, this);
+
+
+		final TaskSummaryPanel summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL,
+				Model.of(objectWrapperModel.getObject().getObject().asObjectable()), refreshModel, this);
 		summaryPanel.setOutputMarkupId(true);
 		add(summaryPanel);
 

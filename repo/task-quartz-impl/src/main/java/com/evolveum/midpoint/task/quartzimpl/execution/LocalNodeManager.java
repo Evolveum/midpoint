@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.listeners.SchedulerListenerSupport;
@@ -43,6 +45,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Manages task threads on the local node. Concerned mainly with stopping threads and querying their state.
@@ -387,7 +390,7 @@ public class LocalNodeManager {
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".stopLocalTaskRun");
         result.addParam("task", oid);
 
-        LOGGER.info("Stopping local task " + oid + " run");
+        LOGGER.info("Stopping local task {} run", oid);
 
         try {
             getQuartzScheduler().interrupt(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));
@@ -444,29 +447,50 @@ public class LocalNodeManager {
         return false;
     }
 
+    Set<String> getLocallyRunningTasksOids(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasksOids");
+        try {
+            List<JobExecutionContext> jobs = getQuartzScheduler().getCurrentlyExecutingJobs();
+            Set<String> oids = jobs.stream().map(ec -> ec.getJobDetail().getKey().getName()).collect(Collectors.toSet());
+            result.recordSuccess();
+            return oids;
+        } catch (Throwable t) {
+            String message = "Cannot get the list of currently executing jobs on local node.";
+            result.recordFatalError(message, t);
+            LoggingUtils.logUnexpectedException(LOGGER, message, t);
+            return Collections.emptySet();      // todo or throw an exception?
+        }
+    }
+
+    @Nullable
+    Thread getLocalTaskThread(@NotNull String oid) {
+        try {
+            for (JobExecutionContext jec : getQuartzScheduler().getCurrentlyExecutingJobs()) {
+                if (oid.equals(jec.getJobDetail().getKey().getName())) {
+                    Job job = jec.getJobInstance();
+                    if (job instanceof JobExecutor) {
+                        return ((JobExecutor) job).getExecutingThread();
+                    }
+                }
+            }
+        } catch (SchedulerException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get the list of currently executing jobs", e);
+        }
+        return null;
+    }
+
     /**
      * Returns all the currently executing tasks.
      *
      * @return
      */
-    Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
+    Collection<Task> getLocallyRunningTasks(OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasks");
 
-        Set<Task> retval = new HashSet<>();
+        List<Task> retval = new ArrayList<>();
 
-        List<JobExecutionContext> jecs;
-        try {
-            jecs = getQuartzScheduler().getCurrentlyExecutingJobs();
-        } catch (SchedulerException e1) {
-            String message = "Cannot get the list of currently executing jobs on local node.";
-            result.recordFatalError(message, e1);
-            LoggingUtils.logUnexpectedException(LOGGER, message, e1);
-            return retval;
-        }
-
-        for (JobExecutionContext jec : jecs) {
-            String oid = jec.getJobDetail().getKey().getName();
+        for (String oid : getLocallyRunningTasksOids(result)) {
             OperationResult result1 = result.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTask");
             try {
                 retval.add(taskManager.getTask(oid, result1));

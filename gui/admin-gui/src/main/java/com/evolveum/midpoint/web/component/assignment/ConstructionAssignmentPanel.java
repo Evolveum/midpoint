@@ -134,4 +134,5 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
         }
 
     }
+
 }

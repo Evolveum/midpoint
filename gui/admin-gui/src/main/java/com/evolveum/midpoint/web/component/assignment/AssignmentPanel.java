@@ -157,36 +157,19 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 			}
 
 			@Override
-			protected String getNewObjectButtonStyle() {
-				return GuiStyleConstants.EVO_ASSIGNMENT_ICON;
+			protected DisplayType getNewObjectButtonDisplayType() {
+				return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+						AssignmentPanel.this.createStringResource("assignment.details.newValue").getString());
 			}
 
 			@Override
-			protected String getNewObjectSpecificStyle(AssignmentObjectRelation assignmentTargetRelation) {
-				DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-				if (display != null && display.getIcon() != null && !StringUtils.isEmpty(display.getIcon().getCssClass())){
-					return display.getIcon().getCssClass();
-				}
-				return "";
-			}
-
-			@Override
-			protected String getNewObjectSpecificTitle(AssignmentObjectRelation assignmentTargetRelation) {
-				DisplayType display = WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation);
-				if (display != null && display.getTooltip() != null){
-					return display.getTooltip().getOrig();
-				}
-				return "";
+			protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
+				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation, AssignmentPanel.this.getPageBase());
 			}
 
 			@Override
 			protected boolean isNewObjectButtonEnabled(){
 				return !isAssignmentsLimitReached();
-			}
-
-			@Override
-			protected IModel<String> getNewObjectButtonTitleModel(){
-				return getAssignmentsLimitReachedTitleModel("MainObjectListPanel.newObject");
 			}
 
 			@Override
@@ -301,11 +284,26 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 	protected ObjectQuery createObjectQuery(){
 		Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
 				.getAllRelationsFor(RelationKindType.DELEGATION);
-		return getParentPage().getPrismContext().queryFor(AssignmentType.class)
+
+
+		//do not show archetype assignments
+		ObjectReferenceType archetypeRef = new ObjectReferenceType();
+		archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
+		archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+		RefFilter archetypeFilter = (RefFilter) getParentPage().getPrismContext().queryFor(AssignmentType.class)
+				.item(AssignmentType.F_TARGET_REF)
+				.ref(archetypeRef.asReferenceValue())
+				.buildFilter();
+		archetypeFilter.setOidNullAsAny(true);
+		archetypeFilter.setRelationNullAsAny(true);
+
+		ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
 				.not()
 				.item(AssignmentType.F_TARGET_REF)
 				.ref(delegationRelations.toArray(new QName[0]))
 				.build();
+		query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
+		return query;
 	}
 
 	protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target){
@@ -360,6 +358,14 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 					return createStringResource("AssignmentPanel.noName");
 				}
 				return Model.of(name);
+			}
+
+			@Override
+			public boolean isEnabled(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+				if (rowModel.getObject().getContainerValue().asContainerable().getFocusMappings() != null){
+					return false;
+				}
+				return true;
 			}
 
 			@Override
@@ -435,6 +441,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 			@Override
 			protected List<ObjectReferenceType> getArchetypeRefList(){
 				return assignmentTargetRelation != null ? assignmentTargetRelation.getArchetypeRefs() : null;
+			}
+
+			@Override
+			protected ObjectFilter getSubtypeFilter(){
+				return AssignmentPanel.this.getSubtypeFilter();
 			}
 
 			@Override
@@ -574,7 +585,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 		Form form = new Form<>("form");
 		ItemPath itemPath = getModelObject().getPath();
 		model.getObject().getContainer().setShowOnTopLevel(true);
-		return new ContainerValuePanel<AssignmentType>(idPanel, model, true, form,
+		return new ContainerValuePanel(idPanel, model, true, form,
 				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model), getPageBase());
 	}
 
@@ -633,6 +644,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 		specificContainers.add(getSpecificContainerPanel(modelObject));
 		return specificContainers;
 	}
+
 	protected PrismContainerPanelOld getSpecificContainerPanel(ContainerValueWrapper<AssignmentType> modelObject) {
 		Form form = new Form<>("form");
 		ItemPath assignmentPath = modelObject.getPath();
@@ -662,6 +674,25 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 	}
 
 	protected IModel<ContainerWrapperImpl> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject){
+		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			ContainerWrapperImpl<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
+					AssignmentType.F_CONSTRUCTION));
+
+			return Model.of(constructionWrapper);
+		}
+
+		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			//TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
+			//but not PolicyRuleType
+			ContainerWrapperImpl<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
+					AssignmentType.F_PERSONA_CONSTRUCTION));
+
+			return Model.of(personasWrapper);
+		}
+		if (PolicyRuleType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			ContainerWrapperImpl<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
+			return Model.of(policyRuleWrapper);
+		}
 		return Model.of();
 	}
 
@@ -677,24 +708,28 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 		if (targetRef != null) {
 			targetType = targetRef.getType();
 		}
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TARGET_REF));
+		pathsToHide.add(assignmentPath.append(AssignmentType.F_TARGET_REF));
+		pathsToHide.add(assignmentPath.append(AssignmentType.F_TARGET));
 
 		if (OrgType.COMPLEX_TYPE.equals(targetType) || AssignmentsUtil.isPolicyRuleAssignment(prismContainerValue.asContainerable())) {
-			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TENANT_REF));
-			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_ORG_REF));
+			pathsToHide.add(assignmentPath.append(AssignmentType.F_TENANT_REF));
+			pathsToHide.add(assignmentPath.append(AssignmentType.F_ORG_REF));
 		}
 		if (AssignmentsUtil.isPolicyRuleAssignment(prismContainerValue.asContainerable())){
-			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_FOCUS_TYPE));
+			pathsToHide.add(assignmentPath.append(AssignmentType.F_FOCUS_TYPE));
 		}
 
 		if (assignment.getConstruction() == null) {
-			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION));
+			pathsToHide.add(assignmentPath.append(AssignmentType.F_CONSTRUCTION));
 		}
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_PERSONA_CONSTRUCTION));
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_POLICY_RULE));
+		if (assignment.getPersonaConstruction() == null) {
+			pathsToHide.add(assignmentPath.append(AssignmentType.F_PERSONA_CONSTRUCTION));
+		}
+		if (assignment.getPolicyRule() == null) {
+			pathsToHide.add(assignmentPath.append(AssignmentType.F_POLICY_RULE));
+		}
 
-
-		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
+		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getItem().getPath())) {
 			return ItemVisibility.AUTO;
 		} else {
 			return ItemVisibility.HIDDEN;
@@ -926,5 +961,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 		}
 		return actionPerformed ? (changedItems + selectedAssignmentsCount) > assignmentsRequestsLimit :
 				(changedItems + selectedAssignmentsCount)  >= assignmentsRequestsLimit;
+	}
+
+	protected ObjectFilter getSubtypeFilter(){
+		return null;
 	}
 }

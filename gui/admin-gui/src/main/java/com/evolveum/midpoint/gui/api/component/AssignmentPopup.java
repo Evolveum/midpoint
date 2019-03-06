@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -201,6 +202,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected List<ObjectReferenceType> getArchetypeRefList(){
                                 return AssignmentPopup.this.getArchetypeRefList();
                             }
+
+                            @Override
+                            protected ObjectFilter getSubtypeFilter(){
+                                return AssignmentPopup.this.getSubtypeFilter();
+                            }
                         };
                     }
 
@@ -245,6 +251,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     @Override
                     protected List<ObjectReferenceType> getArchetypeRefList(){
                         return AssignmentPopup.this.getArchetypeRefList();
+                    }
+
+                    @Override
+                    protected ObjectFilter getSubtypeFilter(){
+                        return AssignmentPopup.this.getSubtypeFilter();
                     }
                 };
             }
@@ -342,6 +353,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     protected List<ObjectReferenceType> getArchetypeRefList(){
+        return null;
+    }
+
+    protected ObjectFilter getSubtypeFilter(){
         return null;
     }
 

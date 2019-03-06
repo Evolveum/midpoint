@@ -257,7 +257,6 @@ public class WorkersManager {
 		}
 
 		int count = 0;
-		TaskType coordinatorTaskBean = coordinatorTask.getTaskType();
 		TaskWorkManagementType wsCfg = coordinatorTask.getWorkManagement();
 		WorkersManagementType workersCfg = wsCfg.getWorkers();
 
@@ -273,15 +272,15 @@ public class WorkersManager {
 			applyDeltas(worker, perNodeConfigurationMap.get(keyToCreate).getOtherDeltas());
 
 			worker.setExecutionStatus(workerExecutionStatus);
-			worker.setOwnerRef(CloneUtil.clone(coordinatorTaskBean.getOwnerRef()));
+			worker.setOwnerRef(CloneUtil.clone(coordinatorTask.getOwnerRef()));
 			worker.setCategory(coordinatorTask.getCategory());
-			worker.setObjectRef(CloneUtil.clone(coordinatorTaskBean.getObjectRef()));
+			worker.setObjectRef(CloneUtil.clone(coordinatorTask.getObjectRef()));
 			worker.setRecurrence(TaskRecurrenceType.SINGLE);
 			worker.setParent(coordinatorTask.getTaskIdentifier());
 			worker.beginWorkManagement().taskKind(TaskKindType.WORKER);
-			PrismContainer<Containerable> coordinatorExtension = coordinatorTaskBean.asPrismObject().findContainer(TaskType.F_EXTENSION);
-			if (coordinatorTaskBean.getExtension() != null) {
-				worker.asPrismObject().add(coordinatorExtension.clone());
+			PrismContainer<?> coordinatorExtension = coordinatorTask.getExtensionClone();
+			if (coordinatorExtension != null) {
+				worker.asPrismObject().add(coordinatorExtension);
 			}
 			LOGGER.info("Creating worker task on {}: {}", keyToCreate.group, keyToCreate.name);
 			taskManager.addTask(worker.asPrismObject(), result);

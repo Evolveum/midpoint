@@ -105,6 +105,13 @@ public class ModelRestService {
 	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
 	public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
 	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterEvent";
+	public static final String OPERATION_GET_LOCAL_SCHEDULER_INFORMATION = CLASS_DOT + "getLocalSchedulerInformation";
+	public static final String OPERATION_STOP_LOCAL_SCHEDULER = CLASS_DOT + "stopScheduler";
+	public static final String OPERATION_START_LOCAL_SCHEDULER = CLASS_DOT + "startScheduler";
+	public static final String OPERATION_STOP_LOCAL_TASK = CLASS_DOT + "stopLocalTask";
+	public static final String OPERATION_GET_THREADS_DUMP = CLASS_DOT + "getThreadsDump";
+	public static final String OPERATION_GET_RUNNING_TASKS_THREADS_DUMP = CLASS_DOT + "getRunningTasksThreadsDump";
+	public static final String OPERATION_GET_TASK_THREADS_DUMP = CLASS_DOT + "getTaskThreadsDump";
 
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
@@ -118,6 +125,7 @@ public class ModelRestService {
 	@Autowired private SecurityHelper securityHelper;
 	@Autowired private ValuePolicyProcessor policyProcessor;
 	@Autowired private TaskManager taskManager;
+	@Autowired private TaskService taskService;
 	@Autowired private Protector protector;
 	@Autowired private ResourceValidator resourceValidator;
 	
@@ -1049,25 +1057,70 @@ public class ModelRestService {
 		finishRequest(task);
 		return response;
 
+
 	}
-	
-	@POST
-	@Path("/event/{type}")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-	public Response executeClusterEvent(@PathParam("type") String type, @Context MessageContext mc) {
-		//TODO: task??
+
+	@GET
+	@Path("/threads")
+	@Produces({"text/plain"})
+	public Response getThreadsDump(@Context MessageContext mc) {
+
 		Task task = RestServiceUtil.initRequest(mc);
-		OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_EVENT);
-		String oid = "";
-		Class clazz = ObjectTypes.getClassFromRestType(type);
-		cacheDispatcher.dispatch(clazz, oid);
-		
-		result.recordSuccess();
-		Response response = RestServiceUtil.createResponse(Response.Status.OK, result);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_THREADS_DUMP);
+
+		Response response;
+		try {
+			String dump = taskService.getThreadsDump(task, result);
+			response = Response.ok(dump).build();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get threads dump", ex);
+			response = RestServiceUtil.handleExceptionNoLog(result, ex);
+		}
+		result.computeStatus();
 		finishRequest(task);
 		return response;
+	}
 
+	@GET
+	@Path("/tasks/threads")
+	@Produces({"text/plain"})
+	public Response getRunningTasksThreadsDump(@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_RUNNING_TASKS_THREADS_DUMP);
+
+		Response response;
+		try {
+			String dump = taskService.getRunningTasksThreadsDump(task, result);
+			response = Response.ok(dump).build();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get running tasks threads dump", ex);
+			response = RestServiceUtil.handleExceptionNoLog(result, ex);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@GET
+	@Path("/tasks/{oid}/threads")
+	@Produces({"text/plain"})
+	public Response getTaskThreadsDump(@PathParam("oid") String oid, @Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_TASK_THREADS_DUMP);
+
+		Response response;
+		try {
+			String dump = taskService.getTaskThreadsDump(oid, task, result);
+			response = Response.ok(dump).build();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get task threads dump for task " + oid, ex);
+			response = RestServiceUtil.handleExceptionNoLog(result, ex);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
 	}
 
 	//    @GET

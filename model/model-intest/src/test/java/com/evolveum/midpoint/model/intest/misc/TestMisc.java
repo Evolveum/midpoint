@@ -157,7 +157,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertEquals("Unexpected number of users", 5, users.size());
+        assertEquals("Unexpected number of users", 6, users.size());
         for (PrismObject<UserType> user: users) {
         	display("Exporting user", user);
         	assertNotNull("Null definition in "+user, user.getDefinition());

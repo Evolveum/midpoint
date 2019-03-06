@@ -20,6 +20,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -123,19 +125,6 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
     protected List<Component> createToolbarButtonsList(String buttonId){
         List<Component> buttonsList = new ArrayList<>();
-//        AjaxIconButton newObjectIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
-//                createStringResource("MainObjectListPanel.newObject")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                newObjectPerformed(target);
-//            }
-//        };
-//        newObjectIcon.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
-//        buttonsList.add(newObjectIcon);
-
         MultifunctionalButton<S> createNewObjectButton =
                 new MultifunctionalButton<S>(buttonId){
             private static final long serialVersionUID = 1L;
@@ -151,20 +140,21 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             }
 
             @Override
-            protected String getDefaultButtonStyle(){
-                return getNewObjectButtonStyle();
+            protected DisplayType getMainButtonDisplayType(){
+                return getNewObjectButtonStandardDisplayType();
             }
 
             @Override
-            protected String getAdditionalButtonTitle(S buttonObject){
-                return getNewObjectSpecificTitle(buttonObject);
+            protected DisplayType getDefaultObjectButtonDisplayType(){
+                return getNewObjectButtonSpecialDisplayType();
             }
 
             @Override
-            protected String getAdditionalButtonStyle(S buttonObject){
-                return getNewObjectSpecificStyle(buttonObject);
+            protected DisplayType getAdditionalButtonDisplayType(S buttonObject){
+                return getNewObjectButtonAdditionalDisplayType(buttonObject);
             }
         };
+        createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(createNewObjectButton);
 
 
@@ -263,16 +253,28 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return new ArrayList<>();
     }
 
-    protected String getNewObjectButtonStyle(){
-        return GuiStyleConstants.CLASS_ADD_NEW_OBJECT;
+    protected DisplayType getNewObjectButtonStandardDisplayType(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(createStringResource("MainObjectListPanel.newObject").getString());
+        sb.append(" ");
+        sb.append(createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString());
+        return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
+                sb.toString());
     }
 
-    protected String getNewObjectSpecificStyle(S buttonObject){
-        return "";
+    protected DisplayType getNewObjectButtonSpecialDisplayType(){
+        String iconCssStyle = WebComponentUtil.createDefaultBlackIcon(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(createStringResource("MainObjectListPanel.newObject").getString());
+        sb.append(" ");
+        sb.append(createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString());
+
+        return WebComponentUtil.createDisplayType(iconCssStyle, "", sb.toString());
     }
 
-    protected String getNewObjectSpecificTitle(S buttonObject){
-        return "";
+    protected DisplayType getNewObjectButtonAdditionalDisplayType(S buttonObject){
+        return null;
     }
 
     private static class ButtonBar extends Fragment {

@@ -89,5 +89,15 @@ public class RepoCommonUtils {
 		throw new SystemException(e.getMessage(), e);
 	}
 }
+	//TODO implement better
+	public static Throwable getResultException(OperationResult result) {
+		if (result.getCause() != null) {
+			return result.getCause();
+		} else if (result.getLastSubresult().getCause() != null) {
+			return result.getLastSubresult().getCause();
+		} else {
+			return new SystemException(result.getMessage());
+		}
+	}
 
 }
