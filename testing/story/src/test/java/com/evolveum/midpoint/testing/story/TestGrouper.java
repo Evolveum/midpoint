@@ -139,7 +139,7 @@ public class TestGrouper extends AbstractStoryTest {
 
 		// WHEN
 
-        modelCrudService.notifyChange(change, result, task);
+		modelService.notifyChange(change, result, task);
 
         // THEN
 
@@ -176,7 +176,7 @@ public class TestGrouper extends AbstractStoryTest {
 
 		// WHEN
 
-        modelCrudService.notifyChange(change, result, task);
+		modelService.notifyChange(change, result, task);
 
         // THEN
 
@@ -216,7 +216,7 @@ public class TestGrouper extends AbstractStoryTest {
 
 		// WHEN
 
-        modelCrudService.notifyChange(change, result, task);
+		modelService.notifyChange(change, result, task);
 
         // THEN
 
@@ -253,7 +253,7 @@ public class TestGrouper extends AbstractStoryTest {
 
 		// WHEN
 
-        modelCrudService.notifyChange(change, result, task);
+		modelService.notifyChange(change, result, task);
 
         // THEN
 
@@ -289,7 +289,7 @@ public class TestGrouper extends AbstractStoryTest {
 
 		// WHEN
 
-		modelCrudService.notifyChange(change, result, task);
+		modelService.notifyChange(change, result, task);
 
 		// THEN
 
@@ -336,7 +336,7 @@ public class TestGrouper extends AbstractStoryTest {
 
 		// WHEN
 
-		modelCrudService.notifyChange(change, result, task);
+		modelService.notifyChange(change, result, task);
 
 		// THEN
 

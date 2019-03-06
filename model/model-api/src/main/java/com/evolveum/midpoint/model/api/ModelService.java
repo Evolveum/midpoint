@@ -51,12 +51,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -725,6 +720,10 @@ public interface ModelService {
 	<O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid,
 			String mergeConfigurationName, Task task, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException;
+
+	void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
 	@NotNull
 	PrismContext getPrismContext();

@@ -73,7 +73,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Simple version of model service exposing CRUD-like operations. This is common facade for webservice and REST services.
- * It takes care of all the "details" of externalized obejcts such as applying correct definitions and so on.
+ * It takes care of all the "details" of externalized objects such as applying correct definitions and so on.
+ *
+ * Other methods (not strictly related to CRUD operations) requiring some pre-processing may come here later; if needed
+ * for both WS and REST services.
  *
  * @author Radovan Semancik
  *
@@ -81,32 +84,17 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @Component
 public class ModelCrudService {
 
-	String CLASS_NAME_WITH_DOT = ModelCrudService.class.getName() + ".";
-	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
-	String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
-	String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
-
+	private String CLASS_NAME_WITH_DOT = ModelCrudService.class.getName() + ".";
+	private String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
+	private String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
+	private String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelCrudService.class);
 
-	@Autowired(required = true)
-	ModelService modelService;
-
-	@Autowired
-	TaskService taskService;
-
-	@Autowired(required = true)
-	PrismContext prismContext;
-
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	RepositoryService repository;
-
-	@Autowired(required = true)
-	private Protector protector;
-
-	@Autowired(required = true)
-	private ChangeNotificationDispatcher dispatcher;
+	@Autowired ModelService modelService;
+	@Autowired TaskService taskService;
+	@Autowired PrismContext prismContext;
+	@Autowired @Qualifier("cacheRepositoryService") RepositoryService repository;
 
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
@@ -120,71 +108,6 @@ public class ModelCrudService {
 			SecurityViolationException, ExpressionEvaluationException {
 		return modelService.searchObjects(type, query, options, task, parentResult);
 	}
-
-	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException{
-
-		String oldShadowOid = changeDescription.getOldShadowOid();
-		ResourceEventDescription eventDescription = new ResourceEventDescription();
-
-		PrismObject<ShadowType> oldShadow;
-		LOGGER.trace("resolving old object");
-		if (!StringUtils.isEmpty(oldShadowOid)) {
-			oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
-			eventDescription.setOldShadow(oldShadow);
-			LOGGER.trace("old object resolved to: {}", oldShadow.debugDumpLazily());
-		} else {
-			LOGGER.trace("Old shadow null");
-		}
-
-		PrismObject<ShadowType> currentShadow = null;
-		ShadowType currentShadowType = changeDescription.getCurrentShadow();
-		LOGGER.trace("resolving current shadow");
-		if (currentShadowType != null) {
-			prismContext.adopt(currentShadowType);
-			currentShadow = currentShadowType.asPrismObject();
-			LOGGER.trace("current shadow resolved to {}", currentShadow.debugDumpLazily());
-		}
-
-		eventDescription.setCurrentShadow(currentShadow);
-
-		ObjectDeltaType deltaType = changeDescription.getObjectDelta();
-
-		if (deltaType != null) {
-
-			PrismObject<ShadowType> shadowToAdd;
-			ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createEmptyDelta(ShadowType.class, deltaType.getOid(),
-					ChangeType.toChangeType(deltaType.getChangeType()));
-
-			if (delta.getChangeType() == ChangeType.ADD) {
-				if (deltaType.getObjectToAdd() == null){
-					LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
-					throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
-				}
-				Object objToAdd = deltaType.getObjectToAdd();
-				if (!(objToAdd instanceof ShadowType)){
-					LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
-					throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
-				}
-				prismContext.adopt((ShadowType)objToAdd);
-
-				shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
-				LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
-				delta.setObjectToAdd(shadowToAdd);
-			} else {
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
-				delta.addModifications(modifications);
-			}
-			ModelImplUtils.encrypt(Collections.singletonList(delta), protector, null, parentResult);
-			eventDescription.setDelta(delta);
-		}
-
-		eventDescription.setSourceChannel(changeDescription.getChannel());
-
-		dispatcher.notifyEvent(eventDescription, task, parentResult);
-		parentResult.computeStatus();
-		task.setResult(parentResult);
-	}
-
 
 	/**
 	 * <p>
@@ -440,82 +363,4 @@ public class ModelCrudService {
 			RepositoryCache.exit();
 		}
 	}
-
-	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
-		return modelService.findShadowOwner(accountOid, task, parentResult);
-	}
-
-	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass,
-			ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		return modelService.listResourceObjects(resourceOid, objectClass, paging, task, parentResult);
-	}
-
-	public void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		modelService.importFromResource(resourceOid, objectClass, task, parentResult);
-	}
-
-	public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
-		return modelService.testResource(resourceOid, task);
-	}
-
-
-	//TASK AREA
-    public boolean suspendTask(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return taskService.suspendTask(taskOid, waitForStop, operationTask, parentResult);
-    }
-
-    public void suspendAndDeleteTask(String taskOid, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.suspendAndDeleteTask(taskOid, waitForStop, alsoSubtasks, operationTask, parentResult);
-    }
-
-    public void resumeTask(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.resumeTask(taskOid, operationTask, parentResult);
-    }
-
-    public void scheduleTaskNow(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.scheduleTaskNow(taskOid, operationTask, parentResult);
-    }
-
-    @SuppressWarnings("unused")
-    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, Task operationTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
-        return taskService.getTaskByIdentifier(identifier, options, operationTask, parentResult);
-    }
-
-    public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return taskService.deactivateServiceThreads(timeToWait, operationTask, parentResult);
-    }
-
-    public void reactivateServiceThreads(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.reactivateServiceThreads(operationTask, parentResult);
-    }
-
-    @SuppressWarnings("unused")
-    public boolean getServiceThreadsActivationState() {
-        return taskService.getServiceThreadsActivationState();
-    }
-
-    public void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.stopSchedulers(nodeIdentifiers, operationTask, parentResult);
-    }
-
-    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return taskService.stopSchedulersAndTasks(nodeIdentifiers, waitTime, operationTask, parentResult);
-    }
-
-    public void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.startSchedulers(nodeIdentifiers, operationTask, parentResult);
-    }
-
-    public void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.synchronizeTasks(operationTask, parentResult);
-    }
-
-    @SuppressWarnings("unused")
-    public List<String> getAllTaskCategories() {
-        return taskService.getAllTaskCategories();
-    }
-
 }
