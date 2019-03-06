@@ -95,6 +95,7 @@
         <jcommander.version>1.72</jcommander.version>
 		<failsafe.version>3.0.0-M2</failsafe.version>
 		<antrun.version>1.8</antrun.version>
+        <rabbit-amqp-client.version>5.1.2</rabbit-amqp-client.version>      <!-- must match the version used by Spring Boot -->
     </properties>
     <dependencyManagement>
         <dependencies>
