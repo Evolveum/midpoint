@@ -652,8 +652,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
         PrismObject<UserType> will = getUser(USER_WILL_OID);
         display("will after unassign assignment", will);
-        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MEMBER.getRelation());
         MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.OWNER.getRelation());
         MidPointAsserts.assertAssignedResource(will, "10000000-0000-0000-0000-000000000004");
     }
     

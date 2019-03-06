@@ -73,6 +73,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -522,12 +523,12 @@ public class ReportCreateTaskHandler implements TaskHandler {
         deltas.add(objectDelta);
         subResult = parentResult.createSubresult(ReportCreateTaskHandler.class.getName() + "createRepourtOutput");
 
-        modelService.executeChanges(deltas, null, task, subResult);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = modelService.executeChanges(deltas, null, task, subResult);
+        String reportOutputOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportOutputType.asPrismObject());
 
-		String outputOid = objectDelta.getOid();
-		LOGGER.debug("Created report output with OID {}", outputOid);
+		LOGGER.debug("Created report output with OID {}", reportOutputOid);
 		PrismProperty<String> outputOidProperty = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME).instantiate();
-		outputOidProperty.setRealValue(outputOid);
+		outputOidProperty.setRealValue(reportOutputOid);
 		task.setExtensionPropertyImmediate(outputOidProperty, subResult);
 
         subResult.computeStatus();
