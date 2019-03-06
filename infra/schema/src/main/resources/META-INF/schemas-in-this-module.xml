@@ -49,6 +49,7 @@ Notes:
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" uri="../xml/ns/public/common/common-core-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" uri="../xml/ns/public/common/common-model-context-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-notifications-3" uri="../xml/ns/public/common/common-notifications-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-messaging-3" uri="../xml/ns/public/common/common-messaging-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3" uri="../xml/ns/public/common/common-workflows-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3" uri="../xml/ns/public/common/common-policy-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" uri="../xml/ns/public/common/common-case-management-3.xsd" />

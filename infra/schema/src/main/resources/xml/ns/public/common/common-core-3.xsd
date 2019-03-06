@@ -38,6 +38,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-certification-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-notifications-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-messaging-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
@@ -24131,111 +24132,6 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-
-	<xsd:complexType name="MessageSourceConfigurationType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Messaging client configuration
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.9.1</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Connection URI.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="username" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						User name used to authenticate to AMQP server.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Password used to authenticate to AMQP server.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="messageSourceConfigurationType" type="tns:MessageSourceConfigurationType"/>
-
-	<xsd:complexType name="AmqpSourceConfigurationType">
-		<xsd:annotation>
-			<xsd:documentation>
-				AMQP client configuration
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.9.1</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:MessageSourceConfigurationType">
-				<xsd:sequence>
-					<xsd:element name="virtualHost" type="xsd:string" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								AMQP virtual host; the default value is "/".
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="queue" type="xsd:string" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Name of the queue to receive messages from.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="amqpSourceConfigurationType" type="tns:AmqpSourceConfigurationType"/>
-
-	<xsd:complexType name="MessageProcessingConfigurationType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Message processing configuration.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.9.1</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="source" type="tns:MessageSourceConfigurationType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Source of messages.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="consumerExpression" type="tns:ExpressionType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Expression that receives a message and consumes it. Returns true if the message is to be acknowledged;
-						null, false or exception otherwise.
-						Mutually exclusive with transformerExpression.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="transformerExpression" type="tns:ExpressionType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Expression that transforms a message into a set of ResourceObjectShadowChangeDescriptionType,
-						to be processed as a change. Returns null or an empty set if the message is to be simply discarded.
-						Mutually exclusive with consumerExpression.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
 
 </xsd:schema>
 
