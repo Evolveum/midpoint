@@ -23,12 +23,16 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -733,6 +737,30 @@ public class MiscUtil {
 		list.addAll(a);
 		list.addAll(b);
 		return list;
+	}
+
+	/**
+	 * Thanks for this code go to https://crunchify.com/how-to-generate-java-thread-dump-programmatically/
+	 */
+	public static String takeThreadDump(@Nullable Thread thread) {
+		StringBuilder dump = new StringBuilder();
+		ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+		long[] threadIds = thread != null ? new long[] { thread.getId() } : threadMXBean.getAllThreadIds();
+		ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(threadIds, 100);
+		for (ThreadInfo threadInfo : threadInfos) {
+			dump.append("Thread name: \"");
+			dump.append(threadInfo.getThreadName());
+			dump.append("\"\n");
+			dump.append("Thread state: ");
+			dump.append(threadInfo.getThreadState());
+			StackTraceElement[] stackTraceElements = threadInfo.getStackTrace();
+			for (StackTraceElement stackTraceElement : stackTraceElements) {
+				dump.append("\n    at ");
+				dump.append(stackTraceElement);
+			}
+			dump.append("\n\n");
+		}
+		return dump.toString();
 	}
 
 }

@@ -25,8 +25,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -54,6 +54,7 @@ import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
+import java.util.Objects;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -74,7 +75,7 @@ public class JobExecutor implements InterruptableJob {
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
     private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
-	private static final long FREE_BUCKET_WAIT_TIME = -1;        // indefinitely
+
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -84,7 +85,7 @@ public class JobExecutor implements InterruptableJob {
 	 * "Each (and every) time the scheduler executes the job, it creates a new instance of
 	 * the class before calling its execute(..) method."
 	 */
-	private volatile TaskQuartzImpl task;
+	private volatile RunningTaskQuartzImpl task;
 	private volatile Thread executingThread;				// used for interruptions
 
 	@Override
@@ -102,7 +103,7 @@ public class JobExecutor implements InterruptableJob {
         try {
 	        Collection<SelectorOptions<GetOperationOptions>> options = taskManagerImpl.getSchemaHelper().getOperationOptionsBuilder()
 			        .item(TaskType.F_RESULT).retrieve().build();
-	        task = taskManagerImpl.getTask(oid, options, executionResult);
+	        task = taskManagerImpl.createRunningTask(taskManagerImpl.getTask(oid, options, executionResult));
 		} catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
@@ -191,7 +192,7 @@ public class JobExecutor implements InterruptableJob {
 	            return;
 			}
 
-			if (task.isCycle()) {
+			if (task.isRecurring()) {
 				executeRecurrentTask(handler);
 			} else if (task.isSingle()) {
 				executeSingleTask(handler, executionResult);
@@ -225,7 +226,7 @@ public class JobExecutor implements InterruptableJob {
 
 	static class GroupExecInfo {
 		int limit;
-		Set<Task> tasks = new HashSet<>();
+		Collection<Task> tasks = new ArrayList<>();
 
 		GroupExecInfo(Integer l) {
 			limit = l != null ? l : Integer.MAX_VALUE;
@@ -235,7 +236,9 @@ public class JobExecutor implements InterruptableJob {
 			if (limit != null && limit < this.limit) {
 				this.limit = limit;
 			}
-			this.tasks.add(task);
+			if (tasks.stream().noneMatch(t -> Objects.equals(t.getOid(), task.getOid()))) {    // just for sure
+				tasks.add(task);
+			}
 		}
 
 		@Override
@@ -245,7 +248,7 @@ public class JobExecutor implements InterruptableJob {
 	}
 
 	// returns false if constraints are not met (i.e. execution should finish immediately)
-	private boolean checkExecutionConstraints(TaskQuartzImpl task, OperationResult result) throws JobExecutionException {
+	private boolean checkExecutionConstraints(RunningTaskQuartzImpl task, OperationResult result) throws JobExecutionException {
 		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
 		if (executionConstraints == null) {
 			return true;
@@ -257,7 +260,7 @@ public class JobExecutor implements InterruptableJob {
 		for (Map.Entry<String, GroupExecInfo> entry : groupMap.entrySet()) {
 			String group = entry.getKey();
 			int limit = entry.getValue().limit;
-			Set<Task> tasksInGroup = entry.getValue().tasks;
+			Collection<Task> tasksInGroup = entry.getValue().tasks;
 			if (tasksInGroup.size() >= limit) {
 				RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints,
 						DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT, task.getNextRunStartTime(result));
@@ -281,7 +284,7 @@ public class JobExecutor implements InterruptableJob {
 	}
 
 	@NotNull
-	private Map<String, GroupExecInfo> createGroupMap(TaskQuartzImpl task, OperationResult result) {
+	private Map<String, GroupExecInfo> createGroupMap(RunningTaskQuartzImpl task, OperationResult result) {
 		Map<String, GroupExecInfo> groupMap = new HashMap<>();
 		Map<String, Integer> groupsWithLimits = task.getGroupsWithLimits();
 		if (!groupsWithLimits.isEmpty()) {
@@ -351,7 +354,7 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 
-	private void rescheduleLater(TaskQuartzImpl task, long startAt) throws JobExecutionException {
+	private void rescheduleLater(RunningTaskQuartzImpl task, long startAt) throws JobExecutionException {
 		Trigger trigger = TaskQuartzImplUtil.createTriggerForTask(task, startAt);
 		try {
 			taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
@@ -366,11 +369,11 @@ public class JobExecutor implements InterruptableJob {
         taskManagerImpl.waitForTransientChildren(task, result);
 
         // at this moment, there should be no executing child tasks... we just clean-up all runnables that had not started
-        for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
+        for (RunningTaskQuartzImpl subtask : task.getLightweightAsynchronousSubtasks()) {
             if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-                if (((TaskQuartzImpl) subtask).getLightweightHandlerFuture() == null) {
+                if (subtask.getLightweightHandlerFuture() == null) {
                     LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
-                    closeTask((TaskQuartzImpl) subtask, result);
+                    closeTask(subtask, result);
                 }
             }
         }
@@ -442,7 +445,7 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-    private void closeFlawedTask(TaskQuartzImpl task, OperationResult result) {
+    private void closeFlawedTask(RunningTaskQuartzImpl task, OperationResult result) {
         LOGGER.info("Closing flawed task {}", task);
         try {
             task.setResultImmediate(result, result);
@@ -454,7 +457,7 @@ public class JobExecutor implements InterruptableJob {
 		closeTask(task, result);
     }
 
-    private void closeTask(TaskQuartzImpl task, OperationResult result) {
+    private void closeTask(RunningTaskQuartzImpl task, OperationResult result) {
         try {
             taskManagerImpl.closeTask(task, result);
         } catch (ObjectNotFoundException e) {
@@ -535,9 +538,8 @@ mainCycle:
 
 				LOGGER.trace("CycleRunner loop: start");
 
-                TaskRunResult runResult;
                 recordCycleRunStart(executionResult, handler);
-                runResult = executeHandler(handler, executionResult);
+                TaskRunResult runResult = executeHandler(handler, executionResult);
                 boolean canContinue = recordCycleRunFinish(runResult, handler, executionResult);
                 if (!canContinue) { // in case of task disappeared
                     break;
@@ -658,101 +660,96 @@ mainCycle:
 		    task.setResultTransient(task.createUnnamedTaskResult());
 	    }
 
-	    TaskRunResult runResult;
-		if (handler instanceof WorkBucketAwareTaskHandler) {
-			runResult = executeWorkBucketAwareTaskHandler((WorkBucketAwareTaskHandler) handler, executionResult);
-		} else {
-			runResult = executePlainTaskHandler(handler);
-		}
+	    TaskRunResult runResult = taskManagerImpl.getHandlerExecutor().executeHandler(task, null, handler, executionResult);
 
-        waitForTransientChildrenAndCloseThem(executionResult);
+	    waitForTransientChildrenAndCloseThem(executionResult);
         return runResult;
 	}
-
-	private TaskRunResult executePlainTaskHandler(TaskHandler handler) {
-		TaskRunResult runResult;
-		try {
-			LOGGER.trace("Executing handler {}", handler.getClass().getName());
-			runResult = handler.run(task);
-			if (runResult == null) {				// Obviously an error in task handler
-				LOGGER.error("Unable to record run finish: task returned null result");
-				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-			}
-		} catch (Throwable t) {
-			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-			runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
-		}
-		return runResult;
-	}
-
-	private TaskRunResult executeWorkBucketAwareTaskHandler(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
-		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
-
-		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
-			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
-			try {
-				List<ItemDelta<?, ?>> itemDeltas = taskManagerImpl.getPrismContext().deltaFor(TaskType.class)
-						.item(TaskType.F_WORK_STATE).replace()
-						.asItemDeltas();
-				task.applyDeltasImmediate(itemDeltas, executionResult);
-			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
-			}
-		}
-
-		boolean initialBucket = true;
-		TaskWorkBucketProcessingResult runResult = null;
-		for (;;) {
-			WorkBucketType bucket;
-			try {
-				try {
-					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
-				} catch (InterruptedException e) {
-					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
-					if (task.canRun()) {
-						throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
-					} else {
-						return createInterruptedTaskRunResult();
-					}
-				}
-			} catch (Throwable t) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
-				return createFailureTaskRunResult("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
-			}
-			initialBucket = false;
-			if (bucket == null) {
-				LOGGER.trace("No (next) work bucket within {}, exiting", task);
-				runResult = handler.onNoMoreBuckets(task, runResult);
-				return runResult != null ? runResult : createSuccessTaskRunResult();
-			}
-			try {
-				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
-				runResult = handler.run(task, bucket, runResult);
-				LOGGER.trace("runResult is {} for {}", runResult, task);
-				if (runResult == null) {                // Obviously an error in task handler
-					LOGGER.error("Unable to record run finish: task returned null result");
-					//releaseWorkBucketChecked(bucket, executionResult);
-					return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-				}
-			} catch (Throwable t) {
-				LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-				//releaseWorkBucketChecked(bucket, executionResult);
-				return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
-			}
-			if (!runResult.isBucketComplete()) {
-				return runResult;
-			}
-			try {
-				taskManagerImpl.getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
-			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
-				return createFailureTaskRunResult("Couldn't complete work bucket: " + e.getMessage(), e);
-			}
-			if (!task.canRun() || !runResult.isShouldContinue()) {
-				return runResult;
-			}
-		}
-	}
+//
+//	private TaskRunResult executePlainTaskHandler(TaskHandler handler) {
+//		TaskRunResult runResult;
+//		try {
+//			LOGGER.trace("Executing handler {}", handler.getClass().getName());
+//			runResult = handler.run(task);
+//			if (runResult == null) {				// Obviously an error in task handler
+//				LOGGER.error("Unable to record run finish: task returned null result");
+//				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+//			}
+//		} catch (Throwable t) {
+//			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+//			runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+//		}
+//		return runResult;
+//	}
+//
+//	private TaskRunResult executeWorkBucketAwareTaskHandler(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
+//		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
+//
+//		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
+//			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
+//			try {
+//				List<ItemDelta<?, ?>> itemDeltas = taskManagerImpl.getPrismContext().deltaFor(TaskType.class)
+//						.item(TaskType.F_WORK_STATE).replace()
+//						.asItemDeltas();
+//				task.applyDeltasImmediate(itemDeltas, executionResult);
+//			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
+//			}
+//		}
+//
+//		boolean initialBucket = true;
+//		TaskWorkBucketProcessingResult runResult = null;
+//		for (;;) {
+//			WorkBucketType bucket;
+//			try {
+//				try {
+//					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
+//				} catch (InterruptedException e) {
+//					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+//					if (task.canRun()) {
+//						throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
+//					} else {
+//						return createInterruptedTaskRunResult();
+//					}
+//				}
+//			} catch (Throwable t) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
+//				return createFailureTaskRunResult("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
+//			}
+//			initialBucket = false;
+//			if (bucket == null) {
+//				LOGGER.trace("No (next) work bucket within {}, exiting", task);
+//				runResult = handler.onNoMoreBuckets(task, runResult);
+//				return runResult != null ? runResult : createSuccessTaskRunResult();
+//			}
+//			try {
+//				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
+//				runResult = handler.run(task, bucket, runResult);
+//				LOGGER.trace("runResult is {} for {}", runResult, task);
+//				if (runResult == null) {                // Obviously an error in task handler
+//					LOGGER.error("Unable to record run finish: task returned null result");
+//					//releaseWorkBucketChecked(bucket, executionResult);
+//					return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+//				}
+//			} catch (Throwable t) {
+//				LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+//				//releaseWorkBucketChecked(bucket, executionResult);
+//				return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+//			}
+//			if (!runResult.isBucketComplete()) {
+//				return runResult;
+//			}
+//			try {
+//				taskManagerImpl.getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+//			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
+//				return createFailureTaskRunResult("Couldn't complete work bucket: " + e.getMessage(), e);
+//			}
+//			if (!task.canRun() || !runResult.isShouldContinue()) {
+//				return runResult;
+//			}
+//		}
+//	}
 
 //	private void releaseWorkBucketChecked(AbstractWorkBucketType bucket, OperationResult executionResult) {
 //		try {
@@ -761,53 +758,6 @@ mainCycle:
 //			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't release work bucket for task {}", e, task);
 //		}
 //	}
-
-	private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
-        TaskRunResult runResult = new TaskRunResult();
-        OperationResult opResult;
-        if (task.getResult() != null) {
-            opResult = task.getResult();
-        } else {
-            opResult = createOperationResult(DOT_CLASS + "executeHandler");
-        }
-        if (t != null) {
-            opResult.recordFatalError(message, t);
-        } else {
-            opResult.recordFatalError(message);
-        }
-        runResult.setOperationResult(opResult);
-        runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-        return runResult;
-    }
-
-	private TaskRunResult createSuccessTaskRunResult() {
-        TaskRunResult runResult = new TaskRunResult();
-        OperationResult opResult;
-        if (task.getResult() != null) {
-            opResult = task.getResult();
-        } else {
-            opResult = createOperationResult(DOT_CLASS + "executeHandler");
-        }
-        opResult.recordSuccess();
-        runResult.setOperationResult(opResult);
-        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        return runResult;
-    }
-
-	private TaskRunResult createInterruptedTaskRunResult() {
-        TaskRunResult runResult = new TaskRunResult();
-        OperationResult opResult;
-        if (task.getResult() != null) {
-            opResult = task.getResult();
-        } else {
-            opResult = createOperationResult(DOT_CLASS + "executeHandler");
-        }
-        opResult.recordSuccess();
-        runResult.setOperationResult(opResult);
-        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);
-        return runResult;
-    }
-
 
     private OperationResult createOperationResult(String methodName) {
 		return new OperationResult(DOT_CLASS + methodName);
@@ -833,7 +783,7 @@ mainCycle:
             OperationResult newResult = new OperationResult("run");
 			newResult.setStatus(OperationResultStatus.IN_PROGRESS);
             task.setResult(newResult);										// MID-4033
-            task.savePendingModifications(result);
+            task.flushPendingModifications(result);
         } catch (Exception e) {	// TODO: implement correctly after clarification
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot record run start for task {}", e, task);
 		}
@@ -864,7 +814,7 @@ mainCycle:
             }
             task.setNode(null);
             task.storeOperationStatsDeferred();
-            task.savePendingModifications(result);
+            task.flushPendingModifications(result);
 
 			return true;
 		} catch (ObjectNotFoundException ex) {
@@ -887,7 +837,7 @@ mainCycle:
         boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
         if (task != null) {
             task.unsetCanRun();
-            for (TaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+            for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
                 subtask.unsetCanRun();
                 // if we want to cancel the Future using interrupts, we have to do it now
                 // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
@@ -911,14 +861,13 @@ mainCycle:
             LOGGER.trace("Thread.interrupt was called on thread {}.", executingThread);
         }
         if (alsoSubtasks) {
-            for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+            for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
                 //LOGGER.trace("Calling Future.cancel(mayInterruptIfRunning:=true) on a future for LAT subtask {}", subtask);
-                ((TaskQuartzImpl) subtask).getLightweightHandlerFuture().cancel(true);
+                subtask.getLightweightHandlerFuture().cancel(true);
             }
         }
     }
 
-    // should be used only for testing
     public Thread getExecutingThread() {
         return executingThread;
     }

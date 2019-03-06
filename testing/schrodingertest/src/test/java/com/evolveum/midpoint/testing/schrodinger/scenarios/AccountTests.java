@@ -38,9 +38,6 @@ public class AccountTests extends TestBase {
 
     protected static final String CSV_RESOURCE_ATTR_FILE_PATH= "File path";
 
-    //TODO seems that some problems with property files in the csv resource which is being used for tests, replace value after resolution
-    protected static final String CSV_RESOURCE_ATTR_UNIQUE= "UI_CSV_NAME_ATTRIBUTE";
-
     protected static final String TEST_USER_MIKE_NAME= "michelangelo";
     protected static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
     protected static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
@@ -73,7 +70,7 @@ public class AccountTests extends TestBase {
         );
     }
 
-    @Test(groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test(priority = 2, groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void importCsvResource(){
         ImportObjectPage importPage = basicPage.importObject();
 
@@ -89,7 +86,7 @@ public class AccountTests extends TestBase {
     }
 
 
-    @Test (dependsOnMethods = {IMPORT_CSV_RESOURCE_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 3, dependsOnMethods = {IMPORT_CSV_RESOURCE_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
@@ -108,7 +105,7 @@ public class AccountTests extends TestBase {
         refreshResourceSchema(CSV_RESOURCE_NAME);
     }
 
-    @Test(dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test(priority = 4, dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void addAccount() {
         ListUsersPage users = basicPage.listUsers();
         Assert.assertTrue(
@@ -135,7 +132,7 @@ public class AccountTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 5, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyAccountAttribute(){
         ListUsersPage users = basicPage.listUsers();
                 users
@@ -159,7 +156,7 @@ public class AccountTests extends TestBase {
             ;
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 6, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyAccountPassword(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -184,7 +181,7 @@ public class AccountTests extends TestBase {
                     .isSuccess();
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 7, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void disableAccount(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -208,7 +205,7 @@ public class AccountTests extends TestBase {
                     .isSuccess();
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY, DISABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test (priority = 8, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY, DISABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void enableAccount(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -232,7 +229,7 @@ public class AccountTests extends TestBase {
                     .isSuccess();
     }
 
-    @Test(dependsOnMethods = {ENABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
+    @Test(priority = 9, dependsOnMethods = {ENABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void deleteAccount(){
         ListUsersPage users = basicPage.listUsers();
                 users

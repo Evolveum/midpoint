@@ -430,7 +430,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
 		try {
 
-			provisioningService.synchronize(coords, task, result);
+			provisioningService.synchronize(coords, task, null, result);
 
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (CommunicationException e) {
@@ -763,7 +763,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		try {
 
 			provisioningService.synchronize(coords,
-					task, result);
+					task, null, result);
 
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (CommunicationException e) {

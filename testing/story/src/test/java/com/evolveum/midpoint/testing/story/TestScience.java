@@ -296,9 +296,9 @@ public class TestScience  extends AbstractStoryTest {
 
 		// THEN
 		result.computeStatus();
-		if (!result.isSuccess() && !result.isPartialError()) {
+		if (!result.isInProgress()) {
 			display(result);
-			AssertJUnit.fail("Expected success or partial error, but got "+result.getStatus());
+			AssertJUnit.fail("Expected in progress result, but got "+result.getStatus());
 		}
 		PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		AssertJUnit.assertNotNull("User jack not found", userJack);

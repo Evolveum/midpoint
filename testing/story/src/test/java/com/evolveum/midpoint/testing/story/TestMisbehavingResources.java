@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Test for various resource-side errors, strange situations, timeouts
@@ -48,6 +49,8 @@ public class TestMisbehavingResources extends AbstractStoryTest {
 	
 	protected static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 	protected static final String RESOURCE_DUMMY_OID = "5f9615a2-d05b-11e8-9dab-37186a8ab7ef";
+
+	private static final String USER_JACK_FULL_NAME_CAPTAIN = "Captain Jack Sparrow";
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -98,7 +101,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
 	}
 
 	/**
-	 * MID-4773
+	 * MID-4773, MID-5099
 	 */
 	@Test
 	public void test100AssignJackDummyAccountTimeout() throws Exception {
@@ -119,11 +122,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertInProgress(result);
 		
-		// ConnId timeout is obviously not enforced. Therefore if the operation
-		// does not fail by itself it is not forcibly stopped. The account is
-		// created anyway.
-		assertDummyAccountByUsername(null, USER_JACK_USERNAME)
-			.assertFullName(USER_JACK_FULL_NAME);
+		assertNoDummyAccount(USER_JACK_USERNAME);
 	}
 	
 	@Test
@@ -140,7 +139,7 @@ public class TestMisbehavingResources extends AbstractStoryTest {
 		// WHEN
         displayWhen(TEST_NAME);
         
-        recomputeUser(USER_JACK_OID, task, result);
+        reconcileUser(USER_JACK_OID, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -148,5 +147,56 @@ public class TestMisbehavingResources extends AbstractStoryTest {
 		
 		assertDummyAccountByUsername(null, USER_JACK_USERNAME)
 			.assertFullName(USER_JACK_FULL_NAME);
+	}
+	
+	/**
+	 * MID-5126
+	 */
+	@Test
+	public void test110ModifyJackDummyAccountTimeout() throws Exception {
+		final String TEST_NAME = "test110ModifyJackDummyAccountTimeout";
+		displayTestTitle(TEST_NAME);
+		
+		getDummyResource().setOperationDelayOffset(3000);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, createPolyString(USER_JACK_FULL_NAME_CAPTAIN));
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		
+		assertDummyAccountByUsername(null, USER_JACK_USERNAME)
+			// operation timed out, data not updated
+			.assertFullName(USER_JACK_FULL_NAME);
+	}
+	
+	@Test
+	public void test112ModifyJackDummyAccounRetry() throws Exception {
+		final String TEST_NAME = "test112ModifyJackDummyAccounRetry";
+		displayTestTitle(TEST_NAME);
+		
+		getDummyResource().setOperationDelayOffset(0);
+		clockForward("P1D");
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertDummyAccountByUsername(null, USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME_CAPTAIN);
 	}
 }

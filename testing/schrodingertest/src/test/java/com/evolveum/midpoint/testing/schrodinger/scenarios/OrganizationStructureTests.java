@@ -41,9 +41,6 @@ public class OrganizationStructureTests extends TestBase {
     private static final String DIRECTORY_CURRENT_TEST = "organizationStructureTests";
     private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
 
-    //TODO seems that some problems with property files in the csv resource which is being used for tests, replace value after resolution
-    protected static final String CSV_RESOURCE_ATTR_UNIQUE= "UI_CSV_NAME_ATTRIBUTE";
-
     @Test
     public void importOrgStructure() throws IOException, ConfigurationException {
 
@@ -121,7 +118,7 @@ public class OrganizationStructureTests extends TestBase {
     public void orgUnitAccountInducement(){
         importObject(CSV_RESOURCE_ADVANCED_SYNC,true);
         importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
-        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE);
+        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE, true);
 
         changeResourceFilePath();
 
@@ -160,7 +157,12 @@ public class OrganizationStructureTests extends TestBase {
 
         Assert.assertTrue(listResourcesPage
                 .table()
-                .clickByName("CSV (target with groups)")
+                .search()
+                .byName()
+                .inputValue(NAME_CSV_RESOURCE_ADVANCED_SYNC)
+                .updateSearch()
+                .and()
+                .clickByName(NAME_CSV_RESOURCE_ADVANCED_SYNC)
                     .clickEditResourceConfiguration()
                         .form()
                         .changeAttributeValue("File path", "", CSV_TARGET_FILE.getAbsolutePath())

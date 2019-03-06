@@ -170,12 +170,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	@Override
-	public TaskWorkBucketProcessingResult run(Task localCoordinatorTask, WorkBucketType workBucket,
-			TaskWorkBucketProcessingResult previousRunResult) {
+	public TaskWorkBucketProcessingResult run(RunningTask localCoordinatorTask, WorkBucketType workBucket,
+			TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
 	    LOGGER.trace("{} run starting: local coordinator task {}, bucket {}, previous run result {}", taskName,
 			    localCoordinatorTask, workBucket, previousRunResult);
 	    
-	    counterManager.registerCounter(localCoordinatorTask, false);
+//	    counterManager.registerCounter(localCoordinatorTask, false);
 
 		if (localCoordinatorTask.getOid() == null) {
 			throw new IllegalArgumentException(
@@ -207,7 +207,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		}
 
 		try {
-			H resultHandler = setupHandler(runResult, localCoordinatorTask, opResult);
+			H resultHandler = setupHandler(partition, runResult, localCoordinatorTask, opResult);
 
 			boolean cont = initializeRun(resultHandler, runResult, localCoordinatorTask, opResult);
 			if (!cont) {
@@ -244,7 +244,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 					localCoordinatorTask.setExpectedTotal(expectedTotal);
 				}
 				try {
-					localCoordinatorTask.savePendingModifications(opResult);
+					localCoordinatorTask.flushPendingModifications(opResult);
 				} catch (ObjectAlreadyExistsException e) {      // other exceptions are handled in the outer try block
 					throw new IllegalStateException(
 							"Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
@@ -347,7 +347,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	private Collection<SelectorOptions<GetOperationOptions>> updateSearchOptionsWithIterationMethod(
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions, Task localCoordinatorTask) {
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions, RunningTask localCoordinatorTask) {
 		Collection<SelectorOptions<GetOperationOptions>> rv;
 		IterationMethodType iterationMethod = getIterationMethodFromTask(localCoordinatorTask);
 		if (iterationMethod != null) {
@@ -433,10 +433,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		return query;
 	}
 
-	private H setupHandler(TaskWorkBucketProcessingResult runResult, Task localCoordinatorTask, OperationResult opResult)
+	private H setupHandler(TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult runResult, RunningTask localCoordinatorTask, OperationResult opResult)
 			throws ExitWorkBucketHandlerException {
 		try {
-			H resultHandler = createHandler(runResult, localCoordinatorTask, opResult);
+			H resultHandler = createHandler(partition, runResult, localCoordinatorTask, opResult);
 			if (resultHandler == null) {
 				throw new ExitWorkBucketHandlerException(runResult);       // the error should already be in the runResult
 			}
@@ -491,7 +491,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
 	}
 
-	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected void finish(H handler, TaskRunResult runResult, RunningTask task, OperationResult opResult) throws SchemaException {
 	}
 
 	private H getHandler(Task task) {
@@ -535,7 +535,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
     protected abstract Class<? extends ObjectType> getType(Task task);
 
-    protected abstract  H createHandler(TaskRunResult runResult, Task coordinatorTask,
+    protected abstract  H createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
 			OperationResult opResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	/**

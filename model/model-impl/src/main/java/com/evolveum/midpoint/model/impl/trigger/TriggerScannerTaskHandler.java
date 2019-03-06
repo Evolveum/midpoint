@@ -30,12 +30,14 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,20 +127,20 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	}
 
 	@Override
-	protected void finish(AbstractScannerResultHandler<ObjectType> handler, TaskRunResult runResult, Task task, OperationResult opResult)
+	protected void finish(AbstractScannerResultHandler<ObjectType> handler, TaskRunResult runResult, RunningTask task, OperationResult opResult)
 			throws SchemaException {
 		super.finish(handler, runResult, task, opResult);
 		cleanupProcessedOids(task);
 	}
 
 	@Override
-	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<ObjectType>(
 				coordinatorTask, TriggerScannerTaskHandler.class.getName(), "trigger", "trigger task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult result) {
+			protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
 				fireTriggers(this, object, workerTask, coordinatorTask, result);
 				return true;
 			}
@@ -147,7 +149,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
         return handler;
 	}
 
-	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task workerTask, Task coordinatorTask,
+	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, RunningTask workerTask, Task coordinatorTask,
 			OperationResult result) {
 		PrismContainer<TriggerType> triggerContainer = object.findContainer(F_TRIGGER);
 		if (triggerContainer == null) {
@@ -192,7 +194,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	// returns true if the trigger can be removed
 	private boolean fireTrigger(TriggerType trigger, PrismObject<ObjectType> object,
-			Task workerTask, Task coordinatorTask, OperationResult result) {
+			RunningTask workerTask, Task coordinatorTask, OperationResult result) {
 		String handlerUri = trigger.getHandlerUri();
 		if (handlerUri == null) {
 			LOGGER.warn("Trigger without handler URI in {}", object);

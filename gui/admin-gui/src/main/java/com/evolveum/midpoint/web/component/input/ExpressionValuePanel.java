@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -39,8 +40,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -73,6 +76,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     private final static String ID_ASSOCIATION_TARGET_SEARCH_CONTAINER = "associationTargetSearchContainer";
     private final static String ID_TARGET_SEARCH_PATH_INPUT = "targetSearchPathInput";
     private final static String ID_TARGET_SEARCH_VALUE_INPUT = "targetSearchValueInput";
+    private static final String ID_FEEDBACK = "feedback";
 
     ConstructionType construction;
     PageBase pageBase;
@@ -87,6 +91,10 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
     private void initLayout(){
         setOutputMarkupId(true);
+
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        feedback.setOutputMarkupPlaceholderTag(true);
+        add(feedback);
 
         DropdownButtonDto addValueButtonDto = new DropdownButtonDto("", "",
                 createStringResource("ExpressionValuePanel.specifyExpression").getString(),
@@ -215,6 +223,16 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         MultiValueChoosePanel<ShadowType> shadowRefPanel = new MultiValueChoosePanel<ShadowType>(ID_SHADOW_REF_VALUE_INPUT,
                 shadowsListModel, Arrays.asList(ShadowType.class), false){
             private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void editValuePerformed(List<ShadowType> chosenValues, List<PrismReferenceValue> filterValues, AjaxRequestTarget target, boolean multiselect) {
+                if (getCustomFilter() == null){
+                    getFeedbackPanel().warn(createStringResource("ExpressionValuePanel.associationDefenitionsNotDefined").getString());
+                    target.add(getFeedbackPanel());
+                } else {
+                    super.editValuePerformed(chosenValues, filterValues, target, multiselect);
+                }
+            }
 
             @Override
             protected ObjectFilter getCustomFilter(){
@@ -486,5 +504,9 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
     protected boolean isAssociationExpression(){
         return false;
+    }
+
+    private FeedbackPanel getFeedbackPanel(){
+        return (FeedbackPanel) get(ID_FEEDBACK);
     }
 }

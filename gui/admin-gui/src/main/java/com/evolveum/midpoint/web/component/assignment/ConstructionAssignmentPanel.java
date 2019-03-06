@@ -100,33 +100,4 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
                 .build();
     }
 
-    @Override
-    protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
-        if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-            ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-                    AssignmentType.F_CONSTRUCTION));
-
-            return Model.of(constructionWrapper);
-        }
-
-        if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-            //TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
-            //but not PolicyRuleType
-            ContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-                    AssignmentType.F_PERSONA_CONSTRUCTION));
-
-            return Model.of(personasWrapper);
-        }
-        return Model.of();
-    }
-
-    @Override
-    protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
-        if (itemWrapper.getPath().containsNameExactly(AssignmentType.F_CONSTRUCTION)) {
-            return ItemVisibility.AUTO;
-        } else {
-            return super.getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
-        }
-
-    }
 }

@@ -69,4 +69,12 @@ public class Table<T> extends Component<T> {
 
     }
 
+    public boolean buttonToolBarExists(){
+        return $(Schrodinger.byDataId("buttonToolbar")).exists();
+    }
+
+    public SelenideElement getButtonToolbar(){
+        return $(Schrodinger.byDataId("buttonToolbar"));
+    }
+
 }

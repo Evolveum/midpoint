@@ -121,7 +121,7 @@ public class ColumnUtils {
 
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId, IModel<SelectableBean<O>> rowModel) {
-				DisplayType displayType = getDisplayTypeForRowObject(rowModel, pageBase);
+				DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(rowModel.getObject().getValue(), pageBase);
 				if (displayType != null){
 					String disabledStyle = "";
 					if (rowModel.getObject().getValue() instanceof FocusType) {
@@ -154,17 +154,6 @@ public class ColumnUtils {
 			}
 		};
 
-	}
-
-	private static <O extends ObjectType> DisplayType getDisplayTypeForRowObject(IModel<SelectableBean<O>> rowModel, PageBase pageBase){
-		O object = rowModel.getObject().getValue();
-		if (object != null) {
-			ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
-			if (archetypePolicy != null) {
-				return archetypePolicy.getDisplay();
-			}
-		}
-		return null;
 	}
 
 	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel){
@@ -215,7 +204,7 @@ public class ColumnUtils {
 						createStringResource("ThreeStateBooleanPanel.true") : createStringResource("ThreeStateBooleanPanel.false");
 
 		}
-		return null;
+		return Model.of();
 	}
 
 	private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
@@ -353,7 +342,7 @@ public class ColumnUtils {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
 
-		columns.addAll((Collection)getDefaultAbstractRoleColumns(RoleType.COMPLEX_TYPE));
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
 
 		return columns;
 	}
@@ -361,7 +350,7 @@ public class ColumnUtils {
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-		columns.addAll((Collection)getDefaultAbstractRoleColumns(ServiceType.COMPLEX_TYPE));
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
 
 		return columns;
 	}
@@ -369,12 +358,12 @@ public class ColumnUtils {
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-		columns.addAll((Collection)getDefaultAbstractRoleColumns(OrgType.COMPLEX_TYPE));
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
 
 		return columns;
 	}
 
-	private static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(QName type) {
+	public static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(boolean showAccounts) {
 
 		String sortByDisplayName = null;
 		String sortByIdentifer = null;
@@ -392,28 +381,30 @@ public class ColumnUtils {
 
 		);
 		List<IColumn<SelectableBean<T>, String>> columns = createColumns(columnsDefs);
-		
-		IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
-				createStringResource("pageUsers.accounts")) {
 
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
-					String componentId, IModel<SelectableBean<T>> model) {
-				cellItem.add(new Label(componentId,
-						model.getObject().getValue() != null ?
-								model.getObject().getValue().getLinkRef().size() : null));
-			}
+		if (showAccounts) {
+			IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
+					createStringResource("pageUsers.accounts")) {
 
-			@Override
-			public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
-				return Model.of(rowModel.getObject().getValue() != null ?
-						Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
-			}
+				@Override
+				public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
+										 String componentId, IModel<SelectableBean<T>> model) {
+					cellItem.add(new Label(componentId,
+							model.getObject().getValue() != null ?
+									model.getObject().getValue().getLinkRef().size() : null));
+				}
+
+				@Override
+				public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
+					return Model.of(rowModel.getObject().getValue() != null ?
+							Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
+				}
 
 
-		};
+			};
 
-		columns.add(column);
+			columns.add(column);
+		}
 		return columns;
 
 	}

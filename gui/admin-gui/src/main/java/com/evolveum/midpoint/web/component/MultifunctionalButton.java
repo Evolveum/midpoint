@@ -86,8 +86,8 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
 
                 CompositedIconBuilder additionalButtonBuilder = new CompositedIconBuilder();
                 additionalButtonBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                        .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType));
-//                    .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
+                        .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
+                    .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
 
                 AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(), additionalButtonBuilder.build(),
                         Model.of(WebComponentUtil.getDisplayTypeTitle(additionalButtonDisplayType))) {
@@ -106,9 +106,8 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
             DisplayType defaultObjectButtonDisplayType = getDefaultObjectButtonDisplayType();
             CompositedIconBuilder defaultObjectButtonBuilder = new CompositedIconBuilder();
             defaultObjectButtonBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultObjectButtonDisplayType));
-            //TODO fix style for circle image
-//                    .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
+                .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultObjectButtonDisplayType))
+                    .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
 
             AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(),
                     defaultObjectButtonBuilder.build(),
@@ -118,9 +117,7 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    if (!additionalButtonsExist()){
-                        buttonClickPerformed(target, null);
-                    }
+                    buttonClickPerformed(target, null);
                 }
             };
             defaultButton.add(AttributeAppender.append("class", DEFAULT_BUTTON_STYLE));

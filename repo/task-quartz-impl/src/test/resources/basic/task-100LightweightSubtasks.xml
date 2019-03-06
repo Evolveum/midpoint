@@ -28,7 +28,7 @@
 	<name>Testing single task 0100</name>
 
     <extension>
-      <my:duration>500</my:duration>
+      <my:duration>3000</my:duration>
     </extension>
 	
 	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30100</taskIdentifier>

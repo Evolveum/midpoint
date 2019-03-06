@@ -33,6 +33,8 @@ public interface EvaluatedConstruction extends DebugDumpable {
 	String getIntent();
 
 	boolean isDirectlyAssigned();
-	
+
+	AssignmentPath getAssignmentPath();
+
 	boolean isWeak();
 }

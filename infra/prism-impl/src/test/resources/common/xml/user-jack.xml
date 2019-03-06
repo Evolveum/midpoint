@@ -59,6 +59,13 @@
     <polyName>
     	<t:orig>Džek Sperou</t:orig>
     	<t:norm>dzek sperou</t:norm>
+    	<t:translation>
+    		<t:key>JACK</t:key>
+    		<t:fallback>Jack</t:fallback>
+    		<t:argument>
+    			<t:value>Sparrow</t:value>
+    		</t:argument>
+    	</t:translation>
     </polyName>
 
 	<assignment id="1111">

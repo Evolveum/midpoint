@@ -15,45 +15,42 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_UP_DOWN_TAG = "upDownTag";
-	private IModel<PrismObject<ResourceType>> model;
+	private IModel<ResourceType> model;
 
-	public ResourceSummaryPanel(String id, IModel<PrismObject<ResourceType>> model, ModelServiceLocator serviceLocator) {
+	public ResourceSummaryPanel(String id, IModel<ResourceType> model, ModelServiceLocator serviceLocator) {
 		super(id, ResourceType.class, model, serviceLocator);
-		initLayoutCommon(serviceLocator);
-		this.model = model;
 	}
-	
+
+//	@Override
+//	protected void onBeforeRender() {
+//		super.onBeforeRender();
+//	}
+
 	@Override
-	protected void onBeforeRender() {
-		super.onBeforeRender();
-		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
-		IModel<ResourceType> containerModel = new ContainerableFromPrismObjectModel<>(model);
-		SummaryTagSimple<ResourceType> summaryTag = new SummaryTagSimple<ResourceType>(ID_UP_DOWN_TAG, containerModel) {
+	protected List<SummaryTag<ResourceType>> getSummaryTagComponentList(){
+		boolean down = ResourceTypeUtil.isDown(getModelObject());
+
+		List<SummaryTag<ResourceType>> summaryTagList = new ArrayList<>();
+
+		SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_SUMMARY_TAG, getModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -67,8 +64,10 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 				}
 			}
 		};
-		addTag(summaryTag);
+		summaryTagList.add(summaryTag);
+		return summaryTagList;
 	}
+
 
 	@Override
 	protected String getIconCssClass() {

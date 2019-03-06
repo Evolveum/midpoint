@@ -1,82 +1,80 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import groovy.sql.Sql;
-import groovy.sql.DataSet;
-import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.SecurityUtil;
+import groovy.sql.Sql
+import org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConfiguration
+import org.forgerock.openicf.misc.scriptedcommon.OperationType
+import org.identityconnectors.common.logging.Log
+import org.identityconnectors.framework.common.exceptions.ConnectorException
+import org.identityconnectors.framework.common.objects.Attribute
+import org.identityconnectors.framework.common.objects.ObjectClass
+import org.identityconnectors.framework.common.objects.OperationOptions
+import org.identityconnectors.framework.common.objects.Uid
+import org.identityconnectors.framework.common.objects.AttributeUtil
 
-// Parameters:
-// The connector sends us the following:
-// connection : SQL connection
-// action: String correponding to the action ("CREATE" here)
-// log: a handler to the Log facility
-// objectClass: a String describing the Object class (__ACCOUNT__ / __GROUP__ / other)
-// id: The entry identifier (OpenICF "Name" atribute. (most often matches the uid)
-// attributes: an Attribute Map, containg the <String> attribute name as a key
-// and the <List> attribute value(s) as value.
-// password: GuardedString type
-// options: a handler to the OperationOptions Map
+import java.sql.Connection
 
-log.info("Entering "+action+" Script");
+def log = log as Log
+def operation = operation as OperationType
+def options = options as OperationOptions
+def objectClass = objectClass as ObjectClass
+def attributes = attributes as Set<Attribute>
+def connection = connection as Connection
+def id = id as String
+def configuration = configuration as ScriptedSQLConfiguration
 
-def sql = new Sql(connection);
+log.info("Entering " + operation + " Script")
 
-String newUid; //Create must return UID.
+def sql = new Sql(connection)
 
-switch ( objectClass ) {
-    case "__ACCOUNT__":
-    def keys = sql.executeInsert("INSERT INTO Users (login, firstname,lastname,fullname,email,organization,password,disabled) values (?,?,?,?,?,?,?,?)",
-        [
-            id,
-            attributes?.get("firstname")?.get(0),
-            attributes?.get("lastname")?.get(0),
-            attributes?.get("fullname")?.get(0),
-            attributes?.get("email")?.get(0),
-            attributes?.get("organization")?.get(0),
-            // decrypt password
-            SecurityUtil.decrypt(attributes?.get("__PASSWORD__")?.get(0)),
-            // negate __ENABLE__ attribute
-            !(attributes?.get("__ENABLE__")?.get(0) as Boolean)
-
-            //attributes.get("firstname") ? attributes.get("firstname").get(0) : "",
-            //attributes.get("lastname")  ? attributes.get("lastname").get(0) : "",
-            //attributes.get("fullname")  ? attributes.get("fullname").get(0) : "",
-            //attributes.get("email")     ? attributes.get("email").get(0) : "",
-            //attributes.get("organization") ? attributes.get("organization").get(0) : ""
-        ])
-	newUid = keys[0][0];
-    break
-
-    case "Group":
-    def keys = sql.executeInsert("INSERT INTO Groups (name,description) values (?,?)",
-        [
-            id,
-            attributes?.get("description")?.get(0)
-        ])
-	newUid = keys[0][0];
-    break
-
-    case "Organization":
-    def keys = sql.executeInsert("INSERT INTO Organizations (name,description) values (?,?)",
-        [
-            id,
-            attributes?.get("description")?.get(0)
-        ])
-	newUid = keys[0][0];
-    break
+switch (objectClass) {
+    case ObjectClass.ACCOUNT:
+        return handleAccount(sql)
+    case BaseScript.GROUP:
+        return handleGroup(sql)
+    case BaseScript.ORGANIZATION:
+        return handleOrganization(sql)
+    default:
+        throw new ConnectorException("Unknown object class " + objectClass)
 }
 
-return newUid;
+Uid handleAccount(Sql sql) {
+    def keys = sql.executeInsert("INSERT INTO Users (login, firstname,lastname,fullname,email,organization,password,disabled) values (?,?,?,?,?,?,?,?)",
+            [
+                    id,
+                    AttributeUtil.getSingleValue("firstname"),
+                    AttributeUtil.getSingleValue("lastname"),
+                    AttributeUtil.getSingleValue("fullname"),
+                    AttributeUtil.getSingleValue("email"),
+                    AttributeUtil.getSingleValue("organization"),
+                    // decrypt password
+                    SecurityUtil.decrypt(AttributeUtil.getPasswordValue(attributes)),
+                    // negate __ENABLE__ attribute
+                    !(AttributeUtil.getSingleValue("__ENABLE__") as Boolean)
+
+                    //attributes.get("firstname") ? attributes.get("firstname").get(0) : "",
+                    //attributes.get("lastname")  ? attributes.get("lastname").get(0) : "",
+                    //attributes.get("fullname")  ? attributes.get("fullname").get(0) : "",
+                    //attributes.get("email")     ? attributes.get("email").get(0) : "",
+                    //attributes.get("organization") ? attributes.get("organization").get(0) : ""
+            ])
+
+    return new Uid(keys[0][0])
+}
+
+Uid handleGroup(Sql sql) {
+    def keys = sql.executeInsert("INSERT INTO Groups (name,description) values (?,?)",
+            [
+                    id,
+                    AttributeUtil.getSingleValue("description")
+            ])
+
+    return new Uid(keys[0][0])
+}
+
+Uid handleOrganization(Sql sql) {
+    def keys = sql.executeInsert("INSERT INTO Organizations (name,description) values (?,?)",
+            [
+                    id,
+                    AttributeUtil.getSingleValue("description")
+            ])
+
+    return new Uid(keys[0][0])
+}

@@ -67,6 +67,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -2268,7 +2269,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 			XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 			ObjectDelta<CaseType> delta = prismContext.deltaFor(CaseType.class)
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT).replace(output)
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).replace(output.getOutcome())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT).replace(output.getComment())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE).replace(output.getEvidence())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_CONTENT_TYPE).replace(output.getEvidenceContentType())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_FILENAME).replace(output.getEvidenceFilename())
 					.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
 					.item(CaseType.F_OUTCOME).replace(output != null ? output.getOutcome() : null)
 					.item(CaseType.F_CLOSE_TIMESTAMP).replace(now)
@@ -2285,6 +2290,38 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			result.recordFatalError("Couldn't complete work item: " + t.getMessage(), t);
 			throw t;
 		}
+	}
+
+	@Override
+	public String getThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.READ_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+		return MiscUtil.takeThreadDump(null);
+	}
+
+	@Override
+	public String getRunningTasksThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.READ_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+		return taskManager.getRunningTasksThreadsDump(parentResult);
+	}
+
+	@Override
+	public String recordRunningTasksThreadsDump(String cause, @NotNull Task task, @NotNull OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+		securityEnforcer.authorize(ModelAuthorizationAction.READ_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+		return taskManager.recordRunningTasksThreadsDump(cause, parentResult);
+	}
+
+	@Override
+	public String getTaskThreadsDump(@NotNull String taskOid, @NotNull Task task, @NotNull OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.READ_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
+		return taskManager.getTaskThreadsDump(taskOid, parentResult);
 	}
 
 	//endregion

@@ -15,6 +15,14 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -22,19 +30,21 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -87,7 +97,7 @@ public interface TaskManager {
      */
     <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException;
 
-    void waitForTransientChildren(Task task, OperationResult result);
+    void waitForTransientChildren(RunningTask task, OperationResult result);
 
     /**
      * TODO
@@ -295,7 +305,7 @@ public interface TaskManager {
      * @param closedTasksPolicy specifies which tasks are to be deleted, e.g. how old they have to be
      * @param task task, within which context the cleanup executes (used to test for interruptions)
      */
-    void cleanupTasks(CleanupPolicyType closedTasksPolicy, Task task, OperationResult opResult) throws SchemaException;
+    void cleanupTasks(CleanupPolicyType closedTasksPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
 
     /**
      * This is a signal to task manager that a new task was created in the repository.
@@ -357,7 +367,7 @@ public interface TaskManager {
      *
      * @return tasks that currently run on this node.
      */
-    Set<Task> getLocallyRunningTasks(OperationResult parentResult);
+    Collection<Task> getLocallyRunningTasks(OperationResult parentResult);
 
 	/**
 	 * Returns the local scheduler information.
@@ -376,7 +386,7 @@ public interface TaskManager {
      *
      * EXPERIMENTAL. Should be replaced by something like "get operational information".
      */
-    Task getLocallyRunningTaskByIdentifier(String lightweightIdentifier);
+    RunningTask getLocallyRunningTaskByIdentifier(String lightweightIdentifier);
 
     //endregion
 
@@ -716,4 +726,25 @@ public interface TaskManager {
 	 * EXPERIMENTAL. Used to provide midPoint URL path (typically "/midpoint") when determined by the web layer.
 	 */
 	void setWebContextPath(String path);
+
+	String getRunningTasksThreadsDump(OperationResult parentResult);
+
+	String recordRunningTasksThreadsDump(String cause, OperationResult parentResult) throws ObjectAlreadyExistsException;
+
+	String getTaskThreadsDump(String taskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+
+	String recordTaskThreadsDump(String taskOid, String cause, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			ObjectAlreadyExistsException;
+
+	/**
+	 * Use only for tests. Otherwise considered to be an ugly hack.
+	 */
+	RunningTask createFakeRunningTask(Task task);
+
+	TaskHandler getHandler(String handlerUri);
+
+	NodeType getLocalNode();
+
+	// TEMPORARY HACK -- DO NOT USE OUTSIDE task-quartz-impl module
+	Object getWorkStateManager();
 }

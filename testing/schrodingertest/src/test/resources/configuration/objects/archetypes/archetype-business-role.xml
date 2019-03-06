@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<archetype oid="018e7340-199a-11e9-ad93-2b136d1c7ecf"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Business Role</name>
+    <archetypePolicy>
+    	<display>
+    		<label>Business Role</label>
+    		<pluralLabel>Business Roles</pluralLabel>
+    		<icon>
+    			<cssClass>fe fe-business</cssClass>
+    			<color>green</color>
+    		</icon>
+    	</display>
+    </archetypePolicy>
+    <assignment>
+    	<assignmentRelation>
+    		<description>This archetype is applicable to roles.</description>
+    		<holderType>RoleType</holderType>
+    	</assignmentRelation>
+    </assignment>
+    <inducement>
+    	<assignmentRelation>
+    		<description>Any user can have business role (can be a member).</description>
+    		<holderType>UserType</holderType>
+			<relation>org:approver</relation>
+    	</assignmentRelation>
+    	<assignmentRelation>
+    		<description>Only employees may be owners/approvers for business role.</description>
+    		<holderType>UserType</holderType>
+    		<holderArchetypeRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6"/> <!-- Employee archetype -->
+    		<relation>org:owner</relation>
+    	</assignmentRelation>
+    </inducement>
+</archetype>

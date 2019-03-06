@@ -16,10 +16,17 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -69,6 +76,24 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
 		}
 		
 		return resultList;
+	}
+
+	protected ObjectFilter getSubtypeFilter(){
+		ObjectFilter filter = getPageBase().getPrismContext().queryFor(OrgType.class)
+				.block()
+				.item(OrgType.F_SUBTYPE)
+				.contains("access")
+				.or()
+				.item(OrgType.F_ORG_TYPE)
+				.contains("access")
+				.endBlock()
+				.buildFilter();
+		return filter;
+	}
+
+	@Override
+	protected QName getAssignmentType() {
+		return OrgType.COMPLEX_TYPE;
 	}
 
 }

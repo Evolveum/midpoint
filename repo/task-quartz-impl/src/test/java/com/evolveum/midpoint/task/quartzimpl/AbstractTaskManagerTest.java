@@ -245,7 +245,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	}
 
 	protected void waitForTaskNextRun(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws Exception {
-		TaskQuartzImpl taskBefore = (TaskQuartzImpl) taskManager.getTaskWithResult(taskOid, result);
+		TaskQuartzImpl taskBefore = taskManager.getTaskWithResult(taskOid, result);
 		waitFor("Waiting for task manager to execute the task", () -> {
 			Task task = taskManager.getTaskWithResult(taskOid, result);
 			IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);

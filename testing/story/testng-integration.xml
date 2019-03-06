@@ -29,7 +29,8 @@
             <class name="com.evolveum.midpoint.testing.story.TestUniversity"/>
             <class name="com.evolveum.midpoint.testing.story.TestUnix"/>
             <class name="com.evolveum.midpoint.testing.story.TestUnixTolerantAux"/>
-            <class name="com.evolveum.midpoint.testing.story.TestUuid"/>
+            <class name="com.evolveum.midpoint.testing.story.uuid.TestUuidClient"/>
+            <class name="com.evolveum.midpoint.testing.story.uuid.TestUuidExtension"/>
             <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapFlat"/>
             <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapNested"/>
             <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapHierarchical"/>
@@ -57,7 +58,11 @@
             <class name="com.evolveum.midpoint.testing.story.TestDelayedEnable"/>
             <class name="com.evolveum.midpoint.testing.story.TestMisbehavingResources"/>
             <class name="com.evolveum.midpoint.testing.story.TestInboundOutboundAssociation"/>
-            <class name="com.evolveum.midpoint.testing.story.TestThresholds"/>
+            <class name="com.evolveum.midpoint.testing.story.TestThresholdsReconSimulate"/>
+            <class name="com.evolveum.midpoint.testing.story.TestThresholdsReconFull"/>
+            <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncSimulate"/>
+            <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncFull"/>
+            <class name="com.evolveum.midpoint.testing.story.TestLdapSyncMassive"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestPrivacy"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestRoleMembers"/>
         </classes>

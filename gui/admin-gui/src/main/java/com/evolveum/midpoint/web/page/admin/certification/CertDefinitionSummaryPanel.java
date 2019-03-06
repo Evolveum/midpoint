@@ -31,9 +31,8 @@ public class CertDefinitionSummaryPanel extends ObjectSummaryPanel<AccessCertifi
 	private static final long serialVersionUID = 1L;
 
 	public CertDefinitionSummaryPanel(String id,
-			IModel<PrismObject<AccessCertificationDefinitionType>> model, ModelServiceLocator serviceLocator) {
+			IModel<AccessCertificationDefinitionType> model, ModelServiceLocator serviceLocator) {
 		super(id, AccessCertificationDefinitionType.class, model, serviceLocator);
-		initLayoutCommon(serviceLocator);
 	}
 
 	@Override

@@ -3,9 +3,9 @@ package com.evolveum.midpoint.schrodinger.component.user;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.FocusSetProjectionModal;
+import com.evolveum.midpoint.schrodinger.component.modal.FocusSetProjectionModal;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
-import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
