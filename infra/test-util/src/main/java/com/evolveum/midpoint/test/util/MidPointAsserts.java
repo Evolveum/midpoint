@@ -119,7 +119,7 @@ public class MidPointAsserts {
 			if (targetRef != null) {
 				if (QNameUtil.match(refType, targetRef.getType())) {
 					if (targetOid.equals(targetRef.getOid()) &&
-							getPrismContext().relationMatches(targetRef.getRelation(), relation)) {
+							MiscSchemaUtil.compareRelation(targetRef.getRelation(), relation)) {
 						AssertJUnit.fail(user + " does have assigned "+refType.getLocalPart()+" "+targetOid+", relation "+relation+"while not expecting it");
 					}
 				}

@@ -85,7 +85,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 		prepareNotifications();
 
 		// Preconditions
-		assertUsers(6);
+		assertUsers(7);
 
 		/// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -106,7 +106,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 		assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
 		assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
 
-		assertUsers(6);
+		assertUsers(7);
 
 		// notifications
 		notificationManager.setDisabled(true);
@@ -127,7 +127,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         prepareNotifications();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
 
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -156,7 +156,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 
         assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);

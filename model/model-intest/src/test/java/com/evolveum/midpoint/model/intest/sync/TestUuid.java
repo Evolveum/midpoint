@@ -162,7 +162,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);
 
-        assertEquals("Unexpected number of users", 5, users.size());
+        assertEquals("Unexpected number of users", 6, users.size());
 
         display("Dummy resource", getDummyResource().debugDump());
 
@@ -221,7 +221,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UUID_NAME, ACCOUNT_AUGUSTUS_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
         		ACCOUNT_AUGUSTUS_FULLNAME);
 
-        assertEquals("Unexpected number of users", 6, users.size());
+        assertEquals("Unexpected number of users", 7, users.size());
 
         display("Dummy resource", getDummyResource().debugDump());
 
@@ -300,7 +300,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UUID_NAME, ACCOUNT_AUGUSTUS_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
         		ACCOUNT_AUGUSTUS_FULLNAME);
 
-        assertEquals("Unexpected number of users", 6, users.size());
+        assertEquals("Unexpected number of users", 7, users.size());
 
         display("Dummy resource", getDummyResource().debugDump());
 
@@ -381,7 +381,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UUID_NAME, ACCOUNT_AUGUSTINA_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
         		ACCOUNT_AUGUSTINA_FULLNAME);
 
-        assertEquals("Unexpected number of users", 6, users.size());
+        assertEquals("Unexpected number of users", 7, users.size());
 
         display("Dummy resource", getDummyResource().debugDump());
 

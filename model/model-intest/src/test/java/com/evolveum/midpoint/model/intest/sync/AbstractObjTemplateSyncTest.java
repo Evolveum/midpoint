@@ -148,7 +148,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         prepareNotifications();
 
         // Preconditions
-        assertUsers(5);
+        assertUsers(6);
 
         DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 		account.setEnabled(true);
@@ -190,7 +190,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 		assertAssignedOrg(userMancomb, ORG_F0001_OID);
 		assertHasOrg(userMancomb, ORG_F0001_OID);
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);

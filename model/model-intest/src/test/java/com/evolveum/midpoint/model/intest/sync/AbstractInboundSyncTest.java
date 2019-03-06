@@ -132,7 +132,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         prepareNotifications();
 
         // Preconditions
-        assertUsers(5);
+        assertUsers(6);
 
         DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 		account.setEnabled(true);
@@ -172,7 +172,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         assertLinked(userMancomb, accountMancomb);
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -190,7 +190,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         prepareNotifications();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -227,7 +227,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepbad"));
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -245,7 +245,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         prepareNotifications();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -282,7 +282,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         PrismAsserts.assertNoItem(userAfter, UserType.F_FULL_NAME);
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -300,7 +300,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         prepareNotifications();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -337,7 +337,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepevil"));
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -355,7 +355,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         prepareNotifications();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -393,7 +393,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepevil"));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("Pirate"));
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -411,7 +411,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         prepareNotifications();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -449,7 +449,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepevil"));
         PrismAsserts.assertNoItem(userAfter, UserType.F_TITLE);
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -467,7 +467,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         prepareNotifications();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -504,7 +504,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Mancomb Seepgood"));
 
-        assertUsers(6);
+        assertUsers(7);
 
         // notifications
         notificationManager.setDisabled(true);
@@ -532,7 +532,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		prepareNotifications();
 
 		// Preconditions
-		assertUsers(6);
+		assertUsers(7);
 
 		DummyAccount account = new DummyAccount(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
 		account.setEnabled(true);
@@ -568,7 +568,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		assertAdministrativeStatusEnabled(userPosixUser);
 		assertLinked(userPosixUser, accountPosixUser);
 
-		assertUsers(7);
+		assertUsers(8);
 
 		// notifications
 		notificationManager.setDisabled(true);
@@ -590,7 +590,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		prepareNotifications();
 
 		// Preconditions
-		assertUsers(7);
+		assertUsers(8);
 
 		DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
 
@@ -621,7 +621,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
 		assertLinked(userAfter, accountAfter);
 
-		assertUsers(7);
+		assertUsers(8);
 
 		// notifications
 		notificationManager.setDisabled(true);

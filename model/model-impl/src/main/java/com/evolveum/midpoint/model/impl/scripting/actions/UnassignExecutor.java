@@ -25,9 +25,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -114,10 +114,10 @@ public class UnassignExecutor extends BaseActionExecutor {
             PrismValue value = item.getValue();
             OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
             context.checkTaskStop();
-            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof AssignmentHolderType) {
+            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof FocusType) {
                 @SuppressWarnings({"unchecked", "raw"})
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
-	            AssignmentHolderType objectType = (AssignmentHolderType) prismObject.asObjectable();
+                FocusType objectType = (FocusType) prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 Throwable exception = null;
                 try {
@@ -137,10 +137,10 @@ public class UnassignExecutor extends BaseActionExecutor {
         return input;           // TODO updated objects?
     }
 
-    private ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException {
+    private ObjectDelta<? extends ObjectType> createDelta(FocusType object, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException {
     	if (relations == null || relations.isEmpty()) {
     		QName defaultRelation = prismContext.getDefaultRelation() != null ?
-				    prismContext.getDefaultRelation() : RelationTypes.MEMBER.getRelation();
+				    prismContext.getDefaultRelation() : SchemaConstants.ORG_DEFAULT;
     		relations = Collections.singletonList(QNameUtil.qNameToUri(defaultRelation));
 	    }
     	List<AssignmentType> assignmentsForDelete = new ArrayList<>();
@@ -154,7 +154,7 @@ public class UnassignExecutor extends BaseActionExecutor {
 				    for (ObjectReferenceType roleRef : roles) {
 					    if (targetRef.getOid() != null && targetRef.getOid().equals(roleRef.getOid())) {
 						    for (String relationQuery : relations) {
-							    if (prismContext.relationMatches(QNameUtil.uriToQName(relationQuery, true), targetRef.getRelation())) {
+							    if (MiscSchemaUtil.compareRelation(QNameUtil.uriToQName(relationQuery, true), targetRef.getRelation())) {
 								    assignmentsForDelete.add(oldAssignment.clone());
 								    break outerloop;
 							    }
@@ -176,13 +176,15 @@ public class UnassignExecutor extends BaseActionExecutor {
 		    }
 	    }
 
-    	ObjectDelta<? extends ObjectType> delta;
+//    	ObjectDelta<? extends ObjectType> delta;
     	
+    	ObjectDelta<? extends ObjectType> delta = ObjectDelta.createEmptyModifyDelta(object.getClass(), object.getOid(), prismContext);
         try {
-        	delta = prismContext.deltaFor(object.getClass())
-			        .item(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT))
-        	    	.deleteRealValues(assignmentsForDelete)
-			        .asObjectDelta(object.getOid());
+        	delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, assignmentsForDelete.toArray(new AssignmentType[0]));
+//        	delta = prismContext.deltaFor(object.getClass())
+//			        .item(new ItemPath(FocusType.F_ASSIGNMENT))
+//        	    	.deleteRealValues(assignmentsForDelete)
+//			        .asObjectDelta(object.getOid());
         } catch (SchemaException e) {
             throw new ScriptExecutionException("Couldn't prepare modification to delete resource/role assignments", e);
         }

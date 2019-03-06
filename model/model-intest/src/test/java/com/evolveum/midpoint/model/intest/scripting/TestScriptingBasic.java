@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -627,8 +626,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
         PrismObject<UserType> will = getUser(USER_WILL_OID);
         display("will after unassign assignment", will);
-        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MEMBER.getRelation());
-        MidPointAsserts.assertAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
+        MidPointAsserts.assertAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER);
         MidPointAsserts.assertAssignedResource(will, "10000000-0000-0000-0000-000000000004");
     }
     
@@ -652,8 +651,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
         PrismObject<UserType> will = getUser(USER_WILL_OID);
         display("will after unassign assignment", will);
-        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MEMBER.getRelation());
-        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER);
         MidPointAsserts.assertAssignedResource(will, "10000000-0000-0000-0000-000000000004");
     }
     
@@ -677,8 +676,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
         PrismObject<UserType> will = getUser(USER_WILL_OID);
         display("will after unassign assignment", will);
-        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MEMBER.getRelation());
-        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
+        MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER);
         MidPointAsserts.assertNotAssignedResource(will, "10000000-0000-0000-0000-000000000004");
     }
 
