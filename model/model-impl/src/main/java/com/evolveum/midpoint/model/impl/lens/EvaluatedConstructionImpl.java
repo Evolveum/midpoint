@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -37,13 +37,15 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     final private ShadowKindType kind;
     final private String intent;
     final private boolean directlyAssigned;
+    final private AssignmentPath assignmentPath;
     final private boolean weak;
 
 	public <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         resource = construction.getResource(task, result).asPrismObject();
         kind = construction.getKind();
         intent = construction.getIntent();
-        directlyAssigned = construction.getAssignmentPath() == null || construction.getAssignmentPath().size() == 1;
+        assignmentPath = construction.getAssignmentPath();
+        directlyAssigned = assignmentPath == null || assignmentPath.size() == 1;
         weak = construction.isWeak();
     }
     
@@ -65,6 +67,11 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     @Override
     public boolean isDirectlyAssigned() {
         return directlyAssigned;
+    }
+
+    @Override
+    public AssignmentPath getAssignmentPath() {
+        return assignmentPath;
     }
 
     @Override
