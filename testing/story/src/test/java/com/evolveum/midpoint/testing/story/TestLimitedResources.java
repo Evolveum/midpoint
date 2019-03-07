@@ -53,8 +53,13 @@ public class TestLimitedResources extends AbstractStoryTest {
 	protected static final File RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_FILE = new File(TEST_DIR, "resource-dummy-no-attribute-add-delete.xml");
 	protected static final String RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID = "5098fa64-8386-11e8-b2e2-83ada4418787";
 	protected static final String RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_NAME = "no-attribute-add-delete";
-	private static final String RESOURCE_DUMMY_NS = MidPointConstants.NS_RI;
 	private static final String RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_SHIP_PREFIX = "Spirit of ";
+	
+	protected static final File RESOURCE_DUMMY_NO_CREATE_FILE = new File(TEST_DIR, "resource-dummy-no-create.xml");
+	protected static final String RESOURCE_DUMMY_NO_CREATE_OID = "dbaf45c6-40fb-11e9-85b4-5f58a76d12e0";
+	protected static final String RESOURCE_DUMMY_NO_CREATE_NAME = "no-create";
+	
+	private static final String RESOURCE_DUMMY_NS = MidPointConstants.NS_RI;
 
 	private static final String OU_TREASURE_HUNT = "Treasure Hunt";
 	private static final String OU_LOOTING = "Looting";
@@ -66,6 +71,7 @@ public class TestLimitedResources extends AbstractStoryTest {
 		super.initSystem(initTask, initResult);
 
 		initDummyResourcePirate(RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_NAME, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_FILE, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_NO_CREATE_NAME, RESOURCE_DUMMY_NO_CREATE_FILE, RESOURCE_DUMMY_NO_CREATE_OID, initTask, initResult);
 	}
 	
 	@Test
@@ -104,14 +110,13 @@ public class TestLimitedResources extends AbstractStoryTest {
         displayWhen(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
 
-		
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		getSingleLinkOid(userAfter);
+		assertUserAfter(USER_JACK_OID)
+			.links()
+				.single();
 		
 		assertAADWeapon(USER_JACK_USERNAME /* no value */);
 	}
@@ -213,6 +218,82 @@ public class TestLimitedResources extends AbstractStoryTest {
 		getSingleLinkOid(userAfter);
 		
 		assertAADWeapon(USER_JACK_USERNAME /* no values */);
+	}
+	
+	@Test
+	public void test109UnassignJackAccountNoAttributeAddDelete() throws Exception {
+		final String TEST_NAME = "test109UnassignJackAccountNoAttributeAddDelete";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertUserAfter(USER_JACK_OID)
+			.assignments()
+				.assertNone()
+				.end()
+			.links()
+				.assertNone();
+	}
+	
+	/**
+	 * MID-5129
+	 */
+	@Test
+	public void test110AssignJackAccountNoCreate() throws Exception {
+		final String TEST_NAME = "test110AssignJackAccountNoCreate";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NO_CREATE_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertUserAfter(USER_JACK_OID)
+			.links()
+				.assertNone();
+		
+		assertNoDummyAccount(RESOURCE_DUMMY_NO_CREATE_NAME, USER_JACK_USERNAME);
+	}
+	
+	@Test
+	public void test119UnassignJackAccountNoCreate() throws Exception {
+		final String TEST_NAME = "test119UnassignJackAccountNoCreate";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NO_CREATE_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertUserAfter(USER_JACK_OID)
+			.assignments()
+				.assertNone()
+				.end()
+			.links()
+				.assertNone();
+		
+		assertNoDummyAccount(RESOURCE_DUMMY_NO_CREATE_NAME, USER_JACK_USERNAME);
 	}
 	
 	private void assertAADWeapon(String username, String... ous) throws SchemaViolationException, ConflictException, InterruptedException {
