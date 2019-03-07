@@ -52,11 +52,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.MutableObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.MutableResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -87,6 +89,11 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
+import com.evolveum.midpoint.prism.match.UuidMatchingRule;
+import com.evolveum.midpoint.prism.match.XmlMatchingRule;
+
 
 /**
  * Class that can parse ConnId capabilities and schema into midPoint format.
@@ -389,7 +396,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 		AttributeInfo auxiliaryObjectClasseAttributeInfo = null;
 
 		// New instance of midPoint schema object
-		resourceSchema = ObjectFactory.createResourceSchema(resourceSchemaNamespace, prismContext);
+		resourceSchema = new ResourceSchemaImpl(resourceSchemaNamespace, prismContext);
 
 		if (legacySchema == null) {
 			legacySchema = detectLegacySchema(connIdSchema);
@@ -415,13 +422,14 @@ public class ConnIdCapabilitiesAndSchemaParser {
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			MutableObjectClassComplexTypeDefinition ocDef = resourceSchema.toMutable().createObjectClassDefinition(objectClassXsdName);
+			ObjectClassComplexTypeDefinition ocDef = ((ResourceSchemaImpl) resourceSchema)
+					.createObjectClassDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ConnId is a default account
 			// objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				ocDef.setKind(ShadowKindType.ACCOUNT);
-				ocDef.setDefaultInAKind(true);
+				((ObjectClassComplexTypeDefinitionImpl) ocDef).setKind(ShadowKindType.ACCOUNT);
+				((ObjectClassComplexTypeDefinitionImpl) ocDef).setDefaultInAKind(true);
 			}
 
 			ResourceAttributeDefinition<String> uidDefinition = null;
@@ -488,7 +496,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
-				MutableResourceAttributeDefinition attrDef = ObjectFactory.createResourceAttributeDefinition(
+				ResourceAttributeDefinitionImpl attrDef = new ResourceAttributeDefinitionImpl(
 						attrXsdName, attrXsdType, prismContext);
 
 				attrDef.setMatchingRuleQName(connIdAttributeInfoToMatchingRule(attributeInfo));
@@ -514,7 +522,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 					ResourceAttributeDefinition existingDefinition = ocDef.findAttributeDefinition(attrXsdName);
 					if (existingDefinition != null) {
 						hasUidDefinition = true;
-						existingDefinition.toMutable().setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
+						((ResourceAttributeDefinitionImpl) existingDefinition).setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
 						uidDefinition = existingDefinition;
 						continue;
 					} else {
@@ -575,36 +583,37 @@ public class ConnIdCapabilitiesAndSchemaParser {
 				attrDef.setCanRead(canRead);
 
 				if (!Uid.NAME.equals(icfName)) {
-					ocDef.add(attrDef);
+					((ObjectClassComplexTypeDefinitionImpl) ocDef).add(attrDef);
 				}
 			}
 
 			if (uidDefinition == null) {
 				// Every object has UID in ConnId, therefore add a default definition if no other was specified
-				uidDefinition = ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
+				uidDefinition = new ResourceAttributeDefinitionImpl<>(
+						SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
 				// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
-				uidDefinition.toMutable().setMinOccurs(0);
-				uidDefinition.toMutable().setMaxOccurs(1);
+				((ResourceAttributeDefinitionImpl) uidDefinition).setMinOccurs(0);
+				((ResourceAttributeDefinitionImpl) uidDefinition).setMaxOccurs(1);
 				// Make it read-only
-				uidDefinition.toMutable().setReadOnly();
+				((ResourceAttributeDefinitionImpl) uidDefinition).setReadOnly();
 				// Set a default display name
-				uidDefinition.toMutable().setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
-				uidDefinition.toMutable().setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
+				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
+				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
 				// Uid is a primary identifier of every object (this is the ConnId way)
 			}
 			if (!hasUidDefinition) {
-				ocDef.toMutable().add(uidDefinition);
+				((ObjectClassComplexTypeDefinitionImpl) ocDef).add(uidDefinition);
 			}
-			ocDef.toMutable().addPrimaryIdentifier(uidDefinition);
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).addPrimaryIdentifier(uidDefinition);
 			if (uidDefinition != nameDefinition) {
-				ocDef.toMutable().addSecondaryIdentifier(nameDefinition);
+				((ObjectClassComplexTypeDefinitionImpl) ocDef).addSecondaryIdentifier(nameDefinition);
 			}
 
 			// Add schema annotations
-			ocDef.toMutable().setNativeObjectClass(objectClassInfo.getType());
-			ocDef.toMutable().setDisplayNameAttribute(nameDefinition.getName());
-			ocDef.toMutable().setNamingAttribute(nameDefinition.getName());
-			ocDef.toMutable().setAuxiliary(objectClassInfo.isAuxiliary());
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNativeObjectClass(objectClassInfo.getType());
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).setDisplayNameAttribute(nameDefinition.getName());
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNamingAttribute(nameDefinition.getName());
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).setAuxiliary(objectClassInfo.isAuxiliary());
 
 			LOGGER.trace("  ... converted object class {}: {}", objectClassInfo.getType(), ocDef);
 		}
@@ -749,16 +758,16 @@ public class ConnIdCapabilitiesAndSchemaParser {
 			return null;
 		}
 		if (AttributeInfo.Subtypes.STRING_CASE_IGNORE.toString().equals(connIdSubtype)) {
-			return PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
+			return StringIgnoreCaseMatchingRule.NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_LDAP_DN.toString().equals(connIdSubtype)) {
-			return PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME;
+			return DistinguishedNameMatchingRule.NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_XML.toString().equals(connIdSubtype)) {
-			return PrismConstants.XML_MATCHING_RULE_NAME;
+			return XmlMatchingRule.NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_UUID.toString().equals(connIdSubtype)) {
-			return PrismConstants.UUID_MATCHING_RULE_NAME;
+			return UuidMatchingRule.NAME;
 		}
 		LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)", connIdSubtype, attributeInfo.getName());
 		return null;
