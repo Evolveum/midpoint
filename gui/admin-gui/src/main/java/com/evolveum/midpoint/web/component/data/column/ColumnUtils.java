@@ -208,6 +208,9 @@ public class ColumnUtils {
 	}
 
 	private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
+		if (rowModel == null || rowModel.getObject() == null){
+			return null;
+		}
 		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
 		T object = rowModel.getObject().getValue();
 		if (object == null && !ShadowType.class.equals(type)){
