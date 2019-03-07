@@ -81,10 +81,9 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 	@Override
 	public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult)
-			throws SchemaException, CommunicationException, ConfigurationException,
-	SecurityViolationException,
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
 			ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException,
-	ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
+			ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 
 		Validate.notNull(eventDescription, "Event description must not be null.");
 		Validate.notNull(task, "Task must not be null.");

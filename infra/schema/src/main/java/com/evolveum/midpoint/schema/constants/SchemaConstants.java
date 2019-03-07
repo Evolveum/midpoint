@@ -250,6 +250,8 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
 	public static final String CHANGE_CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_LIVE_SYNC);
+	public static final QName CHANGE_CHANNEL_ASYNC_UPDATE = new QName(NS_PROVISIONING_CHANNEL, "asyncUpdate");
+	public static final String CHANGE_CHANNEL_ASYNC_UPDATE_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_ASYNC_UPDATE);
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
 	public static final String CHANGE_CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECON);
 	public static final QName CHANGE_CHANNEL_RECOMPUTE = new QName(NS_PROVISIONING_CHANNEL, "recompute");

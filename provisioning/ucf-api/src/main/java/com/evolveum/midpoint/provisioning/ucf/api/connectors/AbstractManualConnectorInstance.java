@@ -296,7 +296,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
 		// Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
-		InternalMonitor.recordConnectorOperation("schea");
+		InternalMonitor.recordConnectorOperation("schema");
 		return null;
 	}
 

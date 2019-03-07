@@ -45,11 +45,11 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 /**
- *  Tests model.notifyChange using artificially constructed ResourceObjectShadowChangeDescriptionType objects.
+ *  Tests model.notifyChange using manually constructed ResourceObjectShadowChangeDescriptionType objects.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrationTest {
+public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
 
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "messaging");
 
@@ -97,7 +97,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
         TestUtil.assertSuccess(testResultGrouper);
@@ -110,7 +110,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
     public void test100AddAnderson() throws Exception {
 		final String TEST_NAME = "test100AddAnderson";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -135,10 +135,10 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 				.links()
 					.single()
 					.resolveTarget()
+						.display()
 						.assertKind(ShadowKindType.ACCOUNT)
 						.assertIntent(GROUPER_USER_INTENT)
-						.assertResource(RESOURCE_GROUPER_OID)
-						.display();
+						.assertResource(RESOURCE_GROUPER_OID);
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
     public void test105AddLewis() throws Exception {
 		final String TEST_NAME = "test105AddLewis";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -189,7 +189,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
     public void test110AddAlumni() throws Exception {
 		final String TEST_NAME = "test110AddAlumni";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -227,7 +227,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
     public void test120AddStaff() throws Exception {
 		final String TEST_NAME = "test120AddStaff";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -265,7 +265,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 	public void test200AddGroupsForAnderson() throws Exception {
 		final String TEST_NAME = "test200AddGroupsForAnderson";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// GIVEN
@@ -303,7 +303,7 @@ public class TestMessagingUsingShadows extends AbstractInitializedModelIntegrati
 	public void test210AddGroupsForLewis() throws Exception {
 		final String TEST_NAME = "test210AddGroupsForLewis";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestMessagingUsingShadows.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// GIVEN

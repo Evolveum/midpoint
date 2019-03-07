@@ -65,8 +65,8 @@ import javax.xml.namespace.QName;
  */
 public interface ConnectorInstance {
 
-	public static final String OPERATION_CONFIGURE = ConnectorInstance.class.getName() + ".configure";
-	public static final String OPERATION_INITIALIZE = ConnectorInstance.class.getName() + ".initialize";
+	String OPERATION_CONFIGURE = ConnectorInstance.class.getName() + ".configure";
+	String OPERATION_INITIALIZE = ConnectorInstance.class.getName() + ".initialize";
 
 	/**
 	 *
@@ -320,7 +320,13 @@ public interface ConnectorInstance {
 	// Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
 	void test(OperationResult parentResult);
 
-
 	void dispose();
 
+	default void startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) {
+		throw new UnsupportedOperationException();
+	}
+
+	default void stopListeningForChanges(OperationResult parentResult) {
+		throw new UnsupportedOperationException();
+	}
 }

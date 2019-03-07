@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.casemgmt.api.CaseManager;
 import com.evolveum.midpoint.casemgmt.api.CaseManagerAware;
 import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
@@ -218,11 +219,19 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		}
 		// TODO: minOccurs: define which properties are optional/mandatory
 		// TODO: display names, ordering, help texts
-		QName propType = XsdTypeMapper.toXsdType(baseType);
-		return configurationContainerDef.createPropertyDefinition(new QName(configurationContainerDef.getName().getNamespaceURI(), propName),
-				propType, minOccurs, maxOccurs);
+		QName propType = XsdTypeMapper.getJavaToXsdMapping(baseType);
+		if (propType == null) {
+			PrismPropertyDefinition propDef = prismContext.getSchemaRegistry()
+					.findItemDefinitionByCompileTimeClass(baseType, PrismPropertyDefinition.class);
+			if (propDef != null) {
+				propType = propDef.getTypeName();
+			} else {
+				throw new IllegalStateException("Property " + propName + " of " + baseType + " cannot be resolved to a XSD type or a prism property");
+			}
+		}
+		return configurationContainerDef.createPropertyDefinition(
+				new QName(configurationContainerDef.getName().getNamespaceURI(), propName), propType, minOccurs, maxOccurs);
 	}
-
 
 	@Override
 	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace,
