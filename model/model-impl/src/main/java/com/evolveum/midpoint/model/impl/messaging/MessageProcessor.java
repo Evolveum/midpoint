@@ -53,57 +53,57 @@ public class MessageProcessor {
 	@Autowired PrismContext prismContext;
 	@Autowired SecurityContextManager securityContextManager;
 
-	public void processMessage(DataMessageType message, MessageProcessingConfigurationType processing,
-			ResourceType resource, Task task, OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException, PreconditionViolationException, PolicyViolationException,
-			ObjectAlreadyExistsException {
-		OperationResult result = parentResult.createSubresult(DOT_CLASS + "processMessage");
-		try {
-			ExpressionVariables variables = createVariables(message, resource);
-			if (processing.getConsumerExpression() != null && processing.getTransformerExpression() != null) {
-				throw new IllegalStateException("Both consumerExpression and transformerExpression cannot be specified at once");
-			}
-			if (processing.getConsumerExpression() != null) {
-				evaluateExpression(processing.getConsumerExpression(), variables, "consumer expression", task, result);
-			} else {
-				List<ResourceObjectShadowChangeDescriptionType> descriptions = evaluateExpression(processing.getTransformerExpression(),
-						variables, "transformer expression", task, result);
-				LOGGER.trace("Change description computation returned {} description(s)", descriptions.size());
-				for (ResourceObjectShadowChangeDescriptionType description : descriptions) {
-					modelService.notifyChange(description, task, result);
-				}
-			}
-			result.computeStatusIfUnknown();
-		} catch (Throwable t) {
-			result.recordFatalError("Couldn't process message: " + t.getMessage(), t);
-			throw t;
-		}
-	}
-
-	@NotNull
-	private <T> List<T> evaluateExpression(ExpressionType expressionBean, ExpressionVariables variables, String contextDescription,
-			Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, SecurityViolationException {
-		Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makePropertyExpression(expressionBean,
-				SchemaConstantsGenerated.C_RESOURCE_OBJECT_SHADOW_CHANGE_DESCRIPTION, contextDescription, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple =
-				ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, context, task, result);
-		List<T> list = new ArrayList<>();
-		for (PrismPropertyValue<T> pv : exprResultTriple.getZeroSet()) {
-			list.add(pv.getRealValue());
-		}
-		return list;
-	}
-
-	@NotNull
-	private ExpressionVariables createVariables(DataMessageType message,
-			ResourceType resource) {
-		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_MESSAGE, new MessageWrapper(message));
-		variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
-		return variables;
-	}
+//	public void processMessage(DataMessageType message, MessageProcessingConfigurationType processing,
+//			ResourceType resource, Task task, OperationResult parentResult)
+//			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+//			ConfigurationException, ExpressionEvaluationException, PreconditionViolationException, PolicyViolationException,
+//			ObjectAlreadyExistsException {
+//		OperationResult result = parentResult.createSubresult(DOT_CLASS + "processMessage");
+//		try {
+//			ExpressionVariables variables = createVariables(message, resource);
+//			if (processing.getConsumerExpression() != null && processing.getTransformerExpression() != null) {
+//				throw new IllegalStateException("Both consumerExpression and transformerExpression cannot be specified at once");
+//			}
+//			if (processing.getConsumerExpression() != null) {
+//				evaluateExpression(processing.getConsumerExpression(), variables, "consumer expression", task, result);
+//			} else {
+//				List<ResourceObjectShadowChangeDescriptionType> descriptions = evaluateExpression(processing.getTransformerExpression(),
+//						variables, "transformer expression", task, result);
+//				LOGGER.trace("Change description computation returned {} description(s)", descriptions.size());
+//				for (ResourceObjectShadowChangeDescriptionType description : descriptions) {
+//					modelService.notifyChange(description, task, result);
+//				}
+//			}
+//			result.computeStatusIfUnknown();
+//		} catch (Throwable t) {
+//			result.recordFatalError("Couldn't process message: " + t.getMessage(), t);
+//			throw t;
+//		}
+//	}
+//
+//	@NotNull
+//	private <T> List<T> evaluateExpression(ExpressionType expressionBean, ExpressionVariables variables, String contextDescription,
+//			Task task, OperationResult result)
+//			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+//			ConfigurationException, SecurityViolationException {
+//		Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makePropertyExpression(expressionBean,
+//				SchemaConstantsGenerated.C_RESOURCE_OBJECT_SHADOW_CHANGE_DESCRIPTION, contextDescription, task, result);
+//		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task, result);
+//		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple =
+//				ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, context, task, result);
+//		List<T> list = new ArrayList<>();
+//		for (PrismPropertyValue<T> pv : exprResultTriple.getZeroSet()) {
+//			list.add(pv.getRealValue());
+//		}
+//		return list;
+//	}
+//
+//	@NotNull
+//	private ExpressionVariables createVariables(DataMessageType message,
+//			ResourceType resource) {
+//		ExpressionVariables variables = new ExpressionVariables();
+//		variables.addVariableDefinition(ExpressionConstants.VAR_MESSAGE, new MessageWrapper(message));
+//		variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
+//		return variables;
+//	}
 }

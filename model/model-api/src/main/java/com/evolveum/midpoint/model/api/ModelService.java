@@ -727,11 +727,11 @@ public interface ModelService {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
 			PreconditionViolationException;
 
-	void notifyChange(DataMessageType message, MessageProcessingConfigurationType processing,
-			ResourceType resourceType, Task task, OperationResult parentResult)
-			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-			PreconditionViolationException;
+//	void notifyChange(AsyncUpdateMessageType message, MessageProcessingConfigurationType processing,
+//			ResourceType resourceType, Task task, OperationResult parentResult)
+//			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+//			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
+//			PreconditionViolationException;
 
 	@NotNull
 	PrismContext getPrismContext();

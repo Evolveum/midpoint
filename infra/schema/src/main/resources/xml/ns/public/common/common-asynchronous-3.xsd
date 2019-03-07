@@ -40,42 +40,22 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
-    <xsd:complexType name="MessageSourceConfigurationType">
+    <xsd:complexType name="AsyncUpdateSourceType">
         <xsd:annotation>
             <xsd:documentation>
-                Messaging client configuration
+                Source of asynchronous updates.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Connection URI.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="username" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        User name used to authenticate to AMQP server.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Password used to authenticate to AMQP server.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!-- nothing here now -->
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="messageSourceConfigurationType" type="tns:MessageSourceConfigurationType"/>
+    <xsd:element name="asyncUpdateSource" type="tns:AsyncUpdateSourceType"/>
 
-    <xsd:complexType name="Amqp091SourceConfigurationType">
+    <xsd:complexType name="Amqp091SourceType">
         <xsd:annotation>
             <xsd:documentation>
                 AMQP client configuration
@@ -85,8 +65,29 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:MessageSourceConfigurationType">
+            <xsd:extension base="tns:AsyncUpdateSourceType">
                 <xsd:sequence>
+                    <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Connection URI.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="username" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User name used to authenticate to AMQP server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Password used to authenticate to AMQP server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="virtualHost" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -105,51 +106,37 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="amqp091SourceConfigurationType" type="tns:Amqp091SourceConfigurationType"/>
+    <xsd:element name="amqp091SourceType" type="tns:Amqp091SourceType"/>
 
-    <xsd:complexType name="MessageProcessingConfigurationType">
+    <xsd:complexType name="CustomAsyncUpdateSourceType">
         <xsd:annotation>
             <xsd:documentation>
-                Message processing configuration.
+                Custom message source provided by a Java class.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="source" type="tns:MessageSourceConfigurationType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Source of messages.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="consumerExpression" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Expression that receives a message and consumes it. Returns true if the message is to be acknowledged;
-                        null, false or exception otherwise.
-                        Mutually exclusive with transformerExpression.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="transformerExpression" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Expression that transforms a message into a set of ResourceObjectShadowChangeDescriptionType,
-                        to be processed as a change. Returns null or an empty set if the message is to be simply discarded.
-                        Mutually exclusive with consumerExpression.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncUpdateSourceType">
+                <xsd:sequence>
+                    <xsd:element name="className" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Java class name implementing CustomAsyncUpdateSource interface.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="messageProcessingConfiguration" type="tns:MessageProcessingConfigurationType"/>
+    <xsd:element name="customAsyncUpdateSource" type="tns:CustomAsyncUpdateSourceType"/>
 
-    <xsd:complexType name="DataMessageType">
+    <xsd:complexType name="AsyncUpdateMessageType">
         <xsd:annotation>
             <xsd:documentation>
-                Representation of JMS/AMQP message.
+                Representation of an async update message.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0</a:since>
@@ -159,7 +146,7 @@
             <!-- currently there are no common attributes now -->
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="dataMessage" type="tns:DataMessageType"/>
+    <xsd:element name="asyncUpdateMessage" type="tns:AsyncUpdateMessageType"/>
 
     <xsd:complexType name="Amqp091MessageType">
         <xsd:annotation>
@@ -171,7 +158,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:DataMessageType">
+            <xsd:extension base="tns:AsyncUpdateMessageType">
                 <xsd:sequence>
                     <xsd:element name="attributes" type="tns:Amqp091MessageAttributesType" minOccurs="0">
                         <xsd:annotation>
@@ -206,7 +193,7 @@
             <xsd:element name="contentType" type="xsd:string" minOccurs="0" />
             <xsd:element name="contentEncoding" type="xsd:string" minOccurs="0" />
             <xsd:element name="routingKey" type="xsd:string" minOccurs="0" />
-            <xsd:element name="deliveryMode" type="tns:DataMessageDeliveryMode" minOccurs="0"/>
+            <xsd:element name="deliveryMode" type="tns:MessageDeliveryMode" minOccurs="0"/>
             <xsd:element name="priority" type="xsd:int" minOccurs="0"/>
             <xsd:element name="correlationId" type="xsd:string" minOccurs="0" />
             <xsd:element name="replyTo" type="xsd:string" minOccurs="0" />
@@ -217,7 +204,7 @@
             <xsd:element name="userId" type="xsd:string" minOccurs="0"/>
             <xsd:element name="appId" type="xsd:string" minOccurs="0"/>
 
-            <xsd:element name="other" type="tns:DataMessagePropertyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="other" type="tns:MessagePropertyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Message attributes (key-value pairs), other than the standard ones.
@@ -227,7 +214,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="DataMessagePropertyType">
+    <xsd:complexType name="MessagePropertyType">
         <xsd:annotation>
             <xsd:documentation>
                 Message property (key-value pair).
@@ -257,7 +244,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="DataMessageDeliveryMode">
+    <xsd:simpleType name="MessageDeliveryMode">
         <xsd:annotation>
             <xsd:documentation>
                 Delivery mode. Not all modes are applicable to all message types (JMS, AMQP 0-9-1, AMQP 1.0, etc).

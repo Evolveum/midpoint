@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="fb04d113-ebf8-41b4-b13b-990a597d110b"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		  xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/AsyncUpdateConnector"
+		  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+		  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+		  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+								  
+	<name>Async Update Resource</name>
+	<connectorRef oid="will-be-supplied-by-the-test-code"/>
+	<connectorConfiguration>
+		<icfc:configurationProperties>
+			<conf:messageSource xsi:type="CustomMessageSourceConfigurationType">
+				<className>TODO</className>
+			</conf:messageSource>
+		</icfc:configurationProperties>
+	</connectorConfiguration>
+	<!-- No schema. We don't need it for this test. -->
+</resource>

@@ -2391,11 +2391,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		task.setResult(parentResult);
 	}
 
-	@Override
-	public void notifyChange(DataMessageType message, MessageProcessingConfigurationType processing, ResourceType resource, Task task,
-			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-			PreconditionViolationException {
-		messageProcessor.processMessage(message, processing, resource, task, parentResult);
-	}
+//	@Override
+//	public void notifyChange(DataMessageType message, MessageProcessingConfigurationType processing, ResourceType resource, Task task,
+//			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+//			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
+//			PreconditionViolationException {
+//		messageProcessor.processMessage(message, processing, resource, task, parentResult);
+//	}
 }

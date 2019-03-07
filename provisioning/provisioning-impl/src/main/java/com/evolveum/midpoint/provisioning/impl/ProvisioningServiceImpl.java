@@ -793,7 +793,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		testResult.addParam("resourceOid", resourceOid);
 		testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		PrismObject<ResourceType> resource = null;
+		PrismObject<ResourceType> resource;
 
 		try {
 			resource = getRepoObject(ResourceType.class, resourceOid, null, testResult);

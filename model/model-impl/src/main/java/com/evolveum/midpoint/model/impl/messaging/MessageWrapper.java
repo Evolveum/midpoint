@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.messaging;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DataMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateMessageType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class MessageWrapper {
 
-	@NotNull private final DataMessageType message;
+	@NotNull private final AsyncUpdateMessageType message;
 
 	private static final TypeReference<?> MAP_TYPE = new MapTypeReference();
 	private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -40,7 +40,7 @@ public class MessageWrapper {
 	private static class MapTypeReference extends TypeReference<Map<String, Object>> {
 	}
 
-	public MessageWrapper(@NotNull DataMessageType message) {
+	public MessageWrapper(@NotNull AsyncUpdateMessageType message) {
 		this.message = message;
 	}
 
@@ -56,7 +56,7 @@ public class MessageWrapper {
 		return new String(((Amqp091MessageType) message).getBody(), Charset.forName("UTF-8"));
 	}
 
-	public DataMessageType getOriginalMessage() {
+	public AsyncUpdateMessageType getOriginalMessage() {
 		return message;
 	}
 

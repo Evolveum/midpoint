@@ -16,24 +16,24 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageSourceConfigurationType;
 
 /**
  *
  */
 public class AsyncUpdateConnectorConfiguration {
 
-	private MessageSourceConfigurationType messageSource;
+	private AsyncUpdateSourceType source;
 	private ExpressionType transformExpression;
 
 	@ConfigurationProperty
-	public MessageSourceConfigurationType getMessageSource() {
-		return messageSource;
+	public AsyncUpdateSourceType getSource() {
+		return source;
 	}
 
-	public void setMessageSource(MessageSourceConfigurationType messageSource) {
-		this.messageSource = messageSource;
+	public void setSource(AsyncUpdateSourceType source) {
+		this.source = source;
 	}
 
 	@ConfigurationProperty
