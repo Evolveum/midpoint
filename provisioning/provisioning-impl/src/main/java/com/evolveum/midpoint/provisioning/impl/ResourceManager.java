@@ -831,10 +831,12 @@ public class ResourceManager {
 		OperationResult initResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		
-		ConnectorInstance connector;
+		LOGGER.debug("Testing connection using {}", connectorSpec);
+		
+		ConfiguredConnectorInstanceEntry connectorInstanceCacheEntry;
 		try {
 			// Make sure we are getting non-configured instance.
-			connector = connectorManager.createFreshConnectorInstance(connectorSpec, initResult);
+			connectorInstanceCacheEntry = connectorManager.getConnectorInstanceCacheEntry(connectorSpec, initResult);
 			initResult.recordSuccess();
 		} catch (ObjectNotFoundException e) {
 			// The connector was not found. The resource definition is either
@@ -860,7 +862,8 @@ public class ResourceManager {
 			return;
 		}
 		
-		LOGGER.debug("Testing connection using {}", connectorSpec);
+		ConnectorInstance connector = connectorInstanceCacheEntry.getConnectorInstance();
+		
 
 		// === test CONFIGURATION ===
 
@@ -872,6 +875,8 @@ public class ResourceManager {
 			PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
 			applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, configResult);
 			PrismContainerValue<ConnectorConfigurationType> connectorConfiguration = connectorSpec.getConnectorConfiguration().getValue();
+			
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 			
 			connector.configure(connectorConfiguration, configResult);
 		
@@ -970,7 +975,11 @@ public class ResourceManager {
 			return;
 		}
 		
-		connectorManager.cacheConfiguredConnector(connectorSpec, connector);
+		// Connector instance is fully configured at this point.
+		// But the connector cache entry may not be set up properly and it is not yet placed into the cache.
+		// Therefore make sure the caching bit is completed.
+		// Place the connector to cache even if it was configured at the beginning. The connector is reconfigured now.
+		connectorManager.cacheConfiguredConnector(connectorInstanceCacheEntry, connectorSpec);
 	}
 	
 	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType newStatus, OperationResult result){
@@ -1267,6 +1276,7 @@ public class ResourceManager {
 		return connectorSpecs;
 	}
 	
+	// Should be used only internally (private). But it is public, because it is accessed from the tests.
 	public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstance(PrismObject<ResourceType> resource,
 			Class<T> operationCapabilityClass, boolean forceFresh, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ConnectorSpec connectorSpec = selectConnectorSpec(resource, operationCapabilityClass);

@@ -369,8 +369,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	}
 
 	@Override
-	public void dispose() {
-		// Nothing to dispose
+	public void disconnect(OperationResult parentResult) {
 		connected = false;
 	}
 
