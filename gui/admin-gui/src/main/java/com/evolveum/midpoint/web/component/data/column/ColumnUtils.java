@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
@@ -210,6 +211,11 @@ public class ColumnUtils {
 	private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
 		if (rowModel == null || rowModel.getObject() == null){
 			return null;
+		}
+		if (rowModel.getObject().getResult() != null && rowModel.getObject().getResult().isFatalError()){
+			OperationResult result = rowModel.getObject().getResult();
+			return result.getUserFriendlyMessage() != null ?
+					result.getUserFriendlyMessage().getFallbackMessage() : result.getMessage();
 		}
 		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
 		T object = rowModel.getObject().getValue();
