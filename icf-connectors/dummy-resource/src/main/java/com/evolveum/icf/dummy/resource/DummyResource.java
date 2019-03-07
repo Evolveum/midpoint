@@ -398,8 +398,12 @@ public class DummyResource implements DebugDumpable {
 		connectionCount--;
 	}
 
-	public void assertNoConnections() {
+	public synchronized void assertNoConnections() {
 		assert connectionCount == 0 : "Dummy resource: "+connectionCount+" connections still open";
+	}
+	
+	public synchronized void assertConnections(int expected) {
+		assert connectionCount == expected : "Dummy resource: unexpected number of connections, expected: "+expected+", but was "+connectionCount;
 	}
 
 	public synchronized void recordWriteOperation(String operation) {

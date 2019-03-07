@@ -29,6 +29,8 @@ public enum InternalCounters {
 	RESOURCE_REPOSITORY_MODIFY_COUNT("resourceRepositoryModifyCount", "resource repository modify count", InternalOperationClasses.REPOSITORY_OPERATIONS),
 
 	CONNECTOR_INSTANCE_INITIALIZATION_COUNT("connectorInstanceInitializationCount", "connector instance initialization count", InternalOperationClasses.CONNECTOR_OPERATIONS),
+	
+	CONNECTOR_INSTANCE_CONFIGURATION_COUNT("connectorInstanceConfigurationCount", "connector instance configuration count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 
 	CONNECTOR_SCHEMA_PARSE_COUNT("connectorSchemaParseCount", "connector schema parse count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 
