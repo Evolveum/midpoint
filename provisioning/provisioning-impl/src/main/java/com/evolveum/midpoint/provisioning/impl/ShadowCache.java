@@ -923,7 +923,7 @@ public class ShadowCache {
 
 		Collection<QName> additionalAuxiliaryObjectClassQNames = new ArrayList<>();
 		for (ItemDelta modification : modifications) {
-			if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equals(modification.getPath())) {
+			if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equivalent(modification.getPath())) {
 				PropertyDelta<QName> auxDelta = (PropertyDelta<QName>) modification;
 				for (PrismPropertyValue<QName> pval : auxDelta.getValues(QName.class)) {
 					additionalAuxiliaryObjectClassQNames.add(pval.getValue());
@@ -959,8 +959,7 @@ public class ShadowCache {
 
 		shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
-		accessChecker.checkModify(ctx.getResource(), repoShadow, modifications,
-				ctx.getObjectClassDefinition(), parentResult);
+		accessChecker.checkModify(ctx, repoShadow, modifications, parentResult);
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		

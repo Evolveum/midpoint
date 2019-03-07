@@ -21,7 +21,7 @@ public class ViewResourcePage extends BasicPage {
         $(Schrodinger.byDataResourceKey("a", "pageResource.button.configurationEdit")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
       SelenideElement element=  $(By.cssSelector(".tab-pane.active"))
-              .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+              .waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
 
         return new ResourceConfigurationTab(new EditResourceConfigurationPage(), element);
     }

@@ -92,7 +92,7 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
     }
 
     protected List<ObjectTypes> getSupportedTypesList(){
-        List<ObjectTypes> supportedTypes = new ArrayList<>(Arrays.asList(ObjectTypes.values()));
+        List<ObjectTypes> supportedTypes = WebComponentUtil.createAssignmentHolderTypesList();
         supportedTypes.remove(ObjectTypes.USER);
         supportedTypes.remove(ObjectTypes.ROLE);
         supportedTypes.remove(ObjectTypes.SERVICE);

@@ -63,6 +63,7 @@ import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -77,6 +78,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -134,6 +136,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -620,6 +623,40 @@ public final class WebComponentUtil {
 		}
 		return task;
 	}
+	
+	public static void executeBulkAction(PageBase pageBase, ScriptingExpressionType script, Task task, OperationResult result ) 
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException{
+		
+		pageBase.getScriptingService().evaluateExpressionInBackground(script, task, result);
+	}
+	
+	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
+			ScriptingExpressionType script, OperationResult parentResult, PageBase pageBase) throws SchemaException {
+
+		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+		operationalTask.setOwner(owner.getUser().asPrismObject());
+		
+		operationalTask.setBinding(TaskBinding.LOOSE);
+		operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+		operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
+		ScheduleType schedule = new ScheduleType();
+		schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
+		operationalTask.makeSingle(schedule);
+		operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
+	
+		try {
+			executeBulkAction(pageBase, script, operationalTask, parentResult);
+			parentResult.recordInProgress();
+			parentResult.setBackgroundTaskOid(operationalTask.getOid());
+			pageBase.showResult(parentResult);
+		} catch (ObjectNotFoundException | SchemaException
+			| ExpressionEvaluationException | CommunicationException | ConfigurationException
+			| SecurityViolationException e) {
+			parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.submit").getString(), e);
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
+		}
+	}
 
 	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
 											  ObjectDelta delta, String category, OperationResult parentResult, PageBase pageBase) throws SchemaException{
@@ -685,6 +722,42 @@ public final class WebComponentUtil {
 
 		}).collect(Collectors.toList());
 
+	}
+
+	public static List<QName> createAssignmentHolderTypeQnamesList() {
+
+		List<ObjectTypes> objectTypes = createAssignmentHolderTypesList();
+		List<QName> types = new ArrayList<>();
+		objectTypes.forEach(objectType -> {
+			types.add(objectType.getTypeQName());
+		});
+
+		return types.stream().sorted((type1, type2) -> {
+				Validate.notNull(type1);
+				Validate.notNull(type2);
+
+				return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1), QNameUtil.qNameToUri(type2));
+
+
+		}).collect(Collectors.toList());
+
+	}
+
+	public static List<ObjectTypes> createAssignmentHolderTypesList(){
+		List<ObjectTypes> objectTypes = new ArrayList<>();
+		for (ObjectTypes t : ObjectTypes.values()) {
+			if (AssignmentHolderType.class.isAssignableFrom(t.getClassDefinition())) {
+				objectTypes.add(t);
+			}
+		}
+		return objectTypes.stream().sorted((type1, type2) -> {
+			Validate.notNull(type1);
+			Validate.notNull(type2);
+
+			return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1.getTypeQName()), QNameUtil.qNameToUri(type2.getTypeQName()));
+
+
+		}).collect(Collectors.toList());
 	}
 
 	// TODO: move to schema component
@@ -2340,27 +2413,30 @@ public final class WebComponentUtil {
 
 		Constructor constructor;
 		try {
-			constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+			PageBase page;
+			if (ResourceType.class.equals(obj.getCompileTimeClass())) {
+				constructor = newObjectPageClass.getConstructor(PageParameters.class);
+				page = (PageBase) constructor.newInstance(new PageParameters());
 
+			} else {
+				constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+				page = (PageBase) constructor.newInstance(obj, isNewObject);
+
+			}
+			if (component.getPage() instanceof PageBase) {
+				// this way we have correct breadcrumbs
+				PageBase pb = (PageBase) component.getPage();
+				pb.navigateToNext(page);
+			} else {
+				component.setResponsePage(page);
+			}
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new SystemException("Unable to locate constructor (PrismObject) in " + newObjectPageClass
-					+ ": " + e.getMessage(), e);
-		}
 
-		PageBase page;
-		try {
-			page = (PageBase) constructor.newInstance(obj, isNewObject);
+					+ ": " + e.getMessage(), e);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
 			throw new SystemException("Error instantiating " + newObjectPageClass + ": " + e.getMessage(), e);
-		}
-
-		if (component.getPage() instanceof PageBase) {
-			// this way we have correct breadcrumbs
-			PageBase pb = (PageBase) component.getPage();
-			pb.navigateToNext(page);
-		} else {
-			component.setResponsePage(page);
 		}
 	}
 

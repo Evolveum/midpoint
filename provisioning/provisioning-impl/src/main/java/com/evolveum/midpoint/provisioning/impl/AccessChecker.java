@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -96,12 +97,14 @@ public class AccessChecker {
 		result.recordSuccess();
 	}
 
-	public void checkModify(ResourceType resource, PrismObject<ShadowType> shadow,
-			Collection<? extends ItemDelta> modifications, RefinedObjectClassDefinition objectClassDefinition,
-			OperationResult parentResult) throws SecurityViolationException, SchemaException {
+	public void checkModify(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+			Collection<? extends ItemDelta> modifications,
+			OperationResult parentResult) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
-		for (ItemDelta modification: modifications) {
+		for (ItemDelta<?,?> modification: modifications) {
 			if (!(modification instanceof PropertyDelta<?>)) {
 				continue;
 			}
@@ -111,6 +114,7 @@ public class AccessChecker {
 				continue;
 			}
 			QName attrName = attrDelta.getElementName();
+			LOGGER.trace("Checking attribue {} definition present in {}", attrName, objectClassDefinition);
 			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
 			if (attrDef == null) {
 				throw new SchemaException("Cannot find definition of attribute "+attrName+" in "+objectClassDefinition);

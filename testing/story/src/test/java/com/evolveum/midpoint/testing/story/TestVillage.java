@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -810,9 +811,13 @@ public class TestVillage extends AbstractStoryTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		assertSuccess(result);
+		assertPartialError(result);
 		
 		//TODO: assert added user
+		PrismObject<UserType> userMikeAfter = getUser(USER_MIKE_OID);
+ 		UserAsserter.forUser(userMikeAfter).
+ 			assertAssignments(2).
+ 			assertLinks(0);
 	}
 
 	@Test
@@ -829,7 +834,10 @@ public class TestVillage extends AbstractStoryTest {
         displayTestTitle(TEST_NAME);
 
         //this will throw exception, if incorrect pwd policy is selected...but some assertion will be nice :)
-        assignRole(USER_MIKE_OID, ROLE_BASIC_OID);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assignRole(USER_MIKE_OID, ROLE_BASIC_OID, task, result);
+        assertPartialError(result);
 
 		//TODO: assertion
 	}

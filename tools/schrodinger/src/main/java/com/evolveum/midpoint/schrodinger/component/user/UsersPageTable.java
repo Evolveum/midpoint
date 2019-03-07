@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schrodinger.component.user;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
@@ -96,17 +97,22 @@ public class UsersPageTable<T> extends TableWithPageRedirect<T> {
 
     public SelenideElement getToolbarButton(String iconCssClass){
         SelenideElement buttonToolbar = getButtonToolbar();
-        return buttonToolbar
-                .$(Schrodinger.byElementAttributeValue("i", "class", iconCssClass));
+        SelenideElement buttonElement = null;
+        ElementsCollection toolbarButtonsList = buttonToolbar
+                .findAll(By.tagName("button"));
+        for (SelenideElement button : toolbarButtonsList) {
+            if (button.$(Schrodinger.byElementAttributeValue("i", "class", iconCssClass)).exists()) {
+                buttonElement = button;
+            }
+        }
+        return buttonElement;
     }
 
     public UserPage newObjectButtonClickPerformed(String iconCssClass){
         getToolbarButton(iconCssClass)
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
 
-        $(Schrodinger.byDataId("tabPanel"))
-                .shouldBe(Condition.visible)
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
         return new UserPage();
     }
 }

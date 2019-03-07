@@ -27,17 +27,14 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -181,11 +178,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 	    OperationResult result = task.getResult();
-//		executeChanges(DeltaBuilder.deltaFor(TaskType.class, prismContext)
-//		.item(TaskType.F_EXECUTION_STATUS)
-//			.replace(TaskExecutionStatusType.RUNNABLE)
-//			.asObjectDelta(getTaskOid()), null, task, result);
-		
 		
 		openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_FILE);
 		 
