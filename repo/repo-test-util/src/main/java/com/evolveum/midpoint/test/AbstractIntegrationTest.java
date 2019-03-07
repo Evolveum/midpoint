@@ -990,6 +990,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
 
@@ -1000,6 +1001,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 	}
 
