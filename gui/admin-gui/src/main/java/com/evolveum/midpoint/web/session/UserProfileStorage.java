@@ -93,7 +93,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         LOGGING_TAB_APPENDER_TABLE,
         NOTIFICATION_TAB_MAIL_SERVER_TABLE,
         COLLECTION_VIEW_TABLE,
-        USERS_VIEW_TABLE
+        USERS_VIEW_TABLE,
+        PAGE_CASE_WORKITEMS_TAB
     }
 
     private Map<String, Integer> tables = new HashMap<>();

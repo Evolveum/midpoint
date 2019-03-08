@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
@@ -42,6 +57,7 @@ import java.util.List;
                 label = "PageCase.auth.case.label",
                 description = "PageCase.auth.case.description")})
 public class PageCase  extends PageAdminObjectDetails<CaseType> {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCase.class);
     private static final String DOT_CLASS = PageCase.class.getName() + ".";
@@ -147,14 +163,37 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             private static final long serialVersionUID = 1L;
 
             @Override
+            protected List<ITab> createTabs(final PageAdminObjectDetails<CaseType> parentPage) {
+                List<ITab> tabs = super.createTabs(parentPage);
+
+                tabs.add(
+                        new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
+                                getTabVisibility(ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, false, parentPage)) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public WebMarkupContainer createPanel(String panelId) {
+                                return new CaseWorkitemsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                            }
+
+                            @Override
+                            public String getCount() {
+                                return Integer.toString(countWorkItems());
+                            }
+                        });
+                return tabs;
+            }
+
+            @Override
             protected boolean getOptionsPanelVisibility() {
                 return false;
             }
 
-            @Override
-            protected boolean isPreviewButtonVisible() {
-                return false;
-            }
+//            @Override
+//            protected boolean isPreviewButtonVisible() {
+//                return false;
+//            }
 
         };
     }
@@ -273,4 +312,8 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
         return PageCases.class;
     }
 
+    private int countWorkItems(){
+        List<CaseWorkItemType> workItemsList = getObjectModel().getObject().getObject().asObjectable().getWorkItem();
+        return workItemsList == null ? 0 : workItemsList.size();
+    }
 }

@@ -45,6 +45,12 @@ public class ComponentConstants {
     public static final QName UI_FOCUS_TAB_POLICY_RULES = new QName(NS_COMPONENTS_PREFIX, "focusTabPolicyRules");
     public static final String UI_FOCUS_TAB_POLICY_RULES_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_POLICY_RULES);
 
+    public static final QName UI_CASE_TAB_WORKITEMS = new QName(NS_COMPONENTS_PREFIX, "caseTabWorkitems");
+    public static final String UI_CASE_TAB_WORKITEMS_URL = QNameUtil.qNameToUri(UI_CASE_TAB_WORKITEMS);
+
+    public static final QName UI_CASE_TAB_EVENTS = new QName(NS_COMPONENTS_PREFIX, "caseTabEvents");
+    public static final String UI_CASE_TAB_EVENTS_URL = QNameUtil.qNameToUri(UI_CASE_TAB_EVENTS);
+
     public static final QName UI_FOCUS_TAB_APPLICABLE_POLICIES = new QName(NS_COMPONENTS_PREFIX, "focusTabApplicablePolicies");
     public static final String UI_FOCUS_TAB_APPLICABLE_POLICIES_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_APPLICABLE_POLICIES);
 
