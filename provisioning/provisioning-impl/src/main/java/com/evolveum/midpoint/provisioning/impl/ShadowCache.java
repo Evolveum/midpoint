@@ -31,10 +31,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandlerLocator;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -2439,6 +2436,99 @@ public class ShadowCache {
 
 		} catch (SchemaException | CommunicationException | GenericFrameworkException | ConfigurationException | 
 				ObjectNotFoundException | ObjectAlreadyExistsException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error ex) {
+			parentResult.recordFatalError(ex);
+			throw ex;
+		}
+	}
+
+	public void startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
+
+		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
+
+		try {
+
+			ChangeListener listener = change -> {
+				try {
+					if (change.isTokenOnly()) {
+						return true;
+					}
+
+					if (task instanceof RunningTask) {
+						((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+					}
+
+					ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
+
+
+					if (change.getObjectDelta() != null) {
+						shadowCaretaker.applyAttributesDefinition(ctx, change.getObjectDelta());
+					}
+					if (change.getOldShadow() != null) {
+						shadowCaretaker.applyAttributesDefinition(ctx, change.getOldShadow());
+					}
+					if (change.getCurrentShadow() != null) {
+						shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
+					}
+
+					ProvisioningContext shadowCtx;
+					PrismObject<ShadowType> oldShadow = null;
+					if (changeObjectClassDefinition == null) {
+						if (change.isDelete()) {
+							oldShadow = change.getOldShadow();
+							if (oldShadow == null) {
+								oldShadow = shadowManager.findOrAddShadowFromChangeOnDelete(ctx, change, parentResult);
+								if (oldShadow == null) {
+									LOGGER.debug(
+											"No old shadow for delete synchronization event {}, we probably did not know about "
+													+ "that object anyway, so well be ignoring this event", change);
+									return true;
+								}
+							}
+							shadowCtx = ctx.spawn(oldShadow);
+						} else {
+							throw new SchemaException("No object class definition in change " + change);
+						}
+					} else {
+						shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
+					}
+					preProcessChange(shadowCtx, change, oldShadow, parentResult);
+
+					// this is the case,when we want to skip processing of change,
+					// because the shadow was not created or found to the resource
+					// object
+					// it may be caused with the fact, that the object which was
+					// created in the resource was deleted before the sync run
+					// such a change should be skipped to process consistent changes
+					if (change.getOldShadow() == null) {
+						LOGGER.debug(
+								"Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
+						return true;
+					}
+					return processSynchronization(shadowCtx, false, change, task, null, parentResult);
+				} catch (Throwable t) {
+					throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
+				}
+			};
+
+			resouceObjectConverter.startListeningForAsyncUpdates(ctx, listener, parentResult);
+
+		} catch (SchemaException | CommunicationException | ConfigurationException |
+				ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error ex) {
+			parentResult.recordFatalError(ex);
+			throw ex;
+		}
+	}
+
+	public void stopListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
+		ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
+		try {
+			resouceObjectConverter.stopListeningForAsyncUpdates(ctx, parentResult);
+		} catch (SchemaException | CommunicationException | ConfigurationException |
+				ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error ex) {
 			parentResult.recordFatalError(ex);
 			throw ex;
 		}

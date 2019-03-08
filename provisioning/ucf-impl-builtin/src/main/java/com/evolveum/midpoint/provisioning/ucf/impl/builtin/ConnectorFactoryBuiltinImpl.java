@@ -28,6 +28,7 @@ import com.evolveum.midpoint.casemgmt.api.CaseManagerAware;
 import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import org.springframework.beans.BeanWrapper;
@@ -43,12 +44,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
-import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnectorConfiguration;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -83,6 +78,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private CaseManager caseManager;
 	@Autowired private TaskManager taskManager;
+	@Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
 
 	private Map<String,ConnectorStruct> connectorMap;
 
@@ -257,6 +253,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		}
 		if (connectorInstance instanceof TaskManagerAware) {
 			((TaskManagerAware)connectorInstance).setTaskManager(taskManager);
+		}
+		if (connectorInstance instanceof UcfExpressionEvaluatorAware) {
+			((UcfExpressionEvaluatorAware) connectorInstance).setUcfExpressionEvaluator(ucfExpressionEvaluator);
 		}
 		return connectorInstance;
 	}

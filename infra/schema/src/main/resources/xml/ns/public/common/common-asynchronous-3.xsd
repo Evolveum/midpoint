@@ -30,7 +30,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Parts related to processing of data messages (JMS, AMQP, etc).
+            Parts related to processing of asynchronous updates (JMS, AMQP, REST, etc).
         </xsd:documentation>
     </xsd:annotation>
 
@@ -39,6 +39,35 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+
+    <xsd:complexType name="AsyncUpdateSourcesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Sources of asynchronous updates. Currently, only one source is supported; in the future we might allow more
+                of them.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="amqp091" type="tns:Amqp091SourceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        AMQP 0-9-1 sources.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="other" type="tns:AsyncUpdateSourceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Custom sources.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asyncUpdateSources" type="tns:AsyncUpdateSourcesType"/>
 
     <xsd:complexType name="AsyncUpdateSourceType">
         <xsd:annotation>
@@ -50,7 +79,28 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- nothing here now -->
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the source. Usually a short string.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        More detailed description of the source.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="className" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Java class name implementing AsyncUpdateSource interface. Usually it does not need to be specified,
+                        as it is derived from the source element type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="asyncUpdateSource" type="tns:AsyncUpdateSourceType"/>
@@ -120,13 +170,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AsyncUpdateSourceType">
                 <xsd:sequence>
-                    <xsd:element name="className" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Java class name implementing CustomAsyncUpdateSource interface.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -147,6 +190,34 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="asyncUpdateMessage" type="tns:AsyncUpdateMessageType"/>
+
+    <xsd:complexType name="AnyDataAsyncUpdateMessageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Async update carrying any data. Useful e.g. for testing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncUpdateMessageType">
+                <xsd:sequence>
+                    <xsd:element name="data" type="xsd:anyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The data.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:rawType>true</a:rawType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="anyDataAsyncUpdateMessage" type="tns:AnyDataAsyncUpdateMessageType"/>
 
     <xsd:complexType name="Amqp091MessageType">
         <xsd:annotation>

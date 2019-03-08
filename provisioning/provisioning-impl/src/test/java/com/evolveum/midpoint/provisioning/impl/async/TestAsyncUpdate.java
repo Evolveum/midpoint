@@ -21,21 +21,14 @@ package com.evolveum.midpoint.provisioning.impl.async;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,30 +36,18 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 
 import static org.testng.AssertJUnit.*;
 
@@ -82,6 +63,8 @@ public class TestAsyncUpdate extends AbstractProvisioningIntegrationTest {
 
 	protected static final File RESOURCE_ASYNC_FILE = new File(TEST_DIR, "resource-async.xml");
 	protected static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
+
+	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-first-occurrence.xml");
 
 	public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 
@@ -106,6 +89,8 @@ public class TestAsyncUpdate extends AbstractProvisioningIntegrationTest {
 	protected static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
 
 	protected PrismObject<ResourceType> resource;
+
+
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -248,6 +233,32 @@ public class TestAsyncUpdate extends AbstractProvisioningIntegrationTest {
 
 	protected int getNumberOfAccountAttributeDefinitions() {
 		return 3;
+	}
+
+	@Test
+	public void test100Listening() throws Exception {
+		final String TEST_NAME = "test100Listening";
+		TestUtil.displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		MockAsyncUpdateSource.INSTANCE.reset();
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_100).parseRealValue());
+
+		syncServiceMock.reset();
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
+				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
+
+		provisioningService.startListeningForAsyncUpdates(coords, task, result);
+
+		syncServiceMock.assertNotifyChange();
+
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+
+
 	}
 
 

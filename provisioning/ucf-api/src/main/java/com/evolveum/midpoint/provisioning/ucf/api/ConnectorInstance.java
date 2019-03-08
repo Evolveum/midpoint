@@ -322,7 +322,7 @@ public interface ConnectorInstance {
 
 	void dispose();
 
-	default void startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) {
+	default void startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
 		throw new UnsupportedOperationException();
 	}
 

@@ -10744,6 +10744,48 @@
     
     <xsd:element name="resourceObjectShadowChangeDescription" type="tns:ResourceObjectShadowChangeDescriptionType"/>
 
+    <xsd:complexType name="UcfChangeType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	Description of the change in the external resource at the UCF level i.e. corresponding to Change object.
+            </xsd:documentation>
+        </xsd:annotation>
+        	<xsd:sequence>
+            	<xsd:element name="identifiers" type="tns:ShadowAttributesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifiers of the object being changed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object class.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delta describing the changes made to the shadow. E.g. if the change in the resource was
+                                to add new account, delta will contain ADD modification with the object specified.
+                                It may be null. If the object delta is null, the current object has to be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="object" type="tns:ShadowType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Current state of the object. Either it or the delta has to be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="ucfChange" type="tns:UcfChangeType"/>
+
     <xsd:complexType name="ConnectorType">
         <xsd:annotation>
             <xsd:documentation>

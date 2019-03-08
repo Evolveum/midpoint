@@ -54,11 +54,11 @@ public final class Change implements DebugDumpable {
         this.token = token;
     }
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismObject<ShadowType> oldStadow, ObjectDelta<ShadowType> objectDetla){
+    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismObject<ShadowType> oldShadow, ObjectDelta<ShadowType> objectDelta) {
     	this.identifiers = identifiers;
     	this.currentShadow = currentShadow;
-    	this.oldShadow = oldStadow;
-    	this.objectDelta = objectDetla;
+    	this.oldShadow = oldShadow;
+    	this.objectDelta = objectDelta;
     }
 
     public Change(ObjectDelta<ShadowType> change, PrismProperty<?> token) {

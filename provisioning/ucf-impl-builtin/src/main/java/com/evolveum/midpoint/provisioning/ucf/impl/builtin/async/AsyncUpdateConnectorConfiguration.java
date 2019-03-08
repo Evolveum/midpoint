@@ -13,27 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
+package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourcesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  */
 public class AsyncUpdateConnectorConfiguration {
 
-	private AsyncUpdateSourceType source;
+	private AsyncUpdateSourcesType sources;
 	private ExpressionType transformExpression;
 
 	@ConfigurationProperty
-	public AsyncUpdateSourceType getSource() {
-		return source;
+	public AsyncUpdateSourcesType getSources() {
+		return sources;
 	}
 
-	public void setSource(AsyncUpdateSourceType source) {
-		this.source = source;
+	public void setSources(AsyncUpdateSourcesType sources) {
+		this.sources = sources;
 	}
 
 	@ConfigurationProperty
@@ -44,4 +48,24 @@ public class AsyncUpdateConnectorConfiguration {
 	public void setTransformExpression(ExpressionType transformExpression) {
 		this.transformExpression = transformExpression;
 	}
+
+	public void validate() {
+		getSingleSourceConfiguration();
+	}
+
+	public AsyncUpdateSourceType getSingleSourceConfiguration() {
+		List<AsyncUpdateSourceType> allSources = new ArrayList<>();
+		if (sources != null) {
+			allSources.addAll(sources.getAmqp091());
+			allSources.addAll(sources.getOther());
+		}
+		if (allSources.isEmpty()) {
+			throw new IllegalStateException("No asynchronous update sources were configured");
+		} else if (allSources.size() > 1) {
+			throw new IllegalStateException("Multiple asynchronous update sources were configured. This is not supported yet.");
+		} else {
+			return allSources.get(0);
+		}
+	}
+
 }

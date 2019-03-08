@@ -202,6 +202,13 @@ public interface ProvisioningService {
 	int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;
 
+	void startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException;
+
+	void stopListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException;
 
 	/**
 	 * Search for objects. Searches through all object types. Returns a list of
@@ -218,7 +225,7 @@ public interface ProvisioningService {
 	 * @param query
 	 *            search query
 	 * @param task
-	 *@param parentResult
+	 * @param parentResult
 	 *            parent OperationResult (in/out)  @return all objects of specified type that match search criteria (subject
 	 *         to paging)
 	 *

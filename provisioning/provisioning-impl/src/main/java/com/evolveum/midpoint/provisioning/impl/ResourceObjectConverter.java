@@ -50,16 +50,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
@@ -1868,7 +1859,77 @@ public class ResourceObjectConverter {
 		LOGGER.trace("END fetch changes ({} changes)", changes == null ? "null" : changes.size());
 		return changes;
 	}
-	
+
+	public void startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
+			@NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
+			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+
+		LOGGER.trace("START start listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
+		ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
+
+		ChangeListener innerListener = change -> {
+			try {
+				LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
+				ProvisioningContext shadowCtx = ctx;
+				PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
+				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
+				if (changeObjectClassDefinition == null) {
+					if (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
+						throw new SchemaException("No object class definition in change "+change);
+					}
+				}
+				if (ctx.isWildcard() && changeObjectClassDefinition != null) {
+					shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
+					if (shadowCtx.isWildcard()) {
+						String message = "Unkownn object class " + changeObjectClassDefinition.getTypeName()
+								+ " found in synchronization delta";
+						throw new SchemaException(message);
+					}
+					change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
+				}
+
+				if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
+					if (currentShadow == null) {
+						// There is no current shadow in a change. Add it by fetching it explicitly.
+						try {
+							LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
+							currentShadow = fetchResourceObject(shadowCtx,
+									change.getIdentifiers(), null, true,
+									parentResult);    // todo consider whether it is always necessary to fetch the entitlements
+							change.setCurrentShadow(currentShadow);
+
+						} catch (ObjectNotFoundException ex) {
+							LOGGER.warn(
+									"Object detected in change log no longer exist on the resource. Skipping processing this object "
+											+ ex.getMessage());
+							// TODO: Maybe change to DELETE instead of this?
+						}
+					}
+					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
+							currentShadow, true, parentResult);
+					change.setCurrentShadow(processedCurrentShadow);
+				}
+				return outerListener.onChange(change);
+			} catch (Throwable t) {
+				throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
+			}
+		};
+		connector.startListeningForChanges(innerListener, parentResult);
+		computeResultStatus(parentResult);
+
+		LOGGER.trace("END start listening for async updates");
+	}
+
+	public void stopListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
+			@NotNull OperationResult parentResult) throws SchemaException,
+			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+		LOGGER.trace("START stop listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
+		ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
+		connector.stopListeningForChanges(parentResult);
+		computeResultStatus(parentResult);
+		LOGGER.trace("END stop listening for async updates");
+	}
+
 	/**
 	 * Process simulated activation, credentials and other properties that are added to the object by midPoint. 
 	 */

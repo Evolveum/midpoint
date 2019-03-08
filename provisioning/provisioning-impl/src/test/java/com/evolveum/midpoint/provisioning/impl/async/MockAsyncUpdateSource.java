@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.provisioning.impl.async;
+
+import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
+import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.LinkedList;
+import java.util.Queue;
+
+/**
+ *
+ */
+@SuppressWarnings("unused")
+public class MockAsyncUpdateSource implements AsyncUpdateSource {
+
+	private static final Trace LOGGER = TraceManager.getTrace(MockAsyncUpdateSource.class);
+
+	private final Queue<AsyncUpdateMessageType> messages = new LinkedList<>();
+
+	public static final MockAsyncUpdateSource INSTANCE = new MockAsyncUpdateSource();
+
+	public static MockAsyncUpdateSource create(AsyncUpdateSourceType configuration) {
+		LOGGER.info("create() method called");
+		return INSTANCE;
+	}
+
+	@Override
+	public void startListening(AsyncUpdateMessageListener listener) throws SchemaException {
+		LOGGER.info("startListening() method called");
+		for (AsyncUpdateMessageType message : messages) {
+			listener.process(message);
+		}
+	}
+
+	@Override
+	public void stopListening() {
+		LOGGER.info("stopListening() method called");
+	}
+
+	@Override
+	public void test() {
+		LOGGER.info("test() method called");
+	}
+
+	public void prepareMessage(UcfChangeType changeDescription) {
+		AnyDataAsyncUpdateMessageType message = new AnyDataAsyncUpdateMessageType();
+		message.setData(changeDescription);
+		messages.offer(message);
+	}
+
+	public void reset() {
+		messages.clear();
+	}
+}

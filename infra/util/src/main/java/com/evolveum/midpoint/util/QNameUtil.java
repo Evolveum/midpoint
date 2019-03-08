@@ -285,7 +285,7 @@ public class QNameUtil {
 		return found;
 	}
 
-	public static boolean matchAny(QName nameToFind, Collection<QName> names) {
+	public static boolean matchAny(QName nameToFind, Collection<? extends QName> names) {
 		// we no longer use resolveNs any more here, as the 'names' can contain duplicate qnames (resolveNs would complain on it)
 		if (names == null) {
 			return false;
