@@ -724,7 +724,9 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         clone.compileTimeClass = this.compileTimeClass;
         for (PrismContainerValue<C> pval : getValues()) {
             try {
-				clone.add(pval.cloneComplex(strategy));
+            	// No need to check for uniqueness here. If the value is unique in this object, it will also be unique in clone.
+            	// Not comparing values makes clones faster.
+				clone.add(pval.cloneComplex(strategy), false, null);
 			} catch (SchemaException e) {
 				// This should not happen
 				throw new SystemException("Internal Error: "+e.getMessage(),e);

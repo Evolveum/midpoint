@@ -57,9 +57,9 @@ public enum InternalCounters {
 
 	REPOSITORY_READ_COUNT("repositoryReadCount", "repository read count", null),
 
-	PRISM_OBJECT_COMPARE_COUNT("prismObjectCompareCount", "prism object compare count", null),
+	PRISM_OBJECT_COMPARE_COUNT("prismObjectCompareCount", "prism object compare count", InternalOperationClasses.PRISM_OPERATIONS),
 
-	PRISM_OBJECT_CLONE_COUNT("prismObjectCloneCount", "prism object clone count", null),
+	PRISM_OBJECT_CLONE_COUNT("prismObjectCloneCount", "prism object clone count", InternalOperationClasses.PRISM_OPERATIONS),
 
 	ROLE_EVALUATION_COUNT("roleEvaluationCount", "role evaluation count", InternalOperationClasses.ROLE_EVALUATIONS),
 

@@ -45,7 +45,8 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 	private static final String CLONE_START_TIMESTAMP_KEY = InternalMonitor.class.getName()+".cloneStartTimestamp";
 
 	private static Map<InternalCounters,Long> counterMap = new HashMap<>();
-	private static Map<InternalOperationClasses,Boolean> traceMap = new HashMap<>();
+	private static Map<InternalOperationClasses,Boolean> traceClassMap = new HashMap<>();
+	private static Map<InternalCounters,Boolean> traceCounterMap = new HashMap<>();
 
 	private static CachingStatistics resourceCacheStats = new CachingStatistics();
 	private static CachingStatistics connectorCacheStats = new CachingStatistics();
@@ -65,9 +66,8 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 
 	public static void recordCount(InternalCounters counter) {
 		long count = recordCountInternal(counter);
-		InternalOperationClasses operationClass = counter.getOperationClass();
-		if (operationClass != null && isTrace(operationClass)) {
-			traceOperation(counter, operationClass, count);
+		if (isTrace(counter)) {
+			traceOperation(counter, counter.getOperationClass(), count);
 		}
 	}
 
@@ -82,7 +82,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 	}
 
 	public static boolean isTrace(InternalOperationClasses operationClass) {
-		Boolean b = traceMap.get(operationClass);
+		Boolean b = traceClassMap.get(operationClass);
 		if (b == null) {
 			return false;
 		} else {
@@ -91,6 +91,10 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 	}
 
 	private static boolean isTrace(InternalCounters counter) {
+		Boolean counterTrace = traceCounterMap.get(counter);
+		if (counterTrace != null) {
+			return counterTrace;
+		}
 		InternalOperationClasses operationClass = counter.getOperationClass();
 		if (operationClass == null) {
 			return false;
@@ -99,7 +103,11 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 	}
 
 	public static void setTrace(InternalOperationClasses operationClass, boolean val) {
-		traceMap.put(operationClass, val);
+		traceClassMap.put(operationClass, val);
+	}
+	
+	public static void setTrace(InternalCounters counter, boolean val) {
+		traceCounterMap.put(counter, val);
 	}
 
 	private static void traceOperation(InternalCounters counter, InternalOperationClasses operationClass, long count) {
@@ -171,7 +179,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 	}
 
 	public synchronized <O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject) {
-		recordCountInternal(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+		recordCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
 	}
 
 	public static boolean isCloneTimingEnabled() {
@@ -247,7 +255,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 	public static void reset() {
 		LOGGER.info("MONITOR reset");
 		counterMap.clear();
-		traceMap.clear();
+		traceClassMap.clear();
 		resourceCacheStats = new CachingStatistics();
 		connectorCacheStats = new CachingStatistics();
 		inspector = null;
