@@ -15875,6 +15875,7 @@
 						<p>
 							Specifies the set of default forms that are used for displaying and
       						editing of objects, such as User, Role, Org, ...
+      						This is likely to get deprecated soon. It should be replaced by forms in objectDetails.
 						</p>
 					</xsd:documentation>
 					<xsd:appinfo>
@@ -22321,6 +22322,18 @@
 							</xsd:appinfo>
 	           			</xsd:annotation>
 	           		</xsd:element>
+	           		<!-- TODO:
+	           		<xsd:element name="forms" type="tns:ObjectDetailsFormsType" minOccurs="0" maxOccurs="1">
+	           			<xsd:annotation>
+	           				<xsd:documentation>
+	           					Specifies forms to be used to display object details.
+	           				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GuiObjectDetailsPageType.forms</a:displayName>
+							</xsd:appinfo>
+	           			</xsd:annotation>
+	           		</xsd:element>
+	           		 -->
 	           	</xsd:sequence>	
         	</xsd:extension>
         </xsd:complexContent>
@@ -22484,7 +22497,9 @@
         <xsd:annotation>
         	<xsd:documentation>
         		Specifies form that are used for displaying and
-        		editing of specific object type
+        		editing of specific object type.
+        		
+        		This data structure will be deprecated soon. It will be replaced by ObjectDetailsFormsType.
         	</xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -22514,11 +22529,44 @@
         </xsd:complexContent>
     </xsd:complexType>
     
+    <xsd:complexType name="ObjectDetailsFormsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies form that are used for displaying and editing of an object. It is used in GUI configuration and
+        		in the archetypes to customize the forms (tabs) that are used to display and edit an object.
+        		
+        		This is EXPERIMENTAL functionality. It works only for some use cases. It may be changed anytime.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+				<a:displayName>ObjectDetailsFormsType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+  		<xsd:sequence>
+          		<xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of a form used to display object details.
+						It is likely that this will be changed to multi-value in the future.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ObjectFormType.formSpecification</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+          	<!-- TODO: visibility of default object forms. E.g. use tns:UserInterfaceElementVisibilityType. For now the visibility of default
+          	     forms is unchanged. -->
+       	</xsd:sequence>	
+    </xsd:complexType>
+    
     <xsd:complexType name="FormSpecificationType">
         <xsd:annotation>
         	<xsd:documentation>
         		Specifies a form using several different methods, e.g. by
         		specification of Java class, internal form OID, etc.
+        		Maybe this needs to be subtype of UserInterfaceFeatureType?
         	</xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -22526,11 +22574,13 @@
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
+       			<!-- TODO: display? visibility? Maybe this needs to be subtype of UserInterfaceFeatureType? -->
 	       		<xsd:element name="title" type="xsd:string" minOccurs="0" maxOccurs="1">
        				<xsd:annotation>
        					<xsd:documentation>
        						Form title that is shown at an appropriate place, such as browser title, heading,
        						tab name, etc.
+       						This should be later replaced by DisplayType. Maybe this needs to be subtype of UserInterfaceFeatureType?
        					</xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>FormSpecificationType.title</a:displayName>
