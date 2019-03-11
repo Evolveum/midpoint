@@ -2469,7 +2469,7 @@ public class ShadowCache {
 						shadowCaretaker.applyAttributesDefinition(ctx, change.getOldShadow());
 					}
 					if (change.getCurrentShadow() != null) {
-						shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
+						shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());  // maybe redundant
 					}
 
 					ProvisioningContext shadowCtx;

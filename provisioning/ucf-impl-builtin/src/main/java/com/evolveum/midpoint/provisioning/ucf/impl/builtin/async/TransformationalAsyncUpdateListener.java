@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,15 +129,26 @@ public class TransformationalAsyncUpdateListener implements AsyncUpdateMessageLi
 			throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
 		}
 		ObjectDelta<ShadowType> delta;
-		if (changeBean.getObjectDelta() != null) {
-			delta = DeltaConvertor.createObjectDelta(changeBean.getObjectDelta(), prismContext, true);
+		ObjectDeltaType deltaBean = changeBean.getObjectDelta();
+		if (deltaBean != null) {
+			setFromDefaults((ShadowType) deltaBean.getObjectToAdd(), objectClassName);
+			delta = DeltaConvertor.createObjectDelta(deltaBean, prismContext, true);
 		} else {
 			delta = null;
 		}
+		setFromDefaults(changeBean.getObject(), objectClassName);
 		Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef);
 		Change change = new Change(identifiers, toPrismObject(changeBean.getObject()), null, delta);
 		change.setObjectClassDefinition(objectClassDef);
 		return change;
+	}
+
+	private void setFromDefaults(ShadowType object, QName objectClassName) {
+		if (object != null) {
+			if (object.getObjectClass() == null) {
+				object.setObjectClass(objectClassName);
+			}
+		}
 	}
 
 	private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ObjectClassComplexTypeDefinition ocDef)

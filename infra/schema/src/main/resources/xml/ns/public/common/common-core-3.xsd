@@ -10751,40 +10751,40 @@
             </xsd:documentation>
         </xsd:annotation>
         	<xsd:sequence>
-            	<xsd:element name="identifiers" type="tns:ShadowAttributesType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Identifiers of the object being changed.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Object class.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Delta describing the changes made to the shadow. E.g. if the change in the resource was
-                                to add new account, delta will contain ADD modification with the object specified.
-                                It may be null. If the object delta is null, the current object has to be specified.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="object" type="tns:ShadowType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Current state of the object. Either it or the delta has to be specified.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-    </xsd:complexType>
+				<xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Object class. Should be provided.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="identifiers" type="tns:ShadowAttributesType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Identifiers of the object being changed. Should be provided if not present in object or object delta.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Delta describing the changes made to the shadow. E.g. if the change in the resource was
+							to add new account, delta will contain ADD modification with the object specified.
+							It may be null. If the object delta is null, the current object has to be specified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="object" type="tns:ShadowType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Current state of the object. Either it or the delta has to be specified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+	</xsd:complexType>
 
-    <xsd:element name="ucfChange" type="tns:UcfChangeType"/>
+	<xsd:element name="ucfChange" type="tns:UcfChangeType"/>
 
     <xsd:complexType name="ConnectorType">
         <xsd:annotation>
@@ -11139,7 +11139,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
      				</xsd:element>
-                    <xsd:element name="objectClass" type="xsd:QName">
+                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The reference to a type definition for this object. The reference should point
@@ -11148,6 +11148,9 @@
                                 The attributes contained in the "attributes" element below are expected to
                                 comply with the type definition specified in this element (with addition of
                                 auxiliary object class definitions).
+
+								Formally, minOccurs is 0 here but unless a reasonable default is provided, the value
+								must be present.
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>ShadowType.objectClass</a:displayName>

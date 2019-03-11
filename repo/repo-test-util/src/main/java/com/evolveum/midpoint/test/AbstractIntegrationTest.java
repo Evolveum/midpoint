@@ -442,6 +442,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		LOGGER.trace("addObjectFromFile: {}, connector type {}", file, connectorType);
 		PrismObject<ResourceType> resource = prismContext.parseObject(file);
+		return addResourceFromObject(resource, connectorType, overwrite, result);
+	}
+
+	@NotNull
+	protected PrismObject<ResourceType> addResourceFromObject(PrismObject<ResourceType> resource, String connectorType,
+			boolean overwrite, OperationResult result)
+			throws SchemaException, EncryptionException,
+			ObjectAlreadyExistsException {
 		fillInConnectorRef(resource, connectorType, result);
 		CryptoUtil.encryptValues(protector, resource);
 		display("Adding resource ", resource);

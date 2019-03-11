@@ -1728,7 +1728,6 @@ public class ShadowManager {
 		PrismContainer<Containerable> currentResourceAttributesContainer = currentResourceShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		PrismContainer<Containerable> oldRepoAttributesContainer = oldRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		ShadowType oldRepoShadowType = oldRepoShadow.asObjectable();
-		ShadowType currentResourceShadowType = currentResourceShadow.asObjectable();
 
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 

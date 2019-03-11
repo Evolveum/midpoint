@@ -32,6 +32,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
@@ -1870,6 +1871,7 @@ public class ResourceObjectConverter {
 		ChangeListener innerListener = change -> {
 			try {
 				LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
+				setResourceOidIfMissing(change, ctx.getResourceOid());
 				ProvisioningContext shadowCtx = ctx;
 				PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
 				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
@@ -1905,6 +1907,9 @@ public class ResourceObjectConverter {
 							// TODO: Maybe change to DELETE instead of this?
 						}
 					}
+					if (change.getCurrentShadow() != null) {
+						shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
+					}
 					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
 							currentShadow, true, parentResult);
 					change.setCurrentShadow(processedCurrentShadow);
@@ -1918,6 +1923,20 @@ public class ResourceObjectConverter {
 		computeResultStatus(parentResult);
 
 		LOGGER.trace("END start listening for async updates");
+	}
+
+	private void setResourceOidIfMissing(Change change, String resourceOid) {
+		setResourceOidIfMissing(change.getOldShadow(), resourceOid);
+		setResourceOidIfMissing(change.getCurrentShadow(), resourceOid);
+		if (change.getObjectDelta() != null) {
+			setResourceOidIfMissing(change.getObjectDelta().getObjectToAdd(), resourceOid);
+		}
+	}
+
+	private void setResourceOidIfMissing(PrismObject<ShadowType> object, String resourceOid) {
+		if (object != null && object.asObjectable().getResourceRef() == null && resourceOid != null) {
+			object.asObjectable().setResourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE));
+		}
 	}
 
 	public void stopListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,

@@ -47,7 +47,8 @@
 					<xsd:annotation>
 						<xsd:appinfo>
 							<ra:resourceObject/>
-							<ra:identifier>icfs:name</ra:identifier>
+							<ra:identifier>icfs:uid</ra:identifier>
+							<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
 							<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
 							<ra:namingAttribute>icfs:name</ra:namingAttribute>
 							<ra:account/>
@@ -63,4 +64,9 @@
 			</xsd:schema>
 		</definition>
 	</schema>
+	<capabilities>
+		<configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+			<cap:read/>			<!-- just for testing; removed in TestAsyncUpdateCaching -->
+		</configured>
+	</capabilities>
 </resource>
