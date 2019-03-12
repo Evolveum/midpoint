@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.intest.messaging;
+package com.evolveum.midpoint.model.intest.async;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
@@ -51,7 +51,7 @@ import java.io.File;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "messaging");
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async/notify-change");
 
 	protected static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper.xml");
 	protected static final String RESOURCE_GROUPER_ID = "Grouper";

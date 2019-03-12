@@ -1793,6 +1793,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
+	protected <O extends ObjectType> void assertObjectByName(Class<O> type, String name, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+		SearchResultList<PrismObject<O>> objects = modelService
+				.searchObjects(type, prismContext.queryFor(type).item(ObjectType.F_NAME).eqPoly(name).build(), null, task,
+						result);
+		if (objects.isEmpty()) {
+			fail("Expected that " + type + " " + name + " did exist but it did not");
+		}
+	}
+
+	protected <O extends ObjectType> void assertNoObjectByName(Class<O> type, String name, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+		SearchResultList<PrismObject<O>> objects = modelService
+				.searchObjects(type, prismContext.queryFor(type).item(ObjectType.F_NAME).eqPoly(name).build(), null, task,
+						result);
+		if (!objects.isEmpty()) {
+			fail("Expected that " + type + " " + name + " did not exists but it did: " + objects);
+		}
+	}
+
 	protected void assertNoShadow(String username, PrismObject<ResourceType> resource,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		ObjectQuery query = createAccountShadowQuery(username, resource);

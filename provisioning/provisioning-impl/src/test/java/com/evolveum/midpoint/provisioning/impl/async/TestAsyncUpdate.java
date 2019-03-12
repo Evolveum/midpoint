@@ -39,6 +39,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -48,6 +49,7 @@ import org.w3c.dom.Element;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoAccountShadow;
 import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoShadow;
@@ -63,7 +65,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 	protected static final File TEST_DIR = new File("src/test/resources/async/");
 
-	protected static final File RESOURCE_ASYNC_FILE = new File(TEST_DIR, "resource-async.xml");
+	protected static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
+	protected static final File RESOURCE_ASYNC_NO_CACHING_FILE = new File(TEST_DIR, "resource-async-no-caching.xml");
 	protected static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
 
 	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-first-occurrence.xml");
@@ -104,14 +107,15 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		super.initSystem(initTask, initResult);
 
 		syncServiceMock.setSupportActivation(false);
-		PrismObject<ResourceType> object = prismContext.parseObject(RESOURCE_ASYNC_FILE);
-		tailorResourceObject(object);
-		resource = addResourceFromObject(object, ASYNC_CONNECTOR_TYPE, false, initResult);
+		resource = addResourceFromFile(getResourceFile(), getConnectorTypes(), false, initResult);
 
 		InternalsConfig.setSanityChecks(true);
 	}
 
-	protected abstract void tailorResourceObject(PrismObject<ResourceType> object);
+	@NotNull
+	public abstract List<String> getConnectorTypes();
+
+	protected abstract File getResourceFile();
 
 	@Test
 	public void test000Sanity() throws Exception {
@@ -259,6 +263,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
 				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
 
+		addDummyAccount("banderson");
+
 		provisioningService.startListeningForAsyncUpdates(coords, task, result);
 
 		syncServiceMock.assertNotifyChange();
@@ -271,7 +277,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
 
 		assertNotNull("Delta is missing", lastChange.getObjectDelta());
-		assertNull("Current shadow is present while not expecting it", lastChange.getCurrentShadow());
+		assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
 
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
 		assertNotNull("Shadow was not created in the repository", accountRepo);
@@ -295,6 +301,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
 				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
 
+		setDummyAccountTestAttribute("banderson", "value1", "value2", "value3");
+
 		provisioningService.startListeningForAsyncUpdates(coords, task, result);
 
 		syncServiceMock.assertNotifyChange();
@@ -311,12 +319,12 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
 		assertEquals("Wrong # of modifications", 1, modifications.size());
 		assertEquals("Wrong # of values added", 3, modifications.iterator().next().getValuesToAdd().size());
-		assertNull("Current shadow is present while not expecting it", lastChange.getCurrentShadow());
+		assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
 
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
 		assertNotNull("Shadow is not present in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
-		checkRepoAccountShadow(accountRepo);        // todo why here are 2 attributes even if passive caching is used? clarify!
+		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
 	}
 
 	@Test
@@ -334,6 +342,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
 				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
+
+		setDummyAccountTestAttribute("banderson", "value4");
 
 		provisioningService.startListeningForAsyncUpdates(coords, task, result);
 
@@ -354,8 +364,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		display("Repository shadow", accountRepo);
 		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
 	}
-
-	protected abstract int getNumberOfAccountAttributes();
 
 	@Test
 	public void test130ListeningForShadowDelete() throws Exception {
@@ -395,5 +403,11 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
 	}
 
+	protected void addDummyAccount(String name) {
+	}
 
+	protected void setDummyAccountTestAttribute(String name, String... values) {
+	}
+
+	protected abstract int getNumberOfAccountAttributes();
 }

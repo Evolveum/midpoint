@@ -36,24 +36,21 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
-import com.evolveum.midpoint.schema.result.OperationConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -1790,7 +1787,7 @@ public class ResourceObjectConverter {
 		Iterator<Change> iterator = changes.iterator();
 		while (iterator.hasNext()) {
 			Change change = iterator.next();
-			LOGGER.trace("Original change:\n{}", change.debugDump());
+			LOGGER.trace("Original change:\n{}", change.debugDumpLazily());
 			if (change.isTokenOnly()) {
 				continue;
 			}
@@ -1806,7 +1803,7 @@ public class ResourceObjectConverter {
 			if (ctx.isWildcard() && changeObjectClassDefinition != null) {
 				shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
 				if (shadowCtx.isWildcard()) {
-					String message = "Unkown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta";
+					String message = "Unknown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta";
 					parentResult.recordFatalError(message);
 					throw new SchemaException(message);
 				}
@@ -1819,12 +1816,11 @@ public class ResourceObjectConverter {
 				if (currentShadow == null) {
 					// There is no current shadow in a change. Add it by fetching it explicitly.
 					try {
-						
+						// TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented [pmed]
 						LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
 						currentShadow = fetchResourceObject(shadowCtx, 
 								change.getIdentifiers(), shadowAttrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
 						change.setCurrentShadow(currentShadow);
-						
 					} catch (ObjectNotFoundException ex) {
 						parentResult.recordHandledError(
 								"Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
@@ -1844,7 +1840,6 @@ public class ResourceObjectConverter {
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
 							currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, parentResult);
 						}
-						
 					}
 							
 					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
@@ -1873,7 +1868,6 @@ public class ResourceObjectConverter {
 				LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
 				setResourceOidIfMissing(change, ctx.getResourceOid());
 				ProvisioningContext shadowCtx = ctx;
-				PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
 				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
 				if (changeObjectClassDefinition == null) {
 					if (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
@@ -1883,36 +1877,20 @@ public class ResourceObjectConverter {
 				if (ctx.isWildcard() && changeObjectClassDefinition != null) {
 					shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
 					if (shadowCtx.isWildcard()) {
-						String message = "Unkownn object class " + changeObjectClassDefinition.getTypeName()
+						String message = "Unknown object class " + changeObjectClassDefinition.getTypeName()
 								+ " found in synchronization delta";
 						throw new SchemaException(message);
 					}
 					change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
 				}
 
-				if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
-					if (currentShadow == null) {
-						// There is no current shadow in a change. Add it by fetching it explicitly.
-						try {
-							LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
-							currentShadow = fetchResourceObject(shadowCtx,
-									change.getIdentifiers(), null, true,
-									parentResult);    // todo consider whether it is always necessary to fetch the entitlements
-							change.setCurrentShadow(currentShadow);
-
-						} catch (ObjectNotFoundException ex) {
-							LOGGER.warn(
-									"Object detected in change log no longer exist on the resource. Skipping processing this object "
-											+ ex.getMessage());
-							// TODO: Maybe change to DELETE instead of this?
-						}
-					}
-					if (change.getCurrentShadow() != null) {
-						shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
-					}
+				if (change.getCurrentShadow() != null) {
+					shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
 					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
-							currentShadow, true, parentResult);
+							change.getCurrentShadow(), true, parentResult);
 					change.setCurrentShadow(processedCurrentShadow);
+				} else {
+					// we will fetch current shadow later
 				}
 				return outerListener.onChange(change);
 			} catch (Throwable t) {

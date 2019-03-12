@@ -58,15 +58,11 @@
 					<xsd:sequence>
 						<xsd:element ref="icfs:name"/>
 						<xsd:element ref="icfs:uid"/>
-						<xsd:element name="test" type="xsd:string"/>
+						<xsd:element name="test" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
 					</xsd:sequence>
 				</xsd:complexType>
 			</xsd:schema>
 		</definition>
 	</schema>
-	<capabilities>
-		<configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-			<cap:read/>			<!-- just for testing; removed in TestAsyncUpdateCaching -->
-		</configured>
-	</capabilities>
+	<!-- caching is set by default for AsyncUpdateConnector -->
 </resource>

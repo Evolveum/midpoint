@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.impl.async;
+package com.evolveum.midpoint.model.intest.async;
 
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AnyDataAsyncUpdateMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UcfChangeType;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
 /**
- * See also MockAsyncUpdateSource in model-intest.
+ * See also MockAsyncUpdateSource in provisioning-impl.
  */
 @SuppressWarnings("unused")
 public class MockAsyncUpdateSource implements AsyncUpdateSource {

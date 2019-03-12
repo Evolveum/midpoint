@@ -115,16 +115,13 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 		Change change = new Change(identifiers, eventDescription.getCurrentShadow(), eventDescription.getOldShadow(), eventDescription.getDelta());
 		change.setObjectClassDefinition(ShadowUtil.getObjectClassDefinition(shadow));
 
-		LOGGER.trace("Starting to process change: {}", change);
+		LOGGER.trace("Starting to synchronize change: {}", change);
 		try {
-			shadowCache.preProcessChange(ctx, change, eventDescription.getOldShadow(), parentResult);
+			shadowCache.processSynchronization(ctx, false, change, task, null, parentResult);
 		} catch (EncryptionException e) {
 			// TODO: better handling
 			throw new SystemException(e.getMessage(), e);
 		}
-
-		LOGGER.trace("Processed change {}. Starting synchronizing.", change);
-		shadowCache.processSynchronization(ctx, false, change, task, null, parentResult);
 	}
 
 	private void applyDefinitions(ResourceEventDescription eventDescription,
@@ -137,7 +134,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 			shadowCache.applyDefinition(eventDescription.getOldShadow(), parentResult);
 		}
 
-		if (eventDescription.getDelta() != null){
+		if (eventDescription.getDelta() != null) {
 			shadowCache.applyDefinition(eventDescription.getDelta(), null, parentResult);
 		}
 	}

@@ -16,8 +16,12 @@
 
 package com.evolveum.midpoint.provisioning.impl.async;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 /**
  *
@@ -25,8 +29,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class TestAsyncUpdateCaching extends TestAsyncUpdate {
 
 	@Override
-	protected void tailorResourceObject(PrismObject<ResourceType> object) {
-		object.asObjectable().setCapabilities(null);        // Passive caching is the default
+	protected File getResourceFile() {
+		return RESOURCE_ASYNC_CACHING_FILE;
+	}
+
+	@NotNull
+	@Override
+	public List<String> getConnectorTypes() {
+		return singletonList(ASYNC_CONNECTOR_TYPE);
 	}
 
 	@Override

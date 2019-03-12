@@ -14,24 +14,17 @@
   ~ limitations under the License.
   -->
 
-<resourceObjectShadowChangeDescription
+<ucfChange
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<identifiers>
+		<icfs:uid>banderson</icfs:uid>
+	</identifiers>
 	<objectDelta>
-		<t:changeType>add</t:changeType>
-		<t:objectType>c:ShadowType</t:objectType>
-		<t:objectToAdd xsi:type="ShadowType">
-			<resourceRef oid="bbb9900a-b53d-4453-b60b-908725e3950e"/>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attributes>
-				<icfs:name>banderson</icfs:name>
-				<icfs:uid>banderson</icfs:uid>
-			</attributes>
-		</t:objectToAdd>
+		<t:changeType>delete</t:changeType>
+		<t:objectType>ShadowType</t:objectType>
 	</objectDelta>
-	<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>
-</resourceObjectShadowChangeDescription>
+</ucfChange>
