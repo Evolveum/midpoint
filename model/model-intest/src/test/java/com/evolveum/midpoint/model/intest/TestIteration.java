@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -230,18 +230,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		getDummyResource().addAccount(account);
 		repoAddObject(createShadow(getDummyResourceObject(), ACCOUNT_JACK_DUMMY_USERNAME), result);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
-        deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(accountAssignmentUserDelta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -288,8 +285,6 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		getDummyResource(RESOURCE_DUMMY_PINK_NAME).addAccount(account);
 		repoAddObject(createShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_JACK_DUMMY_USERNAME), result);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-
 		// assignment with weapon := 'pistol' (test for
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		AssignmentType assignmentType = createConstructionAssignment(RESOURCE_DUMMY_PINK_OID, ShadowKindType.ACCOUNT, null);
@@ -307,16 +302,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		ObjectDelta<UserType> accountAssignmentUserDelta = prismContext.deltaFactory().object()
 				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
-        deltas.add(accountAssignmentUserDelta);
-
 		// WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(accountAssignmentUserDelta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -369,18 +361,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_PINK_OID, null, true);
-        deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(accountAssignmentUserDelta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
@@ -436,16 +425,14 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // precondition
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_DEWATT_NAME, "Augustus DeWatt", true);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(userDeWattkOid,
         		RESOURCE_DUMMY_PINK_OID, null, true);
-        deltas.add(accountAssignmentUserDelta);
 
         dummyAuditService.clear();
 
 		// WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(accountAssignmentUserDelta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1728,8 +1715,6 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         DummyAccount account = new DummyAccount(ACCOUNT_LECHUCK_USERNAME);
@@ -1758,8 +1743,6 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         DummyAccount account = new DummyAccount(ACCOUNT_CHARLES_USERNAME);
@@ -1789,8 +1772,6 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         DummyAccount account = new DummyAccount(ACCOUNT_SHINETOP_USERNAME);
@@ -1819,8 +1800,6 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
@@ -1843,8 +1822,6 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
@@ -1870,8 +1847,6 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
