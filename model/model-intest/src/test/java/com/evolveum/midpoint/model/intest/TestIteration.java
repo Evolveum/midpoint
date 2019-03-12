@@ -118,6 +118,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static final String TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-5555-555500da0204";
 
 	// Iteration with token expression and pre- and post-condition. Sequential suffix.
+	// Configured in dark-violet dummy resource as account sync template
 	protected static final File USER_TEMPLATE_ITERATION_FILE = new File(TEST_DIR, "user-template-iteration.xml");
 	protected static final String USER_TEMPLATE_ITERATION_OID = "10000000-0000-0000-0000-0000000d0002";
 
@@ -145,8 +146,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 	private static final String ACCOUNT_LECHUCK_USERNAME = "lechuck";
 	private static final String LECHUCK_FULLNAME = "LeChuck";
+	private static final String LE_CHUCK_FULLNAME = "Le-Chuck";
 	private static final String ACCOUNT_CHARLES_USERNAME = "charles";
 	private static final String ACCOUNT_SHINETOP_USERNAME = "shinetop";
+	private static final String ACCOUNT_LE_CHUCK_USERNAME = "le-chuck";
 	private static final String CHUCKIE_FULLNAME = "Chuckie";
 
 	private static final String ACCOUNT_MATUSALEM_USERNAME = "matusalem";
@@ -1863,6 +1866,43 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		displayAllUsers();
 		assertUserNick(ACCOUNT_LECHUCK_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME);
 		assertNoUserNick(ACCOUNT_CHARLES_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".1");
+		assertUserNick(ACCOUNT_SHINETOP_USERNAME, CHUCKIE_FULLNAME, CHUCKIE_FULLNAME, "Monkey Island");
+		assertNoUserNick(ACCOUNT_SHINETOP_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".2");
+	}
+	
+	/*
+	 * Create account with fullname Le_Chuck. This does not conflict with the orig value,
+	 * but it does conflict on polystring norm value.
+	 * User with name le_chuck.1 should be created. This is the third conflict, but the .1
+	 * suffix is free, therefore it is reused.
+	 * MID-5199
+	 */
+	@Test
+    public void test724DarkVioletAddLe_Chuck() throws Exception {
+		final String TEST_NAME = "test724DarkVioletAddLe_Chuck";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        dummyAuditService.clear();
+
+        DummyAccount account = new DummyAccount(ACCOUNT_LE_CHUCK_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, LE_CHUCK_FULLNAME);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+        display("Adding dummy account", account.debugDump());
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
+
+		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
+
+		// THEN
+		displayThen(TEST_NAME);
+		displayAllUsers();
+		assertUserNick(ACCOUNT_LECHUCK_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME);
+		assertUserNick(ACCOUNT_LE_CHUCK_USERNAME, LE_CHUCK_FULLNAME, LE_CHUCK_FULLNAME+".1", "Melee Island");
 		assertUserNick(ACCOUNT_SHINETOP_USERNAME, CHUCKIE_FULLNAME, CHUCKIE_FULLNAME, "Monkey Island");
 		assertNoUserNick(ACCOUNT_SHINETOP_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".2");
 	}
