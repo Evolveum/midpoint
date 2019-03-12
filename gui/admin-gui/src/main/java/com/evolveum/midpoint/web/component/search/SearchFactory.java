@@ -103,7 +103,6 @@ public class SearchFactory {
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
                 ItemPath.create(UserType.F_EMPLOYEE_TYPE),
                 ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
-                ItemPath.create(UserType.F_COST_CENTER),
                 ItemPath.create(UserType.F_LOCALITY)));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 ItemPath.create(RoleType.F_NAME),
