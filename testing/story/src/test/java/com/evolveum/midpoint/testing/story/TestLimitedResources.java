@@ -261,7 +261,8 @@ public class TestLimitedResources extends AbstractStoryTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		assertSuccess(result);
+		display("Result", result);
+		assertSuccess(result, 2);
 		
 		assertUserAfter(USER_JACK_OID)
 			.links()
