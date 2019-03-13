@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,10 +276,10 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 	
 	@Test
 	public void test020ResourceStaticSchemaTest() throws Exception {
-		resourceStaticSchemaTest("test020ResourceStaticSchemaTest");
+		resourceStaticSchemaTest("test020ResourceStaticSchemaTest", 1);
 	}
 	
-	public void resourceStaticSchemaTest(final String TEST_NAME) throws Exception {
+	public void resourceStaticSchemaTest(final String TEST_NAME, int expectedConnectorInitCount) throws Exception {
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -292,6 +292,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberResourceCacheStats();
 
@@ -349,7 +350,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, expectedConnectorInitCount);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
 		
 		// Not sure why 2 instead 1, but this is a small difference, we can live with that
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 2);
@@ -384,6 +386,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberSchemaMetadata(resourceStaticSchema);
 		rememberConnectorInstance(currentConnectorInstance);
@@ -486,6 +489,8 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 		
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
@@ -497,7 +502,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 	
 	@Test
 	public void test042ResourceStaticSchemaTestAgain() throws Exception {
-		resourceStaticSchemaTest("test042ResourceStaticSchemaTestAgain");
+		resourceStaticSchemaTest("test042ResourceStaticSchemaTestAgain", 0);
 	}
 	
 	/**

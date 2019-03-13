@@ -1350,7 +1350,22 @@ public class ContextLoader {
 				Class<F> focusClass = focusContext.getObjectTypeClass();
 				if (FocusType.class.isAssignableFrom(focusClass)) {
 					LOGGER.trace("Reloading focus to check for new links");
-					PrismObject<F> focusCurrent = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusContext.getOid(), null, result);
+					PrismObject<F> focusCurrent;
+					try {
+						focusCurrent = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusContext.getOid(), null, result);
+					} catch (ObjectNotFoundException e) {
+						if (focusContext.isDelete()) {
+							// This may be OK. This may be later wave and the focus may be already deleted.
+							// Therefore let's just keep what we have. We have no way how to refresh context
+							// in that situation.
+							result.muteLastSubresultError();
+							LOGGER.trace("ObjectNotFound error is not compensated (focus already deleted), setting context to tombstone");
+							projCtx.markTombstone();
+							return;
+						} else {
+							throw e;
+						}
+					}
 					FocusType focusType = (FocusType) focusCurrent.asObjectable();
 					for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
 						if (linkRef.getOid().equals(projCtx.getOid())) {

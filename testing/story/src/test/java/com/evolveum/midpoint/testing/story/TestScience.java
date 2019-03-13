@@ -334,6 +334,8 @@ public class TestScience  extends AbstractStoryTest {
 		Task task = createTask(TEST_NAME);
 
 		OperationResult result = task.getResult();
+		
+		assertUserBefore(USER_JACK_OID);
 
 		// WHEN
 		deleteObject(UserType.class, USER_JACK_OID, task, result);

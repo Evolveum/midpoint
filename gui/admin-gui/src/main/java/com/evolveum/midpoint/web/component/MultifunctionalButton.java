@@ -23,7 +23,9 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -36,7 +38,7 @@ import java.util.List;
 /**
  * Created by honchar
  */
-public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> {
+public abstract class MultifunctionalButton<S extends Serializable> extends BasePanel<S> {
 
     private static String ID_MAIN_BUTTON = "mainButton";
     private static String ID_BUTTON = "additionalButton";
@@ -56,7 +58,12 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
     private void initLayout(){
         List<S> additionalButtons =  getAdditionalButtonsObjects();
 
-        DisplayType mainButtonDisplayType = getMainButtonDisplayType();
+        DisplayType defaultObjectButtonDisplayType = validateDisplayType(getDefaultObjectButtonDisplayType());
+        DisplayType mainButtonDisplayType = validateDisplayType(getMainButtonDisplayType());
+        //we set default button icon class if no other is defined
+        if (StringUtils.isEmpty(mainButtonDisplayType.getIcon().getCssClass())){
+            mainButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
+        }
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(mainButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(mainButtonDisplayType));
@@ -82,7 +89,11 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
 
         if (additionalButtonsExist()){
             additionalButtons.forEach(additionalButtonObject -> {
-                DisplayType additionalButtonDisplayType = getAdditionalButtonDisplayType(additionalButtonObject);
+                DisplayType additionalButtonDisplayType = validateDisplayType(getAdditionalButtonDisplayType(additionalButtonObject));
+                //we set default button icon class if no other is defined
+                if (StringUtils.isEmpty(additionalButtonDisplayType.getIcon().getCssClass())){
+                    additionalButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
+                }
 
                 CompositedIconBuilder additionalButtonBuilder = new CompositedIconBuilder();
                 additionalButtonBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
@@ -103,7 +114,10 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
                 buttonsPanel.add(additionalButton);
             });
 
-            DisplayType defaultObjectButtonDisplayType = getDefaultObjectButtonDisplayType();
+            //we set main button icon class if no other is defined
+            if (StringUtils.isEmpty(defaultObjectButtonDisplayType.getIcon().getCssClass())){
+                defaultObjectButtonDisplayType.getIcon().setCssClass(mainButtonDisplayType.getIcon().getCssClass());
+            }
             CompositedIconBuilder defaultObjectButtonBuilder = new CompositedIconBuilder();
             defaultObjectButtonBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultObjectButtonDisplayType))
@@ -125,21 +139,29 @@ public class MultifunctionalButton<S extends Serializable> extends BasePanel<S> 
         }
     }
 
-    protected DisplayType getMainButtonDisplayType(){
-        return null;
-    }
+    protected abstract DisplayType getMainButtonDisplayType();
 
-    protected DisplayType getAdditionalButtonDisplayType(S buttonObject){
-        return null;
-    }
+    protected abstract DisplayType getAdditionalButtonDisplayType(S buttonObject);
 
     /**
      * this method should return the display properties for the last button on the dropdown  panel with additional buttons.
      * The last button is supposed to produce a default action (an action with no additional objects to process)
      * @return
      */
-    protected DisplayType getDefaultObjectButtonDisplayType(){
-        return null;
+    protected abstract DisplayType getDefaultObjectButtonDisplayType();
+
+    private DisplayType validateDisplayType(DisplayType displayType){
+        if (displayType == null){
+            displayType = new DisplayType();
+        }
+        if (displayType.getIcon() == null){
+            displayType.setIcon(new IconType());
+        }
+        if (displayType.getIcon().getCssClass() == null){
+            displayType.getIcon().setCssClass("");
+        }
+
+        return displayType;
     }
 
     protected void buttonClickPerformed(AjaxRequestTarget target, S buttonObject){

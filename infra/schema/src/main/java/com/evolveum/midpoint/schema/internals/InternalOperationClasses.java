@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,9 @@ public enum InternalOperationClasses {
 
 	PRISM_OBJECT_CLONES("prismObjectClone", "prism object clones"),
 
-	ROLE_EVALUATIONS("roleEvaluations", "role evaluations");
+	ROLE_EVALUATIONS("roleEvaluations", "role evaluations"), 
+	
+	PRISM_OPERATIONS("prismOperations", "prism operations");
 
 	// Used as localization key
 	private String key;

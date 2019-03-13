@@ -194,7 +194,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         	staticVal = this.toString();
         }
 
-        log.info("Connected to dummy resource instance {0} ({1} connections open)", resource, resource.getConnectionCount());
+        log.info("Connected connector #{0} to dummy resource instance {1} ({2} connections open)", instanceNumber, resource, resource.getConnectionCount());
     }
     
     private static synchronized int getNextInstanceNumber() {
@@ -210,7 +210,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     public void dispose() {
     	connected = false;
     	resource.disconnect();
-    	log.info("Disconnected from dummy resource instance {0} ({1} connections still open)", resource, resource.getConnectionCount());
+    	log.info("Disconnected connector #{0} from dummy resource instance {1} ({2} connections still open)", instanceNumber, resource, resource.getConnectionCount());
     }
 
     @Override

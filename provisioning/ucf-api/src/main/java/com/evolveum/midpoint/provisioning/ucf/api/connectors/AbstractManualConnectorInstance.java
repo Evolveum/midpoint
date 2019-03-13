@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -76,6 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
  * @author Radovan Semancik
  */
 @ManagedConnector
+@Experimental
 public abstract class AbstractManualConnectorInstance extends AbstractManagedConnectorInstance implements AsynchronousOperationQueryable {
 
 	private static final String OPERATION_ADD = AbstractManualConnectorInstance.class.getName() + ".addObject";
