@@ -484,8 +484,21 @@ public class ShadowManager {
 			if (change.isAdd()) {
 				shadow = change.getObjectDelta().getObjectToAdd();
 				assert shadow != null;
+			} else if (change.getIdentifiers() != null && !change.getIdentifiers().isEmpty()) {
+				if (change.getObjectClassDefinition() == null) {
+					throw new IllegalStateException("Could not create shadow from change description. Object class is not specified.");
+				}
+				ShadowType newShadow = new ShadowType(prismContext);
+				newShadow.setObjectClass(change.getObjectClassDefinition().getTypeName());
+				ResourceAttributeContainer attributeContainer = change.getObjectClassDefinition()
+						.toResourceAttributeContainerDefinition().instantiate();
+				newShadow.asPrismObject().add(attributeContainer);
+				for (ResourceAttribute<?> identifier : change.getIdentifiers()) {
+					attributeContainer.add(identifier.clone());
+				}
+				shadow = newShadow.asPrismObject();
 			} else {
-				throw new IllegalStateException("Could not create shadow from change description. Neither current shadow, nor delta containing shadow exists.");
+				throw new IllegalStateException("Could not create shadow from change description. Neither current shadow, nor delta containing shadow, nor identifiers exists.");
 			}
 		}
 		

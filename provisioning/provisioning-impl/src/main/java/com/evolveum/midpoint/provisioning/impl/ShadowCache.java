@@ -2709,7 +2709,9 @@ public class ShadowCache {
 			} else {
 				if (ctx.getCachingStrategy() == CachingStategyType.PASSIVE) {
 					PrismObject<ShadowType> currentShadow = oldShadow.clone();
-					change.getObjectDelta().applyTo(currentShadow);
+					if (change.getObjectDelta() != null) {
+						change.getObjectDelta().applyTo(currentShadow);
+					}
 					change.setCurrentShadow(currentShadow);
 				} else {
 					// no caching; let us retrieve the object from the resource

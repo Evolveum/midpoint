@@ -16,19 +16,11 @@
 
 <ucfChange
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<objectClass>ri:AccountObjectClass</objectClass>
-	<objectDelta>
-		<t:changeType>add</t:changeType>
-		<t:objectType>ShadowType</t:objectType>
-		<t:objectToAdd xsi:type="ShadowType">
-			<attributes>
-				<icfs:name>jlewis685</icfs:name>
-				<icfs:uid>jlewis685</icfs:uid>
-			</attributes>
-		</t:objectToAdd>
-	</objectDelta>
+	<identifiers>
+		<icfs:name>jlewis685</icfs:name>
+		<icfs:uid>jlewis685</icfs:uid>
+	</identifiers>
 </ucfChange>

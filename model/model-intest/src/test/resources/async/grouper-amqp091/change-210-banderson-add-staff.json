@@ -5,14 +5,14 @@
       "sourceId": "ldap",
       "membershipType": "flattened",
       "fieldName": "members",
-      "groupId": "00000000000000000000000000000002",
+      "groupId": "00000000000000000000000000000003",
       "changeOccurred": false,
-      "createdOnMicros": 1551884899000000,
+      "createdOnMicros": 1551884899000200,
       "subjectId": "banderson",
-      "id": "43294320943029403294023113333333",
-      "sequenceNumber": "1004",
+      "id": "35053020594395347781783127847322",
+      "sequenceNumber": "210",
       "eventType": "MEMBERSHIP_ADD",
-      "groupName": "midpoint:alumni"
+      "groupName": "ref:staff"
     }
   ]
 }

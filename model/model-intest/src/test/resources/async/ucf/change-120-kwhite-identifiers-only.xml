@@ -19,12 +19,8 @@
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<objectClass>ri:AccountObjectClass</objectClass>
-	<object>
-		<attributes>
-			<icfs:name>banderson</icfs:name>
-			<icfs:uid>banderson</icfs:uid>
-			<ri:group>ref:alumni</ri:group>
-			<ri:group>ref:staff</ri:group>
-		</attributes>
-	</object>
+	<identifiers>
+		<icfs:name>kwhite</icfs:name>
+		<icfs:uid>kwhite</icfs:uid>
+	</identifiers>
 </ucfChange>

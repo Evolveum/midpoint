@@ -14,6 +14,7 @@
   ~ limitations under the License.
   -->
 
+<!-- this is sent before 'identifiers-only' message just to check if the mechanism works also when changes are reordered -->
 <ucfChange
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -21,11 +22,16 @@
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<identifiers>
-		<icfs:name>banderson</icfs:name>
-		<icfs:uid>banderson</icfs:uid>
+		<icfs:name>jlewis685</icfs:name>
+		<icfs:uid>jlewis685</icfs:uid>
 	</identifiers>
 	<objectDelta>
-		<t:changeType>delete</t:changeType>
+		<t:changeType>modify</t:changeType>
 		<t:objectType>ShadowType</t:objectType>
+		<t:itemDelta>
+			<t:modificationType>add</t:modificationType>
+			<t:path>attributes/ri:group</t:path>
+			<t:value>ref:alumni</t:value>
+		</t:itemDelta>
 	</objectDelta>
 </ucfChange>

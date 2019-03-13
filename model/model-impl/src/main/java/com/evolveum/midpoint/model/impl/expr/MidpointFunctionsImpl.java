@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
@@ -92,6 +93,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -1820,32 +1822,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return prismContext.deltaFor(objectClass);
 	}
 
-	public ResourceObjectShadowChangeDescriptionType createChangeDescriptionForNewObject(ResourceType resource,
-			QName objectClassName, Map<QName, Object> attributes) throws SchemaException {
-		ShadowType shadow = new ShadowType(prismContext);
-		shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource, prismContext));
-		shadow.setObjectClass(objectClassName);
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource.asPrismObject(), prismContext);
-		ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassName);
-		if (objectClassDefinition == null) {
-			throw new SchemaException("Couldn't find schema definition for object class '" + objectClassName + "' in " + resource);
-		}
-		for (Map.Entry<QName, Object> entry : attributes.entrySet()) {
-			QName attributeName = entry.getKey();
-			ResourceAttributeDefinition<Object> attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
-			if (attributeDefinition == null) {
-				throw new SchemaException("Couldn't find attribute '" + attributeName + "' in object class '" +
-						objectClassName + "' in " + resource);
-			}
-			ResourceAttribute<Object> attribute = attributeDefinition.instantiate();
-			attribute.setValue(prismContext.itemFactory().createPropertyValue(entry.getValue()));
-			shadow.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES).add(attribute);
-		}
+	// temporary
+	public MessageWrapper wrap(AsyncUpdateMessageType message) {
+		return new MessageWrapper(message);
+	}
 
-		ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
-		ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(shadow.asPrismObject());
-		change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
-		change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
-		return change;
+	// temporary
+	public Map<String, Object> getMessageBodyAsMap(AsyncUpdateMessageType message) throws IOException {
+		return wrap(message).getBodyAsMap();
 	}
 }

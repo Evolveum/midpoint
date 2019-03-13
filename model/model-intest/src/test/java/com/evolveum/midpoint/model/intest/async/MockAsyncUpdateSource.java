@@ -67,6 +67,10 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
 	public void prepareMessage(UcfChangeType changeDescription) {
 		AnyDataAsyncUpdateMessageType message = new AnyDataAsyncUpdateMessageType();
 		message.setData(changeDescription);
+		prepareMessage(message);
+	}
+
+	public void prepareMessage(AsyncUpdateMessageType message) {
 		messages.offer(message);
 	}
 

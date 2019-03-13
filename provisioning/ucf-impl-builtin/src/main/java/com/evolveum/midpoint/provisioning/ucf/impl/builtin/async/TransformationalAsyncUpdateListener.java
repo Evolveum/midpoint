@@ -132,6 +132,9 @@ public class TransformationalAsyncUpdateListener implements AsyncUpdateMessageLi
 		ObjectDeltaType deltaBean = changeBean.getObjectDelta();
 		if (deltaBean != null) {
 			setFromDefaults((ShadowType) deltaBean.getObjectToAdd(), objectClassName);
+			if (deltaBean.getObjectType() == null) {
+				deltaBean.setObjectType(ShadowType.COMPLEX_TYPE);
+			}
 			delta = DeltaConvertor.createObjectDelta(deltaBean, prismContext, true);
 		} else {
 			delta = null;

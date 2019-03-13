@@ -24,35 +24,35 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UcfChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.io.IOUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
- *  Tests model.notifyChange using real AMQP messages.
+ *  Tests async updates using real AMQP messages.
  *
- *  Currently uses caching. And plain messages (no transformation).
+ *  Currently uses caching.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest {
+public class TestAsyncUpdateGrouperAmqp091 extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async/ucf");
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async/grouper-amqp091");
 
-	protected static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper-ucf-internal.xml");
+	protected static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper-amqp091.xml");
 	protected static final String RESOURCE_GROUPER_ID = "Grouper";
 	protected static final String RESOURCE_GROUPER_OID = "bbb9900a-b53d-4453-b60b-908725e3950e";
 
 	public static final String BANDERSON_USERNAME = "banderson";
 	public static final String JLEWIS685_USERNAME = "jlewis685";
-	public static final String KWHITE_USERNAME = "kwhite";
 	public static final String ALUMNI_NAME = "ref:alumni";
 	public static final String STAFF_NAME = "ref:staff";
 
@@ -61,16 +61,16 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
 	protected PrismObject<ResourceType> resourceGrouper;
 
-	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-add.xml");
-	private static final File CHANGE_110 = new File(TEST_DIR, "change-110-alumni-add.xml");
-	private static final File CHANGE_110a = new File(TEST_DIR, "change-110a-staff-add.xml");
-	private static final File CHANGE_120 = new File(TEST_DIR, "change-120-kwhite-identifiers-only.xml");
-	private static final File CHANGE_200 = new File(TEST_DIR, "change-200-banderson-add-alumni-full-shadow.xml");
-	private static final File CHANGE_210 = new File(TEST_DIR, "change-210-banderson-add-staff.xml");
-	private static final File CHANGE_220 = new File(TEST_DIR, "change-220-jlewis685-add-alumni.xml");
-	private static final File CHANGE_230 = new File(TEST_DIR, "change-230-jlewis685-identifiers-only.xml");
-	private static final File CHANGE_300 = new File(TEST_DIR, "change-300-banderson-delete.xml");
-	private static final File CHANGE_310 = new File(TEST_DIR, "change-310-staff-delete.xml");
+	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-add-supergroup.json");
+	private static final File CHANGE_110 = new File(TEST_DIR, "change-110-alumni-add.json");
+	private static final File CHANGE_110a = new File(TEST_DIR, "change-110a-staff-add.json");
+	private static final File CHANGE_200 = new File(TEST_DIR, "change-200-banderson-add-alumni.json");
+	private static final File CHANGE_210 = new File(TEST_DIR, "change-210-banderson-add-staff.json");
+	private static final File CHANGE_220 = new File(TEST_DIR, "change-220-jlewis685-add-alumni.json");
+	private static final File CHANGE_230 = new File(TEST_DIR, "change-230-jlewis685-add-supergroup.json");
+	private static final File CHANGE_240 = new File(TEST_DIR, "change-240-banderson-add-staff.json");
+	private static final File CHANGE_250 = new File(TEST_DIR, "change-250-banderson-delete-alumni.json");
+	private static final File CHANGE_310 = new File(TEST_DIR, "change-310-staff-delete.json");
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -91,11 +91,11 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 	}
 
 	private Task createTestTask(String TEST_NAME) {
-		return taskManager.createTaskInstance(TestAsyncUpdateUcf.class.getName() + "." + TEST_NAME);
+		return taskManager.createTaskInstance(TestAsyncUpdateGrouperAmqp091.class.getName() + "." + TEST_NAME);
 	}
 
 	/**
-	 * Shadow ADD delta for banderson.
+	 * The first MEMBERSHIP_ADD event for banderson (supergroup)
 	 */
 	@Test
     public void test100AddAnderson() throws Exception {
@@ -107,7 +107,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // GIVEN
 
 		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_100).parseRealValue(UcfChangeType.class));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_100));
 
 		// WHEN
 
@@ -135,12 +135,19 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 				.assertOrganizationalUnits();
 	}
 
+	private AsyncUpdateMessageType getAmqp091Message(File file) throws IOException {
+		Amqp091MessageType rv = new Amqp091MessageType();
+		String json = String.join("\n", IOUtils.readLines(new FileReader(file)));
+		rv.setBody(json.getBytes(Charset.forName("UTF-8")));
+		return rv;
+	}
+
 	/**
-	 * Shadow ADD deltas for ref:alumni and ref:staff.
+	 * GROUP_ADD event for ref:alumni and ref:staff.
 	 */
 	@Test
     public void test110AddAlumniAndStaff() throws Exception {
-		final String TEST_NAME = "test110AddAlumni";
+		final String TEST_NAME = "test110AddAlumniAndStaff";
         TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = createTestTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -148,8 +155,8 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // GIVEN
 
 		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_110).parseRealValue(UcfChangeType.class));
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_110a).parseRealValue(UcfChangeType.class));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_110));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_110a));
 
 		// WHEN
 
@@ -184,48 +191,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 	}
 
 	/**
-	 * Identifiers-only message for kwhite.
-	 */
-	@Test
-	public void test120AddWhite() throws Exception {
-		final String TEST_NAME = "test120AddWhite";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		// GIVEN
-
-		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_120).parseRealValue(UcfChangeType.class));
-
-		// WHEN
-
-		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID, SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
-		provisioningService.startListeningForAsyncUpdates(coords, task, result);
-		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
-
-		// THEN
-
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-
-		assertUserAfterByUsername(KWHITE_USERNAME)
-				.displayWithProjections()
-				.links()
-					.single()
-						.resolveTarget()
-							.display()
-							.assertKind(ShadowKindType.ACCOUNT)
-				//						.assertIntent(GROUPER_USER_INTENT)
-							.assertResource(RESOURCE_GROUPER_OID)
-						.end()
-					.end()
-				.end()
-				.assertOrganizationalUnits();
-	}
-
-	/**
-	 * Adding ref:alumni membership for banderson "the old way" (i.e. by providing full current shadow).
+	 * Adding ref:alumni membership for banderson.
 	 */
 	@Test
 	public void test200AddAlumniForAnderson() throws Exception {
@@ -237,7 +203,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 		// GIVEN
 
 		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_200).parseRealValue(UcfChangeType.class));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_200));
 
 		// WHEN
 
@@ -256,7 +222,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 					.single()
 						.resolveTarget()
 							.assertKind(ShadowKindType.ACCOUNT)
-//							.assertIntent(GROUPER_USER_INTENT)
+			//							.assertIntent(GROUPER_USER_INTENT)
 							.assertResource(RESOURCE_GROUPER_OID)
 							.display("shadow after")
 							.end()
@@ -266,7 +232,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 	}
 
 	/**
-	 * Adding ref:staff membership for banderson using delta.
+	 * Adding ref:staff membership for banderson.
 	 */
 	@Test
 	public void test210AddStaffForAnderson() throws Exception {
@@ -278,7 +244,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 		// GIVEN
 
 		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_210).parseRealValue(UcfChangeType.class));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_210));
 
 		// WHEN
 
@@ -298,7 +264,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 						.resolveTarget()
 							.display("shadow after")
 							.assertKind(ShadowKindType.ACCOUNT)
-//							.assertIntent(GROUPER_USER_INTENT)
+				//							.assertIntent(GROUPER_USER_INTENT)
 							.assertResource(RESOURCE_GROUPER_OID)
 							.end()
 						.end()
@@ -307,7 +273,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 	}
 
 	/**
-	 * Adding ref:alumni membership for jlewis685 "the new way" (i.e. by a delta). But this is the first occurrence of jlewis685!
+	 * Adding ref:alumni membership for jlewis685. But this is the first occurrence of jlewis685!
 	 */
 	@Test
 	public void test220AddAlumniForLewis() throws Exception {
@@ -319,7 +285,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 		// GIVEN
 
 		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_220).parseRealValue(UcfChangeType.class));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_220));
 
 		// WHEN
 
@@ -339,20 +305,20 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 						.resolveTarget()
 							.display("shadow after")
 							.assertKind(ShadowKindType.ACCOUNT)
-//							.assertIntent(GROUPER_USER_INTENT)
+				//							.assertIntent(GROUPER_USER_INTENT)
 							.assertResource(RESOURCE_GROUPER_OID)
+							.end()
 						.end()
 					.end()
-				.end()
 				.assertOrganizationalUnits(ALUMNI_NAME);
 	}
 
 	/**
-	 * Mentions jlewis again (notification-only change). Should be idempotent.
+	 * Adding supergroup to jlewis (notification-only change). Should be idempotent.
 	 */
 	@Test
-	public void test230MentionLewis() throws Exception {
-		final String TEST_NAME = "test230MentionLewis";
+	public void test230AddLewis() throws Exception {
+		final String TEST_NAME = "test230AddLewis";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTestTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -360,7 +326,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 		// GIVEN
 
 		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_230).parseRealValue(UcfChangeType.class));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_230));
 
 		// WHEN
 
@@ -380,20 +346,20 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 						.resolveTarget()
 							.display("shadow after")
 							.assertKind(ShadowKindType.ACCOUNT)
-//							.assertIntent(GROUPER_USER_INTENT)
+				//							.assertIntent(GROUPER_USER_INTENT)
 							.assertResource(RESOURCE_GROUPER_OID)
+							.end()
 						.end()
 					.end()
-				.end()
 				.assertOrganizationalUnits(ALUMNI_NAME);
 	}
 
 	/**
-	 * Deleting banderson.
+	 * Adding ref:staff membership for banderson (again). Should be idempotent.
 	 */
 	@Test
-	public void test300DeleteAnderson() throws Exception {
-		final String TEST_NAME = "test300DeleteAnderson";
+	public void test240AddStaffForAnderson() throws Exception {
+		final String TEST_NAME = "test240AddStaffForAnderson";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTestTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -401,7 +367,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 		// GIVEN
 
 		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_300).parseRealValue(UcfChangeType.class));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_240));
 
 		// WHEN
 
@@ -416,9 +382,58 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
 		assertUserAfterByUsername(BANDERSON_USERNAME)
 				.displayWithProjections()
-				//.assertOrganizationalUnits(ALUMNI_NAME)
 				.links()
-					.assertNone();
+					.single()
+						.resolveTarget()
+							.display("shadow after")
+							.assertKind(ShadowKindType.ACCOUNT)
+				//							.assertIntent(GROUPER_USER_INTENT)
+							.assertResource(RESOURCE_GROUPER_OID)
+							.end()
+						.end()
+					.end()
+				.assertOrganizationalUnits(ALUMNI_NAME, STAFF_NAME);
+	}
+
+	/**
+	 * Deleting ref:alumni membership for banderson.
+	 */
+	@Test
+	public void test250DeleteAlumniForAnderson() throws Exception {
+		final String TEST_NAME = "test250DeleteAlumniForAnderson";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		Task task = createTestTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+
+		MockAsyncUpdateSource.INSTANCE.reset();
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_250));
+
+		// WHEN
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID, SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
+		provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
+
+		// THEN
+
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertUserAfterByUsername(BANDERSON_USERNAME)
+				.displayWithProjections()
+				.links()
+					.single()
+						.resolveTarget()
+							.display("shadow after")
+							.assertKind(ShadowKindType.ACCOUNT)
+				//							.assertIntent(GROUPER_USER_INTENT)
+							.assertResource(RESOURCE_GROUPER_OID)
+							.end()
+						.end()
+					.end()
+				.assertOrganizationalUnits(STAFF_NAME);
 	}
 
 	/**
@@ -436,7 +451,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 		assertObjectByName(OrgType.class, STAFF_NAME, task, result);
 
 		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_310).parseRealValue(UcfChangeType.class));
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_310));
 
 		// WHEN
 

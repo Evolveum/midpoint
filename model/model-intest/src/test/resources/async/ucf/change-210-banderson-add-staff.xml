@@ -19,11 +19,18 @@
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-	<objectClass>ri:GroupObjectClass</objectClass>
+	<objectClass>ri:AccountObjectClass</objectClass>
 	<identifiers>
-		<icfs:uid>00000000000000000000000000000003</icfs:uid>
+		<icfs:name>banderson</icfs:name>
+		<icfs:uid>banderson</icfs:uid>
 	</identifiers>
 	<objectDelta>
-		<t:changeType>delete</t:changeType>
+		<t:changeType>modify</t:changeType>
+		<t:objectType>ShadowType</t:objectType>
+		<t:itemDelta>
+			<t:modificationType>add</t:modificationType>
+			<t:path>attributes/ri:group</t:path>
+			<t:value>ref:staff</t:value>
+		</t:itemDelta>
 	</objectDelta>
 </ucfChange>
