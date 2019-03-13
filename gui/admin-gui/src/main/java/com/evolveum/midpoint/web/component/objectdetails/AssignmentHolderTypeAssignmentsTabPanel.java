@@ -17,10 +17,6 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -29,19 +25,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
-import java.util.List;
-
 /**
  * @author semancik
  */
-public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
+public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolderType> extends AbstractObjectTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
 	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
-	private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
+	private static final String DOT_CLASS = AssignmentHolderTypeAssignmentsTabPanel.class.getName() + ".";
 
-	public FocusAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel, PageBase page) {
+	public AssignmentHolderTypeAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<ObjectWrapper<AHT>> focusWrapperModel, PageBase page) {
 		super(id, mainForm, focusWrapperModel, page);
 		initLayout();
 	}
@@ -50,13 +44,13 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
-		ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), FocusType.F_ASSIGNMENT);
+		ContainerWrapperFromObjectWrapperModel<AssignmentType, AHT> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), FocusType.F_ASSIGNMENT);
 		SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, model);
 
 		assignments.add(panel);
 	}
 	
-	protected SwitchAssignmentTypePanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
+	protected SwitchAssignmentTypePanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, AHT> model) {
 		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model);
 		return panel;
 	}

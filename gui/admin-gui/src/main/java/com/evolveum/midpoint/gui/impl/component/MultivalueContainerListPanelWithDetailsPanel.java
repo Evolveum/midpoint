@@ -46,7 +46,6 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
 	public static final String ID_ITEMS_DETAILS = "itemsDetails";
 	public static final String ID_ITEM_DETAILS = "itemDetails";
-	public static final String ID_SEARCH_ITEM_PANEL = "search";
 
 	public static final String ID_DETAILS = "details";
 
@@ -65,15 +64,9 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
-	}
-	
-	@Override
-	protected void initCustomLayout() {
-		
 		initDetailsPanel();
-		
 	}
-	
+
 	public void setItemDetailsVisible(boolean itemDetailsVisible) {
 		this.itemDetailsVisible = itemDetailsVisible;
 	}
@@ -93,7 +86,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 			}
 		});
 
-		add(details);
+		getItemContainer().add(details);
 		
 		ListView<ContainerValueWrapper<C>> itemDetailsView = new ListView<ContainerValueWrapper<C>>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
 				new IModel<List<ContainerValueWrapper<C>>>() {

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.sample;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import org.apache.wicket.model.Model;
@@ -49,7 +49,7 @@ import org.apache.wicket.model.Model;
  * @author Radovan Semancik
  *
  */
-public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
+public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
@@ -68,7 +68,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
                                    LoadableModel<ObjectWrapper<F>> focusWrapperModel,
                                    LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
                                    PageBase pageBase) {
-        super(id, mainForm, focusWrapperModel, projectionModel, pageBase);
+        super(id, mainForm, focusWrapperModel, pageBase);
         initLayout(focusWrapperModel, pageBase);
     }
 
