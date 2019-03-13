@@ -87,7 +87,7 @@ public class PcpStartInstruction extends StartInstruction {
 
 		getProcessorSpecificState().setChangeAspect(aspect.getClass().getName());
 
-		CaseCreationEventType event = new CaseCreationEventType();
+		CaseCreationEventType event = new CaseCreationEventType(getPrismContext());
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         if (requester != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester, getPrismContext()));

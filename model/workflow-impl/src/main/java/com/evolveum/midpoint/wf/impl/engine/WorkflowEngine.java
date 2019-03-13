@@ -509,7 +509,7 @@ public class WorkflowEngine {
 
 		AbstractWorkItemOutputType output = workItem.getOutput();
 		if (realClosure || output != null) {
-			WorkItemCompletionEventType event = new WorkItemCompletionEventType();
+			WorkItemCompletionEventType event = new WorkItemCompletionEventType(prismContext);
 			fillInWorkItemEvent(event, user, workItemId, workItem, prismContext);
 			event.setCause(causeInformation);
 			event.setOutput(output);
@@ -732,7 +732,7 @@ public class WorkflowEngine {
 			newEscalationInfo = null;
 		}
 
-		WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalationInfo, assigneesBefore, delegatedTo, method, causeInformation);
+		WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalationInfo, assigneesBefore, delegatedTo, method, causeInformation, prismContext);
 		if (newEscalationInfo != null) {
 			workItemDeltas.add(
 					prismContext.deltaFor(CaseType.class)
@@ -901,7 +901,7 @@ public class WorkflowEngine {
 
 	private void recordAutoCompletionDecision(String taskOid, ApprovalLevelOutcomeType outcome,
 			AutomatedCompletionReasonType reason, int stageNumber, OperationResult opResult) {
-		StageCompletionEventType event = new StageCompletionEventType();
+		StageCompletionEventType event = new StageCompletionEventType(prismContext);
 		event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
 		event.setStageNumber(stageNumber);
 		event.setAutomatedDecisionReason(reason);

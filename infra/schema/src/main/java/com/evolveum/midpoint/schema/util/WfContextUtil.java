@@ -585,14 +585,14 @@ public class WfContextUtil {
 	public static WorkItemDelegationEventType createDelegationEvent(WorkItemEscalationLevelType newEscalation,
 			List<ObjectReferenceType> assigneesBefore, List<ObjectReferenceType> delegatedTo,
 			@NotNull WorkItemDelegationMethodType method,
-			WorkItemEventCauseInformationType causeInformation) {
+			WorkItemEventCauseInformationType causeInformation, PrismContext prismContext) {
 		WorkItemDelegationEventType event;
 		if (newEscalation != null) {
-			WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();
+			WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType(prismContext);
 			escEvent.setNewEscalationLevel(newEscalation);
 			event = escEvent;
 		} else {
-			event = new WorkItemDelegationEventType();
+			event = new WorkItemDelegationEventType(prismContext);
 		}
 		event.getAssigneeBefore().addAll(assigneesBefore);
 		event.getDelegatedTo().addAll(delegatedTo);

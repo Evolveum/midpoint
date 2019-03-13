@@ -420,6 +420,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -530,6 +531,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -589,6 +591,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -607,6 +610,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -627,6 +631,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -651,6 +656,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -710,6 +716,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -728,6 +735,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
