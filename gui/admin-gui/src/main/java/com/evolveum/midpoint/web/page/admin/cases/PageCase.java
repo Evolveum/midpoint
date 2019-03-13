@@ -182,6 +182,22 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                                 return Integer.toString(countWorkItems());
                             }
                         });
+                tabs.add(
+                        new CountablePanelTab(parentPage.createStringResource("PageCase.events"),
+                                getTabVisibility(ComponentConstants.UI_CASE_TAB_EVENTS_URL, false, parentPage)) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public WebMarkupContainer createPanel(String panelId) {
+                                return new CaseEventsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                            }
+
+                            @Override
+                            public String getCount() {
+                                return Integer.toString(countEvents());
+                            }
+                        });
                 return tabs;
             }
 
@@ -315,5 +331,10 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
     private int countWorkItems(){
         List<CaseWorkItemType> workItemsList = getObjectModel().getObject().getObject().asObjectable().getWorkItem();
         return workItemsList == null ? 0 : workItemsList.size();
+    }
+
+    private int countEvents(){
+        List<CaseEventType> eventsList = getObjectModel().getObject().getObject().asObjectable().getEvent();
+        return eventsList == null ? 0 : eventsList.size();
     }
 }

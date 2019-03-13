@@ -301,6 +301,9 @@ public final class WebComponentUtil {
 	}
 	
 	public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes) {
+		if (ref == null){
+			return "";
+		}
 		String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
 		StringBuilder sb = new StringBuilder(name);
 		if(showTypes) {

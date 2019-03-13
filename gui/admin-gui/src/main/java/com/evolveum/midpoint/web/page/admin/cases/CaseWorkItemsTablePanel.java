@@ -163,8 +163,6 @@ public abstract class CaseWorkItemsTablePanel extends BasePanel<ContainerWrapper
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<CaseWorkItemType>> rowModel) {
-//                                AssignmentPanel.this.assignmentDetailsPerformed(target);
-//                                getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
             }
         });
 
