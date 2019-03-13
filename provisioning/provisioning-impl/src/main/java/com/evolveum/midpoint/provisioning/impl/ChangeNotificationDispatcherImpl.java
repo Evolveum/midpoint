@@ -236,7 +236,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	public void notifyEvent(ResourceEventDescription eventDescription,
 			Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException,
-			ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
+			ExpressionEvaluationException, PolicyViolationException {
 		Validate.notNull(eventDescription, "Event description must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {

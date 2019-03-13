@@ -429,7 +429,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			modelService.notifyChange(changeDescription, task, parentResult);
 		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
 				SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException |
-				RuntimeException | Error | PolicyViolationException | PreconditionViolationException ex) {
+				RuntimeException | Error | PolicyViolationException ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 			auditLogout(task);
 			throwFault(ex, parentResult);

@@ -2332,7 +2332,7 @@ public class ShadowCache {
 	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, PrismProperty<?> lastToken,
 			Task task, TaskPartitionDefinitionType partition, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 					GenericFrameworkException, SchemaException, ConfigurationException,
-					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException, PolicyViolationException, PreconditionViolationException {
+					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException, PolicyViolationException {
 
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -2438,7 +2438,7 @@ public class ShadowCache {
 	boolean processSynchronization(ProvisioningContext globalCtx, boolean isSimulate, Change change, Task task,
 			TaskPartitionDefinitionType partition, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-			SecurityViolationException, PolicyViolationException, PreconditionViolationException, EncryptionException {
+			SecurityViolationException, PolicyViolationException, EncryptionException {
 
 		ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, parentResult);
 		if (ctx == null) {
@@ -2507,8 +2507,12 @@ public class ShadowCache {
 			if (result.isUnknown()) {
 				result.computeStatus();
 			}
-			
-			validateResult(notifyChangeResult, task, partition);
+
+			try {
+				validateResult(notifyChangeResult, task, partition);
+			} catch (PreconditionViolationException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
 
 		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException |
 				CommunicationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {

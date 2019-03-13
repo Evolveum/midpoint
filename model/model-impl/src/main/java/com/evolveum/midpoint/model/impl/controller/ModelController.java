@@ -2326,8 +2326,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, Task task, OperationResult parentResult)
 			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-			PreconditionViolationException {
+			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException {
 
 		String oldShadowOid = changeDescription.getOldShadowOid();
 		ResourceEventDescription eventDescription = new ResourceEventDescription();
@@ -2390,12 +2389,4 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		parentResult.computeStatus();
 		task.setResult(parentResult);
 	}
-
-//	@Override
-//	public void notifyChange(DataMessageType message, MessageProcessingConfigurationType processing, ResourceType resource, Task task,
-//			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-//			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-//			PreconditionViolationException {
-//		messageProcessor.processMessage(message, processing, resource, task, parentResult);
-//	}
 }
