@@ -95,7 +95,7 @@
 			<artifactId>annotations-java5</artifactId>
 		</dependency>
 
-		<!-- Testing dependecies -->
+		<!-- Testing dependencies -->
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
