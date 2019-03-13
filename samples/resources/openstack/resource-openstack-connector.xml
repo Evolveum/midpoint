@@ -1,7 +1,6 @@
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="137edf3a-104e-49b4-9dcb-14db1062c8f3">
     <name>Openstack Keystone </name>
   
-  
    <connectorRef type="ConnectorType">
 	    <filter>
 			<q:and>
@@ -23,9 +22,7 @@
             <gen233:domainName>domainName</gen233:domainName>
         </icfc:configurationProperties>
     </connectorConfiguration>
-    
-     
-        
+           
     <schemaHandling>
         <objectType>
             <kind>entitlement</kind>
@@ -66,6 +63,23 @@
                     </expression>
                     <target>
                         <c:path>$focus/identifier</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+			<attribute>
+                <c:ref>ri:description</c:ref>
+                <tolerant>true</tolerant>
+                <exclusiveStrong>false</exclusiveStrong>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$focus/description</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$focus/description</c:path>
                     </target>
                 </inbound>
             </attribute>
@@ -136,12 +150,21 @@
                 </inbound>
             </attribute>
             <attribute>
-                <c:ref>ri:description</c:ref>
+				<c:ref>ri:description</c:ref>
+                <tolerant>true</tolerant>
+                <exclusiveStrong>false</exclusiveStrong>
                 <outbound>
-                    <expression>
-                        <value>Created by IDM</value>
-                    </expression>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/description</c:path>
+                    </source>
                 </outbound>
+                <inbound id="65">
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$user/description</c:path>
+                    </target>
+                </inbound>
             </attribute>
             <association>
                 <c:ref>ri:user_in_groups</c:ref>
@@ -173,7 +196,6 @@
                 <valueAttribute>icfs:uid</valueAttribute>
                 <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
-			
             <protected>
                 <filter>
                     <q:equal>
@@ -183,6 +205,25 @@
                     </q:equal>
                 </filter>
             </protected>
+			<activation>
+                <administrativeStatus>
+                    <outbound id="57">
+                        <strength>strong</strength>
+                        <expression>
+                            <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
             <credentials>
                 <password xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourcePasswordDefinitionType">
                     <outbound>
@@ -193,7 +234,7 @@
                 </password>
             </credentials>
         </objectType>
-        <objectType>
+	    <objectType>
             <kind>entitlement</kind>
             <intent>Project</intent>
             <default>false</default>
@@ -219,7 +260,7 @@
                         </script>
                     </expression>
                     <target>
-                        <c:path>$focus/orgType</c:path>
+                        <c:path>$focus/subtype</c:path>
                     </target>
                 </inbound>
             </attribute>
@@ -227,7 +268,24 @@
                 <c:ref>icfs:uid</c:ref>
                 <inbound>
                     <target>
-                        <c:path>identifier</c:path>
+                        <c:path>$focus/identifier</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+			<attribute>
+                <c:ref>ri:description</c:ref>
+                <tolerant>true</tolerant>
+                <exclusiveStrong>false</exclusiveStrong>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$focus/description</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$focus/description</c:path>
                     </target>
                 </inbound>
             </attribute>
@@ -297,7 +355,7 @@
                         </script>
                     </expression>
                     <target>
-                        <c:path>$focus/orgType</c:path>
+                        <c:path>$focus/subtype</c:path>
                     </target>
                 </inbound>
                 <inbound>
@@ -313,10 +371,26 @@
                     </target>
                 </inbound>
             </attribute>
+			<attribute>
+                <c:ref>ri:description</c:ref>
+                <tolerant>true</tolerant>
+                <exclusiveStrong>false</exclusiveStrong>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$focus/description</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$focus/description</c:path>
+                    </target>
+                </inbound>
+            </attribute>
         </objectType>
-    </schemaHandling>
-    
-       
+    </schemaHandling>    
+	
     <synchronization>
         <objectSynchronization>
             <name>Users sync</name>
@@ -420,6 +494,7 @@
                     </expression>
                 </q:equal>
             </correlation>
+			<objectTemplateRef oid="99cc8d77-dedc-4444-a081-b006821a9c79"/>
             <reconcile>false</reconcile>
             <reaction>
                 <situation>linked</situation>
