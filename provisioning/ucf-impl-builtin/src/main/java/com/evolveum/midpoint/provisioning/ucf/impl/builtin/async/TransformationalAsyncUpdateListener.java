@@ -140,6 +140,9 @@ public class TransformationalAsyncUpdateListener implements AsyncUpdateMessageLi
 		Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef);
 		Change change = new Change(identifiers, toPrismObject(changeBean.getObject()), null, delta);
 		change.setObjectClassDefinition(objectClassDef);
+		if (change.getCurrentShadow() == null && change.getObjectDelta() == null) {
+			change.setNotificationOnly(true);
+		}
 		return change;
 	}
 

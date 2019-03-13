@@ -72,6 +72,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-first-occurrence.xml");
 	private static final File CHANGE_110 = new File(TEST_DIR, "change-110-banderson-delta.xml");
 	private static final File CHANGE_120 = new File(TEST_DIR, "change-120-banderson-new-state.xml");
+	private static final File CHANGE_125 = new File(TEST_DIR, "change-125-banderson-notification-only.xml");
 	private static final File CHANGE_130 = new File(TEST_DIR, "change-130-banderson-delete.xml");
 
 	public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
@@ -363,6 +364,57 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		assertNotNull("Shadow is not present in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
 		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
+	}
+
+
+	@Test
+	public void test125ListeningForNotificationOnly() throws Exception {
+
+		if (!hasReadCapability()) {
+			System.out.println("Skipping this test because there's no real read capability");
+			return;
+		}
+
+		final String TEST_NAME = "test125ListeningForNotificationOnly";
+		TestUtil.displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		MockAsyncUpdateSource.INSTANCE.reset();
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_125).parseRealValue());
+
+		syncServiceMock.reset();
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
+				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
+
+		setDummyAccountTestAttribute("banderson", "value125");
+
+		provisioningService.startListeningForAsyncUpdates(coords, task, result);
+
+		syncServiceMock.assertNotifyChange();
+
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+
+		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+
+		assertNull("Delta is present although it should not be", lastChange.getObjectDelta());
+		assertNotNull("Current shadow is missing", lastChange.getCurrentShadow());
+
+		display("change current shadow", lastChange.getCurrentShadow());
+
+		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
+		assertNotNull("Shadow is not present in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
+	}
+
+	protected boolean hasReadCapability() {
+		return false;
 	}
 
 	@Test

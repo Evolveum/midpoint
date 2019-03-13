@@ -40,6 +40,14 @@ public final class Change implements DebugDumpable {
     private PrismObject<ShadowType> oldShadow;
     private PrismObject<ShadowType> currentShadow;
 
+	/**
+	 * This means that the change is just a notification that a resource object has changed. To know about its state
+	 * it has to be fetched. For notification-only changes the objectDelta and currentShadow has to be null.
+	 * (And this flag is introduced to distinguish intentional notification-only changes from malformed ones that have
+	 * both currentShadow and objectDelta missing.)
+	 */
+	private boolean notificationOnly;
+
     public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<ShadowType> change, PrismProperty<?> token) {
         this.identifiers = identifiers;
         this.objectDelta = change;
@@ -64,6 +72,16 @@ public final class Change implements DebugDumpable {
     public Change(ObjectDelta<ShadowType> change, PrismProperty<?> token) {
         this.objectDelta = change;
         this.token = token;
+    }
+
+    private Change() {
+    }
+
+    public static Change createNotificationOnly(Collection<ResourceAttribute<?>> identifiers) {
+	    Change rv = new Change();
+	    rv.identifiers = identifiers;
+	    rv.notificationOnly = true;
+	    return rv;
     }
 
     public ObjectDelta<ShadowType> getObjectDelta() {
@@ -118,6 +136,14 @@ public final class Change implements DebugDumpable {
 		return identifiers == null && objectDelta == null && currentShadow == null && token != null;
 	}
 
+	public void setNotificationOnly(boolean notificationOnly) {
+		this.notificationOnly = notificationOnly;
+	}
+
+	public boolean isNotificationOnly() {
+		return notificationOnly;
+	}
+
 	public boolean isDelete() {
 		return objectDelta != null && objectDelta.isDelete();
 	}
@@ -142,7 +168,11 @@ public final class Change implements DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, 0);
-		sb.append("Change\n");
+		sb.append("Change");
+		if (notificationOnly) {
+			sb.append(" (notification only)");
+		}
+		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "objectDelta", objectDelta, indent + 1);

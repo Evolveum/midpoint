@@ -80,4 +80,9 @@ public class TestAsyncUpdateNoCaching extends TestAsyncUpdate {
 			throw new AssertionError(e);
 		}
 	}
+
+	@Override
+	protected boolean hasReadCapability() {
+		return true;
+	}
 }
