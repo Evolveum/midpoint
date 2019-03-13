@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -105,17 +106,22 @@ public class TransformationalAsyncUpdateListener implements AsyncUpdateMessageLi
 	 * Mainly for testing purposes we provide an option to simply unwrap UcfChangeType from "any data" message.
 	 */
 	private List<UcfChangeType> unwrapMessage(AsyncUpdateMessageType message) throws SchemaException {
+		Object data;
 		if (message instanceof AnyDataAsyncUpdateMessageType) {
-			Object data = ((AnyDataAsyncUpdateMessageType) message).getData();
-			if (data instanceof UcfChangeType) {
-				return Collections.singletonList((UcfChangeType) data);
-			} else {
-				throw new SchemaException("Cannot apply trivial message transformation: message does not contain "
-						+ "UcfChangeType object. Please specify transformExpression parameter");
-			}
+			data = ((AnyDataAsyncUpdateMessageType) message).getData();
+		} else if (message instanceof Amqp091MessageType) {
+			String text = new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
+			data = prismContext.parserFor(text).xml().parseRealValue();
 		} else {
-			throw new SchemaException("Cannot apply trivial message transformation: message is not 'any data' one. Please "
-					+ "specify transformExpression parameter");
+			throw new SchemaException(
+					"Cannot apply trivial message transformation: message is not 'any data' nor AMQP one. Please "
+							+ "specify transformExpression parameter");
+		}
+		if (data instanceof UcfChangeType) {
+			return Collections.singletonList((UcfChangeType) data);
+		} else {
+			throw new SchemaException("Cannot apply trivial message transformation: message does not contain "
+					+ "UcfChangeType object (it is " + data.getClass().getName() + " instead). Please specify transformExpression parameter");
 		}
 	}
 

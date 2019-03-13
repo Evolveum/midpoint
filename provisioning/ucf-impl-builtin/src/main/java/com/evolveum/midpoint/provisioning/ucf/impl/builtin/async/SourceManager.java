@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091SourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,12 +34,23 @@ public class SourceManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SourceManager.class);
 
+	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
+
+	SourceManager(@NotNull AsyncUpdateConnectorInstance connectorInstance) {
+		this.connectorInstance = connectorInstance;
+	}
+
+	@NotNull
 	AsyncUpdateSource createSource(AsyncUpdateSourceType sourceConfiguration) {
 		LOGGER.trace("Creating source from configuration: {}", sourceConfiguration);
 		Class<? extends AsyncUpdateSource> sourceClass = determineSourceClass(sourceConfiguration);
 		try {
-			Method createMethod = sourceClass.getMethod("create", AsyncUpdateSourceType.class);
-			return ((AsyncUpdateSource) createMethod.invoke(null, sourceConfiguration));
+			Method createMethod = sourceClass.getMethod("create", AsyncUpdateSourceType.class, AsyncUpdateConnectorInstance.class);
+			AsyncUpdateSource source = (AsyncUpdateSource) createMethod.invoke(null, sourceConfiguration, connectorInstance);
+			if (source == null) {
+				throw new SystemException("Asynchronous update source was not created for " + sourceClass);
+			}
+			return source;
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassCastException e) {
 			throw new SystemException("Couldn't instantiate asynchronous update source class " + sourceClass + ": " + e.getMessage(), e);
 		}

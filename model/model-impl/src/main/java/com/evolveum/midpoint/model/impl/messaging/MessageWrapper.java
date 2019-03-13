@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -53,7 +53,7 @@ public class MessageWrapper {
 	}
 
 	public String getText() {
-		return new String(((Amqp091MessageType) message).getBody(), Charset.forName("UTF-8"));
+		return new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
 	}
 
 	public AsyncUpdateMessageType getOriginalMessage() {

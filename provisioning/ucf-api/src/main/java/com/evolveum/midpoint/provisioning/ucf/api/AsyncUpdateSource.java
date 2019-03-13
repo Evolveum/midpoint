@@ -28,4 +28,5 @@ public interface AsyncUpdateSource {
 	void startListening(AsyncUpdateMessageListener listener) throws SchemaException;
 	void stopListening();
 	void test();
+	void dispose();
 }

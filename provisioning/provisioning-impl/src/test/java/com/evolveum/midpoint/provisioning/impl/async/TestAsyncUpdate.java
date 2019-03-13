@@ -50,6 +50,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoAccountShadow;
 import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoShadow;
@@ -67,6 +68,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 	protected static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
 	protected static final File RESOURCE_ASYNC_NO_CACHING_FILE = new File(TEST_DIR, "resource-async-no-caching.xml");
+	protected static final File RESOURCE_ASYNC_CACHING_AMQP_FILE = new File(TEST_DIR, "resource-async-caching-amqp.xml");
 	protected static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
 
 	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-first-occurrence.xml");
@@ -82,20 +84,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	private static final Trace LOGGER = TraceManager.getTrace(TestAsyncUpdate.class);
 
 	protected static final String NS_ASYNC_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/AsyncUpdateConnector";
-	protected static final ItemName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new ItemName(NS_ASYNC_CONF, "defaultAssignee");
-
-	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
-	protected static final String ACCOUNT_WILL_OID = "c1add81e-1df7-11e7-bbb7-5731391ba751";
-	protected static final String ACCOUNT_WILL_USERNAME = "will";
-
-	protected static final String ATTR_USERNAME = "username";
-	protected static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
-
-	protected static final String ATTR_FULLNAME = "fullname";
-	protected static final QName ATTR_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_FULLNAME);
-
-	protected static final String ATTR_DESCRIPTION = "description";
-	protected static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
+	private static final long TIMEOUT = 5000L;
 
 	protected PrismObject<ResourceType> resource;
 
@@ -241,11 +230,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 
-		assertEquals("Unexpected number of definitions", getNumberOfAccountAttributeDefinitions(), accountDef.getDefinitions().size());
-	}
-
-	protected int getNumberOfAccountAttributeDefinitions() {
-		return 3;
+		assertEquals("Unexpected number of definitions", 3, accountDef.getDefinitions().size());
 	}
 
 	@Test
@@ -256,8 +241,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_100).parseRealValue());
+		prepareMessage(CHANGE_100);
 
 		syncServiceMock.reset();
 
@@ -267,8 +251,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		addDummyAccount("banderson");
 
 		provisioningService.startListeningForAsyncUpdates(coords, task, result);
-
-		syncServiceMock.assertNotifyChange();
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -294,8 +278,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_110).parseRealValue());
+		prepareMessage(CHANGE_110);
 
 		syncServiceMock.reset();
 
@@ -305,8 +288,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		setDummyAccountTestAttribute("banderson", "value1", "value2", "value3");
 
 		provisioningService.startListeningForAsyncUpdates(coords, task, result);
-
-		syncServiceMock.assertNotifyChange();
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -336,8 +319,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_120).parseRealValue());
+		prepareMessage(CHANGE_120);
 
 		syncServiceMock.reset();
 
@@ -347,8 +329,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		setDummyAccountTestAttribute("banderson", "value4");
 
 		provisioningService.startListeningForAsyncUpdates(coords, task, result);
-
-		syncServiceMock.assertNotifyChange();
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -381,8 +363,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_125).parseRealValue());
+		prepareMessage(CHANGE_125);
 
 		syncServiceMock.reset();
 
@@ -392,8 +373,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		setDummyAccountTestAttribute("banderson", "value125");
 
 		provisioningService.startListeningForAsyncUpdates(coords, task, result);
-
-		syncServiceMock.assertNotifyChange();
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -413,10 +394,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
 	}
 
-	protected boolean hasReadCapability() {
-		return false;
-	}
-
 	@Test
 	public void test130ListeningForShadowDelete() throws Exception {
 		final String TEST_NAME = "test130ListeningForShadowDelete";
@@ -425,8 +402,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		MockAsyncUpdateSource.INSTANCE.reset();
-		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_130).parseRealValue());
+		prepareMessage(CHANGE_130);
 
 		syncServiceMock.reset();
 
@@ -434,8 +410,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
 
 		provisioningService.startListeningForAsyncUpdates(coords, task, result);
-
-		syncServiceMock.assertNotifyChange();
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -455,11 +431,21 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
 	}
 
-	protected void addDummyAccount(String name) {
+	void addDummyAccount(String name) {
 	}
 
-	protected void setDummyAccountTestAttribute(String name, String... values) {
+	void setDummyAccountTestAttribute(String name, String... values) {
 	}
 
-	protected abstract int getNumberOfAccountAttributes();
+	abstract int getNumberOfAccountAttributes();
+
+	boolean hasReadCapability() {
+		return false;
+	}
+
+	void prepareMessage(File messageFile)
+			throws java.io.IOException, com.evolveum.midpoint.util.exception.SchemaException, TimeoutException {
+		MockAsyncUpdateSource.INSTANCE.reset();
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(messageFile).parseRealValue());
+	}
 }

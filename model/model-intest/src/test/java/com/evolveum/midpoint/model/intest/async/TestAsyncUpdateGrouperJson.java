@@ -34,16 +34,16 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
- *  Tests async updates using real AMQP messages.
+ *  Tests async updates using Grouper JSON messages.
  *
  *  Currently uses caching.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAsyncUpdateGrouperAmqp091 extends AbstractInitializedModelIntegrationTest {
+public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrationTest {
 
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async/grouper-amqp091");
 
@@ -91,7 +91,7 @@ public class TestAsyncUpdateGrouperAmqp091 extends AbstractInitializedModelInteg
 	}
 
 	private Task createTestTask(String TEST_NAME) {
-		return taskManager.createTaskInstance(TestAsyncUpdateGrouperAmqp091.class.getName() + "." + TEST_NAME);
+		return taskManager.createTaskInstance(TestAsyncUpdateGrouperJson.class.getName() + "." + TEST_NAME);
 	}
 
 	/**
@@ -138,7 +138,7 @@ public class TestAsyncUpdateGrouperAmqp091 extends AbstractInitializedModelInteg
 	private AsyncUpdateMessageType getAmqp091Message(File file) throws IOException {
 		Amqp091MessageType rv = new Amqp091MessageType();
 		String json = String.join("\n", IOUtils.readLines(new FileReader(file)));
-		rv.setBody(json.getBytes(Charset.forName("UTF-8")));
+		rv.setBody(json.getBytes(StandardCharsets.UTF_8));
 		return rv;
 	}
 

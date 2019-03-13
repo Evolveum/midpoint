@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest.async;
 
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,7 +42,7 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
 
 	public static final MockAsyncUpdateSource INSTANCE = new MockAsyncUpdateSource();
 
-	public static MockAsyncUpdateSource create(AsyncUpdateSourceType configuration) {
+	public static MockAsyncUpdateSource create(AsyncUpdateSourceType configuration, AsyncUpdateConnectorInstance connectorInstance) {
 		LOGGER.info("create() method called");
 		return INSTANCE;
 	}
@@ -76,5 +77,10 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
 
 	public void reset() {
 		messages.clear();
+	}
+
+	@Override
+	public void dispose() {
+		reset();
 	}
 }

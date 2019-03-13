@@ -60,7 +60,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	private AsyncUpdateSource source;               // source != null means we are connected
 	private ChangeListener changeListener;
 
-	private final SourceManager sourceManager = new SourceManager();
+	private final SourceManager sourceManager = new SourceManager(this);
 	private UcfExpressionEvaluator ucfExpressionEvaluator;
 
 	@ManagedConnectorConfiguration
@@ -89,6 +89,11 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	}
 
 	@Override
+	protected void disconnect(OperationResult result) {
+		dispose();
+	}
+
+	@Override
 	public void test(OperationResult parentResult) {
 		OperationResult connectionResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
@@ -105,6 +110,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	public void dispose() {
 		stopListening();
 		if (source != null) {
+			source.dispose();
 			source = null;
 		}
 	}

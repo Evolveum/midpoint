@@ -94,6 +94,11 @@
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations-java5</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+			<version>${rabbit-amqp-client.version}</version>
+		</dependency>
 
 		<!-- Testing dependencies -->
 		<dependency>
