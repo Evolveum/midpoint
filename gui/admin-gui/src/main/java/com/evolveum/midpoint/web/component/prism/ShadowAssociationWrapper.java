@@ -106,7 +106,7 @@ public class ShadowAssociationWrapper extends ContainerWrapperImpl<ShadowAssocia
 				continue;
 			}
 			
-			for (ValueWrapper refValue : refWrapper.getValues()) {
+			for (ValueWrapperOld refValue : refWrapper.getValues()) {
 				
 				PrismReferenceValue prismRefValue = (PrismReferenceValue) refValue.getValue();
 				ShadowAssociationType shadowAssociationType = new ShadowAssociationType();

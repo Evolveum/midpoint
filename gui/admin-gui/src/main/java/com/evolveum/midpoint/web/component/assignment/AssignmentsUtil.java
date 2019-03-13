@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -261,7 +261,7 @@ public class AssignmentsUtil {
 			if(policyRuleWrapper != null) {
 				PropertyOrReferenceWrapper property = policyRuleWrapper.findPropertyWrapper(PolicyRuleType.F_NAME);
 				if(property != null && !property.getValues().isEmpty()) {
-					for (ValueWrapper value : (List<ValueWrapper>)property.getValues()) {
+					for (ValueWrapperOld value : (List<ValueWrapperOld>)property.getValues()) {
 						ItemRealValueModel<String> name = new ItemRealValueModel<String>(value);
 						sbName.append(name.getObject()).append("\n");
 					}

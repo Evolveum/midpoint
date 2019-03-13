@@ -120,6 +120,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
@@ -1103,7 +1104,7 @@ public final class WebComponentUtil {
 		List<IW> propertiesList = propertiesModel.getObject();
 		for (final IW property : propertiesList){
 			if (property.getName().equals(attributeName)){
-				List<ValueWrapper> valuesList = property.getValues();
+				List<ValueWrapperOld> valuesList = property.getValues();
 				if (valuesList.size() == 1) {
 					return new PropertyModel<>(valuesList.get(0).getValue(), "value");
 				}
@@ -3138,6 +3139,7 @@ public final class WebComponentUtil {
 		return filter;
 	}
 
+	@Deprecated
 	public static <IW extends ItemWrapperOld> String loadHelpText(IModel<IW> model, Panel panel) {
 		if(model == null || model.getObject() == null) {
 			return null;
@@ -3172,22 +3174,41 @@ public final class WebComponentUtil {
 		return duration;
 	}
 	
-	public static <IW extends ItemWrapperOld> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
-        return new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-            	ItemWrapperOld wrapper = model.getObject();
-                String displayName = wrapper.getDisplayName();
-                // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
-                // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
-                String displayNameValueByKey = PageBase.createStringResourceStatic(component, displayName).getString();
-                return StringUtils.isEmpty(displayNameValueByKey) ?
-                		component.getString(displayName, null, displayName) : displayNameValueByKey;
-            }
-        };
-    }
+//	@Deprecated
+//	public static <IW extends ItemWrapperOld> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
+//        return new IModel<String>() {
+//        	private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public String getObject() {
+//            	ItemWrapperOld wrapper = model.getObject();
+//                String displayName = wrapper.getDisplayName();
+//                // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
+//                // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
+//                String displayNameValueByKey = PageBase.createStringResourceStatic(component, displayName).getString();
+//                return StringUtils.isEmpty(displayNameValueByKey) ?
+//                		component.getString(displayName, null, displayName) : displayNameValueByKey;
+//            }
+//        };
+//    }
+//	
+	
+//	public static <IW extends ItemWrapper<V, I, ID>> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
+//        return new IModel<String>() {
+//        	private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public String getObject() {
+//            	ItemWrapperOld wrapper = model.getObject();
+//                String displayName = wrapper.getDisplayName();
+//                // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
+//                // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
+//                String displayNameValueByKey = PageBase.createStringResourceStatic(component, displayName).getString();
+//                return StringUtils.isEmpty(displayNameValueByKey) ?
+//                		component.getString(displayName, null, displayName) : displayNameValueByKey;
+//            }
+//        };
+//    }
 
 	public static List<RefinedAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent){
 		List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
@@ -3266,7 +3287,7 @@ public final class WebComponentUtil {
 		if (expressionWrapper == null){
 			return null;
 		}
-		List<ValueWrapper<ExpressionType>> expressionValues = expressionWrapper.getValues();
+		List<ValueWrapperOld<ExpressionType>> expressionValues = expressionWrapper.getValues();
 		if (expressionValues == null || expressionValues.size() == 0){
 			return null;
 		}
@@ -3274,7 +3295,7 @@ public final class WebComponentUtil {
 		if (expression == null && createIfNotExist){
 			expression = new ExpressionType();
 			PrismPropertyValue<ExpressionType> exp = prismContext.itemFactory().createPropertyValue(expression);
-			ValueWrapper<ExpressionType> val = new ValueWrapper<>(expressionWrapper, exp, prismContext);
+			ValueWrapperOld<ExpressionType> val = new ValueWrapperOld<>(expressionWrapper, exp, prismContext);
 			expressionValues.remove(0);
 			expressionValues.add(0, val);
 		}

@@ -74,7 +74,7 @@ import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -149,7 +149,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
 		
 		if(mailConfigType == null) {
 			mailConfigType = new MailConfigurationType();
-			((PrismPropertyValue<MailConfigurationType>)((List<ValueWrapper>)mailConfig.getObject().getValues()).get(0).getValue()).setValue(mailConfigType);
+			((PrismPropertyValue<MailConfigurationType>)((List<ValueWrapperOld>)mailConfig.getObject().getValues()).get(0).getValue()).setValue(mailConfigType);
     	}
 		
 		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
@@ -172,12 +172,12 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
         files.setOutputMarkupId(true);
         add(files);
         
-        ListView<ValueWrapper<FileConfigurationType>> values = new ListView<ValueWrapper<FileConfigurationType>>("values",
+        ListView<ValueWrapperOld<FileConfigurationType>> values = new ListView<ValueWrapperOld<FileConfigurationType>>("values",
                 new PropertyModel<>(fileConfig, "values")) {
             	private static final long serialVersionUID = 1L;
 
                 @Override
-                protected void populateItem(final ListItem<ValueWrapper<FileConfigurationType>> item) {
+                protected void populateItem(final ListItem<ValueWrapperOld<FileConfigurationType>> item) {
                 	
                 	FileConfigurationType fileConfigType = item.getModelObject().getValue().getRealValue();
                 	
@@ -237,7 +237,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
 
             	@Override
             	public void onClick(AjaxRequestTarget target) {
-            		ValueWrapper<FileConfigurationType> newValue = fileConfig.getObject().createAddedValue();
+            		ValueWrapperOld<FileConfigurationType> newValue = fileConfig.getObject().createAddedValue();
             		((PrismPropertyValue<FileConfigurationType>)newValue.getValue()).setValue(new FileConfigurationType());
             		fileConfig.getObject().getValues().add(newValue);
             		target.add(files);

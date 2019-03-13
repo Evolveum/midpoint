@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 
 /**
  * @author skublik
@@ -75,22 +75,22 @@ public class LinkPrismPropertyColumn<T,C extends Containerable> extends Abstract
 			}
 			
 			@Override
-			protected IModel populatePropertyItem(ValueWrapper object) {
+			protected IModel populatePropertyItem(ValueWrapperOld object) {
 				return LinkPrismPropertyColumn.this.populatePropertyItem(object);
 			}
 			
 			@Override
-			protected IModel populateReferenceItem(ValueWrapper object) {
+			protected IModel populateReferenceItem(ValueWrapperOld object) {
 				return LinkPrismPropertyColumn.this.populateReferenceItem(object);
 			}
 		});
 	}
 	
-	protected IModel<String> populatePropertyItem(ValueWrapper object) {
+	protected IModel<String> populatePropertyItem(ValueWrapperOld object) {
     	return new ItemRealValueModel<String>(object);
 	}
 	
-	protected IModel<String> populateReferenceItem(ValueWrapper object) {
+	protected IModel<String> populateReferenceItem(ValueWrapperOld object) {
     	return new IModel<String>() {
 
 			@Override

@@ -57,7 +57,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -113,12 +113,12 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
     
     protected <T> WebMarkupContainer getValues(String idComponent, final IModel<IW> model, final Form form) {
     	
-        ListView<ValueWrapper<T>> values = new ListView<ValueWrapper<T>>(idComponent,
+        ListView<ValueWrapperOld<T>> values = new ListView<ValueWrapperOld<T>>(idComponent,
             new PropertyModel<>(model, "values")) {
         	private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(final ListItem<ValueWrapper<T>> item) {
+            protected void populateItem(final ListItem<ValueWrapperOld<T>> item) {
             	WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
         		valueContainer.setOutputMarkupId(true);
         		valueContainer.add(new AttributeModifier("class", getValueCssClass()));
@@ -193,7 +193,7 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
     
     //VALUE REGION
     
-    protected <T> Component createValuePanel(IModel<ValueWrapper<T>> valueWrapperModel, FeedbackPanel feedback, Form form) {
+    protected <T> Component createValuePanel(IModel<ValueWrapperOld<T>> valueWrapperModel, FeedbackPanel feedback, Form form) {
     		
 		IW iw = getModel().getObject();
 
@@ -290,7 +290,7 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
 		target.add(PrismPropertyPanel.this);
 	}
 	
-	private <T> void removeValue(ValueWrapper<T> valueToRemove, AjaxRequestTarget target) {
+	private <T> void removeValue(ValueWrapperOld<T> valueToRemove, AjaxRequestTarget target) {
 		
 		ItemWrapperOld itemWrapper = getModel().getObject();
 		try {
@@ -384,9 +384,9 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
 //	}
 
 
-	private List<ValueWrapper> getUsableValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
-		List<ValueWrapper> values = new ArrayList<>();
-		for (ValueWrapper value : property.getValues()) {
+	private List<ValueWrapperOld> getUsableValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
+		List<ValueWrapperOld> values = new ArrayList<>();
+		for (ValueWrapperOld value : property.getValues()) {
 			value.normalize(property.getItemDefinition().getPrismContext());
 			if (ValueStatus.DELETED.equals(value.getStatus())) {
 				continue;
@@ -399,7 +399,7 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
 
 	private int countNonDeletedValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
 		int count = 0;
-		for (ValueWrapper value : property.getValues()) {
+		for (ValueWrapperOld value : property.getValues()) {
 			value.normalize(property.getItemDefinition().getPrismContext());
 			if (ValueStatus.DELETED.equals(value.getStatus())) {
 				continue;
@@ -463,7 +463,7 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
         return "row";
     }
 
-    protected <T> IModel<String> createStyleClassModel(final IModel<ValueWrapper<T>> value) {
+    protected <T> IModel<String> createStyleClassModel(final IModel<ValueWrapperOld<T>> value) {
         return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
@@ -482,9 +482,9 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
     	return " col-md-offset-2 prism-value ";
     }
 
-    private <T> int getIndexOfValue(ValueWrapper<T> value) {
+    private <T> int getIndexOfValue(ValueWrapperOld<T> value) {
         ItemWrapperOld property = value.getItem();
-        List<ValueWrapper<T>> values = property.getValues();
+        List<ValueWrapperOld<T>> values = property.getValues();
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i).equals(value)) {
                 return i;
@@ -494,8 +494,8 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
         return -1;
     }
 
-    private <T> boolean isVisibleValue(IModel<ValueWrapper<T>> model) {
-        ValueWrapper<T> value = model.getObject();
+    private <T> boolean isVisibleValue(IModel<ValueWrapperOld<T>> model) {
+        ValueWrapperOld<T> value = model.getObject();
         return !ValueStatus.DELETED.equals(value.getStatus());
     }
 

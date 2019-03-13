@@ -15,30 +15,28 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.LambdaModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
-import com.evolveum.midpoint.web.component.prism.PrismWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
  * @author katka
  *
  */
-public abstract class ItemHeaderPanel<T extends Serializable> extends BasePanel<T> {
+public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper<V, I, ID>> extends BasePanel<IW> {
 	private static final long serialVersionUID = 1L;
 
 	
@@ -46,14 +44,24 @@ public abstract class ItemHeaderPanel<T extends Serializable> extends BasePanel<
 	private static final String ID_EXPAND_COLLAPSE_CONTAINER = "expandCollapse";
 	protected static final String ID_LABEL_CONTAINER = "labelContainer";
 	protected static final String ID_HELP = "help";
+	private static final String ID_EXPERIMENTAL = "experimental";
+	private static final String ID_DEPRECATED = "deprecated";
+	private static final String ID_REQUIRED = "required";
+	private static final String ID_OUTBOUND = "outbound";
+	private static final String ID_PENDING_OPERATION = "pendingOperation";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ItemHeaderPanel.class);
 
 
-    public ItemHeaderPanel(String id, IModel<T> model) {
+    public ItemHeaderPanel(String id, IModel<IW> model) {
         super(id, model);
-
-        initLayout();
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	
+    	initLayout();
     }
 
 	private void initLayout() {
@@ -74,60 +82,151 @@ public abstract class ItemHeaderPanel<T extends Serializable> extends BasePanel<
 		
 		WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
-        
+        labelContainer.add(new AttributeModifier("class", getLabelCssClass()));
         add(labelContainer);
 
-        String displayName = getLabel();
-        if (StringUtils.isEmpty(displayName)) {
-            displayName = "displayName.not.set";
-        }
-        StringResourceModel headerLabelModel = createStringResource(displayName);
-        labelContainer.add(new Label(ID_LABEL, headerLabelModel));
-        
-        labelContainer.add(getHelpLabel());
+		createTitle(labelContainer);
+		createHelpText(labelContainer);
+		createExperimentalTooltip(labelContainer);
+		createDeprecated(labelContainer);
+		createRequeired(labelContainer);
+		createOutbound(labelContainer);
+	
+		//TODO: pending operations
     }
 	
-	protected Label getHelpLabel() {
-		final IModel<String> helpText = new LoadableModel<String>(false) {
-        	private static final long serialVersionUID = 1L;
+	private void createTitle(WebMarkupContainer labelContainer) {
+		
+        
+        IModel<String> label = LambdaModel.of(getModel(), IW::getDisplayName);
+        
+        Label displayName = new Label(ID_LABEL, label);
+        displayName.add(new AttributeModifier("style", getDeprecatedCss()));
 
-            @Override
-            protected String load() {
-                return getHelpText();
-            }
-        };
-        Label help = new Label(ID_HELP);
-        help.add(AttributeModifier.replace("title", helpText));
-        help.add(new InfoTooltipBehavior());
-        help.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return StringUtils.isNotEmpty(helpText.getObject()) && isVisibleHelpText();
-            }
-        });
-        return help;
+        labelContainer.add(displayName);
 	}
 	
-	protected String getHelpText() {
-		return "";
+	private void createHelpText(WebMarkupContainer labelContainer) {
+		
+		Label help = new Label(ID_HELP);
+        help.add(AttributeModifier.replace("title", LambdaModel.of(getModel(), IW::getHelp)));
+        help.add(new InfoTooltipBehavior());
+        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getHelp())));
+        labelContainer.add(help);
+	}
+	
+	private void createExperimentalTooltip(WebMarkupContainer labelContainer) {
+		Label experimental = new Label(ID_EXPERIMENTAL);
+        
+		experimental.add(new InfoTooltipBehavior() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public String getCssClass() {
+        		return "fa fa-fw  fa-lightbulb-o text-warning";
+        	}
+        	
+        	
+        });
+        experimental.add(new VisibleBehaviour(() -> getModelObject().isExperimental()));
+        labelContainer.add(experimental);
+
+	}
+	
+	private void createDeprecated(WebMarkupContainer labelContainer) {
+		Label deprecated = new Label(ID_DEPRECATED);
+        deprecated.add(AttributeModifier.replace("deprecated", LambdaModel.of(getModel(), IW::getDeprecatedSince)));
+        deprecated.add(new InfoTooltipBehavior() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public String getCssClass() {
+        		return "fa fa-fw fa-warning text-warning";
+        	}
+        	
+        	
+        });
+        deprecated.add(new VisibleBehaviour(() -> getModelObject().isDeprecated()));
+        labelContainer.add(deprecated);
+	}
+	
+	private void createRequeired(WebMarkupContainer labelContainer) {
+		WebMarkupContainer required = new WebMarkupContainer(ID_REQUIRED);
+		required.add(new VisibleBehaviour(() -> getModelObject().isMandatory()));
+		labelContainer.add(required);
+	}
+	
+	private void createOutbound(WebMarkupContainer labelContainer) {
+		  WebMarkupContainer hasOutbound = new WebMarkupContainer(ID_OUTBOUND);
+	        hasOutbound.add(new VisibleBehaviour(() -> getModelObject().hasOutboundMapping()));
+	        labelContainer.add(hasOutbound);
 	}
 
-	protected boolean isVisibleHelpText() {
-		return false;
+//	private void createPendingModification() {
+//		 WebMarkupContainer hasPendingModification = new WebMarkupContainer(ID_PENDING_OPERATION);
+//	        hasPendingModification.add(new VisibleEnableBehaviour() {
+//	        	private static final long serialVersionUID = 1L;
+//
+//	            @Override
+//	            public boolean isVisible() {
+//	                return hasPendingModification(model);
+//	            }
+//	        });
+//	        labelContainer.add(hasPendingModification);
+//	}
+//	
+//	private boolean hasPendingModification(IModel<IW> model) {
+//        ItemWrapperOld propertyWrapper = model.getObject();
+//        ContainerWrapperImpl containerWrapper = propertyWrapper.getParent();
+//        if (containerWrapper == null) {
+//            return false;           // TODO - ok?
+//        }
+//        if (!containerWrapper.isMain()) {
+//        	return false;
+//        }
+//        
+//        PrismContainer prismContainer = containerWrapper.getItem();
+//        if (prismContainer.getCompileTimeClass() == null ||
+//                !ShadowType.class.isAssignableFrom(prismContainer.getCompileTimeClass())) {
+//            return false;
+//        }
+//
+//        PrismProperty objectChange = prismContainer.findProperty(ShadowType.F_OBJECT_CHANGE);
+//        if (objectChange == null || objectChange.getValue() == null) {
+//            return false;
+//        }
+//
+//        ItemPath path = propertyWrapper.getItem().getPath();
+//        ObjectDeltaType delta = (ObjectDeltaType) objectChange.getValue().getValue();
+//        try {
+//            for (ItemDeltaType itemDelta : delta.getItemDelta()) {
+//                //noinspection unchecked
+//                ItemDelta iDelta = DeltaConvertor.createItemDelta(itemDelta, (Class<? extends Containerable>)
+//                        prismContainer.getCompileTimeClass(), prismContainer.getPrismContext());
+//                if (iDelta.getPath().equivalent(path)) {
+//                    return true;
+//                }
+//            }
+//        } catch (SchemaException ex) {
+//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check if property has pending modification", ex);
+//        }
+//
+//        return false;
+//    }
+	
+	public String getLabelCssClass() {
+	    	return " col-md-2 col-xs-12 prism-property-label ";
+	    }
+	
+	public IModel<String> getDeprecatedCss() {
+		return () -> getModelObject().isDeprecated() ? "text-decoration: line-through;" : "text-decoration: none;";
 	}
-
+	
+	
+	///OLD
     protected abstract void initButtons();
     
-    protected void onButtonClick(AjaxRequestTarget target) {
-
-    }
-    
-    public abstract String getLabel();
-
-    public boolean isButtonsVisible() {
-    	return true;
-    }
-
+  
 }

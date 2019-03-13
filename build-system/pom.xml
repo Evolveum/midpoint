@@ -77,7 +77,7 @@
         <jdbc.sqlserver>6.4.0.jre8</jdbc.sqlserver>
         <jdbc.mariadb>2.3.0</jdbc.mariadb>
         <jdbc.mysql>6.0.6</jdbc.mysql>
-        <wicket.version>8.0.0</wicket.version>
+        <wicket.version>8.3.0</wicket.version>
         <groovy.version>2.4.14</groovy.version>
         <activiti-engine.version>5.22.0</activiti-engine.version>
         <activiti-spring.version>5.22.0</activiti-spring.version>

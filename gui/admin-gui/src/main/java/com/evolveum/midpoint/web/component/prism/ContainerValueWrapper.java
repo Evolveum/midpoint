@@ -533,11 +533,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	private void addItemDelta(PropertyOrReferenceWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
 			ItemPath containerPath) {
 		for (Object vWrapper : itemWrapper.getValues()) {
-			if (!(vWrapper instanceof ValueWrapper)) {
+			if (!(vWrapper instanceof ValueWrapperOld)) {
 				continue;
 			}
 
-			ValueWrapper valueWrapper = (ValueWrapper) vWrapper;
+			ValueWrapperOld valueWrapper = (ValueWrapperOld) vWrapper;
 
 			valueWrapper.normalize(propertyDef.getPrismContext());
 			ValueStatus valueStatus = valueWrapper.getStatus();
@@ -636,11 +636,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	private Item createItem(PropertyOrReferenceWrapper itemWrapper, ItemDefinition propertyDef) {
 		List<PrismValue> prismValues = new ArrayList<>();
 		for (Object vWrapper : itemWrapper.getValues()) {
-			if (!(vWrapper instanceof ValueWrapper)) {
+			if (!(vWrapper instanceof ValueWrapperOld)) {
 				continue;
 			}
 
-			ValueWrapper valueWrapper = (ValueWrapper) vWrapper;
+			ValueWrapperOld valueWrapper = (ValueWrapperOld) vWrapper;
 
 			valueWrapper.normalize(propertyDef.getPrismContext());
 			ValueStatus valueStatus = valueWrapper.getStatus();

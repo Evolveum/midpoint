@@ -13,20 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.evolveum.midpoint.gui.api.registry;
+package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
+import com.evolveum.midpoint.prism.PrismValue;
 
-public interface GuiComponentRegistry extends Serializable {
+/**
+ * @author katka
+ *
+ */
+public class ValueWrapperImpl<T, V extends PrismValue> implements PrismValueWrapper<T> {
 
-	public void addToRegistry(GuiComponentFactory factory);
+	private static final long serialVersionUID = 1L;
 	
-	public <T> GuiComponentFactory findFactory(ItemWrapper itemWrapper);
+	private ItemWrapper<V, ?, ?> parent;
+	
+	private V oldValue;
+	private V newValue;
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper#getRealValue()
+	 */
+	@Override
+	public T getRealValue() {
+		return newValue.getRealValue();
+	}
+	
+
 	
 }

@@ -42,7 +42,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -59,8 +59,8 @@ public class WrapperTestUtil {
 	
 	private static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapperOld itemWrapper, QName itemName, T... newValues) {
 		for (T newValue: newValues) {
-			List<ValueWrapper> valueWrappers = itemWrapper.getValues();
-			ValueWrapper lastValueWrapper = valueWrappers.get(valueWrappers.size() - 1);
+			List<ValueWrapperOld> valueWrappers = itemWrapper.getValues();
+			ValueWrapperOld lastValueWrapper = valueWrappers.get(valueWrappers.size() - 1);
 			PrismPropertyValue<T> pval = (PrismPropertyValue<T>) lastValueWrapper.getValue();
 			if (!isEmptyValue(pval)) {
 				itemWrapper.addValue(true);
@@ -100,11 +100,11 @@ public class WrapperTestUtil {
 	}
 
 	private static <C extends Containerable,T> void assertPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapperOld itemWrapper, QName itemName, T... expectedValues) {
-		List<ValueWrapper> valueWrappers = itemWrapper.getValues();
+		List<ValueWrapperOld> valueWrappers = itemWrapper.getValues();
 		assertPropertyWrapperValues("item wrapper "+itemName+" in "+containerWrapper, valueWrappers, expectedValues);
 	}
 
-	public static <C extends Containerable,T> void assertPropertyWrapperValues(String desc, List<ValueWrapper> valueWrappers, T... expectedValues) {
+	public static <C extends Containerable,T> void assertPropertyWrapperValues(String desc, List<ValueWrapperOld> valueWrappers, T... expectedValues) {
 		if (expectedValues == null) {
 			expectedValues = (T[]) new Object[] { null };
 		}
@@ -112,7 +112,7 @@ public class WrapperTestUtil {
 		if (expectedValues.length == 0) {
 			return;
 		}
-		for (ValueWrapper vw: valueWrappers) {
+		for (ValueWrapperOld vw: valueWrappers) {
 			PrismValue actualPval = vw.getValue();
 			if (actualPval instanceof PrismPropertyValue<?>) {
 				T actualValue = ((PrismPropertyValue<T>)actualPval).getValue();

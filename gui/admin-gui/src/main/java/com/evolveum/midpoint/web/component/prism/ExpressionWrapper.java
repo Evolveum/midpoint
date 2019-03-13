@@ -54,7 +54,7 @@ public class ExpressionWrapper extends PropertyWrapper<ExpressionType> {
 
     @Override
     public boolean hasChanged() {
-        for (ValueWrapper valueWrapper : values) {
+        for (ValueWrapperOld valueWrapper : values) {
             ExpressionType expression = (ExpressionType) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
             ExpressionType oldExpressionValue = (ExpressionType)((PrismPropertyValue)valueWrapper.getOldValue()).getValue();
             try {

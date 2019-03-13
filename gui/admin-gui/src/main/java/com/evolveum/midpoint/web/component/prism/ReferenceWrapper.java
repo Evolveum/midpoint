@@ -45,19 +45,19 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		super(container, reference, readonly, status, path, prismContext);
 	}
 
-	public List<ValueWrapper> getValues() {
+	public List<ValueWrapperOld> getValues() {
 		if (values == null) {
 			values = createValues();
 		}
 		return values;
 	}
 
-	private List<ValueWrapper> createValues() {
-		List<ValueWrapper> values = new ArrayList<>();
+	private List<ValueWrapperOld> createValues() {
+		List<ValueWrapperOld> values = new ArrayList<>();
 
 		for (PrismReferenceValue prismValue : item.getValues()) {
 			
-			values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED, prismContext));
+			values.add(new ValueWrapperOld(this, prismValue, ValueStatus.NOT_CHANGED, prismContext));
 		}
 
 		int minOccurs = getItemDefinition().getMinOccurs();
@@ -81,9 +81,9 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	}
 	
 	@Override
-	public ValueWrapper createAddedValue() {
+	public ValueWrapperOld createAddedValue() {
 		PrismReferenceValue prv = prismContext.itemFactory().createReferenceValue();
-		return new ValueWrapper(this, prv, ValueStatus.ADDED, prismContext);
+		return new ValueWrapperOld(this, prv, ValueStatus.ADDED, prismContext);
 	}
 	
 	public ObjectFilter getFilter() {
@@ -101,7 +101,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		builder.append(", ");
 		builder.append(status);
 		builder.append("\n");
-		for (ValueWrapper wrapper : getValues()) {
+		for (ValueWrapperOld wrapper : getValues()) {
 			builder.append("\t");
 			builder.append(wrapper.toString());
 			builder.append("\n");

@@ -66,7 +66,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
@@ -497,7 +497,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				warn(getString("pageAdminFocus.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 				continue;
 			}
-			ValueWrapper value = (ValueWrapper) enabledProperty.getValues().get(0);
+			ValueWrapperOld value = (ValueWrapperOld) enabledProperty.getValues().get(0);
 			ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
 					: ActivationStatusType.DISABLED;
 			((PrismPropertyValue) value.getValue()).setValue(status);
@@ -533,7 +533,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				warn(getString("pageAdminFocus.message.noLockoutStatusPropertyFound", wrapper.getDisplayName()));
 				continue;
 			}
-			ValueWrapper value = (ValueWrapper) lockedProperty.getValues().get(0);
+			ValueWrapperOld value = (ValueWrapperOld) lockedProperty.getValues().get(0);
 			((PrismPropertyValue) value.getValue()).setValue(LockoutStatusType.NORMAL);
 			info(getString("pageAdminFocus.message.unlocked", wrapper.getDisplayName()));			// TODO only for really unlocked accounts
 		}

@@ -66,7 +66,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
@@ -242,7 +242,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			}
 			
 			@Override
-			protected IModel populatePropertyItem(ValueWrapper object) {
+			protected IModel populatePropertyItem(ValueWrapperOld object) {
 				return new IModel<String>() {
 
 					@Override

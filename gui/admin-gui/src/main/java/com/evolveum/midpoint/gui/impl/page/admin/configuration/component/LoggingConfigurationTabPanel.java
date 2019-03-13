@@ -74,7 +74,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
@@ -503,7 +503,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			}
 			
 			@Override
-			protected IModel populatePropertyItem(ValueWrapper object) {
+			protected IModel populatePropertyItem(ValueWrapperOld object) {
 				ItemRealValueModel<String> value =  new ItemRealValueModel<String>(object);
 				return StringUtils.isBlank(value.getObject()) ? createStringResource("AssignmentPanel.noName") : Model.of(value.getObject());
 			}

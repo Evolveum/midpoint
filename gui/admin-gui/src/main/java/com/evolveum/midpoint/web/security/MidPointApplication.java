@@ -150,7 +150,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
->>>>>>> origin/master
 
 /**
  * @author lazyman

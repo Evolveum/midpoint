@@ -183,7 +183,7 @@ public class ContainerWrapperFactory {
 			associationValueWrapper.setFilter(WebComponentUtil.createAssociationShadowRefFilter(refinedAssocationDefinition,
 					prismContext, resource.getOid()));
 			
-			for (ValueWrapper valueWrapper : associationValueWrapper.getValues()) {
+			for (ValueWrapperOld valueWrapper : associationValueWrapper.getValues()) {
 				valueWrapper.setEditEnabled(isEmpty(valueWrapper));
 			}
 			associationValueWrapper.setTargetTypes(Collections.singletonList(ShadowType.COMPLEX_TYPE));
@@ -199,7 +199,7 @@ public class ContainerWrapperFactory {
 		
     }
     
-    private boolean isEmpty(ValueWrapper shadowAssociationRef) {
+    private boolean isEmpty(ValueWrapperOld shadowAssociationRef) {
     	if (shadowAssociationRef == null) {
     		return true;
     	}

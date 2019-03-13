@@ -64,7 +64,7 @@ public class ObjectWrapperTest extends AbstractGuiIntegrationTest {
         }
 
         PropertyWrapper propertyWrapper = (PropertyWrapper) containerWrapper.findPropertyWrapper(UserType.F_HONORIFIC_SUFFIX);
-        ValueWrapper valueWrapper = (ValueWrapper) propertyWrapper.getValues().get(0);
+        ValueWrapperOld valueWrapper = (ValueWrapperOld) propertyWrapper.getValues().get(0);
         PolyString value = (PolyString) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
 
         Field orig = PolyString.class.getDeclaredField("orig");

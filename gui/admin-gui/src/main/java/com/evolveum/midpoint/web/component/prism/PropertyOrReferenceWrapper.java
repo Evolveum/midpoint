@@ -54,14 +54,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  *
  * @author mederly
  */
-public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapperOld<I, ID, ValueWrapper>, Serializable {
+public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapperOld<I, ID, ValueWrapperOld>, Serializable {
 
 	private static final long serialVersionUID = -179218652752175177L;
 
 	@Nullable protected ContainerValueWrapper container;
 	protected I item;
 	protected ValueStatus status;
-	protected List<ValueWrapper> values;
+	protected List<ValueWrapperOld> values;
 	
 	// processed and localized display name
 	protected String displayName;
@@ -225,7 +225,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.status = status;
 	}
 
-	public List<ValueWrapper> getValues() {
+	public List<ValueWrapperOld> getValues() {
 		return values;
 	}
 	
@@ -248,8 +248,8 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 	
 	@Override
-	public void removeValue(ValueWrapper<ValueWrapper> valueWrapper) throws SchemaException {
-		List<ValueWrapper> values = getValues();
+	public void removeValue(ValueWrapperOld<ValueWrapperOld> valueWrapper) throws SchemaException {
+		List<ValueWrapperOld> values = getValues();
 		
 		switch (valueWrapper.getStatus()) {
 			case ADDED:
@@ -272,7 +272,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	
 	
 	
-	public abstract ValueWrapper createAddedValue();
+	public abstract ValueWrapperOld createAddedValue();
 
 	@Override
 	public I getItem() {
@@ -284,7 +284,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 //	}
 
 	public boolean hasChanged() {
-		for (ValueWrapper value : getValues()) {
+		for (ValueWrapperOld value : getValues()) {
 			switch (value.getStatus()) {
 				case DELETED:
 					return true;
@@ -340,7 +340,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	public I getUpdatedItem(PrismContext prismContext) throws SchemaException {
 		final Item updatedItem = item.clone();
 		updatedItem.clear();
-		for (ValueWrapper valueWrapper : getValues()) {
+		for (ValueWrapperOld valueWrapper : getValues()) {
 			valueWrapper.normalize(prismContext);
 			if (ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 				updatedItem.remove(valueWrapper.getValue());
@@ -359,7 +359,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		if (getItemDefinition() == null || !getItemDefinition().isMandatory()) {
 			return true;
 		}
-		for (ValueWrapper valueWrapper : CollectionUtils.emptyIfNull(getValues())) {
+		for (ValueWrapperOld valueWrapper : CollectionUtils.emptyIfNull(getValues())) {
 			if (!valueWrapper.isEmpty()) {
 				return true;
 			}

@@ -53,11 +53,11 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
     }
 
 	// TODO consider unifying with ReferenceWrapper.createValues  (difference is in oldValue in ValueWrapper constructor: null vs. prismValue)
-    private List<ValueWrapper> createValues() {
-        List<ValueWrapper> values = new ArrayList<>();
+    private List<ValueWrapperOld> createValues() {
+        List<ValueWrapperOld> values = new ArrayList<>();
 
         for (PrismValue prismValue : item.getValues()) {
-            values.add(new ValueWrapper<T>(this, prismValue, ValueStatus.NOT_CHANGED, prismContext));
+            values.add(new ValueWrapperOld<T>(this, prismValue, ValueStatus.NOT_CHANGED, prismContext));
         }
 
         int minOccurs = getItemDefinition().getMinOccurs();
@@ -73,10 +73,10 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
     }
 
 	@Override
-    public ValueWrapper<T> createAddedValue() {
+    public ValueWrapperOld<T> createAddedValue() {
         ItemDefinition definition = item.getDefinition();
 
-        ValueWrapper wrapper;
+        ValueWrapperOld wrapper;
 //        if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
 //            wrapper = new ValueWrapper(this, new PrismPropertyValue<>(new PolyString("")),
 //                    new PrismPropertyValue<>(new PolyString("")), ValueStatus.ADDED);
@@ -84,7 +84,7 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 //            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
 //                    new PrismPropertyValue(null), ValueStatus.ADDED);
 //        } else {
-            wrapper = new ValueWrapper(this, prismContext.itemFactory().createPropertyValue(), ValueStatus.ADDED,
+            wrapper = new ValueWrapperOld(this, prismContext.itemFactory().createPropertyValue(), ValueStatus.ADDED,
             		prismContext);
 //        }
 

@@ -840,7 +840,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 								.append(AssignmentType.F_TARGET_REF));
 
 						if (targetRef != null && targetRef.getValues() != null && targetRef.getValues().size() > 0) {
-							ValueWrapper refWrapper = (ValueWrapper)targetRef.getValues().get(0);
+							ValueWrapperOld refWrapper = (ValueWrapperOld)targetRef.getValues().get(0);
 							PrismReferenceValue refValue = (PrismReferenceValue)refWrapper.getValue();
 							ObjectReferenceType ort = new ObjectReferenceType();
 							ort.setupReferenceValue(refValue);
@@ -890,7 +890,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 		String lifecycleStatus = "";
 		PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapperByName(AssignmentType.F_LIFECYCLE_STATE);
 		if (lifecycleStatusProperty != null && lifecycleStatusProperty.getValues() != null){
-			Iterator<ValueWrapper> iter = lifecycleStatusProperty.getValues().iterator();
+			Iterator<ValueWrapperOld> iter = lifecycleStatusProperty.getValues().iterator();
 			if (iter.hasNext()){
 				lifecycleStatus = (String) iter.next().getValue().getRealValue();
 			}
@@ -899,7 +899,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 			activation = new ActivationType();
 			PropertyOrReferenceWrapper administrativeStatusProperty = activationContainer.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
 			if (administrativeStatusProperty != null && administrativeStatusProperty.getValues() != null){
-				Iterator<ValueWrapper> iter = administrativeStatusProperty.getValues().iterator();
+				Iterator<ValueWrapperOld> iter = administrativeStatusProperty.getValues().iterator();
 				if (iter.hasNext()){
 					administrativeStatus = (ActivationStatusType) iter.next().getValue().getRealValue();
 					activation.setAdministrativeStatus(administrativeStatus);
@@ -907,7 +907,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 			}
 			PropertyOrReferenceWrapper validFromProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_FROM);
 			if (validFromProperty != null && validFromProperty.getValues() != null){
-				Iterator<ValueWrapper> iter = validFromProperty.getValues().iterator();
+				Iterator<ValueWrapperOld> iter = validFromProperty.getValues().iterator();
 				if (iter.hasNext()){
 					validFrom = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
 					activation.setValidFrom(validFrom);
@@ -915,7 +915,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapperImpl<AssignmentTy
 			}
 			PropertyOrReferenceWrapper validToProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_TO);
 			if (validToProperty != null && validToProperty.getValues() != null){
-				Iterator<ValueWrapper> iter = validToProperty.getValues().iterator();
+				Iterator<ValueWrapperOld> iter = validToProperty.getValues().iterator();
 				if (iter.hasNext()){
 					validTo = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
 					activation.setValidTo(validTo);

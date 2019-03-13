@@ -53,7 +53,7 @@ import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.component.prism.PrismWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
@@ -617,7 +617,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 	}
 
 	@Override
-	public void removeValue(ValueWrapper<ContainerValueWrapper<C>> valueWrapper) throws SchemaException {
+	public void removeValue(ValueWrapperOld<ContainerValueWrapper<C>> valueWrapper) throws SchemaException {
 		throw new UnsupportedOperationException("Not impelemtned yet");
 	}
 

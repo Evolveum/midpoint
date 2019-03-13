@@ -83,7 +83,7 @@ import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ShadowAssociationWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -645,9 +645,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("wrong number of items in "+associationContainerWrapper, 1, associationContainerWrapper.getValues().size());
 		ReferenceWrapper groupAssociationWrapper = (ReferenceWrapper) associationContainerWrapper.findPropertyWrapper(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME);
 		assertNotNull("No group association property wrapper", groupAssociationWrapper);
-		List<ValueWrapper> groupAssociationValues = groupAssociationWrapper.getValues();
+		List<ValueWrapperOld> groupAssociationValues = groupAssociationWrapper.getValues();
 		assertEquals("wrong number of values in "+groupAssociationWrapper, 1, groupAssociationValues.size());
-		ValueWrapper groupAssociationValue = groupAssociationValues.get(0);
+		ValueWrapperOld groupAssociationValue = groupAssociationValues.get(0);
 		PrismReferenceValue groupAssociationValuePVal = (PrismReferenceValue) groupAssociationValue.getValue();
 		display("groupAssociationValuePVal", groupAssociationValuePVal);
 		assertEquals("wrong number of values in "+groupAssociationValue, ValueStatus.NOT_CHANGED, groupAssociationValue.getStatus());
@@ -859,13 +859,13 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 	private void modifyPropertyWrapper(ContainerValueWrapper<OrgType> mainContainerValueWrapper, ItemName propQName, String newValue) {
 		PropertyOrReferenceWrapper propertyWrapper = mainContainerValueWrapper.findPropertyWrapperByName(propQName);
-		List<ValueWrapper> values = propertyWrapper.getValues();
+		List<ValueWrapperOld> values = propertyWrapper.getValues();
 		if (values.size() == 1) {
 			PrismPropertyValue<String> pval = (PrismPropertyValue<String>) values.get(0).getValue();
 			pval.setValue(newValue);
 		} else if (values.isEmpty()) {
 			PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(newValue);
-			ValueWrapper newValueWrapper = new ValueWrapper<>(propertyWrapper, pval, prismContext);
+			ValueWrapperOld newValueWrapper = new ValueWrapperOld<>(propertyWrapper, pval, prismContext);
 			values.add(newValueWrapper);
 			newValueWrapper.setStatus(ValueStatus.ADDED);
 		} else {
@@ -887,7 +887,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 	private void modifyTransformProp(ContainerValueWrapper<Containerable> transformValueWrapper, ItemName prop, String newReplacement) {
 		PropertyOrReferenceWrapper replacementPropWrapper = transformValueWrapper.findPropertyWrapperByName(prop);
-		List<ValueWrapper> values = replacementPropWrapper.getValues();
+		List<ValueWrapperOld> values = replacementPropWrapper.getValues();
 		PrismPropertyValue<String> prismValue = (PrismPropertyValue<String>) values.get(0).getValue();
 		prismValue.setValue(newReplacement);
 	}

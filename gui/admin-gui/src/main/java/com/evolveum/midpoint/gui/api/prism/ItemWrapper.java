@@ -22,6 +22,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -31,36 +32,43 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
  * @author katka
  *
  */
-public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>> extends Revivable, DebugDumpable, Serializable {
+public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
 
-	
-	void revive(PrismContext prismContext) throws SchemaException;
-	
+//	
+//	void revive(PrismContext prismContext) throws SchemaException;
+//	
 	String debugDump(int indent);
 	
 	boolean hasChanged();
-	
-	List<ValueWrapper<V>> getValues();
 	
 	boolean isVisible();
 	
 	void addValue(boolean showEmpty);
 	
-	void removeValue(ValueWrapper<V> valueWrapper) throws SchemaException;
+	void removeValue(ValueWrapperOld<V> valueWrapper) throws SchemaException;
 	
 	boolean checkRequired(PageBase pageBase);
 	
 	ContainerValueWrapper<?> getParent();
 	
-	Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler);
-	
 	boolean isShowEmpty();
 	
 	void setShowEmpty(boolean isShowEmpty, boolean recursive);
+	
+	
+	//NEW
+	
+	public boolean isReadOnly();
+	
+	ExpressionType getFormComponentValidator();
+	
+	List<PrismValueWrapper<V>> getValues();
+	
 }

@@ -16,24 +16,25 @@
 
 package com.evolveum.midpoint.gui.impl.factory;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.factory.RealValuable;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 
 public class ItemRealValueModel<T> extends PropertyModel<T>{
 
 	private static final long serialVersionUID = 1L;
 		
-	private RealValuable<T> modelObject;
 	
-	public ItemRealValueModel(RealValuable<T> modelObject) {
+	public ItemRealValueModel(IModel<PrismValueWrapper<T>> modelObject) {
 		super(modelObject, "realValue");
-		this.modelObject = modelObject;
 	}
 	
 //	@Override

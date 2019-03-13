@@ -24,7 +24,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.prism.ExpressionWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
@@ -51,7 +51,7 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionWrappe
 	 * @see com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel#createValuePanel(org.apache.wicket.model.IModel, org.apache.wicket.markup.html.panel.FeedbackPanel, org.apache.wicket.markup.html.form.Form)
 	 */
 	@Override
-	protected <T> Component createValuePanel(IModel<ValueWrapper<T>> valueWrapperModel, FeedbackPanel feedback, Form form) {
+	protected <T> Component createValuePanel(IModel<ValueWrapperOld<T>> valueWrapperModel, FeedbackPanel feedback, Form form) {
 		
 //	      if ((itemWrapper.getPath().containsNameExactly(ConstructionType.F_ASSOCIATION) ||
 //                itemWrapper.getPath().containsNameExactly(ConstructionType.F_ATTRIBUTE))&&

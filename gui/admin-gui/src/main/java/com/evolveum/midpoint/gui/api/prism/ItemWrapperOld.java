@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.apache.commons.lang.Validate;
@@ -113,7 +113,7 @@ public interface ItemWrapperOld<V extends PrismValue, I extends Item<V, ID>, ID 
 
     void addValue(boolean showEmpty);
     
-    void removeValue(ValueWrapper<V> valueWrapper) throws SchemaException;
+    void removeValue(ValueWrapperOld<V> valueWrapper) throws SchemaException;
 
 	boolean checkRequired(PageBase pageBase);
 

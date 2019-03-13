@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -60,12 +60,12 @@ public class StaticItemWrapperColumnPanel<IW extends ItemWrapperOld> extends Pri
     		@Override
     		protected void populateItem(ListItem<RealValuable> item) {
     			IModel<String> value = null; 
-    			if(item.getModelObject() instanceof ValueWrapper) {
-    				if(((ValueWrapper)item.getModelObject()).getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
-    					value = populateReferenceItem((ValueWrapper)item.getModelObject());
+    			if(item.getModelObject() instanceof ValueWrapperOld) {
+    				if(((ValueWrapperOld)item.getModelObject()).getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
+    					value = populateReferenceItem((ValueWrapperOld)item.getModelObject());
 	    		
-    				} else if (((ValueWrapper)item.getModelObject()).getItem().getItemDefinition() instanceof PrismPropertyDefinition) {
-    					value = populatePropertyItem((ValueWrapper)item.getModelObject());
+    				} else if (((ValueWrapperOld)item.getModelObject()).getItem().getItemDefinition() instanceof PrismPropertyDefinition) {
+    					value = populatePropertyItem((ValueWrapperOld)item.getModelObject());
     				}
     			} else if(item.getModelObject() instanceof ContainerValueWrapper) {
     				value = populateContainerItem((ContainerValueWrapper)item.getModelObject());
@@ -82,7 +82,7 @@ public class StaticItemWrapperColumnPanel<IW extends ItemWrapperOld> extends Pri
     	return new Label(componentId, value);
     }
     
-    protected IModel<String> populateReferenceItem(ValueWrapper object) {
+    protected IModel<String> populateReferenceItem(ValueWrapperOld object) {
     	return new IModel<String>() {
 
 			@Override
@@ -94,7 +94,7 @@ public class StaticItemWrapperColumnPanel<IW extends ItemWrapperOld> extends Pri
 		};
 	}
     
-    protected IModel<String> populatePropertyItem(ValueWrapper object) {
+    protected IModel<String> populatePropertyItem(ValueWrapperOld object) {
     	return new ItemRealValueModel<String>(object);
 	}
     

@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.evolveum.midpoint.gui.api.registry;
+package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 
-public interface GuiComponentRegistry extends Serializable {
+/**
+ * @author katka
+ *
+ */
+public interface PrismValueWrapper<T> extends Serializable {
 
-	public void addToRegistry(GuiComponentFactory factory);
+	T getRealValue();
 	
-	public <T> GuiComponentFactory findFactory(ItemWrapper itemWrapper);
-	
+//	ItemWrapper<?, ?, ?> getParent();
 }

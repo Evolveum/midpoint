@@ -9,9 +9,14 @@ import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ValueWrapperImpl;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -19,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public class PanelContext<T> {
@@ -28,12 +33,20 @@ public class PanelContext<T> {
 	
 	private Component parentComponent;
 	
-	private ItemWrapperOld itemWrapper;
+	private IModel<ItemWrapper> itemWrapper;
 	private ItemRealValueModel<T> realValueModel;
 	
 	private Form form;
 	
 	private FeedbackPanel feedbackPanel;
+	
+	public PanelContext(IModel<ItemWrapper> itemWrapper) {
+		this.itemWrapper = itemWrapper;
+	}
+	
+	private ItemWrapper getItemWrapper() {
+		return itemWrapper.getObject();
+	}
 	
 	public PageBase getPageBase() {
 		return (PageBase) parentComponent.getPage();
@@ -44,11 +57,11 @@ public class PanelContext<T> {
 	}
 	
 	public PrismReferenceValue getValueEnumerationRef() {
-		return itemWrapper.getItemDefinition().getValueEnumerationRef();
+		return getItemWrapper().getValueEnumerationRef();
 	}
 	
 	public Collection<T> getAllowedValues() {
-		if (itemWrapper.getItemDefinition() instanceof PrismPropertyDefinition) {
+		if (getItemWrapper() instanceof PrismPropertyDefinition) {
 			return ((PrismPropertyDefinition) itemWrapper.getItemDefinition()).getAllowedValues();
 		}
 		
@@ -56,22 +69,22 @@ public class PanelContext<T> {
 	}
 	
 	public PrismContext getPrismContext() {
-		return itemWrapper.getItemDefinition().getPrismContext();
+		return getItemWrapper().getPrismContext();
 	}
 	
 	public LookupTableType getPredefinedValues() {
-		if (itemWrapper instanceof PropertyWrapper) {
-			return ((PropertyWrapper) itemWrapper).getPredefinedValues();
+		if (getItemWrapper() instanceof PropertyWrapper) {
+			return ((PropertyWrapper) getItemWrapper()).getPredefinedValues();
 		}
 		return null;
 	}
 	
 	public boolean isPropertyReadOnly() {
-		return itemWrapper.isReadonly();
+		return getItemWrapper().isReadOnly();
 	}
 	
 	public QName getDefinitionName() {
-		return itemWrapper.getItemDefinition().getName();
+		return getItemWrapper().getItemDefinition().getName();
 	}
 	
 	public Component getParentComponent() {
@@ -79,9 +92,9 @@ public class PanelContext<T> {
 	}
 	
 	public Class<T> getTypeClass() {
-		Class<T> clazz = itemWrapper.getItemDefinition().getTypeClass();
+		Class<T> clazz = getItemWrapper().getTypeClass();
 		if (clazz == null) {
-			clazz = getPrismContext().getSchemaRegistry().determineClassForType(itemWrapper.getItemDefinition().getTypeName());
+			clazz = getPrismContext().getSchemaRegistry().determineClassForType(itemWrapper.getTypeName());
 		}
 		if (clazz != null && clazz.isPrimitive()) {
 			clazz = ClassUtils.primitiveToWrapper(clazz);
@@ -101,11 +114,11 @@ public class PanelContext<T> {
 		return feedbackPanel;
 	}
 	
-	public void setRealValueModel(ValueWrapper<T> valueWrapper) {
+	public void setRealValueModel(IModel<PrismValueWrapper<T>> valueWrapper) {
 		this.realValueModel = new ItemRealValueModel<>(valueWrapper);
 	}
 	
-	public void setItemWrapper(ItemWrapperOld itemWrapper) {
+	public void setItemWrapper(ItemWrapper itemWrapper) {
 		this.itemWrapper = itemWrapper;
 	}
 	
