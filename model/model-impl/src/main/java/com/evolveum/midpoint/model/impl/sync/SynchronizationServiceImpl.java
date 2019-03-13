@@ -724,6 +724,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (syncCtx.getReaction() == null) {
 			LOGGER.trace("No reaction is defined for situation {} in {}", syncCtx.getSituation(), syncCtx.getResource());
 			eventInfo.setNewSituation(newSituation);
+			return;
 		}
 
 		Boolean doReconciliation = syncCtx.isDoReconciliation();

@@ -2688,8 +2688,8 @@ public class ShadowCache {
 
 		if (change.getOldShadow() == null) {
 			PrismObject<ShadowType> repoShadow = shadowManager.findOrAddShadowFromChange(ctx, change, parentResult);
-			shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 			if (repoShadow != null) {
+				shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 				change.setOldShadow(repoShadow);
 			} else {
 				assert change.isDelete();
