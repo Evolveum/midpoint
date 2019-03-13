@@ -2162,42 +2162,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
-		ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
-		for (int i = 0; i < numberOfThreads; i++) {
-			threads[i] = new ParallelTestThread(i,
-					(ii) -> {
-						randomDelay(randomStartDelayRange);
-						LOGGER.info("{} starting", Thread.currentThread().getName());
-						lambda.run(ii);
-					});
-			threads[i].setName("Thread " + (i+1) + " of " + numberOfThreads);
-			threads[i].start();
-		}
-		return threads;
+		return TestUtil.multithread(TEST_NAME, lambda, numberOfThreads, randomStartDelayRange);
 	}
 	
 	protected void randomDelay(Integer range) {
-		if (range == null) {
-			return;
-		}
-		try {
-			Thread.sleep(RND.nextInt(range));
-		} catch (InterruptedException e) {
-			// Nothing to do, really
-		}
+		TestUtil.randomDelay(range);
 	}
 
 	protected void waitForThreads(ParallelTestThread[] threads, long timeout) throws InterruptedException {
-		for (int i = 0; i < threads.length; i++) {
-			if (threads[i].isAlive()) {
-				System.out.println("Waiting for " + threads[i]);
-				threads[i].join(timeout);
-			}
-			Throwable threadException = threads[i].getException();
-			if (threadException != null) {
-				throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
-			}
-		}
+		TestUtil.waitForThreads(threads, timeout);
 	}
 	
 	protected ItemPath getMetadataPath(QName propName) {
