@@ -14258,8 +14258,192 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="expressionExecutionRestriction" type="tns:ExpressionExecutionRestrictionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies restrictions for execution of expressions and scripts. This applies
+							to expressions in archetyped objects.
+							Please note that no expression execution restriction means that all evaluators
+							and scripting langages are allowed and there are no restrictions for evaluation
+							of expressions.
+						</p>
+						<p>
+							Implementation note: implementation of those restriction in midPoint 4.0 is very
+							limited. There is no guarantee that this will work for archetypes at all.
+							The only supported option in 4.0 is application of the restricitons to reports
+							(ReportType) and only if it is configured in global system configuration.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>ArchetypePolicyType.expressionExecutionRestriction</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="ExpressionExecutionRestrictionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions for execution of expressions and scripts.
+				Please note that no expression execution restriction means that all evaluators
+				and scripting langages are allowed and there are no restrictions for evaluation
+				of expressions.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="expressionEvaluatorStrategy" type="tns:ExpressionExecutionStrategy" minOccurs="0" maxOccurs="1" default="safe">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Strategy to evaluate allowed expression evaluators.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionExecutionRestrictionType.expressionEvaluatorStrategy</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="allowedExpressionEvaluator" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            List of expression evaluators that are allowed. It is only applied if evaluator strategy is
+			            set to manual. 
+			            Empty lists means that no evaluators are allowed.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionExecutionRestrictionType.allowedEvaluator</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="scriptLanguageStrategy" type="tns:ExpressionExecutionStrategy" minOccurs="0" maxOccurs="1" default="safe">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Strategy to evaluate allowed script languages.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionExecutionRestrictionType.expressionEvaluatorStrategy</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="allowedScriptLanguage" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            List of script languages that are allowed. It is only applied if script language strategy is
+			            set to manual. 
+			            Empty lists means that no script languages are allowed.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionExecutionRestrictionType.allowedScriptLanguage</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="scriptClassesStrategy" type="tns:ExpressionExecutionStrategy" minOccurs="0" maxOccurs="1" default="safe">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Strategy to evaluate allowed classes that script evaluators are allowed to access.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionExecutionRestrictionType.scriptClassesStrategy</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="allowedScriptClasses" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            List of script classes that are allowed. It is only applied if script classes strategy is
+			            set to manual. 
+			            Empty lists means that no script classes are allowed.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionExecutionRestrictionType.allowedScriptClasses</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: restrict runAs option -->
+			<!-- TODO: later: sandboxing, allowed operations -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:simpleType name="ExpressionExecutionStrategy">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="nothingAllowed">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Nothing is allowed.
+                			E.g. no expression evaluators or scripting languages are allowed.
+                			However, other definitions can still allow this.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOTHING_ALLOWED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="safe">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Only "safe" options are allowed. This is similar to "automatic" protection mode.
+                			E.g. only those expression evaluators or scripting languages that are considered
+                			"safe" are allowed. The definition of safe is quite vague here. Anything that has
+                			low risk of being abused for unintended action is considered "safe". However, this
+                			is still expression evaluation and some evaluators and scripting languages may be
+                			Turing-complete. The behaviour also depeds on midPoint configuration and customization.
+                			Therefore it is very hard to safeguard execution without completely sandboxing it.
+                			Appropriate care should be applied when using this option. It may be useful for
+                			a common case. But in some cases it may be needed to avoid this option and set up
+                			the restrictions manually.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SAFE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="manual">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Manual whitelist should be apllied.
+                			E.g. only those evaluators or scripting languages that are explicitly enumerated
+                			are allowed.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MANUAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allAllowed">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Everything is allowed.
+	                		E.g. all expression evaluators or scripting languages are allowed.
+                		</p> 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL_ALLOWED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 	    
     <xsd:complexType name="LookupTableType">
         <xsd:annotation>
