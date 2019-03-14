@@ -19,6 +19,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourcesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,20 +46,19 @@ public class AsyncUpdateConnectorConfiguration {
 		return transformExpression;
 	}
 
+	@SuppressWarnings("unused")
 	public void setTransformExpression(ExpressionType transformExpression) {
 		this.transformExpression = transformExpression;
 	}
 
 	public void validate() {
-		getSingleSourceConfiguration();
+		if (getAllSources().isEmpty()) {
+			throw new IllegalStateException("No asynchronous update sources were configured");
+		}
 	}
 
 	public AsyncUpdateSourceType getSingleSourceConfiguration() {
-		List<AsyncUpdateSourceType> allSources = new ArrayList<>();
-		if (sources != null) {
-			allSources.addAll(sources.getAmqp091());
-			allSources.addAll(sources.getOther());
-		}
+		List<AsyncUpdateSourceType> allSources = getAllSources();
 		if (allSources.isEmpty()) {
 			throw new IllegalStateException("No asynchronous update sources were configured");
 		} else if (allSources.size() > 1) {
@@ -68,4 +68,13 @@ public class AsyncUpdateConnectorConfiguration {
 		}
 	}
 
+	@NotNull
+	public List<AsyncUpdateSourceType> getAllSources() {
+		List<AsyncUpdateSourceType> allSources = new ArrayList<>();
+		if (sources != null) {
+			allSources.addAll(sources.getAmqp091());
+			allSources.addAll(sources.getOther());
+		}
+		return allSources;
+	}
 }

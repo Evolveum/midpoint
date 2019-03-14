@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package com.evolveum.midpoint.provisioning.impl.async;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -66,10 +66,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 	protected static final File TEST_DIR = new File("src/test/resources/async/");
 
-	protected static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
-	protected static final File RESOURCE_ASYNC_NO_CACHING_FILE = new File(TEST_DIR, "resource-async-no-caching.xml");
-	protected static final File RESOURCE_ASYNC_CACHING_AMQP_FILE = new File(TEST_DIR, "resource-async-caching-amqp.xml");
-	protected static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
+	static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
+	static final File RESOURCE_ASYNC_NO_CACHING_FILE = new File(TEST_DIR, "resource-async-no-caching.xml");
+	static final File RESOURCE_ASYNC_CACHING_AMQP_FILE = new File(TEST_DIR, "resource-async-caching-amqp.xml");
+	private static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
 
 	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-first-occurrence.xml");
 	private static final File CHANGE_110 = new File(TEST_DIR, "change-110-banderson-delta.xml");
@@ -77,13 +77,13 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	private static final File CHANGE_125 = new File(TEST_DIR, "change-125-banderson-notification-only.xml");
 	private static final File CHANGE_130 = new File(TEST_DIR, "change-130-banderson-delete.xml");
 
-	public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
+	private static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 
-	protected static final String ASYNC_CONNECTOR_TYPE = "AsyncUpdateConnector";
+	static final String ASYNC_CONNECTOR_TYPE = "AsyncUpdateConnector";
 
+	@SuppressWarnings("unused")
 	private static final Trace LOGGER = TraceManager.getTrace(TestAsyncUpdate.class);
 
-	protected static final String NS_ASYNC_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/AsyncUpdateConnector";
 	private static final long TIMEOUT = 5000L;
 
 	protected PrismObject<ResourceType> resource;
@@ -207,7 +207,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		final String TEST_NAME = "test005ParsedSchema";
 		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
 
 		// THEN
 		// The returned type should have the schema pre-parsed
@@ -245,14 +244,12 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		syncServiceMock.reset();
 
-		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
-
 		addDummyAccount("banderson");
 
-		provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
-		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -282,14 +279,12 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		syncServiceMock.reset();
 
-		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
-
 		setDummyAccountTestAttribute("banderson", "value1", "value2", "value3");
 
-		provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
-		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -323,14 +318,12 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		syncServiceMock.reset();
 
-		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
-
 		setDummyAccountTestAttribute("banderson", "value4");
 
-		provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
-		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -367,14 +360,12 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		syncServiceMock.reset();
 
-		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
-
 		setDummyAccountTestAttribute("banderson", "value125");
 
-		provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
-		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -406,12 +397,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		syncServiceMock.reset();
 
-		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID,
-				ProvisioningTestUtil.getDefaultAccountObjectClass(resource.asObjectable()));
-
-		provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
-		provisioningService.stopListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -431,9 +420,11 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	void addDummyAccount(String name) {
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	void setDummyAccountTestAttribute(String name, String... values) {
 	}
 

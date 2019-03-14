@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.ListeningActivity;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -28,10 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091SourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.DeliverCallback;
+import com.rabbitmq.client.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
 /**
- *
+ *  Async Update source for AMQP 0.9.1 brokers.
  */
 public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 
@@ -52,13 +51,73 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 	@NotNull private final PrismContext prismContext;
 	@NotNull private final ConnectionFactory connectionFactory;
 
-	private Connection activeConnection;
-	private Channel activeChannel;
-
 	private Amqp091AsyncUpdateSource(@NotNull Amqp091SourceType sourceConfiguration, @NotNull AsyncUpdateConnectorInstance connectorInstance) {
 		this.sourceConfiguration = sourceConfiguration;
 		this.prismContext = connectorInstance.getPrismContext();
 		this.connectionFactory = createConnectionFactory();
+	}
+
+	private class ListeningActivityImpl implements ListeningActivity {
+
+		private Connection activeConnection;
+		private Channel activeChannel;
+
+		@Override
+		public void stop() {
+			silentlyCloseActiveConnection();
+		}
+
+		private void startListening(AsyncUpdateMessageListener listener) {
+			try {
+				activeConnection = connectionFactory.newConnection();
+				activeChannel = activeConnection.createChannel();
+				DeliverCallback deliverCallback = (consumerTag, message) -> {
+					byte[] body = message.getBody();
+					System.out.println("Body: " + new String(body, StandardCharsets.UTF_8));
+					try {
+						boolean successful = listener.onMessage(createAsyncUpdateMessage(message));
+						if (successful) {
+							activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
+						} else {
+							rejectMessage(message);
+						}
+					} catch (RuntimeException | SchemaException e) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Got exception while processing message", e);
+						rejectMessage(message);
+					}
+				};
+				String activeConsumerTag = activeChannel
+						.basicConsume(sourceConfiguration.getQueue(), false, deliverCallback, consumerTag -> {});
+				System.out.println("Opened consumer " + activeConsumerTag);
+			} catch (Throwable t) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Exception on AMQP", t);
+				if (activeConnection != null) {
+					silentlyCloseActiveConnection();
+				}
+			}
+		}
+
+		private void rejectMessage(Delivery message) throws IOException {
+			// TODO implement a policy to selectively requeue or discard messages
+			activeChannel.basicReject(message.getEnvelope().getDeliveryTag(), true);
+		}
+
+		private void silentlyCloseActiveConnection() {
+			try {
+				System.out.println("Closing " + activeConnection);
+				activeConnection.close();
+			} catch (Throwable t) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close active connection {}", t, activeConnection);
+			}
+			activeConnection = null;
+		}
+	}
+
+	private Amqp091MessageType createAsyncUpdateMessage(Delivery message) {
+		return new Amqp091MessageType()
+				.sourceName(sourceConfiguration.getName())
+				.body(message.getBody());
+		// todo other attributes here
 	}
 
 	public static Amqp091AsyncUpdateSource create(AsyncUpdateSourceType configuration, AsyncUpdateConnectorInstance connectorInstance) {
@@ -70,45 +129,10 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 	}
 
 	@Override
-	public void startListening(AsyncUpdateMessageListener listener) {
-		if (activeConnection != null) {
-			LOGGER.warn("AMQP connection is already active: {}", activeConnection);
-			silentlyCloseActiveConnection();
-		}
-
-		try {
-			activeConnection = connectionFactory.newConnection();
-			activeChannel = activeConnection.createChannel();
-			DeliverCallback deliverCallback = (consumerTag, message) -> {
-				byte[] body = message.getBody();
-				System.out.println("Body: " + new String(body, StandardCharsets.UTF_8));
-				try {
-					listener.process(new Amqp091MessageType().body(body));
-					activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
-				} catch (RuntimeException | SchemaException e) {
-					LoggingUtils.logUnexpectedException(LOGGER, "Got exception while processing message", e);
-				}
-			};
-			String activeConsumerTag = activeChannel
-					.basicConsume(sourceConfiguration.getQueue(), false, deliverCallback, consumerTag -> {
-					});
-			System.out.println("Opened consumer " + activeConsumerTag);
-		} catch (Throwable t) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Exception on AMQP", t);
-			if (activeConnection != null) {
-				silentlyCloseActiveConnection();
-			}
-		}
-	}
-
-	private void silentlyCloseActiveConnection() {
-		try {
-			System.out.println("Closing " + activeConnection);
-			activeConnection.close();
-		} catch (Throwable t) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close active connection {}", t, activeConnection);
-		}
-		activeConnection = null;
+	public ListeningActivity startListening(AsyncUpdateMessageListener listener) {
+		ListeningActivityImpl listeningActivity = new ListeningActivityImpl();
+		listeningActivity.startListening(listener);
+		return listeningActivity;
 	}
 
 	@NotNull
@@ -130,26 +154,19 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 	}
 
 	@Override
-	public void stopListening() {
-		if (activeConnection != null) {
-			silentlyCloseActiveConnection();
-		}
-	}
-
-	@Override
-	public void test() {
+	public void test(OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(getClass().getName() + ".test");
+		result.addParam("sourceName", sourceConfiguration.getName());
 		try (Connection connection = connectionFactory.newConnection();
 				Channel channel = connection.createChannel()) {
 			LOGGER.info("Connection and channel created OK: {}", channel);
 			int messageCount = channel.queueDeclarePassive(sourceConfiguration.getQueue()).getMessageCount();
 			LOGGER.info("# of messages in queue {}: {}", sourceConfiguration.getQueue(), messageCount);
+			result.recordSuccess();
 		} catch (TimeoutException | IOException e) {
+			result.recordFatalError("Couldn't connect to AMQP queue: " + e.getMessage(), e);
 			throw new SystemException("Couldn't connect to AMQP queue: " + e.getMessage(), e);
 		}
 	}
 
-	@Override
-	public void dispose() {
-		// connectionFactory doesn't need to be disposed of
-	}
 }

@@ -16,17 +16,27 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  *  An instance of this interface is created by calling static method create(AsyncUpdateSourceType configuration)
  *  on the implementing class.
- *
- *  TODO consider "open" / "close" methods; or at least "dispose"
  */
 public interface AsyncUpdateSource {
-	void startListening(AsyncUpdateMessageListener listener) throws SchemaException;
-	void stopListening();
-	void test();
-	void dispose();
+
+	/**
+	 * Starts listening on this async update source.
+	 * Returns a ListeningActivity that is to be used to stop the listening.
+	 */
+	ListeningActivity startListening(AsyncUpdateMessageListener listener) throws SchemaException;
+
+	/**
+	 * Tests this async update source.
+	 */
+	void test(OperationResult parentResult);
+
+	// TODO consider adding lifecycle methods like connect(), disconnect(), dispose() here
+	//  However, they are not really needed now, as the existing sources are stateless.
+
 }

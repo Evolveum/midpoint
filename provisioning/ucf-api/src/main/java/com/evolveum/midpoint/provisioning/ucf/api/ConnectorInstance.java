@@ -336,11 +336,7 @@ public interface ConnectorInstance {
 	 */
 	void dispose();
 
-	default void startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
-		throw new UnsupportedOperationException();
-	}
-
-	default void stopListeningForChanges(OperationResult parentResult) {
+	default ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
 		throw new UnsupportedOperationException();
 	}
 }

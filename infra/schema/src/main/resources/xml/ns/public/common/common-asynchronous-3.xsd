@@ -186,7 +186,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- currently there are no common attributes now -->
+            <xsd:element name="sourceName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the async update source through which the message came.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="asyncUpdateMessage" type="tns:AsyncUpdateMessageType"/>

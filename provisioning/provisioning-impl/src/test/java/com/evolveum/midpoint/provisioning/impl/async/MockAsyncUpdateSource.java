@@ -18,7 +18,9 @@ package com.evolveum.midpoint.provisioning.impl.async;
 
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.api.ListeningActivity;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.AsyncUpdateConnectorInstance;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,26 +41,29 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
 
 	public static final MockAsyncUpdateSource INSTANCE = new MockAsyncUpdateSource();
 
+	private static class DummyListeningActivityImpl implements ListeningActivity {
+		@Override
+		public void stop() {
+			// no-op
+		}
+	}
+
 	public static MockAsyncUpdateSource create(AsyncUpdateSourceType configuration, AsyncUpdateConnectorInstance connectorInstance) {
 		LOGGER.info("create() method called");
 		return INSTANCE;
 	}
 
 	@Override
-	public void startListening(AsyncUpdateMessageListener listener) throws SchemaException {
+	public ListeningActivity startListening(AsyncUpdateMessageListener listener) throws SchemaException {
 		LOGGER.info("startListening() method called");
 		for (AsyncUpdateMessageType message : messages) {
-			listener.process(message);
+			listener.onMessage(message);
 		}
+		return new DummyListeningActivityImpl();
 	}
 
 	@Override
-	public void stopListening() {
-		LOGGER.info("stopListening() method called");
-	}
-
-	@Override
-	public void test() {
+	public void test(OperationResult parentResult) {
 		LOGGER.info("test() method called");
 	}
 
@@ -70,10 +75,5 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
 
 	public void reset() {
 		messages.clear();
-	}
-
-	@Override
-	public void dispose() {
-		reset();
 	}
 }

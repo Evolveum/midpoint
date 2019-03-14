@@ -51,11 +51,11 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
- *
+ *  Transforms AsyncUpdateMessageType objects to Change ones (via UcfChangeType intermediary).
  */
-public class TransformationalAsyncUpdateListener implements AsyncUpdateMessageListener {
+public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageListener {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TransformationalAsyncUpdateListener.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TransformationalAsyncUpdateMessageListener.class);
 
 	private static final QName VAR_MESSAGE = new QName("message");
 
@@ -65,7 +65,7 @@ public class TransformationalAsyncUpdateListener implements AsyncUpdateMessageLi
 	@NotNull private final PrismContext prismContext;
 	@NotNull private final ResourceSchema resourceSchema;
 
-	TransformationalAsyncUpdateListener(@NotNull ChangeListener changeListener,
+	TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener,
 			@Nullable ExpressionType transformExpression,
 			@NotNull UcfExpressionEvaluator expressionEvaluator,
 			@NotNull PrismContext prismContext, @NotNull ResourceSchema resourceSchema) {
@@ -77,7 +77,7 @@ public class TransformationalAsyncUpdateListener implements AsyncUpdateMessageLi
 	}
 
 	@Override
-	public boolean process(AsyncUpdateMessageType message) throws SchemaException {
+	public boolean onMessage(AsyncUpdateMessageType message) throws SchemaException {
 		LOGGER.trace("Got {}", message);
 		Map<QName, Object> variables = new HashMap<>();
 		variables.put(VAR_MESSAGE, message);

@@ -45,6 +45,13 @@ import java.util.List;
 /**
  *  Connector that is able to obtain and process asynchronous updates.
  *  It can be used to receive messages from JMS or AMQP messaging systems; or maybe from REST calls in the future.
+ *
+ *  Currently we keep no state besides the configuration. It is because calls to this connector should be really infrequent.
+ *  Sources are therefore instantiated on demand, e.g. on test() or startListening() calls.
+ *
+ *  TODO we should do something reasonable on configuration change: probably we should restart all the listening activities
+ *   (we cannot simply cancel them; but restarting seems appropriate; otherwise all Async Update tasks would continue with
+ *   the old configuration)
  */
 @SuppressWarnings("DefaultAnnotationParam")
 @ManagedConnector(type="AsyncUpdateConnector", version="1.0.0")
@@ -57,62 +64,62 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 			= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
 
 	private AsyncUpdateConnectorConfiguration configuration;
-	private AsyncUpdateSource source;               // source != null means we are connected
-	private ChangeListener changeListener;
 
 	private final SourceManager sourceManager = new SourceManager(this);
+
+	/**
+	 * The expression evaluator has to come from the higher layers because it needs features not present in UCF impl module.
+	 */
 	private UcfExpressionEvaluator ucfExpressionEvaluator;
-
-	@ManagedConnectorConfiguration
-	public AsyncUpdateConnectorConfiguration getConfiguration() {
-		return configuration;
-	}
-
-	public void setConfiguration(AsyncUpdateConnectorConfiguration configuration) {
-		if (source != null) {
-			throw new IllegalStateException("Attempt to set configuration for already connected connector instance");
-		}
-		configuration.validate();
-		this.configuration = configuration;
-	}
-
-	public boolean isConnected() {
-		return source != null;
-	}
 
 	@Override
 	protected void connect(OperationResult result) {
-		if (source != null) {
-			throw new IllegalStateException("Double connect in "+this);
-		}
-		source = sourceManager.createSource(configuration.getSingleSourceConfiguration());
+		// no-op
 	}
 
 	@Override
 	protected void disconnect(OperationResult result) {
-		dispose();
+		// we do not want to stop currently running listening activities just because the configuration was changed
 	}
 
 	@Override
 	public void test(OperationResult parentResult) {
-		OperationResult connectionResult = parentResult
-				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
-		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, AsyncUpdateConnectorInstance.class);
-		connectionResult.addContext("connector", getConnectorObject().toString());
-		if (!isConnected()) {
-			throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
+		OperationResult result = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, AsyncUpdateConnectorInstance.class);
+		result.addContext("connector", getConnectorObject().toString());
+		Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
+		try {
+			sources.forEach(s -> s.test(result));
+			result.computeStatus();
+		} catch (RuntimeException e) {
+			result.recordFatalError("Couldn't test async update sources: " + e.getMessage(), e);
 		}
-		source.test();
-		connectionResult.recordSuccess();
 	}
 
 	@Override
 	public void dispose() {
-		stopListening();
-		if (source != null) {
-			source.dispose();
-			source = null;
+		// This operation is invoked on system shutdown; for simplicity let's not try to cancel open listening activities
+		// as they were probably cancelled on respective Async Update tasks going down; and will be cancelled on system
+		// shutdown anyway.
+		//
+		// This will change if the use of dispose() will change.
+	}
+
+	@Override
+	public ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
+		TransformationalAsyncUpdateMessageListener messageListener = new TransformationalAsyncUpdateMessageListener(
+				changeListener, configuration.getTransformExpression(), ucfExpressionEvaluator, getPrismContext(), getResourceSchema());
+		Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
+		ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity();
+		try {
+			for (AsyncUpdateSource source : sources) {
+				listeningActivity.addActivity(source.startListening(messageListener));
+			}
+		} catch (RuntimeException e) {
+			listeningActivity.stop();
+			throw e;
 		}
+		return listeningActivity;
 	}
 
 	@Override
@@ -134,6 +141,27 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 		// TODO activation, credentials?
 	}
 
+	@ManagedConnectorConfiguration
+	public AsyncUpdateConnectorConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(AsyncUpdateConnectorConfiguration configuration) {
+		configuration.validate();
+		this.configuration = configuration;
+	}
+
+	@Override
+	public UcfExpressionEvaluator getUcfExpressionEvaluator() {
+		return ucfExpressionEvaluator;
+	}
+
+	@Override
+	public void setUcfExpressionEvaluator(UcfExpressionEvaluator evaluator) {
+		this.ucfExpressionEvaluator = evaluator;
+	}
+
+	//region Unsupported operations
 	@Override
 	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) {
 		// Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
@@ -210,48 +238,5 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 			AttributesToReturn attrsToReturn, StateReporter reporter, OperationResult parentResult) {
 		return null;
 	}
-
-	@Override
-	public void startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
-		if (source == null) {
-			throw new IllegalStateException("Couldn't start listening on unconnected connector instance");
-		}
-		this.changeListener = changeListener;
-		source.startListening(new TransformationalAsyncUpdateListener(changeListener, configuration.getTransformExpression(),
-				ucfExpressionEvaluator, getPrismContext(), getResourceSchema()));
-	}
-
-	@Override
-	public void stopListeningForChanges(OperationResult parentResult) {
-		stopListening();
-	}
-
-	private void stopListening() {
-		if (changeListener != null) {
-			changeListener = null;
-		}
-		if (source != null) {
-			source.stopListening();
-		}
-	}
-
-	@Override
-	public UcfExpressionEvaluator getUcfExpressionEvaluator() {
-		return ucfExpressionEvaluator;
-	}
-
-	@Override
-	public void setUcfExpressionEvaluator(UcfExpressionEvaluator evaluator) {
-		this.ucfExpressionEvaluator = evaluator;
-	}
-
-	//	private String getShadowIdentifier(Collection<? extends ResourceAttribute<?>> identifiers){
-//		try {
-//			Object[] shadowIdentifiers = identifiers.toArray();
-//
-//			return ((ResourceAttribute)shadowIdentifiers[0]).getValue().getValue().toString();
-//		} catch (NullPointerException e){
-//			return "";
-//		}
-//	}
+	//endregion
 }

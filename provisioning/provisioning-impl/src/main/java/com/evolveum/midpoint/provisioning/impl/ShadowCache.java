@@ -2389,45 +2389,28 @@ public class ShadowCache {
 		}
 	}
 
-	public void startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+	String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
-		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
-
-		try {
-			ChangeListener listener = change -> {
-				try {
-					boolean success = processSynchronization(ctx, false, change, task, null, parentResult);
-					if (task instanceof RunningTask) {
-						((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
-					}
-					return success;
-				} catch (Throwable t) {
-					throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
+		ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
+		ChangeListener listener = change -> {
+			try {
+				boolean success = processSynchronization(ctx, false, change, task, null, parentResult);
+				if (task instanceof RunningTask) {
+					((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
 				}
-			};
-
-			resouceObjectConverter.startListeningForAsyncUpdates(ctx, listener, parentResult);
-
-		} catch (SchemaException | CommunicationException | ConfigurationException |
-				ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error ex) {
-			parentResult.recordFatalError(ex);
-			throw ex;
-		}
+				return success;
+			} catch (Throwable t) {
+				throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
+			}
+		};
+		return resouceObjectConverter.startListeningForAsyncUpdates(ctx, listener, parentResult);
 	}
 
-	public void stopListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+	void stopListeningForAsyncUpdates(String listeningActivityHandle, Task task, OperationResult parentResult) {
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
-		ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
-		try {
-			resouceObjectConverter.stopListeningForAsyncUpdates(ctx, parentResult);
-		} catch (SchemaException | CommunicationException | ConfigurationException |
-				ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error ex) {
-			parentResult.recordFatalError(ex);
-			throw ex;
-		}
+		resouceObjectConverter.stopListeningForAsyncUpdates(listeningActivityHandle, parentResult);
 	}
 
 	/**

@@ -26,11 +26,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
- *
+ *  Creates AsyncUpdateSource objects based on their configurations (AsyncUpdateSourceType objects).
  */
-public class SourceManager {
+class SourceManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SourceManager.class);
 
@@ -41,7 +43,17 @@ public class SourceManager {
 	}
 
 	@NotNull
-	AsyncUpdateSource createSource(AsyncUpdateSourceType sourceConfiguration) {
+	Collection<AsyncUpdateSource> createSources(Collection<AsyncUpdateSourceType> sourceConfigurations) {
+		if (sourceConfigurations.isEmpty()) {
+			throw new IllegalStateException("No asynchronous update sources are configured");
+		}
+		return sourceConfigurations.stream()
+				.map(this::createSource)
+				.collect(Collectors.toList());
+	}
+
+	@NotNull
+	private AsyncUpdateSource createSource(AsyncUpdateSourceType sourceConfiguration) {
 		LOGGER.trace("Creating source from configuration: {}", sourceConfiguration);
 		Class<? extends AsyncUpdateSource> sourceClass = determineSourceClass(sourceConfiguration);
 		try {
@@ -70,6 +82,4 @@ public class SourceManager {
 			throw new SystemException("Couldn't find async update source class for configuration: " + cfg.getClass());
 		}
 	}
-
-
 }

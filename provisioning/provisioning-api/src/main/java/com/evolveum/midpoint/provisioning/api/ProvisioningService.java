@@ -202,11 +202,21 @@ public interface ProvisioningService {
 	int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;
 
-	void startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+	/**
+	 * Starts listening for asynchronous updates for a given resource.
+	 * Returns "listening activity handle" that will be used to stop the listening activity.
+	 *
+	 * Note that although it is possible to specify other parameters in addition to resource OID (e.g. objectClass), these
+	 * settings are not supported now.
+	 */
+	String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException;
 
-	void stopListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+	/**
+	 * Stops the given listening activity.
+	 */
+	void stopListeningForAsyncUpdates(String listeningActivityHandle, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException;
 

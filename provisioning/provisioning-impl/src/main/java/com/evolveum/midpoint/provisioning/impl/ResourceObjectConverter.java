@@ -97,6 +97,7 @@ public class ResourceObjectConverter {
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
+	@Autowired private AsyncUpdateListeningRegistry listeningRegistry;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -1856,7 +1857,7 @@ public class ResourceObjectConverter {
 		return changes;
 	}
 
-	public void startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
+	String startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
 			@NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -1897,10 +1898,12 @@ public class ResourceObjectConverter {
 				throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
 			}
 		};
-		connector.startListeningForChanges(innerListener, parentResult);
+		ListeningActivity listeningActivity = connector.startListeningForChanges(innerListener, parentResult);
+		String handle = listeningRegistry.registerListeningActivity(listeningActivity);
 		computeResultStatus(parentResult);
 
-		LOGGER.trace("END start listening for async updates");
+		LOGGER.trace("END start listening for async updates; listening handle = {}", handle);
+		return handle;
 	}
 
 	private void setResourceOidIfMissing(Change change, String resourceOid) {
@@ -1917,12 +1920,9 @@ public class ResourceObjectConverter {
 		}
 	}
 
-	public void stopListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
-			@NotNull OperationResult parentResult) throws SchemaException,
-			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
-		LOGGER.trace("START stop listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
-		ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
-		connector.stopListeningForChanges(parentResult);
+	void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
+		LOGGER.trace("START stop listening for async updates, handle: {}", listeningActivityHandle);
+		listeningRegistry.getListeningActivity(listeningActivityHandle).stop();
 		computeResultStatus(parentResult);
 		LOGGER.trace("END stop listening for async updates");
 	}

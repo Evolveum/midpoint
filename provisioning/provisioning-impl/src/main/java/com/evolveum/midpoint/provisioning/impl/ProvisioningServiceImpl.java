@@ -387,7 +387,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+	public String startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
 			@NotNull OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException {
@@ -398,41 +398,37 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam(OperationResult.PARAM_OID, resourceOid);
 		result.addParam(OperationResult.PARAM_TASK, task.toString());
 
+		String listeningActivityHandle;
 		try {
 			LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
-			shadowCache.startListeningForAsyncUpdates(shadowCoordinates, task, result);
+			listeningActivityHandle = shadowCache.startListeningForAsyncUpdates(shadowCoordinates, task, result);
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
 			throw e;
 		}
+		result.addReturn("listeningActivityHandle", listeningActivityHandle);
 		result.recordSuccess();
 		result.cleanupResult();
+		return listeningActivityHandle;
 	}
 
 	@Override
-	public void stopListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task,
-			OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			ExpressionEvaluationException {
-		String resourceOid = shadowCoordinates.getResourceOid();
-		Validate.notNull(resourceOid, "Resource oid must not be null.");
-
+	public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".stopListeningForAsyncUpdates");
-		result.addParam(OperationResult.PARAM_OID, resourceOid);
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
 		result.addParam(OperationResult.PARAM_TASK, task.toString());
 
 		try {
-			LOGGER.trace("Stopping listening for async updates for {}", shadowCoordinates);
-			shadowCache.stopListeningForAsyncUpdates(shadowCoordinates, task, result);
-		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
+			shadowCache.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
+		} catch (RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
 			throw e;
 		}
 		result.recordSuccess();
 		result.cleanupResult();
-
 	}
 
 	@SuppressWarnings("rawtypes")
