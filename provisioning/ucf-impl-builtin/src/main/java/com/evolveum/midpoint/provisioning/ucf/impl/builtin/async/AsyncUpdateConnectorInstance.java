@@ -30,28 +30,26 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AsyncUpdateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *  Connector that is able to obtain and process asynchronous updates.
  *  It can be used to receive messages from JMS or AMQP messaging systems; or maybe from REST calls in the future.
  *
- *  Currently we keep no state besides the configuration. It is because calls to this connector should be really infrequent.
- *  Sources are therefore instantiated on demand, e.g. on test() or startListening() calls.
+ *  Currently we keep no state besides the configuration and open listening activities. It is because calls to this
+ *  connector should be really infrequent. Sources are therefore instantiated on demand, e.g. on test() or startListening() calls.
  *
- *  TODO we should do something reasonable on configuration change: probably we should restart all the listening activities
- *   (we cannot simply cancel them; but restarting seems appropriate; otherwise all Async Update tasks would continue with
- *   the old configuration)
  */
 @SuppressWarnings("DefaultAnnotationParam")
 @ManagedConnector(type="AsyncUpdateConnector", version="1.0.0")
@@ -72,6 +70,28 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	 */
 	private UcfExpressionEvaluator ucfExpressionEvaluator;
 
+	/**
+	 * Open listening activities. Needed mainly to be able to restart them on configuration change.
+	 */
+	private final Collection<ConnectorInstanceListeningActivity> openListeningActivities = ConcurrentHashMap.newKeySet();
+
+	@ManagedConnectorConfiguration
+	public AsyncUpdateConnectorConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(AsyncUpdateConnectorConfiguration configuration) {
+		configuration.validate();
+		boolean sourcesChanged = configuration.hasSourcesChanged(this.configuration);
+		this.configuration = configuration;
+		if (sourcesChanged) {
+			HashSet<ConnectorInstanceListeningActivity> openActivitiesClone = new HashSet<>(openListeningActivities);
+			if (!openActivitiesClone.isEmpty()) {
+				restartListeningActivities(openActivitiesClone);
+			}
+		}
+	}
+
 	@Override
 	protected void connect(OperationResult result) {
 		// no-op
@@ -79,7 +99,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
 	@Override
 	protected void disconnect(OperationResult result) {
-		// we do not want to stop currently running listening activities just because the configuration was changed
+		// no-op - we act on configuration change in setConfiguration method because
+		// we need the original configuration to know the difference
 	}
 
 	@Override
@@ -107,19 +128,45 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
 	@Override
 	public ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
+		ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity(changeListener);
+		try {
+			openListeningActivities.add(listeningActivity);
+			startListeningInternal(listeningActivity);
+		} catch (Throwable t) {
+			openListeningActivities.remove(listeningActivity);
+			throw t;
+		}
+		return listeningActivity;
+	}
+
+	private void startListeningInternal(ConnectorInstanceListeningActivity listeningActivity)
+			throws SchemaException {
 		TransformationalAsyncUpdateMessageListener messageListener = new TransformationalAsyncUpdateMessageListener(
-				changeListener, configuration.getTransformExpression(), ucfExpressionEvaluator, getPrismContext(), getResourceSchema());
+				listeningActivity.changeListener, this);
 		Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
-		ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity();
 		try {
 			for (AsyncUpdateSource source : sources) {
 				listeningActivity.addActivity(source.startListening(messageListener));
 			}
-		} catch (RuntimeException e) {
-			listeningActivity.stop();
-			throw e;
+		} catch (Throwable t) {
+			listeningActivity.stopInnerActivities();
+			throw t;
 		}
-		return listeningActivity;
+	}
+
+	private void restartListeningActivities(Set<ConnectorInstanceListeningActivity> activities) {
+		LOGGER.info("Restarting {} open listening activities", activities.size());
+
+		for (ConnectorInstanceListeningActivity activity : activities) {
+			try {
+				LOGGER.debug("Stopping listening activity {}", activity);
+				activity.stopInnerActivities();
+				LOGGER.debug("Starting listening activity {} again", activity);
+				startListeningInternal(activity);
+			} catch (RuntimeException | SchemaException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restart listening activity {} on {}", e, activity, this);
+			}
+		}
 	}
 
 	@Override
@@ -141,16 +188,6 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 		// TODO activation, credentials?
 	}
 
-	@ManagedConnectorConfiguration
-	public AsyncUpdateConnectorConfiguration getConfiguration() {
-		return configuration;
-	}
-
-	public void setConfiguration(AsyncUpdateConnectorConfiguration configuration) {
-		configuration.validate();
-		this.configuration = configuration;
-	}
-
 	@Override
 	public UcfExpressionEvaluator getUcfExpressionEvaluator() {
 		return ucfExpressionEvaluator;
@@ -159,6 +196,10 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	@Override
 	public void setUcfExpressionEvaluator(UcfExpressionEvaluator evaluator) {
 		this.ucfExpressionEvaluator = evaluator;
+	}
+
+	ExpressionType getTransformExpression() {
+		return configuration.getTransformExpression();
 	}
 
 	//region Unsupported operations
@@ -238,5 +279,45 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 			AttributesToReturn attrsToReturn, StateReporter reporter, OperationResult parentResult) {
 		return null;
 	}
+
+	//endregion
+
+	//region Listening activity
+	private class ConnectorInstanceListeningActivity implements ListeningActivity {
+
+		private final List<ListeningActivity> activities = new ArrayList<>();
+		private final ChangeListener changeListener;
+
+		ConnectorInstanceListeningActivity(ChangeListener changeListener) {
+			this.changeListener = changeListener;
+		}
+
+		@Override
+		public void stop() {
+			openListeningActivities.remove(this);
+			stopInnerActivities();
+		}
+
+		private void stopInnerActivities() {
+			for (ListeningActivity activity : activities) {
+				try {
+					activity.stop();
+				} catch (RuntimeException e) {
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop listening on {}", e, activity);
+				}
+			}
+			activities.clear();
+		}
+
+		void addActivity(ListeningActivity activity) {
+			activities.add(activity);
+		}
+
+		@Override
+		public String toString() {
+			return "ConnectorInstanceListeningActivity{" + activities + "}";
+		}
+	}
+
 	//endregion
 }

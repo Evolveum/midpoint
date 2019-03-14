@@ -76,4 +76,11 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
 	public void reset() {
 		messages.clear();
 	}
+
+	@Override
+	public String toString() {
+		return "MockAsyncUpdateSource{" +
+				"messages:" + messages.size() +
+				'}';
+	}
 }

@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -57,24 +58,18 @@ public class AsyncUpdateConnectorConfiguration {
 		}
 	}
 
-	public AsyncUpdateSourceType getSingleSourceConfiguration() {
-		List<AsyncUpdateSourceType> allSources = getAllSources();
-		if (allSources.isEmpty()) {
-			throw new IllegalStateException("No asynchronous update sources were configured");
-		} else if (allSources.size() > 1) {
-			throw new IllegalStateException("Multiple asynchronous update sources were configured. This is not supported yet.");
-		} else {
-			return allSources.get(0);
-		}
-	}
-
 	@NotNull
-	public List<AsyncUpdateSourceType> getAllSources() {
+	List<AsyncUpdateSourceType> getAllSources() {
 		List<AsyncUpdateSourceType> allSources = new ArrayList<>();
 		if (sources != null) {
 			allSources.addAll(sources.getAmqp091());
 			allSources.addAll(sources.getOther());
 		}
 		return allSources;
+	}
+
+	boolean hasSourcesChanged(AsyncUpdateConnectorConfiguration other) {
+		// we can consider weaker comparison here in the future
+		return other == null || !Objects.equals(other.sources, sources);
 	}
 }

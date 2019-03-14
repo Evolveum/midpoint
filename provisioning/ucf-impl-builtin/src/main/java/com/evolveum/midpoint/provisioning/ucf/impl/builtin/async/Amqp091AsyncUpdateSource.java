@@ -39,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *  Async Update source for AMQP 0.9.1 brokers.
@@ -51,6 +52,8 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 	@NotNull private final PrismContext prismContext;
 	@NotNull private final ConnectionFactory connectionFactory;
 
+	private static final long CONNECTION_CLOSE_TIMEOUT = 5000L;
+
 	private Amqp091AsyncUpdateSource(@NotNull Amqp091SourceType sourceConfiguration, @NotNull AsyncUpdateConnectorInstance connectorInstance) {
 		this.sourceConfiguration = sourceConfiguration;
 		this.prismContext = connectorInstance.getPrismContext();
@@ -61,20 +64,19 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 
 		private Connection activeConnection;
 		private Channel activeChannel;
+		private String activeConsumerTag;
 
-		@Override
-		public void stop() {
-			silentlyCloseActiveConnection();
-		}
+		private final AtomicInteger messagesBeingProcessed = new AtomicInteger(0);
 
-		private void startListening(AsyncUpdateMessageListener listener) {
+		private ListeningActivityImpl(AsyncUpdateMessageListener listener) {
 			try {
 				activeConnection = connectionFactory.newConnection();
 				activeChannel = activeConnection.createChannel();
 				DeliverCallback deliverCallback = (consumerTag, message) -> {
-					byte[] body = message.getBody();
-					System.out.println("Body: " + new String(body, StandardCharsets.UTF_8));
 					try {
+						messagesBeingProcessed.incrementAndGet();
+						byte[] body = message.getBody();
+						System.out.println("Body: " + new String(body, StandardCharsets.UTF_8));
 						boolean successful = listener.onMessage(createAsyncUpdateMessage(message));
 						if (successful) {
 							activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
@@ -84,17 +86,56 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 					} catch (RuntimeException | SchemaException e) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Got exception while processing message", e);
 						rejectMessage(message);
+					} finally {
+						messagesBeingProcessed.decrementAndGet();
 					}
 				};
-				String activeConsumerTag = activeChannel
+				activeConsumerTag = activeChannel
 						.basicConsume(sourceConfiguration.getQueue(), false, deliverCallback, consumerTag -> {});
 				System.out.println("Opened consumer " + activeConsumerTag);
-			} catch (Throwable t) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Exception on AMQP", t);
+			} catch (RuntimeException | IOException | TimeoutException e) {
 				if (activeConnection != null) {
 					silentlyCloseActiveConnection();
 				}
+				throw new SystemException("Couldn't start listening on " + listener + ": " + e.getMessage(), e);
 			}
+		}
+
+		@Override
+		public void stop() {
+			if (activeChannel != null && activeConsumerTag != null) {
+				LOGGER.info("Cancelling consumer {} on {}", activeConsumerTag, activeChannel);
+				try {
+					activeChannel.basicCancel(activeConsumerTag);
+				} catch (IOException e) {
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't cancel consumer {} on channel {}", e, activeConsumerTag, activeChannel);
+				}
+			}
+
+			// wait until remaining messages are processed
+			long start = System.currentTimeMillis();
+			while (messagesBeingProcessed.get() > 0 && System.currentTimeMillis() - start < CONNECTION_CLOSE_TIMEOUT) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					LOGGER.warn("Waiting for connection to be closed was interrupted");
+					break;
+				}
+			}
+			if (messagesBeingProcessed.get() > 0) {
+				LOGGER.warn("Closing the connection even if {} messages are being processed; they will be unacknowledged", messagesBeingProcessed.get());
+			}
+			if (activeConnection != null) {
+				silentlyCloseActiveConnection();
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "AMQP091-ListeningActivityImpl{" +
+					"connection=" + activeConnection +
+					", consumerTag='" + activeConsumerTag + '\'' +
+					'}';
 		}
 
 		private void rejectMessage(Delivery message) throws IOException {
@@ -130,9 +171,7 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 
 	@Override
 	public ListeningActivity startListening(AsyncUpdateMessageListener listener) {
-		ListeningActivityImpl listeningActivity = new ListeningActivityImpl();
-		listeningActivity.startListening(listener);
-		return listeningActivity;
+		return new ListeningActivityImpl(listener);
 	}
 
 	@NotNull
@@ -168,5 +207,4 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 			throw new SystemException("Couldn't connect to AMQP queue: " + e.getMessage(), e);
 		}
 	}
-
 }

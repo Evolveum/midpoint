@@ -96,7 +96,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 		this.prismContext = prismContext;
 	}
 
-	protected ResourceSchema getResourceSchema() {
+	public ResourceSchema getResourceSchema() {
 		return resourceSchema;
 	}
 

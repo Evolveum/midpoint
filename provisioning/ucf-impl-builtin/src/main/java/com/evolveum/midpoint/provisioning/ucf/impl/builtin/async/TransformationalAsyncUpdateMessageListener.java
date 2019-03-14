@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ChangeListener;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExpressionEvaluator;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.nio.charset.StandardCharsets;
@@ -60,20 +58,12 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 	private static final QName VAR_MESSAGE = new QName("message");
 
 	@NotNull private final ChangeListener changeListener;
-	@Nullable private final ExpressionType transformExpression;
-	@NotNull private final UcfExpressionEvaluator expressionEvaluator;
-	@NotNull private final PrismContext prismContext;
-	@NotNull private final ResourceSchema resourceSchema;
+	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
 	TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener,
-			@Nullable ExpressionType transformExpression,
-			@NotNull UcfExpressionEvaluator expressionEvaluator,
-			@NotNull PrismContext prismContext, @NotNull ResourceSchema resourceSchema) {
+			@NotNull AsyncUpdateConnectorInstance connectorInstance) {
 		this.changeListener = changeListener;
-		this.transformExpression = transformExpression;
-		this.expressionEvaluator = expressionEvaluator;
-		this.prismContext = prismContext;
-		this.resourceSchema = resourceSchema;
+		this.connectorInstance = connectorInstance;
 	}
 
 	@Override
@@ -83,8 +73,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 		variables.put(VAR_MESSAGE, message);
 		List<UcfChangeType> changeBeans;
 		try {
+			ExpressionType transformExpression = connectorInstance.getTransformExpression();
 			if (transformExpression != null) {
-				changeBeans = expressionEvaluator.evaluate(transformExpression, variables,
+				changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
 						SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update");
 			} else {
 				changeBeans = unwrapMessage(message);
@@ -111,7 +102,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			data = ((AnyDataAsyncUpdateMessageType) message).getData();
 		} else if (message instanceof Amqp091MessageType) {
 			String text = new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
-			data = prismContext.parserFor(text).xml().parseRealValue();
+			data = getPrismContext().parserFor(text).xml().parseRealValue();
 		} else {
 			throw new SchemaException(
 					"Cannot apply trivial message transformation: message is not 'any data' nor AMQP one. Please "
@@ -130,9 +121,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 		if (objectClassName == null) {
 			throw new SchemaException("Object class name is null in " + changeBean);
 		}
-		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(objectClassName);
+		ObjectClassComplexTypeDefinition objectClassDef = getResourceSchema().findObjectClassDefinition(objectClassName);
 		if (objectClassDef == null) {
-			throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
+			throw new SchemaException("Object class " + objectClassName + " not found in " + getResourceSchema());
 		}
 		ObjectDelta<ShadowType> delta;
 		ObjectDeltaType deltaBean = changeBean.getObjectDelta();
@@ -141,7 +132,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			if (deltaBean.getObjectType() == null) {
 				deltaBean.setObjectType(ShadowType.COMPLEX_TYPE);
 			}
-			delta = DeltaConvertor.createObjectDelta(deltaBean, prismContext, true);
+			delta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext(), true);
 		} else {
 			delta = null;
 		}
@@ -208,5 +199,13 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			}
 		}
 		return rv;
+	}
+
+	private PrismContext getPrismContext() {
+		return connectorInstance.getPrismContext();
+	}
+
+	private ResourceSchema getResourceSchema() {
+		return connectorInstance.getResourceSchema();
 	}
 }
