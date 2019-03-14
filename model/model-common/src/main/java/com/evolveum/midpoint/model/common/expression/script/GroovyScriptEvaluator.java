@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.common.expression.script.jsr223;
+package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,9 +30,13 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.namespace.QName;
 
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.runtime.InvokerHelper;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
-import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionUtil;
 import com.evolveum.midpoint.prism.*;
@@ -59,91 +63,39 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
+import groovy.lang.Binding;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.Script;
+
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
  *
  * @author Radovan Semancik
  *
  */
-public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<CompiledScript> {
+public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class> {
+
+	public static final String LANGUAGE_NAME = "Groovy";
+	public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 	
-	private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptEvaluator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(GroovyScriptEvaluator.class);
+	
+	private GroovyClassLoader groovyLoader;
 
-	private final ScriptEngine scriptEngine;
-
-	public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext, Protector protector,
+	public GroovyScriptEvaluator(PrismContext prismContext, Protector protector,
 			LocalizationService localizationService) {
 		super(prismContext, protector, localizationService);
 		
-		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-		scriptEngine = scriptEngineManager.getEngineByName(engineName);
-		if (scriptEngine == null) {
-			throw new SystemException("The JSR-223 scripting engine for '"+engineName+"' was not found");
-		}
+		CompilerConfiguration compilerConfiguration = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
+		groovyLoader = new GroovyClassLoader(GroovyScriptEvaluator.class.getClassLoader(), compilerConfiguration);
 	}
-
-	
-	@Override
-	protected CompiledScript compileScript(String codeString, String contextDescription) throws Exception {
-		return ((Compilable)scriptEngine).compile(codeString);
-	}
-	
-	@Override
-	protected Object evaluateScript(CompiledScript compiledScript, ExpressionVariables variables,
-			ObjectResolver objectResolver, Collection<FunctionLibrary> functions, String contextDescription,
-			Task task, OperationResult result) throws Exception {
-		
-		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, task, result);
-		return compiledScript.eval(bindings);
-	}
-	
-	private Bindings convertToBindings(ExpressionVariables variables, ObjectResolver objectResolver,
-			   Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) 
-					   throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		Bindings bindings = scriptEngine.createBindings();
-		bindings.putAll(getVariablesMap(variables, objectResolver, functions, contextDescription, task, result));
-		return bindings;
-	}
-	
-
-	public <T> Object evaluateReportScript(String codeString, ExpressionVariables variables, ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, (Task) null, result);
-
-//		String codeString = code;
-		if (codeString == null) {
-			throw new ExpressionEvaluationException("No script code in " + contextDescription);
-		}
-
-		boolean allowEmptyValues = true;
-//		if (expressionType.isAllowEmptyValues() != null) {
-//			allowEmptyValues = expressionType.isAllowEmptyValues();
-//		}
-
-		CompiledScript compiledScript = getCompiledScript(codeString, contextDescription);
-
-		Object evalRawResult;
-		try {
-			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-			evalRawResult = compiledScript.eval(bindings);
-		} catch (Throwable e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
-		}
-
-
-
-		return evalRawResult;
-	}
-
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#getLanguageName()
 	 */
 	@Override
 	public String getLanguageName() {
-		return scriptEngine.getFactory().getLanguageName();
+		return LANGUAGE_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -151,7 +103,31 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Compil
 	 */
 	@Override
 	public String getLanguageUrl() {
-		return MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + getLanguageName();
+		return LANGUAGE_URL;
+	}
+
+
+	@Override
+	protected Class compileScript(String codeString, String contextDescription)
+			throws ExpressionEvaluationException {
+		return groovyLoader.parseClass(codeString, contextDescription);
+	}
+
+
+	@Override
+	protected Object evaluateScript(Class compiledScriptClass, ExpressionVariables variables,
+			ObjectResolver objectResolver, Collection functions, String contextDescription, Task task,
+			OperationResult result) throws Exception {
+		
+		if (!Script.class.isAssignableFrom(compiledScriptClass)) {
+            throw new ExpressionEvaluationException("Expected groovy script class, but got "+compiledScriptClass);
+		}
+		
+		Binding binding = new Binding(getVariablesMap(variables, objectResolver, functions, contextDescription, task, result));
+		
+		Script scriptObject = InvokerHelper.createScript(compiledScriptClass, binding);
+		
+		return scriptObject.run();
 	}
 
 }
