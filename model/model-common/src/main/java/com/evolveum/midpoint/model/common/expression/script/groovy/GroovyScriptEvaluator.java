@@ -13,65 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.common.expression.script;
+package com.evolveum.midpoint.model.common.expression.script.groovy;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import javax.xml.namespace.QName;
-
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.codehaus.groovy.runtime.InvokerHelper;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
-import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionUtil;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
 
 /**
- * Expression evaluator that is using javax.script (JSR-223) engine.
+ * Expression evaluator that is using Groovy scripting engine.
  *
  * @author Radovan Semancik
- *
  */
 public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class> {
 
@@ -87,7 +57,14 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class>
 		super(prismContext, protector, localizationService);
 		
 		CompilerConfiguration compilerConfiguration = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
+		configureCompiler(compilerConfiguration);
+		SecureASTCustomizer sAstCustomizer = new SecureASTCustomizer();
+		compilerConfiguration.addCompilationCustomizers(sAstCustomizer);
 		groovyLoader = new GroovyClassLoader(GroovyScriptEvaluator.class.getClassLoader(), compilerConfiguration);
+	}
+
+	protected void configureCompiler(CompilerConfiguration compilerConfiguration) {
+		
 	}
 
 	/* (non-Javadoc)
@@ -123,11 +100,25 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class>
             throw new ExpressionEvaluationException("Expected groovy script class, but got "+compiledScriptClass);
 		}
 		
-		Binding binding = new Binding(getVariablesMap(variables, objectResolver, functions, contextDescription, task, result));
+		Binding binding = new Binding(getVariableValuesMap(variables, objectResolver, functions, contextDescription, task, result));
 		
-		Script scriptObject = InvokerHelper.createScript(compiledScriptClass, binding);
+		beforeEvaluation(compiledScriptClass, variables, binding, contextDescription, task, result);
 		
-		return scriptObject.run();
+		Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
+		
+		Object resultObject = scriptResultObject.run();
+		
+		afterEvaluation(resultObject, compiledScriptClass, variables, binding, contextDescription, task, result);
+		
+		return resultObject;
+	}
+
+	protected void beforeEvaluation(Class compiledScriptClass, ExpressionVariables variables, Binding binding, String contextDescription, Task task, OperationResult result) {
+		
+	}
+	
+	protected void afterEvaluation(Object resultObject, Class compiledScriptClass, ExpressionVariables variables, Binding binding, String contextDescription, Task task, OperationResult result) {
+		
 	}
 
 }

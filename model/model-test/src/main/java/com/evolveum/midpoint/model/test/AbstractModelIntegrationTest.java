@@ -127,6 +127,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -6276,6 +6277,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		initializeAsserter(asserter);
 		asserter.display();
 		return asserter;
+	}
+	
+	protected ExpressionVariables createVariables(Object... params) {
+		return ExpressionVariables.create(prismContext, params);
 	}
 
 }

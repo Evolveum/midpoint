@@ -81,7 +81,7 @@
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
-    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.GroovyScriptEvaluator"
+    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>

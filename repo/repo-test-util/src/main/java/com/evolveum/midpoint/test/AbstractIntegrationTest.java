@@ -2484,4 +2484,5 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected ItemFactory itemFactory() {
 		return prismContext.itemFactory();
 	}
+	
 }

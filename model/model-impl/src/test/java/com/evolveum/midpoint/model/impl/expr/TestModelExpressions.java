@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
-        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, chef);
+        ExpressionVariables variables = createVariables(ExpressionConstants.VAR_USER, chef, chef.getDefinition());
 
         // WHEN, THEN
         assertExecuteScriptExpressionString(TEST_NAME, variables, chef.asObjectable().getName().getOrig());
@@ -156,8 +156,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
         PrismPropertyDefinition<String> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, expressionFactory, TEST_NAME, task, result);
-        ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
+        ExpressionVariables variables = createVariables(ExpressionConstants.VAR_USER, chef, chef.getDefinition());
 
         // WHEN
         List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
@@ -190,9 +189,10 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
         PrismPropertyDefinition<Boolean> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, expressionFactory, TEST_NAME, task, result);
-        ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
-        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "value"), "Scumm Bar Chef");
+        
+        ExpressionVariables variables = createVariables(
+        		ExpressionConstants.VAR_USER, chef, chef.getDefinition(),
+        		ExpressionConstants.VAR_VALUE, "Scumm Bar Chef", String.class);
 
         // WHEN
         List<PrismPropertyValue<Boolean>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
@@ -218,7 +218,9 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        ExpressionVariables variables = createVariables(
+        		ExpressionConstants.VAR_USER, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -232,7 +234,9 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        ExpressionVariables variables = createVariables(
+        		ExpressionConstants.VAR_USER, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -246,7 +250,9 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        ExpressionVariables variables = createVariables(
+        		ExpressionConstants.VAR_USER, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
 
@@ -260,7 +266,9 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        ExpressionVariables variables = createVariables(
+        		ExpressionConstants.VAR_USER, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -274,7 +282,9 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        ExpressionVariables variables = createVariables(
+        		ExpressionConstants.VAR_USER, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
@@ -288,7 +298,9 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        ExpressionVariables variables = createVariables(
+        		ExpressionConstants.VAR_USER, user, user.getDefinition());
 
         assertExecuteScriptExpressionString(TEST_NAME, variables, null);
 

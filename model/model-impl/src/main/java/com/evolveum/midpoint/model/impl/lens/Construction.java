@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -236,7 +236,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		// SearchFilterType filter = targetRef.getFilter();
 		ExpressionVariables variables = ModelImplUtils
-				.getDefaultExpressionVariables(getFocusOdo().getNewObject().asObjectable(), null, null, null);
+				.getDefaultExpressionVariables(getFocusOdo().getNewObject().asObjectable(), null, null, null, mappingEvaluator.getPrismContext());
 		if (assignmentPathVariables == null) {
 			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
 		}
@@ -571,7 +571,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
 		if (assocTargetObjectClassDefinition != null) {
 			builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
-					assocTargetObjectClassDefinition);
+					assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
 		}
 		builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
 		builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);

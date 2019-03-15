@@ -33,7 +33,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -65,36 +64,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
  * @param <C> compiled code
  *
  */
-public abstract class AbstractCachingScriptEvaluator<C> implements ScriptEvaluator {
+public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEvaluator {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractCachingScriptEvaluator.class);
-
-	private final PrismContext prismContext;
-	private final Protector protector;
-	private final LocalizationService localizationService;
 
 	private final Map<String, C> scriptCache;
 
 	public AbstractCachingScriptEvaluator(PrismContext prismContext, Protector protector,
 			LocalizationService localizationService) {
-		this.prismContext = prismContext;
-		this.protector = protector;
+		super(prismContext, protector, localizationService);
 		this.scriptCache = new ConcurrentHashMap<>();
-		this.localizationService = localizationService;
 	}
 	
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
-
-	public Protector getProtector() {
-		return protector;
-	}
-
-	public LocalizationService getLocalizationService() {
-		return localizationService;
-	}
-
 	public Map<String, C> getScriptCache() {
 		return scriptCache;
 	}
@@ -125,7 +106,7 @@ public abstract class AbstractCachingScriptEvaluator<C> implements ScriptEvaluat
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			evalRawResult = evaluateScript(compiledScript, variables, objectResolver, functions, contextDescription, task, result);
 		} catch (Throwable e) {
-			throw localizationService.translate(
+			throw getLocalizationService().translate(
 					new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription,
 							e, ExceptionUtil.getUserFriendlyMessage(e)));
 		}
@@ -139,7 +120,7 @@ public abstract class AbstractCachingScriptEvaluator<C> implements ScriptEvaluat
 
 		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
 		if (javaReturnType == null) {
-			javaReturnType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdReturnType);
+			javaReturnType = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdReturnType);
 		}
 		
 		if (javaReturnType == null && (outputDefinition instanceof PrismContainerDefinition<?>)) {
@@ -164,7 +145,7 @@ public abstract class AbstractCachingScriptEvaluator<C> implements ScriptEvaluat
 			for (Object evalRawResultElement : (Collection)evalRawResult) {
 				T evalResult = convertScalarResult(javaReturnType, additionalConvertor, evalRawResultElement, contextDescription);
 				if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-					pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
+					pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, getPrismContext()));
 				}
 			}
 		} else if (evalRawResult instanceof PrismProperty<?>) {
@@ -172,7 +153,7 @@ public abstract class AbstractCachingScriptEvaluator<C> implements ScriptEvaluat
 		} else {
 			T evalResult = convertScalarResult(javaReturnType, additionalConvertor, evalRawResult, contextDescription);
 			if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
+				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, getPrismContext()));
 			}
 		}
 
@@ -201,14 +182,14 @@ public abstract class AbstractCachingScriptEvaluator<C> implements ScriptEvaluat
 			Task task, OperationResult result)
 				throws Exception;
 
-	protected Map<String,Object> getVariablesMap(ExpressionVariables variables, ObjectResolver objectResolver,
+	protected Map<String,Object> getVariableValuesMap(ExpressionVariables variables, ObjectResolver objectResolver,
 			   Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		return ScriptExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription, getPrismContext(), task, result);
+		return prepareScriptVariablesValueMap(variables, objectResolver, functions, contextDescription, task, result);
 	}
 	
 	private <T> T convertScalarResult(Class<T> expectedType, Function<Object, Object> additionalConvertor, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
 		try {
-			T convertedValue = ExpressionUtil.convertValue(expectedType, additionalConvertor, rawValue, protector, prismContext);
+			T convertedValue = ExpressionUtil.convertValue(expectedType, additionalConvertor, rawValue, getProtector(), getPrismContext());
 			return convertedValue;
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);

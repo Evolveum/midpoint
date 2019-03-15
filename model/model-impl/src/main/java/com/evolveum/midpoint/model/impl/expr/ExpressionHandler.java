@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,16 +155,16 @@ public class ExpressionHandler {
 
 		ExpressionVariables variables = new ExpressionVariables();
 		if (user != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_USER, user.asPrismObject());
+			variables.put(ExpressionConstants.VAR_USER, user.asPrismObject(), user.asPrismObject().getDefinition());
 		}
 
 		if (shadow != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject());
-			variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadow.asPrismObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject(), shadow.asPrismObject().getDefinition());
+			variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadow.asPrismObject(), shadow.asPrismObject().getDefinition());
 		}
 
 		if (resource != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource.asPrismObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource.asPrismObject(), resource.asPrismObject().getDefinition());
 		}
 
 		return variables;

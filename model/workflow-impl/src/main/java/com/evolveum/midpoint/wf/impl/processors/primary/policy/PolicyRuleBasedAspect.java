@@ -142,7 +142,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		if (schemaBuilderResult.approvalDisplayName == null) {
 			return null;
 		}
-		Map<QName, Object> variables = new HashMap<>();
+		Map<String, Object> variables = new HashMap<>();
 		variables.put(ExpressionConstants.VAR_OBJECT, getFocusObjectNewOrOld(ctx.modelContext));
 		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(asPrismObject(getFocusObjectNewOrOld(ctx.modelContext)), false)));
 		if (evaluatedAssignment != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Evolveum
+ * Copyright (c) 2013-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -925,7 +926,7 @@ public class ModelRestService {
 				URI resourceUri = uriInfo.getAbsolutePathBuilder().path(task.getOid()).build(task.getOid());
 				response = RestServiceUtil.createResponse(Response.Status.CREATED, resourceUri, result);
 			} else {
-				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, Collections.emptyMap(),
+				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, VariablesMap.emptyMap(),
 						false, task, result);
 				ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()
 						.result(result.createOperationResultType())

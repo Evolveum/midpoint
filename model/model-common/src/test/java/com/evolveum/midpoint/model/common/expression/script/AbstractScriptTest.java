@@ -80,6 +80,7 @@ public abstract class AbstractScriptTest {
 
     public static final Trace LOGGER = TraceManager.getTrace(AbstractScriptTest.class);
 
+    protected PrismContext prismContext;
     protected ScriptExpressionFactory scriptExpressionfactory;
     protected ScriptEvaluator evaluator;
     protected LocalizationService localizationService;
@@ -92,7 +93,7 @@ public abstract class AbstractScriptTest {
 
     @BeforeClass
     public void setupFactory() {
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    	prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
     	Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
     	Clock clock = new Clock();
@@ -128,9 +129,9 @@ public abstract class AbstractScriptTest {
 		evaluateAndAssertStringScalarExpresssion(
 				"expression-string-variables.xml",
 				"testExpressionStringVariables",
-				ExpressionVariables.create(
-						new QName(NS_X, "foo"), "FOO",
-						new QName(NS_Y, "bar"), "BAR"
+				ExpressionVariables.create(prismContext,
+						"foo", "FOO", PrimitiveType.STRING,
+						"bar", "BAR", PrimitiveType.STRING
 				),
 				"FOOBAR");
     }
@@ -154,13 +155,13 @@ public abstract class AbstractScriptTest {
 					evaluateAndAssertStringScalarExpresssion(
 							"expression-string-variables.xml",
 							"testExpressionStringVariablesParallel-"+threadIndex,
-							ExpressionVariables.create(
-									new QName(NS_X, "foo"), foo,
-									new QName(NS_Y, "bar"), bar
+							ExpressionVariables.create(prismContext,
+									"foo", foo, PrimitiveType.STRING,
+									"bar", bar, PrimitiveType.STRING
 							),
 							foo + bar);
 					
-				}, 10, 10);
+				}, 30, 3);
 		
 		// THEN
 		TestUtil.waitForThreads(threads, 60000L);
@@ -173,10 +174,12 @@ public abstract class AbstractScriptTest {
     	evaluateAndAssertStringScalarExpresssion(
     			"expression-objectref-variables.xml",
     			"testExpressionObjectRefVariables",
-    			ExpressionVariables.create(
-						new QName(NS_X, "foo"), "Captain",
-						new QName(NS_Y, "jack"),
-							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
+    			ExpressionVariables.create(prismContext,
+						"foo", "Captain",
+						"jack",
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+							prismContext.definitionFactory()
+								.createReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
 				),
     			"Captain emp1234");
     }
@@ -186,10 +189,12 @@ public abstract class AbstractScriptTest {
     	evaluateAndAssertStringScalarExpresssion(
     			"expression-objectref-variables-polystring.xml",
     			"testExpressionObjectRefVariablesPolyString",
-    			ExpressionVariables.create(
-						new QName(NS_X, "foo"), "Captain",
-						new QName(NS_Y, "jack"),
-							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
+    			ExpressionVariables.create(prismContext,
+						"foo", "Captain", PrimitiveType.STRING,
+						"jack",
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+							prismContext.definitionFactory()
+								.createReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
 				),
     			"Captain Jack Sparrow");
     }
@@ -238,8 +243,11 @@ public abstract class AbstractScriptTest {
     // TODO: user + no property value
 
 	private ExpressionVariables createUserScriptVariables() {
-		return ExpressionVariables.create(SchemaConstants.C_USER,
-    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE));
+		return ExpressionVariables.create(prismContext,
+				SchemaConstants.C_USER,
+    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+    			prismContext.definitionFactory()
+					.createReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE));
 	}
 
 	// TODO: shadow + attributes
@@ -263,9 +271,11 @@ public abstract class AbstractScriptTest {
 		evaluateAndAssertStringListExpresssion(
 				"expression-list.xml",
     			"testExpressionList",
-    			ExpressionVariables.create(
-						new QName(NS_Y, "jack"),
-							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
+    			ExpressionVariables.create(prismContext,
+						"jack",
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+							prismContext.definitionFactory()
+								.createReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
 				),
     			"Leaders", "Followers");
     }
@@ -373,6 +383,10 @@ public abstract class AbstractScriptTest {
 	private void displayTestTitle(String testName) {
 		System.out.println("===[ "+evaluator.getLanguageName()+": "+testName+" ]===========================");
 		LOGGER.info("===[ "+evaluator.getLanguageName()+": "+testName+" ]===========================");
+	}
+	
+	protected ExpressionVariables createVariables(Object... params) {
+		return ExpressionVariables.create(prismContext, params);
 	}
 
 }

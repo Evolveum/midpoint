@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -551,11 +552,7 @@ public class InboundProcessor {
 		LOGGER.trace("Producing value {} ", value);
 		PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
 		LOGGER.trace("Resolved entitlement {}", entitlement);
-		if (variables.containsKey(ExpressionConstants.VAR_ENTITLEMENT)) {
-			variables.replaceVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
-		} else {
-			variables.addVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
-		}
+		variables.put(ExpressionConstants.VAR_ENTITLEMENT, entitlement, entitlement.getDefinition());
 	}
 
 	private <F extends FocusType> void processAuxiliaryObjectClassInbound(
@@ -735,16 +732,16 @@ public class InboundProcessor {
     	
     	PrismObject<ShadowType> accountNew = projectionCtx.getObjectNew();
     	ExpressionVariables variables = new ExpressionVariables();
-    	variables.addVariableDefinition(ExpressionConstants.VAR_USER, focusNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
-    	variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
+    	variables.put(ExpressionConstants.VAR_USER, focusNew, focusNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_FOCUS, focusNew, focusNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_ACCOUNT, accountNew, accountNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_SHADOW, accountNew, accountNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_PROJECTION, accountNew, accountNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition());
+    	variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
+    	variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
     	    	
-    	Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT);
+    	Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME);
     	defaultSource.recompute();
 		builder = builder.defaultSource(defaultSource)
 				.targetContext(LensUtil.getFocusDefinition(context))
@@ -755,7 +752,8 @@ public class InboundProcessor {
 				.originObject(resource);
 		
 		if (!context.getFocusContext().isDelete()){
-				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), focusNew, variables, mappingFactory.getObjectResolver() , "resolving range",
+				TypedValue<PrismObject<F>> targetContext = new TypedValue<>(focusNew);
+				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), targetContext, variables, mappingFactory.getObjectResolver() , "resolving range",
 						prismContext, task, result);
 				builder.originalTargetValues(originalValues);
 		}
@@ -1338,7 +1336,7 @@ public class InboundProcessor {
 					specialAttributeDelta = sourceIdi.getDelta();
 				}
 				Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(sourceIdi.getItemOld(), specialAttributeDelta,
-						sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
+						sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT_QNAME);
 				builder = builder.defaultSource(source)
 						.addVariableDefinition(ExpressionConstants.VAR_USER, newUser)
 						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);

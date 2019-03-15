@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -616,12 +616,13 @@ public class ObjectTemplateProcessor {
 
 	// must be Uniform because of the later use in outputTripleMap
 	private ItemPath stripFocusVariableSegment(ItemPath sourcePath) {
-		if (sourcePath.startsWithVariable()
-			&& QNameUtil.matchAny(sourcePath.firstToVariableNameOrNull(), MappingEvaluator.FOCUS_VARIABLE_NAMES)) {
-			return sourcePath.stripVariableSegment();
-		} else {
-			return sourcePath;
+		if (sourcePath.startsWithVariable()) {
+			QName variableQName = sourcePath.firstToVariableNameOrNull();
+			if (variableQName != null && MappingEvaluator.FOCUS_VARIABLE_NAMES.contains(variableQName.getLocalPart())) {
+				return sourcePath.stripVariableSegment();
+			}
 		}
+		return sourcePath;
 	}
 
 	private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType> XMLGregorianCalendar collectTripleFromMappings(

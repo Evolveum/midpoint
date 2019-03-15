@@ -23,8 +23,11 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -33,6 +36,8 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -313,18 +318,18 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		ExpressionVariables newVariables = new ExpressionVariables();
 
 		// We need to add actor variable before we switch user identity (runAs)
-		ExpressionUtil.addActorVariable(newVariables, securityContextManager);
+		ExpressionUtil.addActorVariable(newVariables, securityContextManager, prismContext);
 		boolean actorDefined = newVariables.get(ExpressionConstants.VAR_ACTOR) != null;
 
-		for (Entry<QName,Object> entry: variables.entrySet()) {
+		for (Entry<String,TypedValue> entry: variables.entrySet()) {
 			if (ExpressionConstants.VAR_ACTOR.equals(entry.getKey()) && actorDefined) {
 				continue;			// avoid pointless warning about redefined value of actor
 			}
-			newVariables.addVariableDefinition(entry.getKey(), entry.getValue());
+			newVariables.put(entry.getKey(), entry.getValue());
 		}
 
 		for (ExpressionVariableDefinitionType variableDefType: expressionType.getVariable()) {
-			QName varName = variableDefType.getName();
+			String varName = variableDefType.getName().getLocalPart();
 			if (varName == null) {
 				throw new SchemaException("No variable name in expression in "+contextDescription);
 			}
@@ -332,23 +337,30 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
                 ObjectReferenceType ref = variableDefType.getObjectRef();
                 ref.setType(prismContext.getSchemaRegistry().qualifyTypeName(ref.getType()));
 				ObjectType varObject = objectResolver.resolve(ref, ObjectType.class, null, "variable "+varName+" in "+contextDescription, task, result);
-				newVariables.addVariableDefinition(varName, varObject);
+				newVariables.addVariableDefinition(varName, varObject, varObject.asPrismObject().getDefinition());
 			} else if (variableDefType.getValue() != null) {
 				// Only string is supported now
 				Object valueObject = variableDefType.getValue();
 				if (valueObject instanceof String) {
-					newVariables.addVariableDefinition(varName, valueObject);
+					MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+							new ItemName(SchemaConstants.NS_C, varName), PrimitiveType.STRING.getQname());
+					newVariables.addVariableDefinition(varName, valueObject, def);
 				} else if (valueObject instanceof Element) {
-					newVariables.addVariableDefinition(varName, ((Element)valueObject).getTextContent());
+					MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+							new ItemName(SchemaConstants.NS_C, varName), PrimitiveType.STRING.getQname());
+					newVariables.addVariableDefinition(varName, ((Element)valueObject).getTextContent(), def);
 				} else if (valueObject instanceof RawType) {
-					newVariables.addVariableDefinition(varName, ((RawType) valueObject).getParsedValue(null, varName));
+					ItemName varQName = new ItemName(SchemaConstants.NS_C, varName);
+					MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+							varQName, PrimitiveType.STRING.getQname());
+					newVariables.addVariableDefinition(varName, ((RawType) valueObject).getParsedValue(null, varQName), def);
 				} else {
 					throw new SchemaException("Unexpected type "+valueObject.getClass()+" in variable definition "+varName+" in "+contextDescription);
 				}
 			} else if (variableDefType.getPath() != null) {
 				ItemPath itemPath = variableDefType.getPath().getItemPath();
-				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, false, null, objectResolver, contextDescription, task, result);
-				newVariables.addVariableDefinition(varName, resolvedValue);
+				TypedValue resolvedValueAndDefinition = ExpressionUtil.resolvePathGetValueAndDefinition(itemPath, variables, false, null, objectResolver, prismContext, contextDescription, task, result);
+				newVariables.put(varName, resolvedValueAndDefinition);
 			} else {
 				throw new SchemaException("No value for variable "+varName+" in "+contextDescription);
 			}

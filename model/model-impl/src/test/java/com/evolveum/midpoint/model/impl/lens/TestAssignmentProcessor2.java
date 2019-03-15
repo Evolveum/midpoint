@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1461,38 +1461,38 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private static final List<String> RECORDED_VARIABLES = Arrays.asList(
-			ExpressionConstants.VAR_ASSIGNMENT.getLocalPart(),
-			ExpressionConstants.VAR_FOCUS_ASSIGNMENT.getLocalPart(),
-			ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.getLocalPart(),
-			ExpressionConstants.VAR_THIS_ASSIGNMENT.getLocalPart(),
-			ExpressionConstants.VAR_FOCUS.getLocalPart(),
-			ExpressionConstants.VAR_ORDER_ONE_OBJECT.getLocalPart(),
-			ExpressionConstants.VAR_IMMEDIATE_ROLE.getLocalPart(),
-			ExpressionConstants.VAR_SOURCE.getLocalPart(),
-			ExpressionConstants.VAR_ASSIGNMENT_PATH.getLocalPart());
+			ExpressionConstants.VAR_ASSIGNMENT,
+			ExpressionConstants.VAR_FOCUS_ASSIGNMENT,
+			ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT,
+			ExpressionConstants.VAR_THIS_ASSIGNMENT,
+			ExpressionConstants.VAR_FOCUS,
+			ExpressionConstants.VAR_ORDER_ONE_OBJECT,
+			ExpressionConstants.VAR_IMMEDIATE_ROLE,
+			ExpressionConstants.VAR_SOURCE,
+			ExpressionConstants.VAR_ASSIGNMENT_PATH);
 
 	@SuppressWarnings("unchecked")
 	public static void variableCallback(String name, Object value, String desc) {
 		if (recording()) {
 			if (RECORDED_VARIABLES.contains(name)) {
 				System.out.println(desc + ": name = " + name + ", value = " + value);
-				if (ExpressionConstants.VAR_ASSIGNMENT.getLocalPart().equals(name)) {
+				if (ExpressionConstants.VAR_ASSIGNMENT.equals(name)) {
 					currentRun.assignment = (AssignmentType) value;
-				} else if (ExpressionConstants.VAR_FOCUS_ASSIGNMENT.getLocalPart().equals(name)) {
+				} else if (ExpressionConstants.VAR_FOCUS_ASSIGNMENT.equals(name)) {
 					currentRun.focusAssignment = (AssignmentType) value;
-				} else if (ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.getLocalPart().equals(name))
+				} else if (ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.equals(name))
 					currentRun.immediateAssignment = (AssignmentType) value;
-				else if (ExpressionConstants.VAR_THIS_ASSIGNMENT.getLocalPart().equals(name)) {
+				else if (ExpressionConstants.VAR_THIS_ASSIGNMENT.equals(name)) {
 					currentRun.thisAssignment = (AssignmentType) value;
-				} else if (ExpressionConstants.VAR_FOCUS.getLocalPart().equals(name)) {
+				} else if (ExpressionConstants.VAR_FOCUS.equals(name)) {
 					currentRun.focus = (FocusType) value;
-				} else if (ExpressionConstants.VAR_ORDER_ONE_OBJECT.getLocalPart().equals(name)) {
+				} else if (ExpressionConstants.VAR_ORDER_ONE_OBJECT.equals(name)) {
 					currentRun.thisObject = (FocusType) value;
-				} else if (ExpressionConstants.VAR_IMMEDIATE_ROLE.getLocalPart().equals(name)) {
+				} else if (ExpressionConstants.VAR_IMMEDIATE_ROLE.equals(name)) {
 					currentRun.immediateRole = (FocusType) value;
-				} else if (ExpressionConstants.VAR_SOURCE.getLocalPart().equals(name)) {
+				} else if (ExpressionConstants.VAR_SOURCE.equals(name)) {
 					currentRun.source = (FocusType) value;
-				} else if (ExpressionConstants.VAR_ASSIGNMENT_PATH.getLocalPart().equals(name)) {
+				} else if (ExpressionConstants.VAR_ASSIGNMENT_PATH.equals(name)) {
 					currentRun.assignmentPath = (AssignmentPathImpl) value;
 				}
 			}

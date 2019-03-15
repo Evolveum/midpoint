@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -567,11 +568,13 @@ public class TestMappingDynamicSimple {
     	MappingImpl.Builder<PrismPropertyValue<String>,PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
 				"testScriptExtraVariablesRef", "employeeType", null);
 
-    	Map<QName, Object> vars = new HashMap<>();
+    	VariablesMap vars = new VariablesMap();
     	ObjectReferenceType ref = MiscSchemaUtil.createObjectReference(
         	"c0c010c0-d34d-b33f-f00d-111111111112",
         	UserType.COMPLEX_TYPE);
-        vars.put(new QName(SchemaConstants.NS_C, "sailor"), ref);
+        vars.put("sailor", ref,
+        		PrismTestUtil.getPrismContext().definitionFactory().createReferenceDefinition(
+        				new QName(SchemaConstants.NS_C, "sailor"), UserType.COMPLEX_TYPE));
         builder.addVariableDefinitions(vars);
 
 		MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = builder.build();
@@ -597,10 +600,10 @@ public class TestMappingDynamicSimple {
     	MappingImpl.Builder<PrismPropertyValue<String>,PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
     			TEST_NAME, "employeeType", null);
 
-    	Map<QName, Object> vars = new HashMap<>();
+    	VariablesMap vars = new VariablesMap();
     	UserType userType = (UserType) PrismTestUtil.parseObject(
                 new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111112.xml")).asObjectable();
-        vars.put(new QName(SchemaConstants.NS_C, "sailor"), userType);
+        vars.put("sailor", userType, userType.asPrismObject().getDefinition());
         builder.addVariableDefinitions(vars);
 		MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = builder.build();
 

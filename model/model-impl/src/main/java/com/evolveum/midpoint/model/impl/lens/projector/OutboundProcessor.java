@@ -212,13 +212,14 @@ public class OutboundProcessor {
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION,
-				LensUtil.getIterationVariableValue(projCtx));
+				LensUtil.getIterationVariableValue(projCtx), Integer.class);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN,
-				LensUtil.getIterationTokenVariableValue(projCtx));
+				LensUtil.getIterationTokenVariableValue(projCtx), String.class);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
 		if (assocTargetObjectClassDefinition != null) {
-			mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
+			mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
+					assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
 		}
 		mappingBuilder.rootNode(focusOdo);
 		mappingBuilder.originType(OriginType.OUTBOUND);

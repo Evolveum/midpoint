@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2018 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -681,11 +681,11 @@ public class ObjectMerger {
 	private <O extends ObjectType> Collection<PrismValue> evaluateValueExpression(PrismObject<O> objectLeft, PrismObject<O> objectRight, String side, PrismValue origValue, Expression<PrismValue, ItemDefinition> valueExpression,
 			Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_SIDE, side);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT_LEFT, side);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT_RIGHT, side);
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, origValue);
-		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, origValue);
+		variables.put(ExpressionConstants.VAR_SIDE, side, String.class);
+		variables.put(ExpressionConstants.VAR_OBJECT_LEFT, side, String.class);
+		variables.put(ExpressionConstants.VAR_OBJECT_RIGHT, side, String.class);
+		variables.put(ExpressionConstants.VAR_INPUT, origValue, origValue.getParent().getDefinition());
+		variables.put(ExpressionConstants.VAR_VALUE, origValue, origValue.getParent().getDefinition());
 		ExpressionEvaluationContext exprContext = new ExpressionEvaluationContext(null, variables, "for value "+origValue, task, result);
 		PrismValueDeltaSetTriple<PrismValue> triple = valueExpression.evaluate(exprContext);
 		if (triple == null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 		    ObjectQuery objectQuery;
 		    if (unresolvedObjectQuery != null) {
 			    ExpressionVariables variables = new ExpressionVariables();
-			    item.getVariables().forEach((name, value) -> variables.addVariableDefinition(new QName(name), cloneIfNecessary(name, value)));
+			    item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
 			    try {
 				    objectQuery = ExpressionUtil
 						    .evaluateQueryExpressions(unresolvedObjectQuery, variables, expressionFactory, prismContext,

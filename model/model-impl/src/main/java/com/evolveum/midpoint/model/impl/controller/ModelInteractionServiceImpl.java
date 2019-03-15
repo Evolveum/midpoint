@@ -107,6 +107,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -1605,11 +1606,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Override
 	@NotNull
 	public LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
-			Map<QName, Object> variables, Task task, OperationResult result)
+			VariablesMap variables, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 		ExpressionVariables vars = new ExpressionVariables();
-		vars.addVariableDefinitions(variables);
+		vars.putAll(variables);
 		return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, prismContext, task, result);
 	}
 

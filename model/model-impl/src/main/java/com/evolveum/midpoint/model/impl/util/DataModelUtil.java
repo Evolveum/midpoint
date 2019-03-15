@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,9 +75,9 @@ public class DataModelUtil {
 
 	public static class PathResolutionContext {
 		@NotNull PrismContext prismContext;
-		QName defaultVariable;
+		String defaultVariable;
 
-		public PathResolutionContext(@NotNull PrismContext prismContext, QName defaultVariable) {
+		public PathResolutionContext(@NotNull PrismContext prismContext, String defaultVariable) {
 			this.prismContext = prismContext;
 			this.defaultVariable = defaultVariable;
 		}
@@ -88,7 +88,7 @@ public class DataModelUtil {
 		@NotNull ShadowKindType kind;
 		@NotNull String intent;
 
-		public ResourceResolutionContext(@NotNull PrismContext prismContext, QName defaultVariable, @NotNull ResourceType resource,
+		public ResourceResolutionContext(@NotNull PrismContext prismContext, String defaultVariable, @NotNull ResourceType resource,
 				@NotNull ShadowKindType kind, @NotNull String intent) {
 			super(prismContext, defaultVariable);
 			this.resource = resource;
@@ -104,11 +104,11 @@ public class DataModelUtil {
 			return new PathResolutionResult(new Issue(Issue.Severity.WARNING, CAT_ITEM_PATH, C_DOES_NOT_START_WITH_NAME,
 							"Path does not start with a name nor variable: '" + path + "'", null, null));
 		}
-		QName varName;
+		String varName;
 		ItemPath itemPath;
 		Object first = path.first();
 		if (ItemPath.isVariable(first)) {
-			varName = ItemPath.toVariableName(first);
+			varName = ItemPath.toVariableName(first).getLocalPart();
 			itemPath = path.rest();
 		} else {
 			if (context.defaultVariable == null) {
@@ -119,7 +119,7 @@ public class DataModelUtil {
 			itemPath = path;
 		}
 
-		if (QNameUtil.match(ExpressionConstants.VAR_ACCOUNT, varName)) {
+		if (ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
 			if (!(context instanceof ResourceResolutionContext)) {
 				return new PathResolutionResult(new Issue(Issue.Severity.WARNING, CAT_ITEM_PATH, C_ILLEGAL_USE_OF_ACCOUNT_VARIABLE,
 						"Illegal use of 'account' variable: '" + path + "'", null, null));
@@ -127,7 +127,7 @@ public class DataModelUtil {
 				// TODO implement checking of $account-based paths
 				return null;
 			}
-		} else if (QNameUtil.match(ExpressionConstants.VAR_USER, varName) || QNameUtil.match(ExpressionConstants.VAR_FOCUS, varName)) {
+		} else if (ExpressionConstants.VAR_USER.equals(varName) || ExpressionConstants.VAR_FOCUS.equals(varName)) {
 			Class<? extends FocusType> clazz = FocusType.class;
 			if (context instanceof ResourceResolutionContext) {
 				ResourceResolutionContext rctx = (ResourceResolutionContext) context;
@@ -143,9 +143,9 @@ public class DataModelUtil {
 				}
 			}
 			return resolvePathForType(clazz, itemPath, context);
-		} else if (QNameUtil.match(ExpressionConstants.VAR_ACTOR, varName)) {
+		} else if (ExpressionConstants.VAR_ACTOR.equals(varName)) {
 			return resolvePathForType(UserType.class, itemPath, context);
-		} else if (QNameUtil.match(ExpressionConstants.VAR_INPUT, varName)) {
+		} else if (ExpressionConstants.VAR_INPUT.equals(varName)) {
 			return null;
 		} else {
 			return null;		// TODO list all possible variables here and issue a warning if no one matches

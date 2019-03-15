@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -107,17 +108,19 @@ public class CommandLineScriptExecutor {
     		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task,
     				result);
     		
-    		Object defaultObject = variables.get(macroQName);
-    		if (defaultObject != null) {
+    		
+    		TypedValue defaultObjectValAndDef = variables.get(macroName);
+    		if (defaultObjectValAndDef != null) {
+    			Object defaultObjectVal = defaultObjectValAndDef.getValue();
 	    		Item sourceItem;
-	    		if (defaultObject instanceof Item) {
-	    			sourceItem = (Item)defaultObject;
-	    		} else if (defaultObject instanceof String) {
+	    		if (defaultObjectVal instanceof Item) {
+	    			sourceItem = (Item)defaultObjectVal;
+	    		} else if (defaultObjectVal instanceof String) {
 	    			MutablePrismPropertyDefinition<String> sourceDefinition = prismContext.definitionFactory().createPropertyDefinition(
 	        				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 	    			sourceDefinition.setMaxOccurs(1);
 	    			PrismProperty<String> sourceProperty = sourceDefinition.instantiate();
-	    			sourceProperty.setRealValue(defaultObject==null?null:defaultObject.toString());
+	    			sourceProperty.setRealValue(defaultObjectVal==null?null:defaultObjectVal.toString());
 	    			sourceItem = sourceProperty;
 	    		} else {
 	    			sourceItem = null;

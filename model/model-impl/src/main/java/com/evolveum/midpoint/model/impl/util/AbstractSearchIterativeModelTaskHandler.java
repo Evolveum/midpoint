@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 		if (ExpressionUtil.hasExpressions(query.getFilter())) {
 			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(opResult);
 			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, null, null,
-					configuration != null ? configuration.asObjectable() : null);
+					configuration != null ? configuration.asObjectable() : null, prismContext);
 			try {
 				ExpressionEnvironment<?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);
 				ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);

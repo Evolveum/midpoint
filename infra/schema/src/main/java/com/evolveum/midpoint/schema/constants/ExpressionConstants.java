@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@ package com.evolveum.midpoint.schema.constants;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
-import javax.xml.namespace.QName;
-
 /**
  * @author semancik
  *
@@ -26,101 +24,111 @@ import javax.xml.namespace.QName;
 public class ExpressionConstants {
 
 	// Generic variables
-	public static final QName VAR_INPUT = new QName(SchemaConstants.NS_C, "input");
-	public static final QName VAR_OBJECT = new QName(SchemaConstants.NS_C, "object");
+	public static final String VAR_INPUT = "input";
+	public static final ItemName VAR_INPUT_QNAME = new ItemName(SchemaConstants.NS_C, VAR_INPUT);
+	public static final String VAR_OBJECT =  "object";
 
 	// Variables used in various mappings
-	public static final QName VAR_FOCUS = new QName(SchemaConstants.NS_C, "focus");
-	public static final QName VAR_PROJECTION = new QName(SchemaConstants.NS_C, "projection");
-	public static final QName VAR_SOURCE = new QName(SchemaConstants.NS_C, "source");
-	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
-	public static final QName VAR_EVALUATED_ASSIGNMENT = new QName(SchemaConstants.NS_C, "evaluatedAssignment");
-	public static final QName VAR_ASSIGNMENT_PATH = new QName(SchemaConstants.NS_C, "assignmentPath");
-	public static final QName VAR_IMMEDIATE_ASSIGNMENT = new QName(SchemaConstants.NS_C, "immediateAssignment");
-	public static final QName VAR_THIS_ASSIGNMENT = new QName(SchemaConstants.NS_C, "thisAssignment");
-	public static final QName VAR_FOCUS_ASSIGNMENT = new QName(SchemaConstants.NS_C, "focusAssignment");
-	public static final QName VAR_IMMEDIATE_ROLE = new QName(SchemaConstants.NS_C, "immediateRole");
-	public static final QName VAR_CONTAINING_OBJECT = new QName(SchemaConstants.NS_C, "containingObject");
-	public static final QName VAR_ORDER_ONE_OBJECT = new QName(SchemaConstants.NS_C, "thisObject");
-	public static final QName VAR_OPERATION = new QName(SchemaConstants.NS_C, "operation");
-	public static final QName VAR_RESOURCE = new QName(SchemaConstants.NS_C, "resource");
-	public static final QName VAR_DELTA = new QName(SchemaConstants.NS_C, "delta");
-	public static final QName VAR_MODEL_CONTEXT = new QName(SchemaConstants.NS_C, "modelContext");
-	public static final QName VAR_PRISM_CONTEXT = new QName(SchemaConstants.NS_C, "prismContext");
-	public static final QName VAR_CONFIGURATION = new QName(SchemaConstants.NS_C, "configuration");
-	public static final QName VAR_ENTITLEMENT = new QName(SchemaConstants.NS_C, "entitlement");
-	public static final QName VAR_FILE = new QName(SchemaConstants.NS_C, "file");
+	public static final String VAR_FOCUS = "focus";
+	public static final String VAR_PROJECTION = "projection";
+	public static final String VAR_SOURCE = "source";
+	public static final String VAR_ASSIGNMENT = "assignment";
+	public static final String VAR_EVALUATED_ASSIGNMENT = "evaluatedAssignment";
+	public static final String VAR_ASSIGNMENT_PATH = "assignmentPath";
+	public static final String VAR_IMMEDIATE_ASSIGNMENT = "immediateAssignment";
+	public static final String VAR_THIS_ASSIGNMENT = "thisAssignment";
+	public static final String VAR_FOCUS_ASSIGNMENT = "focusAssignment";
+	public static final String VAR_IMMEDIATE_ROLE = "immediateRole";
+	public static final String VAR_CONTAINING_OBJECT = "containingObject";
+	public static final String VAR_ORDER_ONE_OBJECT = "thisObject";
+	public static final String VAR_OPERATION = "operation";
+	public static final String VAR_RESOURCE = "resource";
+	public static final String VAR_DELTA = "delta";
+	public static final String VAR_MODEL_CONTEXT = "modelContext";
+	public static final String VAR_PRISM_CONTEXT = "prismContext";
+	public static final String VAR_CONFIGURATION = "configuration";
+	public static final String VAR_ENTITLEMENT = "entitlement";
+	public static final String VAR_FILE = "file";
 	
 	/**
 	 * User that is currently executing the operation.
 	 */
-    public static final QName VAR_ACTOR = new QName(SchemaConstants.NS_C, "actor");
+    public static final String VAR_ACTOR = "actor";
     
     /**
      * Subject of an authorization. This is usually the same as actor. But it may be different
      * in some exotic use cases (e.g. if administrator needs to evaluate authorizations of
      * a different user.
      */
-    public static final QName VAR_SUBJECT = new QName(SchemaConstants.NS_C, "subject");
+    public static final String VAR_SUBJECT = "subject";
     
-	public static final QName VAR_VALUE = new QName(SchemaConstants.NS_C, "value");
-	public static final QName VAR_ORGS = new QName(SchemaConstants.NS_C, "orgs");
+	public static final String VAR_VALUE = "value";
+	public static final String VAR_ORGS = "orgs";
 
-	public static final QName VAR_TARGET = new QName(SchemaConstants.NS_C, "target");
+	public static final String VAR_TARGET = "target";
 
 	// DEPRECATED variables, just for compatibility
-	public static final QName VAR_USER = new QName(SchemaConstants.NS_C, "user");
-	public static final QName VAR_ACCOUNT = new QName(SchemaConstants.NS_C, "account");
-	public static final QName VAR_SHADOW = new QName(SchemaConstants.NS_C, "shadow");
+	public static final String VAR_USER = "user";
+	public static final String VAR_ACCOUNT = "account";
+	public static final String VAR_SHADOW = "shadow";
 
 	// existence mapping variables
-	public static final QName VAR_LEGAL = new QName(SchemaConstants.NS_C, "legal");
-    public static final QName VAR_ASSIGNED = new QName(SchemaConstants.NS_C, "assigned");
-	public static final QName VAR_FOCUS_EXISTS = new QName(SchemaConstants.NS_C, "focusExists");
-	public static final QName VAR_ADMINISTRATIVE_STATUS = new QName(SchemaConstants.NS_C, "administrativeStatus");
+	public static final String VAR_LEGAL = "legal";
+	public static final ItemName VAR_LEGAL_QNAME = new ItemName(SchemaConstants.NS_C, VAR_LEGAL);
+	
+    public static final String VAR_ASSIGNED = "assigned";
+    public static final ItemName VAR_ASSIGNED_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ASSIGNED);
+    
+	public static final String VAR_FOCUS_EXISTS = "focusExists";
+	public static final ItemName VAR_FOCUS_EXISTS_QNAME = new ItemName(SchemaConstants.NS_C, VAR_FOCUS_EXISTS);
+	
+	public static final String VAR_ADMINISTRATIVE_STATUS = "administrativeStatus";
+	public static final ItemName VAR_ADMINISTRATIVE_STATUS_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ADMINISTRATIVE_STATUS);
 
-	public static final QName VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION = new QName(SchemaConstants.NS_C, "associationTargetObjectClassDefinition");
+	public static final String VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION = "associationTargetObjectClassDefinition";
 
 	/**
 	 * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.
 	 * Iterations are used to find unique values for an account, to resolve naming conflicts, etc.
 	 */
-	public static final ItemName VAR_ITERATION = new ItemName(SchemaConstants.NS_C, "iteration");
+	public static final String VAR_ITERATION = "iteration";
+	public static final ItemName VAR_ITERATION_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ITERATION);
 
 	/**
 	 * String value describing the current iteration. It is usually suffix that is appended to the username
 	 * or a similar "extension" of the value. It should have different value for every iteration. The actual
 	 * value is determined by the iteration settings.
 	 */
-	public static final ItemName VAR_ITERATION_TOKEN = new ItemName(SchemaConstants.NS_C, "iterationToken");
+	public static final String VAR_ITERATION_TOKEN = "iterationToken";
+	public static final ItemName VAR_ITERATION_TOKEN_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ITERATION_TOKEN);
 
 	// Variables used in object merging expressions
-	public static final QName VAR_SIDE = new QName(SchemaConstants.NS_C, "side");
-	public static final QName VAR_OBJECT_LEFT = new QName(SchemaConstants.NS_C, "objectLeft");
-	public static final QName VAR_OBJECT_RIGHT = new QName(SchemaConstants.NS_C, "objectRight");
+	public static final String VAR_SIDE = "side";
+	public static final String VAR_OBJECT_LEFT = "objectLeft";
+	public static final String VAR_OBJECT_RIGHT = "objectRight";
 
-	public static final QName OUTPUT_ELEMENT_NAME = new QName(SchemaConstants.NS_C, "output");
+	public static final ItemName OUTPUT_ELEMENT_NAME = new ItemName(SchemaConstants.NS_C, "output");
 
 	// "case" would collide with java keyword
-	public static final QName VAR_WORK_ITEM = new QName(SchemaConstants.NS_C, "workItem");
-	public static final QName VAR_CERTIFICATION_CASE = new QName(SchemaConstants.NS_C, "certificationCase");
-	public static final QName VAR_CAMPAIGN = new QName(SchemaConstants.NS_C, "campaign");
-	public static final QName VAR_REVIEWER_SPECIFICATION = new QName(SchemaConstants.NS_C, "reviewerSpecification");
+	public static final String VAR_WORK_ITEM = "workItem";
+	public static final String VAR_CERTIFICATION_CASE = "certificationCase";
+	public static final String VAR_CAMPAIGN = "campaign";
+	public static final String VAR_REVIEWER_SPECIFICATION = "reviewerSpecification";
 
-	public static final QName VAR_CHANNEL = new QName(SchemaConstants.NS_C, "channel");
-	public static final QName VAR_WORKFLOW_CONTEXT = new QName(SchemaConstants.NS_C, "workflowContext");
-	public static final QName VAR_TASK = new QName(SchemaConstants.NS_C, "task");
-	public static final QName VAR_RULE_EVALUATION_CONTEXT = new QName(SchemaConstants.NS_C, "ruleEvaluationContext");
-	public static final QName VAR_STAGE_DEFINITION = new QName(SchemaConstants.NS_C, "stageDefinition");
+	public static final String VAR_CHANNEL = "channel";
+	public static final String VAR_WORKFLOW_CONTEXT = "workflowContext";
+	public static final String VAR_TASK = "task";
+	public static final String VAR_RULE_EVALUATION_CONTEXT = "ruleEvaluationContext";
+	public static final String VAR_STAGE_DEFINITION = "stageDefinition";
 
-	public static final QName VAR_OBJECT_DISPLAY_INFORMATION = new QName(SchemaConstants.NS_C, "objectDisplayInformation");
-	public static final QName VAR_TARGET_DISPLAY_INFORMATION = new QName(SchemaConstants.NS_C, "targetDisplayInformation");
+	public static final String VAR_OBJECT_DISPLAY_INFORMATION = "objectDisplayInformation";
+	public static final String VAR_TARGET_DISPLAY_INFORMATION = "targetDisplayInformation";
 
-	public static final QName VAR_PERFORMER = new QName(SchemaConstants.NS_C, "performer");
-	public static final QName VAR_OUTPUT = new QName(SchemaConstants.NS_C, "output");
-	public static final QName VAR_EVENT = new QName(SchemaConstants.NS_C, "event");
+	public static final String VAR_PERFORMER = "performer";
+	public static final String VAR_OUTPUT = "output";
+	public static final String VAR_EVENT = "event";
 
-	public static final QName VAR_POLICY_RULE = new QName(SchemaConstants.NS_C, "policyRule");
-	public static final QName VAR_POLICY_ACTION = new QName(SchemaConstants.NS_C, "policyAction");
-	public static final QName VAR_LOGIN_MODE = new QName(SchemaConstants.NS_C, "loginMode");
+	public static final String VAR_POLICY_RULE = "policyRule";
+	public static final String VAR_POLICY_ACTION = "policyAction";
+	public static final String VAR_LOGIN_MODE = "loginMode";
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -767,8 +772,24 @@ public class ValuePolicyProcessor {
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, generatedValue);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, originResolver == null ? null : originResolver.getObject());
+		
+		MutablePrismPropertyDefinition<Object> defInput = prismContext.definitionFactory().createPropertyDefinition(
+				new ItemName(SchemaConstants.NS_C, ExpressionConstants.VAR_INPUT), PrimitiveType.STRING.getQname());
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, generatedValue, defInput);
+		
+		PrismObject<O> object = null;
+		PrismObjectDefinition<O> objectDef = null;
+		if (originResolver != null) {
+			object = originResolver.getObject();
+			if (object != null) {
+				objectDef = object.getDefinition();
+			}
+		}
+		if (objectDef == null) {
+			objectDef = (PrismObjectDefinition<O>) prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+		}
+		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, objectDef);
+		
 		PrismPropertyValue<Boolean> output = ExpressionUtil.evaluateCondition(variables, checkExpression, expressionFactory, shortDesc, task, result);
 		return ExpressionUtil.getBooleanConditionOutput(output);
 	}

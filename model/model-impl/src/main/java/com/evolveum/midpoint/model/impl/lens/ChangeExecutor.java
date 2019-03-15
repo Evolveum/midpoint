@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1636,9 +1636,9 @@ public class ChangeExecutor {
 				.getResourceShadowDiscriminator();
 
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, discr,
-				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
+				resource.asPrismObject(), context.getSystemConfiguration(), objectContext, prismContext);
 		// Having delta in provisioning scripts may be very useful. E.g. the script can optimize execution of expensive operations.
-		variables.addVariableDefinition(ExpressionConstants.VAR_DELTA, projectionCtx.getDelta());
+		variables.put(ExpressionConstants.VAR_DELTA, projectionCtx.getDelta(), ObjectDelta.class);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, (LensProjectionContext) objectContext, task, result));
 		try {
 			return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
@@ -1821,7 +1821,7 @@ public class ChangeExecutor {
 
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow,
 				projContext.getResourceShadowDiscriminator(), resource.asPrismObject(),
-				context.getSystemConfiguration(), projContext);
+				context.getSystemConfiguration(), projContext, prismContext);
 		Object scriptResult = null;
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, projContext, task, parentResult));
 		try {

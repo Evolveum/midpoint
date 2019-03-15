@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,7 +207,8 @@ public class TestExpressionUtil {
 		ItemPath itemPath = toItemPath(path);
 
 		// WHEN
-    	Object resolved = ExpressionUtil.resolvePath(itemPath, variables, false, null, null, TEST_NAME, null, result);
+    	Object resolved = ExpressionUtil.resolvePathGetValue(itemPath, variables, false, null, null, 
+    			PrismTestUtil.getPrismContext(), TEST_NAME, null, result);
 
     	// THEN
     	System.out.println("Resolved:");
@@ -218,7 +219,8 @@ public class TestExpressionUtil {
 
 	private ExpressionVariables createVariables() throws SchemaException, IOException {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_USER, createUser());
+		PrismObject<UserType> user = createUser();
+		variables.addVariableDefinition(ExpressionConstants.VAR_USER, user, user.getDefinition());
 		return variables;
 	}
 
@@ -230,7 +232,7 @@ public class TestExpressionUtil {
 				PrismTestUtil.createPolyString("Captain Jack Sparrow"));
 		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<>(userOld, delta, null);
 		odo.recompute();
-		variables.addVariableDefinition(ExpressionConstants.VAR_USER, odo);
+		variables.addVariableDefinition(ExpressionConstants.VAR_USER, odo, odo.getDefinition());
 		return variables;
 	}
 

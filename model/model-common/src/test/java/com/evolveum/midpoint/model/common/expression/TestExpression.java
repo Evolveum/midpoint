@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Evolveum
+ * Copyright (c) 2013-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,12 +101,14 @@ public class TestExpression {
 
 		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
-		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
-		variables.addVariableDefinition(ExpressionConstants.VAR_USER, user);
+		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user, user.getDefinition());
+		variables.addVariableDefinition(ExpressionConstants.VAR_USER, user, user.getDefinition());
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMYFILE);
-		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 1);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, "001");
+		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account, account.getDefinition());
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 1, 
+				TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION, PrimitiveType.INT));
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, "001",
+				TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION_TOKEN, PrimitiveType.STRING));
 
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, null, result);
 

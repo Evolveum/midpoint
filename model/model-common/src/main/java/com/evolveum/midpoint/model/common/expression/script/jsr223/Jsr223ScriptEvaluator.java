@@ -34,7 +34,6 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -101,7 +100,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Compil
 			   Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) 
 					   throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Bindings bindings = scriptEngine.createBindings();
-		bindings.putAll(getVariablesMap(variables, objectResolver, functions, contextDescription, task, result));
+		bindings.putAll(getVariableValuesMap(variables, objectResolver, functions, contextDescription, task, result));
 		return bindings;
 	}
 	

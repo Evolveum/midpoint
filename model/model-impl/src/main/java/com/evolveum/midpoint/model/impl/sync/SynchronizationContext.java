@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
@@ -80,14 +81,17 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	private boolean shadowExistsInRepo = true;
 	private boolean forceIntentChange;
+
+	private PrismContext prismContext;
 	
-	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String chanel, Task task, OperationResult result) {
+	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String chanel, PrismContext prismContext, Task task, OperationResult result) {
 		this.applicableShadow = applicableShadow;
 		this.currentShadow = currentShadow;
 		this.resource = resource;
 		this.chanel = chanel;
 		this.task = task;
 		this.result = result;
+		this.prismContext = prismContext;
 	}
 	
 	public boolean isSynchronizationEnabled() {
@@ -300,6 +304,10 @@ public class SynchronizationContext<F extends FocusType> {
 
 	public F getCorrelatedOwner() {
 		return correlatedOwner;
+	}
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
 	}
 
 	public SynchronizationSituationType getSituation() {

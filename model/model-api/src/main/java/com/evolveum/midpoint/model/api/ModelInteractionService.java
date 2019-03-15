@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
@@ -350,7 +351,7 @@ public interface ModelInteractionService {
 	// Maybe a bit of hack: used to deduplicate processing of localizable message templates
 	@NotNull
 	LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
-			Map<QName, Object> variables, Task task, OperationResult result)
+			VariablesMap variables, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException;
 	

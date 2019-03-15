@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,11 +190,11 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		if (variables == null) {
 			return null;
 		}
-		PrismObject<O> object = variables.getObjectNew(ExpressionConstants.VAR_PROJECTION);
+		PrismObject<O> object = variables.getValueNew(ExpressionConstants.VAR_PROJECTION);
 		if (object != null) {
 			return (AbstractValuePolicyOriginResolver<O>) new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
 		}
-		object = variables.getObjectNew(ExpressionConstants.VAR_FOCUS);
+		object = variables.getValueNew(ExpressionConstants.VAR_FOCUS);
 		return (AbstractValuePolicyOriginResolver<O>) new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
 	}
 

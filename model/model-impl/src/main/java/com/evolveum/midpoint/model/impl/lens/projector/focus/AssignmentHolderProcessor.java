@@ -170,7 +170,7 @@ public class AssignmentHolderProcessor {
 			LensUtil.applyObjectPolicyConstraints(focusContext, objectPolicyConfigurationType, prismContext);
 
 			ExpressionVariables variablesPreIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
-					null, null, null, context.getSystemConfiguration(), focusContext);
+					null, null, null, context.getSystemConfiguration(), focusContext, prismContext);
 			if (iterationToken == null) {
 				iterationToken = LensUtil.formatIterationToken(context, focusContext,
 						iterationSpecificationType, iteration, expressionFactory, variablesPreIteration, task, result);
@@ -335,7 +335,7 @@ public class AssignmentHolderProcessor {
 		        if (checker.isSatisfiesConstraints()) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 		        	ExpressionVariables variablesPostIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
-		        			null, null, null, context.getSystemConfiguration(), focusContext);
+		        			null, null, null, context.getSystemConfiguration(), focusContext, prismContext);
 		        	if (LensUtil.evaluateIterationCondition(context, focusContext,
 		        			iterationSpecificationType, iteration, iterationToken, false, expressionFactory, variablesPostIteration,
 		        			task, result)) {

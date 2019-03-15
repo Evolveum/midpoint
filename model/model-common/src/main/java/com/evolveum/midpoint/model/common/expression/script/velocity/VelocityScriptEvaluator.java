@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.velocity;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -53,16 +54,12 @@ import java.util.function.Function;
  * @author mederly
  *
  */
-public class VelocityScriptEvaluator implements ScriptEvaluator {
+public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 
 	private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
 
-	private PrismContext prismContext;
-	private Protector protector;
-
-	public VelocityScriptEvaluator(PrismContext prismContext, Protector protector) {
-		this.prismContext = prismContext;
-		this.protector = protector;
+	public VelocityScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
+		super(prismContext, protector, localizationService);
 		Properties properties = new Properties();
 //		properties.put("runtime.references.strict", "true");
 		Velocity.init(properties);
@@ -106,7 +103,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 
 		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
 		if (javaReturnType == null) {
-			javaReturnType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdReturnType);
+			javaReturnType = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdReturnType);
 		}
 
 		if (javaReturnType == null) {
@@ -117,14 +114,14 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 
 		T evalResult;
 		try {
-			evalResult = ExpressionUtil.convertValue(javaReturnType, additionalConvertor, resultWriter.toString(), protector, prismContext);
+			evalResult = ExpressionUtil.convertValue(javaReturnType, additionalConvertor, resultWriter.toString(), getProtector(), getPrismContext());
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);
 		}
 
 		List<V> pvals = new ArrayList<>();
 		if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-			pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
+			pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, getPrismContext()));
 		}
 		return pvals;
 	}
@@ -133,8 +130,8 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 									   Collection<FunctionLibrary> functions,
 									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		VelocityContext context = new VelocityContext();
-		Map<String,Object> scriptVariables = ScriptExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription,
-				prismContext, task, result);
+		Map<String,Object> scriptVariables = prepareScriptVariablesValueMap(variables, objectResolver, functions, contextDescription,
+				task, result);
 		for (Map.Entry<String,Object> scriptVariable : scriptVariables.entrySet()) {
 			context.put(scriptVariable.getKey(), scriptVariable.getValue());
 		}

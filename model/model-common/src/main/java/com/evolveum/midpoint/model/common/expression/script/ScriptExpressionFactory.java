@@ -137,7 +137,7 @@ public class ScriptExpressionFactory implements Cacheable{
 			return;
 		}
 		OperationResult subResult = result
-				.createMinorSubresult(ScriptExpressionUtil.class.getName() + ".searchCustomFunctions");
+				.createMinorSubresult(ScriptExpressionFactory.class.getName() + ".searchCustomFunctions");
 		ResultHandler<FunctionLibraryType> functionLibraryHandler = (object, parentResult) -> {
 			FunctionLibrary customLibrary = new FunctionLibrary();
 			customLibrary.setVariableName(object.getName().getOrig());

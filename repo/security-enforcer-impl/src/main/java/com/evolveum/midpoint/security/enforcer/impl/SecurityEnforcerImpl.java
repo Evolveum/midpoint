@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -797,7 +797,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			if (principal != null) {
 				subject = principal.getUser().asPrismObject();
 			}
-			variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject);
+			PrismObjectDefinition<UserType> def;
+			if (subject == null) {
+				def = subject.getDefinition();
+			} else {
+				def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+			}
+			variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject, def);
 			return ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, 
 					"expression in " + objectTargetDesc + " in authorization " + autzHumanReadableDesc, task, result);
 		};

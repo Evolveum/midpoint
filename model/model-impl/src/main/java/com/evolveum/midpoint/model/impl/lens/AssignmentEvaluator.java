@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -724,8 +724,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(lensContext, null, ctx.task, ctx.result));
 		try {
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(ctx.result);
-			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null, null, systemConfiguration.asObjectable());
-			variables.addVariableDefinition(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject());
+			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null, null, systemConfiguration.asObjectable(), prismContext);
+			variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), segment.getOrderOneObject().asPrismObject().getDefinition());
 			AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 			if (assignmentPathVariables != null) {
 				ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
@@ -746,7 +746,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
 	private ExpressionVariables getAssignmentEvaluationVariables() {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_LOGIN_MODE, loginMode);
+		variables.put(ExpressionConstants.VAR_LOGIN_MODE, loginMode, Boolean.class);
 		// e.g. AssignmentEvaluator itself, model context, etc (when needed)
 		return variables;
 	}
@@ -1305,7 +1305,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 				.originType(OriginType.ASSIGNMENTS)
 				.originObject(source)
 				.defaultTargetDefinition(prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
-				.addVariableDefinitions(getAssignmentEvaluationVariables().getMap())
+				.addVariableDefinitions(getAssignmentEvaluationVariables())
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source)
