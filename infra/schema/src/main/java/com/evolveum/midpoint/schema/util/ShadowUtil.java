@@ -502,10 +502,18 @@ public class ShadowUtil {
     	Boolean dead = shadow.isDead();
     	return dead != null && dead;
     }
-    
+
+	public static boolean isDead(PrismObject<ShadowType> shadow) {
+		return isDead(shadow.asObjectable());
+	}
+
 	public static boolean isExists(ShadowType shadow) {
 		Boolean exists = shadow.isExists();
 		return exists == null || exists;
+	}
+
+	public static boolean isExists(PrismObject<ShadowType> shadow) {
+		return isExists(shadow.asObjectable());
 	}
 		
 	public static boolean matches(ShadowType shadowType, String resourceOid, ShadowKindType kind, String intent) {

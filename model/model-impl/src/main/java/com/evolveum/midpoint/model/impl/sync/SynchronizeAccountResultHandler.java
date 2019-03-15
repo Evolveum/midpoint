@@ -165,7 +165,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		}
 
 		// We are going to pretend that all of the objects were just created.
-		// That will efficiently import them to the IDM repository
+		// That will effectively import them to the IDM repository
 
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
@@ -176,18 +176,14 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 
 		if (forceAdd) {
 			// We should provide shadow in the state before the change. But we are
-			// pretending that it has
-			// not existed before, so we will not provide it.
-			ObjectDelta<ShadowType> shadowDelta = accountShadow.getPrismContext().deltaFactory().object().create(
-                ShadowType.class, ChangeType.ADD);
-			//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
-			PrismObject<ShadowType> shadowToAdd = newShadowType.asPrismObject();
-			shadowDelta.setObjectToAdd(shadowToAdd);
-			shadowDelta.setOid(newShadowType.getOid());
+			// pretending that it has not existed before, so we will not provide it.
+			ObjectDelta<ShadowType> shadowDelta = accountShadow.getPrismContext().deltaFactory().object()
+					.create(ShadowType.class, ChangeType.ADD);
+			shadowDelta.setObjectToAdd(accountShadow);
+			shadowDelta.setOid(accountShadow.getOid());
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
 			change.setCurrentShadow(accountShadow);
-
 		} else {
 			// No change, therefore the delta stays null. But we will set the current
 			change.setCurrentShadow(accountShadow);
@@ -196,9 +192,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		try {
 			change.checkConsistence();
 		} catch (RuntimeException ex) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Check consistence failed: {}\nChange:\n{}", ex, change.debugDump());
-			}
+			LOGGER.trace("Check consistence failed: {}\nChange:\n{}", ex, change.debugDumpLazily());
 			throw ex;
 		}
 
@@ -206,7 +200,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		ModelImplUtils.clearRequestee(workerTask);
 		objectChangeListener.notifyChange(change, workerTask, result);
 		
-		LOGGER.info("#### notify chnage finished.");
+		LOGGER.debug("#### notify change finished");
 
 		// No exception thrown here. The error is indicated in the result. Will be processed by superclass.
 		return workerTask.canRun();

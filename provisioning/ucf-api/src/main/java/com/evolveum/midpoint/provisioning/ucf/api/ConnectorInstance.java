@@ -65,15 +65,15 @@ import javax.xml.namespace.QName;
  */
 public interface ConnectorInstance {
 
-	public static final String OPERATION_CONFIGURE = ConnectorInstance.class.getName() + ".configure";
-	public static final String OPERATION_INITIALIZE = ConnectorInstance.class.getName() + ".initialize";
-	public static final String OPERATION_DISPOSE = ConnectorInstance.class.getName() + ".dispose";
+	String OPERATION_CONFIGURE = ConnectorInstance.class.getName() + ".configure";
+	String OPERATION_INITIALIZE = ConnectorInstance.class.getName() + ".initialize";
+	String OPERATION_DISPOSE = ConnectorInstance.class.getName() + ".dispose";
 
 	/**
 	 * The connector instance will be configured to the state that it can
 	 * immediately access the resource. The resource configuration is provided as
 	 * a parameter to this method.
-	 * 
+	 *
 	 * This method may be invoked on connector instance that is already configured.
 	 * In that case re-configuration of the connector instance is requested.
 	 * The connector instance must be operational at all times, even during re-configuration.
@@ -83,7 +83,7 @@ public interface ConnectorInstance {
 	 * @throws ConfigurationException
 	 */
 	void configure(PrismContainerValue<?> configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
-	
+
 	ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 
 	/**
@@ -336,4 +336,7 @@ public interface ConnectorInstance {
 	 */
 	void dispose();
 
+	default ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
+		throw new UnsupportedOperationException();
+	}
 }
