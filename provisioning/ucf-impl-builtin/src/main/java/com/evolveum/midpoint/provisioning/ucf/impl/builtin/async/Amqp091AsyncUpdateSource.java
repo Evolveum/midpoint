@@ -27,9 +27,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091SourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.rabbitmq.client.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,11 +60,28 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 
 	private class ListeningActivityImpl implements ListeningActivity {
 
+		// the following items are initialized only once; in the constructor
 		private Connection activeConnection;
 		private Channel activeChannel;
 		private String activeConsumerTag;
 
+		private boolean stopping = false;
+
 		private final AtomicInteger messagesBeingProcessed = new AtomicInteger(0);
+
+		@Override
+		public AsyncUpdateListeningActivityInformationType getInformation() {
+			AsyncUpdateListeningActivityInformationType rv = new AsyncUpdateListeningActivityInformationType();
+			rv.setSource(sourceConfiguration);
+			if (activeConnection == null) {
+				rv.setStatus(AsyncUpdateListeningActivityStatusType.DOWN);
+			} else if (activeConnection.isOpen()) {
+				rv.setStatus(AsyncUpdateListeningActivityStatusType.ALIVE);
+			} else {
+				rv.setStatus(AsyncUpdateListeningActivityStatusType.RECONNECTING);
+			}
+			return rv;
+		}
 
 		private ListeningActivityImpl(AsyncUpdateMessageListener listener) {
 			try {
@@ -92,6 +107,13 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 				};
 				activeConsumerTag = activeChannel
 						.basicConsume(sourceConfiguration.getQueue(), false, deliverCallback, consumerTag -> {});
+				activeChannel.addShutdownListener(cause -> {
+					if (stopping) {
+						LOGGER.debug("AMQP channel {} is going down (on application request)", activeChannel, cause);
+					} else {
+						LOGGER.error("AMQP channel {} is unexpectedly going down", activeChannel, cause);
+					}
+				});
 				System.out.println("Opened consumer " + activeConsumerTag);
 			} catch (RuntimeException | IOException | TimeoutException e) {
 				if (activeConnection != null) {
@@ -146,6 +168,7 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 		private void silentlyCloseActiveConnection() {
 			try {
 				System.out.println("Closing " + activeConnection);
+				stopping = true;
 				activeConnection.close();
 			} catch (Throwable t) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close active connection {}", t, activeConnection);

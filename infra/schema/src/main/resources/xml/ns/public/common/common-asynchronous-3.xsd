@@ -354,4 +354,63 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="AsyncUpdateListeningActivityInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information on async update listening activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="source" type="tns:AsyncUpdateSourceType" minOccurs="0" />
+            <xsd:element name="status" type="tns:AsyncUpdateListeningActivityStatusType" minOccurs="0" />
+            <xsd:element name="subActivity" type="tns:AsyncUpdateListeningActivityInformationType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AsyncUpdateListeningActivityStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Status of the asynchronous update listening activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="alive">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Everything is OK; listening for messages.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reconnecting">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently not connected but trying to reconnect.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RECONNECTING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="down">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently not connected and not trying to reconnect.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 </xsd:schema>

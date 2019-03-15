@@ -42,12 +42,16 @@ public class AsyncUpdateListeningRegistry {
 		return handle;
 	}
 
-	synchronized ListeningActivity getListeningActivity(@NotNull String handle) {
-		ListeningActivity listeningActivity = listeningActivities.get(handle);
+	synchronized ListeningActivity removeListeningActivity(@NotNull String handle) {
+		ListeningActivity listeningActivity = getListeningActivity(handle);
 		if (listeningActivity == null) {
 			throw new IllegalArgumentException("Listening activity handle " + handle + " is unknown at this moment");
 		}
 		listeningActivities.remove(handle);
 		return listeningActivity;
+	}
+
+	synchronized ListeningActivity getListeningActivity(@NotNull String handle) {
+		return listeningActivities.get(handle);
 	}
 }

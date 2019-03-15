@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateListeningActivityInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AsyncUpdateCapabilityType;
@@ -285,7 +286,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	//region Listening activity
 	private class ConnectorInstanceListeningActivity implements ListeningActivity {
 
-		private final List<ListeningActivity> activities = new ArrayList<>();
+		private final List<ListeningActivity> activities = new ArrayList<>();       // do not forget to synchronize on this
 		private final ChangeListener changeListener;
 
 		ConnectorInstanceListeningActivity(ChangeListener changeListener) {
@@ -299,18 +300,37 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 		}
 
 		private void stopInnerActivities() {
-			for (ListeningActivity activity : activities) {
+			List<ListeningActivity> activitiesCopy;
+			synchronized (activities) {
+				activitiesCopy = new ArrayList<>(activities);
+				activities.clear();
+			}
+			for (ListeningActivity activity : activitiesCopy) {
 				try {
 					activity.stop();
 				} catch (RuntimeException e) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop listening on {}", e, activity);
 				}
 			}
-			activities.clear();
 		}
 
 		void addActivity(ListeningActivity activity) {
-			activities.add(activity);
+			synchronized (activities) {
+				activities.add(activity);
+			}
+		}
+
+		@Override
+		public AsyncUpdateListeningActivityInformationType getInformation() {
+			List<ListeningActivity> activitiesCopy;
+			synchronized (activities) {
+				activitiesCopy = new ArrayList<>(activities);
+			}
+			AsyncUpdateListeningActivityInformationType rv = new AsyncUpdateListeningActivityInformationType();
+			for (ListeningActivity activity : activitiesCopy) {
+				rv.getSubActivity().add(activity.getInformation());
+			}
+			return rv;
 		}
 
 		@Override

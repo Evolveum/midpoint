@@ -2413,6 +2413,11 @@ public class ShadowCache {
 		resouceObjectConverter.stopListeningForAsyncUpdates(listeningActivityHandle, parentResult);
 	}
 
+	AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		return resouceObjectConverter.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, parentResult);
+	}
+
+
 	/**
 	 * This is the common code for processing changes coming from various sources e.g. live sync, async updates
 	 * or model.notifyChange. Therefore all the auxiliary pre-processing (finding old shadow, determining object class,
