@@ -204,7 +204,7 @@ public interface ProvisioningService {
 	 */
 	String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			ExpressionEvaluationException;
+			ExpressionEvaluationException, SecurityViolationException;
 
 	/**
 	 * Stops the given listening activity.

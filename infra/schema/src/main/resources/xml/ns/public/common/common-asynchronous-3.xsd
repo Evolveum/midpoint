@@ -364,7 +364,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="source" type="tns:AsyncUpdateSourceType" minOccurs="0" />
+            <xsd:element name="name" type="xsd:string" minOccurs="0" />
             <xsd:element name="status" type="tns:AsyncUpdateListeningActivityStatusType" minOccurs="0" />
             <xsd:element name="subActivity" type="tns:AsyncUpdateListeningActivityInformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
@@ -412,5 +412,54 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:simpleType name="AsyncUpdateErrorHandlingActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to handle errors during async update processing.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="stopProcessing">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stop processing messages from this source (take the source down). When using Async Update task
+                        this means that the task will be suspended - in case this is the only async update source.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STOP_PROCESSING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO something like stop processing for all the other sources; but this can be configured
+                  also at the level of the whole async update task -->
+            <xsd:enumeration value="skipUpdate">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The particular update causing problems will be skipped.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP_UPDATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="retry">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of the message will be retried. (Needs additional parameters like how many times
+                        and in what intervals.) This is currently not implemented.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RETRY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:element name="asyncUpdateErrorHandlingAction" type="tns:AsyncUpdateErrorHandlingActionType"/>
 
 </xsd:schema>

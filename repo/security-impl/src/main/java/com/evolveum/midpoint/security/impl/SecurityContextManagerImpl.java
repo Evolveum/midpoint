@@ -73,15 +73,17 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 		return SecurityUtil.isAuthenticated();
 	}
 
-    
+	@Override
+	public Authentication getAuthentication() {
+		return SecurityUtil.getAuthentication();
+	}
+
 	@Override
     public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(authentication);
     }
 
-	
-	
 	@Override
 	public void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal) {
 		// Make sure that constructor with authorities is used. Otherwise the context will not be authenticated.

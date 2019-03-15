@@ -1859,7 +1859,8 @@ public class ResourceObjectConverter {
 
 	String startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
 			@NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
-			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+			SecurityViolationException {
 
 		LOGGER.trace("START start listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
 		ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);

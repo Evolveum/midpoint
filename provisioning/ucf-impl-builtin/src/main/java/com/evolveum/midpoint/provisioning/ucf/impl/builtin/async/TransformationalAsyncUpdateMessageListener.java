@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.Authentication;
 
 import javax.xml.namespace.QName;
 import java.nio.charset.StandardCharsets;
@@ -50,6 +52,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  *  Transforms AsyncUpdateMessageType objects to Change ones (via UcfChangeType intermediary).
+ *
+ *  Also prepares appropriately authenticated security context. (In the future we might factor this out to a separate class.)
  */
 public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageListener {
 
@@ -58,39 +62,52 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 	private static final QName VAR_MESSAGE = new QName("message");
 
 	@NotNull private final ChangeListener changeListener;
+	@NotNull private final Authentication authentication;
 	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
 	TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener,
+			@NotNull Authentication authentication,
 			@NotNull AsyncUpdateConnectorInstance connectorInstance) {
 		this.changeListener = changeListener;
+		this.authentication = authentication;
 		this.connectorInstance = connectorInstance;
 	}
 
 	@Override
 	public boolean onMessage(AsyncUpdateMessageType message) throws SchemaException {
 		LOGGER.trace("Got {}", message);
-		Map<QName, Object> variables = new HashMap<>();
-		variables.put(VAR_MESSAGE, message);
-		List<UcfChangeType> changeBeans;
+		SecurityContextManager securityContextManager = connectorInstance.getSecurityContextManager();
+		Authentication oldAuthentication = securityContextManager.getAuthentication();
+
 		try {
-			ExpressionType transformExpression = connectorInstance.getTransformExpression();
-			if (transformExpression != null) {
-				changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
-						SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update");
-			} else {
-				changeBeans = unwrapMessage(message);
+			securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
+
+			Map<QName, Object> variables = new HashMap<>();
+			variables.put(VAR_MESSAGE, message);
+			List<UcfChangeType> changeBeans;
+			try {
+				ExpressionType transformExpression = connectorInstance.getTransformExpression();
+				if (transformExpression != null) {
+					changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
+							SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update");
+				} else {
+					changeBeans = unwrapMessage(message);
+				}
+			} catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
+					ConfigurationException | ExpressionEvaluationException e) {
+				throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
 			}
-		} catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-				ConfigurationException | ExpressionEvaluationException e) {
-			throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
+			boolean ok = true;
+			for (UcfChangeType changeBean : changeBeans) {
+				// intentionally in this order - to process changes even after failure
+				// (if listener wants to fail fast, it can throw an exception)
+				ok = changeListener.onChange(createChange(changeBean)) && ok;
+			}
+			return ok;
+
+		} finally {
+			securityContextManager.setupPreAuthenticatedSecurityContext(oldAuthentication);
 		}
-		boolean ok = true;
-		for (UcfChangeType changeBean : changeBeans) {
-			// intentionally in this order - to process changes even after failure
-			// (if listener wants to fail fast, it can throw an exception)
-			ok = changeListener.onChange(createChange(changeBean)) && ok;
-		}
-		return ok;
 	}
 
 	/**
