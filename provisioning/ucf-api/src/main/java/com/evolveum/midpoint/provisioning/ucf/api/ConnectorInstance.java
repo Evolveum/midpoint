@@ -336,8 +336,7 @@ public interface ConnectorInstance {
 	 */
 	void dispose();
 
-	default ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult)
-			throws SchemaException, SecurityViolationException {
+	default ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
 		throw new UnsupportedOperationException();
 	}
 }

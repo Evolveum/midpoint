@@ -16,9 +16,9 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
+import com.evolveum.midpoint.model.impl.sync.SyncTaskHelper.TargetInfo;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -86,8 +86,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
 		final String CTX = "Live Sync";
 
-		ResourceShadowDiscriminator coords = helper.getCoords(LOGGER, task, opResult, runResult, CTX);
-		if (coords == null) {
+		TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, CTX);
+		if (targetInfo == null) {
 			return runResult;
 		}
 
@@ -98,7 +98,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// This will detect the changes and notify model about them.
 			// It will use extension of task to store synchronization state
             ModelImplUtils.clearRequestee(task);
-			changesProcessed = provisioningService.synchronize(coords, task, partition, opResult);
+			changesProcessed = provisioningService.synchronize(targetInfo.coords, task, partition, opResult);
 		} catch (Throwable t) {
 			helper.processException(LOGGER, t, opResult, runResult, partition, CTX);
 			return runResult;
@@ -109,7 +109,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
         // This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", coords.getResourceOid());
+		LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", targetInfo.resource);
 		return runResult;
 	}
 	

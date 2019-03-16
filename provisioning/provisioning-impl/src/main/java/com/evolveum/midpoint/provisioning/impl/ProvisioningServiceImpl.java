@@ -382,7 +382,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public String startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
 			@NotNull OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			ExpressionEvaluationException, SecurityViolationException {
+			ExpressionEvaluationException {
 		String resourceOid = shadowCoordinates.getResourceOid();
 		Validate.notNull(resourceOid, "Resource oid must not be null.");
 
@@ -394,7 +394,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
 			listeningActivityHandle = shadowCache.startListeningForAsyncUpdates(shadowCoordinates, task, result);
-		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error | SecurityViolationException e) {
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
 			throw e;

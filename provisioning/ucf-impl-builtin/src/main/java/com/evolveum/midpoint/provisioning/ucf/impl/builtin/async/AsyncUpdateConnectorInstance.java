@@ -32,7 +32,6 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AsyncUpdateC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 
 import javax.xml.namespace.QName;
@@ -137,13 +137,9 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
 	@Override
 	public ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult)
-			throws SchemaException, SecurityViolationException {
+			throws SchemaException {
 
 		Authentication authentication = securityContextManager.getAuthentication();
-		if (authentication == null) {
-			throw new SecurityViolationException("No authentication");
-		}
-
 		ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity(changeListener, authentication);
 		try {
 			openListeningActivities.add(listeningActivity);
@@ -321,10 +317,10 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
 		@NotNull private final List<ListeningActivity> activities = new ArrayList<>();       // do not forget to synchronize on this
 		@NotNull private final ChangeListener changeListener;
-		@NotNull private final Authentication authentication;
+		@Nullable private final Authentication authentication;
 		private AsyncUpdateListeningActivityStatusType status;
 
-		ConnectorInstanceListeningActivity(@NotNull ChangeListener changeListener, @NotNull Authentication authentication) {
+		ConnectorInstanceListeningActivity(@NotNull ChangeListener changeListener, @Nullable Authentication authentication) {
 			this.changeListener = changeListener;
 			this.authentication = authentication;
 		}

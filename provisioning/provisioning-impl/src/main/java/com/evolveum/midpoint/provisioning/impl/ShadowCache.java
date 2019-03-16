@@ -2391,7 +2391,7 @@ public class ShadowCache {
 
 	String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-			ExpressionEvaluationException, SecurityViolationException {
+			ExpressionEvaluationException {
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
 		ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);

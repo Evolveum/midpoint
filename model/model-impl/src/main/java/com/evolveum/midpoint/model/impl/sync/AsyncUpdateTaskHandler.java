@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
+import com.evolveum.midpoint.model.impl.sync.SyncTaskHelper.TargetInfo;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -64,7 +64,6 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
 	@PostConstruct
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
-		System.out.println("URI = " + HANDLER_URI);
 	}
 
 	@NotNull
@@ -90,16 +89,16 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
 
 		final String CTX = "Async Update";
 
-		ResourceShadowDiscriminator coords = helper.getCoords(LOGGER, task, opResult, runResult, CTX);
-		if (coords == null) {
+		TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, CTX);
+		if (targetInfo == null) {
 			return runResult;
 		}
 
 		String listeningActivityHandle = null;
 		try {
 			ModelImplUtils.clearRequestee(task);        // todo is this needed?
-			listeningActivityHandle = provisioningService.startListeningForAsyncUpdates(coords, task, opResult);
-			System.out.println("Handle = " + listeningActivityHandle);
+			listeningActivityHandle = provisioningService.startListeningForAsyncUpdates(targetInfo.coords, task, opResult);
+			LOGGER.info("Started listening for async updates on {} with handle {}", targetInfo.resource, listeningActivityHandle);
 
 			long lastCheck = 0;
 
@@ -108,7 +107,7 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
 					lastCheck = System.currentTimeMillis();
 					AsyncUpdateListeningActivityInformationType info = provisioningService
 							.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, opResult);
-					LOGGER.info("Listening activity {} state:\n{}", listeningActivityHandle,
+					LOGGER.info("Listening activity {} state:\n{}", listeningActivityHandle,    // todo trace
 							prismContext.xmlSerializer().root(new QName("info")).serializeRealValue(info));
 					if (isAllDown(info)) {
 						throw new SystemException("All listening activities are down, suspending the task: " + task);
@@ -121,7 +120,7 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
 				Thread.sleep(TASK_CHECK_INTERVAL);
 			}
 		} catch (RuntimeException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-				ExpressionEvaluationException | InterruptedException | SecurityViolationException e) {
+				ExpressionEvaluationException | InterruptedException e) {
 			helper.processException(LOGGER, e, opResult, runResult, partition, CTX);
 			return runResult;
 		} finally {

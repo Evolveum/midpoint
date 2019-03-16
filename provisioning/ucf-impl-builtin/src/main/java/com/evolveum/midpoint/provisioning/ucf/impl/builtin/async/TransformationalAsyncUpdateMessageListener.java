@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 
 import javax.xml.namespace.QName;
@@ -62,11 +63,11 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 	private static final QName VAR_MESSAGE = new QName("message");
 
 	@NotNull private final ChangeListener changeListener;
-	@NotNull private final Authentication authentication;
+	@Nullable private final Authentication authentication;
 	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
 	TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener,
-			@NotNull Authentication authentication,
+			@Nullable Authentication authentication,
 			@NotNull AsyncUpdateConnectorInstance connectorInstance) {
 		this.changeListener = changeListener;
 		this.authentication = authentication;

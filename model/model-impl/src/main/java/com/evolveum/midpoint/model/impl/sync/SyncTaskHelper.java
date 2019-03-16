@@ -46,7 +46,22 @@ public class SyncTaskHelper {
 	@Autowired private ProvisioningService provisioningService;
 	@Autowired private PrismContext prismContext;
 
-	ResourceShadowDiscriminator getCoords(Trace LOGGER, Task task, OperationResult opResult, TaskRunResult runResult, String ctx) {
+	public class TargetInfo {
+		final public ResourceShadowDiscriminator coords;
+		final public ResourceType resource;
+		final public RefinedResourceSchema refinedResourceSchema;
+		final public ObjectClassComplexTypeDefinition objectClassDefinition;
+
+		public TargetInfo(ResourceShadowDiscriminator coords, ResourceType resource,
+				RefinedResourceSchema refinedResourceSchema, ObjectClassComplexTypeDefinition objectClassDefinition) {
+			this.coords = coords;
+			this.resource = resource;
+			this.refinedResourceSchema = refinedResourceSchema;
+			this.objectClassDefinition = objectClassDefinition;
+		}
+	}
+
+	TargetInfo getTargetInfo(Trace LOGGER, Task task, OperationResult opResult, TaskRunResult runResult, String ctx) {
 		String resourceOid = getResourceOid(LOGGER, task, opResult, runResult, ctx);
 		if (resourceOid == null) {
 			return null;
@@ -73,7 +88,9 @@ public class SyncTaskHelper {
 			LOGGER.debug("{}: Processing all object classes", ctx);
 		}
 
-		return new ResourceShadowDiscriminator(resourceOid, objectClass==null?null:objectClass.getTypeName());
+		return new TargetInfo(
+				new ResourceShadowDiscriminator(resourceOid, objectClass==null?null:objectClass.getTypeName()),
+				resource, refinedSchema, objectClass);
 	}
 
 	public String getResourceOid(Trace logger, Task task, OperationResult opResult, TaskRunResult runResult, String ctx) {
