@@ -15,100 +15,38 @@
   ~ limitations under the License.
   -->
 
-<resource oid="bbb9900a-b53d-4453-b60b-908725e3950e"
+<resource oid="f5fe132a-5436-4bd7-b53d-00f11f4f10cc"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+		  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+		  xmlns:rest="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-grouper-rest/com.evolveum.polygon.connector.grouper.rest.GrouperConnector"
 		  xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Grouper Resource (AMQP)</name>
+	<name>Grouper Resource (REST)</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:equal>
 				<q:path>connectorType</q:path>
-				<q:value>AsyncUpdateConnector</q:value>
+				<q:value>com.evolveum.polygon.connector.grouper.rest.GrouperConnector</q:value>
 			</q:equal>
 		</filter>
 	</connectorRef>
 	<connectorConfiguration>
-		<conf:sources>
-			<amqp091>
-				<uri>amqp://192.168.56.101:5672</uri>
-				<username>guest</username>
-				<password>guest</password>
-				<queue>sampleQueue</queue>
-			</amqp091>
-		</conf:sources>
-		<conf:transformExpression>
-			<script>
-				<code>
-					// ------------------ START OF CONFIGURATION ------------------
-
-					parameters = [
-						superGroup: 'etc:midpointGroups',
-						exportedGroupPrefix: 'midpoint:',
-						relevantSourceId: 'ldap'
-					]
-
-					// ------------------ END OF CONFIGURATION ------------------
-
-					parameters.put('message', message)
-					grouper.execute('createUcfChange', parameters)
-				</code>
-			</script>
-		</conf:transformExpression>
+		<icfc:configurationProperties>
+			<rest:baseUrl>192.168.56.101:9443</rest:baseUrl>
+			<rest:username>banderson</rest:username>
+			<rest:password>password</rest:password>
+			<rest:superGroup>etc:midpointGroups</rest:superGroup>
+			<rest:rootStem>midpoint</rest:rootStem>
+			<rest:subjectSource>ldap</rest:subjectSource>
+			<rest:ignoreSslValidation>true</rest:ignoreSslValidation>
+		</icfc:configurationProperties>
 	</connectorConfiguration>
-	<schema>
-		<definition>
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-						xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-						targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-				<xsd:complexType name="AccountObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<ra:resourceObject/>
-							<ra:identifier>icfs:uid</ra:identifier>
-							<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-							<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-							<ra:namingAttribute>icfs:name</ra:namingAttribute>
-							<ra:account/>
-							<ra:default/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:sequence>
-						<xsd:element ref="icfs:name"/>
-						<xsd:element ref="icfs:uid"/>
-						<xsd:element name="group" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-					</xsd:sequence>
-				</xsd:complexType>
-				<xsd:complexType name="GroupObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<ra:resourceObject/>
-							<ra:identifier>icfs:uid</ra:identifier>
-							<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-							<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-							<ra:namingAttribute>icfs:name</ra:namingAttribute>
-							<ra:account/>
-							<ra:default/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:sequence>
-						<xsd:element ref="icfs:name"/>
-						<xsd:element ref="icfs:uid"/>
-					</xsd:sequence>
-				</xsd:complexType>
-			</xsd:schema>
-		</definition>
-	</schema>
-
 	<schemaHandling>
 		<objectType>
 			<kind>account</kind>
@@ -152,6 +90,7 @@
 			<enabled>true</enabled>
 			<kind>account</kind>
 			<intent>subject</intent>
+			<objectClass>ri:AccountObjectClass</objectClass>
 			<focusType>UserType</focusType>
 			<correlation>
 				<q:equal>
@@ -190,6 +129,7 @@
 			<enabled>true</enabled>
 			<kind>entitlement</kind>
 			<intent>group</intent>
+			<objectClass>ri:GroupObjectClass</objectClass>
 			<focusType>OrgType</focusType>
 			<correlation>
 				<q:equal>
@@ -225,6 +165,13 @@
 			</reaction>
 		</objectSynchronization>
 	</synchronization>
+	<!--<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">-->
+		<!--<configured>-->
+			<!--<cap:read>-->
+				<!--<cap:cachingOnly>true</cap:cachingOnly>-->
+			<!--</cap:read>-->
+		<!--</configured>-->
+	<!--</capabilities>-->
 	<caching>
 		<cachingStategy>passive</cachingStategy>
 	</caching>

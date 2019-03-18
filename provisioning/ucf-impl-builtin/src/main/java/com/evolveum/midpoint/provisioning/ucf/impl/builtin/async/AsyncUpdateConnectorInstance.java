@@ -196,7 +196,6 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
 		Collection<Object> capabilities = new ArrayList<>();
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAsyncUpdate(new AsyncUpdateCapabilityType()));
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(new ReadCapabilityType().cachingOnly(true)));
 		return capabilities;
 
 		// TODO activation, credentials?

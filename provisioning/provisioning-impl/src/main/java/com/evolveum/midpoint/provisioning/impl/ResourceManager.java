@@ -1358,9 +1358,11 @@ public class ResourceManager {
 		PrismContainer<ConnectorConfigurationType> connectorConfiguration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		return new ConnectorSpec(resource, null, ResourceTypeUtil.getConnectorOid(resource), connectorConfiguration);
 	}
-	
 
 	private ConnectorSpec getConnectorSpec(PrismObject<ResourceType> resource, ConnectorInstanceSpecificationType additionalConnectorType) throws SchemaException {
+		if (additionalConnectorType.getConnectorRef() == null) {
+			throw new SchemaException("No connector reference in additional connector in "+resource);
+		}
 		String connectorOid = additionalConnectorType.getConnectorRef().getOid();
 		if (StringUtils.isBlank(connectorOid)) {
 			throw new SchemaException("No connector OID in additional connector in "+resource);
