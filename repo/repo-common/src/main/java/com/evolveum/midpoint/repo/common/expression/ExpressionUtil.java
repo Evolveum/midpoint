@@ -179,6 +179,9 @@ public class ExpressionUtil {
 			TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		TypedValue valDef = resolvePathGetValueAndDefinition(path, variables, normalizeValuesToDelete, defaultContext, objectResolver, prismContext, shortDesc, task, result);
+		if (valDef == null) {
+			return null;
+		}
 		return valDef.getValue();
 	}
 	
@@ -224,7 +227,11 @@ public class ExpressionUtil {
 		}
 
 		String lastPathSegmentName = relativePath.lastName().getLocalPart();
+		
 		Object rootValue = root.getValue();
+		if (rootValue == null) {
+			return null;
+		}
 		
 		if (rootValue instanceof Objectable) {
 			return determineValueAndDefinition(prismContext, lastPathSegmentName, (((Objectable) rootValue).asPrismObject()).find(relativePath));
