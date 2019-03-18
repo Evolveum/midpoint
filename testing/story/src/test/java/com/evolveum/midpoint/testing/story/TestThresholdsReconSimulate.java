@@ -71,5 +71,42 @@ public class TestThresholdsReconSimulate extends TestThresholds {
 		assertEquals(syncInfo.getCountLinkedAfter(), 0);
 		assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
 	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
+	 */
+	@Override
+	protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception {
+		IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+		assertEquals(infoType.getTotalFailureCount(), 1);
+		
+		SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+		
+		assertEquals(syncInfo.getCountUnmatched(), 5);
+		assertEquals(syncInfo.getCountDeleted(), 0);
+		assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+		assertEquals(syncInfo.getCountUnlinked(), 0);
+		
+		assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+		assertEquals(syncInfo.getCountDeletedAfter(), 0);
+		assertEquals(syncInfo.getCountLinkedAfter(), 0);
+		assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
+	}
+
+	@Override
+	protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
+		IterativeTaskInformationType infoType = taskAfter.getStoredOperationStats().getIterativeTaskInformation();
+		assertEquals(infoType.getTotalFailureCount(), 1);
+		
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 5);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), getDefaultUsers() + getProcessedUsers());
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
+		
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatchedAfter(), 0);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), getDefaultUsers() + getProcessedUsers());
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
+	}
 	
 }

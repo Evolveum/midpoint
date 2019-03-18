@@ -18,6 +18,28 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
+
+ <div class="row">
+    
+    	<div class="col-md-12">
+            <h3><wicket:message key="PageInternals.title.thresholds.counters"/></h3>
+            <table class="table table-bordered">
+            	<tbody>
+            		<tr wicket:id="thresholdCountersTable">
+            			<th wicket:id="counterTask"/>
+            			<td wicket:id="counterPolicyRule"/>
+            			<td wicket:id="counterCount"/>
+            			<td>
+            				<a class="btn btn-primary" wicket:id="resetThresholdCounter">
+            					<wicket:message key="InternalsCountersPanel.threshold.reset.button"/>
+            				</a>
+            			</td>
+            		</tr>
+            	</tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="row">
     
     	<div class="col-md-6">
