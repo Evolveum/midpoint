@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.CounterManager;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -311,6 +312,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean
     private MidpointFunctions midpointFunctions;
+    
+    @SpringBean
+    private CounterManager counterManager;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -472,6 +476,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public MidpointFunctions getMidpointFunctions() {
         return midpointFunctions;
     }
+    
+   public CounterManager getCounterManager() {
+		return counterManager;
+	}
 
     @Contract(pure = true)
     public PrismContext getPrismContext() {

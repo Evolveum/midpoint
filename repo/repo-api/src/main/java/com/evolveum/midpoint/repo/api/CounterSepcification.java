@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.common;
-
-import java.time.Duration;
+package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author katka
@@ -29,7 +29,16 @@ public class CounterSepcification implements DebugDumpable {
 	
 	private int count = 0;
 	private long counterStart;
-	private PolicyThresholdType policyThreshold; 
+	
+	private TaskType task;
+	private PolicyRuleType policyRule;
+	private String policyRuleId;
+	
+	public CounterSepcification(TaskType task, String policyRuleId, PolicyRuleType policyRule) {
+		this.task = task;
+		this.policyRuleId = policyRuleId;
+		this.policyRule = policyRule;
+	}
 	
 	public int getCount() {
 		return count;
@@ -43,20 +52,27 @@ public class CounterSepcification implements DebugDumpable {
 	public void setCounterStart(long counterStart) {
 		this.counterStart = counterStart;
 	}
-
-	/**
-	 * @return the policyThreshold
-	 */
+	
 	public PolicyThresholdType getPolicyThreshold() {
-		return policyThreshold;
+		return policyRule.getPolicyThreshold();
 	}
 	
-	/**
-	 * @param policyThreshold the policyThreshold to set
-	 */
-	public void setPolicyThreshold(PolicyThresholdType policyThreshold) {
-		this.policyThreshold = policyThreshold;
+	public String getTaskName() {
+		return task.getName().getOrig();
 	}
+	
+	public String getPolicyRuleName() {
+		return policyRule.getName();
+	}
+	
+	public String getTaskOid() {
+		return task.getOid();
+	}
+	
+	public String getPolicyRuleId() {
+		return policyRuleId;
+	}
+	
 	
 	public void reset(long currentTimeMillis) {
 		count = 0;
@@ -66,9 +82,11 @@ public class CounterSepcification implements DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
+		sb.append("Counter for: ").append(task).append(", policy rule: ").append(policyRule).append("\n");
 		sb.append("Current count: ").append(count).append("\n");
 		sb.append("Counter start: ").append(XmlTypeConverter.createXMLGregorianCalendar(counterStart)).append("\n");
-		sb.append("Thresholds: \n").append(policyThreshold.toString());
+		
+		sb.append("Thresholds: \n").append(getPolicyThreshold().toString());
 		return sb.toString();
 	}
 	

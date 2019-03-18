@@ -20,17 +20,24 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.CounterManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskConstants;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,7 +58,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 	@Autowired private HandlerExecutor handlerExecutor;
-//	@Autowired private TaskManager taskManager;
+	@Autowired private CounterManager counterManager;
 
 	
 	@PostConstruct
@@ -113,6 +120,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 		
 		runResult.setProgress(runResult.getProgress() + 1);
 		opResult.computeStatusIfUnknown();
+		counterManager.cleanupCounters(task.getOid());
 			
 		return runResult;
 	}
@@ -159,8 +167,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 
 	@Override
 	public String getCategoryName(Task task) {
-		// TODO Auto-generated method stub
-		return null;
+		return TaskCategory.UTIL;
 	}
 	
 	

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.common;
+package com.evolveum.midpoint.repo.cache;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -26,12 +27,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.repo.api.CounterManager;
+import com.evolveum.midpoint.repo.api.CounterSepcification;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalType;
 
 /**
@@ -39,15 +43,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalType;
  *
  */
 @Component
-public class CounterManager {
+public class CacheCounterManager implements CounterManager {
 	
 	@Autowired private Clock clock;
 	
-	private static final Trace LOGGER = TraceManager.getTrace(CounterManager.class);
+	private static final Trace LOGGER = TraceManager.getTrace(CacheCounterManager.class);
 
 	private Map<CounterKey, CounterSepcification> countersMap = new ConcurrentHashMap<>();
 	
-	public synchronized CounterSepcification registerCounter(Task task, String policyRuleId, PolicyRuleType policyRule) {
+	public synchronized CounterSepcification registerCounter(TaskType task, String policyRuleId, PolicyRuleType policyRule) {
 		
 		if (task.getOid() == null) {
 			LOGGER.trace("Not persistent task, skipping registering counter.");
@@ -57,10 +61,10 @@ public class CounterManager {
 		CounterKey key = new CounterKey(task.getOid(), policyRuleId);
 		CounterSepcification counterSpec = countersMap.get(key);
 		if (counterSpec == null) {	
-			return initCleanCounter(key, policyRule);
+			return initCleanCounter(key, task, policyRule);
 		} 
 		
-		if (isResetCounter(counterSpec)) {
+		if (isResetCounter(counterSpec, false)) {
 			return refreshCounter(key, counterSpec);
 		}
 		
@@ -68,7 +72,7 @@ public class CounterManager {
 		
 	}
 	
-	private boolean isResetCounter(CounterSepcification counterSpec) {
+	private boolean isResetCounter(CounterSepcification counterSpec, boolean removeIfTimeIntervalNotSpecified) {
 		
 		PolicyThresholdType threshold = counterSpec.getPolicyThreshold();
 		if (threshold == null) {
@@ -78,17 +82,18 @@ public class CounterManager {
 		TimeIntervalType timeInterval = threshold.getTimeInterval();
 		
 		if (timeInterval == null) {
-			return false;
+			return removeIfTimeIntervalNotSpecified;
 		}
 		if (timeInterval.getInterval() == null) {
-			return false;
+			return removeIfTimeIntervalNotSpecified;
 		}
 		
 		Duration interval = timeInterval.getInterval();
-		return !XmlTypeConverter.isAfterInterval(XmlTypeConverter.createXMLGregorianCalendar(counterSpec.getCounterStart()), interval, clock.currentTimeXMLGregorianCalendar());
+		return XmlTypeConverter.isAfterInterval(XmlTypeConverter.createXMLGregorianCalendar(counterSpec.getCounterStart()), interval, clock.currentTimeXMLGregorianCalendar());
 		
 	}
 	
+	@Override
 	public void cleanupCounters(String taskOid) {
 		Set<CounterKey> keys = countersMap.keySet();
 		
@@ -100,14 +105,16 @@ public class CounterManager {
 		}
 				
 		for (CounterKey counterToRemove : counersToRemove) {
-			countersMap.remove(counterToRemove);
+			CounterSepcification spec = countersMap.get(counterToRemove);
+			if (isResetCounter(spec, true)) {
+				countersMap.remove(counterToRemove);
+			}
 		}
 	}
 	
-	private CounterSepcification initCleanCounter(CounterKey key, PolicyRuleType policyRule) {
-		CounterSepcification counterSpec = new CounterSepcification();
+	private CounterSepcification initCleanCounter(CounterKey key, TaskType task, PolicyRuleType policyRule) {
+		CounterSepcification counterSpec = new CounterSepcification(task, key.policyRuleId, policyRule);
 		counterSpec.setCounterStart(clock.currentTimeMillis());
-		counterSpec.setPolicyThreshold(policyRule.getPolicyThreshold());
 		countersMap.put(key, counterSpec);
 		return counterSpec;
 	}
@@ -118,7 +125,8 @@ public class CounterManager {
 		return counterSpec;
 	}
 	
-	public CounterSepcification getCounterSpec(Task task, String policyRuleId, PolicyRuleType policyRule) {
+	@Override
+	public CounterSepcification getCounterSpec(TaskType task, String policyRuleId, PolicyRuleType policyRule) {
 		if (task.getOid() == null) {
 			LOGGER.trace("Cannot get counter spec for task without oid");
 			return null;
@@ -132,12 +140,23 @@ public class CounterManager {
 			return registerCounter(task, policyRuleId, policyRule);
 		}
 		
-		if (isResetCounter(counterSpec)) {
+		if (isResetCounter(counterSpec, false)) {
 			counterSpec = refreshCounter(key, counterSpec);
 		}
 		
 		
 		return counterSpec;
+	}
+	
+	@Override
+	public Collection<CounterSepcification> listCounters() {
+		return countersMap.values();
+	}
+	
+	@Override
+	public void removeCounter(CounterSepcification counterSpecification) {
+		CounterKey key = new CounterKey(counterSpecification.getTaskOid(), counterSpecification.getPolicyRuleId());
+		countersMap.remove(key);
 	}
 	
 	class CounterKey {
