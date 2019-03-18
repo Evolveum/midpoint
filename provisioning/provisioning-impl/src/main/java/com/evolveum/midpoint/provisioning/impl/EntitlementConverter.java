@@ -95,45 +95,43 @@ class EntitlementConverter {
 		LOGGER.trace("Starting postProcessEntitlementRead");
 		RefinedObjectClassDefinition objectClassDefinition = subjectCtx.getObjectClassDefinition();
 		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getAssociationDefinitions();
-		if (entitlementAssociationDefs != null) {
-			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
 
-			PrismContainerDefinition<ShadowAssociationType> associationDef = resourceObject.getDefinition().findContainerDefinition(ShadowType.F_ASSOCIATION);
-			PrismContainer<ShadowAssociationType> associationContainer = associationDef.instantiate();
+		PrismContainerDefinition<ShadowAssociationType> associationDef = resourceObject.getDefinition().findContainerDefinition(ShadowType.F_ASSOCIATION);
+		PrismContainer<ShadowAssociationType> associationContainer = associationDef.instantiate();
 
-			for (RefinedAssociationDefinition assocDefType: entitlementAssociationDefs) {
-				ShadowKindType entitlementKind = assocDefType.getKind();
-				if (entitlementKind == null) {
-					entitlementKind = ShadowKindType.ENTITLEMENT;
+		for (RefinedAssociationDefinition assocDefType: entitlementAssociationDefs) {
+			ShadowKindType entitlementKind = assocDefType.getKind();
+			if (entitlementKind == null) {
+				entitlementKind = ShadowKindType.ENTITLEMENT;
+			}
+			for (String entitlementIntent: assocDefType.getIntents()) {
+				LOGGER.trace("Resolving association {} for kind {} and intent {}", assocDefType.getName(), entitlementKind, entitlementIntent);
+				ProvisioningContext entitlementCtx = subjectCtx.spawn(entitlementKind, entitlementIntent);
+				RefinedObjectClassDefinition entitlementDef = entitlementCtx.getObjectClassDefinition();
+				if (entitlementDef == null) {
+					throw new SchemaException("No definition for entitlement intent(s) '"+assocDefType.getIntents()+"' in "+resourceType);
 				}
-				for (String entitlementIntent: assocDefType.getIntents()) {
-					LOGGER.trace("Resolving association {} for kind {} and intent {}", assocDefType.getName(), entitlementKind, entitlementIntent);
-					ProvisioningContext entitlementCtx = subjectCtx.spawn(entitlementKind, entitlementIntent);
-					RefinedObjectClassDefinition entitlementDef = entitlementCtx.getObjectClassDefinition();
-					if (entitlementDef == null) {
-						throw new SchemaException("No definition for entitlement intent(s) '"+assocDefType.getIntents()+"' in "+resourceType);
-					}
-					ResourceObjectAssociationDirectionType direction = assocDefType.getResourceObjectAssociationType().getDirection();
-					if (direction == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT) {
-						postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition, assocDefType, entitlementDef, attributesContainer, associationContainer, parentResult);
-					} else if (direction == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
-						if (assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute() != null) {
-							postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition,
-									assocDefType, entitlementDef, attributesContainer, associationContainer,
-									assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute(),
-									assocDefType.getResourceObjectAssociationType().getShortcutValueAttribute(), parentResult);
-						} else {
-							postProcessEntitlementEntitlementToSubject(subjectCtx, resourceObject, assocDefType, entitlementCtx, attributesContainer, associationContainer, parentResult);
-						}
+				ResourceObjectAssociationDirectionType direction = assocDefType.getResourceObjectAssociationType().getDirection();
+				if (direction == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT) {
+					postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition, assocDefType, entitlementDef, attributesContainer, associationContainer, parentResult);
+				} else if (direction == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+					if (assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute() != null) {
+						postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition,
+								assocDefType, entitlementDef, attributesContainer, associationContainer,
+								assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute(),
+								assocDefType.getResourceObjectAssociationType().getShortcutValueAttribute(), parentResult);
 					} else {
-						throw new IllegalArgumentException("Unknown entitlement direction "+direction+" in association "+assocDefType+" in "+resourceType);
+						postProcessEntitlementEntitlementToSubject(subjectCtx, resourceObject, assocDefType, entitlementCtx, attributesContainer, associationContainer, parentResult);
 					}
+				} else {
+					throw new IllegalArgumentException("Unknown entitlement direction "+direction+" in association "+assocDefType+" in "+resourceType);
 				}
 			}
+		}
 
-			if (!associationContainer.isEmpty()) {
-				resourceObject.add(associationContainer);
-			}
+		if (!associationContainer.isEmpty()) {
+			resourceObject.add(associationContainer);
 		}
 	}
 

@@ -1,0 +1,33 @@
+{
+  "name": "EmbeddedBroker",
+  "modelVersion": "7.0",
+  "authenticationproviders": [
+    {
+      "name": "password",
+      "type": "Plain",
+      "secureOnlyMechanisms": [],
+      "users": [{"name": "guest", "password": "guest", "type": "managed"}]
+    }
+  ],
+  "ports": [
+    {
+      "name": "AMQP",
+      "port": "5672",
+      "authenticationProvider": "password",
+      "virtualhostaliases": [
+        {
+          "name": "defaultAlias",
+          "type": "defaultAlias"
+        }
+      ]
+    }
+  ],
+  "virtualhostnodes": [
+    {
+      "name": "default",
+      "defaultVirtualHostNode": "true",
+      "type": "Memory",
+      "virtualHostInitialConfiguration": "{\"type\": \"Memory\" }"
+    }
+  ]
+}

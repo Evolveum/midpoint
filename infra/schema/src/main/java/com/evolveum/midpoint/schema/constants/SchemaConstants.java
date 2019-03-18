@@ -247,6 +247,8 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
 	public static final String CHANGE_CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_LIVE_SYNC);
+	public static final QName CHANGE_CHANNEL_ASYNC_UPDATE = new QName(NS_PROVISIONING_CHANNEL, "asyncUpdate");
+	public static final String CHANGE_CHANNEL_ASYNC_UPDATE_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_ASYNC_UPDATE);
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
 	public static final String CHANGE_CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECON);
 	public static final QName CHANGE_CHANNEL_RECOMPUTE = new QName(NS_PROVISIONING_CHANNEL, "recompute");
@@ -438,6 +440,8 @@ public abstract class SchemaConstants {
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
 	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
+	public static final ItemName RI_ACCOUNT_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+	public static final ItemName RI_GROUP_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, GROUP_OBJECT_CLASS_LOCAL_NAME);
 
 	public static final String UCF_FRAMEWORK_URI_BUILTIN = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1";
 

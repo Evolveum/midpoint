@@ -134,8 +134,6 @@ public class SynchronizationUtils {
 		return deltas;
 	}
 
-	
-
 	private static List<SynchronizationSituationDescriptionType> getSituationFromSameChannel(
 			PrismObject<ShadowType> shadow, String channel) {
 		

@@ -33,11 +33,12 @@ public class RawTypeUtil {
 
 	public static <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition, List<RawType> values, QName elementQName, PrismContainerDefinition containerDef) throws SchemaException{
 
-		Item<IV,ID> subItem = null;
+		Item<IV,ID> subItem;
 
 		List<IV> parsedValues = new ArrayList<>();
-		for (RawType rawValue : values){
+		for (RawType rawValue : values) {
 			if (itemDefinition == null && containerDef != null){
+				//noinspection unchecked
 				itemDefinition = (ID) ((PrismContextImpl) containerDef.getPrismContext()).getPrismUnmarshaller().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
 			}
 			IV parsed = rawValue.getParsedValue(itemDefinition, elementQName);

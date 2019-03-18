@@ -280,9 +280,9 @@ public class CorrelationConfirmationEvaluator {
 	
 	public <F extends FocusType> boolean matchFocusByCorrelationRule(SynchronizationContext<F> syncCtx, PrismObject<F> focus) {
 
-		if (!syncCtx.hasApplicablePolicy()){
+		if (!syncCtx.hasApplicablePolicy()) {
 			LOGGER.warn(
-					"Resource does not support synchronization. Skipping evaluation correlation/confirmation for  {} and  {}",
+					"Resource does not support synchronization. Skipping evaluation correlation/confirmation for {} and {}",
 					focus, syncCtx.getApplicableShadow());
 			return false;
 		}
@@ -294,7 +294,7 @@ public class CorrelationConfirmationEvaluator {
 			
 				//TODO: can we expect that systemConfig and resource are always present?
 				if (matchUserCorrelationRule(syncCtx.getFocusClass(), syncCtx.getApplicableShadow(), focus, syncCtx.getResource().asObjectable(), 
-						syncCtx.getSystemConfiguration().asObjectable(), conditionalFilter, syncCtx.getTask(), syncCtx.getResult())){
+						syncCtx.getSystemConfiguration().asObjectable(), conditionalFilter, syncCtx.getTask(), syncCtx.getResult())) {
 					LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", syncCtx.getApplicableShadow(), focus);
 					return true;
 				}
@@ -303,8 +303,7 @@ public class CorrelationConfirmationEvaluator {
 			throw new SystemException("Failed to match user using correlation rule. " + ex.getMessage(), ex);
 		}
 
-		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} does not match user: {}", new Object[] {
-				syncCtx.getApplicableShadow(), focus });
+		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} does not match user: {}", syncCtx.getApplicableShadow(), focus);
 		return false;
 	}
 

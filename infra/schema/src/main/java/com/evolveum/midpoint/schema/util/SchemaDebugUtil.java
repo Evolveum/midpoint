@@ -977,6 +977,15 @@ public class SchemaDebugUtil {
 //		}
 //	}
 
+	public static Object prettyPrintLazily(Object value) {
+		return new Object() {
+			@Override
+			public String toString() {
+				return prettyPrint(value);
+			}
+		};
+	}
+
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";

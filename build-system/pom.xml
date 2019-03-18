@@ -95,6 +95,8 @@
         <jcommander.version>1.72</jcommander.version>
 		<failsafe.version>3.0.0-M2</failsafe.version>
 		<antrun.version>1.8</antrun.version>
+        <rabbit-amqp-client.version>5.1.2</rabbit-amqp-client.version>      <!-- must match the version used by Spring Boot -->
+        <qpid-broker.version>7.1.1</qpid-broker.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -1227,7 +1229,21 @@
 		       	<artifactId>jetty-server</artifactId>
 		       	<version>9.4.11.v20180605</version>
 			</dependency>
-            
+            <dependency>
+                <groupId>org.apache.qpid</groupId>
+                <artifactId>qpid-broker-core</artifactId>
+                <version>${qpid-broker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.qpid</groupId>
+                <artifactId>qpid-broker-plugins-amqp-0-8-protocol</artifactId>
+                <version>${qpid-broker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.qpid</groupId>
+                <artifactId>qpid-broker-plugins-memory-store</artifactId>
+                <version>${qpid-broker.version}</version>
+            </dependency>
         </dependencies>
         
     </dependencyManagement>

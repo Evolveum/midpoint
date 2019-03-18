@@ -576,7 +576,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			if (clazz.isAssignableFrom(TaskType.class)) {
-				model.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
+				taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
 				parentResult.computeStatus();
 				finishRequest(task);
 				if (parentResult.isSuccess()) {
@@ -648,7 +648,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.notifyChange(changeDescription, parentResult, task);
+			modelService.notifyChange(changeDescription, task, parentResult);
 			response = RestServiceUtil.createResponse(Response.Status.OK, parentResult);
 //			return Response.ok().build();
 //			String oldShadowOid = changeDescription.getOldShadowOid();
@@ -680,7 +680,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
+			PrismObject<UserType> user = modelService.findShadowOwner(shadowOid, task, parentResult);
 //			response = Response.ok().entity(user).build();
 			response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult);
 		} catch (Exception ex) {
@@ -770,7 +770,7 @@ public class ModelRestService {
 		QName objClass = new QName(MidPointConstants.NS_RI, objectClass);
 		Response response;
 		try {
-			model.importFromResource(resourceOid, objClass, task, parentResult);
+			modelService.importFromResource(resourceOid, objClass, task, parentResult);
 			response = RestServiceUtil.createResponse(Response.Status.SEE_OTHER, (uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
 					.build(ObjectTypes.TASK.getRestType(), task.getOid())), parentResult);
 //			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
@@ -796,7 +796,7 @@ public class ModelRestService {
 		Response response;
 		OperationResult testResult = null;
 		try {
-			testResult = model.testResource(resourceOid, task);
+			testResult = modelService.testResource(resourceOid, task);
 			response = RestServiceUtil.createResponse(Response.Status.OK, testResult, parentResult);
 //			response = Response.ok(testResult).build();
 		} catch (Exception ex) {
@@ -820,7 +820,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, parentResult);
+			taskService.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, task, parentResult);
 		} catch (Exception ex) {
@@ -866,7 +866,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.resumeTask(taskOid, task, parentResult);
+			taskService.resumeTask(taskOid, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.ACCEPTED, parentResult);
 		} catch (Exception ex) {
@@ -887,7 +887,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.scheduleTaskNow(taskOid, task, parentResult);
+			taskService.scheduleTaskNow(taskOid, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
 		} catch (Exception ex) {

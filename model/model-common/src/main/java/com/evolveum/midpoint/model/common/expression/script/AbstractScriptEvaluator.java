@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -98,6 +99,11 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 				Object variableValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, prismContext, task, result);
 				scriptVariableMap.put(variableName, variableValue);
 			}
+		}
+
+		String prismContextName = ExpressionConstants.VAR_PRISM_CONTEXT;
+		if (!scriptVariableMap.containsKey(prismContextName)) {
+			scriptVariableMap.put(prismContextName, prismContext);
 		}
 		return scriptVariableMap;
 	}

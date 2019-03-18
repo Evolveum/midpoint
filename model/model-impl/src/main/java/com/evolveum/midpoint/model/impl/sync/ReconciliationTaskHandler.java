@@ -696,11 +696,10 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 			change.setResource(resource);
 			ObjectDelta<ShadowType> shadowDelta = shadow.getPrismContext().deltaFactory().object()
-					.createDeleteDelta(ShadowType.class, shadow.getOid()
-					);
+					.createDeleteDelta(ShadowType.class, shadow.getOid());
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
-			change.setCurrentShadow(shadow);
+			change.setCurrentShadow(shadow);        // todo why current and not old [pmed]?
             ModelImplUtils.clearRequestee(task);
 			changeNotificationDispatcher.notifyChange(change, task, result);
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
@@ -289,7 +290,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected SecurityContextManager securityContextManager;
 	@Autowired protected MidpointFunctions libraryMidpointFunctions;
 	@Autowired protected ValuePolicyProcessor valuePolicyProcessor;
-	
+
 	@Autowired(required = false)
 	@Qualifier("modelObjectResolver")
 	protected ObjectResolver modelObjectResolver;
@@ -1790,6 +1791,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 			return;
+		}
+	}
+
+	protected <O extends ObjectType> void assertObjectByName(Class<O> type, String name, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+		SearchResultList<PrismObject<O>> objects = modelService
+				.searchObjects(type, prismContext.queryFor(type).item(ObjectType.F_NAME).eqPoly(name).build(), null, task,
+						result);
+		if (objects.isEmpty()) {
+			fail("Expected that " + type + " " + name + " did exist but it did not");
+		}
+	}
+
+	protected <O extends ObjectType> void assertNoObjectByName(Class<O> type, String name, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+		SearchResultList<PrismObject<O>> objects = modelService
+				.searchObjects(type, prismContext.queryFor(type).item(ObjectType.F_NAME).eqPoly(name).build(), null, task,
+						result);
+		if (!objects.isEmpty()) {
+			fail("Expected that " + type + " " + name + " did not exists but it did: " + objects);
 		}
 	}
 
@@ -5626,7 +5649,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		asserter.assertOid(oid);
 		return asserter;
 	}
-	
+
+	protected OrgAsserter<Void> assertOrgByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<OrgType> org = findObjectByName(OrgType.class, name);
+		assertNotNull("No org with name '"+name+"'", org);
+		OrgAsserter<Void> asserter = OrgAsserter.forOrg(org, message);
+		initializeAsserter(asserter);
+		asserter.assertName(name);
+		return asserter;
+	}
+
 	protected RoleAsserter<Void> assertRole(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<RoleType> role = getObject(RoleType.class, oid);
 		RoleAsserter<Void> asserter = assertRole(role, message);

@@ -16,9 +16,6 @@
 package com.evolveum.midpoint.report.api;
 
 import java.util.Collection;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.Containerable;
@@ -47,6 +44,7 @@ public interface ReportService {
 			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+	Object evaluate(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	Collection<AuditEventRecord> evaluateAuditScript(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
