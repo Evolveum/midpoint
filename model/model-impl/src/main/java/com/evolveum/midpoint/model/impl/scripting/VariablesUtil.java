@@ -206,7 +206,7 @@ public class VariablesUtil {
 	
 	@Nullable
 	public static <T> TypedValue<T> cloneIfNecessary(String name, TypedValue<T> valueAndDef) {
-		T valueClone = cloneIfNecessary(name, valueAndDef.getValue());
+		T valueClone = (T) cloneIfNecessary(name, valueAndDef.getValue());
 		if (valueClone == valueAndDef.getValue()) {
 			return valueAndDef;
 		} else {
@@ -234,7 +234,7 @@ public class VariablesUtil {
 
 	
 	public static <T> TypedValue<T> makeImmutable(TypedValue<T> valueAndDef) {
-		T immutableValue = makeImmutableValue(valueAndDef.getValue());
+		T immutableValue = (T) makeImmutableValue(valueAndDef.getValue());
 		if (immutableValue == valueAndDef.getValue()) {
 			return valueAndDef;
 		} else {

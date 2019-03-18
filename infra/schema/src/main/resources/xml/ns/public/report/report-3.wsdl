@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -206,6 +206,14 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                        
+                    <xsd:element name="parameterType" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of the parameter, as XSD primitive type or midPoint static type.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

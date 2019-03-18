@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,8 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -93,7 +95,7 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired private SecurityEnforcer securityEnforcer;
 
 	@Override
-	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
+	public ObjectQuery parseQuery(String query, VariablesMap parameters) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (StringUtils.isBlank(query)) {
 			return null;
@@ -116,7 +118,7 @@ public class ReportServiceImpl implements ReportService {
 			ObjectQuery q = prismContext.queryFactory().createQuery(subFilter);
 
 			ExpressionVariables variables = new ExpressionVariables();
-			variables.addVariableDefinitions(parameters);
+			variables.putAll(parameters);
 
 			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext,
 					"parsing expression values for report", task, task.getResult());
@@ -181,15 +183,15 @@ public class ReportServiceImpl implements ReportService {
 	}
 
 	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script,
-			Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException,
+			VariablesMap parameters) throws SchemaException, ExpressionEvaluationException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PrismContainerValue<? extends Containerable>> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinitions(parameters);
+		variables.putAll(parameters);
 
 		// special variable for audit report
-		variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
+		variables.put("auditParams", getConvertedParams(parameters));
 
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".evaluateScript");
 		OperationResult parentResult = task.getResult();
@@ -238,12 +240,12 @@ public class ReportServiceImpl implements ReportService {
         }
 	}
 
-	public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters)
+	public Collection<AuditEventRecord> evaluateAuditScript(String script, VariablesMap parameters)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Collection<AuditEventRecord> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
-			variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
+			variables.put("auditParams", getConvertedParams(parameters));
 
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
 		OperationResult parentResult = task.getResult();
@@ -283,22 +285,23 @@ public class ReportServiceImpl implements ReportService {
 		return results;
 	}
 
-	private Map<String, Object> getConvertedParams(Map<QName, Object> parameters) {
+	private TypedValue<VariablesMap> getConvertedParams(VariablesMap parameters) {
 		if (parameters == null) {
-			return null;
+			return new TypedValue<>(null, VariablesMap.class);
 		}
 
-		Map<String, Object> resultParams = new HashMap<>();
-		Set<Entry<QName, Object>> paramEntries = parameters.entrySet();
-		for (Entry<QName, Object> e : paramEntries) {
-			if (e.getValue() instanceof PrismPropertyValue) {
-				resultParams.put(e.getKey().getLocalPart(), ((PrismPropertyValue) e.getValue()).getValue());
+		VariablesMap resultParamMap = new VariablesMap();
+		Set<Entry<String, TypedValue>> paramEntries = parameters.entrySet();
+		for (Entry<String, TypedValue> e : paramEntries) {
+			Object value = e.getValue().getValue();
+			if (value instanceof PrismPropertyValue) {
+				resultParamMap.put(e.getKey(), ((PrismPropertyValue) value).getValue(), e.getValue().getDefinition());
 			} else {
-				resultParams.put(e.getKey().getLocalPart(), e.getValue());
+				resultParamMap.put(e.getKey(), e.getValue());
 			}
 		}
 
-		return resultParams;
+		return new TypedValue<>(resultParamMap, VariablesMap.class);
 	}
 
 	private Collection<FunctionLibrary> createFunctionLibraries() {

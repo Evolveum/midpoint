@@ -31,8 +31,10 @@ public class TypedValue<T> {
 	/**
 	 * Value may be null. This means variable without a value.
 	 * But even in that case definition should be provided.
+	 * The value is not T, it is Object. The value may not be in its
+	 * final form yet. It may get converted later.
 	 */
-	private T value;
+	private Object value;
 	
 	/**
 	 * Definition should be filled in for all value that can be described using Prism definitions.
@@ -57,23 +59,23 @@ public class TypedValue<T> {
 		}
 	}
 	
-	public TypedValue(T value, ItemDefinition<?> definition) {
+	public TypedValue(Object value, ItemDefinition<?> definition) {
 		super();
 		this.value = value;
 		this.definition = definition;
 	}
 	
-	public TypedValue(T value, Class<T> typeClass) {
+	public TypedValue(Object value, Class<T> typeClass) {
 		super();
 		this.value = value;
 		this.typeClass = typeClass;
 	}
 
-	public T getValue() {
+	public Object getValue() {
 		return value;
 	}
 
-	public void setValue(T value) {
+	public void setValue(Object value) {
 		this.value = value;
 	}
 

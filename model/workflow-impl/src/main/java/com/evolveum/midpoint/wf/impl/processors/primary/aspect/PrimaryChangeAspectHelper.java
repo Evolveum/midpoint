@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -322,8 +323,8 @@ public class PrimaryChangeAspectHelper {
         PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
 
         ExpressionVariables expressionVariables = new ExpressionVariables();
-        expressionVariables.addVariableDefinition(SchemaConstants.C_MODEL_CONTEXT, modelContext);
-        expressionVariables.addVariableDefinition(SchemaConstants.C_ITEM_TO_APPROVE, itemToApprove);
+        expressionVariables.put(ExpressionConstants.VAR_MODEL_CONTEXT, modelContext, ModelContext.class);
+        expressionVariables.put(ExpressionConstants.VAR_ITEM_TO_APPROVE, itemToApprove, itemToApprove.getClass());
         if (additionalVariables != null) {
             expressionVariables.addVariableDefinitions(additionalVariables);
         }

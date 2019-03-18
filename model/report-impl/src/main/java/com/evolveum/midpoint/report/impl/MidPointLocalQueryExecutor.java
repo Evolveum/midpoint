@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -71,12 +73,13 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 	}
 
 	@Override
-	protected <T> PrismPropertyValue<T> createPropertyValue(T realValue) {
-		return reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
+	protected <T> TypedValue<T> createTypedPropertyValue(T realValue, Class<T> valueClass) {
+		PrismPropertyValue<T> pval = reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
+		return new TypedValue<>(pval, valueClass);
 	}
 
 	@Override
-	protected Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected Object getParsedQuery(String query, VariablesMap expressionParameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return reportService.parseQuery(query, expressionParameters);
 	}
 
@@ -87,15 +90,15 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 
 	@Override
 	protected Collection<PrismContainerValue<? extends Containerable>>
-	evaluateScript(String script,
-				   Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException,
+	evaluateScript(String script, VariablesMap parameters) 
+			throws SchemaException, ObjectNotFoundException,
 			SecurityViolationException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException {
 		return reportService.evaluateScript(script, getParameters());
 	}
 
 	@Override
-	protected Collection<AuditEventRecord> searchAuditRecords(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected Collection<AuditEventRecord> searchAuditRecords(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return reportService.evaluateAuditScript(script, parameters);
 	}
 

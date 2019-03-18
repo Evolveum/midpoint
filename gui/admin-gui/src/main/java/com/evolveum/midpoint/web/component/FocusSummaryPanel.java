@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,7 +127,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 	@Override
 	protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
 		List<OrgType> parentOrgs = getModelObject().getParentOrg();
-		variables.addVariableDefinition(ExpressionConstants.VAR_ORGS, parentOrgs);
+		variables.putList(ExpressionConstants.VAR_ORGS, parentOrgs);
 	}
 
 	@Override

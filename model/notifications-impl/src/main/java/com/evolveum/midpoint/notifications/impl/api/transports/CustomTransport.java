@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -166,8 +167,8 @@ public class CustomTransport implements Transport {
 
     protected ExpressionVariables getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {
     	ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(SchemaConstants.C_MESSAGE, message);
-        variables.addVariableDefinition(SchemaConstants.C_EVENT, event);
+        variables.put(ExpressionConstants.VAR_MESSAGE, message, Message.class);
+        variables.put(ExpressionConstants.VAR_EVENT, event, Event.class);
         return variables;
     }
 

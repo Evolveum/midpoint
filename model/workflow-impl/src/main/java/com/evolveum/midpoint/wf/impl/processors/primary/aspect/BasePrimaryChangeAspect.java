@@ -183,7 +183,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 		try {
 
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable());
+			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable(), prismContext);
 
 			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
 			ObjectFilter evaluatedFilter = ExpressionUtil

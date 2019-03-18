@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -68,7 +69,9 @@ public class GcpExpressionHelper {
         }
 
         ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "context"), context);
+        variables.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
+        // This should perhaps be modelContext and not just context
+        variables.put(ExpressionConstants.VAR_CONTEXT, context, ModelContext.class);
 
         boolean start;
         try {

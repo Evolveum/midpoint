@@ -386,7 +386,7 @@ public class ExpressionUtil {
 	private static TypedValue<PrismObject<?>> resolveReference(TypedValue<ObjectReferenceType> refAndDef, ObjectResolver objectResolver,
 			String varDesc, String contextDescription, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		ObjectReferenceType ref = refAndDef.getValue();
+		ObjectReferenceType ref = (ObjectReferenceType) refAndDef.getValue();
 		if (ref.getOid() == null) {
 			throw new SchemaException(
 					"Null OID in reference in variable " + varDesc + " in " + contextDescription);

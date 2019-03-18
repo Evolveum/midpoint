@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -142,19 +143,27 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		if (schemaBuilderResult.approvalDisplayName == null) {
 			return null;
 		}
-		Map<String, Object> variables = new HashMap<>();
-		variables.put(ExpressionConstants.VAR_OBJECT, getFocusObjectNewOrOld(ctx.modelContext));
-		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(asPrismObject(getFocusObjectNewOrOld(ctx.modelContext)), false)));
+		VariablesMap variables = new VariablesMap();
+		ObjectType focusType = getFocusObjectNewOrOld(ctx.modelContext);
+		variables.put(ExpressionConstants.VAR_OBJECT, focusType, focusType.asPrismObject().getDefinition());
+		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, 
+				createLocalizableMessageType(createDisplayInformation(asPrismObject(focusType), false)),
+				LocalizableMessageType.class);
 		if (evaluatedAssignment != null) {
-			variables.put(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget());
-			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(evaluatedAssignment.getTarget(), false)));
-			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment);
-			variables.put(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment.getAssignmentType());
+			variables.put(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget(), evaluatedAssignment.getTarget().getDefinition());
+			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION,
+					createLocalizableMessageType(createDisplayInformation(evaluatedAssignment.getTarget(), false)),
+					LocalizableMessageType.class);
+			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class);
+			// Wrong ... but this will get reworked in 4.0 anyway.
+			variables.put(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment.getAssignmentType(), AssignmentType.class);
 		} else {
-			variables.put(ExpressionConstants.VAR_TARGET, null);
-			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null);
-			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
-			variables.put(ExpressionConstants.VAR_ASSIGNMENT, null);
+			// Wrong ... but this will get reworked in 4.0 anyway.
+			variables.put(ExpressionConstants.VAR_TARGET, null, ObjectType.class);
+			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null, LocalizableMessageType.class);
+			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);
+			// Wrong ... but this will get reworked in 4.0 anyway.
+			variables.put(ExpressionConstants.VAR_ASSIGNMENT, null, AssignmentType.class);
 		}
 		LocalizableMessageType localizableMessageType;
 		try {

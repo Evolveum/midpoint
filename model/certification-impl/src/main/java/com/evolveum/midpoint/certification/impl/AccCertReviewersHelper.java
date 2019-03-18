@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,9 +93,9 @@ public class AccCertReviewersHelper {
         }
         for (ExpressionType reviewerExpression : reviewerSpec.getReviewerExpression()) {
 			ExpressionVariables variables = new ExpressionVariables();
-			variables.addVariableDefinition(ExpressionConstants.VAR_CERTIFICATION_CASE, _case);
-			variables.addVariableDefinition(ExpressionConstants.VAR_CAMPAIGN, campaign);
-			variables.addVariableDefinition(ExpressionConstants.VAR_REVIEWER_SPECIFICATION, reviewerSpec);
+			variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, _case, _case.asPrismContainerValue().getDefinition());
+			variables.putObject(ExpressionConstants.VAR_CAMPAIGN, campaign, AccessCertificationCampaignType.class);
+			variables.put(ExpressionConstants.VAR_REVIEWER_SPECIFICATION, reviewerSpec, AccessCertificationReviewerSpecificationType.class);
 			List<ObjectReferenceType> refList = expressionHelper
 					.evaluateRefExpressionChecked(reviewerExpression, variables, "reviewer expression", task, result);
 			cloneAndMerge(reviewers, refList);

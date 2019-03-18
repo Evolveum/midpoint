@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.api.ReportPort;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -66,7 +67,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 	@Override
 	public ObjectListType evaluateScript(String script, RemoteReportParametersType parameters) {
 		try {
-			Map<QName, Object> params = getParamsMap(parameters);
+			VariablesMap params = getParamsMap(parameters);
 			Collection resultList = reportService.evaluateScript(script, params);
 			return createObjectListType(resultList);
 		} catch (Throwable e) {
@@ -79,7 +80,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 	public AuditEventRecordListType evaluateAuditScript(String script, RemoteReportParametersType parameters) {
 
 		try {
-			Map<QName, Object> params = getParamsMap(parameters);
+			VariablesMap params = getParamsMap(parameters);
 			Collection<AuditEventRecord> resultList = reportService.evaluateAuditScript(script, params);
 			return createAuditEventRecordListType(resultList);
 		} catch (Throwable e) {
@@ -89,26 +90,26 @@ public class ReportWebService implements ReportPortType, ReportPort {
 
 	}
 
-	private Map<QName, Object> getParamsMap(RemoteReportParametersType parametersType) throws SchemaException {
+	private VariablesMap getParamsMap(RemoteReportParametersType parametersType) throws SchemaException {
 
 		prismContext.adopt(parametersType);
-		Map<QName, Object> parametersMap = new HashMap<>();
+		VariablesMap parametersMap = new VariablesMap();
 		if (parametersType == null || parametersType.getRemoteParameter() == null
 				|| parametersType.getRemoteParameter().isEmpty()) {
 			return parametersMap;
 		}
 		List<RemoteReportParameterType> items = parametersType.getRemoteParameter();
 		for (RemoteReportParameterType item : items) {
-			QName paramName = new QName(SchemaConstants.NS_REPORT, item.getParameterName());
+			String paramName = item.getParameterName();
 			ReportParameterType param = item.getParameterValue();
 			if (param == null){
 				parametersMap.put(paramName, null);
 				continue;
 			}
 			if (param.getAny().size() == 1) {
-				parametersMap.put(paramName, param.getAny().get(0));
+				parametersMap.put(paramName, param.getAny().get(0), param.getAny().get(0).getClass());
 			} else {
-				parametersMap.put(paramName, param.getAny());
+				parametersMap.put(paramName, param.getAny(), List.class);
 			}
 
 		}
@@ -161,7 +162,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 
 		try {
 
-			Map<QName, Object> parametersMap = getParamsMap(parameters);
+			VariablesMap parametersMap = getParamsMap(parameters);
 			ObjectQuery q = reportService.parseQuery(query, parametersMap);
 			Collection<PrismObject<? extends ObjectType>> resultList = reportService.searchObjects(q,
 					MiscSchemaUtil.optionsTypeToOptions(options, prismContext));

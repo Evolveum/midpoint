@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -59,7 +60,6 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createDuration;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.fromNow;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.testng.AssertJUnit.*;
@@ -182,7 +182,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(ECHO_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -258,9 +258,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		Task task = createTask(DOT_CLASS + TEST_NAME);
 		OperationResult result = task.getResult();
 	    ExecuteScriptType executeScript = prismContext.parserFor(SEARCH_FOR_USERS_WITH_EXPRESSIONS_FILE).parseRealValue();
-	    Map<String, Object> variables = new HashMap<>();
-	    variables.put("value1", "administrator");
-	    variables.put("value2", "jack");
+	    VariablesMap variables = new VariablesMap();
+	    variables.put("value1", "administrator", String.class);
+	    variables.put("value2", "jack", String.class);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, variables, false, task, result);
@@ -972,7 +972,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_2_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
         dumpOutput(output, result);
@@ -998,7 +998,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_3_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
         dumpOutput(output, result);
@@ -1100,7 +1100,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 				.addRealValues("group1", "group2", "group3");
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -1125,7 +1125,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType exec = prismContext.parserFor(START_TASKS_FROM_TEMPLATE_FILE).parseRealValue();
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -1203,7 +1203,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType exec = prismContext.parserFor(RESUME_SUSPENDED_TASKS_FILE).parseRealValue();
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);

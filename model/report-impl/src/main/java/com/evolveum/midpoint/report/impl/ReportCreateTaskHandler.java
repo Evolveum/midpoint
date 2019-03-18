@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -542,9 +542,9 @@ public class ReportCreateTaskHandler implements TaskHandler {
         }
         
         ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, parentReport);
-        variables.addVariableDefinition(ExpressionConstants.VAR_TASK, task.getTaskPrismObject().asObjectable());
-        variables.addVariableDefinition(ExpressionConstants.VAR_FILE, commandLineScriptExecutor.getOsSpecificFilePath(reportOutputFilePath));
+        variables.put(ExpressionConstants.VAR_OBJECT, parentReport, parentReport.asPrismObject().getDefinition());
+        variables.put(ExpressionConstants.VAR_TASK, task.getTaskPrismObject().asObjectable(), task.getTaskPrismObject().getDefinition());
+        variables.put(ExpressionConstants.VAR_FILE, commandLineScriptExecutor.getOsSpecificFilePath(reportOutputFilePath), String.class);
 
         try {
         	

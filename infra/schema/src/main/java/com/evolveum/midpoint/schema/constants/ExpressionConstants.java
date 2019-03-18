@@ -18,8 +18,15 @@ package com.evolveum.midpoint.schema.constants;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 /**
- * @author semancik
- *
+ * Constants for all names of the variables in the system.
+ * 
+ * It is good to have all the names gathered in one place. It is better when a new
+ * variable is introduced. If all the names are in the same place, it is better to
+ * see if the variable is redundant (already used eslewhere). Or if new variable is
+ * really needed, seeing all the other names will make it easier to keep the same
+ * convention through the system.
+ * 
+ * @author Radovan Semancik
  */
 public class ExpressionConstants {
 
@@ -120,6 +127,7 @@ public class ExpressionConstants {
 	public static final String VAR_TASK = "task";
 	public static final String VAR_RULE_EVALUATION_CONTEXT = "ruleEvaluationContext";
 	public static final String VAR_STAGE_DEFINITION = "stageDefinition";
+	public static final String VAR_ITEM_TO_APPROVE = "itemToApprove";
 
 	public static final String VAR_OBJECT_DISPLAY_INFORMATION = "objectDisplayInformation";
 	public static final String VAR_TARGET_DISPLAY_INFORMATION = "targetDisplayInformation";
@@ -127,8 +135,34 @@ public class ExpressionConstants {
 	public static final String VAR_PERFORMER = "performer";
 	public static final String VAR_OUTPUT = "output";
 	public static final String VAR_EVENT = "event";
+	public static final String VAR_REQUESTER = "requester";
+	public static final String VAR_REQUESTEE = "requestee";
+	public static final String VAR_ASSIGNEE = "assignee";
+	public static final String VAR_ASSOCIATION = "association";
+	public static final String VAR_SHADOW_DISCRIMINATOR = "shadowDiscriminator";
 
 	public static final String VAR_POLICY_RULE = "policyRule";
 	public static final String VAR_POLICY_ACTION = "policyAction";
 	public static final String VAR_LOGIN_MODE = "loginMode";
+	
+	// Notification variables
+	public static final String VAR_TRANSPORT_NAME = "transportName";
+	public static final String VAR_FROM = "from";
+	public static final String VAR_ENCODED_FROM = "encodedFrom";
+	public static final String VAR_TO = "to";
+	public static final String VAR_TO_LIST = "toList";
+	public static final String VAR_ENCODED_TO = "encodedTo";
+	public static final String VAR_ENCODED_TO_LIST = "encodedToList";
+	public static final String VAR_MESSAGE_TEXT = "messageText";
+	public static final String VAR_ENCODED_MESSAGE_TEXT = "encodedMessageText";
+	public static final String VAR_MESSAGE = "message";
+	public static final String VAR_TEXT_FORMATTER = "textFormatter";
+	public static final String VAR_NOTIFICATION_FUNCTIONS = "notificationFunctions";
+	
+	// Do we need those?
+	public static final String VAR_OBJECT_DELTA = "objectDelta";
+	
+	// Too vague. modelContext or prismConext should be used instead.
+	@Deprecated
+	public static final String VAR_CONTEXT = "context";
 }

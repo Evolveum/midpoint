@@ -34,6 +34,7 @@ import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -115,7 +116,7 @@ public class CustomNotifier extends BaseHandler {
 
 			try {
 				for (String transportName : config.getTransport()) {
-					variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
+					variables.put(ExpressionConstants.VAR_TRANSPORT_NAME, transportName, String.class);
 					Transport transport = notificationManager.getTransport(transportName);
 
 					Message message = getMessageFromExpression(config, variables, task, result);

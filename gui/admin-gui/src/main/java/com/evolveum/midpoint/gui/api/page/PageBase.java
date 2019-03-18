@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1345,7 +1345,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             OperationResultType resultType = result.createOperationResultType();
 
-            variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, resultType);
+            variables.put(ExpressionConstants.VAR_INPUT, resultType, OperationResultType.class);
 
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, topResult);
             PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple = expression.evaluate(context);

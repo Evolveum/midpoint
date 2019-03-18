@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.impl.helpers;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.notifications.api.NotificationFunctions;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -171,11 +173,12 @@ public class NotificationExpressionHelper {
 
 	public ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
 		ExpressionVariables expressionVariables = new ExpressionVariables();
-		Map<QName, Object> variables = new HashMap<>();
+		VariablesMap variables = new VariablesMap();
 		event.createExpressionVariables(variables, result);
-		variables.put(SchemaConstants.C_TEXT_FORMATTER, textFormatter);
-		variables.put(SchemaConstants.C_NOTIFICATION_FUNCTIONS, notificationsUtil);
-		variables.put(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration(result));
+		variables.put(ExpressionConstants.VAR_TEXT_FORMATTER, textFormatter, TextFormatter.class);
+		variables.put(ExpressionConstants.VAR_NOTIFICATION_FUNCTIONS, notificationsUtil, NotificationFunctions.class);
+		PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+		variables.put(ExpressionConstants.VAR_CONFIGURATION, systemConfiguration, systemConfiguration.getDefinition());
 		expressionVariables.addVariableDefinitions(variables);
 		return expressionVariables;
 	}

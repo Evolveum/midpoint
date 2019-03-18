@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,12 +30,14 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
@@ -89,6 +92,42 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 	 */
 	public <T> TypedValue put(String key, Object value, Class<T> typeClass) {
 		return variables.put(key, new TypedValue(value, typeClass));
+	}
+	
+	/**
+	 * Convenience method to put objects with definition.
+	 * Maybe later improve by looking up full definition.
+	 */
+	@SuppressWarnings("unchecked")
+	public <O extends ObjectType> TypedValue<O> putObject(String key, O objectType, Class<O> expectedClass) {
+		if (objectType == null) {
+			return put(key, null, expectedClass);
+		} else {
+			return put(key, objectType, objectType.asPrismObject().getDefinition());
+		}
+	}
+	
+	/**
+	 * Convenience method to put objects with definition.
+	 * Maybe later improve by looking up full definition.
+	 */
+	@SuppressWarnings("unchecked")
+	public <O extends ObjectType> TypedValue<O> putObject(String key, PrismObject<O> object, Class<O> expectedClass) {
+		if (object == null) {
+			return put(key, null, expectedClass);
+		} else {
+			return put(key, object, object.getDefinition());
+		}
+	}
+	
+	/**
+	 * Convenience method to put multivalue variables (lists).
+	 * This is very simple now. But later on we may need to declare generics.
+	 * Therefore dedicated method would be easier to find all usages and fix them.
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> TypedValue<List<T>> putList(String key, List<T> list) {
+		return put(key, list, List.class);
 	}
 
 	public TypedValue remove(Object key) {
