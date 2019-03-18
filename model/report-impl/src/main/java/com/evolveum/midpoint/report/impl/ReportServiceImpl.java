@@ -17,9 +17,7 @@ package com.evolveum.midpoint.report.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -182,6 +180,7 @@ public class ReportServiceImpl implements ReportService {
 
 	}
 
+	@Override
 	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script,
 			VariablesMap parameters) throws SchemaException, ExpressionEvaluationException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -227,15 +226,14 @@ public class ReportServiceImpl implements ReportService {
 	}
 	
 	@Override
-	public Object evaluate(String script,
-			Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException,
+	public Object evaluate(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinitions(parameters);
 
 		// special variable for audit report
-		variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
+		variables.put("auditParams", getConvertedParams(parameters));
 
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".evaluateScript");
 		OperationResult parentResult = task.getResult();
