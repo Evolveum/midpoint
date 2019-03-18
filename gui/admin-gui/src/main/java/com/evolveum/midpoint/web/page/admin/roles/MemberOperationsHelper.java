@@ -92,22 +92,25 @@ public class MemberOperationsHelper {
 		PrismValue value = pageBase.getPrismContext().itemFactory().createValue(targetObject.getOid());
 		try {
 			value.applyDefinition(def);
-		} catch (SchemaException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (SchemaException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Can not aply definition " + def, e);
+			operationalTask.getResult().recordFatalError("Can not aply definition " + def, e);
 		}
 		expression.parameter(new ActionParameterValueType().name(ROLE_PARAMETER).value(
 				new RawType(value, DOMUtil.XSD_STRING, pageBase.getPrismContext())));
-		relations.forEach(relation -> {
-			expression.parameter(new ActionParameterValueType().name(RELATION_PARAMETER).value(QNameUtil.qNameToUri(relation)));
-		});
+		if(relations != null) {
+			relations.forEach(relation -> {
+				expression.parameter(new ActionParameterValueType().name(RELATION_PARAMETER).value(QNameUtil.qNameToUri(relation)));
+			});
+		}
 		script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
 				ActionExpressionType.class, expression));
 		
 		try {
 			script.setQuery(pageBase.getQueryConverter().createQueryType(query));
 		} catch (SchemaException e) {
-			e.printStackTrace(); //TODO
+			LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
+			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
 		}
 		
 		executeMemberOperation(pageBase, operationalTask, type, query, script, target);

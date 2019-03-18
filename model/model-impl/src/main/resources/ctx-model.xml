@@ -41,6 +41,9 @@
     <context:component-scan base-package="com.evolveum.midpoint.model.impl"/>
     <context:spring-configured/>
     
+    <!-- We are wiring repo-common and model-common objects here. These are not wired in repo-common or model-common as we want to
+         place the right dependencies there. E.g. we want to inject modelResolver at proper places in those beans. -->
+    
     <bean id="basicFunctionObject" class="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
@@ -78,9 +81,8 @@
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
-    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
+    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.GroovyScriptEvaluator"
           scope="singleton">
-          <constructor-arg name="engineName" value="groovy"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>

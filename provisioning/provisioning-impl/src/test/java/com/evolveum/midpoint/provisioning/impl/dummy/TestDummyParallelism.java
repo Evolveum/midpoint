@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -385,6 +386,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 							successCounter.click();
 						} else if (localResult.isInProgress()) {
 							// expected
+						} else if (localResult.isHandledError()) {
+							// harmless. The account was just deleted in another thread.
 						} else {
 							fail("Unexpected thread result status " + localResult.getStatus());
 						}
@@ -635,13 +638,16 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 	 * 
 	 * MID-5068
 	 */
-	@Test(enabled=false) // MID-5068
+	@Test
 	public void test800ParallelReadAndModifyResource() throws Exception {
 		final String TEST_NAME = "test800ParallelReadAndModifyResource";
 		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		
+		dummyResource.assertConnections(1);
+		assertDummyConnectorInstances(1);
 		
 		dummyResource.setOperationDelayRange(0);
 		
@@ -684,9 +690,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 							
 							Task localTask = createTask(TEST_NAME + ".test."+i);
 							
+							LOGGER.debug("PAR: TESTing "+threadIndex+"."+i);
+							
 							OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, localTask);
 							
-							display("TEST "+threadIndex+"."+i+": "+testResult.getStatus());
+							display("PAR: TESTed "+threadIndex+"."+i+": "+testResult.getStatus());
 							
 							if (testResult.getStatus() != OperationResultStatus.SUCCESS) {
 								display("Failed test resource result", testResult);
@@ -706,11 +714,13 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 							for (int i = 0; i < MESS_RESOURCE_ITERATIONS; i++) {
 								Task localTask = createTask(TEST_NAME + ".op."+i);
 								OperationResult localResult = localTask.getResult();
-		
+
+								LOGGER.debug("PAR: OPing "+threadIndex+"."+i);
+								
 								Object out = doResourceOperation(threadIndex, i, localTask, localResult);
 								
 								localResult.computeStatus();
-								display("OP "+threadIndex+"."+i+": " + out.toString() + ": "+localResult.getStatus());
+								display("PAR: OPed "+threadIndex+"."+i+": " + out.toString() + ": "+localResult.getStatus());
 								
 								if (localResult.getStatus() != OperationResultStatus.SUCCESS) {
 									display("Failed read result", localResult);
@@ -737,6 +747,13 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		
 		PrismObject<ResourceType> resourceAfter = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 		display("resource after", resourceAfter);
+		
+		List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, task, result);
+		display("Dummy connector stats after", stats);
+		
+		display("Dummy resource connections", dummyResource.getConnectionCount());
+		
+		assertDummyConnectorInstances(dummyResource.getConnectionCount());
 	}
 
 	private Object doResourceOperation(int threadIndex, int i, Task task, OperationResult result) throws Exception {
@@ -765,10 +782,13 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		List<ItemDelta<?,?>> deltas = deltaFor(ResourceType.class)
 			.item(ResourceType.F_DESCRIPTION).replace("Iter "+threadIndex+"."+i)
 			.asItemDeltas();
+		
+		LOGGER.debug("PAR: MESSing "+threadIndex+"."+i);
+		
 		provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, deltas, null, null, task, result);
 		result.computeStatus();
 		
-		display("MESS "+threadIndex+"."+i+": "+result.getStatus());
+		display("PAR: MESSed "+threadIndex+"."+i+": "+result.getStatus());
 		
 		if (result.getStatus() != OperationResultStatus.SUCCESS) {
 			display("Failed mess resource result", result);

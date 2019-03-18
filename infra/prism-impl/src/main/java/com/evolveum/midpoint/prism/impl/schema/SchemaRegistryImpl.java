@@ -585,7 +585,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			}
 		} else if (catalogResourceName != null) {
 			LOGGER.trace("Using catalog from resource: {}", catalogResourceName);
-			Enumeration<URL> catalogs = Thread.currentThread().getContextClassLoader().getResources(catalogResourceName);
+			Enumeration<URL> catalogs = SchemaRegistryImpl.class.getClassLoader().getResources(catalogResourceName);
 			while (catalogs.hasMoreElements()) {
 				URL catalogResourceUrl = catalogs.nextElement();
 				LOGGER.trace("Parsing catalog from URL: {}", catalogResourceUrl);

@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.CounterManager;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -316,6 +317,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private MidpointFunctions midpointFunctions;
     
     @SpringBean private GuiComponentRegistryImpl registry;
+    
+    @SpringBean private CounterManager counterManager;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -477,6 +480,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public MidpointFunctions getMidpointFunctions() {
         return midpointFunctions;
     }
+    
+   public CounterManager getCounterManager() {
+		return counterManager;
+	}
 
     @Contract(pure = true)
     public PrismContext getPrismContext() {
@@ -1787,7 +1794,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 
-        addMenuItem(item, "PageAdmin.menu.top.case.new", PageCase.class);
+        MenuItem newCaseMenu = new MenuItem(createStringResource("PageAdmin.menu.top.case.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCase.class, null,
+                new VisibleEnableBehaviour());
+        item.getItems().add(newCaseMenu);
 
         return item;
     }
@@ -1797,14 +1806,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 createStringResource("PageAdmin.menu.top.serverTasks"), null);
 
         addMenuItem(item, "PageAdmin.menu.top.serverTasks.list", PageTasks.class);
-        addMenuItem(item, "PageAdmin.menu.top.serverTasks.new", PageTaskAdd.class);
+        //should we support archetype view for TaskType?
+//        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
+        MenuItem newTaskMenu = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageTaskAdd.class, null,
+                new VisibleEnableBehaviour());
+        item.getItems().add(newTaskMenu);
 
         MenuItem menuItem = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"),
                 PageTaskEdit.class, null, createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
         item.getItems().add(menuItem);
-
-        //should we support archetype view for TaskType?
-//        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
 
         return item;
     }
@@ -1829,14 +1839,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         };
         item.getItems().add(menu);
 
+        addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE, PageResources.class);
+
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.resources.view", PageResource.class);
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.resources.new",
                 "PageAdmin.menu.top.resources.edit", PageResourceWizard.class, false);
 
         addMenuItem(item, "PageAdmin.menu.top.resources.import", PageImportResource.class);
         addMenuItem(item, "PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class);
-
-        addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE, PageResources.class);
 
         return item;
     }
@@ -1889,7 +1899,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         };
 
         addMenuItem(item, "PageAdmin.menu.top.certification.definitions", PageCertDefinitions.class);
-        addMenuItem(item, "PageAdmin.menu.top.certification.newDefinition", PageCertDefinition.class);
         addMenuItem(item, "PageAdmin.menu.top.certification.campaigns", PageCertCampaigns.class);
 
         PageParameters params = new PageParameters();
@@ -1899,6 +1908,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         item.getItems().add(menu);
 
         addMenuItem(item, "PageAdmin.menu.top.certification.decisions", PageCertDecisions.class);
+
+        MenuItem newCertificationMenu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class, null,
+                new VisibleEnableBehaviour());
+        item.getItems().add(newCertificationMenu);
 
         return item;
     }
@@ -1975,12 +1988,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         item.getItems().add(menu);
+        addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE, PageUsers.class);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
                 "PageAdmin.menu.top.users.edit", PageUser.class, true);
-
-        addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE, PageUsers.class);
-
         return item;
     }
 
@@ -2095,11 +2106,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MenuItem orgTree = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"),
                 GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgTree.class);
         item.getItems().add(orgTree);
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
-                PageOrgUnit.class, true);
-
         //todo should we have org list page for collection/archetype view?
 //        addCollectionsMenuItems(item.getItems(), OrgType.COMPLEX_TYPE);
+
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
+                PageOrgUnit.class, true);
 
         return item;
     }
@@ -2123,11 +2134,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         item.getItems().add(menu);
+        addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE, PageRoles.class);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
                 PageRole.class, true);
-
-        addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE, PageRoles.class);
 
         return item;
     }
@@ -2151,11 +2161,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         item.getItems().add(menu);
+        addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE, PageServices.class);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
                 PageService.class, true);
-
-        addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE, PageServices.class);
 
         return item;
     }

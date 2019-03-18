@@ -127,7 +127,7 @@
 			<artifactId>javax.annotation-api</artifactId>
 		</dependency>
 
-		<!-- Testing dependecies -->
+		<!-- Testing dependencies -->
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
@@ -271,7 +271,28 @@
 			<artifactId>spring-aop</artifactId>
 			<scope>test</scope> 
 		</dependency>
-		
+		<dependency>
+			<groupId>org.apache.qpid</groupId>
+			<artifactId>qpid-broker-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.qpid</groupId>
+			<artifactId>qpid-broker-plugins-amqp-0-8-protocol</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.qpid</groupId>
+			<artifactId>qpid-broker-plugins-memory-store</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+			<version>${rabbit-amqp-client.version}</version>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- NOT needed at all. But dependency:analyze plugin complains if it is not here. -->
 		<dependency>
             <groupId>net.tirasa.connid</groupId>

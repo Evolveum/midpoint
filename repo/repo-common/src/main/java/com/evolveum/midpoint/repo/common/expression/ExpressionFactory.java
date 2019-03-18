@@ -22,9 +22,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -94,6 +92,14 @@ public class ExpressionFactory implements Cacheable {
 			cache.put(eid, expression);
 		}
 		return expression;
+	}
+
+	public <T> Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> makePropertyExpression(
+			ExpressionType expressionType, QName outputPropertyName, String shortDesc, Task task, OperationResult result)
+					throws SchemaException, ObjectNotFoundException {
+		//noinspection unchecked
+		PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
+		return makeExpression(expressionType, outputDefinition, shortDesc, task, result);
 	}
 
 	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,

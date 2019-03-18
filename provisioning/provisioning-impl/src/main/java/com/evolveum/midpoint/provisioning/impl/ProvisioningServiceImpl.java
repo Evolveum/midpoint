@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -383,6 +384,51 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 		return processedChanges;
 
+	}
+
+	@Override
+	public String startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+			@NotNull OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		String resourceOid = shadowCoordinates.getResourceOid();
+		Validate.notNull(resourceOid, "Resource oid must not be null.");
+
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".startListeningForAsyncUpdates");
+		result.addParam(OperationResult.PARAM_OID, resourceOid);
+		result.addParam(OperationResult.PARAM_TASK, task.toString());
+
+		String listeningActivityHandle;
+		try {
+			LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
+			listeningActivityHandle = shadowCache.startListeningForAsyncUpdates(shadowCoordinates, task, result);
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+		result.addReturn("listeningActivityHandle", listeningActivityHandle);
+		result.recordSuccess();
+		result.cleanupResult();
+		return listeningActivityHandle;
+	}
+
+	@Override
+	public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".stopListeningForAsyncUpdates");
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
+		result.addParam(OperationResult.PARAM_TASK, task.toString());
+
+		try {
+			LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
+			shadowCache.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
+		} catch (RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+		result.recordSuccess();
+		result.cleanupResult();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -793,7 +839,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		testResult.addParam("resourceOid", resourceOid);
 		testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		PrismObject<ResourceType> resource = null;
+		PrismObject<ResourceType> resource;
 
 		try {
 			resource = getRepoObject(ResourceType.class, resourceOid, null, testResult);

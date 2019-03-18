@@ -15,19 +15,17 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -41,12 +39,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class ColumnUtils {
 
@@ -156,15 +153,15 @@ public class ColumnUtils {
 
 	}
 
-	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel){
-		T object = rowModel.getObject().getValue();
-		if (object == null){
+	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel) {
+		if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
 			return "";
 		}
-		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
-		if (object == null && !ShadowType.class.equals(type)){
-			return null;
-		} else if (type.equals(ObjectType.class)){
+
+		T object = rowModel.getObject().getValue();
+
+		Class<T> type = (Class<T>) object.getClass();
+		if (type.equals(ObjectType.class)) {
 			return WebComponentUtil.createDefaultIcon(object.asPrismObject());
 		} else if (type.equals(UserType.class)) {
 			return WebComponentUtil.createUserIcon(object.asPrismContainer());
@@ -173,7 +170,7 @@ public class ColumnUtils {
 		} else if (OrgType.class.equals(type)) {
 			return WebComponentUtil.createOrgIcon(object.asPrismContainer());
 		} else if (ServiceType.class.equals(type)) {
-			return WebComponentUtil.createServiceIcon(object.asPrismContainer()) ;
+			return WebComponentUtil.createServiceIcon(object.asPrismContainer());
 		} else if (ShadowType.class.equals(type)) {
 			if (object == null) {
 				return WebComponentUtil.createErrorIcon(rowModel.getObject().getResult());
@@ -186,11 +183,9 @@ public class ColumnUtils {
 			return WebComponentUtil.createResourceIcon(object.asPrismContainer());
 		} else if (type.equals(AccessCertificationDefinitionType.class)) {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
-		} else {
-			return "";
-//			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
 
+		return "";
 	}
 
 	private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBean<T>> rowModel){
@@ -208,6 +203,14 @@ public class ColumnUtils {
 	}
 
 	private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
+		if (rowModel == null || rowModel.getObject() == null){
+			return null;
+		}
+		if (rowModel.getObject().getResult() != null && rowModel.getObject().getResult().isFatalError()){
+			OperationResult result = rowModel.getObject().getResult();
+			return result.getUserFriendlyMessage() != null ?
+					result.getUserFriendlyMessage().getFallbackMessage() : result.getMessage();
+		}
 		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
 		T object = rowModel.getObject().getValue();
 		if (object == null && !ShadowType.class.equals(type)){

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -132,6 +133,38 @@ public abstract class AbstractScriptTest {
 						new QName(NS_Y, "bar"), "BAR"
 				),
 				"FOOBAR");
+    }
+	
+	/**
+	 * Make sure that the script engine can work well in parallel and that
+	 * individual script runs do not influence each other.
+	 */
+	@Test
+    public void testExpressionStringVariablesParallel() throws Exception {
+		final String TEST_NAME = "testExpressionStringVariablesParallel";
+		
+		// WHEN
+		
+		ParallelTestThread[] threads = TestUtil.multithread(TEST_NAME,
+				(threadIndex) -> {
+					
+					String foo = "FOO"+threadIndex;
+					String bar = "BAR"+threadIndex;
+					
+					evaluateAndAssertStringScalarExpresssion(
+							"expression-string-variables.xml",
+							"testExpressionStringVariablesParallel-"+threadIndex,
+							ExpressionVariables.create(
+									new QName(NS_X, "foo"), foo,
+									new QName(NS_Y, "bar"), bar
+							),
+							foo + bar);
+					
+				}, 10, 10);
+		
+		// THEN
+		TestUtil.waitForThreads(threads, 60000L);
+		
     }
 
 

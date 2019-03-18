@@ -216,7 +216,15 @@ public class NameStep extends WizardStep {
 
                     @Override
                     public String getIdValue(PrismObject<ConnectorType> object, int index) {
-                        return Integer.toString(index);
+                		if (index < 0){
+                			List<PrismObject<ConnectorType>> connectors = relevantConnectorsModel.getObject();
+                			for (PrismObject<ConnectorType> connector : connectors){
+                				if (connector.getOid().equals(selectedConnectorModel.getObject().getOid())){
+                					return Integer.toString(connectors.indexOf(connector));
+								}
+							}
+						}
+						return Integer.toString(index);
                     }
                 }, createStringResource("NameStep.connectorType"), "col-md-3", "col-md-6", true) {
 

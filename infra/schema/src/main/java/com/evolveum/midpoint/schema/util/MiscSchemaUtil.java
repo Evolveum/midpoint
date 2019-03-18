@@ -375,14 +375,14 @@ public class MiscSchemaUtil {
 		if (results == null || results.isEmpty()) {
 			return;
 		}
-		Map<String,PrismObject<O>> map = new HashMap<>();
+		Set<String> oidsSeen = new HashSet<>();
 		Iterator<PrismObject<O>> iterator = results.iterator();
 		while (iterator.hasNext()) {
 			PrismObject<O> prismObject = iterator.next();
-			if (map.containsKey(prismObject.getOid())) {
+			if (oidsSeen.contains(prismObject.getOid())) {
 				iterator.remove();
 			} else {
-				map.put(prismObject.getOid(), prismObject);
+				oidsSeen.add(prismObject.getOid());
 			}
 		}
 	}

@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Parts related to processing of asynchronous updates (JMS, AMQP, REST, etc).
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+
+    <xsd:complexType name="AsyncUpdateSourcesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Sources of asynchronous updates. Currently, only one source is supported; in the future we might allow more
+                of them.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="amqp091" type="tns:Amqp091SourceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        AMQP 0-9-1 sources.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="other" type="tns:AsyncUpdateSourceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Custom sources.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asyncUpdateSources" type="tns:AsyncUpdateSourcesType"/>
+
+    <xsd:complexType name="AsyncUpdateSourceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Source of asynchronous updates.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the source. Usually a short string.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        More detailed description of the source.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="className" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Java class name implementing AsyncUpdateSource interface. Usually it does not need to be specified,
+                        as it is derived from the source element type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asyncUpdateSource" type="tns:AsyncUpdateSourceType"/>
+
+    <xsd:complexType name="Amqp091SourceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                AMQP client configuration
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncUpdateSourceType">
+                <xsd:sequence>
+                    <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Connection URI.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="username" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User name used to authenticate to AMQP server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Password used to authenticate to AMQP server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="virtualHost" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                AMQP virtual host; the default value is "/".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="queue" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the queue to receive messages from.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="amqp091SourceType" type="tns:Amqp091SourceType"/>
+
+    <xsd:complexType name="CustomAsyncUpdateSourceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Custom message source provided by a Java class.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncUpdateSourceType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="customAsyncUpdateSource" type="tns:CustomAsyncUpdateSourceType"/>
+
+    <xsd:complexType name="AsyncUpdateMessageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Representation of an async update message.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sourceName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the async update source through which the message came.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asyncUpdateMessage" type="tns:AsyncUpdateMessageType"/>
+
+    <xsd:complexType name="AnyDataAsyncUpdateMessageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Async update carrying any data. Useful e.g. for testing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncUpdateMessageType">
+                <xsd:sequence>
+                    <xsd:element name="data" type="xsd:anyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The data.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:rawType>true</a:rawType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="anyDataAsyncUpdateMessage" type="tns:AnyDataAsyncUpdateMessageType"/>
+
+    <xsd:complexType name="Amqp091MessageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Representation AMQP 0-9-1 message.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncUpdateMessageType">
+                <xsd:sequence>
+                    <xsd:element name="attributes" type="tns:Amqp091MessageAttributesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Message attributes.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="body" type="xsd:base64Binary" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Message body. For AMQP 0-9-1 this is always a binary value.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="amqp091Message" type="tns:Amqp091MessageType"/>
+
+    <xsd:complexType name="Amqp091MessageAttributesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Representation AMQP 0-9-1 message attributes.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="contentType" type="xsd:string" minOccurs="0" />
+            <xsd:element name="contentEncoding" type="xsd:string" minOccurs="0" />
+            <xsd:element name="routingKey" type="xsd:string" minOccurs="0" />
+            <xsd:element name="deliveryMode" type="tns:MessageDeliveryMode" minOccurs="0"/>
+            <xsd:element name="priority" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="correlationId" type="xsd:string" minOccurs="0" />
+            <xsd:element name="replyTo" type="xsd:string" minOccurs="0" />
+            <!--<xsd:element name="expiration" type="xsd:string" minOccurs="0"/>-->  <!-- expiration will be put here after its type is clarified -->
+            <xsd:element name="messageId" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="userId" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="appId" type="xsd:string" minOccurs="0"/>
+
+            <xsd:element name="other" type="tns:MessagePropertyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message attributes (key-value pairs), other than the standard ones.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MessagePropertyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Message property (key-value pair).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the property.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:anyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value of the property.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:rawType/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MessageDeliveryMode">
+        <xsd:annotation>
+            <xsd:documentation>
+                Delivery mode. Not all modes are applicable to all message types (JMS, AMQP 0-9-1, AMQP 1.0, etc).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="persistent">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Persistent delivery mode.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERSISTENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="nonPersistent">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Non-persistent delivery mode.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NON_PERSISTENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>

@@ -440,9 +440,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, boolean overwrite, OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-		LOGGER.trace("addObjectFromFile: {}, connector type {}", file, connectorType);
+		return addResourceFromFile(file, Collections.singletonList(connectorType), overwrite, result);
+	}
+
+	protected PrismObject<ResourceType> addResourceFromFile(File file, List<String> connectorTypes, boolean overwrite, OperationResult result)
+			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+		LOGGER.trace("addObjectFromFile: {}, connector types {}", file, connectorTypes);
 		PrismObject<ResourceType> resource = prismContext.parseObject(file);
-		fillInConnectorRef(resource, connectorType, result);
+		return addResourceFromObject(resource, connectorTypes, overwrite, result);
+	}
+
+	@NotNull
+	protected PrismObject<ResourceType> addResourceFromObject(PrismObject<ResourceType> resource, List<String> connectorTypes,
+			boolean overwrite, OperationResult result)
+			throws SchemaException, EncryptionException,
+			ObjectAlreadyExistsException {
+		for (int i = 0; i < connectorTypes.size(); i++) {
+			String type = connectorTypes.get(i);
+			if (i == 0) {
+				fillInConnectorRef(resource, type, result);
+			} else {
+				fillInAdditionalConnectorRef(resource, i-1, type, result);
+			}
+		}
 		CryptoUtil.encryptValues(protector, resource);
 		display("Adding resource ", resource);
 		RepoAddOptions options = null;
@@ -502,6 +522,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				additionalConnector.setConnectorRef(ref);
 			}
 		}
+	}
+
+	protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource, int connectorIndex, String connectorType, OperationResult result)
+			throws SchemaException {
+		ResourceType resourceType = resource.asObjectable();
+		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
+		ConnectorInstanceSpecificationType additionalConnector = resourceType.getAdditionalConnector().get(connectorIndex);
+		ObjectReferenceType ref = new ObjectReferenceType().oid(connectorPrism.getOid());
+		additionalConnector.setConnectorRef(ref);
 	}
 
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
@@ -977,6 +1006,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
 
@@ -987,6 +1017,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 	}
 
@@ -2160,42 +2191,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
-		ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
-		for (int i = 0; i < numberOfThreads; i++) {
-			threads[i] = new ParallelTestThread(i,
-					(ii) -> {
-						randomDelay(randomStartDelayRange);
-						LOGGER.info("{} starting", Thread.currentThread().getName());
-						lambda.run(ii);
-					});
-			threads[i].setName("Thread " + (i+1) + " of " + numberOfThreads);
-			threads[i].start();
-		}
-		return threads;
+		return TestUtil.multithread(TEST_NAME, lambda, numberOfThreads, randomStartDelayRange);
 	}
 	
 	protected void randomDelay(Integer range) {
-		if (range == null) {
-			return;
-		}
-		try {
-			Thread.sleep(RND.nextInt(range));
-		} catch (InterruptedException e) {
-			// Nothing to do, really
-		}
+		TestUtil.randomDelay(range);
 	}
 
 	protected void waitForThreads(ParallelTestThread[] threads, long timeout) throws InterruptedException {
-		for (int i = 0; i < threads.length; i++) {
-			if (threads[i].isAlive()) {
-				System.out.println("Waiting for " + threads[i]);
-				threads[i].join(timeout);
-			}
-			Throwable threadException = threads[i].getException();
-			if (threadException != null) {
-				throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
-			}
-		}
+		TestUtil.waitForThreads(threads, timeout);
 	}
 	
 	protected ItemPath getMetadataPath(QName propName) {

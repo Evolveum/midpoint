@@ -52,6 +52,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
  	
 	private static final File LDIF_CREATE_BASE_USERS_FILE = new File(TEST_DIR, "users-base.ldif");
 	private static final File LDIF_CREATE_USERS_FILE = new File(TEST_DIR, "users.ldif");
+	private static final File LDIF_CREATE_USERS_NEXT_FILE = new File(TEST_DIR, "users-next.ldif");
 	private static final File LDIF_CHANGE_ACTIVATION_FILE = new File(TEST_DIR, "users-activation.ldif");
 	
 	
@@ -85,15 +86,9 @@ public abstract class TestThresholds extends AbstractStoryTest {
 	protected abstract File getTaskFile();
 	protected abstract String getTaskOid();
 	protected abstract int getProcessedUsers();
-	protected abstract void assertSynchronizationStatisticsAfterImport(Task syncInfo) throws Exception;
-	
-	
-	protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 5);
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), getDefaultUsers());
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
-	}
+	protected abstract void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception;
+	protected abstract void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception;
+	protected abstract void assertSynchronizationStatisticsActivation(Task taskAfter);
 	
 	
 	@Override
@@ -186,7 +181,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		assertUsers(getNumberOfUsers());
 		//WHEN
 		displayWhen(TEST_NAME);
-		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 20000);
+		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 30000);
 		assertFailure(reconResult);
 		
 		//THEN
@@ -195,6 +190,32 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		
 		Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
 		assertSynchronizationStatisticsAfterImport(taskAfter);
+		
+	}
+	@Test
+	public void test111importAccountsAgain() throws Exception {
+		final String TEST_NAME = "test111importAccountsAgain";
+		displayTestTitle(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+	    OperationResult result = task.getResult();
+		
+		openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_NEXT_FILE);
+		 
+		
+		
+		assertUsers(getNumberOfUsers()+getProcessedUsers());
+		//WHEN
+		displayWhen(TEST_NAME);
+		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 30000);
+		assertFailure(reconResult);
+		
+		//THEN
+		assertUsers(getProcessedUsers()*2 + getNumberOfUsers());
+		assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
+		
+		Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
+		assertSynchronizationStatisticsAfterSecondImport(taskAfter);
 		
 	}
 	
@@ -237,7 +258,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
 		
 		assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
-		assertUsers(getNumberOfUsers() + getProcessedUsers());
+		assertUsers(getNumberOfUsers() + getProcessedUsers()*2);
 		
 		assertSynchronizationStatisticsActivation(taskAfter);
 		

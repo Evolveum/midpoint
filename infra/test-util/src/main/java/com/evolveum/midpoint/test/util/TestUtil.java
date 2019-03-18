@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,6 +101,8 @@ public class TestUtil {
 	private static DatatypeFactory datatypeFactory = null;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestUtil.class);
+	
+	private static final Random RND = new Random();
 
     public static <T> void assertPropertyValueSetEquals(Collection<PrismPropertyValue<T>> actual, T... expected) {
         Set<T> set = new HashSet<>();
@@ -665,5 +668,44 @@ public class TestUtil {
 	
 	private static void assertNoPermission(File f, Set<PosixFilePermission> permissions, PosixFilePermission permission) {
 		assertFalse(permissions.contains(permission), f.getPath() + ": unexpected permission "+permission);
+	}
+	
+	public static ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
+		ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
+		for (int i = 0; i < numberOfThreads; i++) {
+			threads[i] = new ParallelTestThread(i,
+					(ii) -> {
+						randomDelay(randomStartDelayRange);
+						LOGGER.info("{} starting", Thread.currentThread().getName());
+						lambda.run(ii);
+					});
+			threads[i].setName("Thread " + (i+1) + " of " + numberOfThreads);
+			threads[i].start();
+		}
+		return threads;
+	}
+	
+	public static void randomDelay(Integer range) {
+		if (range == null) {
+			return;
+		}
+		try {
+			Thread.sleep(RND.nextInt(range));
+		} catch (InterruptedException e) {
+			// Nothing to do, really
+		}
+	}
+
+	public static void waitForThreads(ParallelTestThread[] threads, long timeout) throws InterruptedException {
+		for (int i = 0; i < threads.length; i++) {
+			if (threads[i].isAlive()) {
+				System.out.println("Waiting for " + threads[i]);
+				threads[i].join(timeout);
+			}
+			Throwable threadException = threads[i].getException();
+			if (threadException != null) {
+				throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
+			}
+		}
 	}
 }

@@ -410,6 +410,12 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return org;
 	}
 
+	public DummyAccount addAccount(String userId) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+		DummyAccount account = new DummyAccount(userId);
+		dummyResource.addAccount(account);
+		return account;
+	}
+
 	public DummyAccount addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
 		DummyAccount account = new DummyAccount(userId);
 		account.setEnabled(true);

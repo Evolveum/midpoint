@@ -26,4 +26,8 @@
     <context:component-scan base-package="com.evolveum.midpoint.repo.common"/>
     <context:spring-configured/>
     
+    <!-- The beans from repo-common are not wired here. They are wired in model-impl as we want to
+         place the right dependencies there. E.g. we want to inject modelResolver at proper places
+         in those beans. And it is only model-impl when all the implementations are available. -->
+    
 </beans>

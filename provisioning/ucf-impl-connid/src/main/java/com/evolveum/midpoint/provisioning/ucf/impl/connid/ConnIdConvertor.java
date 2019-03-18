@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class ConnIdConvertor {
 
 	private String resourceSchemaNamespace;
 	private Protector protector;
-	private ConnIdNameMapper icfNameMapper;
+	private ConnIdNameMapper connIdNameMapper;
 
 	public ConnIdConvertor(Protector protector, String resourceSchemaNamespace) {
 		super();
@@ -75,12 +75,12 @@ public class ConnIdConvertor {
 		this.resourceSchemaNamespace = resourceSchemaNamespace;
 	}
 
-	public ConnIdNameMapper getIcfNameMapper() {
-		return icfNameMapper;
+	public ConnIdNameMapper getConnIdNameMapper() {
+		return connIdNameMapper;
 	}
 
-	public void setIcfNameMapper(ConnIdNameMapper icfNameMapper) {
-		this.icfNameMapper = icfNameMapper;
+	public void setConnIdNameMapper(ConnIdNameMapper icfNameMapper) {
+		this.connIdNameMapper = icfNameMapper;
 	}
 
 	/**
@@ -137,9 +137,9 @@ public class ConnIdConvertor {
 			if (icfAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
 				List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
 				for (Object auxiliaryIcfObjectClass: icfAttr.getValue()) {
-					QName auxiliaryObjectClassQname = icfNameMapper.objectClassToQname(new ObjectClass((String)auxiliaryIcfObjectClass), resourceSchemaNamespace, legacySchema);
+					QName auxiliaryObjectClassQname = connIdNameMapper.objectClassToQname(new ObjectClass((String)auxiliaryIcfObjectClass), resourceSchemaNamespace, legacySchema);
 					auxiliaryObjectClasses.add(auxiliaryObjectClassQname);
-					ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = icfNameMapper.getResourceSchema().findObjectClassDefinition(auxiliaryObjectClassQname);
+					ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = connIdNameMapper.getResourceSchema().findObjectClassDefinition(auxiliaryObjectClassQname);
 					if (auxiliaryObjectClassDefinition == null) {
 						throw new SchemaException("Resource object "+co+" refers to auxiliary object class "+auxiliaryObjectClassQname+" which is not in the schema");
 					}
@@ -235,7 +235,7 @@ public class ConnIdConvertor {
 				continue;
 			}
 
-			ItemName qname = ItemName.fromQName(icfNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
+			ItemName qname = ItemName.fromQName(connIdNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
@@ -344,7 +344,7 @@ public class ConnIdConvertor {
 			throw new SchemaException("ICF UID explicitly specified in attributes");
 		}
 
-		String connIdAttrName = icfNameMapper.convertAttributeNameToConnId(mpAttribute, ocDef);
+		String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(mpAttribute, ocDef);
 
 		Set<Object> connIdAttributeValues = new HashSet<>();
 		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
