@@ -139,9 +139,13 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 		if (objectClassName == null) {
 			throw new SchemaException("Object class name is null in " + changeBean);
 		}
-		ObjectClassComplexTypeDefinition objectClassDef = getResourceSchema().findObjectClassDefinition(objectClassName);
+		ResourceSchema resourceSchema = getResourceSchema();
+		if (resourceSchema == null) {
+			throw new SchemaException("No resource schema; have you executed the Test Resource operation?");
+		}
+		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(objectClassName);
 		if (objectClassDef == null) {
-			throw new SchemaException("Object class " + objectClassName + " not found in " + getResourceSchema());
+			throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
 		}
 		ObjectDelta<ShadowType> delta;
 		ObjectDeltaType deltaBean = changeBean.getObjectDelta();
