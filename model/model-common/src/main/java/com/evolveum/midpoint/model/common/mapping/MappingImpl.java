@@ -91,6 +91,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private final MappingType mappingType;
 	private final ExpressionFactory expressionFactory;
 	private final ExpressionVariables variables;
+	private final PrismContext prismContext;
 
 	private final ObjectDeltaObject<?> sourceContext;
 	private TypedValue<ObjectDeltaObject<?>> sourceContextValueAndDefinition; // cahced
@@ -151,6 +152,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
 	private MappingImpl(Builder<V,D> builder) {
+		prismContext = builder.prismContext;
 		expressionFactory = builder.expressionFactory;
 		variables = builder.variables;
 		mappingType = builder.mappingType;
@@ -324,7 +326,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	}
 
 	private PrismContext getPrismContext() {
-		return outputDefinition.getPrismContext();
+		return prismContext;
 	}
 
 	@SuppressWarnings("unused")
@@ -1680,32 +1682,14 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			return addVariableDefinition(null, odo);
 		}
 
-		public Builder<V, D> rootNode(ObjectType objectType) {
-			return addVariableDefinition(null, objectType);
+		public <O extends ObjectType> Builder<V, D> rootNode(O objectType, PrismObjectDefinition<O> definition) {
+			variables.put(null, objectType, definition);
+			return this;
 		}
 
-		public Builder<V, D> rootNode(PrismObject<? extends ObjectType> mpObject) {
-			return addVariableDefinition(null, mpObject);
-		}
-
-		@Deprecated
-		public void setRootNode(ObjectReferenceType objectRef) {
-			rootNode(objectRef);
-		}
-
-		@Deprecated
-		public void setRootNode(ObjectDeltaObject<?> odo) {
-			rootNode(odo);
-		}
-
-		@Deprecated
-		public void setRootNode(ObjectType objectType) {
-			rootNode(objectType);
-		}
-
-		@Deprecated
-		public void setRootNode(PrismObject<? extends ObjectType> mpObject) {
-			rootNode(mpObject);
+		public <O extends ObjectType> Builder<V, D> rootNode(PrismObject<? extends ObjectType> mpObject, PrismObjectDefinition<O> definition) {
+			variables.put(null, mpObject, definition);
+			return this;
 		}
 
 		public PrismContext getPrismContext() {
@@ -1731,12 +1715,16 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			return addVariableDefinition(name, (Object)objectRef, objectRef.asReferenceValue().getDefinition());
 		}
 
-		public Builder<V, D> addVariableDefinition(String name, ObjectType objectType) {
-			return addVariableDefinition(name, (Object)objectType, objectType.asPrismObject().getDefinition());
+		public <O extends ObjectType> Builder<V, D> addVariableDefinition(String name, O objectType, Class<O> expectedClass) {
+			// Maybe determine definiton from schema registry here in case that object is null. We can do that here.
+			variables.putObject(name, objectType, expectedClass);
+			return this;
 		}
 
-		public Builder<V, D> addVariableDefinition(String name, PrismObject<? extends ObjectType> midpointObject) {
-			return addVariableDefinition(name, (Object)midpointObject, midpointObject.getDefinition());
+		public <O extends ObjectType> Builder<V, D> addVariableDefinition(String name, PrismObject<O> midpointObject, Class<O> expectedClass) {
+			// Maybe determine definiton from schema registry here in case that object is null. We can do that here.
+			variables.putObject(name, midpointObject, expectedClass);
+			return this;
 		}
 
 		public Builder<V, D> addVariableDefinition(String name, String value) {
@@ -1769,7 +1757,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		public Builder<V, D> addVariableDefinition(String name, Object value, ItemDefinition definition) {
-			variables.addVariableDefinition(name, value, definition);
+			variables.put(name, value, definition);
 			return this;
 		}
 		

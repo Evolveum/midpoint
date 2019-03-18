@@ -678,7 +678,7 @@ public class MappingEvaluator {
 		FOCUS_VARIABLE_NAMES.forEach(name -> variables.addVariableDefinition(name, focusOdo, focusOdo.getDefinition()));
 		variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
-		variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, configuration.getDefinition());
+		variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, SystemConfigurationType.class);
 		variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
 
 		TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(defaultTargetObject);

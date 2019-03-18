@@ -136,7 +136,11 @@ public class ExpressionVariables extends VariablesMap {
     }
 
     public Object getValue(String name) {
-    	return get(name).getValue();
+    	TypedValue typedValue = get(name);
+    	if (typedValue == null) {
+    		return null;
+    	}
+    	return typedValue.getValue();
     }
 
     @SuppressWarnings("unchecked")

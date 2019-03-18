@@ -96,6 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectiona
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -1338,14 +1339,14 @@ public class InboundProcessor {
 				Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(sourceIdi.getItemOld(), specialAttributeDelta,
 						sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT_QNAME);
 				builder = builder.defaultSource(source)
-						.addVariableDefinition(ExpressionConstants.VAR_USER, newUser)
-						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
+						.addVariableDefinition(ExpressionConstants.VAR_USER, newUser, UserType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser, FocusType.class);
 
 				PrismObject<ShadowType> accountNew = projContext.getObjectNew();
-				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource())
+				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
 						.valuePolicyResolver(createStringPolicyResolver(context, task, opResult))
 						.originType(OriginType.INBOUND)
 						.originObject(projContext.getResource());

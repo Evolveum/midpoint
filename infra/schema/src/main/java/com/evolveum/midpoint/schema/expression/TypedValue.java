@@ -17,6 +17,7 @@ package com.evolveum.midpoint.schema.expression;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.util.ShortDumpable;
 
 /**
  * Value and definition pair. E.g. used in expression variable maps.
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
  * 
  * @author Radovan Semancik
  */
-public class TypedValue<T> {
+public class TypedValue<T> implements ShortDumpable {
 	
 	/**
 	 * Value may be null. This means variable without a value.
@@ -95,5 +96,75 @@ public class TypedValue<T> {
 	public void setTypeClass(Class<T> typeClass) {
 		this.typeClass = typeClass;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
+		result = prime * result + ((typeClass == null) ? 0 : typeClass.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		TypedValue other = (TypedValue) obj;
+		if (definition == null) {
+			if (other.definition != null) {
+				return false;
+			}
+		} else if (!definition.equals(other.definition)) {
+			return false;
+		}
+		if (typeClass == null) {
+			if (other.typeClass != null) {
+				return false;
+			}
+		} else if (!typeClass.equals(other.typeClass)) {
+			return false;
+		}
+		if (value == null) {
+			if (other.value != null) {
+				return false;
+			}
+		} else if (!value.equals(other.value)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("TypedValue(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(value);
+		if (definition != null) {
+			sb.append(", definition=");
+			definition.debugDumpShortToString(sb);
+		}
+		if (typeClass != null) {
+			sb.append(", class=").append(typeClass.getSimpleName());
+		}
+		if (definition == null && typeClass == null) {
+			sb.append("definition/class=null");
+		}
+	}
+	
 	
 }

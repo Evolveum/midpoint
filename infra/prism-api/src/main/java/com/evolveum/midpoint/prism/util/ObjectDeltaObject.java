@@ -111,6 +111,17 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 		}
 		return null;
 	}
+	
+	public Class<O> getObjectCompileTimeClass() {
+		PrismObject<O> anyObject = getAnyObject();
+		if (anyObject != null) {
+			return anyObject.getCompileTimeClass();
+		}
+		if (delta != null) {
+			return delta.getObjectTypeClass();
+		}
+		return null;
+	}
 
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) {

@@ -54,8 +54,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 				"expression-polystring-equals-1.xml",
 				"testExpressionPolyStringEquals101",
 				createVariables(
-						NS_X, "foo", "FOO", PrimitiveType.STRING,
-						NS_Y, "bar", "BAR", PrimitiveType.STRING
+						"foo", "FOO", PrimitiveType.STRING,
+						"bar", "BAR", PrimitiveType.STRING
 				),
 				Boolean.TRUE);
     }

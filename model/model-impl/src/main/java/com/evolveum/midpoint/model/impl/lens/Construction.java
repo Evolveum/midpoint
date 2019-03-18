@@ -565,18 +565,18 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 				.rootNode(getFocusOdo())
 				.addVariableDefinition(ExpressionConstants.VAR_USER, getFocusOdo())
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, getFocusOdo())
-				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource())
-				.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, getSource())
-				.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject);
+				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource(), ObjectType.class)
+				.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, getSource(), ObjectType.class)
+				.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject, ObjectType.class);
 
 		if (assocTargetObjectClassDefinition != null) {
 			builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
 					assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
 		}
-		builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
+		builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
 		builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 		if (getSystemConfiguration() != null) {
-			builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration());
+			builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration(), SystemConfigurationType.class);
 		}
 		// TODO: other variables ?
 

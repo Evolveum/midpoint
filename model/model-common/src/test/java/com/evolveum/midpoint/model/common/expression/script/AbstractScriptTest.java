@@ -129,7 +129,7 @@ public abstract class AbstractScriptTest {
 		evaluateAndAssertStringScalarExpresssion(
 				"expression-string-variables.xml",
 				"testExpressionStringVariables",
-				ExpressionVariables.create(prismContext,
+				createVariables(
 						"foo", "FOO", PrimitiveType.STRING,
 						"bar", "BAR", PrimitiveType.STRING
 				),
@@ -155,7 +155,7 @@ public abstract class AbstractScriptTest {
 					evaluateAndAssertStringScalarExpresssion(
 							"expression-string-variables.xml",
 							"testExpressionStringVariablesParallel-"+threadIndex,
-							ExpressionVariables.create(prismContext,
+							createVariables(
 									"foo", foo, PrimitiveType.STRING,
 									"bar", bar, PrimitiveType.STRING
 							),
@@ -174,8 +174,8 @@ public abstract class AbstractScriptTest {
     	evaluateAndAssertStringScalarExpresssion(
     			"expression-objectref-variables.xml",
     			"testExpressionObjectRefVariables",
-    			ExpressionVariables.create(prismContext,
-						"foo", "Captain",
+    			createVariables(
+						"foo", "Captain", String.class,
 						"jack",
 							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
 							prismContext.definitionFactory()
@@ -189,7 +189,7 @@ public abstract class AbstractScriptTest {
     	evaluateAndAssertStringScalarExpresssion(
     			"expression-objectref-variables-polystring.xml",
     			"testExpressionObjectRefVariablesPolyString",
-    			ExpressionVariables.create(prismContext,
+    			createVariables(
 						"foo", "Captain", PrimitiveType.STRING,
 						"jack",
 							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
@@ -243,7 +243,7 @@ public abstract class AbstractScriptTest {
     // TODO: user + no property value
 
 	private ExpressionVariables createUserScriptVariables() {
-		return ExpressionVariables.create(prismContext,
+		return createVariables(
 				SchemaConstants.C_USER,
     			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
     			prismContext.definitionFactory()
@@ -271,7 +271,7 @@ public abstract class AbstractScriptTest {
 		evaluateAndAssertStringListExpresssion(
 				"expression-list.xml",
     			"testExpressionList",
-    			ExpressionVariables.create(prismContext,
+    			createVariables(
 						"jack",
 							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
 							prismContext.definitionFactory()

@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -188,19 +189,22 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
     		} else if (nameObj instanceof QName) {
     			name = ((QName)nameObj).getLocalPart();
     		}
-    		
+    		Object value = parameters[i+1];
     		Object defObj = parameters[i+2];
     		ItemDefinition def = null;
     		if (defObj instanceof QName) {
     			def = prismContext.definitionFactory().createPropertyDefinition(
     					new QName(SchemaConstants.NS_C, name), (QName)defObj, null, null);
-    			put(name, parameters[i+1], def);
+    			put(name, value, def);
     		} else if (defObj instanceof PrimitiveType) {
     			def = prismContext.definitionFactory().createPropertyDefinition(
     					new QName(SchemaConstants.NS_C, name), ((PrimitiveType)defObj).getQname(), null, null);
-    			put(name, parameters[i+1], def);
+    			put(name, value, def);
+    		} else if (defObj instanceof ItemDefinition) {
+    			def = (ItemDefinition)defObj;
+    			put(name, value, def);
     		} else if (defObj instanceof Class) {
-    			put(name, parameters[i+1], (Class)defObj);
+    			put(name, value, (Class)defObj);
     		} else {
     			throw new IllegalArgumentException("Unexpected def "+defObj);
     		}

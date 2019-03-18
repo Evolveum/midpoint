@@ -1308,7 +1308,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 				.addVariableDefinitions(getAssignmentEvaluationVariables())
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source)
+				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
 				.rootNode(focusOdo);
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 

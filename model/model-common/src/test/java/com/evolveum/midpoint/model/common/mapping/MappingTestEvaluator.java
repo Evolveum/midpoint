@@ -166,6 +166,7 @@ public class MappingTestEvaluator {
                 new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
 
         MappingImpl.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mappingBuilder = mappingFactory.createMappingBuilder(mappingType, testName);
+        mappingBuilder.prismContext(prismContext);
 
         // Source context: user
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userOld, userDelta, null);
@@ -231,11 +232,11 @@ public class MappingTestEvaluator {
     	defaultSource.recompute();
 		builder.setDefaultSource(defaultSource);
 		builder.setTargetContext(getUserDefinition());
-    	builder.addVariableDefinition(ExpressionConstants.VAR_USER, user);
-    	builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
-    	builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject());
-    	builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject());
-    	builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account.asPrismObject());
+    	builder.addVariableDefinition(ExpressionConstants.VAR_USER, user, UserType.class);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user, UserType.class);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject(), ShadowType.class);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject(), ShadowType.class);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account.asPrismObject(), ShadowType.class);
 
     	ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
 			ItemPath outputPath;

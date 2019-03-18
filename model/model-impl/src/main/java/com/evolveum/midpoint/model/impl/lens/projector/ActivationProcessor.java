@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectLifecycleDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -529,7 +530,7 @@ public class ActivationProcessor {
 			builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject());
 
 			// Variable: resource
-			builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
+			builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), ResourceType.class);
 
 			builder.originType(OriginType.OUTBOUND);
 			builder.originObject(projCtx.getResource());

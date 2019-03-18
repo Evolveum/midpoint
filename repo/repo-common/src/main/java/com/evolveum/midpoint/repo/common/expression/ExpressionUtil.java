@@ -198,7 +198,7 @@ public class ExpressionUtil {
 		Object first = path.first();
 		String topVarDesc = "default context";
 		if (ItemPath.isVariable(first)) {
-			QName topVarName = ItemPath.toVariableName(first);
+			String topVarName = ItemPath.toVariableName(first).getLocalPart();
 			topVarDesc = "variable " + PrettyPrinter.prettyPrint(topVarName);
 			relativePath = path.rest();
 			if (variables.containsKey(topVarName)) {
@@ -294,43 +294,47 @@ public class ExpressionUtil {
 	}
 
 	// TODO what about collections of values?
-	public static TypedValue convertVariableValue(TypedValue originalValueAndDefinition, String variableName, ObjectResolver objectResolver,
+	public static <T> TypedValue<T> convertVariableValue(TypedValue<T> originalValueAndDefinition, String variableName, ObjectResolver objectResolver,
 			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		Object originalValue = originalValueAndDefinition.getValue();
-		TypedValue convertedValueAndDefinition = new TypedValue(originalValue, originalValueAndDefinition.getDefinition());
-		if (originalValue instanceof PrismValue) {
-			((PrismValue) originalValue).setPrismContext(prismContext);			// TODO - or revive? Or make sure prismContext is set here?
-		} else if (originalValue instanceof Item) {
-			((Item) originalValue).setPrismContext(prismContext);				// TODO - or revive? Or make sure prismContext is set here?
+		Object valueToConvert = originalValueAndDefinition.getValue();
+		if (valueToConvert == null) {
+			return originalValueAndDefinition;
 		}
-		if (originalValue instanceof ObjectReferenceType) {
+		TypedValue<T> convertedValueAndDefinition = new TypedValue<T>(valueToConvert, (ItemDefinition)originalValueAndDefinition.getDefinition());
+		if (valueToConvert instanceof PrismValue) {
+			((PrismValue) valueToConvert).setPrismContext(prismContext);			// TODO - or revive? Or make sure prismContext is set here?
+		} else if (valueToConvert instanceof Item) {
+			((Item) valueToConvert).setPrismContext(prismContext);				// TODO - or revive? Or make sure prismContext is set here?
+		}
+		if (valueToConvert instanceof ObjectReferenceType) {
 			try {
-				convertedValueAndDefinition = resolveReference(originalValueAndDefinition, objectResolver, variableName,
+				convertedValueAndDefinition = (TypedValue<T>) resolveReference((TypedValue<ObjectReferenceType>) originalValueAndDefinition, objectResolver, variableName,
 						contextDescription, task, result);
+				valueToConvert = convertedValueAndDefinition.getValue();
 			} catch (SchemaException e) {
 				throw new ExpressionSyntaxException("Schema error during variable "+variableName+" resolution in "+contextDescription+": "+e.getMessage(), e);
 			}
 		}
-		if (originalValue instanceof PrismObject<?>) {
-			convertedValueAndDefinition.setValue(((PrismObject<?>)originalValue).asObjectable());
+		if (valueToConvert instanceof PrismObject<?>) {
+			convertedValueAndDefinition.setValue(((PrismObject<?>)valueToConvert).asObjectable());
 			return convertedValueAndDefinition;
 		}
-		if (originalValue instanceof PrismContainerValue<?>) {
-			convertedValueAndDefinition.setValue(((PrismContainerValue<?>)originalValue).asContainerable());
+		if (valueToConvert instanceof PrismContainerValue<?>) {
+			convertedValueAndDefinition.setValue(((PrismContainerValue<?>)valueToConvert).asContainerable());
 			return convertedValueAndDefinition;
 		}
-		if (originalValue instanceof PrismPropertyValue<?>) {
-			convertedValueAndDefinition.setValue(((PrismPropertyValue<?>)originalValue).getValue());
+		if (valueToConvert instanceof PrismPropertyValue<?>) {
+			convertedValueAndDefinition.setValue(((PrismPropertyValue<?>)valueToConvert).getValue());
 			return convertedValueAndDefinition;
 		}
-		if (originalValue instanceof PrismReferenceValue) {
-			if (((PrismReferenceValue) originalValue).getDefinition() != null) {
-				convertedValueAndDefinition.setValue(((PrismReferenceValue) originalValue).asReferencable());
+		if (valueToConvert instanceof PrismReferenceValue) {
+			if (((PrismReferenceValue) valueToConvert).getDefinition() != null) {
+				convertedValueAndDefinition.setValue(((PrismReferenceValue) valueToConvert).asReferencable());
 				return convertedValueAndDefinition;
 			}
 		}
-		if (originalValue instanceof PrismProperty<?>) {
-			PrismProperty<?> prop = (PrismProperty<?>)originalValue;
+		if (valueToConvert instanceof PrismProperty<?>) {
+			PrismProperty<?> prop = (PrismProperty<?>)valueToConvert;
 			PrismPropertyDefinition<?> def = prop.getDefinition();
 			if (def != null) {
 				if (def.isSingleValue()) {
@@ -344,8 +348,8 @@ public class ExpressionUtil {
 				return new TypedValue(prop.getRealValues(), def);
 			}
 		}
-		if (originalValue instanceof PrismReference) {
-			PrismReference ref = (PrismReference)originalValue;
+		if (valueToConvert instanceof PrismReference) {
+			PrismReference ref = (PrismReference)valueToConvert;
 			PrismReferenceDefinition def = ref.getDefinition();
 			if (def != null) {
 				if (def.isSingleValue()) {
@@ -358,8 +362,8 @@ public class ExpressionUtil {
 				return new TypedValue(ref.getRealValues(), def);
 			}
 		}
-		if (originalValue instanceof PrismContainer<?>) {
-			PrismContainer<?> container = (PrismContainer<?>)originalValue;
+		if (valueToConvert instanceof PrismContainer<?>) {
+			PrismContainer<?> container = (PrismContainer<?>)valueToConvert;
 			PrismContainerDefinition<?> def = container.getDefinition();
 			if (def != null) {
 				if (def.isSingleValue()) {
@@ -434,9 +438,10 @@ public class ExpressionUtil {
 		Object first = path.first();
 		if (ItemPath.isVariable(first)) {
 			relativePath = path.rest();
-			QName varName = ItemPath.toVariableName(first);
+			String varName = ItemPath.toVariableName(first).getLocalPart();
 			if (variables.containsKey(varName)) {
-				Object varValue = variables.get(varName);
+				TypedValue typeVarValue = variables.get(varName);
+				Object varValue = typeVarValue.getValue();
 				if (varValue instanceof ItemDeltaItem<?, ?>) {
 					root = ((ItemDeltaItem<?, ?>) varValue).getDefinition();
 				} else if (varValue instanceof Item<?, ?>) {
@@ -451,10 +456,10 @@ public class ExpressionUtil {
 				}
 				if (root == null) {
 					throw new IllegalStateException(
-							"Null definition in content of variable " + varName + ": " + varValue);
+							"Null definition in content of variable '" + varName + "': " + varValue);
 				}
 			} else {
-				throw new SchemaException("No variable with name " + varName + " in " + shortDesc);
+				throw new SchemaException("No variable with name '" + varName + "' in " + shortDesc);
 			}
 		}
 		if (root == null) {

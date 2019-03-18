@@ -741,7 +741,7 @@ public class ModelImplUtils {
 			shadowDef = shadow.getDefinition();
 		}
 		
-		PrismObjectDefinition<ResourceType> resourceDef = resource.getDefinition();
+		PrismObjectDefinition<ResourceType> resourceDef;
 		if (resource == null) {
 			resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 		} else {
@@ -783,7 +783,7 @@ public class ModelImplUtils {
 			expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment(), assignmentDef);
 			expressionVariables.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
 			expressionVariables.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
-			expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole(), assignmentPathVariables.getImmediateRole().getDefinition());
+			expressionVariables.putObject(ExpressionConstants.VAR_IMMEDIATE_ROLE, (PrismObject) assignmentPathVariables.getImmediateRole(), AbstractRoleType.class);
 		} else {
 			// to avoid "no such variable" exceptions in boundary cases
 			// for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
