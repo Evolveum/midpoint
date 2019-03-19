@@ -571,6 +571,11 @@ public class ObjectTypeUtil {
     	return object != null ? (ObjectType) object.asObjectable() : null;
 	}
 
+	public static <T extends Objectable> PrismObject<T> toPrismObject(T objectable) {
+		//noinspection unchecked
+		return objectable != null ? objectable.asPrismObject() : null;
+	}
+
 	public static boolean containsOid(Collection<ObjectReferenceType> values, @NotNull String oid) {
 		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
 	}

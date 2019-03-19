@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	 */
 	@Override
 	protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
-		return new Jsr223ScriptEvaluator("groovy", prismContext, protector, localizationService);
+		return new GroovyScriptEvaluator(prismContext, protector, localizationService);
 	}
 
 	/* (non-Javadoc)

@@ -168,6 +168,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnecti
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementation of ConnectorInstance for ConnId connectors.
@@ -1703,10 +1704,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return property;
 	}
 
+	@NotNull
 	@Override
-	public List<Change>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
-																OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			SchemaException, ConfigurationException {
+	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+			AttributesToReturn attrsToReturn, StateReporter reporter, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchChanges");
@@ -2331,7 +2333,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return primaryIdentifier.getDefinition();
 	}
 
-	
+	@NotNull
 	private List<Change> getChangesFromSyncDeltas(ObjectClass connIdObjClass, Collection<SyncDelta> connIdDeltas,
 			PrismSchema schema, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException {

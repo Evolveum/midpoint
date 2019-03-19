@@ -13,7 +13,7 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 
 	private PrismObject<ShadowType> oldShadow;
 	private PrismObject<ShadowType> currentShadow;
-	private ObjectDelta delta;
+	private ObjectDelta<ShadowType> delta;
 	private String sourceChannel;
 //	private PrismObject<ResourceType> resource;
 
@@ -26,7 +26,7 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 		return oldShadow;
 	}
 
-	public ObjectDelta getDelta() {
+	public ObjectDelta<ShadowType> getDelta() {
 		return delta;
 	}
 

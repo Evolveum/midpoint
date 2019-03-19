@@ -134,8 +134,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	@Override
 	protected String createTicketAdd(PrismObject<? extends ShadowType> object,
-			Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
-			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+			Collection<Operation> additionalOperations, OperationResult result) throws SchemaException,
+			ObjectAlreadyExistsException {
 		LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
 		ObjectDelta<? extends ShadowType> objectDelta = DeltaFactory.Object.createAddDelta(object);
 		ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
@@ -153,8 +153,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	@Override
 	protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
 			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
-			OperationResult result) throws ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+			OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDump(changes, 1));
 		if (InternalsConfig.isSanityChecks()) {
 			if (MiscUtil.hasDuplicates(changes)) {
@@ -178,8 +177,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	@Override
 	protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
 			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
-			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
-			SchemaException, ConfigurationException {
+			throws SchemaException {
 		LOGGER.debug("Creating case to delete account {}", identifiers);
 		String shadowName = shadow.getName().toString();
 		String description = "Please delete resource account: "+shadowName;

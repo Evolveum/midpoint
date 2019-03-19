@@ -402,4 +402,14 @@ public class SynchronizationServiceMock implements ResourceObjectChangeListener,
 		return "synchronization service mock";
 	}
 
+	public void waitForNotifyChange(long timeout) throws InterruptedException {
+		long stop = System.currentTimeMillis() + timeout;
+		while (System.currentTimeMillis() < stop) {
+			if (wasCalledNotifyChange()) {
+				return;
+			}
+			Thread.sleep(100);
+		}
+		throw new AssertionError("notifyChange has not arrived within " + timeout + " ms");
+	}
 }

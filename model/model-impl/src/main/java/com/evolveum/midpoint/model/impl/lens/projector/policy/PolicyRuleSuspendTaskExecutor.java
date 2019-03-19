@@ -22,8 +22,9 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.repo.common.CounterManager;
-import com.evolveum.midpoint.repo.common.CounterSepcification;
+import com.evolveum.midpoint.repo.api.CounterManager;
+import com.evolveum.midpoint.repo.api.CounterSepcification;
+import com.evolveum.midpoint.repo.cache.CacheCounterManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -48,7 +49,6 @@ public class PolicyRuleSuspendTaskExecutor {
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleSuspendTaskExecutor.class);
 	
 	@Autowired private CounterManager counterManager;
-//	@Autowired private TaskManager taskManager;
 	
 	public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
 		ModelElementContext<O> focusCtx = context.getFocusContext();
@@ -58,7 +58,7 @@ public class PolicyRuleSuspendTaskExecutor {
 		}
 		
 		for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
-			CounterSepcification counterSpec = counterManager.getCounterSpec(task, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
+			CounterSepcification counterSpec = counterManager.getCounterSpec(task.getTaskType(), policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
 			LOGGER.trace("Found counter specification {} for {}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
 			
 			int counter = 1;
@@ -72,20 +72,7 @@ public class PolicyRuleSuspendTaskExecutor {
 				counterSpec.setCount(counter);
 			}
 		}
-		
-		//TODO : not supported yet
-//		Collection<? extends ModelProjectionContext> projectionCtxs = context.getProjectionContexts();
-//		for (ModelProjectionContext projectionCtx : projectionCtxs) {
-//			Collection<EvaluatedPolicyRule> evaluatedPolicyRules = projectionCtx.getPolicyRules();
-//			for (EvaluatedPolicyRule policyRule : evaluatedPolicyRules) {
-//				LOGGER.info("projction policy rules: {}", policyRule);
-//				counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
-//			}
-//			
-//		}
-	
-		
-		
+				
 	}
 	
 	private synchronized int checkEvaluatedPolicyRule(Task task, EvaluatedPolicyRule policyRule, int counter, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {

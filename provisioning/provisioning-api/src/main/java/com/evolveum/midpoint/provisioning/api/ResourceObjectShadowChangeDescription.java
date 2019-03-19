@@ -56,7 +56,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
      * E.g. discovering that the object is missing, or a conflicting object already exists.
      *
      * It is expected that reactions to the unrelated changes will be lighter, faster,
-     * with lower overhead and without abmition to provide full synchronization.
+     * with lower overhead and without ambition to provide full synchronization.
      */
     private boolean unrelatedChange = false;
     

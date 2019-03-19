@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -64,6 +65,11 @@ public class ScriptExpressionUtil {
 				Object variableValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, prismContext, task, result);
 				scriptVariables.put(variableName, variableValue);
 			}
+		}
+
+		String prismContextName = ExpressionConstants.VAR_PRISM_CONTEXT.getLocalPart();
+		if (!scriptVariables.containsKey(prismContextName)) {
+			scriptVariables.put(prismContextName, prismContext);
 		}
 		return scriptVariables;
 	}

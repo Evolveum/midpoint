@@ -42,7 +42,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -228,7 +228,7 @@ public class ItemPathTest {
 	    try (FileInputStream stream = new FileInputStream(file)) {
 		    FileChannel fc = stream.getChannel();
 		    MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-		    xpathStr = Charset.forName("UTF-8").decode(bb).toString();
+		    xpathStr = StandardCharsets.UTF_8.decode(bb).toString();
 	    }
 
         ItemPathHolder xpath = ItemPathHolder.createForTesting(xpathStr);

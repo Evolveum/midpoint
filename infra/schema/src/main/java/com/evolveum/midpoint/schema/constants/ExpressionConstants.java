@@ -123,4 +123,6 @@ public class ExpressionConstants {
 	public static final QName VAR_POLICY_RULE = new QName(SchemaConstants.NS_C, "policyRule");
 	public static final QName VAR_POLICY_ACTION = new QName(SchemaConstants.NS_C, "policyAction");
 	public static final QName VAR_LOGIN_MODE = new QName(SchemaConstants.NS_C, "loginMode");
+
+	public static final QName VAR_MESSAGE = new QName(SchemaConstants.NS_C, "message");
 }
