@@ -725,7 +725,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 		try {
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(ctx.result);
 			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null, null, systemConfiguration.asObjectable(), prismContext);
-			variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), segment.getOrderOneObject().asPrismObject().getDefinition());
+			variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), ObjectType.class);
 			AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 			if (assignmentPathVariables != null) {
 				ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
