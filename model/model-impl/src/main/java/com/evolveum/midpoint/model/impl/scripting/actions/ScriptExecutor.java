@@ -142,7 +142,8 @@ public class ScriptExecutor extends BaseActionExecutor {
 				}
 				Throwable exception = null;
 				try {
-					TypedValue<PrismValue> typedValue = new TypedValue<>(value, value.getParent().getDefinition());
+					// Hack. TODO: we need to add definitions to Pipeline items.
+					TypedValue typedValue = new TypedValue(value, value == null ? Object.class : value.getClass());
 					Object outObject = executeScript(scriptExpression, typedValue, item.getVariables(), context, result);
 					if (outObject != null) {
 						addToData(outObject, item.getResult(), output);

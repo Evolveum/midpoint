@@ -252,7 +252,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
 			PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
 			return new TypedValue<>(null, def);
 		} else {
-			ObjectType resolveObjectType = requester.resolveObjectType(result, allowNotFound);
+			ObjectType resolveObjectType = ref.resolveObjectType(result, allowNotFound);
 			return new TypedValue<>(resolveObjectType, resolveObjectType.asPrismObject().getDefinition());
 		}
 	}

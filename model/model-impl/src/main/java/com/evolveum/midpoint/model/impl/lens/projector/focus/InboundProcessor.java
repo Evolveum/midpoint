@@ -731,13 +731,19 @@ public class InboundProcessor {
     		return;
     	}
     	
-    	PrismObject<ShadowType> accountNew = projectionCtx.getObjectNew();
+    	PrismObject<ShadowType> shadowNew = projectionCtx.getObjectNew();
+    	PrismObjectDefinition<ShadowType> shadowNewDef;
+    	if (shadowNew == null) {
+    		shadowNewDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+    	} else {
+    		shadowNewDef = shadowNew.getDefinition();
+    	}
     	ExpressionVariables variables = new ExpressionVariables();
     	variables.put(ExpressionConstants.VAR_USER, focusNew, focusNew.getDefinition());
     	variables.put(ExpressionConstants.VAR_FOCUS, focusNew, focusNew.getDefinition());
-    	variables.put(ExpressionConstants.VAR_ACCOUNT, accountNew, accountNew.getDefinition());
-    	variables.put(ExpressionConstants.VAR_SHADOW, accountNew, accountNew.getDefinition());
-    	variables.put(ExpressionConstants.VAR_PROJECTION, accountNew, accountNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_ACCOUNT, shadowNew, shadowNewDef);
+    	variables.put(ExpressionConstants.VAR_SHADOW, shadowNew, shadowNewDef);
+    	variables.put(ExpressionConstants.VAR_PROJECTION, shadowNew, shadowNewDef);
     	variables.put(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition());
     	variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
     	variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
