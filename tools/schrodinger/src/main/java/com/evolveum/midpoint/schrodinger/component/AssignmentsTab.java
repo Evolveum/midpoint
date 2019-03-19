@@ -14,37 +14,35 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schrodinger.component.user;
+package com.evolveum.midpoint.schrodinger.component;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionButtons;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
-import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.apache.http.util.Asserts;
 
 import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserAssignmentsTab extends Component<UserPage> {
+public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Component<P> {
 
-    public UserAssignmentsTab(UserPage parent, SelenideElement parentElement) {
+    public AssignmentsTab(P parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public AbstractTableWithPrismView<UserAssignmentsTab> table() {
+    public AbstractTableWithPrismView<AssignmentsTab<P>> table() {
 
         SelenideElement tableBox = $(Schrodinger.byDataId("div", "assignmentsTable"));
 
-        return new AbstractTableWithPrismView<UserAssignmentsTab>(this, tableBox) {
+        return new AbstractTableWithPrismView<AssignmentsTab<P>>(this, tableBox) {
             @Override
-            public PrismFormWithActionButtons<AbstractTableWithPrismView<UserAssignmentsTab>> clickByName(String name) {
+            public PrismFormWithActionButtons<AbstractTableWithPrismView<AssignmentsTab<P>>> clickByName(String name) {
 
                 $(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
@@ -56,7 +54,7 @@ public class UserAssignmentsTab extends Component<UserPage> {
             }
 
             @Override
-            public AbstractTableWithPrismView<UserAssignmentsTab> selectCheckboxByName(String name) {
+            public AbstractTableWithPrismView<AssignmentsTab<P>> selectCheckboxByName(String name) {
 
                 $(Schrodinger.byFollowingSiblingEnclosedValue("td", "class", "check", "data-s-id", "3", name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
@@ -65,7 +63,7 @@ public class UserAssignmentsTab extends Component<UserPage> {
             }
 
             @Override
-            public AbstractTableWithPrismView<UserAssignmentsTab> unassignByName(String name) {
+            public AbstractTableWithPrismView<AssignmentsTab<P>> unassignByName(String name) {
 
                 $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("button", "title", "Unassign", null, null, name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
@@ -75,14 +73,14 @@ public class UserAssignmentsTab extends Component<UserPage> {
         };
     }
 
-    public FocusSetAssignmentsModal<UserAssignmentsTab> clickAddAssignemnt() {
+    public FocusSetAssignmentsModal<AssignmentsTab<P>> clickAddAssignemnt() {
         $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new FocusSetAssignmentsModal<>(this, modalElement);
+        return new FocusSetAssignmentsModal<AssignmentsTab<P>>(this, modalElement);
     }
 
     public boolean assignmentExists(String assignmentName){
