@@ -224,6 +224,9 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	private boolean hasDeltas(ExpressionVariables variables) {
 		for (Entry<String, TypedValue> entry: variables.entrySet()) {
+			if (entry.getValue() == null) {
+				continue;
+			}
 			Object value = entry.getValue().getValue();
 			if (value instanceof ObjectDeltaObject<?>) {
 				if (((ObjectDeltaObject<?>)value).getObjectDelta() != null && !((ObjectDeltaObject<?>)value).getObjectDelta().isEmpty()) {

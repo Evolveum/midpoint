@@ -230,7 +230,7 @@ public class ExpressionUtil {
 		
 		Object rootValue = root.getValue();
 		if (rootValue == null) {
-			return null;
+			return root;
 		}
 		
 		if (rootValue instanceof Objectable) {

@@ -77,8 +77,11 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 		return variables.get(key);
 	}
 
-	public TypedValue put(String key, TypedValue value) {
-		return variables.put(key, value);
+	public TypedValue put(String key, TypedValue typedValue) {
+		if (typedValue == null) {
+			throw new IllegalArgumentException("Attempt to variable '"+key+"' with null typed value");
+		}
+		return variables.put(key, typedValue);
 	}
 	
 	@SuppressWarnings("rawtypes")
