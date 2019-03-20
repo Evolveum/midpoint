@@ -143,6 +143,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         http.headers().disable();
+        http.headers().frameOptions().deny();
     }
 
     @Bean
