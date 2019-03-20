@@ -19,6 +19,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -66,40 +67,35 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 	}
 
 	@Override
-	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
-			ExpressionVariables variables, ItemDefinition outputDefinition,
-			Function<Object, Object> additionalConvertor,
-			ScriptExpressionReturnTypeType suggestedReturnType,
-			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
+	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		VelocityContext context = createVelocityContext(variables, objectResolver, functions, contextDescription, task, result);
+		VelocityContext velocityCtx = createVelocityContext(context);
 
-		String codeString = expressionType.getCode();
+		String codeString = context.getExpressionType().getCode();
 		if (codeString == null) {
-			throw new ExpressionEvaluationException("No script code in " + contextDescription);
+			throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
 		}
 
 		boolean allowEmptyValues = false;
-		if (expressionType.isAllowEmptyValues() != null) {
-			allowEmptyValues = expressionType.isAllowEmptyValues();
+		if (context.getExpressionType().isAllowEmptyValues() != null) {
+			allowEmptyValues = context.getExpressionType().isAllowEmptyValues();
 		}
 
 		StringWriter resultWriter = new StringWriter();
 		try {
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-			Velocity.evaluate(context, resultWriter, "", codeString);
+			Velocity.evaluate(velocityCtx, resultWriter, "", codeString);
 		} catch (RuntimeException e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
 		}
 
-		if (outputDefinition == null) {
+		if (context.getOutputDefinition() == null) {
 			// No outputDefinition means "void" return type, we can return right now
 			return null;
 		}
 
-		QName xsdReturnType = outputDefinition.getTypeName();
+		QName xsdReturnType = context.getOutputDefinition().getTypeName();
 
 		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
 		if (javaReturnType == null) {
@@ -114,28 +110,25 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 
 		T evalResult;
 		try {
-			evalResult = ExpressionUtil.convertValue(javaReturnType, additionalConvertor, resultWriter.toString(), getProtector(), getPrismContext());
+			evalResult = ExpressionUtil.convertValue(javaReturnType, context.getAdditionalConvertor(), resultWriter.toString(), getProtector(), getPrismContext());
 		} catch (IllegalArgumentException e) {
-			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage()+" in "+context.getContextDescription(), e);
 		}
 
 		List<V> pvals = new ArrayList<>();
 		if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-			pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, getPrismContext()));
+			pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
 		}
 		return pvals;
 	}
 
-	private VelocityContext createVelocityContext(ExpressionVariables variables, ObjectResolver objectResolver,
-									   Collection<FunctionLibrary> functions,
-									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		VelocityContext context = new VelocityContext();
-		Map<String,Object> scriptVariables = prepareScriptVariablesValueMap(variables, objectResolver, functions, contextDescription,
-				task, result);
+	private VelocityContext createVelocityContext(ScriptExpressionEvaluationContext context) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		VelocityContext velocityCtx = new VelocityContext();
+		Map<String,Object> scriptVariables = prepareScriptVariablesValueMap(context);
 		for (Map.Entry<String,Object> scriptVariable : scriptVariables.entrySet()) {
-			context.put(scriptVariable.getKey(), scriptVariable.getValue());
+			velocityCtx.put(scriptVariable.getKey(), scriptVariable.getValue());
 		}
-		return context;
+		return velocityCtx;
 	}
 
 

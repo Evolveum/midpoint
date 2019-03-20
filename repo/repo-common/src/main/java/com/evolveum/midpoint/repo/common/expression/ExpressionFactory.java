@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -83,29 +84,29 @@ public class ExpressionFactory implements Cacheable {
 	}
 	
 	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
-			D outputDefinition, String shortDesc, Task task, OperationResult result)
+			D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
 		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
 		Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
 		if (expression == null) {
-			expression = createExpression(expressionType, outputDefinition, shortDesc, task, result);
+			expression = createExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
 			cache.put(eid, expression);
 		}
 		return expression;
 	}
 
 	public <T> Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> makePropertyExpression(
-			ExpressionType expressionType, QName outputPropertyName, String shortDesc, Task task, OperationResult result)
+			ExpressionType expressionType, QName outputPropertyName, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
 		//noinspection unchecked
 		PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
-		return makeExpression(expressionType, outputDefinition, shortDesc, task, result);
+		return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
 	}
 
 	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
-			D outputDefinition, String shortDesc, Task task, OperationResult result)
+			D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
-		Expression<V,D> expression = new Expression<>(expressionType, outputDefinition, objectResolver, securityContextManager, prismContext);
+		Expression<V,D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
 		expression.parse(this, shortDesc, task, result);
 		return expression;
 	}

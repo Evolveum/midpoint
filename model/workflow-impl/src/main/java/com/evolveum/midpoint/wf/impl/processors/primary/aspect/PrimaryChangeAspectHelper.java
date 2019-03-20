@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -332,7 +333,7 @@ public class PrimaryChangeAspectHelper {
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple;
         try {
             Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
-                    expressionFactory.makeExpression(expressionType, resultDef,
+                    expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(),
                             "applicability condition expression", task, result);
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables,
                     "applicability condition expression", task, result);

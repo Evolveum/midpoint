@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -145,7 +146,7 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 		Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression;
 		try {
 			expression = expressionFactory
-					.makeExpression(expressionType, outputDefinition, contextDesc, task, result);
+					.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
 		} catch (SchemaException | ObjectNotFoundException e) {
 			ValidationError error = new ValidationError();
 			error.setMessage("Cannot make expression: " + e.getMessage());

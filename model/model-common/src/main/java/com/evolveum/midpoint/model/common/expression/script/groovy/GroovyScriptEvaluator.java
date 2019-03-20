@@ -23,6 +23,7 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -85,22 +86,20 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class>
 
 
 	@Override
-	protected Class compileScript(String codeString, ExpressionVariables variables, String contextDescription)
+	protected Class compileScript(String codeString, ScriptExpressionEvaluationContext context)
 			throws ExpressionEvaluationException {
-		return groovyLoader.parseClass(codeString, contextDescription);
+		return groovyLoader.parseClass(codeString, context.getContextDescription());
 	}
 
 
 	@Override
-	protected Object evaluateScript(Class compiledScriptClass, ExpressionVariables variables,
-			ObjectResolver objectResolver, Collection functions, String contextDescription, Task task,
-			OperationResult result) throws Exception {
+	protected Object evaluateScript(Class compiledScriptClass, ScriptExpressionEvaluationContext context) throws Exception {
 		
 		if (!Script.class.isAssignableFrom(compiledScriptClass)) {
             throw new ExpressionEvaluationException("Expected groovy script class, but got "+compiledScriptClass);
 		}
 		
-		Binding binding = new Binding(getVariableValuesMap(variables, objectResolver, functions, contextDescription, task, result));
+		Binding binding = new Binding(prepareScriptVariablesValueMap(context));
 		
 		Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
 		

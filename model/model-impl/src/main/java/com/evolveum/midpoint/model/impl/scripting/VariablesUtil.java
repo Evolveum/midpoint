@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -64,12 +65,14 @@ public class VariablesUtil {
 		@NotNull final ExpressionFactory expressionFactory;
 		@NotNull final ObjectResolver objectResolver;
 		@NotNull final PrismContext prismContext;
+		final ExpressionProfile expressionProfile;
 		@NotNull final Task task;
 		VariableResolutionContext(@NotNull ExpressionFactory expressionFactory,
-				@NotNull ObjectResolver objectResolver, @NotNull PrismContext prismContext, @NotNull Task task) {
+				@NotNull ObjectResolver objectResolver, @NotNull PrismContext prismContext, ExpressionProfile expressionProfile, @NotNull Task task) {
 			this.expressionFactory = expressionFactory;
 			this.objectResolver = objectResolver;
 			this.prismContext = prismContext;
+			this.expressionProfile = expressionProfile;
 			this.task = task;
 		}
 	}
@@ -78,12 +81,12 @@ public class VariablesUtil {
 	@NotNull
 	static VariablesMap initialPreparation(VariablesMap initialVariables,
 			ScriptingVariablesDefinitionType derivedVariables, ExpressionFactory expressionFactory, ObjectResolver objectResolver,
-			PrismContext prismContext, Task task, OperationResult result)
+			PrismContext prismContext, ExpressionProfile expressionProfile, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		VariablesMap rv = new VariablesMap();
 		addProvidedVariables(rv, initialVariables, task);
 		addDerivedVariables(rv, derivedVariables,
-				new VariableResolutionContext(expressionFactory, objectResolver, prismContext, task), result);
+				new VariableResolutionContext(expressionFactory, objectResolver, prismContext, expressionProfile, task), result);
 		return rv;
 	}
 
@@ -139,7 +142,7 @@ public class VariablesUtil {
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, ctx, shortDesc);
 		Expression<PrismValue, ItemDefinition<?>> expression = ctx.expressionFactory
-				.makeExpression(definition.getExpression(), outputDefinition, shortDesc, ctx.task, result);
+				.makeExpression(definition.getExpression(), outputDefinition, ctx.expressionProfile, shortDesc, ctx.task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, ctx.task, result);
 		PrismValueDeltaSetTriple<?> triple = ModelExpressionThreadLocalHolder
 				.evaluateAnyExpressionInContext(expression, context, ctx.task, result);

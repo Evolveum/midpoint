@@ -65,6 +65,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -1724,7 +1725,7 @@ public class ChangeExecutor {
 
 		String shortDesc = "Provisioning script argument expression";
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
-				.makeExpression(argument, scriptArgumentDefinition, shortDesc, task, result);
+				.makeExpression(argument, scriptArgumentDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				result);

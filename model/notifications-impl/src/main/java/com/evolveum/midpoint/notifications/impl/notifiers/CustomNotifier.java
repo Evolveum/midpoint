@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -172,7 +173,7 @@ public class CustomNotifier extends BaseHandler {
 				prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageType.COMPLEX_TYPE);
 
 		Expression<PrismPropertyValue<NotificationMessageType>,PrismPropertyDefinition<NotificationMessageType>> expression =
-				expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+				expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, task, result);

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -131,7 +132,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 	    PrismContext prismContext = object.asPrismContainerValue().getPrismContext();
 	    PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
     			DOMUtil.XSD_STRING);
-		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, contextDesc, task, result);
+		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.put(ExpressionConstants.VAR_OBJECT, object, object.asPrismContainerValue().getDefinition());
 		addAdditionalExpressionVariables(variables);

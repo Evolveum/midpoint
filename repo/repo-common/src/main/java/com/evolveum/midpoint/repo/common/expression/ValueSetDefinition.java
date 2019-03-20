@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -39,17 +40,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionTy
  */
 public class ValueSetDefinition {
 
-	private ValueSetDefinitionType setDefinitionType;
-	private String shortDesc;
-	private Task task;
-	private OperationResult result;
-	private String additionalVariableName;
+	private final ValueSetDefinitionType setDefinitionType;
+	private final ExpressionProfile expressionProfile;
+	private final String shortDesc;
+	private final Task task;
+	private final OperationResult result;
+	private final String additionalVariableName;
 	private ExpressionVariables additionalVariables;
 	private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
 
-	public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, String additionalVariableName, String shortDesc, Task task, OperationResult result) {
+	public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, ExpressionProfile expressionProfile, String additionalVariableName, String shortDesc, Task task, OperationResult result) {
 		super();
 		this.setDefinitionType = setDefinitionType;
+		this.expressionProfile = expressionProfile;
 		this.additionalVariableName = additionalVariableName;
 		this.shortDesc = shortDesc;
 		this.task = task;
@@ -58,7 +61,7 @@ public class ValueSetDefinition {
 
 	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException {
 		ExpressionType conditionType = setDefinitionType.getCondition();
-		condition = ExpressionUtil.createCondition(conditionType, expressionFactory, shortDesc, task, result);
+		condition = ExpressionUtil.createCondition(conditionType, expressionProfile, expressionFactory, shortDesc, task, result);
 	}
 
 	public void setAdditionalVariables(ExpressionVariables additionalVariables) {

@@ -20,13 +20,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -35,15 +32,11 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -51,8 +44,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
@@ -78,53 +69,48 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 	}
 
 	@Override
-	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
-			ExpressionVariables variables, ItemDefinition outputDefinition,
-			Function<Object, Object> additionalConvertor,
-			ScriptExpressionReturnTypeType suggestedReturnType,
-			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
+	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		String codeString = expressionType.getCode();
+		String codeString = context.getExpressionType().getCode();
 		if (codeString == null) {
-			throw new ExpressionEvaluationException("No script code in " + contextDescription);
+			throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
 		}
 
 		boolean allowEmptyValues = false;
-		if (expressionType.isAllowEmptyValues() != null) {
-			allowEmptyValues = expressionType.isAllowEmptyValues();
+		if (context.getExpressionType().isAllowEmptyValues() != null) {
+			allowEmptyValues = context.getExpressionType().isAllowEmptyValues();
 		}
 
-		C compiledScript = getCompiledScript(codeString, variables, functions, contextDescription);
+		C compiledScript = getCompiledScript(codeString, context);
 
 		Object evalRawResult;
 		try {
-			beforeEvaluation(compiledScript, variables, functions, contextDescription, task, result);
+			beforeEvaluation(compiledScript, context);
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			
-			evalRawResult = evaluateScript(compiledScript, variables, objectResolver, functions, contextDescription, task, result);
+			evalRawResult = evaluateScript(compiledScript, context);
 			
-			afterEvaluation(evalRawResult, compiledScript, variables, functions, contextDescription, task, result);
+			afterEvaluation(evalRawResult, compiledScript, context);
 		} catch (Throwable e) {
 			throw getLocalizationService().translate(
-					new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription,
+					new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(),
 							e, ExceptionUtil.getUserFriendlyMessage(e)));
 		}
 
-		if (outputDefinition == null) {
+		if (context.getOutputDefinition() == null) {
 			// No outputDefinition means "void" return type, we can return right now
 			return null;
 		}
 
-		QName xsdReturnType = outputDefinition.getTypeName();
+		QName xsdReturnType = context.getOutputDefinition().getTypeName();
 
 		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
 		if (javaReturnType == null) {
 			javaReturnType = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdReturnType);
 		}
 		
-		if (javaReturnType == null && (outputDefinition instanceof PrismContainerDefinition<?>)) {
+		if (javaReturnType == null && (context.getOutputDefinition() instanceof PrismContainerDefinition<?>)) {
 			// This is the case when we need a container, but we do not have compile-time class for that
 			// E.g. this may be container in object extension (MID-5080)
 			javaReturnType = (Class<T>) PrismContainerValue.class;
@@ -144,78 +130,71 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 		// PrismProperty?
 		if (evalRawResult instanceof Collection) {
 			for (Object evalRawResultElement : (Collection)evalRawResult) {
-				T evalResult = convertScalarResult(javaReturnType, additionalConvertor, evalRawResultElement, contextDescription);
+				T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, context);
 				if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-					pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, getPrismContext()));
+					pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
 				}
 			}
 		} else if (evalRawResult instanceof PrismProperty<?>) {
 			pvals.addAll((Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
 		} else {
-			T evalResult = convertScalarResult(javaReturnType, additionalConvertor, evalRawResult, contextDescription);
+			T evalResult = convertScalarResult(javaReturnType, evalRawResult, context);
 			if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, getPrismContext()));
+				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
 			}
 		}
 
 		return pvals;
 	}
 
-	protected C getCompiledScript(String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) throws ExpressionEvaluationException {
+	protected C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException {
 		C compiledScript = scriptCache.get(codeString);
 		if (compiledScript != null) {
 			return compiledScript;
 		}
 		InternalMonitor.recordCount(InternalCounters.SCRIPT_COMPILE_COUNT);
 		try {
-			beforeCompileScript(codeString, variables, functions, contextDescription);
+			beforeCompileScript(codeString, context);
 			
-			compiledScript = compileScript(codeString, variables, contextDescription);
+			compiledScript = compileScript(codeString, context);
 			
-			afterCompileScript(compiledScript, codeString, variables, functions, contextDescription);
+			afterCompileScript(compiledScript, codeString, context);
 		} catch (Exception e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " while compiling " + contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage() + " while compiling " + context.getContextDescription(), e);
 		}
 		scriptCache.put(codeString, compiledScript);
 		return compiledScript;
 	}
 
-	protected abstract C compileScript(String codeString, ExpressionVariables variables, String contextDescription) throws Exception;
+	protected abstract C compileScript(String codeString, ScriptExpressionEvaluationContext context) throws Exception;
 	
-	protected abstract Object evaluateScript(C compiledScript, ExpressionVariables variables,
-			ObjectResolver objectResolver, Collection<FunctionLibrary> functions, String contextDescription,
-			Task task, OperationResult result)
+	protected abstract Object evaluateScript(C compiledScript, ScriptExpressionEvaluationContext context)
 				throws Exception;
-
-	protected Map<String,Object> getVariableValuesMap(ExpressionVariables variables, ObjectResolver objectResolver,
-			   Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		return prepareScriptVariablesValueMap(variables, objectResolver, functions, contextDescription, task, result);
-	}
 	
-	private <T> T convertScalarResult(Class<T> expectedType, Function<Object, Object> additionalConvertor, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
+	private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException {
 		try {
-			T convertedValue = ExpressionUtil.convertValue(expectedType, additionalConvertor, rawValue, getProtector(), getPrismContext());
+			T convertedValue = ExpressionUtil.convertValue(expectedType, context.getAdditionalConvertor(), rawValue, getProtector(), getPrismContext());
 			return convertedValue;
 		} catch (IllegalArgumentException e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
 		}
 	}
 
 	// HOOKS
 	
-	protected void beforeCompileScript(String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
+	protected void beforeCompileScript(String codeString, ScriptExpressionEvaluationContext context) {
 		
 	}
 	
-	protected void afterCompileScript(C compiledScript, String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
+	protected void afterCompileScript(C compiledScript, String codeString, ScriptExpressionEvaluationContext context) {
 		
 	}
 	
-	protected void beforeEvaluation(C compiledScriptClass, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) {
+	protected void beforeEvaluation(C compiledScriptClass, ScriptExpressionEvaluationContext context) {
 		
 	}
 	
-	protected void afterEvaluation(Object resultObject, C compiledScriptClass, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) {
+	protected void afterEvaluation(Object resultObject, C compiledScriptClass, ScriptExpressionEvaluationContext context) {
 		
 	}
 

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -83,7 +84,7 @@ public class NotificationExpressionHelper {
 
 		QName resultName = new QName(SchemaConstants.NS_C, "result");
 		PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = ModelExpressionThreadLocalHolder
@@ -121,7 +122,7 @@ public class NotificationExpressionHelper {
 		MutablePrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 		resultDef.setMaxOccurs(-1);
 
-		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, task, result);
@@ -153,7 +154,7 @@ public class NotificationExpressionHelper {
 
 		QName resultName = new QName(SchemaConstants.NS_C, "result");
 		PrismPropertyDefinition<NotificationMessageAttachmentType> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
-		Expression<PrismPropertyValue<NotificationMessageAttachmentType>,PrismPropertyDefinition<NotificationMessageAttachmentType>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+		Expression<PrismPropertyValue<NotificationMessageAttachmentType>,PrismPropertyDefinition<NotificationMessageAttachmentType>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 
 		PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageAttachmentType>> exprResultTriple = ModelExpressionThreadLocalHolder

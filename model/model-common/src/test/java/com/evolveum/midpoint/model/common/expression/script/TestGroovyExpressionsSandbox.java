@@ -59,7 +59,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 		// WHEN
 		evaluateAndAssertStringScalarExpresssionRestricted(
 				"expression-poinson-smell.xml",
-				"testLookAtPoison",
+				"testSmellPoison",
 				createPoisonVariables(poison));
 		
 		// THEN
@@ -77,7 +77,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 		// WHEN
 		evaluateAndAssertStringScalarExpresssionRestricted(
 				"expression-poinson-smell.xml",
-				"testLookAtPoison",
+				"testDrinkPoison",
 				createPoisonVariables(poison));
 		
     }

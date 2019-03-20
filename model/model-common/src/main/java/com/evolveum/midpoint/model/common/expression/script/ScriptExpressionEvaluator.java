@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,9 +51,9 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
 
     ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression,
-		    SecurityContextManager securityContextManager, LocalizationService localizationService,
+    		ExpressionProfile expressionProfile, SecurityContextManager securityContextManager, LocalizationService localizationService,
 		    PrismContext prismContext) {
-    	super(scriptType, securityContextManager, localizationService, prismContext);
+    	super(scriptType, expressionProfile, securityContextManager, localizationService, prismContext);
         this.scriptExpression = scriptExpression;
     }
 

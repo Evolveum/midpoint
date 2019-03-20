@@ -538,7 +538,7 @@ public class ObjectMerger {
 		Expression<PrismValue, ItemDefinition> valueExpression = null;
 		if (itemMergeConfig.getValueExpression() != null) {
 			ExpressionType expressionType = itemMergeConfig.getValueExpression();
-			valueExpression = expressionFactory.makeExpression(expressionType, itemDefinition,
+			valueExpression = expressionFactory.makeExpression(expressionType, itemDefinition, MiscSchemaUtil.getExpressionProfile(),
 					"value expression for item " + itemPath + " in merge configuration " + mergeConfigurationName,
 					task, result);
 		}

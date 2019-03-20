@@ -366,7 +366,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 		// WHEN
 		evaluateAndAssertStringScalarExpresssion(
 				"expression-poinson-smell.xml",
-				"testLookAtPoison",
+				"testSmellPoison",
 				createPoisonVariables(poison),
 				RESULT_POISON_OK);
 		
@@ -386,7 +386,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 		try {
 			evaluateAndAssertStringScalarExpresssion(
 					"expression-poinson-drink.xml",
-					"testLookAtPoison",
+					"testDrinkPoison",
 					createPoisonVariables(poison),
 					"");
 			

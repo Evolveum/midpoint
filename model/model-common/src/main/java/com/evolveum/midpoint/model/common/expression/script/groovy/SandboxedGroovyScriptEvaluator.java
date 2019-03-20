@@ -24,6 +24,7 @@ import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -64,34 +65,30 @@ public class SandboxedGroovyScriptEvaluator extends GroovyScriptEvaluator {
 	}
 	
 	@Override
-	protected void beforeCompileScript(String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
-		setCompileOptions(variables, functions, contextDescription);
+	protected void beforeCompileScript(String codeString, ScriptExpressionEvaluationContext context) {
 	}
 	
 	@Override
-	protected void afterCompileScript(Class compiledScript, String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
-		resetCompileOptions();
+	protected void afterCompileScript(Class compiledScript, String codeString, ScriptExpressionEvaluationContext context) {
 	}
 	
 	@Override
-	protected void beforeEvaluation(Class compiledScriptClass, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) {
-		setCompileOptions(variables, functions, contextDescription);
+	protected void beforeEvaluation(Class compiledScriptClass, ScriptExpressionEvaluationContext context) {
 	}
 	
 	@Override
-	protected void afterEvaluation(Object resultObject, Class compiledScriptClass, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) {
-		resetCompileOptions();
+	protected void afterEvaluation(Object resultObject, Class compiledScriptClass, ScriptExpressionEvaluationContext context) {
 	}
 
-	private void setCompileOptions(ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
-		CompileOptions options = new CompileOptions();
-		options.setVariables(variables);
-		options.setFunctions(functions);
-		options.setContextDescription(contextDescription);
-		COMPILE_OPTIONS.set(options);
-	}
-	
-	private void resetCompileOptions() {
-		COMPILE_OPTIONS.remove();
-	}
+//	private void setCompileOptions(ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
+//		CompileOptions options = new CompileOptions();
+//		options.setVariables(variables);
+//		options.setFunctions(functions);
+//		options.setContextDescription(contextDescription);
+//		COMPILE_OPTIONS.set(options);
+//	}
+//	
+//	private void resetCompileOptions() {
+//		COMPILE_OPTIONS.remove();
+//	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -70,6 +70,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
 	final private ExpressionType expressionType;
 	final private D outputDefinition;
+	final private ExpressionProfile expressionProfile;
 	final private PrismContext prismContext;
 	final private ObjectResolver objectResolver;
 	final private SecurityContextManager securityContextManager;
@@ -77,12 +78,13 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
-	public Expression(ExpressionType expressionType, D outputDefinition, ObjectResolver objectResolver, SecurityContextManager securityContextManager, PrismContext prismContext) {
+	public Expression(ExpressionType expressionType, D outputDefinition, ExpressionProfile expressionProfile, ObjectResolver objectResolver, SecurityContextManager securityContextManager, PrismContext prismContext) {
 		//Validate.notNull(outputDefinition, "null outputDefinition");
 		Validate.notNull(objectResolver, "null objectResolver");
 		Validate.notNull(prismContext, "null prismContext");
 		this.expressionType = expressionType;
 		this.outputDefinition = outputDefinition;
+		this.expressionProfile = expressionProfile;
 		this.objectResolver = objectResolver;
 		this.prismContext = prismContext;
 		this.securityContextManager = securityContextManager;
@@ -118,7 +120,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		if (evaluatorFactory == null) {
 			throw new SchemaException("Unknown expression evaluator element "+fistEvaluatorElement.getName()+" in "+contextDescription);
 		}
-		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, factory, contextDescription, task, result);
+		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, expressionProfile, factory, contextDescription, task, result);
 	}
 
 	private ExpressionEvaluator<V,D> createDefaultEvaluator(ExpressionFactory factory, String contextDescription,
@@ -127,7 +129,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		if (evaluatorFactory == null) {
 			throw new SystemException("Internal error: No default expression evaluator factory");
 		}
-		return evaluatorFactory.createEvaluator(null, outputDefinition, factory,  contextDescription, task, result);
+		return evaluatorFactory.createEvaluator(null, outputDefinition, expressionProfile, factory,  contextDescription, task, result);
 	}
 
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,

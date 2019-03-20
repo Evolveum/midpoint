@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -91,10 +92,11 @@ public class ScriptExecutor extends BaseActionExecutor {
 	    boolean quiet = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_QUIET, input, context, false, PARAM_QUIET, globalResult);
 
 		ItemDefinition<?> outputDefinition = getItemDefinition(outputItem);
+		ExpressionProfile expressionProfile = null; // TODO
 
 		ScriptExpression scriptExpression;
 		try {
-			scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, expressionFactory, "script", context.getTask(), globalResult);
+			scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, expressionProfile, expressionFactory, "script", context.getTask(), globalResult);
 		} catch (ExpressionSyntaxException e) {
 			throw new ScriptExecutionException("Couldn't parse script expression: " + e.getMessage(), e);
 		}

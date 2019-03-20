@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
@@ -55,18 +56,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionR
 public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType>
 						implements ExpressionEvaluator<V,D> {
 
-	protected SecurityContextManager securityContextManager;
-    protected LocalizationService localizationService;
-	protected PrismContext prismContext;
+	protected final ExpressionProfile expressionProfile;
+	protected final SecurityContextManager securityContextManager;
+    protected final LocalizationService localizationService;
+	protected final PrismContext prismContext;
 
 	private E expressionEvaluatorType;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
-    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType,
+    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType, ExpressionProfile expressionProfile,
 		    SecurityContextManager securityContextManager, LocalizationService localizationService,
 		    PrismContext prismContext) {
     	this.expressionEvaluatorType = expressionEvaluatorType;
+    	this.expressionProfile = expressionProfile;
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
         this.prismContext = prismContext;
@@ -351,7 +354,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 		Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> conditionExpression;
 		if (expressionEvaluatorType.getCondition() != null) {
-			conditionExpression = ExpressionUtil.createCondition(expressionEvaluatorType.getCondition(),
+			conditionExpression = ExpressionUtil.createCondition(expressionEvaluatorType.getCondition(), expressionProfile,
 					evaluationContext.getExpressionFactory(), "condition in " + contextDescription, task, result);
 		} else {
 			conditionExpression = null;

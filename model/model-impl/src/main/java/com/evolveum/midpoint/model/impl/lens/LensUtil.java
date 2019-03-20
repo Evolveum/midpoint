@@ -470,7 +470,7 @@ public class LensUtil {
 	    PrismContext prismContext = context.getPrismContext();
 	    PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
 				DOMUtil.XSD_STRING);
-		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
+		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 
 		Collection<Source<?,?>> sources = new ArrayList<>();
 		MutablePrismPropertyDefinition<Integer> inputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME,
@@ -527,7 +527,8 @@ public class LensUtil {
 			return true;
 		}
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-				expressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()) , desc, task, result);
+				expressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()), MiscSchemaUtil.getExpressionProfile(),
+				desc, task, result);
 
 		variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
@@ -1032,7 +1033,7 @@ public class LensUtil {
 		PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(
 				new QName(SchemaConstants.NS_C, "result"), typeName);
 		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
-				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
+				expressionFactory.makeExpression(expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
 		ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
 		eeContext.setAdditionalConvertor(additionalConvertor);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder

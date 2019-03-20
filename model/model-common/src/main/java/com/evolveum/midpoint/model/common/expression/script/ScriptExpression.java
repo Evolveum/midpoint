@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -53,6 +54,7 @@ public class ScriptExpression {
 	private Function<Object, Object> additionalConvertor;
     private ObjectResolver objectResolver;
     private Collection<FunctionLibrary> functions;
+    private ExpressionProfile expressionProfile;
     
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
 	private static final int MAX_CODE_CHARS = 42;
@@ -86,6 +88,14 @@ public class ScriptExpression {
 		this.functions = functions;
 	}
 
+	public ExpressionProfile getExpressionProfile() {
+		return expressionProfile;
+	}
+
+	public void setExpressionProfile(ExpressionProfile expressionProfile) {
+		this.expressionProfile = expressionProfile;
+	}
+
 	public Function<Object, Object> getAdditionalConvertor() {
 		return additionalConvertor;
 	}
@@ -98,13 +108,24 @@ public class ScriptExpression {
 			boolean useNew, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, task, this);
+		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+		context.setExpressionType(scriptType);
+		context.setVariables(variables);
+		context.setFunctions(functions);
+		context.setOutputDefinition(outputDefinition);
+		context.setAdditionalConvertor(additionalConvertor);
+		context.setSuggestedReturnType(suggestedReturnType);
+		context.setObjectResolver(objectResolver);
 		context.setEvaluateNew(useNew);
+		context.setScriptExpression(this);
+		context.setContextDescription(contextDescription);
+		context.setTask(task);
+		context.setResult(result);
 
 		try {
 			context.setupThreadLocal();
 
-			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, additionalConvertor, suggestedReturnType, objectResolver, functions, contextDescription, task, result);
+			List<V> expressionResult = evaluator.evaluate(context);
 
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;

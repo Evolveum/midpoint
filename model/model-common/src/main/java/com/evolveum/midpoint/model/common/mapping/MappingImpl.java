@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -102,6 +103,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private final ItemPath defaultTargetPath;
 	private final D defaultTargetDefinition;
 	private final Collection<V> originalTargetValues;
+	private final ExpressionProfile expressionProfile;
 
 	private final ObjectResolver objectResolver;
     private final SecurityContextManager securityContextManager;          // in order to get c:actor variable
@@ -160,6 +162,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		securityContextManager = builder.securityContextManager;
 		defaultSource = builder.defaultSource;
 		defaultTargetDefinition = builder.defaultTargetDefinition;
+		expressionProfile = builder.expressionProfile;
 		defaultTargetPath = builder.defaultTargetPath;
 		originalTargetValues = builder.originalTargetValues;
 		sourceContext = builder.sourceContext;
@@ -527,7 +530,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
 		ValueSetDefinitionType rangetSetDefType = mappingType.getTarget().getSet();
-		ValueSetDefinition setDef = new ValueSetDefinition(rangetSetDefType, name, "range of "+name+" in "+getMappingContextDescription(), task, result);
+		ValueSetDefinition setDef = new ValueSetDefinition(rangetSetDefType, expressionProfile, name, "range of "+name+" in "+getMappingContextDescription(), task, result);
 		setDef.init(expressionFactory);
 		setDef.setAdditionalVariables(variables);
 		for (V originalValue : originalTargetValues) {
@@ -579,7 +582,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value, value.getParent().getDefinition());
 
 		PrismPropertyDefinition<Boolean> outputDef = getPrismContext().definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, null, false);
-		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionFactory, "isInSet expression in " + contextDescription, task, result);
+		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionProfile, expressionFactory, "isInSet expression in " + contextDescription, task, result);
 
 		// but now remove the parent! TODO: PM: why???
 //		if (value.getParent() != null) {
@@ -939,7 +942,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		// apply domain
 		ValueSetDefinitionType domainSetType = sourceType.getSet();
 		if (domainSetType != null) {
-			ValueSetDefinition setDef = new ValueSetDefinition(domainSetType, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
+			ValueSetDefinition setDef = new ValueSetDefinition(domainSetType, expressionProfile, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
 			setDef.init(expressionFactory);
 			setDef.setAdditionalVariables(variables);
 			try {
@@ -1079,7 +1082,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			return;
 		}
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
-				ExpressionUtil.createCondition(conditionExpressionType, expressionFactory,
+				ExpressionUtil.createCondition(conditionExpressionType, expressionProfile, expressionFactory,
 				"condition in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"condition in "+getMappingContextDescription(), task, result);
@@ -1099,7 +1102,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
 		}
-		expression = expressionFactory.makeExpression(expressionType, outputDefinition,
+		expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 				"expression in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"expression in "+getMappingContextDescription(), task, result);
@@ -1202,6 +1205,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				.conditionMaskOld(conditionMaskOld)
 				.defaultSource(defaultSource)
 				.defaultTargetDefinition(defaultTargetDefinition)
+				.expressionProfile(expressionProfile)
 				.objectResolver(objectResolver)
 				.originObject(originObject)
 				.originType(originType)
@@ -1230,8 +1234,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		result = prime * result + (conditionMaskOld ? 1231 : 1237);
 		result = prime * result + ((conditionOutputTriple == null) ? 0 : conditionOutputTriple.hashCode());
 		result = prime * result + ((defaultSource == null) ? 0 : defaultSource.hashCode());
-		result = prime * result
-				+ ((defaultTargetDefinition == null) ? 0 : defaultTargetDefinition.hashCode());
+		result = prime * result + ((defaultTargetDefinition == null) ? 0 : defaultTargetDefinition.hashCode());
+		result = prime * result + ((expressionProfile == null) ? 0 : expressionProfile.hashCode());
 		result = prime * result + ((expressionFactory == null) ? 0 : expressionFactory.hashCode());
 		result = prime * result + ((mappingType == null) ? 0 : mappingType.hashCode());
 		result = prime * result + ((objectResolver == null) ? 0 : objectResolver.hashCode());
@@ -1274,6 +1278,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			if (other.defaultTargetDefinition != null)
 				return false;
 		} else if (!defaultTargetDefinition.equals(other.defaultTargetDefinition))
+			return false;
+		if (expressionProfile == null) {
+			if (other.expressionProfile != null)
+				return false;
+		} else if (!expressionProfile.equals(other.expressionProfile))
 			return false;
 		if (expressionFactory == null) {
 			if (other.expressionFactory != null)
@@ -1413,6 +1422,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		private SecurityContextManager securityContextManager;
 		private Source<?,?> defaultSource;
 		private D defaultTargetDefinition;
+		private ExpressionProfile expressionProfile;
 		private ItemPath defaultTargetPath;
 		private Collection<V> originalTargetValues;
 		private ObjectDeltaObject<?> sourceContext;
@@ -1467,6 +1477,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 		public Builder<V,D> defaultTargetDefinition(D val) {
 			defaultTargetDefinition = val;
+			return this;
+		}
+		
+		public Builder<V,D> expressionProfile(ExpressionProfile val) {
+			expressionProfile = val;
 			return this;
 		}
 

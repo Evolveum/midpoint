@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -321,7 +322,7 @@ public class SimpleSmsTransport implements Transport {
         }
 
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression =
-		        expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+		        expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, task, result);

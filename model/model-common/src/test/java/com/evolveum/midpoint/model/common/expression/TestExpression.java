@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -97,7 +98,7 @@ public class TestExpression {
 
     	PrismPropertyDefinition<Boolean> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, null, result);
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , MiscSchemaUtil.getExpressionProfile(), TEST_NAME, null, result);
 
 		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);

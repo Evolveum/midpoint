@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -804,7 +805,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 			}
 			variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject, def);
-			return ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, 
+			return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext, 
 					"expression in " + objectTargetDesc + " in authorization " + autzHumanReadableDesc, task, result);
 		};
 	}

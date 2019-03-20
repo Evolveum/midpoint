@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -59,7 +60,7 @@ public class UcfExpressionEvaluatorImpl implements UcfExpressionEvaluator {
 		OperationResult result = task.getResult();
 
 		Expression<PrismPropertyValue<O>, PrismPropertyDefinition<O>> expression =
-				expressionFactory.makePropertyExpression(expressionBean, outputPropertyName, ctxDesc, task, result);
+				expressionFactory.makePropertyExpression(expressionBean, outputPropertyName, MiscSchemaUtil.getExpressionProfile(), ctxDesc, task, result);
 		ExpressionVariables exprVariables = new ExpressionVariables();
 		exprVariables.putAll(variables);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, exprVariables, ctxDesc, task, result);

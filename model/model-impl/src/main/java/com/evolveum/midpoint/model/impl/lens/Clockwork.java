@@ -648,7 +648,7 @@ public class Clockwork {
     	LOGGER.trace("Evaluating {}", shortDesc);
 		// TODO: it would be nice to cache this
 		// null output definition: this script has no output
-		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, expressionFactory, shortDesc, task, result);
+		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, task, result);
 
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);

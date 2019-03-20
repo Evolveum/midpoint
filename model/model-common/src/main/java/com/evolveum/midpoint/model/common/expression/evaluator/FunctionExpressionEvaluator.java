@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -132,9 +133,10 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		OperationResult functionExpressionResult = result.createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".makeExpression");
 		ExpressionFactory factory = context.getExpressionFactory();
 		
+		// TODO: expression profile should be determined from the function library archetype
 		Expression<V, D> expression;
 		try {
-			expression = factory.makeExpression(functionToExecute, outputDefinition, "function execution", task, functionExpressionResult);
+			expression = factory.makeExpression(functionToExecute, outputDefinition, MiscSchemaUtil.getExpressionProfile(), "function execution", task, functionExpressionResult);
 			functionExpressionResult.recordSuccess();
 		} catch (SchemaException | ObjectNotFoundException e) {
 			functionExpressionResult.recordFatalError("Cannot make expression for " + functionToExecute + ". Reason: " + e.getMessage(), e);

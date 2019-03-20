@@ -26,6 +26,7 @@ import org.codehaus.groovy.transform.stc.AbstractTypeCheckingExtension;
 import org.codehaus.groovy.transform.stc.StaticTypeCheckingVisitor;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,12 +46,12 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
 		super(typeCheckingVisitor);
 	}
 	
-	private CompileOptions getCompileOptions() {
-		CompileOptions compileOptions = SandboxedGroovyScriptEvaluator.COMPILE_OPTIONS.get();
-		if (compileOptions == null) {
-			throw new AssertionError("No compile option in thread-local variable during script compilation");
+	private ScriptExpressionEvaluationContext getContext() {
+		ScriptExpressionEvaluationContext context = ScriptExpressionEvaluationContext.getThreadLocal();
+		if (context == null) {
+			throw new AssertionError("No script execution context in thread-local variable during script compilation");
 		}
-		return compileOptions;
+		return context;
 	}
 
 	@Override
@@ -63,15 +64,15 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
 	public boolean handleUnresolvedVariableExpression(VariableExpression vexp) {
 		String variableName = vexp.getName();
 		LOGGER.info("GROOVY:handleUnresolvedVariableExpression: variableName={}", variableName);
-		CompileOptions compileOptions = getCompileOptions();
-		String contextDescription = compileOptions.getContextDescription();
+		ScriptExpressionEvaluationContext context = getContext();
+		String contextDescription = context.getContextDescription();
 		
 		if (!isDynamic(vexp)) {
 			LOGGER.error("Unresolved script variable {} because it is not dynamic, in {}", contextDescription);
 			return false;
 		}
 		
-		ExpressionVariables variables = compileOptions.getVariables();
+		ExpressionVariables variables = context.getVariables();
 		if (variables != null) {
 			TypedValue variableTypedValue = variables.get(variableName);
 			if (variableTypedValue != null) {
@@ -90,7 +91,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
 			}
 		}
 		
-		Collection<FunctionLibrary> functions = compileOptions.getFunctions();
+		Collection<FunctionLibrary> functions = context.getFunctions();
 		if (functions != null) {
 			for (FunctionLibrary function : functions) {
 				if (function.getVariableName().equals(variableName)) {

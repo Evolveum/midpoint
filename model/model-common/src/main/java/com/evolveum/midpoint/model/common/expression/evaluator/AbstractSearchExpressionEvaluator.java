@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -91,10 +92,10 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	private ModelService modelService;
 
 	protected AbstractSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
-			D outputDefinition, Protector protector, ObjectResolver objectResolver,
+			D outputDefinition, ExpressionProfile expressionProfile, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
-		super(expressionEvaluatorType, securityContextManager, localizationService, prismContext);
+		super(expressionEvaluatorType, expressionProfile, securityContextManager, localizationService, prismContext);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -157,7 +158,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		if (populateAssignmentType != null) {
 			if (outputDefinition instanceof PrismContainerDefinition) {
 				additionalAttributeDeltas = PopulatorUtil.computePopulateItemDeltas(populateAssignmentType, 
-						(PrismContainerDefinition<?>)outputDefinition, variables, context, contextDescription, task, result);
+						(PrismContainerDefinition<?>)outputDefinition, variables, expressionProfile, context, contextDescription, task, result);
 			} else {
 				LOGGER.warn("Search expression {} applied to non-container target, ignoring populate definition", contextDescription);
 			}
@@ -177,7 +178,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("XML query converted to: {}", query.debugDump());
 			}
-			query = ExpressionUtil.evaluateQueryExpressions(query, variables, context.getExpressionFactory(),
+			query = ExpressionUtil.evaluateQueryExpressions(query, variables, expressionProfile, context.getExpressionFactory(),
 					prismContext, context.getContextDescription(), task, result);
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("Expression in query evaluated to: {}", query.debugDump());
@@ -388,7 +389,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		} else {
 			
 			List<ItemDelta<V, D>> populateDeltas = PopulatorUtil.computePopulateItemDeltas(populateObject,
-					objectDefinition, variables, params, contextDescription, task, result);
+					objectDefinition, variables, expressionProfile, params, contextDescription, task, result);
 			ItemDeltaCollectionsUtil.applyTo(populateDeltas, newObject);
 			
 		}

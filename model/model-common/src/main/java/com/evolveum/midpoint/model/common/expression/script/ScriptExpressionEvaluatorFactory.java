@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -72,7 +73,7 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 	 */
 	@Override
 	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-			D outputDefinition, ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException {
+			D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);
@@ -85,9 +86,9 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
         }
         ScriptExpressionEvaluatorType scriptType = (ScriptExpressionEvaluatorType) evaluatorElementObject;
 
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, factory, contextDescription, task, result);
+		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, expressionProfile, factory, contextDescription, task, result);
 
-        return new ScriptExpressionEvaluator<>(scriptType, scriptExpression, securityContextManager, localizationService, prismContext);
+        return new ScriptExpressionEvaluator<>(scriptType, scriptExpression, expressionProfile, securityContextManager, localizationService, prismContext);
 
 	}
 

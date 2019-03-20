@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -58,13 +59,16 @@ public class CustomFunctions {
 	
 	private ExpressionFactory expressionFactory;
 	private FunctionLibraryType library;
+	private ExpressionProfile expressionProfile;
 	private OperationResult result;
 	private Task task;
 	private PrismContext prismContext;
+
 	
-	public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, OperationResult result, Task task) {
+	public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, OperationResult result, Task task) {
 		this.library = library;
 		this.expressionFactory = expressionFactory;
+		this.expressionProfile = expressionProfile;
 		this.prismContext = expressionFactory.getPrismContext();
 		this.result = result;
 		this.task = task;
@@ -107,7 +111,7 @@ public class CustomFunctions {
 				outputDefinition.toMutable().setMaxOccurs(1);
 			}
 			String shortDesc = "custom function execute";
-			Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
+			Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 					shortDesc, task, result);
 
 			ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,

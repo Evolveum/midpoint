@@ -44,6 +44,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -193,17 +194,21 @@ public class ReportServiceImpl implements ReportService {
 		variables.put("auditParams", getConvertedParams(parameters));
 
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".evaluateScript");
-		OperationResult parentResult = task.getResult();
 
-		Collection<FunctionLibrary> functions = createFunctionLibraries();
-
+		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+		context.setVariables(variables);
+		context.setFunctions(createFunctionLibraries());
+		context.setObjectResolver(objectResolver);
+		context.setContextDescription("report script"); // TODO: improve
+		context.setTask(task);
+		context.setResult(task.getResult());
+		
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
 				prismContext.getDefaultProtector(), localizationService);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
 		Object o;
 		try{
-			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
-				parentResult);
+			o = scripts.evaluateReportScript(script, context);
 		} finally{
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
@@ -236,17 +241,21 @@ public class ReportServiceImpl implements ReportService {
 		variables.put("auditParams", getConvertedParams(parameters));
 
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".evaluateScript");
-		OperationResult parentResult = task.getResult();
 
-		Collection<FunctionLibrary> functions = createFunctionLibraries();
+		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+		context.setVariables(variables);
+		context.setFunctions(createFunctionLibraries());
+		context.setObjectResolver(objectResolver);
+		context.setContextDescription("report script"); // TODO: improve
+		context.setTask(task);
+		context.setResult(task.getResult());
 
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
 				prismContext.getDefaultProtector(), localizationService);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
 		Object o;
 		try{
-			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
-				parentResult);
+			o = scripts.evaluateReportScript(script, context);
 		} finally{
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
@@ -276,17 +285,21 @@ public class ReportServiceImpl implements ReportService {
 			variables.put("auditParams", getConvertedParams(parameters));
 
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
-		OperationResult parentResult = task.getResult();
 
-		Collection<FunctionLibrary> functions = createFunctionLibraries();
+		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+		context.setVariables(variables);
+		context.setFunctions(createFunctionLibraries());
+		context.setObjectResolver(objectResolver);
+		context.setContextDescription("report script"); // TODO: improve
+		context.setTask(task);
+		context.setResult(task.getResult());
 
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
 				prismContext.getDefaultProtector(), localizationService);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
 		Object o;
 		try{
-			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
-				parentResult);
+			o = scripts.evaluateReportScript(script, context);
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}

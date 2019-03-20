@@ -18,24 +18,60 @@ package com.evolveum.midpoint.repo.common.expression;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ExpressionWrapper;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrimitiveType;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AllFilter;
+import com.evolveum.midpoint.prism.query.ExistsFilter;
+import com.evolveum.midpoint.prism.query.FilterCreationUtil;
+import com.evolveum.midpoint.prism.query.FullTextFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.UndefinedFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -45,9 +81,11 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -74,8 +112,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -512,7 +548,7 @@ public class ExpressionUtil {
 
 	}
 
-	public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables,
+	public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables, ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory, PrismContext prismContext, String shortDesc, Task task,
 			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -520,21 +556,21 @@ public class ExpressionUtil {
 			return null;
 		}
 		ObjectQuery query = origQuery.clone();
-		ObjectFilter evaluatedFilter = evaluateFilterExpressionsInternal(query.getFilter(), variables,
+		ObjectFilter evaluatedFilter = evaluateFilterExpressionsInternal(query.getFilter(), variables, expressionProfile,
 				expressionFactory, prismContext, shortDesc, task, result);
 		query.setFilter(evaluatedFilter);
 		return query;
 	}
 
 	public static ObjectFilter evaluateFilterExpressions(ObjectFilter origFilter,
-			ExpressionVariables variables, ExpressionFactory expressionFactory, PrismContext prismContext,
+			ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (origFilter == null) {
 			return null;
 		}
 
-		return evaluateFilterExpressionsInternal(origFilter, variables, expressionFactory, prismContext,
+		return evaluateFilterExpressionsInternal(origFilter, variables, expressionProfile, expressionFactory, prismContext,
 				shortDesc, task, result);
 	}
 
@@ -555,7 +591,7 @@ public class ExpressionUtil {
 	}
 
 	private static ObjectFilter evaluateFilterExpressionsInternal(ObjectFilter filter,
-			ExpressionVariables variables, ExpressionFactory expressionFactory, PrismContext prismContext,
+			ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (filter == null) {
@@ -577,7 +613,7 @@ public class ExpressionUtil {
 
 			try {
 				Collection<String> expressionResult = evaluateStringExpression(variables, prismContext,
-						valueExpression, expressionFactory, shortDesc, task, result);
+						valueExpression, expressionProfile, expressionFactory, shortDesc, task, result);
 
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
@@ -606,7 +642,7 @@ public class ExpressionUtil {
 
 			try {
 				Collection<String> expressionResult = evaluateStringExpression(variables, prismContext,
-						valueExpression, expressionFactory, shortDesc, task, result);
+						valueExpression, expressionProfile, expressionFactory, shortDesc, task, result);
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
@@ -630,7 +666,7 @@ public class ExpressionUtil {
 			List<ObjectFilter> conditions = ((LogicalFilter) filter).getConditions();
 			LogicalFilter evaluatedFilter = ((LogicalFilter) filter).cloneEmpty();
 			for (ObjectFilter condition : conditions) {
-				ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(condition, variables,
+				ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(condition, variables, expressionProfile,
 						expressionFactory, prismContext, shortDesc, task, result);
 				evaluatedFilter.addCondition(evaluatedSubFilter);
 			}
@@ -651,7 +687,7 @@ public class ExpressionUtil {
 			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
 
 			try {
-				PrismValue expressionResult = evaluateExpression(variables, prismContext, valueExpression,
+				PrismValue expressionResult = evaluateExpression(variables, prismContext, valueExpression, expressionProfile,
 						filter, expressionFactory, shortDesc, task, result);
 
 				if (expressionResult == null || expressionResult.isEmpty()) {
@@ -699,13 +735,13 @@ public class ExpressionUtil {
 		} else if (filter instanceof ExistsFilter) {
 			ExistsFilter evaluatedFilter = ((ExistsFilter) filter).cloneEmpty();
 			ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(((ExistsFilter) filter).getFilter(), variables,
-					expressionFactory, prismContext, shortDesc, task, result);
+					expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
 			evaluatedFilter.setFilter(evaluatedSubFilter);
 			return evaluatedFilter;
 		} else if (filter instanceof TypeFilter) {
 			TypeFilter evaluatedFilter = ((TypeFilter) filter).cloneEmpty();
 			ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(((TypeFilter) filter).getFilter(), variables,
-						expressionFactory, prismContext, shortDesc, task, result);
+						expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
 			evaluatedFilter.setFilter(evaluatedSubFilter);
 			return evaluatedFilter;
 		} else if (filter instanceof OrgFilter) {
@@ -775,7 +811,7 @@ public class ExpressionUtil {
 	}
 
 	private static <V extends PrismValue> V evaluateExpression(ExpressionVariables variables,
-			PrismContext prismContext, ExpressionType expressionType, ObjectFilter filter,
+			PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ObjectFilter filter,
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -790,7 +826,7 @@ public class ExpressionUtil {
 					DOMUtil.XSD_STRING);
 		}
 
-		return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc,
+		return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc,
 				task, parentResult);
 
 		// String expressionResult =
@@ -799,11 +835,11 @@ public class ExpressionUtil {
 	}
 
 	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
-			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType,
+			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
+		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 				shortDesc, task, parentResult);
 
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
@@ -831,7 +867,7 @@ public class ExpressionUtil {
 	}
 
 	public static Collection<String> evaluateStringExpression(ExpressionVariables variables,
-			PrismContext prismContext, ExpressionType expressionType, ExpressionFactory expressionFactory,
+			PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
 			String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -839,7 +875,7 @@ public class ExpressionUtil {
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 		outputDefinition.setMaxOccurs(-1);
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
-				.makeExpression(expressionType, outputDefinition, shortDesc, task, parentResult);
+				.makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				parentResult);
@@ -860,12 +896,12 @@ public class ExpressionUtil {
 	}
 
 	public static PrismPropertyValue<Boolean> evaluateCondition(ExpressionVariables variables,
-			ExpressionType expressionType, ExpressionFactory expressionFactory, String shortDesc, Task task,
+			ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
 			OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,
+		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
 				expressionFactory, shortDesc, task, parentResult);
 	}
 
@@ -1088,9 +1124,10 @@ public class ExpressionUtil {
 
 	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(
 			ExpressionType conditionExpressionType,
+			ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory,
 			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(expressionFactory.getPrismContext()), shortDesc, task, result);
+		return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(expressionFactory.getPrismContext()), expressionProfile, shortDesc, task, result);
 	}
 
 	public static Function<Object, Object> createRefConvertor(QName defaultType) {

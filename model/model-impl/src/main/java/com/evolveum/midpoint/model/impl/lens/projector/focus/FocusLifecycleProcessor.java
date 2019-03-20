@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LifecycleUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -148,7 +149,8 @@ public class FocusLifecycleProcessor {
 		// TODO: more variables?
 		
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-				conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()) , desc, task, result);
+				conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()),
+				MiscSchemaUtil.getExpressionProfile(), desc, task, result);
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
 		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -83,37 +84,33 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Compil
 
 	
 	@Override
-	protected CompiledScript compileScript(String codeString, ExpressionVariables variables, String contextDescription) throws Exception {
+	protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext context) throws Exception {
 		return ((Compilable)scriptEngine).compile(codeString);
 	}
 	
 	@Override
-	protected Object evaluateScript(CompiledScript compiledScript, ExpressionVariables variables,
-			ObjectResolver objectResolver, Collection<FunctionLibrary> functions, String contextDescription,
-			Task task, OperationResult result) throws Exception {
+	protected Object evaluateScript(CompiledScript compiledScript, ScriptExpressionEvaluationContext context) throws Exception {
 		
-		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, task, result);
+		Bindings bindings = convertToBindings(context);
 		return compiledScript.eval(bindings);
 	}
 	
-	private Bindings convertToBindings(ExpressionVariables variables, ObjectResolver objectResolver,
-			   Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) 
+	private Bindings convertToBindings(ScriptExpressionEvaluationContext context) 
 					   throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Bindings bindings = scriptEngine.createBindings();
-		bindings.putAll(getVariableValuesMap(variables, objectResolver, functions, contextDescription, task, result));
+		bindings.putAll(prepareScriptVariablesValueMap(context));
 		return bindings;
 	}
 	
 
-	public <T> Object evaluateReportScript(String codeString, ExpressionVariables variables, ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+	public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, (Task) null, result);
+		Bindings bindings = convertToBindings(context);
 
 //		String codeString = code;
 		if (codeString == null) {
-			throw new ExpressionEvaluationException("No script code in " + contextDescription);
+			throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
 		}
 
 		boolean allowEmptyValues = true;
@@ -121,14 +118,14 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Compil
 //			allowEmptyValues = expressionType.isAllowEmptyValues();
 //		}
 
-		CompiledScript compiledScript = getCompiledScript(codeString, variables, functions, contextDescription);
+		CompiledScript compiledScript = getCompiledScript(codeString, context);
 
 		Object evalRawResult;
 		try {
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			evalRawResult = compiledScript.eval(bindings);
 		} catch (Throwable e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
 		}
 
 

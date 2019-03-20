@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,14 +23,10 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -77,26 +72,25 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 	/**
 	 * Returns simple variable map: name -> value.
 	 */
-	protected Map<String,Object> prepareScriptVariablesValueMap(ExpressionVariables variables, ObjectResolver objectResolver,
-			Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) 
+	protected Map<String,Object> prepareScriptVariablesValueMap(ScriptExpressionEvaluationContext context) 
 					throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Map<String,Object> scriptVariableMap = new HashMap<>();
 		// Functions
-		if (functions != null) {
-			for (FunctionLibrary funcLib: functions) {
+		if (context.getFunctions() != null) {
+			for (FunctionLibrary funcLib: context.getFunctions()) {
 				scriptVariableMap.put(funcLib.getVariableName(), funcLib.getGenericFunctions());
 			}
 		}
 		
 		// Variables
-		if (variables != null) {
-			for (Entry<String, TypedValue> variableEntry: variables.entrySet()) {
+		if (context.getVariables() != null) {
+			for (Entry<String, TypedValue> variableEntry: context.getVariables().entrySet()) {
 				if (variableEntry.getKey() == null) {
 					// This is the "root" node. We have no use for it in script expressions, just skip it
 					continue;
 				}
 				String variableName = variableEntry.getKey();
-				TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, prismContext, task, result);
+				TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, context.getObjectResolver(), context.getContextDescription(), prismContext, context.getTask(), context.getResult());
 				scriptVariableMap.put(variableName, variableTypedValue.getValue());
 			}
 		}

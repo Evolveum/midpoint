@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -102,7 +103,7 @@ public class CommandLineScriptExecutor {
     				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
     		outputDefinition.setMaxOccurs(1);
     		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
-    				.makeExpression(macroDef, outputDefinition, shortDesc, task, result);
+    				.makeExpression(macroDef, outputDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
     		Collection<Source<?, ?>> sources = new ArrayList<>(1);
     		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task,

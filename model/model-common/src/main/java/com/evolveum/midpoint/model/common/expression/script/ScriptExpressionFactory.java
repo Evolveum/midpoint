@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -109,8 +111,9 @@ public class ScriptExpressionFactory implements Cacheable{
 		this.cacheRegistry = registry;
 	}
 
-	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition,
-			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws ExpressionSyntaxException {
+	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, 
+			ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result)
+					throws ExpressionSyntaxException {
 
 		initializeCustomFunctionsLibraryCache(expressionFactory, task, result);
 		//cache cleanup method
@@ -121,6 +124,7 @@ public class ScriptExpressionFactory implements Cacheable{
 		Collection<FunctionLibrary> functionsToUse = new ArrayList<>(functions);
 		functionsToUse.addAll(customFunctionLibraryCache.values());
 		expression.setFunctions(functionsToUse);
+		expression.setExpressionProfile(expressionProfile);
 		return expression;
 	}
 
@@ -139,10 +143,12 @@ public class ScriptExpressionFactory implements Cacheable{
 		OperationResult subResult = result
 				.createMinorSubresult(ScriptExpressionFactory.class.getName() + ".searchCustomFunctions");
 		ResultHandler<FunctionLibraryType> functionLibraryHandler = (object, parentResult) -> {
+			// TODO: determine profile from function library archetype
+			ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile(); 
 			FunctionLibrary customLibrary = new FunctionLibrary();
 			customLibrary.setVariableName(object.getName().getOrig());
-			customLibrary
-					.setGenericFunctions(new CustomFunctions(object.asObjectable(), expressionFactory, result, task));
+			customLibrary.setGenericFunctions(
+					new CustomFunctions(object.asObjectable(), expressionFactory, expressionProfile, result, task));
 			customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
 			customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
 			return true;
