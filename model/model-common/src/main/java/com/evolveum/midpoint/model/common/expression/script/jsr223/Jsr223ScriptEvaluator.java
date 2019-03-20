@@ -83,7 +83,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Compil
 
 	
 	@Override
-	protected CompiledScript compileScript(String codeString, String contextDescription) throws Exception {
+	protected CompiledScript compileScript(String codeString, ExpressionVariables variables, String contextDescription) throws Exception {
 		return ((Compilable)scriptEngine).compile(codeString);
 	}
 	
@@ -121,7 +121,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Compil
 //			allowEmptyValues = expressionType.isAllowEmptyValues();
 //		}
 
-		CompiledScript compiledScript = getCompiledScript(codeString, contextDescription);
+		CompiledScript compiledScript = getCompiledScript(codeString, variables, functions, contextDescription);
 
 		Object evalRawResult;
 		try {

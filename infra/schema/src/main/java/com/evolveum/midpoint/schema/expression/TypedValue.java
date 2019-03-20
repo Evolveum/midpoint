@@ -17,13 +17,26 @@ package com.evolveum.midpoint.schema.expression;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Value and definition pair. E.g. used in expression variable maps.
  * We need to have explicit type here. It may happen that there will be
  * variables without any value. But we need to know the type of the
  * variable to compile the scripts properly.
+ * 
+ * The definition, typeClass and the T parameter of this class refer to the
+ * type of the value as it should appear in the expression. The actual
+ * value may be different when TypedValue is created. The value may
+ * get converted as it is passing down the stack.
+ * 
+ * E.g. if we want script variable to contain a user, the type should be
+ * declared as UserType, not as object reference - even though the value
+ * is object reference when the TypedValue is created. But the reference
+ * is resolved down the way to place user in the value. 
  * 
  * @author Radovan Semancik
  */
@@ -95,6 +108,31 @@ public class TypedValue<T> implements ShortDumpable {
 
 	public void setTypeClass(Class<T> typeClass) {
 		this.typeClass = typeClass;
+	}
+
+	
+	public Class<T> determineClass() throws SchemaException {
+		if (definition == null) {
+			if (typeClass == null) {
+				throw new SchemaException("Cannot determine class for variable, neither definition nor class specified");
+			} else {
+				return typeClass;
+			}
+		} else {
+			Class determinedClass;
+			if (definition instanceof PrismReferenceDefinition) {
+				// Stock prism reference would return ObjectReferenceType from prism schema.
+				// But we have exteded type for this.
+				// TODO: how to make this more elegant?
+				determinedClass = ObjectReferenceType.class;
+			} else {
+				determinedClass = definition.getTypeClass();
+			}
+			if (determinedClass == null) {
+				throw new SchemaException("Cannot determine class from definition "+definition);
+			}
+			return determinedClass;
+		}
 	}
 
 	@Override

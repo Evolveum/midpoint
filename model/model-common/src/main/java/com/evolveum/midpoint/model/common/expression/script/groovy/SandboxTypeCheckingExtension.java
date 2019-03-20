@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.groovy;
 
+import java.util.Collection;
+
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.MethodNode;
@@ -23,7 +25,10 @@ import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.transform.stc.AbstractTypeCheckingExtension;
 import org.codehaus.groovy.transform.stc.StaticTypeCheckingVisitor;
 
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -41,7 +46,11 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
 	}
 	
 	private CompileOptions getCompileOptions() {
-		return SandboxedGroovyScriptEvaluator.COMPILE_OPTIONS.get();
+		CompileOptions compileOptions = SandboxedGroovyScriptEvaluator.COMPILE_OPTIONS.get();
+		if (compileOptions == null) {
+			throw new AssertionError("No compile option in thread-local variable during script compilation");
+		}
+		return compileOptions;
 	}
 
 	@Override
@@ -54,16 +63,47 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
 	public boolean handleUnresolvedVariableExpression(VariableExpression vexp) {
 		String variableName = vexp.getName();
 		LOGGER.info("GROOVY:handleUnresolvedVariableExpression: variableName={}", variableName);
+		CompileOptions compileOptions = getCompileOptions();
+		String contextDescription = compileOptions.getContextDescription();
+		
 		if (!isDynamic(vexp)) {
+			LOGGER.error("Unresolved script variable {} because it is not dynamic, in {}", contextDescription);
 			return false;
 		}
-		ExpressionVariables variables = getCompileOptions().getVariables();
-		if (!variables.containsKey(variableName)) {
-			return false;
+		
+		ExpressionVariables variables = compileOptions.getVariables();
+		if (variables != null) {
+			TypedValue variableTypedValue = variables.get(variableName);
+			if (variableTypedValue != null) {
+				Class variableClass;
+				try {
+					variableClass = variableTypedValue.determineClass();
+				} catch (SchemaException e) {
+					String msg = "Cannot determine class for "+variableTypedValue+" in "+contextDescription+": "+e.getMessage();
+					LOGGER.error("{}", msg);
+					throw new IllegalStateException(msg, e);
+				}
+				LOGGER.trace("Determine script variable {} as expression variable, class {} in {}", variableName, variableClass, contextDescription);
+				storeType(vexp, ClassHelper.make(variableClass));
+				setHandled(true);
+				return true;
+			}
 		}
-//		Object variableValue = variables.getVariable(variableName);
-//		ClassHelper.make(c)
-//		makeDynamic(vexp, returnType);
+		
+		Collection<FunctionLibrary> functions = compileOptions.getFunctions();
+		if (functions != null) {
+			for (FunctionLibrary function : functions) {
+				if (function.getVariableName().equals(variableName)) {
+					Class functionClass = function.getGenericFunctions().getClass();
+					LOGGER.trace("Determine script variable {} as function library, class {} in {}", variableName, functionClass, contextDescription);
+					storeType(vexp, ClassHelper.make(functionClass));
+					setHandled(true);
+					return true;
+				}
+			}
+		}
+		
+		LOGGER.error("Unresolved script variable {} because no declaration for it cannot be found in {}", contextDescription);
 		return false;
     }
 }

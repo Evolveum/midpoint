@@ -85,7 +85,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class>
 
 
 	@Override
-	protected Class compileScript(String codeString, String contextDescription)
+	protected Class compileScript(String codeString, ExpressionVariables variables, String contextDescription)
 			throws ExpressionEvaluationException {
 		return groovyLoader.parseClass(codeString, contextDescription);
 	}
@@ -102,23 +102,12 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class>
 		
 		Binding binding = new Binding(getVariableValuesMap(variables, objectResolver, functions, contextDescription, task, result));
 		
-		beforeEvaluation(compiledScriptClass, variables, binding, contextDescription, task, result);
-		
 		Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
 		
 		Object resultObject = scriptResultObject.run();
 		
-		afterEvaluation(resultObject, compiledScriptClass, variables, binding, contextDescription, task, result);
-		
 		return resultObject;
 	}
-
-	protected void beforeEvaluation(Class compiledScriptClass, ExpressionVariables variables, Binding binding, String contextDescription, Task task, OperationResult result) {
-		
-	}
 	
-	protected void afterEvaluation(Object resultObject, Class compiledScriptClass, ExpressionVariables variables, Binding binding, String contextDescription, Task task, OperationResult result) {
-		
-	}
 
 }

@@ -22,25 +22,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
-import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,7 +49,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
@@ -99,12 +96,16 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 			allowEmptyValues = expressionType.isAllowEmptyValues();
 		}
 
-		C compiledScript = getCompiledScript(codeString, contextDescription);
+		C compiledScript = getCompiledScript(codeString, variables, functions, contextDescription);
 
 		Object evalRawResult;
 		try {
+			beforeEvaluation(compiledScript, variables, functions, contextDescription, task, result);
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
+			
 			evalRawResult = evaluateScript(compiledScript, variables, objectResolver, functions, contextDescription, task, result);
+			
+			afterEvaluation(evalRawResult, compiledScript, variables, functions, contextDescription, task, result);
 		} catch (Throwable e) {
 			throw getLocalizationService().translate(
 					new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription,
@@ -160,22 +161,26 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 		return pvals;
 	}
 
-	protected C getCompiledScript(String codeString, String contextDescription) throws ExpressionEvaluationException {
+	protected C getCompiledScript(String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) throws ExpressionEvaluationException {
 		C compiledScript = scriptCache.get(codeString);
 		if (compiledScript != null) {
 			return compiledScript;
 		}
 		InternalMonitor.recordCount(InternalCounters.SCRIPT_COMPILE_COUNT);
 		try {
-			compiledScript = compileScript(codeString, contextDescription);
+			beforeCompileScript(codeString, variables, functions, contextDescription);
+			
+			compiledScript = compileScript(codeString, variables, contextDescription);
+			
+			afterCompileScript(compiledScript, codeString, variables, functions, contextDescription);
 		} catch (Exception e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " while compiling " + contextDescription, e);
 		}
 		scriptCache.put(codeString, compiledScript);
 		return compiledScript;
 	}
-	
-	protected abstract C compileScript(String codeString, String contextDescription) throws Exception;
+
+	protected abstract C compileScript(String codeString, ExpressionVariables variables, String contextDescription) throws Exception;
 	
 	protected abstract Object evaluateScript(C compiledScript, ExpressionVariables variables,
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions, String contextDescription,
@@ -194,6 +199,24 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
 		}
+	}
+
+	// HOOKS
+	
+	protected void beforeCompileScript(String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
+		
+	}
+	
+	protected void afterCompileScript(C compiledScript, String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
+		
+	}
+	
+	protected void beforeEvaluation(C compiledScriptClass, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) {
+		
+	}
+	
+	protected void afterEvaluation(Object resultObject, C compiledScriptClass, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) {
+		
 	}
 
 }

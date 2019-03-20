@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.groovy;
 
+import java.util.Collection;
 import java.util.Collections;
 
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -22,6 +23,7 @@ import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -31,13 +33,13 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import groovy.lang.Binding;
 import groovy.transform.CompileStatic;
 
 /**
  * PROTOTYPE
  * 
  * @author Radovan Semancik
+ * Inspired by work of Cédric Champeau (http://melix.github.io/blog/2015/03/sandboxing.html)
  */
 @Experimental
 public class SandboxedGroovyScriptEvaluator extends GroovyScriptEvaluator {
@@ -62,15 +64,34 @@ public class SandboxedGroovyScriptEvaluator extends GroovyScriptEvaluator {
 	}
 	
 	@Override
-	protected void beforeEvaluation(Class compiledScriptClass, ExpressionVariables variables, Binding binding, String contextDescription, Task task, OperationResult result) {
-		CompileOptions options = new CompileOptions();
-		options.setVariables(variables);
-		COMPILE_OPTIONS.set(options);
+	protected void beforeCompileScript(String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
+		setCompileOptions(variables, functions, contextDescription);
 	}
 	
 	@Override
-	protected void afterEvaluation(Object resultObject, Class compiledScriptClass, ExpressionVariables variables, Binding binding, String contextDescription, Task task, OperationResult result) {
-		COMPILE_OPTIONS.remove();
+	protected void afterCompileScript(Class compiledScript, String codeString, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
+		resetCompileOptions();
+	}
+	
+	@Override
+	protected void beforeEvaluation(Class compiledScriptClass, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) {
+		setCompileOptions(variables, functions, contextDescription);
+	}
+	
+	@Override
+	protected void afterEvaluation(Object resultObject, Class compiledScriptClass, ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result) {
+		resetCompileOptions();
 	}
 
+	private void setCompileOptions(ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
+		CompileOptions options = new CompileOptions();
+		options.setVariables(variables);
+		options.setFunctions(functions);
+		options.setContextDescription(contextDescription);
+		COMPILE_OPTIONS.set(options);
+	}
+	
+	private void resetCompileOptions() {
+		COMPILE_OPTIONS.remove();
+	}
 }

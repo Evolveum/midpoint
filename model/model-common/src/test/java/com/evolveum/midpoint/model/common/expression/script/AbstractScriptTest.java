@@ -46,6 +46,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -77,6 +78,10 @@ public abstract class AbstractScriptTest {
 	protected static File BASE_TEST_DIR = new File("src/test/resources/expression");
     protected static File OBJECTS_DIR = new File("src/test/resources/objects");
     protected static final String USER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    
+    public static final String VAR_POISON = "poison";
+    protected static final String RESULT_POISON_OK = "ALIVE";
+    protected static final String POISON_DRINK_ERROR_MESSAGE = "ALIVE";
 
     public static final Trace LOGGER = TraceManager.getTrace(AbstractScriptTest.class);
 
@@ -178,8 +183,8 @@ public abstract class AbstractScriptTest {
 						"foo", "Captain", String.class,
 						"jack",
 							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-							prismContext.definitionFactory()
-								.createReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
+							// We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+							prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
 				),
     			"Captain emp1234");
     }
@@ -193,8 +198,8 @@ public abstract class AbstractScriptTest {
 						"foo", "Captain", PrimitiveType.STRING,
 						"jack",
 							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-							prismContext.definitionFactory()
-								.createReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
+							// We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+							prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
 				),
     			"Captain Jack Sparrow");
     }
@@ -244,10 +249,10 @@ public abstract class AbstractScriptTest {
 
 	private ExpressionVariables createUserScriptVariables() {
 		return createVariables(
-				SchemaConstants.C_USER,
-    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-    			prismContext.definitionFactory()
-					.createReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE));
+				ExpressionConstants.VAR_USER,
+	    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+	    			// We want 'user' variable to contain user object, not the reference. We want the reference resolved.
+	    			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class));
 	}
 
 	// TODO: shadow + attributes
@@ -261,8 +266,10 @@ public abstract class AbstractScriptTest {
     	evaluateAndAssertStringScalarExpresssion(
 				"expression-root-node.xml",
     			"testRootNode",
-    			ExpressionVariables.create(null,
-    	    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)),
+    			createVariables(
+    					null, // root node
+	    	    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+	    	    			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)),
     	    	"Black Pearl");
     }
 
@@ -274,8 +281,8 @@ public abstract class AbstractScriptTest {
     			createVariables(
 						"jack",
 							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-							prismContext.definitionFactory()
-								.createReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
+							// We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+							prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
 				),
     			"Leaders", "Followers");
     }
@@ -349,6 +356,12 @@ public abstract class AbstractScriptTest {
 		PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
 		assertNotNull("Expression "+testName+" resulted in null value (expected '"+expectedValue+"')", expressionResult);
 		assertEquals("Expression "+testName+" resulted in wrong value", expectedValue, expressionResult.getValue());
+	}
+	
+	protected void evaluateAndAssertStringScalarExpresssionRestricted(String fileName, String testName, ExpressionVariables variables) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
+		PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
+		AssertJUnit.fail("Expression "+testName+": unexpected success, result value: "+ expressionResult);
 	}
 
 	private void evaluateAndAssertStringListExpresssion(String fileName, String testName, ExpressionVariables variables, String... expectedValues) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {

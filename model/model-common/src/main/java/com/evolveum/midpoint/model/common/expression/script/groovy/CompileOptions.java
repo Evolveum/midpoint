@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.groovy;
 
+import java.util.Collection;
+
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 
 import groovy.lang.Binding;
@@ -26,6 +29,8 @@ import groovy.lang.Binding;
 public class CompileOptions {
 	
 	private ExpressionVariables variables;
+	private Collection<FunctionLibrary> functions;
+	private String contextDescription;
 
 	public ExpressionVariables getVariables() {
 		return variables;
@@ -33,6 +38,22 @@ public class CompileOptions {
 
 	public void setVariables(ExpressionVariables variables) {
 		this.variables = variables;
+	}
+
+	public Collection<FunctionLibrary> getFunctions() {
+		return functions;
+	}
+
+	public void setFunctions(Collection<FunctionLibrary> functions) {
+		this.functions = functions;
+	}
+
+	public String getContextDescription() {
+		return contextDescription;
+	}
+
+	public void setContextDescription(String contextDescription) {
+		this.contextDescription = contextDescription;
 	}
 	
 }

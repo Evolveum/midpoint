@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.groovy.SandboxedGroovyScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
@@ -23,9 +24,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
@@ -41,5 +46,40 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 	protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
 		return new SandboxedGroovyScriptEvaluator(prismContext, protector, localizationService);
 	}
+	
+	/**
+	 * This should NOT pass here. There restrictions should not allow to invoke
+	 * poison.smell()
+	 */
+	@Test
+	@Override
+    public void testSmellPoison() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssionRestricted(
+				"expression-poinson-smell.xml",
+				"testLookAtPoison",
+				createPoisonVariables(poison));
+		
+		// THEN
+		poison.assertNotSmelled();
+    }
+	
+	/**
+	 * Drinking poison should be forbidden here.
+	 */
+	@Test
+	@Override
+    public void testDrinkPoison() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssionRestricted(
+				"expression-poinson-smell.xml",
+				"testLookAtPoison",
+				createPoisonVariables(poison));
+		
+    }
 
 }

@@ -15,7 +15,11 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
 import com.evolveum.midpoint.prism.PrimitiveType;
@@ -23,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -335,5 +340,70 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 				),
 				Boolean.FALSE);
     }
+	
+	@Test
+    public void testLookAtPoison() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-poinson-look.xml",
+				"testLookAtPoison",
+				createPoisonVariables(poison),
+				RESULT_POISON_OK);
+		
+		// THEN
+		poison.assertLookedAt();
+    }
+	
+	/**
+	 * This should pass here. There are no restrictions about script execution here.
+	 */
+	@Test
+    public void testSmellPoison() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-poinson-smell.xml",
+				"testLookAtPoison",
+				createPoisonVariables(poison),
+				RESULT_POISON_OK);
+		
+		// THEN
+		poison.assertSmelled();
+    }
+	
+	/**
+	 * This should pass here. There are no restrictions about script execution here.
+	 * By passing we mean throwing an error ...
+	 */
+	@Test
+    public void testDrinkPoison() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		try {
+			evaluateAndAssertStringScalarExpresssion(
+					"expression-poinson-drink.xml",
+					"testLookAtPoison",
+					createPoisonVariables(poison),
+					"");
+			
+			AssertJUnit.fail("Unexpected success");
+			
+		} catch (ExpressionEvaluationException ex) {
+			// THEN
+			assertTrue("Expected that exception message will contain "+Poison.POISON_DRINK_ERROR_MESSAGE+
+					", but it did not. It was: "+ex.getMessage(), ex.getMessage().contains(Poison.POISON_DRINK_ERROR_MESSAGE));
+			Error error = (Error) ex.getCause();
+			assertEquals("Wrong error message", Poison.POISON_DRINK_ERROR_MESSAGE, error.getMessage());
+		}
+		
+    }
 
+	protected ExpressionVariables createPoisonVariables(Poison poison) {
+		return createVariables(
+				VAR_POISON, poison, Poison.class);
+	}
 }
