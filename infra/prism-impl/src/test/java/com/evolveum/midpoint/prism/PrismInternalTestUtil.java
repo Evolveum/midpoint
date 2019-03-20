@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -439,7 +440,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		PolyString polyName = polyNameProp.getAnyRealValue();
 		assertEquals("Wrong polyName.orig in "+user, "Džek Sperou", polyName.getOrig());
 		assertEquals("Wrong polyName.norm in "+user, "dzek sperou", polyName.getNorm());
+		
 		if (expectFullPolyName) {
+			
 			PolyStringTranslationType translation = polyName.getTranslation();
 			assertNotNull("No polyName.translation in "+user, translation);
 			assertEquals("Wrong polyName.translation.key in "+user, "JACK", translation.getKey());
@@ -450,7 +453,17 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 			PolyStringTranslationArgumentType argument = arguments.get(0);
 			assertNotNull("No polyName.translation.argument in "+user, argument);
 			assertEquals("Wrong polyName.translation.argument.value in "+user, "Sparrow", argument.getValue());
+			
+			Map<String, String> lang = polyName.getLang();
+			assertNotNull("No polyName.lang in "+user, lang);
+			assertLang(lang, "en", "Jack Sparrow");
+			assertLang(lang, "sk", "Džek Sperou");
+			assertLang(lang, "hr", "Ðek Sperou");
 		}
+	}
+
+	private static void assertLang(Map<String, String> lang, String key, String expectedValue) {
+		assertEquals("Wrong lang in polystring for key "+key, expectedValue, lang.get(key));
 	}
 
 	private static void assertUserJackExtension(PrismObject<UserType> user) throws SchemaException {
