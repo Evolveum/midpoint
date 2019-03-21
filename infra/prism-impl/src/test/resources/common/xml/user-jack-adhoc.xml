@@ -46,6 +46,12 @@
     			<t:value>Sparrow</t:value>
     		</t:argument>
     	</t:translation>
+    	<t:lang>
+    		<t:en>Jack Sparrow</t:en>
+    		<t:sk>Džek Sperou</t:sk>
+    		<t:ru>Джек Воробей</t:ru>
+    		<t:hr>Ðek Sperou</t:hr>
+    	</t:lang>
     </polyName>
 
 	<assignment id="1111">

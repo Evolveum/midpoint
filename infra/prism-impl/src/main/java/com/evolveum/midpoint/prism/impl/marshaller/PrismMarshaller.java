@@ -41,6 +41,9 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * @author semancik
@@ -477,11 +480,26 @@ public class PrismMarshaller {
 				xmap.put(PolyString.F_TRANSLATION, xTranslation);
 			}
 			
+			Map<String, String> lang = realValue.getLang();
+			if (lang != null) {
+				XNodeImpl xTranslation = serializePolyStringLang(lang);
+				xmap.put(PolyString.F_LANG, xTranslation);
+			}
+			
 			return xmap;
 		}
     }
 
-    @NotNull
+    private XNodeImpl serializePolyStringLang(Map<String, String> lang) {
+    	MapXNodeImpl xmap = new MapXNodeImpl();
+    	for (Entry<String, String> langEntry : lang.entrySet()) {
+    		PrimitiveXNodeImpl<String> xPrim = new PrimitiveXNodeImpl<String>(langEntry.getValue());
+    		xmap.put(new QName(PolyString.F_LANG.getNamespaceURI(), langEntry.getKey()), xPrim);
+    	}
+		return xmap;
+	}
+
+	@NotNull
     private <T> XNodeImpl serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {
         XNodeImpl rawElement = (XNodeImpl) value.getRawElement();
         if (rawElement != null) {
