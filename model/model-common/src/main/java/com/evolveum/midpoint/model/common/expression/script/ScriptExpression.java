@@ -112,6 +112,7 @@ public class ScriptExpression {
 		context.setExpressionType(scriptType);
 		context.setVariables(variables);
 		context.setFunctions(functions);
+		context.setExpressionProfile(expressionProfile);
 		context.setOutputDefinition(outputDefinition);
 		context.setAdditionalConvertor(additionalConvertor);
 		context.setSuggestedReturnType(suggestedReturnType);

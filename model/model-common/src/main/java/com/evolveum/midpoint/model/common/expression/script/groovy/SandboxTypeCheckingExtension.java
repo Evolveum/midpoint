@@ -28,6 +28,8 @@ import org.codehaus.groovy.transform.stc.StaticTypeCheckingVisitor;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,9 +59,46 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
 	@Override
     public void onMethodSelection(final Expression expression, final MethodNode target) {
 		ClassNode targetDeclaringClass = target.getDeclaringClass();
-		LOGGER.info("GROOVY:onMethodSelection: targetDeclaringClass={}", targetDeclaringClass);
+		LOGGER.info("GROOVY:onMethodSelection: target={}", target);
+		LOGGER.info("GROOVY:onMethodSelection: target.name={}", target.getName());
+		LOGGER.info("GROOVY:onMethodSelection: target.declaringClass={}", targetDeclaringClass);
+		LOGGER.info("GROOVY:onMethodSelection: target.DeclaringClass.name={}", targetDeclaringClass.getName());
+		LOGGER.info("GROOVY:onMethodSelection: target.DeclaringClass.typeClass={}", targetDeclaringClass.getTypeClass());
+		
+		AccessDecision decision = decideClass(targetDeclaringClass.getName(), target.getName());
+		
+		if (decision != AccessDecision.ALLOW) {
+			StringBuilder sb = new StringBuilder(GroovyScriptEvaluator.SANDBOX_ERROR_PREFIX);
+			sb.append("Access to Groovy method ");
+			sb.append(targetDeclaringClass.getName()).append("#").append(target.getName()).append(" ");
+			if (decision == AccessDecision.DENY) {
+				sb.append("denied");
+			} else {
+				sb.append("not allowed");
+			}
+			if (getContext().getExpressionProfile() != null) {
+				sb.append(" (applied expression profile '").append(getContext().getExpressionProfile().getName()).append("')");
+			}
+			addStaticTypeError(sb.toString(), expression);
+		}
 	}
 	
+	private AccessDecision decideClass(String className, String methodName) {
+		AccessDecision decision = SandboxedGroovyScriptEvaluator.decideGroovyBuiltin(className, methodName);
+		LOGGER.trace("decideClass: builtin [{},{}] : {}", className, methodName, decision);
+		if (decision != AccessDecision.DEFAULT) {
+			return decision;
+		}
+		ExpressionProfile expressionProfile = getContext().getExpressionProfile();
+		if (expressionProfile == null) {
+			LOGGER.trace("decideClass: profile==null [{},{}] : ALLOW", className, methodName);
+			return AccessDecision.ALLOW;
+		}
+		decision = expressionProfile.decideClassAccess(className, methodName);
+		LOGGER.trace("decideClass: profile({}) [{},{}] : {}", expressionProfile.getName(), className, methodName, decision);
+		return decision;
+	}
+
 	@Override
 	public boolean handleUnresolvedVariableExpression(VariableExpression vexp) {
 		String variableName = vexp.getName();

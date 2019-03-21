@@ -375,6 +375,82 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     }
 	
 	/**
+	 * Tricky way to smell poison. It should pass here.
+	 */
+	@Test
+    public void testSmellPoisonTricky() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-poinson-smell-tricky.xml",
+				"testSmellPoisonTricky",
+				createPoisonVariables(poison),
+				RESULT_POISON_OK);
+		
+		// THEN
+		poison.assertSmelled();
+		
+    }
+	
+	/**
+	 * Attempt to smell poison by using dynamic invocation.
+	 */
+	@Test
+    public void testSmellPoisonDynamic() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-poinson-smell-dynamic.xml",
+				"testSmellPoisonDynamic",
+				createPoisonVariables(poison),
+				RESULT_POISON_OK);
+		
+		// THEN
+		poison.assertSmelled();
+		
+    }
+	
+	/**
+	 * Attempt to smell poison by using a very dynamic invocation.
+	 */
+	@Test
+    public void testSmellPoisonVeryDynamic() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-poinson-smell-very-dynamic.xml",
+				"testSmellPoisonVeryDynamic",
+				createPoisonVariables(poison),
+				RESULT_POISON_OK);
+		
+		// THEN
+		poison.assertSmelled();
+		
+    }
+	
+	/**
+	 * Attempt to smell poison by using reflection
+	 */
+	@Test
+    public void testSmellPoisonReflection() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-poinson-smell-reflection.xml",
+				"testSmellPoisonReflection",
+				createPoisonVariables(poison),
+				RESULT_POISON_OK);
+		
+		// THEN
+		poison.assertSmelled();
+		
+    }
+	
+	/**
 	 * This should pass here. There are no restrictions about script execution here.
 	 * By passing we mean throwing an error ...
 	 */
@@ -401,9 +477,48 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 		}
 		
     }
-
+	
 	protected ExpressionVariables createPoisonVariables(Poison poison) {
 		return createVariables(
 				VAR_POISON, poison, Poison.class);
 	}
+	
+	/**
+	 * Make sure that there is a meaningful error - even if sandbox is applied.
+	 */
+	@Test
+    public void testSyntaxError() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		try {
+			evaluateAndAssertStringScalarExpresssion(
+					"expression-syntax-error.xml",
+					"testSyntaxError",
+					createPoisonVariables(poison),
+					RESULT_POISON_OK);
+		
+		} catch (ExpressionEvaluationException e) {
+			// THEN
+			assertTrue("Unexpected exception message" + e.getMessage(), e.getMessage().contains("unexpected token"));
+		}
+
+    }
+	
+	/**
+	 * Allmighty script can execute a process from string.
+	 */
+	@Test
+    public void testStringExec() throws Exception {
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-string-exec.xml",
+				"testStringExec",
+				null,
+				RESULT_STRING_EXEC);
+		
+		// THEN
+		
+    }
 }

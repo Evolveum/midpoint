@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.groovy;
 
-import java.util.Collection;
+import java.lang.reflect.Method;
 import java.util.Collections;
 
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -23,13 +23,11 @@ import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,6 +43,14 @@ import groovy.transform.CompileStatic;
 @Experimental
 public class SandboxedGroovyScriptEvaluator extends GroovyScriptEvaluator {
 
+	public static final String BUILTIN_EXPRESSION_PROFILE_NAME = "_groovyBuiltIn";
+	
+	/**
+	 * Expression profile for built-in groovy functions that always needs to be allowed
+	 * or denied.
+	 */
+	private static final ExpressionProfile BUILTIN_EXPRESSION_PROFILE = new ExpressionProfile(BUILTIN_EXPRESSION_PROFILE_NAME);
+	
 	public SandboxedGroovyScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
 		super(prismContext, protector, localizationService);
 	}
@@ -79,6 +85,10 @@ public class SandboxedGroovyScriptEvaluator extends GroovyScriptEvaluator {
 	@Override
 	protected void afterEvaluation(Object resultObject, Class compiledScriptClass, ScriptExpressionEvaluationContext context) {
 	}
+	
+	static AccessDecision decideGroovyBuiltin(String className, String methodName) {
+		return BUILTIN_EXPRESSION_PROFILE.decideClassAccess(className, methodName);
+	}
 
 //	private void setCompileOptions(ExpressionVariables variables, Collection<FunctionLibrary> functions, String contextDescription) {
 //		CompileOptions options = new CompileOptions();
@@ -91,4 +101,15 @@ public class SandboxedGroovyScriptEvaluator extends GroovyScriptEvaluator {
 //	private void resetCompileOptions() {
 //		COMPILE_OPTIONS.remove();
 //	}
+	
+	static {
+		// Allow script initialization
+		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule("groovy.lang.Script", "<init>", AccessDecision.ALLOW);
+		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule("org.codehaus.groovy.runtime.InvokerHelper", "runScript", AccessDecision.ALLOW);
+		
+		// Deny access to reflection. Reflection can circumvent the sandbox protection.
+		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(Class.class, null, AccessDecision.DENY);
+		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(Method.class, null, AccessDecision.DENY);
+	}
+	
 }

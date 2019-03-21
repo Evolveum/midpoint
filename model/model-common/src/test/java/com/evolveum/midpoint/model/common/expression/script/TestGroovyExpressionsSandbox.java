@@ -15,24 +15,16 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.groovy.SandboxedGroovyScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.model.common.expression.script.groovy.SandboxedGroovyScriptEvaluator;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 
 /**
  * @author Radovan Semancik
@@ -45,6 +37,19 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 	@Override
 	protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
 		return new SandboxedGroovyScriptEvaluator(prismContext, protector, localizationService);
+	}
+	
+	protected ExpressionProfile getExpressionProfile() {
+		ExpressionProfile profile = new ExpressionProfile("testGroovyExpressionsSandbox");
+		
+		profile.addClassAccessRule(Poison.class, "smell", AccessDecision.DENY);
+		profile.addClassAccessRule(Poison.class, "drink", AccessDecision.DENY);
+		
+		profile.addClassAccessRule(String.class, "execute", AccessDecision.DENY);
+		
+		profile.setDefaultClassAccessDecision(AccessDecision.ALLOW);
+		
+		return profile;
 	}
 	
 	/**
@@ -67,6 +72,86 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
     }
 	
 	/**
+	 * Smelling poison should be forbidden even if the script
+	 * tries to obfuscate that a bit.
+	 */
+	@Test
+	@Override
+    public void testSmellPoisonTricky() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssionRestricted(
+				"expression-poinson-smell-tricky.xml",
+				"testDrinkPoisonTricky",
+				createPoisonVariables(poison));
+		
+		poison.assertNotSmelled();
+    }
+	
+	/**
+	 * Attempt to smell poison by using a dynamic invocation.
+	 */
+	@Test
+	@Override
+    public void testSmellPoisonDynamic() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssionRestricted(
+				"expression-poinson-smell-dynamic.xml",
+				"testSmellPoisonDynamic",
+				createPoisonVariables(poison));
+		
+		poison.assertNotSmelled();
+		
+    }
+	
+	/**
+	 * Attempt to smell poison by using a very dynamic invocation.
+	 * 
+	 * We are in type checking mode, therefore this just won't compile.
+	 */
+	@Test
+	@Override
+    public void testSmellPoisonVeryDynamic() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		try {
+			evaluateAndAssertStringScalarExpresssion(
+					"expression-poinson-smell-very-dynamic.xml",
+					"testSmellPoisonVeryDynamic",
+					createPoisonVariables(poison),
+					RESULT_POISON_OK);
+		
+		} catch (ExpressionEvaluationException e) {
+			// THEN
+			assertTrue("Unexpected exception message" + e.getMessage(), e.getMessage().contains("cannot resolve dynamic method name at compile time"));
+		}
+		
+		poison.assertNotSmelled();
+    }
+	
+	/**
+	 * Attempt to smell poison by using reflection
+	 */
+	@Test
+	@Override
+    public void testSmellPoisonReflection() throws Exception {
+		Poison poison = new Poison();
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssionRestricted(
+				"expression-poinson-smell-reflection.xml",
+				"testSmellPoisonDynamic",
+				createPoisonVariables(poison));
+		
+		poison.assertNotSmelled();
+		
+    }
+	
+	/**
 	 * Drinking poison should be forbidden here.
 	 */
 	@Test
@@ -76,9 +161,26 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 		
 		// WHEN
 		evaluateAndAssertStringScalarExpresssionRestricted(
-				"expression-poinson-smell.xml",
+				"expression-poinson-drink.xml",
 				"testDrinkPoison",
 				createPoisonVariables(poison));
+		
+    }
+	
+	/**
+	 * Deny execute from string.
+	 */
+	@Test
+	@Override
+    public void testStringExec() throws Exception {
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssionRestricted(
+				"expression-string-exec.xml",
+				"testStringExec",
+				null);
+		
+		// THEN
 		
     }
 

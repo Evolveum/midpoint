@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.security.enforcer.api;
+package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 
 /**
- * @author semancik
- *
+ * Decision about access to something. Used as an output of authorization processing code. But may be also used
+ * for other things, such as decisions to access classes and methods in sandboxes.
+ * 
+ * @author Radovan Semancik
  */
 public enum AccessDecision {
 	/**

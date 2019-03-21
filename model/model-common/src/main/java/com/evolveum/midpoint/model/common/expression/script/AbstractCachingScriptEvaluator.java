@@ -92,6 +92,9 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 			evalRawResult = evaluateScript(compiledScript, context);
 			
 			afterEvaluation(evalRawResult, compiledScript, context);
+		} catch (ExpressionEvaluationException | ObjectNotFoundException | ExpressionSyntaxException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+			// Exception already processed by the underlying code.
+			throw e;
 		} catch (Throwable e) {
 			throw getLocalizationService().translate(
 					new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(),
@@ -147,7 +150,7 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 		return pvals;
 	}
 
-	protected C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException {
+	protected C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
 		C compiledScript = scriptCache.get(codeString);
 		if (compiledScript != null) {
 			return compiledScript;
@@ -159,6 +162,8 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 			compiledScript = compileScript(codeString, context);
 			
 			afterCompileScript(compiledScript, codeString, context);
+		} catch (ExpressionEvaluationException | SecurityViolationException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " while compiling " + context.getContextDescription(), e);
 		}

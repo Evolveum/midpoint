@@ -48,6 +48,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
@@ -72,8 +73,6 @@ import com.evolveum.midpoint.common.LocalizationTestUtil;
 public abstract class AbstractScriptTest {
 
 	protected static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
-    protected static final String NS_X = "http://example.com/xxx";
-    protected static final String NS_Y = "http://example.com/yyy";
 	protected static File BASE_TEST_DIR = new File("src/test/resources/expression");
     protected static File OBJECTS_DIR = new File("src/test/resources/objects");
     protected static final String USER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -81,6 +80,8 @@ public abstract class AbstractScriptTest {
     public static final String VAR_POISON = "poison";
     protected static final String RESULT_POISON_OK = "ALIVE";
     protected static final String POISON_DRINK_ERROR_MESSAGE = "ALIVE";
+    
+    protected static final String RESULT_STRING_EXEC = "Hello world";
 
     public static final Trace LOGGER = TraceManager.getTrace(AbstractScriptTest.class);
 
@@ -322,7 +323,12 @@ public abstract class AbstractScriptTest {
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
 		expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
+		expression.setExpressionProfile(getExpressionProfile());
 		return expression;
+	}
+
+	protected ExpressionProfile getExpressionProfile() {
+		return null;
 	}
 
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
@@ -358,9 +364,13 @@ public abstract class AbstractScriptTest {
 	}
 	
 	protected void evaluateAndAssertStringScalarExpresssionRestricted(String fileName, String testName, ExpressionVariables variables) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
-		PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
-		AssertJUnit.fail("Expression "+testName+": unexpected success, result value: "+ expressionResult);
+		try {
+			List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
+			AssertJUnit.fail("Expression "+testName+": unexpected success, result value: "+ expressionResultList);
+		} catch (SecurityViolationException e) {
+			System.out.println("Expected exception: " + e);
+			LOGGER.debug("Expected exception", e);
+		}
 	}
 
 	private void evaluateAndAssertStringListExpresssion(String fileName, String testName, ExpressionVariables variables, String... expectedValues) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
