@@ -16,10 +16,12 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringLangType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationArgumentType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,7 +34,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by honchar
@@ -79,18 +84,19 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
         keyValue.setOutputMarkupId(true);
         fullDataContainer.add(keyValue);
 
-        ListView<PolyStringTranslationArgumentType> languagesContainer =
-                new ListView<PolyStringTranslationArgumentType>(ID_LANGUAGES_REPEATER, Model.ofList(getTranslationArgumentList())) {
+        Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang().getLang() : new HashMap<>();
+        List<String> languagesList = new ArrayList<>(languagesMap.keySet());
+        ListView<String> languagesContainer =
+                new ListView<String>(ID_LANGUAGES_REPEATER, Model.ofList(languagesList)) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void populateItem(ListItem<PolyStringTranslationArgumentType> listItem) {
-                        Label languageName = new Label(ID_LANGUAGE_NAME, Model.of(listItem.getModelObject().getValue()));
+                    protected void populateItem(ListItem<String> listItem) {
+                        Label languageName = new Label(ID_LANGUAGE_NAME, Model.of(listItem.getModelObject()));
                         languageName.setOutputMarkupId(true);
                         listItem.add(languageName);
 
-                        //TODO what value do we need to display?
-                        TextPanel<String> translation = new TextPanel<String>(ID_TRANSLATION, Model.of(listItem.getModelObject().getTranslation().toString()));
+                        TextPanel<String> translation = new TextPanel<String>(ID_TRANSLATION, Model.of(languagesMap.get(listItem.getModelObject())));
                         translation.setOutputMarkupId(true);
                         listItem.add(translation);
 
@@ -118,11 +124,12 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
     }
 
     private String getDefaultPolyStringValue(){
-        return "";
+        return WebComponentUtil.getDisplayPolyStringValue(getModelObject(), getPageBase());
     }
 
     private String getKeyValue(){
-        return "";
+        return getModelObject() != null && getModelObject().getTranslation() != null ?
+                getModelObject().getTranslation().getKey() : "";
     }
 
     private List<PolyStringTranslationArgumentType> getTranslationArgumentList(){
