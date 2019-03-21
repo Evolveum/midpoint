@@ -148,22 +148,22 @@ public class DummyResource implements DebugDumpable {
 	private static Map<String, DummyResource> instances = new HashMap<>();
 
 	DummyResource() {
-		allObjects = Collections.synchronizedMap(new LinkedHashMap<String,DummyObject>());
-		accounts = Collections.synchronizedMap(new LinkedHashMap<String, DummyAccount>());
-		groups = Collections.synchronizedMap(new LinkedHashMap<String, DummyGroup>());
-		privileges = Collections.synchronizedMap(new LinkedHashMap<String, DummyPrivilege>());
-		orgs = Collections.synchronizedMap(new LinkedHashMap<String, DummyOrg>());
+		allObjects = Collections.synchronizedMap(new LinkedHashMap<>());
+		accounts = Collections.synchronizedMap(new LinkedHashMap<>());
+		groups = Collections.synchronizedMap(new LinkedHashMap<>());
+		privileges = Collections.synchronizedMap(new LinkedHashMap<>());
+		orgs = Collections.synchronizedMap(new LinkedHashMap<>());
 		scriptHistory = new ArrayList<>();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
 		privilegeObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
-		deltas = Collections.synchronizedList(new ArrayList<DummyDelta>());
+		deltas = Collections.synchronizedList(new ArrayList<>());
 		latestSyncToken = 0;
 	}
 
 	/**
-	 * Clears everything, just like the resouce was just created.
+	 * Clears everything, just like the resource was just created.
 	 */
 	public void reset() {
 		allObjects.clear();

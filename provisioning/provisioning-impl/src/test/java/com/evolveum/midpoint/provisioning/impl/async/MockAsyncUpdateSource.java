@@ -46,6 +46,12 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
 		public void stop() {
 			// no-op
 		}
+
+		@Override
+		public AsyncUpdateListeningActivityInformationType getInformation() {
+			return new AsyncUpdateListeningActivityInformationType()
+					.status(AsyncUpdateListeningActivityStatusType.ALIVE);
+		}
 	}
 
 	public static MockAsyncUpdateSource create(AsyncUpdateSourceType configuration, AsyncUpdateConnectorInstance connectorInstance) {

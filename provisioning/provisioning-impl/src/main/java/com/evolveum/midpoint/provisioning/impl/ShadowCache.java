@@ -2390,7 +2390,8 @@ public class ShadowCache {
 	}
 
 	String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+			ExpressionEvaluationException {
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
 		ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
@@ -2412,6 +2413,11 @@ public class ShadowCache {
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 		resouceObjectConverter.stopListeningForAsyncUpdates(listeningActivityHandle, parentResult);
 	}
+
+	AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		return resouceObjectConverter.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, parentResult);
+	}
+
 
 	/**
 	 * This is the common code for processing changes coming from various sources e.g. live sync, async updates
@@ -2550,7 +2556,8 @@ public class ShadowCache {
 		}
 
 		Throwable ex = RepoCommonUtils.getResultException(result);
-		CriticalityType criticality = ExceptionUtil.getCriticality(partition.getErrorCriticality(), ex, CriticalityType.PARTIAL);
+		ErrorSelectorType selector = partition != null ? partition.getErrorCriticality() : null;
+		CriticalityType criticality = ExceptionUtil.getCriticality(selector, ex, CriticalityType.PARTIAL);
 		RepoCommonUtils.processErrorCriticality(task.getTaskType(), criticality, ex, result);
 	}
 

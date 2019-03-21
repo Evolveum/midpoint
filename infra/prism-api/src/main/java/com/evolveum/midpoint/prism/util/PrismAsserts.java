@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.QNameUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
@@ -880,6 +881,9 @@ public class PrismAsserts {
 	}
 
 	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, Collection<T> expectedValues) throws SchemaException {
+		if (CollectionUtils.isEmpty(expectedValues) && CollectionUtils.isEmpty(actualValues)) {
+			return;
+		}
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
 				+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues,

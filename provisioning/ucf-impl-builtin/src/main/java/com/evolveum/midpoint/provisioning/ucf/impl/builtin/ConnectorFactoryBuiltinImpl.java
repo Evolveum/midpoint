@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import org.springframework.beans.BeanWrapper;
@@ -78,7 +80,10 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private CaseManager caseManager;
 	@Autowired private TaskManager taskManager;
+	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
+
+	private final Object CONNECTOR_DISCOVERY = new Object();
 
 	private Map<String,ConnectorStruct> connectorMap;
 
@@ -88,42 +93,42 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		if (host != null) {
 			return null;
 		}
-		if (connectorMap == null) {
-			discoverConnectors();
-		}
+		discoverConnectorsIfNeeded();
 		return connectorMap.entrySet().stream().map(e -> e.getValue().connectorObject).collect(Collectors.toSet());
 	}
 
-	private void discoverConnectors() {
-		connectorMap = new HashMap<>();
-		ClassPathScanningCandidateComponentProvider scanner =
-				new ClassPathScanningCandidateComponentProvider(false);
-		scanner.addIncludeFilter(new AnnotationTypeFilter(ManagedConnector.class));
-		LOGGER.trace("Scanning package {}", SCAN_PACKAGE);
-		for (BeanDefinition bd : scanner.findCandidateComponents(SCAN_PACKAGE)) {
-			LOGGER.debug("Found connector class {}", bd);
-			String beanClassName = bd.getBeanClassName();
-			try {
-
-				Class connectorClass = Class.forName(beanClassName);
-				ManagedConnector annotation = (ManagedConnector) connectorClass.getAnnotation(ManagedConnector.class);
-				String type = annotation.type();
-				LOGGER.debug("Found connector {} class {}", type, connectorClass);
-				ConnectorStruct struct = createConnectorStruct(connectorClass, annotation);
-				connectorMap.put(type, struct);
-
-			} catch (ClassNotFoundException e) {
-				LOGGER.error("Error loading connector class {}: {}", beanClassName, e.getMessage(), e);
-			} catch (ObjectNotFoundException | SchemaException e) {
-				LOGGER.error("Error discovering the connector {}: {}", beanClassName, e.getMessage(), e);
+	private void discoverConnectorsIfNeeded() {
+		synchronized (CONNECTOR_DISCOVERY) {
+			if (connectorMap == null) {
+				connectorMap = new HashMap<>();
+				ClassPathScanningCandidateComponentProvider scanner =
+						new ClassPathScanningCandidateComponentProvider(false);
+				scanner.addIncludeFilter(new AnnotationTypeFilter(ManagedConnector.class));
+				LOGGER.trace("Scanning package {}", SCAN_PACKAGE);
+				for (BeanDefinition bd : scanner.findCandidateComponents(SCAN_PACKAGE)) {
+					LOGGER.debug("Found connector class {}", bd);
+					String beanClassName = bd.getBeanClassName();
+					try {
+						Class connectorClass = Class.forName(beanClassName);
+						ManagedConnector annotation = (ManagedConnector) connectorClass.getAnnotation(ManagedConnector.class);
+						String type = annotation.type();
+						LOGGER.debug("Found connector {} class {}", type, connectorClass);
+						ConnectorStruct struct = createConnectorStruct(connectorClass, annotation);
+						connectorMap.put(type, struct);
+					} catch (ClassNotFoundException e) {
+						LOGGER.error("Error loading connector class {}: {}", beanClassName, e.getMessage(), e);
+					} catch (ObjectNotFoundException | SchemaException e) {
+						LOGGER.error("Error discovering the connector {}: {}", beanClassName, e.getMessage(), e);
+					}
+				}
+				LOGGER.trace("Scan done");
 			}
-
 		}
-		LOGGER.trace("Scan done");
 	}
 
 	private ConnectorStruct createConnectorStruct(Class connectorClass, ManagedConnector annotation) throws ObjectNotFoundException, SchemaException {
 		ConnectorStruct struct = new ConnectorStruct();
+		//noinspection unchecked
 		struct.connectorClass = connectorClass;
 
 		ConnectorType connectorType = new ConnectorType();
@@ -157,12 +162,11 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	}
 
 	private ConnectorStruct getConnectorStruct(ConnectorType connectorType) throws ObjectNotFoundException {
-		if (connectorMap == null) {
-			discoverConnectors();
-		}
+		discoverConnectorsIfNeeded();
 		String type = connectorType.getConnectorType();
 		ConnectorStruct struct = connectorMap.get(type);
 		if (struct == null) {
+			LOGGER.error("No built-in connector type {}; known types: {}", type, connectorMap);
 			throw new ObjectNotFoundException("No built-in connector type "+type);
 		}
 		return struct;
@@ -232,8 +236,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	@Override
 	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace,
 			String instanceName, String desc) throws ObjectNotFoundException, SchemaException {
-		String type = connectorType.getConnectorType();
-		ConnectorStruct struct = connectorMap.get(type);
+		ConnectorStruct struct = getConnectorStruct(connectorType);
 		Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
 		ConnectorInstance connectorInstance;
 		try {
@@ -253,6 +256,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		}
 		if (connectorInstance instanceof TaskManagerAware) {
 			((TaskManagerAware)connectorInstance).setTaskManager(taskManager);
+		}
+		if (connectorInstance instanceof SecurityContextManagerAware) {
+			((SecurityContextManagerAware) connectorInstance).setSecurityContextManager(securityContextManager);
 		}
 		if (connectorInstance instanceof UcfExpressionEvaluatorAware) {
 			((UcfExpressionEvaluatorAware) connectorInstance).setUcfExpressionEvaluator(ucfExpressionEvaluator);
