@@ -1922,9 +1922,14 @@ public class ResourceObjectConverter {
 
 	void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
 		LOGGER.trace("START stop listening for async updates, handle: {}", listeningActivityHandle);
-		listeningRegistry.getListeningActivity(listeningActivityHandle).stop();
+		listeningRegistry.removeListeningActivity(listeningActivityHandle).stop();
 		computeResultStatus(parentResult);
 		LOGGER.trace("END stop listening for async updates");
+	}
+
+	AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
+		ListeningActivity listeningActivity = listeningRegistry.getListeningActivity(listeningActivityHandle);
+		return listeningActivity != null ? listeningActivity.getInformation() : null;
 	}
 
 	/**

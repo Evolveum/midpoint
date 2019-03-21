@@ -56,6 +56,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * @author semancik
@@ -150,8 +153,9 @@ public class ConnIdConvertor {
 		}
 		
 		for (Attribute connIdAttr : co.getAttributes()) {
+			@NotNull List<Object> values = emptyIfNull(connIdAttr.getValue());
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Reading ICF attribute {}: {}", connIdAttr.getName(), connIdAttr.getValue());
+				LOGGER.trace("Reading ICF attribute {}: {}", connIdAttr.getName(), values);
 			}
 			if (connIdAttr.getName().equals(Uid.NAME)) {
 				// UID is handled specially (see above)
@@ -258,17 +262,15 @@ public class ConnIdConvertor {
 
 			ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);
 
+			resourceAttribute.setIncomplete(connIdAttr.getAttributeValueCompleteness() == AttributeValueCompleteness.INCOMPLETE);
+
 			// if true, we need to convert whole connector object to the
 			// resource object also with the null-values attributes
 			if (full) {
-				if (connIdAttr.getValue() != null) {
-					// Convert the values. While most values do not need
-					// conversions, some
-					// of them may need it (e.g. GuardedString)
-					for (Object connIdValue : connIdAttr.getValue()) {
-						Object value = convertValueFromIcf(connIdValue, qname);
-						resourceAttribute.addRealValue(value);
-					}
+				// Convert the values. While most values do not need conversions, some of them may need it (e.g. GuardedString)
+				for (Object connIdValue : values) {
+					Object value = convertValueFromIcf(connIdValue, qname);
+					resourceAttribute.addRealValue(value);
 				}
 
 				LOGGER.trace("Converted attribute {}", resourceAttribute);
@@ -277,23 +279,18 @@ public class ConnIdConvertor {
 				// in this case when false, we need only the attributes with the
 				// non-null values.
 			} else {
-				if (connIdAttr.getValue() != null && !connIdAttr.getValue().isEmpty()) {
-					// Convert the values. While most values do not need
-					// conversions, some of them may need it (e.g. GuardedString)
-					boolean empty = true;
-					for (Object connIdValue : connIdAttr.getValue()) {
-						if (connIdValue != null) {
-							Object value = convertValueFromIcf(connIdValue, qname);
-							empty = false;
-							resourceAttribute.addRealValue(value);
-						}
+				// Convert the values. While most values do not need
+				// conversions, some of them may need it (e.g. GuardedString)
+				for (Object connIdValue : values) {
+					if (connIdValue != null) {
+						Object value = convertValueFromIcf(connIdValue, qname);
+						resourceAttribute.addRealValue(value);
 					}
+				}
 
-					if (!empty) {
-						LOGGER.trace("Converted attribute {}", resourceAttribute);
-						attributesContainer.getValue().add(resourceAttribute);
-					}
-
+				if (!resourceAttribute.getValues().isEmpty() || resourceAttribute.isIncomplete()) {
+					LOGGER.trace("Converted attribute {}", resourceAttribute);
+					attributesContainer.getValue().add(resourceAttribute);
 				}
 			}
 

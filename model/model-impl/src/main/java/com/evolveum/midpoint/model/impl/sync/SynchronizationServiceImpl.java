@@ -18,6 +18,7 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,7 +28,9 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -47,10 +50,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -84,22 +83,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDiscriminatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationSorterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Synchronization service receives change notifications from provisioning. It
@@ -848,7 +831,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 		// we insert account if available in change
 		projectionContext.setLoadedObject(shadow);
-		if (!tombstone) {
+		if (!tombstone && !containsIncompleteItems(shadow)) {
 			projectionContext.setFullShadow(true);
 		}
 		projectionContext.setFresh(true);
@@ -879,6 +862,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		}
 		
 		return context;
+	}
+
+	private boolean containsIncompleteItems(PrismObject<ShadowType> shadow) {
+		ShadowAttributesType attributes = shadow.asObjectable().getAttributes();
+		//noinspection SimplifiableIfStatement
+		if (attributes == null) {
+			return false;   // strictly speaking this is right; but we perhaps should not consider this shadow as fully loaded :)
+		} else {
+			return emptyIfNull(((PrismContainerValue<?>) (attributes.asPrismContainerValue())).getItems()).stream()
+					.anyMatch(Item::isIncomplete);
+		}
 	}
 
 	private PrismObject<ShadowType> getShadowFromChange(ResourceObjectShadowChangeDescription change) {

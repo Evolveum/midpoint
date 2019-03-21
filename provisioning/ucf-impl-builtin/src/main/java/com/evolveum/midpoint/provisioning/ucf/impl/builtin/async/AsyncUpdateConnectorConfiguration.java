@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateErrorHandlingActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourcesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -28,10 +29,12 @@ import java.util.Objects;
 /**
  *
  */
+@SuppressWarnings({ "WeakerAccess", "unused" })
 public class AsyncUpdateConnectorConfiguration {
 
 	private AsyncUpdateSourcesType sources;
 	private ExpressionType transformExpression;
+	private AsyncUpdateErrorHandlingActionType errorHandlingAction;
 
 	@ConfigurationProperty
 	public AsyncUpdateSourcesType getSources() {
@@ -47,9 +50,17 @@ public class AsyncUpdateConnectorConfiguration {
 		return transformExpression;
 	}
 
-	@SuppressWarnings("unused")
 	public void setTransformExpression(ExpressionType transformExpression) {
 		this.transformExpression = transformExpression;
+	}
+
+	@ConfigurationProperty
+	public AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
+		return errorHandlingAction;
+	}
+
+	public void setErrorHandlingAction(AsyncUpdateErrorHandlingActionType errorHandlingAction) {
+		this.errorHandlingAction = errorHandlingAction;
 	}
 
 	public void validate() {

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -248,6 +249,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
 		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
 		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
@@ -267,6 +269,15 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		checkRepoAccountShadow(accountRepo);
 	}
 
+	private void dumpAsyncUpdateListeningActivity(String handle, Task task, OperationResult result) throws SchemaException {
+		AsyncUpdateListeningActivityInformationType activity = provisioningService.getAsyncUpdatesListeningActivityInformation(handle, task, result);
+		if (activity != null) {
+			display("listening activity", prismContext.xmlSerializer().root(new QName("activity")).serializeRealValue(activity));
+		} else {
+			display("no listening activity found");
+		}
+	}
+
 	@Test
 	public void test110ListeningForValueAdd() throws Exception {
 		final String TEST_NAME = "test110ListeningForValueAdd";
@@ -283,6 +294,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
 		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
 		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
@@ -322,6 +334,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
 		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
 		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
@@ -364,6 +377,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
 		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
 		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 
@@ -399,6 +413,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
 		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
 		syncServiceMock.waitForNotifyChange(TIMEOUT);
 		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
 

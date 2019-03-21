@@ -105,7 +105,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 		return securityContextManager.isAuthenticated();
 	}
 
-    @Override
+	@Override
+	public Authentication getAuthentication() {
+		return securityContextManager.getAuthentication();
+	}
+
+	@Override
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return securityContextManager.getPrincipal();
 	}

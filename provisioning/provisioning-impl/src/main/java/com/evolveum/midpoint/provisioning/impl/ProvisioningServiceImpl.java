@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,15 +87,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Implementation of provisioning service.
@@ -417,7 +409,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".stopListeningForAsyncUpdates");
 		result.addParam("listeningActivityHandle", listeningActivityHandle);
-		result.addParam(OperationResult.PARAM_TASK, task.toString());
 
 		try {
 			LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
@@ -429,6 +420,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		result.recordSuccess();
 		result.cleanupResult();
+	}
+
+	@Override
+	public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getAsyncUpdatesListeningActivityInformation");
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
+
+		try {
+			AsyncUpdateListeningActivityInformationType rv = shadowCache.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, result);
+			result.recordSuccess();
+			result.cleanupResult();
+			return rv;
+		} catch (RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
 	}
 
 	@SuppressWarnings("rawtypes")

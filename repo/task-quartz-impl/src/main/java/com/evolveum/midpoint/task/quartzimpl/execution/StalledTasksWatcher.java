@@ -18,6 +18,7 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
@@ -30,9 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Watches whether a task is stalled.
@@ -44,6 +43,8 @@ public class StalledTasksWatcher {
     private static final transient Trace LOGGER = TraceManager.getTrace(StalledTasksWatcher.class);
 
     private static final String DOT_CLASS = StalledTasksWatcher.class.getName() + ".";
+
+    private static final List<String> CATEGORIES_TO_SKIP = Collections.singletonList(TaskCategory.ASYNCHRONOUS_UPDATE);
 
     private TaskManagerQuartzImpl taskManager;
 
@@ -82,6 +83,9 @@ public class StalledTasksWatcher {
         LOGGER.trace("checkStalledTasks: running tasks = {}", runningTasks);
 
         for (RunningTaskQuartzImpl task : runningTasks.values()) {
+            if (CATEGORIES_TO_SKIP.contains(task.getCategory())) {
+                continue;
+            }
             long currentTimestamp = System.currentTimeMillis();
             long lastStartedTimestamp = task.getLastRunStartTimestamp() != null ? task.getLastRunStartTimestamp() : 0L;
             Long heartbeatProgressInfo = task.getHandler().heartbeat(task);

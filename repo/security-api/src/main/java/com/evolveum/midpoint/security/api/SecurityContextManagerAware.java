@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.ucf.api;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateListeningActivityInformationType;
+package com.evolveum.midpoint.security.api;
 
 /**
- *
+ *  Needs to know about the SecurityContextManager implementation.
  */
-public interface ListeningActivity {
+public interface SecurityContextManagerAware {
 
-	void stop();
+	void setSecurityContextManager(SecurityContextManager manager);
 
-	AsyncUpdateListeningActivityInformationType getInformation();
+	SecurityContextManager getSecurityContextManager();
+
 }

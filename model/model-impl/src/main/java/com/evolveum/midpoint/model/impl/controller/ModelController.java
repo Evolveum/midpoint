@@ -29,7 +29,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.messaging.MessageProcessor;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -158,7 +157,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private CacheRegistry cacheRegistry;
 	@Autowired private ClockworkMedic clockworkMedic;
 	@Autowired private ChangeNotificationDispatcher dispatcher;
-	@Autowired private MessageProcessor messageProcessor;
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;

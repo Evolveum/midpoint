@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,6 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.security.core.Authentication;
 
 import javax.xml.namespace.QName;
 import java.nio.charset.StandardCharsets;
@@ -51,6 +54,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  *  Transforms AsyncUpdateMessageType objects to Change ones (via UcfChangeType intermediary).
+ *
+ *  Also prepares appropriately authenticated security context. (In the future we might factor this out to a separate class.)
  */
 public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageListener {
 
@@ -59,39 +64,52 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 	private static final String VAR_MESSAGE = "message";
 
 	@NotNull private final ChangeListener changeListener;
+	@Nullable private final Authentication authentication;
 	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
 	TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener,
+			@Nullable Authentication authentication,
 			@NotNull AsyncUpdateConnectorInstance connectorInstance) {
 		this.changeListener = changeListener;
+		this.authentication = authentication;
 		this.connectorInstance = connectorInstance;
 	}
 
 	@Override
 	public boolean onMessage(AsyncUpdateMessageType message) throws SchemaException {
 		LOGGER.trace("Got {}", message);
-		VariablesMap variables = new VariablesMap();
-		variables.put(VAR_MESSAGE, message, AsyncUpdateMessageType.class);
-		List<UcfChangeType> changeBeans;
+		SecurityContextManager securityContextManager = connectorInstance.getSecurityContextManager();
+		Authentication oldAuthentication = securityContextManager.getAuthentication();
+
 		try {
-			ExpressionType transformExpression = connectorInstance.getTransformExpression();
-			if (transformExpression != null) {
-				changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
-						SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update");
-			} else {
-				changeBeans = unwrapMessage(message);
+			securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
+
+			VariablesMap variables = new VariablesMap();
+			variables.put(VAR_MESSAGE, message, AsyncUpdateMessageType.class);
+			List<UcfChangeType> changeBeans;
+			try {
+				ExpressionType transformExpression = connectorInstance.getTransformExpression();
+				if (transformExpression != null) {
+					changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
+							SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update");
+				} else {
+					changeBeans = unwrapMessage(message);
+				}
+			} catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
+					ConfigurationException | ExpressionEvaluationException e) {
+				throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
 			}
-		} catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-				ConfigurationException | ExpressionEvaluationException e) {
-			throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
+			boolean ok = true;
+			for (UcfChangeType changeBean : changeBeans) {
+				// intentionally in this order - to process changes even after failure
+				// (if listener wants to fail fast, it can throw an exception)
+				ok = changeListener.onChange(createChange(changeBean)) && ok;
+			}
+			return ok;
+
+		} finally {
+			securityContextManager.setupPreAuthenticatedSecurityContext(oldAuthentication);
 		}
-		boolean ok = true;
-		for (UcfChangeType changeBean : changeBeans) {
-			// intentionally in this order - to process changes even after failure
-			// (if listener wants to fail fast, it can throw an exception)
-			ok = changeListener.onChange(createChange(changeBean)) && ok;
-		}
-		return ok;
 	}
 
 	/**
@@ -122,9 +140,13 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 		if (objectClassName == null) {
 			throw new SchemaException("Object class name is null in " + changeBean);
 		}
-		ObjectClassComplexTypeDefinition objectClassDef = getResourceSchema().findObjectClassDefinition(objectClassName);
+		ResourceSchema resourceSchema = getResourceSchema();
+		if (resourceSchema == null) {
+			throw new SchemaException("No resource schema; have you executed the Test Resource operation?");
+		}
+		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(objectClassName);
 		if (objectClassDef == null) {
-			throw new SchemaException("Object class " + objectClassName + " not found in " + getResourceSchema());
+			throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
 		}
 		ObjectDelta<ShadowType> delta;
 		ObjectDeltaType deltaBean = changeBean.getObjectDelta();
