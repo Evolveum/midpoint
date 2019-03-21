@@ -311,7 +311,7 @@ public class PageSelfDashboard extends PageSelf {
                             new ItemPath(T_PARENT, WfContextType.F_TARGET_REF));
             List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
             for (WorkItemType workItem : workItems) {
-                list.add(new WorkItemDto(workItem));
+                list.add(new WorkItemDto(workItem, PageSelfDashboard.this));
             }
         } catch (Exception e) {
             result.recordFatalError("Couldn't get list of work items.", e);

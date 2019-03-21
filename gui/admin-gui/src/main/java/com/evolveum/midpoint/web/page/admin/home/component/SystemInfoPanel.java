@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,7 +46,7 @@ import java.util.Date;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> {
+public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SystemInfoPanel.class);
 
@@ -59,6 +60,12 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
 
     public SystemInfoPanel(String id) {
         super(id);
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
     }
 
     @Override
@@ -136,8 +143,7 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
         dto.threads[2] = (Number) mbs.getAttribute(name, "TotalStartedThreadCount");
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         final WebMarkupContainer table = new WebMarkupContainer(ID_TABLE);
         table.setOutputMarkupId(true);
         add(table);
@@ -155,7 +161,8 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
         Label threads = new Label(ID_THREADS, createThreadModel());
         table.add(threads);
 
-        DateLabelComponent startTime = new DateLabelComponent(ID_START_TIME, createStartTimeModel(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+        DateLabelComponent startTime = new DateLabelComponent(ID_START_TIME, createStartTimeModel(),
+                WebComponentUtil.getLongDateTimeFormat(SystemInfoPanel.this.getPageBase()));
         table.add(startTime);
 
         Label uptime = new Label(ID_UPTIME, createUptimeModel());

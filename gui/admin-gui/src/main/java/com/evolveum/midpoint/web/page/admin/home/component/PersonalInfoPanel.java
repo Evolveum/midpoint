@@ -96,7 +96,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
                 PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastLoginDate();
             }
-        }, DateLabelComponent.LONG_MEDIUM_STYLE);
+        }, WebComponentUtil.getLongDateTimeFormat(parentPage));
         lastLoginDate.setBeforeTextOnDateNull(parentPage.getString("PersonalInfoPanel.never"));
         add(lastLoginDate);
 
@@ -119,7 +119,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
                 PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastFailDate();
             }
-        }, DateLabelComponent.LONG_MEDIUM_STYLE);
+        }, WebComponentUtil.getLongDateTimeFormat(parentPage));
         lastFailDate.setBeforeTextOnDateNull(parentPage.getString("PersonalInfoPanel.never"));
         add(lastFailDate);
 

@@ -175,7 +175,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	public String getRequestedOn() {
-		return WebComponentUtil.getLocalizedDate(parentPage.getTaskDto().getRequestedOn(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+		return WebComponentUtil.getLongDateTimeFormattedValue(parentPage.getTaskDto().getRequestedOn(), parentPage);
 	}
 
 	@Override
@@ -273,19 +273,13 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				if (taskType.getExecutionStatus() == TaskExecutionStatusType.RUNNABLE && taskType.getNodeAsObserved() != null
 						|| finished == 0 || finished < started) {
 
-                    PatternDateConverter pdc = new PatternDateConverter
-                            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_MEDIUM_STYLE), true );
-                    String date = pdc.convertToString(new Date(started), WebComponentUtil.getCurrentLocale());
-                    return getString("TaskStatePanel.message.executionTime.notFinished", date,
+                    return getString("TaskStatePanel.message.executionTime.notFinished",
+							WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), parentPage),
 							DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
 				} else {
-                    PatternDateConverter pdc = new PatternDateConverter
-                            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_MEDIUM_STYLE), true );
-                    String startedDate = pdc.convertToString(new Date(started), WebComponentUtil.getCurrentLocale());
-                    String finishedDate = pdc.convertToString(new Date(finished), WebComponentUtil.getCurrentLocale());
-
-					return getString("TaskStatePanel.message.executionTime.finished",
-                            startedDate, finishedDate,
+                    return getString("TaskStatePanel.message.executionTime.finished",
+							WebComponentUtil.getShortDateTimeFormattedValue(new Date(started), parentPage),
+							WebComponentUtil.getShortDateTimeFormattedValue(new Date(finished), parentPage),
 							DurationFormatUtils.formatDurationHMS(finished - started));
 				}
 			}

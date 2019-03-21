@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -1528,6 +1530,48 @@ public final class WebComponentUtil {
 		}
 		PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true);
 		return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
+	}
+
+	public static String getShortDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getShortDateTimeFormattedValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getShortDateTimeFormattedValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		String shortDateTimeFortam = getShortDateTimeFormat(pageBase);
+		return getLocalizedDate(date, shortDateTimeFortam);
+	}
+
+	public static String getLongDateTimeFormattedValue(XMLGregorianCalendar date, PageBase pageBase) {
+		return getLongDateTimeFormattedValue(XmlTypeConverter.toDate(date), pageBase);
+	}
+
+	public static String getLongDateTimeFormattedValue(Date date, PageBase pageBase) {
+		if (date == null) {
+			return "";
+		}
+		String longDateTimeFormat = getLongDateTimeFormat(pageBase);
+		return getLocalizedDate(date, longDateTimeFormat);
+	}
+
+	public static String getShortDateTimeFormat(PageBase pageBase){
+		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getAdminGuiConfiguration().getDisplayFormats();
+		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getShortDateTimeFormat())){
+			return DateLabelComponent.SHORT_MEDIUM_STYLE;
+		} else {
+			return displayFormats.getShortDateTimeFormat();
+		}
+	}
+
+	public static String getLongDateTimeFormat(PageBase pageBase){
+		AdminGuiConfigurationDisplayFormatsType displayFormats = pageBase.getAdminGuiConfiguration().getDisplayFormats();
+		if (displayFormats == null || StringUtils.isEmpty(displayFormats.getLongDateTimeFormat())){
+			return DateLabelComponent.LONG_MEDIUM_STYLE;
+		} else {
+			return displayFormats.getLongDateTimeFormat();
+		}
 	}
 
 	public static boolean isActivationEnabled(PrismObject object) {

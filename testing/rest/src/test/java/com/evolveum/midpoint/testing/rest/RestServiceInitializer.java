@@ -105,6 +105,7 @@ public abstract class RestServiceInitializer {
 	public static final File VALUE_POLICY_GENERAL = new File(BASE_REPO_DIR, "value-policy-general.xml");
 	public static final File VALUE_POLICY_NUMERIC = new File(BASE_REPO_DIR, "value-policy-numeric.xml");
 	public static final File VALUE_POLICY_SIMPLE = new File(BASE_REPO_DIR, "value-policy-simple.xml");
+	public static final File VALUE_POLICY_SECURITY_ANSWER = new File(BASE_REPO_DIR, "value-policy-security-answer.xml");
 	public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
 	public static final File SECURITY_POLICY_NO_HISTORY = new File(BASE_REPO_DIR, "security-policy-no-history.xml");
 
@@ -177,6 +178,7 @@ public abstract class RestServiceInitializer {
 		addObject(VALUE_POLICY_GENERAL, result);
 		addObject(VALUE_POLICY_NUMERIC, result);
 		addObject(VALUE_POLICY_SIMPLE, result);
+		addObject(VALUE_POLICY_SECURITY_ANSWER, result);
 		addObject(SECURITY_POLICY, result);
 		addObject(SYSTEM_CONFIGURATION_FILE, result);
 

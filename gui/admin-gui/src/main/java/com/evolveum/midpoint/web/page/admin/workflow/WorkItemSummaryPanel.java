@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
@@ -128,7 +127,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			public String getObject() {
 				WorkItemType workItem = getModelObject();
 				return getString("TaskSummaryPanel.requestedOn",
-						WebComponentUtil.getLocalizedDate(WfContextUtil.getWorkflowContext(workItem).getStartTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE));
+						WebComponentUtil.getLongDateTimeFormattedValue(WfContextUtil.getWorkflowContext(workItem).getStartTimestamp(),
+								WorkItemSummaryPanel.this.getPageBase()));
 			}
 		};
 	}

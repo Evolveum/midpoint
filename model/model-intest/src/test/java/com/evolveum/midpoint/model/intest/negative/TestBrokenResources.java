@@ -683,6 +683,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 
@@ -698,6 +699,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
@@ -712,6 +714,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 
@@ -719,6 +722,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}

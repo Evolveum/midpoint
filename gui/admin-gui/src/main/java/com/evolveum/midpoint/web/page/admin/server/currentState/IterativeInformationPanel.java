@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskCurrentStateDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -88,11 +87,11 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
 					return null;
 				}
 				if (TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution()) || finished == null || finished < started) {
-					return getString("TaskStatePanel.message.executionTime.notFinished", formatDate(new Date(started)),
+					return getString("TaskStatePanel.message.executionTime.notFinished", formatDate(new Date(started), pageBase),
 							DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
 				} else {
 					return getString("TaskStatePanel.message.executionTime.finished",
-							formatDate(new Date(started)), formatDate(new Date(finished)),
+							formatDate(new Date(started), pageBase), formatDate(new Date(finished), pageBase),
 							DurationFormatUtils.formatDurationHMS(finished - started));
 				}
 			}
@@ -178,13 +177,13 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
                 } else {
                     if (showAgo(dto)) {
                         return getString("TaskStatePanel.message.timeInfoWithDurationAndAgo",
-                                formatDate(info.getLastSuccessEndTimestamp()),
+                                formatDate(info.getLastSuccessEndTimestamp(), pageBase),
                                 WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
                                         XmlTypeConverter.toMillis(info.getLastSuccessEndTimestamp()), true, true, pageBase),
                                 info.getLastSuccessDuration());
                     } else {
                         return getString("TaskStatePanel.message.timeInfoWithDuration",
-                                formatDate(info.getLastSuccessEndTimestamp()),
+                                formatDate(info.getLastSuccessEndTimestamp(), pageBase),
                                 info.getLastSuccessDuration());
                     }
                 }
@@ -272,13 +271,13 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
                 } else {
                     if (showAgo(dto)) {
                         return getString("TaskStatePanel.message.timeInfoWithDurationAndAgo",
-                                formatDate(info.getLastFailureEndTimestamp()),
+                                formatDate(info.getLastFailureEndTimestamp(), pageBase),
                                 WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
                                         XmlTypeConverter.toMillis(info.getLastFailureEndTimestamp()), true, true, pageBase),
                                 info.getLastFailureDuration());
                     } else {
                         return getString("TaskStatePanel.message.timeInfoWithDuration",
-                                formatDate(info.getLastFailureEndTimestamp()),
+                                formatDate(info.getLastFailureEndTimestamp(), pageBase),
                                 info.getLastFailureDuration());
                     }
                 }
@@ -333,7 +332,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
                     return null;
                 } else {
                     return getString("TaskStatePanel.message.timeInfoWithAgo",
-                            formatDate(info.getCurrentObjectStartTimestamp()),
+                            formatDate(info.getCurrentObjectStartTimestamp(), pageBase),
                             WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
                                     XmlTypeConverter.toMillis(info.getCurrentObjectStartTimestamp()), true, true, pageBase));
                 }
@@ -366,15 +365,15 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         add(objectsTotal);
     }
 
-    private String formatDate(XMLGregorianCalendar date) {
-        return formatDate(XmlTypeConverter.toDate(date));
+    private String formatDate(XMLGregorianCalendar date, PageBase pageBase) {
+        return formatDate(XmlTypeConverter.toDate(date), pageBase);
     }
 
-    private String formatDate(Date date) {
+    private String formatDate(Date date, PageBase pageBase) {
         if (date == null) {
             return null;
         }
-        return WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
+        return WebComponentUtil.getLongDateTimeFormattedValue(date, pageBase);
     }
 
     protected boolean showAgo(TaskCurrentStateDto dto) {

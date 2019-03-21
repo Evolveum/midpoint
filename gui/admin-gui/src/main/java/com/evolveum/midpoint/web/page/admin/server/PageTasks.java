@@ -615,14 +615,14 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Date date = getCurrentRuntime(rowModel);
 						TaskDto task = rowModel.getObject();
 						if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED && date != null) {
-							((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString());
+							((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString() + " ");
 						} else if (date != null) {
 							((DateLabelComponent) item.get(componentId))
 									.setBefore(WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this));
 						}
 						return date;
 					}
-				}, DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+				}, WebComponentUtil.getShortDateTimeFormat(PageTasks.this));
 				item.add(dateLabel);
 			}
 
@@ -634,7 +634,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				if (date != null) {
 					if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
 						displayValue =
-								createStringResource("pageTasks.task.closedAt").getString() + WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
+								createStringResource("pageTasks.task.closedAt").getString() +
+										WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasks.this);
 					} else {
 						displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this);
 					}

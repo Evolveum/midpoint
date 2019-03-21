@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,18 +67,23 @@ public interface ConnectorInstance {
 
 	public static final String OPERATION_CONFIGURE = ConnectorInstance.class.getName() + ".configure";
 	public static final String OPERATION_INITIALIZE = ConnectorInstance.class.getName() + ".initialize";
+	public static final String OPERATION_DISPOSE = ConnectorInstance.class.getName() + ".dispose";
 
 	/**
-	 *
 	 * The connector instance will be configured to the state that it can
 	 * immediately access the resource. The resource configuration is provided as
 	 * a parameter to this method.
+	 * 
+	 * This method may be invoked on connector instance that is already configured.
+	 * In that case re-configuration of the connector instance is requested.
+	 * The connector instance must be operational at all times, even during re-configuration.
+	 * Operations cannot be interrupted or refused due to missing configuration.
 	 *
-	 * @param configuration
+	 * @param configuration new connector configuration (prism container value)
 	 * @throws ConfigurationException
 	 */
 	void configure(PrismContainerValue<?> configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
-
+	
 	ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 
 	/**
@@ -320,7 +325,15 @@ public interface ConnectorInstance {
 	// Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
 	void test(OperationResult parentResult);
 
-
+	/**
+	 * Dispose of the connector instance. Dispose is a brutal operation. Once the instance is disposed of, it cannot execute
+	 * any operation, it may not be (re)configured, any operation in progress may fail.
+	 * Dispose is usually invoked only if the system is shutting down. It is not invoked while the system is running, not even
+	 * if the connector instance configuration is out of date. There still may be some operations running. Disposing of the instance
+	 * will make those operations to fail.
+	 * MidPoint prefers to re-configure existing connector instance instead of disposing of it.
+	 * However, this approach may change in the future.
+	 */
 	void dispose();
 
 }
