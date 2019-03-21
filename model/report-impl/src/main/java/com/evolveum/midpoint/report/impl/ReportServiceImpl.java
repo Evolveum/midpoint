@@ -223,6 +223,36 @@ public class ReportServiceImpl implements ReportService {
 
 		return results;
 	}
+	
+	@Override
+	public Object evaluate(String script,
+			Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinitions(parameters);
+
+		// special variable for audit report
+		variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
+
+		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".evaluateScript");
+		OperationResult parentResult = task.getResult();
+
+		Collection<FunctionLibrary> functions = createFunctionLibraries();
+
+		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
+				prismContext.getDefaultProtector(), localizationService);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
+		Object o;
+		try{
+			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
+				parentResult);
+		} finally{
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
+		return o;
+
+	}
 
 	protected PrismContainerValue convertResultingObject(Object obj) {
 		if (obj instanceof PrismObject) {

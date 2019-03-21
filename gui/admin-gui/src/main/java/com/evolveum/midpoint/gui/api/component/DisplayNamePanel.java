@@ -153,7 +153,10 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 			}
 			String objectTemplateNameValue = objectTemplate.getTargetName().toString();
 			StringBuilder sb = new StringBuilder();
-			sb.append(typeValue.getLocalPart()).append(" - ").append(objectTemplateNameValue);
+			if(typeValue != null) {
+				sb.append(typeValue.getLocalPart()).append(" - ");
+			}
+			sb.append(objectTemplateNameValue);
 			return Model.of(sb.toString());
         } 
 		PrismProperty<String> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);

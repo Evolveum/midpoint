@@ -53,7 +53,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.repo.common.task.TaskHandlerUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -134,7 +133,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	
-	@Autowired private CounterManager counterManager;
 	@Autowired private AssignmentCollector assignmentCollector;
 	@Autowired private SystemObjectCache systemObjectCache;
 

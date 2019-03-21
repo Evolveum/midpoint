@@ -73,6 +73,21 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
 		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 0);
 		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
 	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
+	 */
+	@Override
+	protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception {
+		SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+		
+		assertSyncToken(taskAfter, 4, taskAfter.getResult());
+		
+		assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+		assertEquals(syncInfo.getCountDeletedAfter(), 0);
+		assertEquals(syncInfo.getCountLinkedAfter(), 0);
+		assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
+	}
 	
 
 }

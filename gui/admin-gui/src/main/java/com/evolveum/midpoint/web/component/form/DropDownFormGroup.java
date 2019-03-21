@@ -63,7 +63,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
             IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required) {
-    	this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required, false);
+    	this(id, value, choices, renderer, label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required, false);
     }
     
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, String tooltipKey,
