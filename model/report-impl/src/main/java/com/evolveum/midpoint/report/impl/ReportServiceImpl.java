@@ -58,9 +58,11 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -100,6 +102,9 @@ public class ReportServiceImpl implements ReportService {
 			return null;
 		}
 
+		// TODO TODO TODO TODO TODO
+		ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+		
 		ObjectQuery parsedQuery;
 		try {
 			Task task = taskManager.createTaskInstance();
@@ -119,7 +124,7 @@ public class ReportServiceImpl implements ReportService {
 			ExpressionVariables variables = new ExpressionVariables();
 			variables.putAll(parameters);
 
-			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext,
+			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionProfile, expressionFactory, prismContext,
 					"parsing expression values for report", task, task.getResult());
 			((TypeFilter) f).setFilter(q.getFilter());
 			parsedQuery = prismContext.queryFactory().createQuery(f);

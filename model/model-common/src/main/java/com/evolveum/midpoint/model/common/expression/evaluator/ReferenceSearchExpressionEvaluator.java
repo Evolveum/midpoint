@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,10 +43,10 @@ public class ReferenceSearchExpressionEvaluator
 	private static final Trace LOGGER = TraceManager.getTrace(ReferenceSearchExpressionEvaluator.class);
 
 	public ReferenceSearchExpressionEvaluator(ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
-			PrismReferenceDefinition outputDefinition, Protector protector, ObjectResolver objectResolver,
+			PrismReferenceDefinition outputDefinition, ExpressionProfile expressionProfile, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager,
+		super(expressionEvaluatorType, outputDefinition, expressionProfile, protector, objectResolver, modelService, prismContext, securityContextManager,
 				localizationService);
 	}
 

@@ -292,7 +292,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			PrismPropertyDefinition<ObjectSynchronizationDiscriminatorType> discriminatorDef = prismContext.getSchemaRegistry()
 					.findPropertyDefinitionByElementName(new QName(SchemaConstants.NS_C, "objectSynchronizationDiscriminator"));
 			PrismPropertyValue<ObjectSynchronizationDiscriminatorType> evaluateDiscriminator = ExpressionUtil.evaluateExpression(variables, discriminatorDef, 
-					classificationExpression, expressionFactory, desc, task, result);
+					classificationExpression, syncCtx.getExpressionProfile(), expressionFactory, desc, task, result);
 			if (evaluateDiscriminator == null) {
 				return null;
 			}

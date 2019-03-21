@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -51,6 +52,12 @@ public class ExpressionEvaluationContext {
 	private Function<Object, Object> additionalConvertor;
 	private VariableProducer variableProducer;
 
+	/**
+	 * Optional. If not specified then it will be added at the star of evaluation.
+	 * Might be used to override the profile.
+	 */
+	private ExpressionProfile expressionProfile;
+	
 	public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
 			ExpressionVariables variables, String contextDescription, Task task,
 			OperationResult result) {
@@ -100,6 +107,14 @@ public class ExpressionEvaluationContext {
 
 	public void setSkipEvaluationMinus(boolean skipEvaluationMinus) {
 		this.skipEvaluationMinus = skipEvaluationMinus;
+	}
+	
+	public ExpressionProfile getExpressionProfile() {
+		return expressionProfile;
+	}
+
+	public void setExpressionProfile(ExpressionProfile expressionProfile) {
+		this.expressionProfile = expressionProfile;
 	}
 
 	public ValuePolicyResolver getValuePolicyResolver() {
@@ -186,6 +201,7 @@ public class ExpressionEvaluationContext {
 		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task, result);
 		clone.skipEvaluationMinus = this.skipEvaluationMinus;
 		clone.skipEvaluationPlus = this.skipEvaluationPlus;
+		clone.expressionProfile = this.expressionProfile;
 		clone.valuePolicyResolver = this.valuePolicyResolver;
 		clone.expressionFactory = this.expressionFactory;
 		clone.defaultSource = this.defaultSource;

@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -299,7 +300,8 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 				ExpressionConstants.VAR_INPUT, pval, PrimitiveType.STRING);
 
 		// WHEN
-		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext,
+		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, 
+				MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext,
 				"evaluating filter with null value not allowed", task, result);
 
 		// THEN

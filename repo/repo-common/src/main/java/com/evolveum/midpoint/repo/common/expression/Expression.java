@@ -136,6 +136,10 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ExpressionVariables processedVariables = null;
+		
+		if (context.getExpressionProfile() == null) {
+			context.setExpressionProfile(expressionProfile);
+		}
 
 		try {
 

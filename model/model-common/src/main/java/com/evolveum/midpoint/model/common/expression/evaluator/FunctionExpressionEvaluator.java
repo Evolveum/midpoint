@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -111,6 +112,8 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 			throw new ObjectNotFoundException("No functions defined in referenced function library: " + functionLibraryType);
 		}
 
+		// TODO: this has to be determined from the library archetype
+		ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 		
 		String functionName = functionEvaluatorType.getName();
 		
@@ -154,7 +157,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 			try {
 				variableResult.addArbitraryObjectAsParam("valueExpression", valueExpression);
 				D variableOutputDefinition = determineVariableOutputDefinition(functionToExecute, param.getName(), context);
-				ExpressionUtil.evaluateExpression(originVariables, variableOutputDefinition, valueExpression, context.getExpressionFactory(), "resolve variable", task, variableResult);
+				ExpressionUtil.evaluateExpression(originVariables, variableOutputDefinition, valueExpression, expressionProfile, context.getExpressionFactory(), "resolve variable", task, variableResult);
 				variableResult.recordSuccess();
 			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
 					| ConfigurationException | SecurityViolationException e) {

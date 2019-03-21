@@ -38,6 +38,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -62,10 +63,10 @@ public class AssociationTargetSearchExpressionEvaluator
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationTargetSearchExpressionEvaluator.class);
 
 	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
-			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, ObjectResolver objectResolver,
+			PrismContainerDefinition<ShadowAssociationType> outputDefinition, ExpressionProfile expressionProfile, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext,
+		super(expressionEvaluatorType, outputDefinition, expressionProfile, protector, objectResolver, modelService, prismContext,
 				securityContextManager, localizationService);
 	}
 

@@ -65,7 +65,7 @@ public class PopulatorUtil {
 
 	public static <V extends PrismValue, D extends ItemDefinition, C extends Containerable> 
 		List<ItemDelta<V,D>> computePopulateItemDeltas(PopulateType fromPopulate, PrismContainerDefinition<C> targetContainerDefinition, ExpressionVariables variables,
-				ExpressionProfile expressionProfile, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
+				ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
 				throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!(targetContainerDefinition instanceof PrismContainerDefinition)) {
@@ -76,7 +76,7 @@ public class PopulatorUtil {
 
 		for (PopulateItemType populateItem: fromPopulate.getPopulateItem()) {
 
-			ItemDelta<V,D> itemDelta = evaluatePopulateExpression(populateItem, variables, expressionProfile, params,
+			ItemDelta<V,D> itemDelta = evaluatePopulateExpression(populateItem, variables, params,
 					targetContainerDefinition, contextDescription, false, task, result);
 			if (itemDelta != null) {
 				deltas.add(itemDelta);
@@ -88,7 +88,7 @@ public class PopulatorUtil {
 	}
 	
 	private static <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
-			ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionEvaluationContext params, PrismContainerDefinition<C> targetContainerDefinition,
+			ExpressionVariables variables, ExpressionEvaluationContext params, PrismContainerDefinition<C> targetContainerDefinition,
 			String contextDescription, boolean evaluateMinus, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType expressionType = populateItem.getExpression();
 		if (expressionType == null) {
@@ -116,7 +116,7 @@ public class PopulatorUtil {
 
 		String expressionDesc = "expression in populate expression in " + contextDescription;
 		ExpressionFactory expressionFactory = params.getExpressionFactory();
-		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, expressionProfile,
+		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, params.getExpressionProfile(),
 				expressionDesc, task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables,
 				expressionDesc, task, result);

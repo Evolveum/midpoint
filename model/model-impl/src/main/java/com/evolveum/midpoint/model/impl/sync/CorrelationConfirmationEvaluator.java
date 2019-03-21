@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -71,21 +72,11 @@ public class CorrelationConfirmationEvaluator {
 
 	private static transient Trace LOGGER = TraceManager.getTrace(CorrelationConfirmationEvaluator.class);
 
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
-	
-	@Autowired
-	private RelationRegistry relationRegistry;
-
-	@Autowired(required = true)
-	private ExpressionFactory expressionFactory;
-
-	@Autowired(required = true)
-	private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+	@Autowired private PrismContext prismContext;
+	@Autowired private RelationRegistry relationRegistry;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 	
 	public <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType, ShadowType currentShadow,
 			List<ConditionalSearchFilterType> conditionalFilters, ResourceType resourceType, SystemConfigurationType configurationType, Task task, OperationResult result)
@@ -96,15 +87,18 @@ public class CorrelationConfirmationEvaluator {
 					+ "returning empty list of users.", resourceType);
 			return null;
 		}
+		
+		// TODO: determine from the resource
+		ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
 		List<PrismObject<F>> users = null;
 		for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
 			// TODO: better description
-			if (satisfyCondition(currentShadow, conditionalFilter, resourceType, configurationType, "Condition expression", task,
+			if (satisfyCondition(currentShadow, conditionalFilter, expressionProfile, resourceType, configurationType, "Condition expression", task,
 					result)) {
 				LOGGER.trace("Condition {} in correlation expression evaluated to true", conditionalFilter.getCondition());
 				List<PrismObject<F>> foundUsers = findFocusesByCorrelationRule(focusType, currentShadow, conditionalFilter,
-						resourceType, configurationType, task, result);
+						expressionProfile, resourceType, configurationType, task, result);
 				if (foundUsers == null && users == null) {
 					continue;
 				}
@@ -142,7 +136,7 @@ public class CorrelationConfirmationEvaluator {
 	}
 	
 	private boolean satisfyCondition(ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter,
-			ResourceType resourceType, SystemConfigurationType configurationType, String shortDesc, Task task,
+			ExpressionProfile expressionProfile, ResourceType resourceType, SystemConfigurationType configurationType, String shortDesc, Task task,
 			OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
@@ -155,7 +149,7 @@ public class CorrelationConfirmationEvaluator {
 		ItemDefinition outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		PrismPropertyValue<Boolean> satisfy = (PrismPropertyValue) ExpressionUtil.evaluateExpression(variables,
-				outputDefinition, condition, expressionFactory, shortDesc, task, parentResult);
+				outputDefinition, condition, expressionProfile, expressionFactory, shortDesc, task, parentResult);
 		if (satisfy.getValue() == null) {
 			return false;
 		}
@@ -174,7 +168,7 @@ public class CorrelationConfirmationEvaluator {
 	
 	
 	private <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType,
-			ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter, ResourceType resourceType, SystemConfigurationType configurationType,
+			ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter, ExpressionProfile expressionProfile, ResourceType resourceType, SystemConfigurationType configurationType,
 			Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{
 		if (!conditionalFilter.containsFilterClause()) {
@@ -186,7 +180,7 @@ public class CorrelationConfirmationEvaluator {
 		ObjectQuery q;
 		try {
 			q = prismContext.getQueryConverter().createObjectQuery(focusType, conditionalFilter);
-			q = updateFilterWithAccountValues(currentShadow, resourceType, configurationType, q, "Correlation expression", task, result);
+			q = updateFilterWithAccountValues(currentShadow, resourceType, configurationType, q, expressionProfile, "Correlation expression", task, result);
 			if (q == null) {
 				// Null is OK here, it means that the value in the filter
 				// evaluated
@@ -236,7 +230,7 @@ public class CorrelationConfirmationEvaluator {
 
 
 	private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusType, PrismObject<ShadowType> currentShadow,
-			PrismObject<F> userType, ResourceType resourceType, SystemConfigurationType configurationType,
+			ExpressionProfile expressionProfile, PrismObject<F> userType, ResourceType resourceType, SystemConfigurationType configurationType,
 			ConditionalSearchFilterType conditionalFilter, Task task, OperationResult result) throws SchemaException {
 		if (conditionalFilter == null) {
 			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
@@ -255,7 +249,7 @@ public class CorrelationConfirmationEvaluator {
 		ObjectQuery q;
 		try {
 			q = prismContext.getQueryConverter().createObjectQuery(focusType, conditionalFilter);
-			q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, configurationType, q, "Correlation expression", task, result);
+			q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, configurationType, q, expressionProfile, "Correlation expression", task, result);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Start matching user {} with correlation expression {}", userType, q != null ? q.debugDump() : "(null)");
 			}
@@ -294,7 +288,7 @@ public class CorrelationConfirmationEvaluator {
 			for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
 			
 				//TODO: can we expect that systemConfig and resource are always present?
-				if (matchUserCorrelationRule(syncCtx.getFocusClass(), syncCtx.getApplicableShadow(), focus, syncCtx.getResource().asObjectable(), 
+				if (matchUserCorrelationRule(syncCtx.getFocusClass(), syncCtx.getApplicableShadow(), syncCtx.getExpressionProfile(), focus, syncCtx.getResource().asObjectable(), 
 						syncCtx.getSystemConfiguration().asObjectable(), conditionalFilter, syncCtx.getTask(), syncCtx.getResult())) {
 					LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", syncCtx.getApplicableShadow(), focus);
 					return true;
@@ -351,20 +345,20 @@ public class CorrelationConfirmationEvaluator {
 	}
 
 	private ObjectQuery updateFilterWithAccountValues(ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
-			ObjectQuery origQuery, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ObjectQuery origQuery, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		if (origQuery.getFilter() == null) {
 			LOGGER.trace("No filter provided, skipping updating filter");
 			return origQuery;
 		}
 		
-		return evaluateQueryExpressions(origQuery, currentShadow, resource, configuration, shortDesc, task, result);
+		return evaluateQueryExpressions(origQuery, expressionProfile, currentShadow, resource, configuration, shortDesc, task, result);
 	}
 
-	private ObjectQuery evaluateQueryExpressions(ObjectQuery query, ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
+	private ObjectQuery evaluateQueryExpressions(ObjectQuery query, ExpressionProfile expressionProfile, ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
 			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, currentShadow, resource, configuration, prismContext);
-		return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionFactory, prismContext, shortDesc, task, result);
+		return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
 	}
 	
 	public <F extends FocusType> boolean evaluateConfirmationExpression(Class<F> focusType, F user, ShadowType shadow, ResourceType resource,

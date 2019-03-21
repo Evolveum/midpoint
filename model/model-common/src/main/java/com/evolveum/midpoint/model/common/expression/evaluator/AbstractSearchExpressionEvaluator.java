@@ -158,7 +158,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		if (populateAssignmentType != null) {
 			if (outputDefinition instanceof PrismContainerDefinition) {
 				additionalAttributeDeltas = PopulatorUtil.computePopulateItemDeltas(populateAssignmentType, 
-						(PrismContainerDefinition<?>)outputDefinition, variables, expressionProfile, context, contextDescription, task, result);
+						(PrismContainerDefinition<?>)outputDefinition, variables, context, contextDescription, task, result);
 			} else {
 				LOGGER.warn("Search expression {} applied to non-container target, ignoring populate definition", contextDescription);
 			}
@@ -389,7 +389,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		} else {
 			
 			List<ItemDelta<V, D>> populateDeltas = PopulatorUtil.computePopulateItemDeltas(populateObject,
-					objectDefinition, variables, expressionProfile, params, contextDescription, task, result);
+					objectDefinition, variables, params, contextDescription, task, result);
 			ItemDeltaCollectionsUtil.applyTo(populateDeltas, newObject);
 			
 		}

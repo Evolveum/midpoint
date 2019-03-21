@@ -32,9 +32,11 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -63,6 +65,7 @@ public class SynchronizationContext<F extends FocusType> {
 	private PrismObject<ResourceType> resource;
 	private PrismObject<SystemConfigurationType> systemConfiguration;
 	private String chanel;
+	private ExpressionProfile expressionProfile;
 	
 	private Task task;
 	private OperationResult result;
@@ -92,6 +95,7 @@ public class SynchronizationContext<F extends FocusType> {
 		this.task = task;
 		this.result = result;
 		this.prismContext = prismContext;
+		this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
 	}
 	
 	public boolean isSynchronizationEnabled() {
@@ -361,6 +365,14 @@ public class SynchronizationContext<F extends FocusType> {
 //		return reaction;
 //	}
 	
+	public ExpressionProfile getExpressionProfile() {
+		return expressionProfile;
+	}
+
+	public void setExpressionProfile(ExpressionProfile expressionProfile) {
+		this.expressionProfile = expressionProfile;
+	}
+
 	public void setReaction(SynchronizationReactionType reaction) {
 		this.reaction = reaction;
 	}

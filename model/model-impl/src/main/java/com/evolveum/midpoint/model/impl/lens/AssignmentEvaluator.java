@@ -55,10 +55,12 @@ import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LifecycleUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -732,7 +734,9 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			}
 			variables.addVariableDefinitions(getAssignmentEvaluationVariables());
 			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, targetClass);
-			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", ctx.task, ctx.result);
+			// TODO: expression profile should be determined from the holding object archetype
+			ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, expressionProfile, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", ctx.task, ctx.result);
 			if (evaluatedFilter == null) {
 				throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+segment.source);
 			}

@@ -47,8 +47,10 @@ import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -97,6 +99,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
 	private ObjectType orderOneObject;
 	private ResourceType resource;
+	private ExpressionProfile expressionProfile;
 	private MappingFactory mappingFactory;
 	private MappingEvaluator mappingEvaluator;
 	private Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings;
@@ -111,6 +114,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 	public Construction(ConstructionType constructionType, ObjectType source) {
 		super(constructionType, source);
 		this.attributeMappings = null;
+		// TODO: this is wrong. It should be set up during the evaluation process.
+		this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
 	}
 
 	public ObjectType getOrderOneObject() {
@@ -247,7 +252,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 				ResourceType.class);
 		LOGGER.info("Orig filter {}", origFilter);
 		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
-				getMappingFactory().getExpressionFactory(), getPrismContext(),
+				expressionProfile, getMappingFactory().getExpressionFactory(), getPrismContext(),
 				" evaluating resource filter expression ", task, result);
 		LOGGER.info("evaluatedFilter filter {}", evaluatedFilter);
 

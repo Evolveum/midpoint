@@ -114,7 +114,7 @@ public class SynchronizationServiceUtils {
 		try {
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(syncCtx.getTask(), syncCtx.getResult()));
 			PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
-					conditionExpressionType, expressionFactory, desc, syncCtx.getTask(), syncCtx.getResult());
+					conditionExpressionType, syncCtx.getExpressionProfile(), expressionFactory, desc, syncCtx.getTask(), syncCtx.getResult());
 			return evaluateCondition.getValue();
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();

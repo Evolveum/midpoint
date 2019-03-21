@@ -62,6 +62,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -1640,9 +1641,10 @@ public class ChangeExecutor {
 				resource.asPrismObject(), context.getSystemConfiguration(), objectContext, prismContext);
 		// Having delta in provisioning scripts may be very useful. E.g. the script can optimize execution of expensive operations.
 		variables.put(ExpressionConstants.VAR_DELTA, projectionCtx.getDelta(), ObjectDelta.class);
+		ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, (LensProjectionContext) objectContext, task, result));
 		try {
-			return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
+			return evaluateScript(resourceScripts, discr, operation, null, variables, expressionProfile, context, objectContext, task, result);
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
@@ -1651,7 +1653,7 @@ public class ChangeExecutor {
 
 	private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts,
 			ResourceShadowDiscriminator discr, ProvisioningOperationTypeType operation, BeforeAfterType order,
-			ExpressionVariables variables, LensContext<?> context,
+			ExpressionVariables variables, ExpressionProfile expressionProfile, LensContext<?> context,
 			LensElementContext<?> objectContext, Task task,
 			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1681,7 +1683,7 @@ public class ChangeExecutor {
 					}
 				}
 				// Let's do the most expensive evaluation last
-				if (!evaluateScriptCondition(script, variables, task, result)){
+				if (!evaluateScriptCondition(script, variables, expressionProfile, task, result)){
 					continue;
 				}
 				for (ProvisioningScriptArgumentType argument : script.getArgument()) {
@@ -1695,13 +1697,13 @@ public class ChangeExecutor {
 	}
 
 	private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
-			ExpressionVariables variables, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ExpressionVariables variables, ExpressionProfile expressionProfile, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType condition = script.getCondition();
 		if (condition == null) {
 			return true;
 		}
 
-		PrismPropertyValue<Boolean> conditionOutput = ExpressionUtil.evaluateCondition(variables, condition, expressionFactory, " condition for provisioning script ", task, result);
+		PrismPropertyValue<Boolean> conditionOutput = ExpressionUtil.evaluateCondition(variables, condition, expressionProfile, expressionFactory, " condition for provisioning script ", task, result);
 		if (conditionOutput == null) {
 			return true;
 		}
@@ -1778,12 +1780,12 @@ public class ChangeExecutor {
 		if (resourceScripts == null) {
 			return;
 		}
-		
-		executeProvisioningScripts(context, projContext, resourceScripts, ProvisioningOperationTypeType.RECONCILE, order, task, parentResult);
+		ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();		
+		executeProvisioningScripts(context, projContext, resourceScripts, ProvisioningOperationTypeType.RECONCILE, order, expressionProfile, task, parentResult);
 	}
 	
 	private <T extends ObjectType, F extends ObjectType> Object executeProvisioningScripts(LensContext<F> context, LensProjectionContext projContext,
-			OperationProvisioningScriptsType scripts, ProvisioningOperationTypeType operation, BeforeAfterType order, Task task, OperationResult parentResult) 
+			OperationProvisioningScriptsType scripts, ProvisioningOperationTypeType operation, BeforeAfterType order, ExpressionProfile expressionProfile, Task task, OperationResult parentResult) 
 					throws SchemaException, ObjectNotFoundException,
 					ExpressionEvaluationException, CommunicationException, ConfigurationException,
 					SecurityViolationException, ObjectAlreadyExistsException {
@@ -1828,7 +1830,7 @@ public class ChangeExecutor {
 		try {
 			OperationProvisioningScriptsType evaluatedScript = evaluateScript(scripts,
 					projContext.getResourceShadowDiscriminator(), operation, order,
-					variables, context, projContext, task, parentResult);
+					variables, expressionProfile, context, projContext, task, parentResult);
 			for (OperationProvisioningScriptType script : evaluatedScript.getScript()) {
 				ModelImplUtils.setRequestee(task, context);
 				scriptResult = provisioning.executeScript(resource.getOid(), script, task, parentResult);

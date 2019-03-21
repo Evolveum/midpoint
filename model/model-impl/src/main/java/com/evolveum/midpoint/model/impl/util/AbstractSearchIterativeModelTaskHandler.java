@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -88,7 +89,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 			try {
 				ExpressionEnvironment<?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);
 				ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
-				query = ExpressionUtil.evaluateQueryExpressions(query, variables, expressionFactory,
+				query = ExpressionUtil.evaluateQueryExpressions(query, variables, getExpressionProfile(), expressionFactory,
 						prismContext, "evaluate query expressions", coordinatorTask, opResult);
 			} finally {
 				ModelExpressionThreadLocalHolder.popExpressionEnvironment();
@@ -97,7 +98,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 		
 		return query;
 	}
-	
+
 	@Override
 	protected <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> queryOptions, Task coordinatorTask, OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return modelObjectResolver.countObjects(type, query, queryOptions, coordinatorTask, opResult);
