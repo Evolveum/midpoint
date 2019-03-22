@@ -61,11 +61,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
+ * 
+ * This evaluator does not really support expression profiles. It has just one
+ * global almighty compiler (ScriptEngine).
  *
  * @author Radovan Semancik
  *
  */
-public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<CompiledScript> {
+public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<ScriptEngine,CompiledScript> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptEvaluator.class);
 
@@ -81,7 +84,6 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Compil
 			throw new SystemException("The JSR-223 scripting engine for '"+engineName+"' was not found");
 		}
 	}
-
 	
 	@Override
 	protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext context) throws Exception {

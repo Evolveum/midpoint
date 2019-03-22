@@ -84,7 +84,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
 	}
 	
 	private AccessDecision decideClass(String className, String methodName) {
-		AccessDecision decision = SandboxedGroovyScriptEvaluator.decideGroovyBuiltin(className, methodName);
+		AccessDecision decision = GroovyScriptEvaluator.decideGroovyBuiltin(className, methodName);
 		LOGGER.trace("decideClass: builtin [{},{}] : {}", className, methodName, decision);
 		if (decision != AccessDecision.DEFAULT) {
 			return decision;

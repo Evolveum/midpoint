@@ -15,10 +15,14 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.groovy;
 
+
+import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
+import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.runtime.InvokerHelper;
@@ -29,7 +33,9 @@ import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScrip
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -38,36 +44,41 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
+import groovy.transform.CompileStatic;
 
 /**
  * Expression evaluator that is using Groovy scripting engine.
  *
  * @author Radovan Semancik
+ * "Sandboxing" based on type checking inspired by work of Cédric Champeau (http://melix.github.io/blog/2015/03/sandboxing.html)
  */
-public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class> {
+public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<GroovyClassLoader,Class> {
 
 	public static final String LANGUAGE_NAME = "Groovy";
 	public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 	
 	static final String SANDBOX_ERROR_PREFIX = "[SANDBOX] ";
 	
+	/**
+	 * The name is not really used for anything serious. Maybe just for diagnostics.
+	 * But setting it to non-null to avoid confusing with the "null" profile.
+	 */
+	public static final String BUILTIN_EXPRESSION_PROFILE_NAME = "_groovyBuiltIn";
+	
+	/**
+	 * Expression profile for built-in groovy functions that always needs to be allowed
+	 * or denied.
+	 */
+	private static final ExpressionProfile BUILTIN_EXPRESSION_PROFILE = new ExpressionProfile(BUILTIN_EXPRESSION_PROFILE_NAME);
+	
 	private static final Trace LOGGER = TraceManager.getTrace(GroovyScriptEvaluator.class);
 	
-	private GroovyClassLoader groovyLoader;
+//	private GroovyClassLoader allmightyGroovyLoader;
 
-	public GroovyScriptEvaluator(PrismContext prismContext, Protector protector,
-			LocalizationService localizationService) {
+	public GroovyScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
 		super(prismContext, protector, localizationService);
 		
-		CompilerConfiguration compilerConfiguration = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
-		configureCompiler(compilerConfiguration);
-		SecureASTCustomizer sAstCustomizer = new SecureASTCustomizer();
-		compilerConfiguration.addCompilationCustomizers(sAstCustomizer);
-		groovyLoader = new GroovyClassLoader(GroovyScriptEvaluator.class.getClassLoader(), compilerConfiguration);
-	}
-
-	protected void configureCompiler(CompilerConfiguration compilerConfiguration) {
-		
+		// No initialization here. Compilers/interpreters are initialized on demand.
 	}
 
 	/* (non-Javadoc)
@@ -90,7 +101,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class>
 	@Override
 	protected Class compileScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
 		try {
-			return groovyLoader.parseClass(codeString, context.getContextDescription());
+			return getGroovyLoader(context).parseClass(codeString, context.getContextDescription());
 		} catch (MultipleCompilationErrorsException e) {
 			String sandboxErrorMessage = getSandboxError(e);
 			if (sandboxErrorMessage == null) {
@@ -103,6 +114,41 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class>
 		}
 	}
 
+
+	private GroovyClassLoader getGroovyLoader(ScriptExpressionEvaluationContext context) {
+		ExpressionProfile expressionProfile = context.getExpressionProfile();
+		GroovyClassLoader groovyClassLoader = getScriptCache().getInterpreter(expressionProfile);
+		if (groovyClassLoader != null) {
+			return groovyClassLoader;
+		}
+		groovyClassLoader = createGroovyLoader(expressionProfile);
+		getScriptCache().putInterpreter(expressionProfile, groovyClassLoader);
+		return groovyClassLoader;
+	}
+
+	private GroovyClassLoader createGroovyLoader(ExpressionProfile expressionProfile) {
+		CompilerConfiguration compilerConfiguration = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
+		configureCompiler(compilerConfiguration, expressionProfile);
+		return new GroovyClassLoader(GroovyScriptEvaluator.class.getClassLoader(), compilerConfiguration);
+	}
+
+	private void configureCompiler(CompilerConfiguration compilerConfiguration, ExpressionProfile expressionProfile) {
+		if (expressionProfile == null) {
+			// No configuration is needed for "almighty" compiler. 
+			return;
+		}
+		if (!expressionProfile.isGroovyTypeChecking()) {
+			return;
+		}
+		
+		SecureASTCustomizer sAstCustomizer = new SecureASTCustomizer();
+		compilerConfiguration.addCompilationCustomizers(sAstCustomizer);	
+		
+		ASTTransformationCustomizer astTransCustomizer = new ASTTransformationCustomizer(
+                Collections.singletonMap("extensions", Collections.singletonList(SandboxTypeCheckingExtension.class.getName())),			
+                CompileStatic.class);
+		compilerConfiguration.addCompilationCustomizers(astTransCustomizer);
+	}
 
 	private String getSandboxError(MultipleCompilationErrorsException e) {
 		List errors = e.getErrorCollector().getErrors();
@@ -154,5 +200,18 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Class>
 		return resultObject;
 	}
 	
+	static AccessDecision decideGroovyBuiltin(String className, String methodName) {
+		return BUILTIN_EXPRESSION_PROFILE.decideClassAccess(className, methodName);
+	}
+	
+	static {
+		// Allow script initialization
+		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(Script.class, "<init>", AccessDecision.ALLOW);
+		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(InvokerHelper.class, "runScript", AccessDecision.ALLOW);
+		
+		// Deny access to reflection. Reflection can circumvent the sandbox protection.
+		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(Class.class, null, AccessDecision.DENY);
+		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(Method.class, null, AccessDecision.DENY);
+	}
 
 }

@@ -18,8 +18,6 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.namespace.QName;
 
@@ -48,23 +46,22 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
  *
- * @author Radovan Semancik
+ * @param <I> script interpreter/compiler
  * @param <C> compiled code
- *
+ * @author Radovan Semancik
  */
-public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEvaluator {
+public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScriptEvaluator {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractCachingScriptEvaluator.class);
 
-	private final Map<String, C> scriptCache;
+	private final ScriptCache<I,C> scriptCache;
 
-	public AbstractCachingScriptEvaluator(PrismContext prismContext, Protector protector,
-			LocalizationService localizationService) {
+	public AbstractCachingScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
 		super(prismContext, protector, localizationService);
-		this.scriptCache = new ConcurrentHashMap<>();
+		this.scriptCache = new ScriptCache<>();
 	}
 	
-	public Map<String, C> getScriptCache() {
+	protected ScriptCache<I,C> getScriptCache() {
 		return scriptCache;
 	}
 
@@ -86,12 +83,10 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 
 		Object evalRawResult;
 		try {
-			beforeEvaluation(compiledScript, context);
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			
 			evalRawResult = evaluateScript(compiledScript, context);
 			
-			afterEvaluation(evalRawResult, compiledScript, context);
 		} catch (ExpressionEvaluationException | ObjectNotFoundException | ExpressionSyntaxException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			// Exception already processed by the underlying code.
 			throw e;
@@ -151,23 +146,19 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 	}
 
 	protected C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
-		C compiledScript = scriptCache.get(codeString);
+		C compiledScript = scriptCache.getCode(context.getExpressionProfile(), codeString);
 		if (compiledScript != null) {
 			return compiledScript;
 		}
 		InternalMonitor.recordCount(InternalCounters.SCRIPT_COMPILE_COUNT);
 		try {
-			beforeCompileScript(codeString, context);
-			
 			compiledScript = compileScript(codeString, context);
-			
-			afterCompileScript(compiledScript, codeString, context);
 		} catch (ExpressionEvaluationException | SecurityViolationException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " while compiling " + context.getContextDescription(), e);
 		}
-		scriptCache.put(codeString, compiledScript);
+		scriptCache.putCode(context.getExpressionProfile(), codeString, compiledScript);
 		return compiledScript;
 	}
 
@@ -183,24 +174,6 @@ public abstract class AbstractCachingScriptEvaluator<C> extends AbstractScriptEv
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
 		}
-	}
-
-	// HOOKS
-	
-	protected void beforeCompileScript(String codeString, ScriptExpressionEvaluationContext context) {
-		
-	}
-	
-	protected void afterCompileScript(C compiledScript, String codeString, ScriptExpressionEvaluationContext context) {
-		
-	}
-	
-	protected void beforeEvaluation(C compiledScriptClass, ScriptExpressionEvaluationContext context) {
-		
-	}
-	
-	protected void afterEvaluation(Object resultObject, C compiledScriptClass, ScriptExpressionEvaluationContext context) {
-		
 	}
 
 }

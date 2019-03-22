@@ -26,11 +26,12 @@ import com.evolveum.midpoint.schema.AccessDecision;
  * @author Radovan Semancik
  *
  */
-public class ExpressionProfile {
+public class ExpressionProfile { // TODO: DebugDumpable
 	
 	private final String name;
 	private final List<Rule> classAccessRules = new ArrayList<>();
 	private AccessDecision defaultClassAccessDecision = AccessDecision.DEFAULT;
+	private boolean groovyTypeChecking;
 	
 	public ExpressionProfile(String name) {
 		super();
@@ -47,6 +48,14 @@ public class ExpressionProfile {
 
 	public void setDefaultClassAccessDecision(AccessDecision defaultClassAccessDecision) {
 		this.defaultClassAccessDecision = defaultClassAccessDecision;
+	}
+	
+	public boolean isGroovyTypeChecking() {
+		return groovyTypeChecking;
+	}
+	
+	public void setGroovyTypeChecking(boolean groovyTypeChecking) {
+		this.groovyTypeChecking = groovyTypeChecking;
 	}
 
 	public AccessDecision decideClassAccess(String className, String methodName) {

@@ -19,9 +19,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.common.expression.script.groovy.SandboxedGroovyScriptEvaluator;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -31,16 +28,11 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
  */
 public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.AbstractExpressionTest#createEvaluator()
-	 */
-	@Override
-	protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
-		return new SandboxedGroovyScriptEvaluator(prismContext, protector, localizationService);
-	}
 	
 	protected ExpressionProfile getExpressionProfile() {
 		ExpressionProfile profile = new ExpressionProfile("testGroovyExpressionsSandbox");
+		
+		profile.setGroovyTypeChecking(true);
 		
 		profile.addClassAccessRule(Poison.class, "smell", AccessDecision.DENY);
 		profile.addClassAccessRule(Poison.class, "drink", AccessDecision.DENY);
