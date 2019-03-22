@@ -521,4 +521,21 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 		// THEN
 		
     }
+	
+	/**
+	 * Allmighty script can execute a process from list.
+	 */
+	@Test
+    public void testListExec() throws Exception {
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssion(
+				"expression-list-exec.xml",
+				"testListExec",
+				null,
+				RESULT_STRING_EXEC);
+		
+		// THEN
+		
+    }
 }

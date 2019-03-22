@@ -64,5 +64,13 @@
     				<decision>deny</decision>
     			</method>
     	</class>
+    	<class>
+    		<name>java.util.List</name>
+    			<decision>allow</decision>
+    			<method>
+    				<name>execute</name>
+    				<decision>deny</decision>
+    			</method>
+    	</class>
     </permissionProfile>
 </systemConfiguration>

@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.List;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.AccessDecision;
@@ -46,6 +48,9 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 		
 		permissionProfile.addClassAccessRule(String.class, AccessDecision.ALLOW);
 		permissionProfile.addClassAccessRule(String.class, "execute", AccessDecision.DENY);
+		
+		permissionProfile.addClassAccessRule(List.class, AccessDecision.ALLOW);
+		permissionProfile.addClassAccessRule(List.class, "execute", AccessDecision.DENY);
 		
 		permissionProfile.setDecision(AccessDecision.ALLOW);
 		
@@ -178,6 +183,23 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 		evaluateAndAssertStringScalarExpresssionRestricted(
 				"expression-string-exec.xml",
 				"testStringExec",
+				null);
+		
+		// THEN
+		
+    }
+	
+	/**
+	 * Deny execute from list.
+	 */
+	@Test
+	@Override
+    public void testListExec() throws Exception {
+		
+		// WHEN
+		evaluateAndAssertStringScalarExpresssionRestricted(
+				"expression-list-exec.xml",
+				"testListExec",
 				null);
 		
 		// THEN
