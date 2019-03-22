@@ -46,6 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  */
 @Component
 public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createValue(null).getName();
 
 	@Autowired private PrismContext prismContext;
 
@@ -62,7 +64,7 @@ public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressi
 
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createValue(null).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -78,7 +80,7 @@ public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressi
 
 		PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 
-		return new LiteralExpressionEvaluator<>(deltaSetTriple);
+		return new LiteralExpressionEvaluator<>(ELEMENT_NAME, deltaSetTriple);
 	}
 
 }

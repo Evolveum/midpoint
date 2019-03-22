@@ -45,10 +45,13 @@ import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
@@ -319,15 +322,31 @@ public abstract class AbstractScriptTest {
 	}
 	
 	private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
-		ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
+		String language = expressionType.getLanguage();
+		ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(language), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
 		expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
-		expression.setExpressionProfile(getExpressionProfile());
+		ScriptExpressionProfile scriptExpressionProfile = getScriptExpressionProfile(language);
+		expression.setScriptExpressionProfile(scriptExpressionProfile);
+		expression.setExpressionProfile(getExpressionProfile(scriptExpressionProfile));
 		return expression;
 	}
 
-	protected ExpressionProfile getExpressionProfile() {
+	protected ExpressionProfile getExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+		if (scriptExpressionProfile == null) {
+			return null;
+		}
+		ExpressionProfile expressionProfile = new ExpressionProfile(this.getClass().getSimpleName());
+		expressionProfile.setDecision(AccessDecision.DENY);
+		ExpressionEvaluatorProfile evaluatorProfile = new ExpressionEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+		expressionProfile.add(evaluatorProfile);
+		evaluatorProfile.setDecision(AccessDecision.DENY);
+		evaluatorProfile.add(scriptExpressionProfile);
+		return expressionProfile;
+	}
+	
+	protected ScriptExpressionProfile getScriptExpressionProfile(String language) {
 		return null;
 	}
 

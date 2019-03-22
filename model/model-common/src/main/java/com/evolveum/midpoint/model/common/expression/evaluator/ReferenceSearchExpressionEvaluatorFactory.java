@@ -44,6 +44,8 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createReferenceSearch(new ReferenceSearchExpressionEvaluatorType()).getName();
 
 	private final PrismContext prismContext;
 	private final Protector protector;
@@ -63,7 +65,7 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createReferenceSearch(new ReferenceSearchExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -94,8 +96,8 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof ReferenceSearchExpressionEvaluatorType)) {
             throw new SchemaException("reference search expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((ReferenceSearchExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismReferenceDefinition) outputDefinition, expressionProfile, protector, getObjectResolver(), modelService, prismContext, securityContextManager, getLocalizationService());
+        ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator(ELEMENT_NAME, (ReferenceSearchExpressionEvaluatorType)evaluatorTypeObject,
+        		(PrismReferenceDefinition) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService());
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}
 

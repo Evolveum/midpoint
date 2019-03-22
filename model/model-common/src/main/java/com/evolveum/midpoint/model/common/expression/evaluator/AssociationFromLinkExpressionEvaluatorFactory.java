@@ -43,6 +43,8 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createAssociationFromLink(new AssociationFromLinkExpressionEvaluatorType()).getName();
 
 	private final PrismContext prismContext;
 	private final Protector protector;
@@ -61,7 +63,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAssociationFromLink(new AssociationFromLinkExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -92,9 +94,9 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AssociationFromLinkExpressionEvaluatorType)) {
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssociationFromLinkExpressionEvaluator evaluator = new AssociationFromLinkExpressionEvaluator(
+        AssociationFromLinkExpressionEvaluator evaluator = new AssociationFromLinkExpressionEvaluator(ELEMENT_NAME,
         		(AssociationFromLinkExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, getObjectResolver(), prismContext);
+        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, prismContext, getObjectResolver());
         return (ExpressionEvaluator<V,D>) evaluator;
 	}
 

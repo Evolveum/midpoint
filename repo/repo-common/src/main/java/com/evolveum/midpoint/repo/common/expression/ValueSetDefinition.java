@@ -59,7 +59,7 @@ public class ValueSetDefinition {
 		this.result = result;
 	}
 
-	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException {
+	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		ExpressionType conditionType = setDefinitionType.getCondition();
 		condition = ExpressionUtil.createCondition(conditionType, expressionProfile, expressionFactory, shortDesc, task, result);
 	}

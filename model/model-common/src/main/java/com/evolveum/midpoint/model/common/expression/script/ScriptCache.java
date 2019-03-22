@@ -62,7 +62,7 @@ public class ScriptCache<I,C> {
 		if (profile == null) {
 			return null;
 		} else {
-			return profile.getName();
+			return profile.getIdentifier();
 		}
 	}
 

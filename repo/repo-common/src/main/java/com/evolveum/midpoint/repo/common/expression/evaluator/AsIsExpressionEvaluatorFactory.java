@@ -43,6 +43,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
+	private static final QName ELEMENT_NAME = new ObjectFactory().createAsIs(new AsIsExpressionEvaluatorType()).getName(); 
+	
 	@Autowired private PrismContext prismContext;
 	@Autowired private Protector protector;
 
@@ -63,16 +65,19 @@ public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionE
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAsIs(new AsIsExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement)
 	 */
 	@Override
-	public <V extends PrismValue,D extends ItemDefinition> AsIsExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-																										D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory factory, 
-																										String contextDescription, Task task, OperationResult result) throws SchemaException {
+	public <V extends PrismValue,D extends ItemDefinition> AsIsExpressionEvaluator<V,D> createEvaluator(
+			Collection<JAXBElement<?>> evaluatorElements,
+			D outputDefinition,
+			ExpressionProfile expressionProfile,
+			ExpressionFactory factory, 
+			String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for asIs expression evaluator");
 
@@ -91,8 +96,7 @@ public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionE
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AsIsExpressionEvaluatorType)) {
             throw new SchemaException("AsIs value constructor cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        return new AsIsExpressionEvaluator<>((AsIsExpressionEvaluatorType) evaluatorTypeObject,
-            outputDefinition, protector, prismContext);
+        return new AsIsExpressionEvaluator<>(ELEMENT_NAME, (AsIsExpressionEvaluatorType) evaluatorTypeObject, outputDefinition, protector, prismContext);
 	}
 
 }

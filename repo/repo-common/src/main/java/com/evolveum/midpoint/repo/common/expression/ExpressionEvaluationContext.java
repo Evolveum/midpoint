@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,6 +58,7 @@ public class ExpressionEvaluationContext {
 	 * Might be used to override the profile.
 	 */
 	private ExpressionProfile expressionProfile;
+	private ExpressionEvaluatorProfile expressionEvaluatorProfile;
 	
 	public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
 			ExpressionVariables variables, String contextDescription, Task task,
@@ -115,6 +117,14 @@ public class ExpressionEvaluationContext {
 
 	public void setExpressionProfile(ExpressionProfile expressionProfile) {
 		this.expressionProfile = expressionProfile;
+	}
+
+	public ExpressionEvaluatorProfile getExpressionEvaluatorProfile() {
+		return expressionEvaluatorProfile;
+	}
+
+	public void setExpressionEvaluatorProfile(ExpressionEvaluatorProfile expressionEvaluatorProfile) {
+		this.expressionEvaluatorProfile = expressionEvaluatorProfile;
 	}
 
 	public ValuePolicyResolver getValuePolicyResolver() {

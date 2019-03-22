@@ -44,6 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  *
  */
 public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createFunction(new FunctionExpressionEvaluatorType()).getName();
 
 	private final Protector protector;
 	private final PrismContext prismContext;
@@ -56,7 +58,7 @@ public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvable
 	
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createFunction(new FunctionExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -88,7 +90,7 @@ public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvable
 
         FunctionExpressionEvaluatorType functionEvaluatorType = (FunctionExpressionEvaluatorType)evaluatorTypeObject;
 
-		return new FunctionExpressionEvaluator(functionEvaluatorType, outputDefinition, protector, getObjectResolver(), prismContext);
+		return new FunctionExpressionEvaluator(ELEMENT_NAME, functionEvaluatorType, outputDefinition, protector, getObjectResolver(), prismContext);
 	}
 
 }

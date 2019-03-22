@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
@@ -35,7 +36,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,7 +72,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
 	 * Expression profile for built-in groovy functions that always needs to be allowed
 	 * or denied.
 	 */
-	private static final ExpressionProfile BUILTIN_EXPRESSION_PROFILE = new ExpressionProfile(BUILTIN_EXPRESSION_PROFILE_NAME);
+	private static final ScriptExpressionProfile BUILTIN_SCRIPT_EXPRESSION_PROFILE = new ScriptExpressionProfile(BUILTIN_EXPRESSION_PROFILE_NAME);
 	
 	private static final Trace LOGGER = TraceManager.getTrace(GroovyScriptEvaluator.class);
 	
@@ -97,6 +100,19 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
 		return LANGUAGE_URL;
 	}
 
+	@Override
+	protected void checkRestrictions(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+		ScriptExpressionProfile scriptExpressionProfile = context.getScriptExpressionProfile();
+		if (scriptExpressionProfile == null) {
+			// no restrictions
+			return;
+		}
+		if (!scriptExpressionProfile.hasRestrictions() && scriptExpressionProfile.getDecision() != AccessDecision.ALLOW) {
+			throw new SecurityViolationException("Script intepreter for language "+getLanguageName()
+			+" is not allowed in expression profile "+context.getExpressionProfile().getIdentifier()
+			+"; script execution prohibited in "+context.getContextDescription());
+		}
+	}
 
 	@Override
 	protected Class compileScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
@@ -115,29 +131,32 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
 	}
 
 
-	private GroovyClassLoader getGroovyLoader(ScriptExpressionEvaluationContext context) {
-		ExpressionProfile expressionProfile = context.getExpressionProfile();
-		GroovyClassLoader groovyClassLoader = getScriptCache().getInterpreter(expressionProfile);
+	private GroovyClassLoader getGroovyLoader(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+		GroovyClassLoader groovyClassLoader = getScriptCache().getInterpreter(context.getExpressionProfile());
 		if (groovyClassLoader != null) {
 			return groovyClassLoader;
 		}
-		groovyClassLoader = createGroovyLoader(expressionProfile);
-		getScriptCache().putInterpreter(expressionProfile, groovyClassLoader);
+		ScriptExpressionProfile scriptExpressionProfile = context.getScriptExpressionProfile();
+		groovyClassLoader = createGroovyLoader(scriptExpressionProfile, context);
+		getScriptCache().putInterpreter(context.getExpressionProfile(), groovyClassLoader);
 		return groovyClassLoader;
 	}
 
-	private GroovyClassLoader createGroovyLoader(ExpressionProfile expressionProfile) {
+	private GroovyClassLoader createGroovyLoader(ScriptExpressionProfile expressionProfile, ScriptExpressionEvaluationContext context) throws SecurityViolationException {
 		CompilerConfiguration compilerConfiguration = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
-		configureCompiler(compilerConfiguration, expressionProfile);
+		configureCompiler(compilerConfiguration, expressionProfile, context);
 		return new GroovyClassLoader(GroovyScriptEvaluator.class.getClassLoader(), compilerConfiguration);
 	}
 
-	private void configureCompiler(CompilerConfiguration compilerConfiguration, ExpressionProfile expressionProfile) {
-		if (expressionProfile == null) {
+	private void configureCompiler(CompilerConfiguration compilerConfiguration, ScriptExpressionProfile scriptExpressionProfile, ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+		if (scriptExpressionProfile == null) {
 			// No configuration is needed for "almighty" compiler. 
 			return;
 		}
-		if (!expressionProfile.isGroovyTypeChecking()) {
+		if (!BooleanUtils.isTrue(scriptExpressionProfile.isTypeChecking())) {
+			if (scriptExpressionProfile.hasRestrictions()) {
+				throw new SecurityViolationException("Requested to apply restrictions to groovy script, but the script is not set to type checking mode, in "+context.getContextDescription());
+			}
 			return;
 		}
 		
@@ -152,7 +171,6 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
 
 	private String getSandboxError(MultipleCompilationErrorsException e) {
 		List errors = e.getErrorCollector().getErrors();
-		LOGGER.info("ERRORs: {}", errors);
 		if (errors == null) {
 			return null;
 		}
@@ -161,21 +179,16 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
 				continue;
 			}
 			SyntaxException cause = ((SyntaxErrorMessage)error).getCause();
-			LOGGER.info("ERROR cause: {}", cause.toString(), cause);
 			
 			if (cause == null) {
 				continue;
 			}
-
-			LOGGER.info("ERROR cause.message: {}", cause.getMessage());
-			LOGGER.info("ERROR cause.originalMessage: {}", cause.getOriginalMessage());
 
 			String causeMessage = cause.getMessage();
 			if (causeMessage == null) {
 				continue;
 			}
 			int i = causeMessage.indexOf(SANDBOX_ERROR_PREFIX);
-			LOGGER.info("ERROR i: {}", i);
 			if (i < 0) {
 				continue;
 			}
@@ -201,17 +214,24 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
 	}
 	
 	static AccessDecision decideGroovyBuiltin(String className, String methodName) {
-		return BUILTIN_EXPRESSION_PROFILE.decideClassAccess(className, methodName);
+		return BUILTIN_SCRIPT_EXPRESSION_PROFILE.decideClassAccess(className, methodName);
 	}
 	
 	static {
+		ExpressionPermissionProfile permissionProfile = new ExpressionPermissionProfile(BUILTIN_EXPRESSION_PROFILE_NAME);
+		
 		// Allow script initialization
-		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(Script.class, "<init>", AccessDecision.ALLOW);
-		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(InvokerHelper.class, "runScript", AccessDecision.ALLOW);
+		permissionProfile.addClassAccessRule(Script.class, "<init>", AccessDecision.ALLOW);
+		permissionProfile.addClassAccessRule(InvokerHelper.class, "runScript", AccessDecision.ALLOW);
 		
 		// Deny access to reflection. Reflection can circumvent the sandbox protection.
-		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(Class.class, null, AccessDecision.DENY);
-		BUILTIN_EXPRESSION_PROFILE.addClassAccessRule(Method.class, null, AccessDecision.DENY);
+		permissionProfile.addClassAccessRule(Class.class, null, AccessDecision.DENY);
+		permissionProfile.addClassAccessRule(Method.class, null, AccessDecision.DENY);
+		
+		permissionProfile.setDecision(AccessDecision.DEFAULT);
+		
+		BUILTIN_SCRIPT_EXPRESSION_PROFILE.setPermissionProfile(permissionProfile);
+		BUILTIN_SCRIPT_EXPRESSION_PROFILE.setDecision(AccessDecision.DEFAULT);
 	}
 
 }

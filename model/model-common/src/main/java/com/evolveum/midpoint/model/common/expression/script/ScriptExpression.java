@@ -24,7 +24,9 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,6 +57,7 @@ public class ScriptExpression {
     private ObjectResolver objectResolver;
     private Collection<FunctionLibrary> functions;
     private ExpressionProfile expressionProfile;
+    private ScriptExpressionProfile scriptExpressionProfile;
     
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
 	private static final int MAX_CODE_CHARS = 42;
@@ -95,6 +98,14 @@ public class ScriptExpression {
 	public void setExpressionProfile(ExpressionProfile expressionProfile) {
 		this.expressionProfile = expressionProfile;
 	}
+	
+	public ScriptExpressionProfile getScriptExpressionProfile() {
+		return scriptExpressionProfile;
+	}
+
+	public void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+		this.scriptExpressionProfile = scriptExpressionProfile;
+	}
 
 	public Function<Object, Object> getAdditionalConvertor() {
 		return additionalConvertor;
@@ -113,6 +124,7 @@ public class ScriptExpression {
 		context.setVariables(variables);
 		context.setFunctions(functions);
 		context.setExpressionProfile(expressionProfile);
+		context.setScriptExpressionProfile(scriptExpressionProfile);
 		context.setOutputDefinition(outputDefinition);
 		context.setAdditionalConvertor(additionalConvertor);
 		context.setSuggestedReturnType(suggestedReturnType);
@@ -148,9 +160,10 @@ public class ScriptExpression {
         		"Language: {}\n"+
         		"Relativity mode: {}\n"+
         		"Variables:\n{}\n"+
+        		"Profile: {}\n" +
         		"Code:\n{}\n"+
         		"Result: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
-				formatCode(), SchemaDebugUtil.prettyPrint(returnValue));
+				formatProfile(), formatCode(), SchemaDebugUtil.prettyPrint(returnValue));
     }
 
     private void traceExpressionFailure(ExpressionVariables variables, String shortDesc, Throwable exception) {
@@ -163,9 +176,10 @@ public class ScriptExpression {
         		"Language: {}\n"+
         		"Relativity mode: {}\n"+
         		"Variables:\n{}\n"+
+        		"Profile: {}\n" +
         		"Code:\n{}\n"+
         		"Error: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
-				formatCode(), SchemaDebugUtil.prettyPrint(exception));
+        		formatProfile(),formatCode(), SchemaDebugUtil.prettyPrint(exception));
     }
 
     private boolean isTrace() {
@@ -186,6 +200,23 @@ public class ScriptExpression {
 		}
 		return variables.formatVariables();
 	}
+	
+	private String formatProfile() {
+		StringBuilder sb = new StringBuilder();
+		if (expressionProfile != null) {
+			sb.append(expressionProfile.getIdentifier());
+		} else {
+			sb.append("null (no profile)");
+		}
+		if (scriptExpressionProfile != null) {
+			sb.append("; ");
+			ExpressionPermissionProfile permissionProfile = scriptExpressionProfile.getPermissionProfile();
+			if (permissionProfile != null) {
+				sb.append("permission=").append(permissionProfile.getIdentifier());
+			}
+		}
+		return sb.toString();
+    }
 
 	private String formatCode() {
 		return DebugUtil.excerpt(scriptType.getCode().replaceAll("[\\s\\r\\n]+", " "), MAX_CODE_CHARS);

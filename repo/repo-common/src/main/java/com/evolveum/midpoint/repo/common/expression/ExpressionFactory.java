@@ -32,6 +32,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
@@ -85,7 +86,7 @@ public class ExpressionFactory implements Cacheable {
 	
 	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
 			D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException {
+					throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
 		Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
 		if (expression == null) {
@@ -97,7 +98,7 @@ public class ExpressionFactory implements Cacheable {
 
 	public <T> Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> makePropertyExpression(
 			ExpressionType expressionType, QName outputPropertyName, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException {
+					throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		//noinspection unchecked
 		PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
 		return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
@@ -105,7 +106,7 @@ public class ExpressionFactory implements Cacheable {
 
 	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
 			D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException {
+					throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		Expression<V,D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
 		expression.parse(this, shortDesc, task, result);
 		return expression;

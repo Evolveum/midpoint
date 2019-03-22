@@ -49,11 +49,10 @@ public class AssignmentTargetSearchExpressionEvaluator
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
 
-	public AssignmentTargetSearchExpressionEvaluator(AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType,
-			PrismContainerDefinition<AssignmentType> outputDefinition, ExpressionProfile expressionProfile, Protector protector, ObjectResolver objectResolver,
-			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
-			LocalizationService localizationService) {
-		super(expressionEvaluatorType, outputDefinition, expressionProfile, protector, objectResolver, modelService, prismContext, securityContextManager, localizationService);
+	public AssignmentTargetSearchExpressionEvaluator(QName elementName, AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType,
+			PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, PrismContext prismContext,
+			ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager, LocalizationService localizationService) {
+		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService);
 	}
 
 	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {

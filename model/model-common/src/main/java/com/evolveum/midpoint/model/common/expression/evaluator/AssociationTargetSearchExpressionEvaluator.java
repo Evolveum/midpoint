@@ -62,12 +62,11 @@ public class AssociationTargetSearchExpressionEvaluator
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationTargetSearchExpressionEvaluator.class);
 
-	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
-			PrismContainerDefinition<ShadowAssociationType> outputDefinition, ExpressionProfile expressionProfile, Protector protector, ObjectResolver objectResolver,
-			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
+	public AssociationTargetSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
+			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver,
+			ModelService modelService, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
-		super(expressionEvaluatorType, outputDefinition, expressionProfile, protector, objectResolver, modelService, prismContext,
-				securityContextManager, localizationService);
+		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService);
 	}
 
 	@Override

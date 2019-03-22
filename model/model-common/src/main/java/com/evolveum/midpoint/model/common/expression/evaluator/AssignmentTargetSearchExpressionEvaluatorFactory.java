@@ -45,6 +45,8 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class AssignmentTargetSearchExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createAssignmentTargetSearch(new AssignmentTargetSearchExpressionEvaluatorType()).getName();
 
 	private final PrismContext prismContext;
 	private final Protector protector;
@@ -65,7 +67,7 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory extends AbstractOb
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAssignmentTargetSearch(new AssignmentTargetSearchExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -96,8 +98,8 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory extends AbstractOb
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AssignmentTargetSearchExpressionEvaluatorType)) {
             throw new SchemaException("assignment expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((AssignmentTargetSearchExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismContainerDefinition<AssignmentType>) outputDefinition, expressionProfile, protector, getObjectResolver(), modelService, prismContext, securityContextManager, getLocalizationService());
+        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator(ELEMENT_NAME, (AssignmentTargetSearchExpressionEvaluatorType)evaluatorTypeObject,
+        		(PrismContainerDefinition<AssignmentType>) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService());
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}
 

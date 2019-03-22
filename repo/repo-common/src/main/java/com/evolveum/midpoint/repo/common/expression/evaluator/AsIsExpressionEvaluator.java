@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.repo.common.expression.evaluator;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -28,29 +30,23 @@ import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvaluatorType;
 
 /**
  * @author Radovan Semancik
  */
-public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
+public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V,D,AsIsExpressionEvaluatorType> {
 
-	private PrismContext prismContext;
-	D outputDefinition;
-	private AsIsExpressionEvaluatorType asIsExpressionEvaluatorType;
-	private Protector protector;
-
-	public AsIsExpressionEvaluator(AsIsExpressionEvaluatorType asIsExpressionEvaluatorType,
-			D outputDefinition, Protector protector, PrismContext prismContext) {
-		this.asIsExpressionEvaluatorType = asIsExpressionEvaluatorType;
-		this.outputDefinition = outputDefinition;
-		this.prismContext = prismContext;
-		this.protector = protector;
+	public AsIsExpressionEvaluator(QName elementName, AsIsExpressionEvaluatorType asIsExpressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext) {
+		super(elementName, asIsExpressionEvaluatorType, outputDefinition, protector, prismContext);
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+		
+		checkEvaluatorProfile(context);
 
 		Source<V,D> source;
     	if (context.getSources().isEmpty()) {

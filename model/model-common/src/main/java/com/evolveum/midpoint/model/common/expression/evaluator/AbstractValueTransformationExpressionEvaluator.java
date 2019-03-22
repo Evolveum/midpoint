@@ -22,12 +22,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -54,30 +56,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionR
  * @author Radovan Semancik
  */
 public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType>
-						implements ExpressionEvaluator<V,D> {
+						extends AbstractExpressionEvaluator<V, D, E> {
 
-	protected final ExpressionProfile expressionProfile;
 	protected final SecurityContextManager securityContextManager;
     protected final LocalizationService localizationService;
-	protected final PrismContext prismContext;
-
-	private E expressionEvaluatorType;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
-    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType, ExpressionProfile expressionProfile,
-		    SecurityContextManager securityContextManager, LocalizationService localizationService,
-		    PrismContext prismContext) {
-    	this.expressionEvaluatorType = expressionEvaluatorType;
-    	this.expressionProfile = expressionProfile;
+    protected AbstractValueTransformationExpressionEvaluator(QName elementName, E expressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext,
+		    SecurityContextManager securityContextManager, LocalizationService localizationService) {
+    	super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext);
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
-        this.prismContext = prismContext;
     }
-
-    public E getExpressionEvaluatorType() {
-		return expressionEvaluatorType;
-	}
 
 	public LocalizationService getLocalizationService() {
 		return localizationService;
@@ -89,10 +80,11 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		checkEvaluatorProfile(context);
 
         PrismValueDeltaSetTriple<V> outputTriple;
 
-        if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
+        if (getExpressionEvaluatorType().getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
 
         	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context,
         			context.getContextDescription(), context.getTask(), context.getResult());
@@ -100,7 +92,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         		LOGGER.trace("Evaluated absolute expression {}, output triple:\n{}", context.getContextDescription(), outputTriple==null?null:outputTriple.debugDump(1));
         	}
 
-        } else if (expressionEvaluatorType.getRelativityMode() == null || expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.RELATIVE) {
+        } else if (getExpressionEvaluatorType().getRelativityMode() == null || getExpressionEvaluatorType().getRelativityMode() == TransformExpressionRelativityModeType.RELATIVE) {
 
         	if (context.getSources() == null || context.getSources().isEmpty()) {
         		// Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
@@ -115,7 +107,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         	}
 
         } else {
-        	throw new IllegalArgumentException("Unknown relativity mode "+expressionEvaluatorType.getRelativityMode());
+        	throw new IllegalArgumentException("Unknown relativity mode "+getExpressionEvaluatorType().getRelativityMode());
         }
 
 
@@ -123,7 +115,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
     }
 
 	protected boolean isIncludeNullInputs() {
-		Boolean includeNullInputs = expressionEvaluatorType.isIncludeNullInputs();
+		Boolean includeNullInputs = getExpressionEvaluatorType().isIncludeNullInputs();
 		if (includeNullInputs == null) {
 			return true;
 		}
@@ -131,7 +123,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
 	protected boolean isRelative() {
-		return expressionEvaluatorType.getRelativityMode() != TransformExpressionRelativityModeType.ABSOLUTE;
+		return getExpressionEvaluatorType().getRelativityMode() != TransformExpressionRelativityModeType.ABSOLUTE;
 	}
 
 	private List<SourceTriple<?,?>> processSources(Collection<Source<?,?>> sources,
@@ -353,8 +345,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		final PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 
 		Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> conditionExpression;
-		if (expressionEvaluatorType.getCondition() != null) {
-			conditionExpression = ExpressionUtil.createCondition(expressionEvaluatorType.getCondition(), expressionProfile,
+		if (getExpressionEvaluatorType().getCondition() != null) {
+			conditionExpression = ExpressionUtil.createCondition(getExpressionEvaluatorType().getCondition(), evaluationContext.getExpressionProfile(),
 					evaluationContext.getExpressionFactory(), "condition in " + contextDescription, task, result);
 		} else {
 			conditionExpression = null;

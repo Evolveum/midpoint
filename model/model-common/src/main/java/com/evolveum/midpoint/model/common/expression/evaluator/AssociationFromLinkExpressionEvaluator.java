@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -65,37 +67,32 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
  * @author Radovan Semancik
  *
  */
-public class AssociationFromLinkExpressionEvaluator
-						implements ExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
-						                               PrismContainerDefinition<ShadowAssociationType>> {
+public class AssociationFromLinkExpressionEvaluator 
+	extends AbstractExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>, AssociationFromLinkExpressionEvaluatorType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
 
-	private AssociationFromLinkExpressionEvaluatorType evaluatorType;
-	private PrismContainerDefinition<ShadowAssociationType> outputDefinition;
 	private ObjectResolver objectResolver;
-	private PrismContext prismContext;
 
-	AssociationFromLinkExpressionEvaluator(AssociationFromLinkExpressionEvaluatorType evaluatorType,
-			PrismContainerDefinition<ShadowAssociationType> outputDefinition, ObjectResolver objectResolver, PrismContext prismContext) {
-		this.evaluatorType = evaluatorType;
-		this.outputDefinition = outputDefinition;
+	AssociationFromLinkExpressionEvaluator(QName elementName, AssociationFromLinkExpressionEvaluatorType evaluatorType,
+			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver) {
+		super(elementName, evaluatorType, outputDefinition, protector, prismContext);
 		this.objectResolver = objectResolver;
-		this.prismContext = prismContext;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		checkEvaluatorProfile(context);
 
 		String desc = context.getContextDescription();
 		
 		AbstractRoleType thisRole;
 		
-		Integer assignmentPathIndex = evaluatorType.getAssignmentPathIndex();
+		Integer assignmentPathIndex = getExpressionEvaluatorType().getAssignmentPathIndex();
 		if (assignmentPathIndex == null) {
 			// Legacy ... or default in simple cases
 			@SuppressWarnings("unchecked")
@@ -124,7 +121,7 @@ public class AssociationFromLinkExpressionEvaluator
 				throw new ExpressionEvaluationException("Empty assignment path variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
 			}
 
-			LOGGER.trace("ASSPATH {}:\n{}", evaluatorType.getDescription(), assignmentPath.debugDumpLazily(1));
+			LOGGER.trace("assignmentPath {}:\n{}", getExpressionEvaluatorType().getDescription(), assignmentPath.debugDumpLazily(1));
 			
 			AssignmentPathSegment segment;
 			try {
@@ -136,7 +133,7 @@ public class AssociationFromLinkExpressionEvaluator
 			thisRole = (AbstractRoleType) segment.getSource();
 		}
 		
-		LOGGER.trace("thisRole {}: {}", evaluatorType.getDescription(), thisRole);
+		LOGGER.trace("thisRole {}: {}", getExpressionEvaluatorType().getDescription(), thisRole);
 
 		LOGGER.trace("Evaluating association from link on: {}", thisRole);
 
@@ -146,7 +143,7 @@ public class AssociationFromLinkExpressionEvaluator
 		}
 		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) rAssocTargetDefTypedValue.getValue();
 
-		ShadowDiscriminatorType projectionDiscriminator = evaluatorType.getProjectionDiscriminator();
+		ShadowDiscriminatorType projectionDiscriminator = getExpressionEvaluatorType().getProjectionDiscriminator();
 		if (projectionDiscriminator == null) {
 			throw new ExpressionEvaluationException("No projectionDiscriminator in "+desc);
 		}
@@ -246,7 +243,7 @@ public class AssociationFromLinkExpressionEvaluator
 	}
 
 	private boolean matchesForRecursion(OrgType thisOrg) {
-		for (String recurseUpOrgType: evaluatorType.getRecurseUpOrgType()) {
+		for (String recurseUpOrgType: getExpressionEvaluatorType().getRecurseUpOrgType()) {
 			if (FocusTypeUtil.determineSubTypes(thisOrg).contains(recurseUpOrgType)) {
 				return true;
 			}

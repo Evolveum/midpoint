@@ -79,8 +79,10 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -1126,7 +1128,7 @@ public class ExpressionUtil {
 			ExpressionType conditionExpressionType,
 			ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory,
-			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(expressionFactory.getPrismContext()), expressionProfile, shortDesc, task, result);
 	}
 
@@ -1200,6 +1202,20 @@ public class ExpressionUtil {
 		}
 		MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(new QName(SchemaConstants.NS_C, name), typeQName);
 		return def;
+	}
+	
+	/**
+	 * Works only for simple evaluators that do not have any profile settings. 
+	 */
+	public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?,?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
+		ExpressionEvaluatorProfile profile = context.getExpressionEvaluatorProfile();
+		if (profile == null) {
+			return; // no restrictions
+		}
+		if (profile.getDecision() != AccessDecision.ALLOW) {
+			throw new SecurityViolationException("Access to evaluator "+evaluator.shortDebugDump()+
+					" not allowed (expression profile: "+context.getExpressionProfile().getIdentifier()+") in "+context.getContextDescription());
+		}
 	}
 	
 }

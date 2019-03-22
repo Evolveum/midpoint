@@ -25,7 +25,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -67,6 +69,24 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 
 	public LocalizationService getLocalizationService() {
 		return localizationService;
+	}
+	
+	protected void checkRestrictions(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+		ScriptExpressionProfile scriptExpressionProfile = context.getScriptExpressionProfile();
+		if (scriptExpressionProfile == null) {
+			// no restrictions
+			return;
+		}
+		if (scriptExpressionProfile.hasRestrictions()) {
+			throw new SecurityViolationException("Script intepreter for language "+getLanguageName()
+				+" does not support restrictions as imposed by expression profile "+context.getExpressionProfile().getIdentifier()
+				+"; script execution prohibited in "+context.getContextDescription());
+		}
+		if (scriptExpressionProfile.getDecision() != AccessDecision.ALLOW) {
+			throw new SecurityViolationException("Script intepreter for language "+getLanguageName()
+			+" is not allowed in expression profile "+context.getExpressionProfile().getIdentifier()
+			+"; script execution prohibited in "+context.getContextDescription());			
+		}
 	}
 
 	/**

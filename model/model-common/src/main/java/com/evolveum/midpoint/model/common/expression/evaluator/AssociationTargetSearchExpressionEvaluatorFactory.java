@@ -45,6 +45,8 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createAssociationTargetSearch(new SearchObjectExpressionEvaluatorType()).getName();
 
 	private final PrismContext prismContext;
 	private final Protector protector;
@@ -64,7 +66,7 @@ public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractO
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAssociationTargetSearch(new SearchObjectExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -95,8 +97,8 @@ public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractO
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectExpressionEvaluatorType)) {
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssociationTargetSearchExpressionEvaluator evaluator = new AssociationTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, expressionProfile, protector, getObjectResolver(), modelService, prismContext, securityContextManager, getLocalizationService());
+        AssociationTargetSearchExpressionEvaluator evaluator = new AssociationTargetSearchExpressionEvaluator(ELEMENT_NAME, (SearchObjectExpressionEvaluatorType)evaluatorTypeObject,
+        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService());
         return (ExpressionEvaluator<V,D>) evaluator;
 	}
 

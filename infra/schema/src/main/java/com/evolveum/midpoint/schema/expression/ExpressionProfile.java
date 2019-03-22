@@ -18,7 +18,10 @@ package com.evolveum.midpoint.schema.expression;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * NOTE: This is pretty much throw-away implementation. Just the interface is important now.
@@ -28,98 +31,146 @@ import com.evolveum.midpoint.schema.AccessDecision;
  */
 public class ExpressionProfile { // TODO: DebugDumpable
 	
-	private final String name;
-	private final List<Rule> classAccessRules = new ArrayList<>();
-	private AccessDecision defaultClassAccessDecision = AccessDecision.DEFAULT;
-	private boolean groovyTypeChecking;
+	private final String identifier;
+	private AccessDecision decision;
+	private final List<ExpressionEvaluatorProfile> evaluatorProfiles = new ArrayList<>();
 	
-	public ExpressionProfile(String name) {
+	public ExpressionProfile(String identifier) {
 		super();
-		this.name = name;
+		this.identifier = identifier;
 	}
 
-	public String getName() {
-		return name;
+	public String getIdentifier() {
+		return identifier;
 	}
 	
-	public AccessDecision getDefaultClassAccessDecision() {
-		return defaultClassAccessDecision;
+	public AccessDecision getDecision() {
+		return decision;
 	}
 
-	public void setDefaultClassAccessDecision(AccessDecision defaultClassAccessDecision) {
-		this.defaultClassAccessDecision = defaultClassAccessDecision;
+	public void setDecision(AccessDecision defaultDecision) {
+		this.decision = defaultDecision;
 	}
 	
-	public boolean isGroovyTypeChecking() {
-		return groovyTypeChecking;
+	public void add(ExpressionEvaluatorProfile evaluatorProfile) {
+		evaluatorProfiles.add(evaluatorProfile);
 	}
 	
-	public void setGroovyTypeChecking(boolean groovyTypeChecking) {
-		this.groovyTypeChecking = groovyTypeChecking;
-	}
-
-	public AccessDecision decideClassAccess(String className, String methodName) {
-		for (Rule rule : classAccessRules) {
-			if (rule.match(className, methodName)) {
-				return rule.getDecision();
+//	public AccessDecision decideEvaluator(QName type) {
+//		ExpressionEvaluatorProfile evaluatorProfile = getEvaluatorProfile(type);
+//		if (evaluatorProfile == null) {
+//			return decision;
+//		}
+//		return evaluatorProfile.getDecision();
+//	}
+	
+	public ExpressionEvaluatorProfile getEvaluatorProfile(QName type) {
+		for (ExpressionEvaluatorProfile evaluatorProfile : evaluatorProfiles) {
+			if (QNameUtil.match(evaluatorProfile.getType(), type)) {
+				return evaluatorProfile;
 			}
 		}
-		return defaultClassAccessDecision;
-	}
-
-	/**
-	 * Used to easily set up access for built-in class access rules.
-	 */
-	public void addClassAccessRule(String className, String methodName, AccessDecision decision) {
-		classAccessRules.add(new Rule(className, methodName, decision));
+		return null;
 	}
 	
-	/**
-	 * Used to easily set up access for built-in class access rules (convenience).
-	 */
-	public void addClassAccessRule(Class<?> clazz, String methodName, AccessDecision decision) {
-		addClassAccessRule(clazz.getName(), methodName, decision);
-	}
-	
-	class Rule {
-		private final String className;
-		private final String methodName;
-		private final AccessDecision decision;
-		
-		public Rule(String className, String methodName, AccessDecision decision) {
-			super();
-			this.className = className;
-			this.methodName = methodName;
-			this.decision = decision;
-		}
-
-		public String getClassName() {
-			return className;
-		}
-
-		public String getMethodName() {
-			return methodName;
-		}
-
-		public AccessDecision getDecision() {
-			return decision;
-		}
-		
-		public boolean match(String aClassName, String aMethodName) {
-			if (!aClassName.equals(className)) {
-				return false;
-			}
-			if (methodName == null) {
-				return true;
-			}
-			return methodName.equals(aMethodName);
-		}
-		
-	}
-
 	@Override
 	public String toString() {
-		return "ExpressionProfile(" + name + ")";
+		return "ExpressionProfile(" + identifier + ")";
 	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//	private final List<Rule> classAccessRules = new ArrayList<>();
+//	private AccessDecision defaultClassAccessDecision = AccessDecision.DEFAULT;
+//	private boolean groovyTypeChecking;
+//	
+//	
+//	
+//	public AccessDecision getDefaultClassAccessDecision() {
+//		return defaultClassAccessDecision;
+//	}
+//
+//	public void setDefaultClassAccessDecision(AccessDecision defaultClassAccessDecision) {
+//		this.defaultClassAccessDecision = defaultClassAccessDecision;
+//	}
+//	
+//	public boolean isGroovyTypeChecking() {
+//		return groovyTypeChecking;
+//	}
+//	
+//	public void setGroovyTypeChecking(boolean groovyTypeChecking) {
+//		this.groovyTypeChecking = groovyTypeChecking;
+//	}
+//
+//	public AccessDecision decideClassAccess(String className, String methodName) {
+//		for (Rule rule : classAccessRules) {
+//			if (rule.match(className, methodName)) {
+//				return rule.getDecision();
+//			}
+//		}
+//		return defaultClassAccessDecision;
+//	}
+//
+//	/**
+//	 * Used to easily set up access for built-in class access rules.
+//	 */
+//	public void addClassAccessRule(String className, String methodName, AccessDecision decision) {
+//		classAccessRules.add(new Rule(className, methodName, decision));
+//	}
+//	
+//	/**
+//	 * Used to easily set up access for built-in class access rules (convenience).
+//	 */
+//	public void addClassAccessRule(Class<?> clazz, String methodName, AccessDecision decision) {
+//		addClassAccessRule(clazz.getName(), methodName, decision);
+//	}
+//	
+//	
+//
+//	class Rule {
+//		private final String className;
+//		private final String methodName;
+//		private final AccessDecision decision;
+//		
+//		public Rule(String className, String methodName, AccessDecision decision) {
+//			super();
+//			this.className = className;
+//			this.methodName = methodName;
+//			this.decision = decision;
+//		}
+//
+//		public String getClassName() {
+//			return className;
+//		}
+//
+//		public String getMethodName() {
+//			return methodName;
+//		}
+//
+//		public AccessDecision getDecision() {
+//			return decision;
+//		}
+//		
+//		public boolean match(String aClassName, String aMethodName) {
+//			if (!aClassName.equals(className)) {
+//				return false;
+//			}
+//			if (methodName == null) {
+//				return true;
+//			}
+//			return methodName.equals(aMethodName);
+//		}
+//		
+//	}
+
 
 }

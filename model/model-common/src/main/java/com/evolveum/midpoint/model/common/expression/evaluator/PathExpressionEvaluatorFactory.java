@@ -43,6 +43,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * @author semancik
  */
 public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createPath(null).getName();
 
 	private final PrismContext prismContext;
 	private final Protector protector;
@@ -55,7 +57,7 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 	
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createPath(null).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -82,7 +84,7 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 					+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
         ItemPath path = ((ItemPathType)evaluatorElementObject).getItemPath();
-        return new PathExpressionEvaluator<>(path, getObjectResolver(), outputDefinition, protector, prismContext);
+        return new PathExpressionEvaluator<>(ELEMENT_NAME, path, getObjectResolver(), outputDefinition, protector, prismContext);
 	}
 
 }

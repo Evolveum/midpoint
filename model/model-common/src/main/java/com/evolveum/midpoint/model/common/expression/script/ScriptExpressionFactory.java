@@ -30,15 +30,19 @@ import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
@@ -113,19 +117,53 @@ public class ScriptExpressionFactory implements Cacheable{
 
 	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, 
 			ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result)
-					throws ExpressionSyntaxException {
+					throws ExpressionSyntaxException, SecurityViolationException {
 
 		initializeCustomFunctionsLibraryCache(expressionFactory, task, result);
 		//cache cleanup method
 
-		ScriptExpression expression = new ScriptExpression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType);
+		String language = getLanguage(expressionType);
+		ScriptExpression expression = new ScriptExpression(getEvaluator(language, shortDesc), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
 		Collection<FunctionLibrary> functionsToUse = new ArrayList<>(functions);
 		functionsToUse.addAll(customFunctionLibraryCache.values());
 		expression.setFunctions(functionsToUse);
+		
+		// It is not very elegant to process expression profile and script expression profile here.
+		// It is somehow redundant, as it was already pre-processed in the expression evaluator/factory
+		// We are throwing that out and we are processing it again. But maybe this is consequence of having
+		// the duality of Expression and ScriptExpression ... maybe the ScriptExpression is unnecessary abstraction
+		// and it should be removed.
 		expression.setExpressionProfile(expressionProfile);
+		expression.setScriptExpressionProfile(processScriptExpressionProfile(expressionProfile, language, shortDesc));
+		
 		return expression;
+	}
+
+	private ScriptExpressionProfile processScriptExpressionProfile(ExpressionProfile expressionProfile, String language, String shortDesc) throws SecurityViolationException {
+		if (expressionProfile == null) {
+			return null;
+		}
+		ExpressionEvaluatorProfile evaluatorProfile = expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+		if (evaluatorProfile == null) {
+			if (expressionProfile.getDecision() == AccessDecision.ALLOW) {
+				return null;
+			} else {
+				throw new SecurityViolationException("Access to script expression evaluator " +
+						" not allowed (expression profile: "+expressionProfile.getIdentifier()+") in "+shortDesc);
+			}
+		}
+		ScriptExpressionProfile scriptProfile = evaluatorProfile.getScriptExpressionProfile(language);
+		if (scriptProfile == null) {
+			if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
+				return null;
+			} else {
+				throw new SecurityViolationException("Access to script language " + language +
+						" not allowed (expression profile: "+expressionProfile.getIdentifier()+") in "+shortDesc);
+			}
+		}
+		return scriptProfile;
 	}
 
 	// if performance becomes an issue, replace 'synchronized' with something more elaborate

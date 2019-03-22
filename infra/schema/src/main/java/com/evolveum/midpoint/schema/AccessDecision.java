@@ -24,20 +24,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
  * @author Radovan Semancik
  */
 public enum AccessDecision {
+	
 	/**
 	 * Access explicitly allowed.
 	 */
-	ALLOW,
+	ALLOW(AuthorizationDecisionType.ALLOW),
 	
 	/**
 	 * Access explicitly denied.
 	 */
-	DENY,
+	DENY(AuthorizationDecisionType.DENY),
 	
 	/**
 	 * Means "no decision" or "not allowed yet".
 	 */
-	DEFAULT;
+	DEFAULT(null);
+
+	private final AuthorizationDecisionType authorizationDecisionType;
+
+	private AccessDecision(AuthorizationDecisionType authorizationDecisionType) {
+		this.authorizationDecisionType = authorizationDecisionType;
+	}
+
+	public AuthorizationDecisionType getAuthorizationDecisionType() {
+		return authorizationDecisionType;
+	}
 	
 	public static AccessDecision combine(AccessDecision oldDecision, AccessDecision newDecision) {
 		if (oldDecision == null && newDecision == null) {
@@ -74,4 +85,5 @@ public enum AccessDecision {
 				throw new IllegalStateException("Unknown AuthorizationDecisionType "+authorizationDecisionType);
 		}
 	}
+	
 }

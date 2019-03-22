@@ -97,7 +97,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 		ScriptExpression scriptExpression;
 		try {
 			scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, expressionProfile, expressionFactory, "script", context.getTask(), globalResult);
-		} catch (ExpressionSyntaxException e) {
+		} catch (ExpressionSyntaxException | SecurityViolationException e) {
 			throw new ScriptExecutionException("Couldn't parse script expression: " + e.getMessage(), e);
 		}
 

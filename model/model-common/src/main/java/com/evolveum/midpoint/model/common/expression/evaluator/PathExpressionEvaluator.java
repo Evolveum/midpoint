@@ -41,20 +41,24 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * @author Radovan Semancik
  */
 public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 
-	private ItemPath path;
-	private ObjectResolver objectResolver;
-	private PrismContext prismContext;
-	private D outputDefinition;
-	private Protector protector;
+	private final QName elementName;
+	private final ItemPath path;
+	private final ObjectResolver objectResolver;
+	private final PrismContext prismContext;
+	private final D outputDefinition;
+	private final Protector protector;
+	
 
-    public PathExpressionEvaluator(ItemPath path, ObjectResolver objectResolver,
+    public PathExpressionEvaluator(QName elementName, ItemPath path, ObjectResolver objectResolver,
     		D outputDefinition, Protector protector, PrismContext prismContext) {
+    	this.elementName = elementName;
     	this.path = path;
 		this.objectResolver = objectResolver;
 		this.outputDefinition = outputDefinition;
@@ -62,12 +66,18 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 		this.protector = protector;
 	}
 
+    @Override
+	public QName getElementName() {
+		return elementName;
+	}
+    
     /* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+		ExpressionUtil.checkEvaluatorProfileSimple(this, context);
 
 		ItemDeltaItem<?,?> resolveContext = null;
 
@@ -150,6 +160,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 	public String shortDebugDump() {
 		return "path: "+path;
 	}
+
+	
 
 
 }

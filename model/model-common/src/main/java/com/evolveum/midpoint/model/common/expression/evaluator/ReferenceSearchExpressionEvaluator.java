@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,12 +42,10 @@ public class ReferenceSearchExpressionEvaluator
 
 	private static final Trace LOGGER = TraceManager.getTrace(ReferenceSearchExpressionEvaluator.class);
 
-	public ReferenceSearchExpressionEvaluator(ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
-			PrismReferenceDefinition outputDefinition, ExpressionProfile expressionProfile, Protector protector, ObjectResolver objectResolver,
-			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
-			LocalizationService localizationService) {
-		super(expressionEvaluatorType, outputDefinition, expressionProfile, protector, objectResolver, modelService, prismContext, securityContextManager,
-				localizationService);
+	public ReferenceSearchExpressionEvaluator(QName elementName, ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
+			PrismReferenceDefinition outputDefinition, Protector protector, PrismContext prismContext,
+			ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager, LocalizationService localizationService) {
+		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService);
 	}
 
 	protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {

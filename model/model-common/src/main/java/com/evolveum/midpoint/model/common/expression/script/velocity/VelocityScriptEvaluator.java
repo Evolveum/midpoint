@@ -69,6 +69,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 	@Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
+		checkRestrictions(context);
 
 		VelocityContext velocityCtx = createVelocityContext(context);
 

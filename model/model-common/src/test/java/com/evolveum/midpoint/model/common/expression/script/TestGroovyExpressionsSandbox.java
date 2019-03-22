@@ -20,7 +20,9 @@ import static org.testng.AssertJUnit.assertTrue;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 
 /**
@@ -28,18 +30,24 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
  */
 public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
-	
-	protected ExpressionProfile getExpressionProfile() {
-		ExpressionProfile profile = new ExpressionProfile("testGroovyExpressionsSandbox");
+
+	@Override
+	protected ScriptExpressionProfile getScriptExpressionProfile(String language) {
+		ScriptExpressionProfile profile = new ScriptExpressionProfile(language);
 		
-		profile.setGroovyTypeChecking(true);
+		profile.setTypeChecking(true);
 		
-		profile.addClassAccessRule(Poison.class, "smell", AccessDecision.DENY);
-		profile.addClassAccessRule(Poison.class, "drink", AccessDecision.DENY);
+		ExpressionPermissionProfile permissionProfile = new ExpressionPermissionProfile(this.getClass().getSimpleName());
+		profile.setPermissionProfile(permissionProfile);
 		
-		profile.addClassAccessRule(String.class, "execute", AccessDecision.DENY);
+		permissionProfile.addClassAccessRule(Poison.class, AccessDecision.ALLOW);
+		permissionProfile.addClassAccessRule(Poison.class, "smell", AccessDecision.DENY);
+		permissionProfile.addClassAccessRule(Poison.class, "drink", AccessDecision.DENY);
 		
-		profile.setDefaultClassAccessDecision(AccessDecision.ALLOW);
+		permissionProfile.addClassAccessRule(String.class, AccessDecision.ALLOW);
+		permissionProfile.addClassAccessRule(String.class, "execute", AccessDecision.DENY);
+		
+		permissionProfile.setDecision(AccessDecision.ALLOW);
 		
 		return profile;
 	}

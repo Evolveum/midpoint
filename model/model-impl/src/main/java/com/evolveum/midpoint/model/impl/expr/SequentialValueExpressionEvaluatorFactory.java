@@ -45,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpre
  */
 @Component
 public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createSequentialValue(new SequentialValueExpressionEvaluatorType()).getName();
 
 	@Autowired private Protector protector;
 	@Autowired private PrismContext prismContext;
@@ -52,7 +54,7 @@ public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowired
 
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createSequentialValue(new SequentialValueExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -86,7 +88,7 @@ public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowired
         	throw new SchemaException("Missing sequence reference in sequentialValue expression evaluator in "+contextDescription);
         }
 
-		return new SequentialValueExpressionEvaluator<>(seqEvaluatorType, outputDefinition, protector, repositoryService, prismContext);
+		return new SequentialValueExpressionEvaluator<>(ELEMENT_NAME, seqEvaluatorType, outputDefinition, protector, repositoryService, prismContext);
 	}
 
 }

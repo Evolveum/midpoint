@@ -17,15 +17,17 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,14 +52,19 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
 
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
 
-    ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression,
-    		ExpressionProfile expressionProfile, SecurityContextManager securityContextManager, LocalizationService localizationService,
-		    PrismContext prismContext) {
-    	super(scriptType, expressionProfile, securityContextManager, localizationService, prismContext);
+    ScriptExpressionEvaluator(QName elementName, ScriptExpressionEvaluatorType scriptType, D outputDefinition, Protector protector, PrismContext prismContext, 
+    		ScriptExpression scriptExpression,
+    		SecurityContextManager securityContextManager, LocalizationService localizationService) {
+    	super(elementName, scriptType, outputDefinition, protector, prismContext, securityContextManager, localizationService);
         this.scriptExpression = scriptExpression;
     }
-
+    
     @Override
+	protected void checkEvaluatorProfile(ExpressionEvaluationContext context) throws SecurityViolationException {
+    	// Do nothing here. The profile will be checked inside ScriptExpression.
+	}
+
+	@Override
 	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
 			ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {

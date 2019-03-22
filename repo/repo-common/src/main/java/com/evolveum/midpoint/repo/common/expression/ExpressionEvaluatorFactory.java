@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 
 /**
@@ -43,6 +44,6 @@ public interface ExpressionEvaluatorFactory {
 			ExpressionProfile expressionProfile,
 			ExpressionFactory factory,
 			String contextDescription, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException;
+					throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
 }

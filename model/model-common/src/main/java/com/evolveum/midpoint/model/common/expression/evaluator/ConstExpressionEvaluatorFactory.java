@@ -46,6 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  */
 @Component
 public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createConst(new ConstExpressionEvaluatorType()).getName();
 
 	@Autowired private Protector protector;
 	@Autowired private ConstantsManager constantsManager;
@@ -67,7 +69,7 @@ public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpression
 
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createConst(new ConstExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
@@ -97,7 +99,7 @@ public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpression
 		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
 
-		return new ConstExpressionEvaluator<>((ConstExpressionEvaluatorType) evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
+		return new ConstExpressionEvaluator<>(ELEMENT_NAME, (ConstExpressionEvaluatorType) evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
 	}
 
 }
