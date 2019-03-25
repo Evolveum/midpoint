@@ -3411,4 +3411,40 @@ public final class WebComponentUtil {
 		}
 		result.recomputeStatus();
 	}
+
+	public static String getDisplayPolyStringValue(PolyStringType polyString, PageBase pageBase){
+		if (polyString == null){
+			return null;
+		}
+		if ((polyString.getTranslation() == null || StringUtils.isEmpty(polyString.getTranslation().getKey())) &&
+				(polyString.getLang() == null || polyString.getLang().getLang() == null || polyString.getLang().getLang().isEmpty())){
+			return polyString.getOrig();
+		}
+		if (polyString.getLang() != null && polyString.getLang().getLang() != null && !polyString.getLang().getLang().isEmpty()){
+			//check if it's really selected by user or configured through sysconfig locale
+			String currentLocale = getCurrentLocale().getLanguage();
+			for (String language : polyString.getLang().getLang().keySet()){
+				if (currentLocale.equals(language)){
+					return polyString.getLang().getLang().get(language);
+				}
+			}
+		}
+
+		if (polyString.getTranslation() != null && StringUtils.isNotEmpty(polyString.getTranslation().getKey())){
+			List<String> argumentValues = new ArrayList<>();
+			polyString.getTranslation().getArgument().forEach(argument -> {
+				String argumentValue = "";
+				String translationValue = "";
+				if (argument.getTranslation() != null){
+					String argumentKey = argument.getTranslation().getKey();
+					String valueByKey = StringUtils.isNotEmpty(argumentKey) ? pageBase.createStringResource(argumentKey).getString() : null;
+					translationValue = StringUtils.isNotEmpty(valueByKey) ? valueByKey : argument.getTranslation().getFallback();
+				}
+				argumentValue = StringUtils.isNotEmpty(translationValue) ? translationValue : argument.getValue();
+				argumentValues.add(argumentValue);
+			});
+			return pageBase.createStringResource(polyString.getTranslation().getKey(), argumentValues.toArray()).getString();
+		}
+		return polyString.getOrig();
+	}
 }
