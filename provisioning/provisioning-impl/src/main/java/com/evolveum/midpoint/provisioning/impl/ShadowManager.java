@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -1560,7 +1557,7 @@ public class ShadowManager {
 					PropertyDelta<PolyString> nameDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
 					repoChanges.add(nameDelta);
 				}
-				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
+				if (!ProvisioningUtil.shouldStoreAttributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
 					continue;
 				}
 			} else if (ShadowType.F_ACTIVATION.equivalent(itemDelta.getParentPath())) {
@@ -1650,7 +1647,7 @@ public class ShadowManager {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
-			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
+			if (ProvisioningUtil.shouldStoreAttributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
 				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
 				PrismProperty<Object> repoAttr = repoShadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getName()));
 				PropertyDelta attrDelta;
@@ -1722,54 +1719,75 @@ public class ShadowManager {
 
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 
+		Collection<QName> incompleteCacheableItems = new HashSet<>();
+
 		for (Item<?, ?> currentResourceItem: currentResourceAttributesContainer.getValue().getItems()) {
 			if (currentResourceItem instanceof PrismProperty<?>) {
+				//noinspection unchecked
 				PrismProperty<Object> currentResourceAttrProperty = (PrismProperty<Object>) currentResourceItem;
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(currentResourceAttrProperty.getElementName());
-				if (ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
-					MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
-					PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
-					if (oldRepoAttributeProperty == null) {
-						PropertyDelta<Object> attrAddDelta = currentResourceAttrProperty.createDelta();
-						for (PrismPropertyValue<?> pval: currentResourceAttrProperty.getValues()) {
-							attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
-						}
-						if (attrAddDelta.getDefinition().getTypeName() == null) {
-							throw new SchemaException("No definition in "+attrAddDelta);
-						}
-						shadowDelta.addModification(attrAddDelta);
-					} else {
-						if (attrDef.isSingleValue()) {
-							Object currentResourceRealValue = currentResourceAttrProperty.getRealValue();
-							Object currentResourceNormalizedRealValue;
-							currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
-							if (!currentResourceNormalizedRealValue.equals(oldRepoAttributeProperty.getRealValue())) {
-								PropertyDelta delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
-								delta.setDefinition(currentResourceAttrProperty.getDefinition());
-								if (delta.getDefinition().getTypeName() == null) {
-									throw new SchemaException("No definition in "+delta);
-								}
+				if (attrDef == null) {
+					throw new SchemaException("No definition of " + currentResourceAttrProperty.getElementName() + " in " + ocDef);
+				}
+				if (ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
+					if (!currentResourceItem.isIncomplete()) {
+						MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
+						PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
+						if (oldRepoAttributeProperty == null) {
+							PropertyDelta<Object> attrAddDelta = currentResourceAttrProperty.createDelta();
+							for (PrismPropertyValue<?> pval : currentResourceAttrProperty.getValues()) {
+								//noinspection unchecked
+								attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
 							}
+							if (attrAddDelta.getDefinition().getTypeName() == null) {
+								throw new SchemaException("No definition in " + attrAddDelta);
+							}
+							shadowDelta.addModification(attrAddDelta);
 						} else {
-							PrismProperty<Object> normalizedCurrentResourceAttrProperty = currentResourceAttrProperty.clone();
-							for (PrismPropertyValue pval: normalizedCurrentResourceAttrProperty.getValues()) {
-								Object normalizedRealValue = matchingRule.normalize(pval.getValue());
-								pval.setValue(normalizedRealValue);
-							}
-							PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
-//							LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
-//									oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
-//									normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
-//									attrDiff==null?null:attrDiff.debugDump(1));
-							if (attrDiff != null && !attrDiff.isEmpty()) {
-								attrDiff.setParentPath(ShadowType.F_ATTRIBUTES);
-								if (attrDiff.getDefinition().getTypeName() == null) {
-									throw new SchemaException("No definition in "+attrDiff);
+							if (attrDef.isSingleValue()) {
+								Object currentResourceRealValue = currentResourceAttrProperty.getRealValue();
+								//noinspection unchecked
+								Object currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
+								if (!Objects.equals(currentResourceNormalizedRealValue, oldRepoAttributeProperty.getRealValue())) {
+									PropertyDelta delta;
+									if (currentResourceNormalizedRealValue != null) {
+										delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(),
+												currentResourceNormalizedRealValue);
+									} else {
+										delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath());
+									}
+									//noinspection unchecked
+									delta.setDefinition(currentResourceAttrProperty.getDefinition());
+									if (delta.getDefinition().getTypeName() == null) {
+										throw new SchemaException("No definition in " + delta);
+									}
 								}
-								shadowDelta.addModification(attrDiff);
+							} else {
+								PrismProperty<Object> normalizedCurrentResourceAttrProperty = currentResourceAttrProperty.clone();
+								for (PrismPropertyValue pval : normalizedCurrentResourceAttrProperty.getValues()) {
+									//noinspection unchecked
+									Object normalizedRealValue = matchingRule.normalize(pval.getValue());
+									//noinspection unchecked
+									pval.setValue(normalizedRealValue);
+								}
+								PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
+//							    LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
+//								    	oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
+//									    normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
+//									    attrDiff==null?null:attrDiff.debugDump(1));
+								if (attrDiff != null && !attrDiff.isEmpty()) {
+									attrDiff.setParentPath(ShadowType.F_ATTRIBUTES);
+									if (attrDiff.getDefinition().getTypeName() == null) {
+										throw new SchemaException("No definition in " + attrDiff);
+									}
+									shadowDelta.addModification(attrDiff);
+								}
 							}
-
 						}
+					} else {
+						LOGGER.trace("Resource item {} is incomplete, will not update the shadow with its content",
+								currentResourceItem.getElementName());
+						incompleteCacheableItems.add(currentResourceItem.getElementName());
 					}
 				}
 			}
@@ -1780,7 +1798,8 @@ public class ShadowManager {
 				PrismProperty<?> oldRepoAttrProperty = (PrismProperty<?>)oldRepoItem;
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
 				PrismProperty<Object> currentAttribute = currentResourceAttributesContainer.findProperty(oldRepoAttrProperty.getElementName());
-				if (attrDef == null || !ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy) ||
+				// note: incomplete attributes with no values are not here: they are found in currentResourceAttributesContainer
+				if (attrDef == null || !ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getName(), cachingStrategy) ||
 						currentAttribute == null) {
 					// No definition for this property it should not be there or no current value: remove it from the shadow
 					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
@@ -1828,10 +1847,13 @@ public class ShadowManager {
 			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, resourceShadowNew, repoShadowOld);
 			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, resourceShadowNew, repoShadowOld);
 
-			CachingMetadataType cachingMetadata = new CachingMetadataType();
-			cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
-			shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
-
+			if (incompleteCacheableItems.isEmpty()) {
+				CachingMetadataType cachingMetadata = new CachingMetadataType();
+				cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
+				shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
+			} else {
+				LOGGER.trace("Shadow has incomplete cacheable items; will not update caching timestamp: {}", incompleteCacheableItems);
+			}
 		} else {
 			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}

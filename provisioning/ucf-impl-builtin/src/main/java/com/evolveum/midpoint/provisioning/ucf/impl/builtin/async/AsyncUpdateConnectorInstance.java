@@ -28,16 +28,20 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AsyncUpdateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.security.core.Authentication;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -53,7 +57,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("DefaultAnnotationParam")
 @ManagedConnector(type="AsyncUpdateConnector", version="1.0.0")
-public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstance implements UcfExpressionEvaluatorAware {
+public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstance implements UcfExpressionEvaluatorAware,
+		SecurityContextManagerAware {
 	
 	@SuppressWarnings("unused")
 	private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateConnectorInstance.class);
@@ -70,6 +75,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	 */
 	private UcfExpressionEvaluator ucfExpressionEvaluator;
 
+	private SecurityContextManager securityContextManager;
+
 	/**
 	 * Open listening activities. Needed mainly to be able to restart them on configuration change.
 	 */
@@ -81,11 +88,13 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	}
 
 	public void setConfiguration(AsyncUpdateConnectorConfiguration configuration) {
+		LOGGER.info("Setting new configuration");
 		configuration.validate();
 		boolean sourcesChanged = configuration.hasSourcesChanged(this.configuration);
 		this.configuration = configuration;
 		if (sourcesChanged) {
 			HashSet<ConnectorInstanceListeningActivity> openActivitiesClone = new HashSet<>(openListeningActivities);
+			LOGGER.info("Sources have changed; open activities: {}", openActivitiesClone);
 			if (!openActivitiesClone.isEmpty()) {
 				restartListeningActivities(openActivitiesClone);
 			}
@@ -127,8 +136,11 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	}
 
 	@Override
-	public ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult) throws SchemaException {
-		ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity(changeListener);
+	public ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult)
+			throws SchemaException {
+
+		Authentication authentication = securityContextManager.getAuthentication();
+		ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity(changeListener, authentication);
 		try {
 			openListeningActivities.add(listeningActivity);
 			startListeningInternal(listeningActivity);
@@ -142,7 +154,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	private void startListeningInternal(ConnectorInstanceListeningActivity listeningActivity)
 			throws SchemaException {
 		TransformationalAsyncUpdateMessageListener messageListener = new TransformationalAsyncUpdateMessageListener(
-				listeningActivity.changeListener, this);
+				listeningActivity.changeListener, listeningActivity.authentication, this);
 		Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
 		try {
 			for (AsyncUpdateSource source : sources) {
@@ -159,10 +171,12 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
 		for (ConnectorInstanceListeningActivity activity : activities) {
 			try {
-				LOGGER.debug("Stopping listening activity {}", activity);
+				activity.status = AsyncUpdateListeningActivityStatusType.RECONNECTING;
+				LOGGER.info("Stopping listening activity {}", activity);    // todo debug
 				activity.stopInnerActivities();
-				LOGGER.debug("Starting listening activity {} again", activity);
+				LOGGER.info("Starting listening activity {} again", activity);  // todo debug
 				startListeningInternal(activity);
+				activity.status = null;
 			} catch (RuntimeException | SchemaException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restart listening activity {} on {}", e, activity, this);
 			}
@@ -182,7 +196,6 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
 		Collection<Object> capabilities = new ArrayList<>();
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAsyncUpdate(new AsyncUpdateCapabilityType()));
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(new ReadCapabilityType().cachingOnly(true)));
 		return capabilities;
 
 		// TODO activation, credentials?
@@ -198,8 +211,24 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 		this.ucfExpressionEvaluator = evaluator;
 	}
 
+	@Override
+	public SecurityContextManager getSecurityContextManager() {
+		return securityContextManager;
+	}
+
+	@Override
+	public void setSecurityContextManager(SecurityContextManager securityContextManager) {
+		this.securityContextManager = securityContextManager;
+	}
+
 	ExpressionType getTransformExpression() {
 		return configuration.getTransformExpression();
+	}
+
+	@NotNull
+	AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
+		return configuration.getErrorHandlingAction() != null ?
+				configuration.getErrorHandlingAction() : AsyncUpdateErrorHandlingActionType.STOP_PROCESSING;
 	}
 
 	//region Unsupported operations
@@ -285,11 +314,14 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	//region Listening activity
 	private class ConnectorInstanceListeningActivity implements ListeningActivity {
 
-		private final List<ListeningActivity> activities = new ArrayList<>();
-		private final ChangeListener changeListener;
+		@NotNull private final List<ListeningActivity> activities = new ArrayList<>();       // do not forget to synchronize on this
+		@NotNull private final ChangeListener changeListener;
+		@Nullable private final Authentication authentication;
+		private AsyncUpdateListeningActivityStatusType status;
 
-		ConnectorInstanceListeningActivity(ChangeListener changeListener) {
+		ConnectorInstanceListeningActivity(@NotNull ChangeListener changeListener, @Nullable Authentication authentication) {
 			this.changeListener = changeListener;
+			this.authentication = authentication;
 		}
 
 		@Override
@@ -299,18 +331,39 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 		}
 
 		private void stopInnerActivities() {
-			for (ListeningActivity activity : activities) {
+			List<ListeningActivity> activitiesCopy;
+			synchronized (activities) {
+				activitiesCopy = new ArrayList<>(activities);
+				activities.clear();
+			}
+			for (ListeningActivity activity : activitiesCopy) {
 				try {
 					activity.stop();
 				} catch (RuntimeException e) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop listening on {}", e, activity);
 				}
 			}
-			activities.clear();
 		}
 
 		void addActivity(ListeningActivity activity) {
-			activities.add(activity);
+			synchronized (activities) {
+				activities.add(activity);
+			}
+		}
+
+		@Override
+		public AsyncUpdateListeningActivityInformationType getInformation() {
+			List<ListeningActivity> activitiesCopy;
+			synchronized (activities) {
+				activitiesCopy = new ArrayList<>(activities);
+			}
+			AsyncUpdateListeningActivityInformationType rv = new AsyncUpdateListeningActivityInformationType();
+			rv.setName("[root]");
+			rv.setStatus(status);
+			for (ListeningActivity activity : activitiesCopy) {
+				rv.getSubActivity().add(activity.getInformation());
+			}
+			return rv;
 		}
 
 		@Override

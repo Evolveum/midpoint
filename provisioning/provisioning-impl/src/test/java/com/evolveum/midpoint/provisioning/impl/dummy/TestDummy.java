@@ -353,6 +353,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
 	/**
+	 * Incomplete attributes should not be cached.
+	 */
+	@Test
+	public void test107CSkipCachingForIncompleteAttributes() throws Exception {
+		// overridden in TestDummyCaching
+	}
+
+	/**
 	 * Staleness of one millisecond is too small for the cache to work.
 	 * Fresh data should be returned - both in case the cache is enabled and disabled.
 	 * MID-3481

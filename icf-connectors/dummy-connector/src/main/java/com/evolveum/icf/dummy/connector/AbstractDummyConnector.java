@@ -1213,8 +1213,18 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			if (configuration.isVaryLetterCase()) {
 				name = varyLetterCase(name);
 			}
-			if (values != null && !values.isEmpty()) {
-				builder.addAttribute(name, values);
+			AttributeBuilder attributeBuilder = new AttributeBuilder();
+			attributeBuilder.setName(name);
+			attributeBuilder.addValue(values);
+			boolean store;
+			if (attrDef.isReturnedAsIncomplete()) {
+				attributeBuilder.setAttributeValueCompleteness(AttributeValueCompleteness.INCOMPLETE);
+				store = true;
+			} else {
+				store = values != null && !values.isEmpty();
+			}
+			if (store) {
+				builder.addAttribute(attributeBuilder.build());
 			}
 		}
 

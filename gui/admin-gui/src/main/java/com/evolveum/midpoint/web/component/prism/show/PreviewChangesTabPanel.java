@@ -6,6 +6,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -76,12 +77,12 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
         try {
             if (modelContext != null) {
                 if (modelContext.getFocusContext() != null) {
-                    addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
-                    addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
+                    addIgnoreNull(primaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getPrimaryDelta()));
+                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getSecondaryDelta()));
                 }
                 for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-                    addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
-                    addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
+                    addIgnoreNull(primaryDeltas, CloneUtil.clone(projCtx.getPrimaryDelta()));
+                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
                 }
             }
             if (LOGGER.isTraceEnabled()) {

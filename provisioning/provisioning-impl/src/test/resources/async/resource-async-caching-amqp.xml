@@ -67,5 +67,11 @@
 			</xsd:schema>
 		</definition>
 	</schema>
-	<!-- caching is set by default for AsyncUpdateConnector -->
+	<capabilities>
+		<configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+			<cap:read>
+				<cap:cachingOnly>true</cap:cachingOnly>
+			</cap:read>
+		</configured>
+	</capabilities>
 </resource>

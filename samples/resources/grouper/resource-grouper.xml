@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="1eff65de-5bb6-483d-9edf-8cc2c2ee0233"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+		  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+		  xmlns:rest="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-grouper-rest/com.evolveum.polygon.connector.grouper.rest.GrouperConnector"
+		  xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Grouper Resource</name>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:equal>
+				<q:path>connectorType</q:path>
+				<q:value>com.evolveum.polygon.connector.grouper.rest.GrouperConnector</q:value>
+			</q:equal>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration>
+		<icfc:configurationProperties>
+			<rest:baseUrl>192.168.56.101:9443</rest:baseUrl>
+			<rest:username>banderson</rest:username>
+			<rest:password>password</rest:password>
+			<rest:superGroup>etc:midpointGroups</rest:superGroup>
+			<rest:rootStem>midpoint</rest:rootStem>
+			<rest:subjectSource>ldap</rest:subjectSource>
+			<rest:ignoreSslValidation>true</rest:ignoreSslValidation>
+		</icfc:configurationProperties>
+	</connectorConfiguration>
+	<additionalConnector>
+		<name>AMQP async update connector</name>
+		<connectorRef type="c:ConnectorType">
+			<filter>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>AsyncUpdateConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
+		<connectorConfiguration>
+			<conf:sources>
+				<amqp091>
+					<uri>amqp://192.168.56.101:5672</uri>
+					<username>guest</username>
+					<password>guest</password>
+					<queue>sampleQueue</queue>
+				</amqp091>
+			</conf:sources>
+			<conf:transformExpression>
+				<script>
+					<code>
+						// ------------------ START OF CONFIGURATION ------------------
+
+						parameters = [
+						superGroup: 'etc:midpointGroups',
+						exportedGroupPrefix: 'midpoint:',
+						relevantSourceId: 'ldap'
+						]
+
+						// ------------------ END OF CONFIGURATION ------------------
+
+						parameters.put('message', message)
+						grouper.execute('createUcfChange', parameters)
+					</code>
+				</script>
+			</conf:transformExpression>
+		</connectorConfiguration>
+	</additionalConnector>
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>subject</intent>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<default>true</default>
+			<attribute>
+				<ref>icfs:name</ref>
+				<inbound>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:group</ref>
+				<inbound>
+					<target>
+						<path>organizationalUnit</path>
+					</target>
+				</inbound>
+			</attribute>
+		</objectType>
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>group</intent>
+			<objectClass>ri:GroupObjectClass</objectClass>
+			<default>true</default>
+			<attribute>
+				<ref>icfs:name</ref>
+				<inbound>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
+			</attribute>
+		</objectType>
+	</schemaHandling>
+	<synchronization>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<kind>account</kind>
+			<intent>subject</intent>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<focusType>UserType</focusType>
+			<correlation>
+				<q:equal>
+					<q:path>name</q:path>
+					<expression>
+						<path>
+							$account/attributes/name
+						</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+				<situation>linked</situation>
+				<synchronize>true</synchronize>
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+				</action>
+			</reaction>
+			<reaction>
+				<situation>unlinked</situation>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+				</action>
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+				</action>
+			</reaction>
+		</objectSynchronization>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<kind>entitlement</kind>
+			<intent>group</intent>
+			<objectClass>ri:GroupObjectClass</objectClass>
+			<focusType>OrgType</focusType>
+			<correlation>
+				<q:equal>
+					<q:path>name</q:path>
+					<expression>
+						<path>
+							$account/attributes/name
+						</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+				<situation>linked</situation>
+				<synchronize>true</synchronize>
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+				</action>
+			</reaction>
+			<reaction>
+				<situation>unlinked</situation>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+				</action>
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+				</action>
+			</reaction>
+		</objectSynchronization>
+	</synchronization>
+	<caching>
+		<cachingStategy>passive</cachingStategy>
+	</caching>
+</resource>
