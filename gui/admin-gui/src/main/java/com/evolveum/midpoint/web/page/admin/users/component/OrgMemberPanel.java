@@ -98,7 +98,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
+	protected void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
 		MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList);
 	}
 

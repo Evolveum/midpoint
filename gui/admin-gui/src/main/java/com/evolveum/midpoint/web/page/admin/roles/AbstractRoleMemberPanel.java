@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -191,9 +192,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		form.add(memberContainer);
 
 		PageBase pageBase = getPageBase();
+		Class type = getMemberPanelStorage() != null && getMemberPanelStorage().getType() != null ?
+				getMemberPanelStorage().getType().getClassDefinition() : ObjectType.class;
 		//TODO QName defines a relation value which will be used for new member creation
 		MainObjectListPanel<ObjectType, QName> childrenListPanel = new MainObjectListPanel<ObjectType, QName>(
-				ID_MEMBER_TABLE, ObjectType.class, getTableId(getComplexTypeQName()), getSearchOptions(), pageBase) {
+				ID_MEMBER_TABLE, type, getTableId(getComplexTypeQName()), getSearchOptions(), pageBase) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -268,6 +271,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			}
 
 			@Override
+			protected IColumn<SelectableBean<ObjectType>, String> createIconColumn(){
+				return (IColumn) ColumnUtils.createIconColumn(pageBase);
+			}
+
+			@Override
             protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
                 return createMembersColumns();
             }
@@ -279,7 +287,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected Search createSearch() {
-                return SearchFactory.createSearch(getDefaultObjectType(), pageBase);
+                return getMemberPanelStorage() != null && getMemberPanelStorage().getSearch() != null ?
+						getMemberPanelStorage().getSearch() : SearchFactory.createSearch(getDefaultObjectType(), pageBase);
             }
 
             @Override
@@ -470,7 +479,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return assignmentTargetRelations;
 	}
 
-	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
+	protected void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
 		MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, availableRelationList);
 	}
 
