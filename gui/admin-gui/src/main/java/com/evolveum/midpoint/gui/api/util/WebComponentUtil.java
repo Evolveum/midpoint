@@ -87,7 +87,6 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
-import org.apache.logging.log4j.util.Strings;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -3431,7 +3430,7 @@ public final class WebComponentUtil {
 			}
 		}
 
-		if (polyString.getTranslation() != null && Strings.isNotEmpty(polyString.getTranslation().getKey())){
+		if (polyString.getTranslation() != null && StringUtils.isNotEmpty(polyString.getTranslation().getKey())){
 			List<String> argumentValues = new ArrayList<>();
 			polyString.getTranslation().getArgument().forEach(argument -> {
 				String argumentValue = "";
