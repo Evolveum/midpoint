@@ -20,21 +20,25 @@
     <div class="row">
         <div wicket:id="defaultValuePanel"/>
     </div>
-     <div wicket:id="fullDataContainer">
+     <div class="row" wicket:id="fullDataContainer">
          <div class="row">
-             <div class="col-md-4"><wicket:message key="PolyStringEditorPanel.defaultLabel" /></div>
+             <div class="col-md-3"><wicket:message key="PolyStringEditorPanel.defaultLabel" /></div>
              <div class="col-md-8" wicket:id="origValue"/>
          </div>
         <div class="row">
-             <div class="col-md-4"><wicket:message key="PolyStringEditorPanel.keyLabel" /></div>
+             <div class="col-md-3"><wicket:message key="PolyStringEditorPanel.keyLabel" /></div>
              <div class="col-md-8" wicket:id="keyValue"/>
          </div>
         <div wicket:id="languagesRepeater" class="row">
-             <div class="col-md-4" wicket:id="languageName" />
+             <div class="col-md-3" wicket:id="languageName" />
              <div class="col-md-8" wicket:id="translation"/>
          </div>
+         <div class="row">
+         <button wicket:id="addLanguageButton" wicket:message="title:PolyStringEditorPanel.addLanguage"
+                 class="btn btn-box-tool pull-left" trigger="hover"><i class="fa fa-plus-circle"></i></button>
+         </div>
     </div>
-    <div class="show-empty-button" wicket:id="showHideLanguages"/>
+    <div class="row show-empty-button" wicket:id="showHideLanguages"/>
 
 </wicket:panel>
 </html>
