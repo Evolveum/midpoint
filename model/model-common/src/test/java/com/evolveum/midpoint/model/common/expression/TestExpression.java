@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfiles;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -535,8 +536,8 @@ public class TestExpression {
 			throw new SchemaException("No expressions in system config");
 		}
 		ExpressionProfileCompiler compiler = new ExpressionProfileCompiler();
-		List<ExpressionProfile> profiles = compiler.compile(expressions);
-		ExpressionProfile profile = ExpressionProfileCompiler.findProfile(profiles, profileName);
+		ExpressionProfiles profiles = compiler.compile(expressions);
+		ExpressionProfile profile = profiles.getProfile(profileName);
 		if (profile == null) {
 			throw new SchemaException("Profile '"+profile+"' not found in system config");
 		}

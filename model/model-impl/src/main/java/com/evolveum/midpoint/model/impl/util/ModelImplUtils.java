@@ -844,20 +844,24 @@ public class ModelImplUtils {
 
 	public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
 	            ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-			ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
-			env.setLensContext(lensContext);
-			env.setCurrentResult(parentResult);
-			env.setCurrentTask(task);
-			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
-	        try {
-	            return scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, useNew, shortDesc, task, parentResult);
-	        } finally {
-	        	ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-	//			if (lensContext.getDebugListener() != null) {
-	//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
-	//			}
-	        }
-	    }
+			
+		ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
+		env.setLensContext(lensContext);
+		env.setCurrentResult(parentResult);
+		env.setCurrentTask(task);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+		
+        try {
+        	
+            return scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, useNew, shortDesc, task, parentResult);
+            
+        } finally {
+        	ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+//			if (lensContext.getDebugListener() != null) {
+//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
+//			}
+        }
+    }
 
 	public static CriticalityType handleConnectorErrorCriticality(ResourceType resourceType, Throwable e, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
 	SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {

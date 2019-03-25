@@ -115,6 +115,7 @@ public class ScriptExpression {
 		this.additionalConvertor = additionalConvertor;
 	}
 	
+	@Deprecated
 	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
 			boolean useNew, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -134,24 +135,52 @@ public class ScriptExpression {
 		context.setContextDescription(contextDescription);
 		context.setTask(task);
 		context.setResult(result);
+		
+		return evaluate(context);
+	}
+		
+	public <V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+		if (context.getExpressionType() == null) {
+			context.setExpressionType(scriptType);
+		}
+		if (context.getFunctions() == null) {
+			context.setFunctions(functions);
+		}
+		if (context.getExpressionProfile() == null) {
+			context.setExpressionProfile(expressionProfile);
+		}
+		if (context.getScriptExpressionProfile() == null) {
+			context.setScriptExpressionProfile(scriptExpressionProfile);
+		}
+		if (context.getOutputDefinition() == null) {
+			context.setOutputDefinition(outputDefinition);
+		}
+		if (context.getAdditionalConvertor() == null) {
+			context.setAdditionalConvertor(additionalConvertor);
+		}
+		if (context.getObjectResolver() == null) {
+			context.setObjectResolver(objectResolver);
+		}
+		
 		try {
 			context.setupThreadLocal();
 
 			List<V> expressionResult = evaluator.evaluate(context);
 
-			traceExpressionSuccess(variables, contextDescription, expressionResult);
+			traceExpressionSuccess(context, expressionResult);
 	        return expressionResult;
 
 		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error ex) {
-			traceExpressionFailure(variables, contextDescription, ex);
+			traceExpressionFailure(context, ex);
 			throw ex;
 		} finally {
 			context.cleanupThreadLocal();
 		}
 	}
 
-    private void traceExpressionSuccess(ExpressionVariables variables, String shortDesc, Object returnValue) {
+    private void traceExpressionSuccess(ScriptExpressionEvaluationContext context, Object returnValue) {
     	if (!isTrace()) {
     		return;
     	}
@@ -162,11 +191,11 @@ public class ScriptExpression {
         		"Variables:\n{}\n"+
         		"Profile: {}\n" +
         		"Code:\n{}\n"+
-        		"Result: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
+        		"Result: {}", context.getContextDescription(), evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(context.getVariables()),
 				formatProfile(), formatCode(), SchemaDebugUtil.prettyPrint(returnValue));
     }
 
-    private void traceExpressionFailure(ExpressionVariables variables, String shortDesc, Throwable exception) {
+    private void traceExpressionFailure(ScriptExpressionEvaluationContext context, Throwable exception) {
         LOGGER.error("Expression error: {}", exception.getMessage(), exception);
         if (!isTrace()) {
     		return;
@@ -178,7 +207,7 @@ public class ScriptExpression {
         		"Variables:\n{}\n"+
         		"Profile: {}\n" +
         		"Code:\n{}\n"+
-        		"Error: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
+        		"Error: {}", context.getContextDescription(), evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(context.getVariables()),
         		formatProfile(),formatCode(), SchemaDebugUtil.prettyPrint(exception));
     }
 

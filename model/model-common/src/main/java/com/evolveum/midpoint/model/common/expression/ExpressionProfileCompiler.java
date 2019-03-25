@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfiles;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionEvaluatorProfileType;
@@ -38,9 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationE
 @Component
 public class ExpressionProfileCompiler {
 	
-	public List<ExpressionProfile> compile(SystemConfigurationExpressionsType expressionsType) throws SchemaException {
+	public ExpressionProfiles compile(SystemConfigurationExpressionsType expressionsType) throws SchemaException {
 		List<ExpressionPermissionProfile> permissionProfiles = compilePermissionProfiles(expressionsType.getPermissionProfile());
-		List<ExpressionProfile> expressionProfiles = compileExpressionProfiles(expressionsType.getExpressionProfile(), permissionProfiles);
+		ExpressionProfiles expressionProfiles = compileExpressionProfiles(expressionsType.getExpressionProfile(), permissionProfiles);
 		return expressionProfiles;
 	}
 
@@ -62,8 +63,8 @@ public class ExpressionProfileCompiler {
 		return profile;
 	}
 	
-	private List<ExpressionProfile> compileExpressionProfiles(List<ExpressionProfileType> expressionProfileTypes, List<ExpressionPermissionProfile> permissionProfiles) throws SchemaException {
-		List<ExpressionProfile> expressionProfiles = new ArrayList<>();
+	private ExpressionProfiles compileExpressionProfiles(List<ExpressionProfileType> expressionProfileTypes, List<ExpressionPermissionProfile> permissionProfiles) throws SchemaException {
+		ExpressionProfiles expressionProfiles = new ExpressionProfiles();
 		for(ExpressionProfileType expressionProfileType : expressionProfileTypes) {
 			expressionProfiles.add(compileExpressionProfile(expressionProfileType, permissionProfiles));
 		}
@@ -115,18 +116,6 @@ public class ExpressionProfileCompiler {
 			}
 		}
 		throw new SchemaException("Permission profile '"+profileIdentifier+"' not found");
-	}
-
-	public static ExpressionProfile findProfile(List<ExpressionProfile> profiles, String identifier) {
-		if (identifier == null) {
-			return null;
-		}
-		for (ExpressionProfile profile : profiles) {
-			if (identifier.equals(profile.getIdentifier())) {
-				return profile;
-			}
-		}
-		return null;
 	}
 
 }

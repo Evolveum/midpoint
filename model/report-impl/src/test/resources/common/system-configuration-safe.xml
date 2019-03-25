@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+  <!-- Safe expression profile is enabled for all reports. -->
+  
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <logging>
+    	<rootLoggerAppender>File Appender</rootLoggerAppender>
+    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <classLogger>
+	        <level>TRACE</level>
+	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+      	</classLogger>
+        <c:classLogger>
+            <c:level>TRACE</c:level>
+            <c:package>com.evolveum.midpoint.notifications</c:package>
+        </c:classLogger>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+    </logging>
+    
+    <defaultObjectPolicyConfiguration>
+    	<type>ReportType</type>
+    	<expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    
+    <expressions>
+    	<expressionProfile>
+    		<identifier>safe</identifier>
+    		<decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
+    		<evaluator>
+    			<type>asIs</type>
+    			<decision>allow</decision>
+    		</evaluator>
+    		<evaluator>
+    			<type>path</type>
+    			<decision>allow</decision>
+    		</evaluator>
+    		<evaluator>
+    			<type>value</type>
+    			<decision>allow</decision>
+    		</evaluator>
+<!--
+			Const is safe. But we need something to prohibit here.
+    		<evaluator>
+    			<type>const</type>
+    			<decision>allow</decision>
+    		</evaluator>  -->
+    		<evaluator>
+    			<type>script</type>
+    			<decision>deny</decision> <!-- default decision of those script languages that are not explicitly enumerated. -->
+    			<script>
+    				<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+    				<decision>allow</decision>
+    				<typeChecking>true</typeChecking>
+    				<permissionProfile>script-safe</permissionProfile>
+    			</script>
+    		</evaluator>
+    	</expressionProfile>
+	    <permissionProfile>
+	    	<identifier>script-safe</identifier>
+	    	<decision>deny</decision> <!-- Default decision for those classes that are not explicitly enumerated. -->
+	    	<package>
+	    		<name>com.evolveum.midpoint.xml.ns._public.common.common_3</name>
+	    		<description>MidPoint common schema - generated bean classes</description>
+	    		<decision>allow</decision>
+	    	</package>
+	    	<package>
+	    		<name>com.evolveum.prism.xml.ns._public.types_3</name>
+	    		<description>Prism schema - bean classes</description>
+	    		<decision>allow</decision>
+	    	</package>
+	    	<class>
+	    		<name>java.lang.String</name>
+	    			<description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+	    			<decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
+	    			<method>
+	    				<name>execute</name>
+	    				<decision>deny</decision>
+	    			</method>
+	    	</class>
+	    	<class>
+	    		<name>java.lang.CharSequence</name>
+	    			<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>java.util.List</name>
+	    			<description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+	    			<decision>allow</decision>
+	    			<method>
+	    				<name>execute</name>
+	    				<decision>deny</decision>
+	    			</method>
+	    	</class>
+	    	<class>
+	    		<name>java.lang.System</name>
+	    			<description>Just a few methods of System are safe enough.</description>
+	    			<decision>deny</decision>
+	    			<method>
+	    				<name>currentTimeMillis</name>
+	    				<decision>allow</decision>
+	    			</method>
+	    	</class>
+	    	<class>
+	    		<name>java.lang.IllegalStateException</name>
+	    			<description>Basic Java exception. Also used in test.</description>
+	    			<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>java.lang.IllegalArgumentException</name>
+	    			<description>Basic Java exception.</description>
+	    			<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions</name>
+	    		<description>MidPoint logging functions library</description>
+	    		<decision>allow</decision>
+	    	</class>
+	    </permissionProfile>
+    </expressions>
+   
+</systemConfiguration>

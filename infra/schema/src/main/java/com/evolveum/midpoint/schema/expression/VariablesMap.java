@@ -89,6 +89,9 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 	
 	@SuppressWarnings("rawtypes")
 	public <D extends ItemDefinition> TypedValue put(String key, Object value, D definition) {
+		if (definition == null) {
+			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without definition");
+		}
 		return variables.put(key, new TypedValue<>(value, definition));
 	}
 	
@@ -98,6 +101,9 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 	 * of the value precisely. 
 	 */
 	public <T> TypedValue put(String key, Object value, Class<T> typeClass) {
+		if (typeClass == null) {
+			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without class specification");
+		}
 		return variables.put(key, new TypedValue<>(value, typeClass));
 	}
 	

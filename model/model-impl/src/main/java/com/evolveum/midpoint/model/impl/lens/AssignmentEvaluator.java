@@ -34,7 +34,7 @@ import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -777,7 +777,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
 		checkRelationWithTarget(segment, targetType, relation);
 
-		LifecycleStateModelType targetStateModel = ModelUtils.determineLifecycleModel(targetType.asPrismObject(), systemConfiguration);
+		LifecycleStateModelType targetStateModel = ArchetypeManager.determineLifecycleModel(targetType.asPrismObject(), systemConfiguration);
 		boolean isTargetValid = LensUtil.isFocusValid(targetType, now, activationComputer, targetStateModel);
 		if (!isTargetValid) {
 			isValid = false;

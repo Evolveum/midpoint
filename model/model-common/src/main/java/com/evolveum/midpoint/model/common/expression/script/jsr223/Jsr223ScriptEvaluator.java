@@ -105,35 +105,35 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
 	}
 	
 
-	public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
-			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-		Bindings bindings = convertToBindings(context);
-
-//		String codeString = code;
-		if (codeString == null) {
-			throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
-		}
-
-		boolean allowEmptyValues = true;
-//		if (expressionType.isAllowEmptyValues() != null) {
-//			allowEmptyValues = expressionType.isAllowEmptyValues();
+//	public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
+//			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
+//
+//		Bindings bindings = convertToBindings(context);
+//
+////		String codeString = code;
+//		if (codeString == null) {
+//			throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
 //		}
-
-		CompiledScript compiledScript = getCompiledScript(codeString, context);
-
-		Object evalRawResult;
-		try {
-			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-			evalRawResult = compiledScript.eval(bindings);
-		} catch (Throwable e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
-		}
-
-
-
-		return evalRawResult;
-	}
+//
+//		boolean allowEmptyValues = true;
+////		if (expressionType.isAllowEmptyValues() != null) {
+////			allowEmptyValues = expressionType.isAllowEmptyValues();
+////		}
+//
+//		CompiledScript compiledScript = getCompiledScript(codeString, context);
+//
+//		Object evalRawResult;
+//		try {
+//			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
+//			evalRawResult = compiledScript.eval(bindings);
+//		} catch (Throwable e) {
+//			throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
+//		}
+//
+//
+//
+//		return evalRawResult;
+//	}
 
 
 	/* (non-Javadoc)

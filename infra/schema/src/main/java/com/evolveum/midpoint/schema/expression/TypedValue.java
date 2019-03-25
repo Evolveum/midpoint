@@ -75,18 +75,21 @@ public class TypedValue<T> implements ShortDumpable {
 	
 	public TypedValue(Object value, ItemDefinition<?> definition) {
 		super();
+		validateValue(value);
 		this.value = value;
 		this.definition = definition;
 	}
 	
 	public TypedValue(Object value, Class<T> typeClass) {
 		super();
+		validateValue(value);
 		this.value = value;
 		this.typeClass = typeClass;
 	}
 	
 	public TypedValue(Object value, ItemDefinition<?> definition, Class<T> typeClass) {
 		super();
+		validateValue(value);
 		this.value = value;
 		this.definition = definition;
 		this.typeClass = typeClass;
@@ -97,7 +100,17 @@ public class TypedValue<T> implements ShortDumpable {
 	}
 
 	public void setValue(Object value) {
+		validateValue(value);
 		this.value = value;
+	}
+
+	private void validateValue(Object value) {
+		if (value == null) {
+			return;
+		}
+		if (value instanceof TypedValue) {
+			throw new IllegalArgumentException("TypedValue in TypedValue in "+this);
+		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

@@ -57,12 +57,8 @@ public class ReportWebService implements ReportPortType, ReportPort {
 
 	private static transient Trace LOGGER = TraceManager.getTrace(ReportWebService.class);
 
-	@Autowired(required = true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private ReportService reportService;
-
+	@Autowired private PrismContext prismContext;
+	@Autowired private ReportService reportService;
 
 	@Override
 	public ObjectListType evaluateScript(String script, RemoteReportParametersType parameters) {

@@ -1794,6 +1794,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.assertSuccess(message, result);
 	}
 	
+	protected void assertSuccess(String message, OperationResultType resultType) {
+		TestUtil.assertSuccess(message, resultType);
+	}
+	
 	protected void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
 		if (result.isUnknown()) {
 			result.computeStatus();

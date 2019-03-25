@@ -727,20 +727,20 @@ public class LensUtil {
 				if (namePolyType == null) {
 					throw new SchemaException("Focus "+focusObjectNew+" does not have a name after "+activityDescription);
 				}
-				ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-				checkObjectPolicy(focusContext, objectPolicyConfigurationType);
+				ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+				checkArchetypePolicy(focusContext, archetypePolicy);
 			}
 		}
 	}
 
-	private static <F extends ObjectType> void checkObjectPolicy(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException, PolicyViolationException {
-		if (objectPolicyConfigurationType == null) {
+	private static <F extends ObjectType> void checkArchetypePolicy(LensFocusContext<F> focusContext, ArchetypePolicyType archetypePolicy) throws SchemaException, PolicyViolationException {
+		if (archetypePolicy == null) {
 			return;
 		}
 		PrismObject<F> focusObjectNew = focusContext.getObjectNew();
 		ObjectDelta<F> focusDelta = focusContext.getDelta();
 
-		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+		for (PropertyConstraintType propertyConstraintType: archetypePolicy.getPropertyConstraint()) {
 			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
 			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
 				if (focusDelta != null) {
@@ -775,7 +775,7 @@ public class LensUtil {
 		}
 
 		// Deprecated
-		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+		if (BooleanUtils.isTrue(archetypePolicy.isOidNameBoundMode())) {
 			if (focusDelta != null) {
 				if (focusDelta.isAdd()) {
 					PolyStringType namePolyType = focusObjectNew.asObjectable().getName();
@@ -1097,8 +1097,8 @@ public class LensUtil {
 		}
 	}
 	
-	public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType, PrismContext prismContext) throws SchemaException, ConfigurationException {
-		if (objectPolicyConfigurationType == null) {
+	public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismContext prismContext) throws SchemaException, ConfigurationException {
+		if (archetypePolicy == null) {
 			return;
 		}
 
@@ -1108,10 +1108,10 @@ public class LensUtil {
 			return;
 		}
 
-		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+		for (PropertyConstraintType propertyConstraintType: archetypePolicy.getPropertyConstraint()) {
 			if (propertyConstraintType.getPath() == null) {
-				LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", objectPolicyConfigurationType);
-				throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + objectPolicyConfigurationType + " defined in system configuration.");
+				LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", archetypePolicy);
+				throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + archetypePolicy + " defined in system configuration.");
 			}
 			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
 			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
@@ -1142,7 +1142,7 @@ public class LensUtil {
 		}
 
 		// Deprecated
-		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+		if (BooleanUtils.isTrue(archetypePolicy.isOidNameBoundMode())) {
 			// Generate the name now - unless it is already present
 			PolyStringType focusNewName = focusNew.asObjectable().getName();
 			if (focusNewName == null) {

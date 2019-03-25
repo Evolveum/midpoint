@@ -171,8 +171,8 @@ public class ChangeExecutor {
 						focusDelta = focusContext.getObjectAny().createModifyDelta();
 					}
 
-					ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-					applyObjectPolicy(focusContext, focusDelta, objectPolicyConfigurationType);
+					ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+					applyObjectPolicy(focusContext, focusDelta, archetypePolicy);
 
 					OperationResult subResult = result.createSubresult(
 							OPERATION_EXECUTE_FOCUS + "." + focusContext.getObjectTypeClass().getSimpleName());
@@ -570,14 +570,14 @@ public class ChangeExecutor {
 	}
 
 	private <O extends ObjectType> void applyObjectPolicy(LensFocusContext<O> focusContext,
-			ObjectDelta<O> focusDelta, ObjectPolicyConfigurationType objectPolicyConfigurationType) {
-		if (objectPolicyConfigurationType == null) {
+			ObjectDelta<O> focusDelta, ArchetypePolicyType archetypePolicy) {
+		if (archetypePolicy == null) {
 			return;
 		}
 		PrismObject<O> objectNew = focusContext.getObjectNew();
 		if (focusDelta.isAdd() && objectNew.getOid() == null) {
 
-			for (PropertyConstraintType propertyConstraintType : objectPolicyConfigurationType
+			for (PropertyConstraintType propertyConstraintType : archetypePolicy
 					.getPropertyConstraint()) {
 				if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
 					ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
@@ -588,7 +588,7 @@ public class ChangeExecutor {
 			}
 
 			// deprecated
-			if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+			if (BooleanUtils.isTrue(archetypePolicy.isOidNameBoundMode())) {
 				String name = objectNew.asObjectable().getName().getOrig();
 				focusContext.setOid(name);
 			}

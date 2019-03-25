@@ -56,14 +56,6 @@ public class ExpressionProfile { // TODO: DebugDumpable
 		evaluatorProfiles.add(evaluatorProfile);
 	}
 	
-//	public AccessDecision decideEvaluator(QName type) {
-//		ExpressionEvaluatorProfile evaluatorProfile = getEvaluatorProfile(type);
-//		if (evaluatorProfile == null) {
-//			return decision;
-//		}
-//		return evaluatorProfile.getDecision();
-//	}
-	
 	public ExpressionEvaluatorProfile getEvaluatorProfile(QName type) {
 		for (ExpressionEvaluatorProfile evaluatorProfile : evaluatorProfiles) {
 			if (QNameUtil.match(evaluatorProfile.getType(), type)) {
@@ -78,99 +70,6 @@ public class ExpressionProfile { // TODO: DebugDumpable
 		return "ExpressionProfile(" + identifier + ")";
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-//	private final List<Rule> classAccessRules = new ArrayList<>();
-//	private AccessDecision defaultClassAccessDecision = AccessDecision.DEFAULT;
-//	private boolean groovyTypeChecking;
-//	
-//	
-//	
-//	public AccessDecision getDefaultClassAccessDecision() {
-//		return defaultClassAccessDecision;
-//	}
-//
-//	public void setDefaultClassAccessDecision(AccessDecision defaultClassAccessDecision) {
-//		this.defaultClassAccessDecision = defaultClassAccessDecision;
-//	}
-//	
-//	public boolean isGroovyTypeChecking() {
-//		return groovyTypeChecking;
-//	}
-//	
-//	public void setGroovyTypeChecking(boolean groovyTypeChecking) {
-//		this.groovyTypeChecking = groovyTypeChecking;
-//	}
-//
-//	public AccessDecision decideClassAccess(String className, String methodName) {
-//		for (Rule rule : classAccessRules) {
-//			if (rule.match(className, methodName)) {
-//				return rule.getDecision();
-//			}
-//		}
-//		return defaultClassAccessDecision;
-//	}
-//
-//	/**
-//	 * Used to easily set up access for built-in class access rules.
-//	 */
-//	public void addClassAccessRule(String className, String methodName, AccessDecision decision) {
-//		classAccessRules.add(new Rule(className, methodName, decision));
-//	}
-//	
-//	/**
-//	 * Used to easily set up access for built-in class access rules (convenience).
-//	 */
-//	public void addClassAccessRule(Class<?> clazz, String methodName, AccessDecision decision) {
-//		addClassAccessRule(clazz.getName(), methodName, decision);
-//	}
-//	
-//	
-//
-//	class Rule {
-//		private final String className;
-//		private final String methodName;
-//		private final AccessDecision decision;
-//		
-//		public Rule(String className, String methodName, AccessDecision decision) {
-//			super();
-//			this.className = className;
-//			this.methodName = methodName;
-//			this.decision = decision;
-//		}
-//
-//		public String getClassName() {
-//			return className;
-//		}
-//
-//		public String getMethodName() {
-//			return methodName;
-//		}
-//
-//		public AccessDecision getDecision() {
-//			return decision;
-//		}
-//		
-//		public boolean match(String aClassName, String aMethodName) {
-//			if (!aClassName.equals(className)) {
-//				return false;
-//			}
-//			if (methodName == null) {
-//				return true;
-//			}
-//			return methodName.equals(aMethodName);
-//		}
-//		
-//	}
 
 
 }

@@ -166,8 +166,8 @@ public class AssignmentHolderProcessor {
 		
 		while (true) {
 
-			ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-			LensUtil.applyObjectPolicyConstraints(focusContext, objectPolicyConfigurationType, prismContext);
+			ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+			LensUtil.applyObjectPolicyConstraints(focusContext, archetypePolicy, prismContext);
 
 			ExpressionVariables variablesPreIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
 					null, null, null, context.getSystemConfiguration(), focusContext, prismContext);

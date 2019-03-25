@@ -35,10 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * todo comments [lazyman]
- *
- * WORK IN PROGRESS
- *
  * @author lazyman
  * @author katkav
  */

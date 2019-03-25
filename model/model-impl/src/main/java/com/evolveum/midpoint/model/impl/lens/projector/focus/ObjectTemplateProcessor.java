@@ -87,6 +87,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
@@ -225,12 +226,12 @@ public class ObjectTemplateProcessor {
 		if (focusContext == null) {
 			return null;
 		}
-		ObjectPolicyConfigurationType policyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-		if (policyConfigurationType == null) {
+		ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+		if (archetypePolicy == null) {
 			LOGGER.trace("No default object template (no policy)");
 			return null;
 		}
-		ObjectReferenceType templateRef = policyConfigurationType.getObjectTemplateRef();
+		ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
 		if (templateRef == null) {
 			LOGGER.trace("No default object template (no templateRef)");
 			return null;

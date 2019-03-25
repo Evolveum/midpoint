@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,10 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	protected final static File USER_JACK_FILE = new File(TEST_DIR_COMMON, "user-jack.xml"); 
 	protected final static String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	
+	protected final static File USERS_MONKEY_ISLAND_FILE = new File(TEST_DIR_COMMON, "users-monkey-island.xml");
+	
 	protected final static File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR_COMMON, "system-configuration.xml");
+	protected final static File SYSTEM_CONFIGURATION_SAFE_FILE = new File(TEST_DIR_COMMON, "system-configuration-safe.xml");
 
 	protected final static File RESOURCE_OPENDJ_FILE = new File(TEST_DIR_COMMON, "resource-opendj.xml");
 	protected final static String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
@@ -67,7 +70,7 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 		// System Configuration
 		modelService.postInit(initResult);
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+			repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -79,6 +82,10 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 		login(userAdministrator);
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+	}
+
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
 	}
 
 	@Override

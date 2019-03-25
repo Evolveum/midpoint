@@ -40,11 +40,14 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -52,6 +55,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -59,6 +63,7 @@ import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -74,6 +79,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -94,6 +100,21 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired private FunctionLibrary midpointFunctionLibrary;
 	@Autowired private LocalizationService localizationService;
 	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private ScriptExpressionFactory scriptExpressionFactory;
+	
+	private ExpressionProfile determineExpressionProfile() {
+		// TODO TODO TODO TODO TODO
+		return MiscSchemaUtil.getExpressionProfile();
+	}
+	
+	private void setupExpressionProfiles(ScriptExpressionEvaluationContext context) {
+		ExpressionProfile expressionProfile = determineExpressionProfile();
+		context.setExpressionProfile(expressionProfile);
+
+		// TODO TODO TODO TODO TODO
+		ScriptExpressionProfile scriptExpressionProfile = null;
+		context.setScriptExpressionProfile(scriptExpressionProfile);
+	}
 
 	@Override
 	public ObjectQuery parseQuery(String query, VariablesMap parameters) throws SchemaException,
@@ -102,8 +123,8 @@ public class ReportServiceImpl implements ReportService {
 			return null;
 		}
 
-		// TODO TODO TODO TODO TODO
-		ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+		
+		ExpressionProfile expressionProfile = determineExpressionProfile();
 		
 		ObjectQuery parsedQuery;
 		try {
@@ -129,7 +150,7 @@ public class ReportServiceImpl implements ReportService {
 			((TypeFilter) f).setFilter(q.getFilter());
 			parsedQuery = prismContext.queryFactory().createQuery(f);
 
-			LOGGER.trace("query dump {}", parsedQuery.debugDump());
+			LOGGER.trace("report query:\n{}", parsedQuery.debugDumpLazily(1));
 		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block
 			throw e;
@@ -202,21 +223,13 @@ public class ReportServiceImpl implements ReportService {
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);
-		context.setFunctions(createFunctionLibraries());
-		context.setObjectResolver(objectResolver);
 		context.setContextDescription("report script"); // TODO: improve
 		context.setTask(task);
 		context.setResult(task.getResult());
+		setupExpressionProfiles(context);
 		
-		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
-				prismContext.getDefaultProtector(), localizationService);
-		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
-		Object o;
-		try{
-			o = scripts.evaluateReportScript(script, context);
-		} finally{
-			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-		}
+		Object o = evaluateReportScript(script, context);
+
 		if (o != null) {
 
 			if (Collection.class.isAssignableFrom(o.getClass())) {
@@ -235,6 +248,7 @@ public class ReportServiceImpl implements ReportService {
 		return results;
 	}
 	
+
 	@Override
 	public Object evaluate(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -249,21 +263,13 @@ public class ReportServiceImpl implements ReportService {
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);
-		context.setFunctions(createFunctionLibraries());
-		context.setObjectResolver(objectResolver);
 		context.setContextDescription("report script"); // TODO: improve
 		context.setTask(task);
 		context.setResult(task.getResult());
+		setupExpressionProfiles(context);
 
-		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
-				prismContext.getDefaultProtector(), localizationService);
-		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
-		Object o;
-		try{
-			o = scripts.evaluateReportScript(script, context);
-		} finally{
-			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-		}
+		Object o = evaluateReportScript(script, context);
+
 		return o;
 
 	}
@@ -293,21 +299,14 @@ public class ReportServiceImpl implements ReportService {
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);
-		context.setFunctions(createFunctionLibraries());
-		context.setObjectResolver(objectResolver);
+		
 		context.setContextDescription("report script"); // TODO: improve
 		context.setTask(task);
 		context.setResult(task.getResult());
+		setupExpressionProfiles(context);
 
-		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
-				prismContext.getDefaultProtector(), localizationService);
-		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
-		Object o;
-		try{
-			o = scripts.evaluateReportScript(script, context);
-		} finally {
-			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-		}
+		Object o = evaluateReportScript(script, context);
+
 		if (o != null) {
 
 			if (Collection.class.isAssignableFrom(o.getClass())) {
@@ -341,7 +340,7 @@ public class ReportServiceImpl implements ReportService {
 		for (Entry<String, TypedValue> e : paramEntries) {
 			Object value = e.getValue().getValue();
 			if (value instanceof PrismPropertyValue) {
-				resultParamMap.put(e.getKey(), ((PrismPropertyValue) value).getValue(), e.getValue().getDefinition());
+				resultParamMap.put(e.getKey(), e.getValue().createTransformed(((PrismPropertyValue) value).getValue()));
 			} else {
 				resultParamMap.put(e.getKey(), e.getValue());
 			}
@@ -373,5 +372,34 @@ public class ReportServiceImpl implements ReportService {
 	@Override
 	public PrismContext getPrismContext() {
 		return prismContext;
+	}
+	
+	public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, SchemaException {
+		ScriptExpressionEvaluatorType expressionType = new ScriptExpressionEvaluatorType();
+		expressionType.setCode(codeString);
+		context.setExpressionType(expressionType);
+		
+		context.setFunctions(createFunctionLibraries());
+		context.setObjectResolver(objectResolver);
+		
+		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
+				expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(), context.getTask(), context.getResult());
+		
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
+		List<PrismValue> expressionResult;
+		try {
+			expressionResult = scriptExpression.evaluate(context);
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
+		
+		if (expressionResult == null || expressionResult.isEmpty()) {
+			return null;
+		}
+		if (expressionResult.size() > 1) {
+			throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
+		}
+		return expressionResult.get(0).getRealValue();
 	}
 }

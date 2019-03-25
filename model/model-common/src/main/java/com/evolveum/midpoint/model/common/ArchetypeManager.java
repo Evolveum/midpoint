@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.api.util;
+package com.evolveum.midpoint.model.common;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -32,11 +42,69 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * @author semancik
- *
+ * Component that can efficiently determine archetypes for objects.
+ * It is backed by caches, therefore this is supposed to be a low-overhead service that can be
+ * used in many places.
+ * 
+ * @author Radovan Semancik
  */
-public class ModelUtils {
+@Component
+public class ArchetypeManager {
 	
+	private static final Trace LOGGER = TraceManager.getTrace(ArchetypeManager.class);
+	
+	@Autowired private SystemObjectCache systemObjectCache;
+	
+	public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+		if (assignmentHolder == null) {
+			return null;
+		}
+		if (!assignmentHolder.canRepresent(AssignmentHolderType.class)) {
+			return null;
+		}
+		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)assignmentHolder.asObjectable()).getArchetypeRef();
+		if (archetypeRefs == null || archetypeRefs.isEmpty()) {
+			return null;
+		}
+		if (archetypeRefs.size() > 1) {
+			throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
+		}
+		ObjectReferenceType archetypeRef = archetypeRefs.get(0);
+
+		PrismObject<ArchetypeType> archetype;
+		try {
+			archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
+		} catch (ObjectNotFoundException e) {
+			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
+			return null;
+		}
+		return archetype;
+	}
+
+	public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+		if (object == null) {
+			return null;
+		}
+		if (object.canRepresent(AssignmentHolderType.class)) {
+			PrismObject<ArchetypeType> archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, result);
+			if (archetype != null) {
+				return archetype.asObjectable().getArchetypePolicy();
+			}
+		}
+		// No archetype for this object. Try to find appropriate system configuration section for this object.
+		return determineObjectPolicyConfiguration(object, result);
+	}
+	
+	public <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+		if (object == null) {
+			return null;
+		}
+		return determineObjectPolicyConfiguration(object, systemObjectCache.getSystemConfiguration(result).asObjectable());
+	}
+	
+	/**
+	 * This has to remain static due to use from LensContext. Hopefully it will get refactored later.
+	 */
 	public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
 		List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
 		return determineObjectPolicyConfiguration(object.getCompileTimeClass(), subTypes, systemConfigurationType);
@@ -111,5 +179,4 @@ public class ModelUtils {
 		}
 		return objectPolicyConfiguration.getLifecycleStateModel();
 	}
-
 }

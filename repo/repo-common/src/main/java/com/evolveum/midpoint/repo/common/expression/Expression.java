@@ -343,8 +343,9 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		sb.append("\n------------------------------------------------------");
 	}
 
-	private ExpressionVariables processInnerVariables(ExpressionVariables variables, String contextDescription,
-													  Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private ExpressionVariables processInnerVariables(
+			ExpressionVariables variables, String contextDescription, Task task, OperationResult result)
+					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (expressionType == null) {
 			// shortcut
 			return variables;

@@ -66,14 +66,23 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
 
 	@Override
 	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
-			ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
+			ExpressionEvaluationContext eCtx, String contextDescription, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ScriptExpressionReturnTypeType returnType = getExpressionEvaluatorType().getReturnType();
 		if (returnType == null && isRelative()) {
 			returnType = ScriptExpressionReturnTypeType.SCALAR;
 		}
-		scriptExpression.setAdditionalConvertor(context.getAdditionalConvertor());
-		return (List<V>) scriptExpression.evaluate(variables, returnType, useNew, contextDescription, task, result);
+		scriptExpression.setAdditionalConvertor(eCtx.getAdditionalConvertor());
+		ScriptExpressionEvaluationContext sCtx = new ScriptExpressionEvaluationContext();
+		sCtx.setVariables(variables);
+		sCtx.setSuggestedReturnType(returnType);
+		sCtx.setEvaluateNew(useNew);
+		sCtx.setContextDescription(contextDescription);
+		sCtx.setAdditionalConvertor(eCtx.getAdditionalConvertor());
+		sCtx.setTask(task);
+		sCtx.setResult(result);
+		
+		return (List<V>) scriptExpression.evaluate(sCtx);
 	}
 
 	/* (non-Javadoc)
