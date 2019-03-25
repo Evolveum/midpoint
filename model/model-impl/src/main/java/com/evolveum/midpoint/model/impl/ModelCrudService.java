@@ -306,11 +306,6 @@ public class ModelCrudService {
 			LOGGER.trace(DebugUtil.debugDump(modifications));
 		}
 
-		if (modifications.isEmpty()) {
-			LOGGER.warn("Calling modifyObject with empty modificaiton set");
-			return;
-		}
-
 		ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
 		// TODO: check definitions, but tolerate missing definitions in <attributes>
 
@@ -321,8 +316,7 @@ public class ModelCrudService {
 
 		try {
 
-			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, modifications, type
-			);
+			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, modifications, type);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
 

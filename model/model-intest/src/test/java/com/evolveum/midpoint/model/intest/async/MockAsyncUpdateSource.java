@@ -24,10 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AnyDataAsyncUpdateMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UcfChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -48,6 +45,12 @@ public class MockAsyncUpdateSource implements AsyncUpdateSource {
 		@Override
 		public void stop() {
 			// no-op
+		}
+
+		@Override
+		public AsyncUpdateListeningActivityInformationType getInformation() {
+			return new AsyncUpdateListeningActivityInformationType()
+					.status(AsyncUpdateListeningActivityStatusType.ALIVE);
 		}
 	}
 

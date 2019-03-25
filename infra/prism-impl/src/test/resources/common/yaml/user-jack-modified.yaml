@@ -34,6 +34,11 @@ user:
       fallback: "Jack"
       argument:
       - value: "Sparrow"
+    lang:
+      en: "Jack Sparrow"
+      sk: "Džek Sperou"
+      ru: "Джек Воробей"
+      hr: "Ðek Sperou"
   locality: "World's End"
   assignment:
   - id: 1111

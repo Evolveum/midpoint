@@ -34,6 +34,11 @@ user:
       fallback: "Jack"
       argument:
       - value: "Sparrow"
+    lang:
+      en: "Jack Sparrow"
+      sk: "Džek Sperou"
+      ru: "Джек Воробей"
+      hr: "Ðek Sperou"
   assignment:
   - id: !int 1111
     description: "Assignment 1"

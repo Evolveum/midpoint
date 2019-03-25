@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- *
+ *  TODO move somewhere else or rewrite
  */
 public class MessageWrapper {
 

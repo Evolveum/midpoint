@@ -27,13 +27,12 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091SourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.rabbitmq.client.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
@@ -43,6 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *  Async Update source for AMQP 0.9.1 brokers.
+ *
+ *  An experimental implementation.
  */
 public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 
@@ -50,6 +51,7 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 
 	@NotNull private final Amqp091SourceType sourceConfiguration;
 	@NotNull private final PrismContext prismContext;
+	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 	@NotNull private final ConnectionFactory connectionFactory;
 
 	private static final long CONNECTION_CLOSE_TIMEOUT = 5000L;
@@ -57,26 +59,55 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 	private Amqp091AsyncUpdateSource(@NotNull Amqp091SourceType sourceConfiguration, @NotNull AsyncUpdateConnectorInstance connectorInstance) {
 		this.sourceConfiguration = sourceConfiguration;
 		this.prismContext = connectorInstance.getPrismContext();
+		this.connectorInstance = connectorInstance;
 		this.connectionFactory = createConnectionFactory();
+	}
+
+	private enum State {
+		PREPARING, OPEN, CLOSING, CLOSED
 	}
 
 	private class ListeningActivityImpl implements ListeningActivity {
 
+		// the following items are initialized only once; in the constructor
 		private Connection activeConnection;
-		private Channel activeChannel;
+		private Channel activeChannel;          // in the future we could create more channels to increase throughput
 		private String activeConsumerTag;
+
+		private volatile State state;
 
 		private final AtomicInteger messagesBeingProcessed = new AtomicInteger(0);
 
+		@Override
+		public AsyncUpdateListeningActivityInformationType getInformation() {
+			AsyncUpdateListeningActivityInformationType rv = new AsyncUpdateListeningActivityInformationType();
+			rv.setName(sourceConfiguration.getName());
+			if (activeConnection == null) {
+				rv.setStatus(AsyncUpdateListeningActivityStatusType.DOWN);
+			} else if (activeConnection.isOpen()) {
+				rv.setStatus(AsyncUpdateListeningActivityStatusType.ALIVE);
+			} else {
+				rv.setStatus(AsyncUpdateListeningActivityStatusType.RECONNECTING);
+			}
+			return rv;
+		}
+
 		private ListeningActivityImpl(AsyncUpdateMessageListener listener) {
 			try {
+				state = State.PREPARING;
 				activeConnection = connectionFactory.newConnection();
 				activeChannel = activeConnection.createChannel();
+				LOGGER.info("Opened AMQP connection = {}, channel = {}", activeConnection, activeChannel);  // todo debug
 				DeliverCallback deliverCallback = (consumerTag, message) -> {
 					try {
 						messagesBeingProcessed.incrementAndGet();
+						if (state != State.OPEN) {
+							LOGGER.info("Ignoring message on {} because the state is {}", consumerTag, state);
+							return;
+						}
 						byte[] body = message.getBody();
-						System.out.println("Body: " + new String(body, StandardCharsets.UTF_8));
+						LOGGER.info("Received a message on {}", consumerTag);   // todo debug
+						LOGGER.info("Message is:\n{}", new String(body, StandardCharsets.UTF_8)); // todo trace
 						boolean successful = listener.onMessage(createAsyncUpdateMessage(message));
 						if (successful) {
 							activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
@@ -90,31 +121,64 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 						messagesBeingProcessed.decrementAndGet();
 					}
 				};
+				state = State.OPEN;
 				activeConsumerTag = activeChannel
 						.basicConsume(sourceConfiguration.getQueue(), false, deliverCallback, consumerTag -> {});
-				System.out.println("Opened consumer " + activeConsumerTag);
+				activeChannel.addShutdownListener(cause -> {
+					// This is currently just for diagnostics (will log an error when the channel is unexpectedly closed)
+					if (state == State.CLOSING || state == State.CLOSED) {
+						LOGGER.debug("AMQP channel {} is going down (on application request)", activeChannel, cause);
+					} else {
+						LOGGER.error("AMQP channel {} is unexpectedly going down", activeChannel, cause);
+					}
+				});
+				LOGGER.info("Opened consumer {}", activeConsumerTag);       // todo debug
 			} catch (RuntimeException | IOException | TimeoutException e) {
-				if (activeConnection != null) {
-					silentlyCloseActiveConnection();
-				}
+				silentlyCloseActiveConnection();
 				throw new SystemException("Couldn't start listening on " + listener + ": " + e.getMessage(), e);
 			}
 		}
 
 		@Override
 		public void stop() {
-			if (activeChannel != null && activeConsumerTag != null) {
-				LOGGER.info("Cancelling consumer {} on {}", activeConsumerTag, activeChannel);
+			stopInternal(false);
+		}
+
+		private void stopInternal(boolean withinMessageProcessing) {
+			if (state != State.CLOSED) {
+				state = State.CLOSING;
+			}
+			cancelConsumer();
+			closeConnectionGracefully(withinMessageProcessing);
+		}
+
+		private void cancelConsumer() {
+			if (activeConnection != null && activeChannel != null && activeConsumerTag != null) {
+				LOGGER.info("Cancelling consumer {} on {}", activeConsumerTag, activeChannel);  // todo debug
 				try {
 					activeChannel.basicCancel(activeConsumerTag);
 				} catch (IOException e) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't cancel consumer {} on channel {}", e, activeConsumerTag, activeChannel);
 				}
+				activeConsumerTag = null;
+			} else {
+				LOGGER.info("Consumer seems to be already cancelled: state={}, activeConnection={}, activeChannel={}, activeConsumerTag={}",
+						state, activeConnection, activeChannel, activeConsumerTag);    // todo debug
 			}
+		}
 
-			// wait until remaining messages are processed
+		private void closeConnectionGracefully(boolean withinMessageProcessing) {
+			if (activeConnection == null) {
+				return;
+			}
+			LOGGER.info("Going to close connection gracefully (within processing: {}, messages being processed: {})",
+					withinMessageProcessing, messagesBeingProcessed);
+			// wait until remaining messages are processed (at least try so)
+			int steadyState = withinMessageProcessing ? 1 : 0;
+
 			long start = System.currentTimeMillis();
-			while (messagesBeingProcessed.get() > 0 && System.currentTimeMillis() - start < CONNECTION_CLOSE_TIMEOUT) {
+			while (messagesBeingProcessed.get() > steadyState
+					&& System.currentTimeMillis() - start < CONNECTION_CLOSE_TIMEOUT) {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
@@ -122,12 +186,12 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 					break;
 				}
 			}
-			if (messagesBeingProcessed.get() > 0) {
-				LOGGER.warn("Closing the connection even if {} messages are being processed; they will be unacknowledged", messagesBeingProcessed.get());
+			if (messagesBeingProcessed.get() > steadyState) {
+				LOGGER.warn("Closing the connection even if {} messages are being processed; they will be unacknowledged",
+						messagesBeingProcessed.get() - steadyState);
 			}
-			if (activeConnection != null) {
-				silentlyCloseActiveConnection();
-			}
+
+			silentlyCloseActiveConnection();
 		}
 
 		@Override
@@ -139,18 +203,38 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 		}
 
 		private void rejectMessage(Delivery message) throws IOException {
-			// TODO implement a policy to selectively requeue or discard messages
-			activeChannel.basicReject(message.getEnvelope().getDeliveryTag(), true);
+			AsyncUpdateErrorHandlingActionType action = getErrorHandlingAction();
+			switch (action) {
+				case RETRY:
+					throw new UnsupportedEncodingException();
+				case SKIP_UPDATE:
+					activeChannel.basicReject(message.getEnvelope().getDeliveryTag(), false);
+					break;
+				case STOP_PROCESSING:
+					stopInternal(true);
+					break;
+				default:
+					throw new AssertionError(action);
+			}
 		}
 
 		private void silentlyCloseActiveConnection() {
 			try {
-				System.out.println("Closing " + activeConnection);
-				activeConnection.close();
+				if (state != State.CLOSED) {
+					state = State.CLOSING;
+				}
+				if (activeConnection != null) {
+					LOGGER.info("Closing {}", activeConnection);        // todo debug
+					activeConnection.close();
+					LOGGER.info("Closed {}", activeConnection);
+				}
 			} catch (Throwable t) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close active connection {}", t, activeConnection);
 			}
+			state = State.CLOSED;
 			activeConnection = null;
+			activeChannel = null;
+			activeConsumerTag = null;
 		}
 	}
 
@@ -206,5 +290,11 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 			result.recordFatalError("Couldn't connect to AMQP queue: " + e.getMessage(), e);
 			throw new SystemException("Couldn't connect to AMQP queue: " + e.getMessage(), e);
 		}
+	}
+
+	@NotNull
+	private AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
+		// TODO make overridable per source
+		return connectorInstance.getErrorHandlingAction();
 	}
 }
