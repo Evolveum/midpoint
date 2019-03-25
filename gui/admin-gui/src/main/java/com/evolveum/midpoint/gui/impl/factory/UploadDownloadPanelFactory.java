@@ -27,9 +27,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 
@@ -38,8 +37,10 @@ import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
  *
  */
 @Component
-public class UploadDownloadPanelFactory extends AbstractGuiComponentFactory {
+public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T> {
 	
+	private static final long serialVersionUID = 1L;
+
 	@Autowired GuiComponentRegistry registry;
 	
 	@PostConstruct
@@ -48,13 +49,15 @@ public class UploadDownloadPanelFactory extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		return DOMUtil.XSD_BASE64BINARY.equals(itemWrapper.getItemDefinition().getTypeName());
+	public boolean match(PrismPropertyWrapper<T> wrapper) {
+		return DOMUtil.XSD_BASE64BINARY.equals(wrapper.getTypeName());
 	}
 
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
+	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
 		return new UploadDownloadPanel(panelCtx.getComponentId(), false) { //getModel().getObject().isReadonly()
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public InputStream getStream() {

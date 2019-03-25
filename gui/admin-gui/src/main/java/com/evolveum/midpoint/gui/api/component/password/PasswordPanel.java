@@ -134,7 +134,7 @@ public class PasswordPanel extends InputPanel {
         passwordRemoveLabel.setVisible(false);
 		linkContainer.add(passwordRemoveLabel);
 
-        AjaxLink link = new AjaxLink(ID_CHANGE_PASSWORD_LINK) {
+        AjaxLink<Void> link = new AjaxLink<Void>(ID_CHANGE_PASSWORD_LINK) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				onLinkClick(target);
@@ -157,7 +157,7 @@ public class PasswordPanel extends InputPanel {
 		linkContainer.add(link);
 
         final WebMarkupContainer removeButtonContainer = new WebMarkupContainer(ID_REMOVE_BUTTON_CONTAINER);
-        AjaxLink removePassword = new AjaxLink(ID_REMOVE_PASSWORD_LINK) {
+        AjaxLink<Void> removePassword = new AjaxLink<Void>(ID_REMOVE_PASSWORD_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onRemovePassword(model, target);

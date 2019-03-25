@@ -16,20 +16,17 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Priority;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.DatePanel;
@@ -41,23 +38,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
  *
  */
 @Component
-public class DatePanelFactory extends AbstractGuiComponentFactory {
+public class DatePanelFactory extends AbstractGuiComponentFactory<XMLGregorianCalendar> {
 
+	private static final long serialVersionUID = 1L;
+	
 	@Autowired GuiComponentRegistry registry;
 	
 	@PostConstruct
 	public void register() {
 		registry.addToRegistry(this);
 	}
-
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		return DOMUtil.XSD_DATETIME.equals(itemWrapper.getItemDefinition().getTypeName());
+	public boolean match(PrismPropertyWrapper<XMLGregorianCalendar> wrapper) {
+		return DOMUtil.XSD_DATETIME.equals(wrapper.getTypeName());
 	}
 
 	@Override
-	protected <T> Panel getPanel(PanelContext<T> panelCtx) {
-		DatePanel panel = new DatePanel(panelCtx.getComponentId(), (IModel<XMLGregorianCalendar>) panelCtx.getRealValueModel());
+	protected Panel getPanel(PrismPropertyPanelContext<XMLGregorianCalendar> panelCtx) {
+		DatePanel panel = new DatePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
 		
 		DateValidator validator = WebComponentUtil.getRangeValidator(panelCtx.getForm(), SchemaConstants.PATH_ACTIVATION);
 		if (ActivationType.F_VALID_FROM.equals(panelCtx.getDefinitionName())) {

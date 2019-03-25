@@ -20,6 +20,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -80,7 +81,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
 				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
     }
     
-    protected ItemVisibility getBasicTabVisibity(ItemWrapperOld itemWrapper, ItemPath parentPath) {
+    protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper, ItemPath parentPath) {
     	return ItemVisibility.AUTO;
     }
 

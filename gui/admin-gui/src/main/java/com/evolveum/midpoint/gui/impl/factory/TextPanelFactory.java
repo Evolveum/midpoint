@@ -27,34 +27,33 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 @Component
-public class TextPanelFactory extends AbstractGuiComponentFactory {
+public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> {
 
+	private static final long serialVersionUID = 1L;
+	
 	@Autowired GuiComponentRegistry registry;
 
 	@PostConstruct
 	public void register() {
 		registry.addToRegistry(this);
 	}
-
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		QName type = itemWrapper.getItemDefinition().getTypeName();
+	public boolean match(PrismPropertyWrapper<T> wrapper) {
+		QName type = wrapper.getTypeName();
 		return SchemaConstants.T_POLY_STRING_TYPE.equals(type) || DOMUtil.XSD_STRING.equals(type) || DOMUtil.XSD_DURATION.equals(type)
 				|| DOMUtil.XSD_ANYURI.equals(type) || DOMUtil.XSD_INT.equals(type);
 	}
 
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
-		
+	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
 		LookupTableType lookupTable = panelCtx.getPredefinedValues();
 		if (lookupTable == null) {
 			return new TextPanel<>(panelCtx.getComponentId(),
@@ -72,11 +71,6 @@ public class TextPanelFactory extends AbstractGuiComponentFactory {
 				return (Iterator<T>) prepareAutoCompleteList(input, lookupTable).iterator();
 			}
 		};
-
-		
-		
-	
-
 	}
 
 }

@@ -16,19 +16,15 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Priority;
 
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,9 +37,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  *
  */
 @Component
-@Priority(1000)
-public class ModificationsPanelFactory extends AbstractGuiComponentFactory {
+public class ModificationsPanelFactory extends AbstractGuiComponentFactory<ObjectDeltaType> {
 
+	private static final long serialVersionUID = 1L;
+	
 	@Autowired private GuiComponentRegistry registry;
 	
 	@PostConstruct
@@ -52,25 +49,22 @@ public class ModificationsPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		return ObjectDeltaType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
+	public boolean match(PrismPropertyWrapper<ObjectDeltaType> wrapper) {
+		return ObjectDeltaType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.factory.GuiComponentFactory#createPanel(com.evolveum.midpoint.gui.impl.factory.PanelContext)
-	 */
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
+	protected Panel getPanel(PrismPropertyPanelContext<ObjectDeltaType> panelCtx) {
 		return new ModificationsPanel(panelCtx.getComponentId(), () -> {
-			ItemRealValueModel<T> model = panelCtx.getRealValueModel();
+			ItemRealValueModel<ObjectDeltaType> model = panelCtx.getRealValueModel();
 			if (model == null || model.getObject() == null) {
 				return null;
 			}
 			
 			PrismContext prismContext = panelCtx.getPrismContext();
-			ObjectDeltaType objectDeltaType = (ObjectDeltaType) model.getObject();
+			ObjectDeltaType objectDeltaType = model.getObject();
 			try {
-				ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+				ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
 				return new DeltaDto(delta);
 			} catch (SchemaException e) {
 				throw new IllegalStateException("Couldn't convert object delta: " + objectDeltaType);

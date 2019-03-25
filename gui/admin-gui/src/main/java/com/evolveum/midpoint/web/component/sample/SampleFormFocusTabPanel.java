@@ -25,7 +25,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -65,14 +65,14 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
 
     public SampleFormFocusTabPanel(String id, Form mainForm,
-                                   LoadableModel<ObjectWrapperImpl<F>> focusWrapperModel,
+                                   LoadableModel<ObjectWrapperOld<F>> focusWrapperModel,
                                    LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
                                    PageBase pageBase) {
         super(id, mainForm, focusWrapperModel, projectionModel, pageBase);
         initLayout(focusWrapperModel, pageBase);
     }
 
-    private void initLayout(final LoadableModel<ObjectWrapperImpl<F>> focusModel, PageBase pageBase) {
+    private void initLayout(final LoadableModel<ObjectWrapperOld<F>> focusModel, PageBase pageBase) {
         add(new Label(ID_HEADER, "Object details"));
         WebMarkupContainer body = new WebMarkupContainer("body");
         add(body);

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -546,8 +546,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 				continue;
 			}
 
-			PrismValue newValCloned = ObjectWrapperImpl.clone(valueWrapper.getValue());
-			PrismValue oldValCloned = ObjectWrapperImpl.clone(valueWrapper.getOldValue());
+			PrismValue newValCloned = ObjectWrapperOld.clone(valueWrapper.getValue());
+			PrismValue oldValCloned = ObjectWrapperOld.clone(valueWrapper.getOldValue());
 			switch (valueWrapper.getStatus()) {
 				case ADDED:
 					if (newValCloned != null) {
@@ -832,16 +832,16 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			if (!(wrapper instanceof ContainerWrapperImpl)) {
 				continue;
 			}
-			if (!((ContainerWrapperImpl<C>) wrapper).getItemDefinition().isSingleValue()){
-				if(isPanelVisible != null) {
-					if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.VISIBLE)
-							|| (isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && ((ContainerWrapperImpl<C>)wrapper).isVisible())) {
-						count++;
-					}
-				} else if(((ContainerWrapperImpl<C>)wrapper).isVisible()) {
-					count++;
-				}
-			}
+//			if (!((ContainerWrapperImpl<C>) wrapper).getItemDefinition().isSingleValue()){
+////				if(isPanelVisible != null) {
+////					if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.VISIBLE)
+////							|| (isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && ((ContainerWrapperImpl<C>)wrapper).isVisible())) {
+////						count++;
+////					}
+//				} else if(((ContainerWrapperImpl<C>)wrapper).isVisible()) {
+//					count++;
+//				}
+//			}
 			
 			if (count > 1) {
 				return true;
@@ -860,16 +860,16 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 					!((ContainerWrapperImpl<C>)wrapper).getItemDefinition().canModify()){
 				continue;
 			}
-			if(isPanelVisible != null) {
-				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.HIDDEN)) {
-					continue;
-				}
-				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && !((ContainerWrapperImpl<C>)wrapper).isVisible()) {
-					continue;
-				}
-			} else if(!((ContainerWrapperImpl<C>)wrapper).isVisible()) {
-					continue;
-			}
+//			if(isPanelVisible != null) {
+//				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.HIDDEN)) {
+//					continue;
+//				}
+//				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && !((ContainerWrapperImpl<C>)wrapper).isVisible()) {
+//					continue;
+//				}
+//			} else if(!((ContainerWrapperImpl<C>)wrapper).isVisible()) {
+//					continue;
+//			}
 			if (!((ContainerWrapperImpl<C>) wrapper).getItemDefinition().isSingleValue()){
 				pathList.add(((ContainerWrapperImpl<C>) wrapper).getName());
 			}
@@ -889,7 +889,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 		if (getDefinition().isSingleValue()) {
 
-			return ContainerWrapperImpl.getDisplayNameFromItem(getContainerValue().getContainer());
+//			return ContainerWrapperImpl.getDisplayNameFromItem(getContainerValue().getContainer());
 		}
 		return WebComponentUtil.getDisplayName(containerValue);
 	}

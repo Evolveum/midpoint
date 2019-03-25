@@ -103,7 +103,7 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
         label.setRenderBodyOnly(true);
         userSelectionButton.add(label);
 
-        AjaxLink deleteButton = new AjaxLink(ID_DELETE_SELECTED_USER_BUTTON) {
+        AjaxLink<Void> deleteButton = new AjaxLink<Void>(ID_DELETE_SELECTED_USER_BUTTON) {
             private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {

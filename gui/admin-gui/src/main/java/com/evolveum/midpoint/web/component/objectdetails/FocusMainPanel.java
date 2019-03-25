@@ -20,11 +20,15 @@ import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -75,7 +79,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	private TaskDtoProvider taskDtoProvider;
     private FocusAssignmentsTabPanel assignmentsTabPanel = null;
 
-	public FocusMainPanel(String id, LoadableModel<ObjectWrapperImpl<F>> objectModel,
+	public FocusMainPanel(String id, LoadableModel<PrismObjectWrapper<F>> objectModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
@@ -285,7 +289,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
+		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ItemStatus.ADDED){
 			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage(), parentPage);
 			tabs.add(
 					new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
@@ -324,15 +328,15 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	@Override
     protected boolean areSavePreviewButtonsEnabled(){
-		ObjectWrapperImpl<F> focusWrapper = getObjectModel().getObject();
-		ContainerWrapperImpl<AssignmentType> assignmentsWrapper =
-				focusWrapper.findContainerWrapper(FocusType.F_ASSIGNMENT);
+		PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
+		PrismContainerWrapper<AssignmentType> assignmentsWrapper =
+				focusWrapper.findContainer(FocusType.F_ASSIGNMENT);
 		return isAssignmentsModelChanged(assignmentsWrapper);
     }
 
-    protected boolean isAssignmentsModelChanged(ContainerWrapperImpl<AssignmentType> assignmentsWrapper){
+    protected boolean isAssignmentsModelChanged(PrismContainerWrapper<AssignmentType> assignmentsWrapper){
 		if (assignmentsWrapper != null) {
-			for (ContainerValueWrapper assignmentWrapper : assignmentsWrapper.getValues()) {
+			for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
 				if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
 						ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
 					return true;

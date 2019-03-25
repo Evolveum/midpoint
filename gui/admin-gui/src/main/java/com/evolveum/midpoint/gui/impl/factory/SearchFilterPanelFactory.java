@@ -25,21 +25,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 @Component
-public class SearchFilterPanelFactory extends AbstractGuiComponentFactory {
+public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<SearchFilterType> {
+
+	private static final long serialVersionUID = 1L;
 
 	private static transient Trace LOGGER = TraceManager.getTrace(SearchFilterPanelFactory.class);
 	
@@ -51,18 +50,17 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		return SearchFilterType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
+	public boolean match(PrismPropertyWrapper<SearchFilterType> wrapper) {
+		return SearchFilterType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
-			return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel((IModel<SearchFilterType>) panelCtx.getRealValueModel(), panelCtx.getPrismContext()));
-		}
-
+	protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
+		return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel((IModel<SearchFilterType>) panelCtx.getRealValueModel(), panelCtx.getPrismContext()));
+	}
 	
 	class SearchFilterTypeModel implements IModel<String> {
-	
+		
 		private static final long serialVersionUID = 1L;
 		
 		private IModel<SearchFilterType> baseModel;
@@ -113,6 +111,6 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory {
 			
 		}
 	}
-	
+
 	
 }

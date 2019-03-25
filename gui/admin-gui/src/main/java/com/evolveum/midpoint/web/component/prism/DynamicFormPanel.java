@@ -30,7 +30,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -46,7 +46,7 @@ import com.evolveum.midpoint.schema.util.FormTypeUtil;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
-public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrapperImpl<O>> {
+public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrapperOld<O>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -56,7 +56,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 	private static final String ID_FORM_FIELDS = "formFields";
 
-	private LoadableModel<ObjectWrapperImpl<O>> wrapperModel;
+	private LoadableModel<ObjectWrapperOld<O>> wrapperModel;
 	private FormType form;
 
 	public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
@@ -107,18 +107,18 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		}
 
 		final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
-		ObjectWrapperImpl<O> objectWrapper = createObjectWrapper(owf, task, prismObject, enforceRequiredFields);
+		ObjectWrapperOld<O> objectWrapper = createObjectWrapper(owf, task, prismObject, enforceRequiredFields);
 		wrapperModel = LoadableModel.create(() -> objectWrapper, true);
 		initLayout(mainForm, parentPage);
 	}
 
-	private ObjectWrapperImpl<O> createObjectWrapper(ObjectWrapperFactory owf, Task task, PrismObject<O> prismObject,
+	private ObjectWrapperOld<O> createObjectWrapper(ObjectWrapperFactory owf, Task task, PrismObject<O> prismObject,
 			boolean enforceRequiredFields) {
 		FormAuthorizationType formAuthorization = form.getFormDefinition().getAuthorization();
 		AuthorizationPhaseType authorizationPhase = formAuthorization != null && formAuthorization.getPhase() != null
 				? formAuthorization.getPhase()
 				: AuthorizationPhaseType.REQUEST;
-		ObjectWrapperImpl<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
+		ObjectWrapperOld<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
 				prismObject, prismObject.getOid() == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
 				authorizationPhase, task);
 		objectWrapper.setShowEmpty(true);
@@ -127,7 +127,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	}
 
 	@Override
-	public IModel<ObjectWrapperImpl<O>> getModel() {
+	public IModel<ObjectWrapperOld<O>> getModel() {
 		return wrapperModel;
 	}
 

@@ -31,7 +31,7 @@ import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -162,7 +162,7 @@ public class WrapperTestUtil {
 		assertEquals("Wrong status in wrapper "+containerWrapper, status, containerWrapper.getStatus());
 	}
 
-	public static <O extends ObjectType> void assertWrapper(ObjectWrapperImpl<O> objectWrapper, String displayName, String description, PrismObject<O> object,
+	public static <O extends ObjectType> void assertWrapper(ObjectWrapperOld<O> objectWrapper, String displayName, String description, PrismObject<O> object,
 			ContainerStatus status) {
 		assertNotNull("null wrapper", objectWrapper);
 		assertEquals("Wrong object in wrapper "+objectWrapper, object, objectWrapper.getObject());

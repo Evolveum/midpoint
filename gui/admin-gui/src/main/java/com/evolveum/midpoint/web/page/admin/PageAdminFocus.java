@@ -16,10 +16,11 @@
 package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -208,7 +209,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	public void loadFullShadow(FocusSubwrapperDto<ShadowType> shadowWrapperDto) {
-		ObjectWrapperImpl<ShadowType> shadowWrapperOld = shadowWrapperDto.getObject();
+		ObjectWrapperOld<ShadowType> shadowWrapperOld = shadowWrapperDto.getObject();
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
 		FocusSubwrapperDto<ShadowType> shadowWrapperDtoNew = loadSubWrapperDto(ShadowType.class, shadowWrapperOld.getObject().getOid(), false, task);
 		if (shadowWrapperDtoNew == null) {
@@ -217,7 +218,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			shadowWrapperDto.getObject().setFetchResult(subresult);
 			return;
 		}
-		ObjectWrapperImpl<ShadowType> shadowWrapperNew = shadowWrapperDtoNew.getObject();
+		ObjectWrapperOld<ShadowType> shadowWrapperNew = shadowWrapperDtoNew.getObject();
 		shadowWrapperOld.copyRuntimeStateTo(shadowWrapperNew);
 		shadowWrapperDto.setObject(shadowWrapperNew);
 	}
@@ -231,7 +232,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ItemName propertyToLoad, boolean noFetch) {
 		List<FocusSubwrapperDto<S>> list = new ArrayList<>();
 
-		ObjectWrapperImpl<F> focusWrapper = getObjectModel().getObject();
+		PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
 		PrismReference prismReference = focus.findReference(propertyToLoad);
 		if (prismReference == null) {
@@ -304,7 +305,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 			description.append(WebComponentUtil.getOrigStringFromPoly(projectionType.getName()));
 
-			ObjectWrapperImpl<S> wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
+			ObjectWrapperOld<S> wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
 					description.toString(), projection, ContainerStatus.MODIFYING, task, this);
 			wrapper.setLoadOptions(loadOptions);
 			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
@@ -328,7 +329,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     private List<AssignmentEditorDto> loadDelegatedToMe() {
         List<AssignmentEditorDto> list = new ArrayList<>();
 
-        ObjectWrapperImpl<F> focusWrapper = getObjectModel().getObject();
+        PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
         PrismObject<F> focus = focusWrapper.getObject();
         List<AssignmentType> assignments = focus.asObjectable().getAssignment();
         for (AssignmentType assignment : assignments) {
@@ -485,7 +486,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	@Override
-	protected boolean executeForceDelete(ObjectWrapperImpl userWrapper, Task task, ModelExecuteOptions options,
+	protected boolean executeForceDelete(PrismObjectWrapper<F> userWrapper, Task task, ModelExecuteOptions options,
 			OperationResult parentResult) {
 		if (isForce()) {
 			OperationResult result = parentResult.createSubresult("Force delete operation");
@@ -511,7 +512,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return false;
 	}
 
-	private ObjectDelta getForceDeleteDelta(ObjectWrapperImpl focusWrapper) throws SchemaException {
+	private ObjectDelta<F> getForceDeleteDelta(PrismObjectWrapper<F> focusWrapper) throws SchemaException {
 
 		List<FocusSubwrapperDto<ShadowType>> accountDtos = getFocusShadows();
 		List<ReferenceDelta> refDeltas = new ArrayList<>();
@@ -522,12 +523,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 
 			if (accDto.getStatus() == UserDtoStatus.DELETE) {
-				ObjectWrapperImpl accWrapper = accDto.getObject();
+				ObjectWrapperOld accWrapper = accDto.getObject();
 				ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF,
 						focusWrapper.getObject().getDefinition(), accWrapper.getObject());
 				refDeltas.add(refDelta);
 			} else if (accDto.getStatus() == UserDtoStatus.UNLINK) {
-				ObjectWrapperImpl accWrapper = accDto.getObject();
+				ObjectWrapperOld accWrapper = accDto.getObject();
 				ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF,
 						focusWrapper.getObject().getDefinition(), accWrapper.getObject().getOid());
 				refDeltas.add(refDelta);
@@ -545,8 +546,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					focusWrapper.getObject().getOid());
 		}
 //perhaps not needed anymore
-		ContainerWrapperImpl assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(FocusType.F_ASSIGNMENT);
-		handleAssignmentExperimentalDeltas(forceDeleteDelta, assignmentContainerWrapper.getValues(), def, false);
+//		ContainerWrapperImpl assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(FocusType.F_ASSIGNMENT);
+//		handleAssignmentExperimentalDeltas(forceDeleteDelta, assignmentContainerWrapper.getValues(), def, false);
 		return forceDeleteDelta;
 	}
 
@@ -568,7 +569,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				continue;
 			}
 
-			ObjectWrapperImpl<P> projectionWrapper = projection.getObject();
+			ObjectWrapperOld<P> projectionWrapper = projection.getObject();
 			ObjectDelta<P> delta = projectionWrapper.getObjectDelta();
 			PrismObject<P> proj = delta.getObjectToAdd();
 			WebComponentUtil.encryptCredentials(proj, true, getMidpointApplication());
@@ -595,7 +596,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 
 			try {
-				ObjectWrapperImpl accountWrapper = account.getObject();
+				ObjectWrapperOld accountWrapper = account.getObject();
 				ObjectDelta delta = accountWrapper.getObjectDelta();
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Account delta computed from {} as:\n{}",
@@ -661,7 +662,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		List<FocusSubwrapperDto<ShadowType>> accounts = getFocusShadows();
 		for (FocusSubwrapperDto<ShadowType> accDto : accounts) {
 			if (accDto.isLoadedOK()) {
-				ObjectWrapperImpl accountWrapper = accDto.getObject();
+				ObjectWrapperOld accountWrapper = accDto.getObject();
 				accountWrapper.revive(getPrismContext());
 				ObjectDelta delta = accountWrapper.getObjectDelta();
 				PrismReferenceValue refValue = getPrismContext().itemFactory().createReferenceValue(null, OriginType.USER_ACTION, null);
@@ -714,7 +715,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		List<FocusSubwrapperDto<OrgType>> orgs = getParentOrgs();
 		for (FocusSubwrapperDto<OrgType> orgDto : orgs) {
 			if (orgDto.isLoadedOK()) {
-				ObjectWrapperImpl<OrgType> orgWrapper = orgDto.getObject();
+				ObjectWrapperOld<OrgType> orgWrapper = orgDto.getObject();
 				orgWrapper.revive(getPrismContext());
 				ObjectDelta<OrgType> delta = orgWrapper.getObjectDelta();
 				PrismReferenceValue refValue = getPrismContext().itemFactory().createReferenceValue(null, OriginType.USER_ACTION, null);
@@ -753,14 +754,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		try {
 			reviveModels();
 
-			ObjectWrapperImpl<F> focusWrapper = getObjectWrapper();
+			PrismObjectWrapper<F> focusWrapper = getObjectWrapper();
 			delta = focusWrapper.getObjectDelta();
-			if (focusWrapper.getOldDelta() != null) {
-				delta = ObjectDeltaCollectionsUtil.summarize(focusWrapper.getOldDelta(), delta);
-			}
+//			if (focusWrapper.getOldDelta() != null) {
+//				delta = ObjectDeltaCollectionsUtil.summarize(focusWrapper.getOldDelta(), delta);
+//			}
 
 			switch (focusWrapper.getStatus()) {
-				case ADDING:
+				case ADDED:
 					PrismObject<F> focus = delta.getObjectToAdd();
 					prepareObjectForAdd(focus);
 					getPrismContext().adopt(focus, getCompileTimeClass());
@@ -772,7 +773,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 						result.recordSuccess();
 					}
 					break;
-				case MODIFYING:
+				case NOT_CHANGED:
 					prepareObjectDeltaForModify(delta);
 					LOGGER.trace("Delta before modify user:\n{}", delta.debugDumpLazily(3));
 

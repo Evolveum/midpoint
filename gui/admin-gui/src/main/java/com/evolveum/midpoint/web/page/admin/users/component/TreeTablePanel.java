@@ -20,7 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -178,7 +178,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					managersQuery, options, searchManagersResult, getPageBase());
 			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
 			for (PrismObject<FocusType> manager : managers) {
-				ObjectWrapperImpl<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
+				ObjectWrapperOld<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
 						WebComponentUtil.getEffectiveName(manager, RoleType.F_DISPLAY_NAME), "", manager,
 						ContainerStatus.MODIFYING, task, getPageBase());
 				WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());

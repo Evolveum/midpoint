@@ -47,7 +47,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -819,11 +819,11 @@ public class WebModelServiceUtils {
 		return systemConfig;
 	}
 	
-	public static ObjectWrapperImpl<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
+	public static ObjectWrapperOld<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
 		Task task = pageBase.createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
 		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
 		
-		ObjectWrapperImpl<SystemConfigurationType> wrapper = null;
+		ObjectWrapperOld<SystemConfigurationType> wrapper = null;
 		try {
 			PrismObject<SystemConfigurationType> systemConfig = loadSystemConfigurationAsPrismObject(pageBase, task, result);
 		

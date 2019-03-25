@@ -34,7 +34,10 @@ import org.apache.wicket.model.LambdaModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.impl.factory.PanelContext;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
+import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -56,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author katkav
  */
-public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyDefinition<T>, PrismPropertyWrapperImpl<T>> {
+public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T>, PrismPropertyWrapper<T>> {
 	
 	private static final long serialVersionUID = 1L;
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
@@ -77,7 +80,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
 	 * @param id
 	 * @param model
 	 */
-	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapperImpl<T>> model) {
+	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model) {
 		super(id, model);
 	}
 
@@ -89,7 +92,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
 
 	
 	@Override
-	protected void createValuePanel(ListItem item, GuiComponentFactory factory) {
+	protected void createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory) {
 		
 		
 		WebMarkupContainer panel = createInputPanel(item, factory);
@@ -116,7 +119,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				removeValue((ValueWrapperOld<T>) item.getModelObject(), target);
+				removeValue(item.getModelObject(), target);
 			}
 		};
 		removeButton.add(new VisibleBehaviour(() -> isRemoveButtonVisible()));
@@ -140,7 +143,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
 			feedback.setOutputMarkupId(true);
 			item.add(feedback);
 		 
-			PrismPropertyWrapperImpl<T> modelObject = getModelObject();
+			PrismPropertyWrapper<T> modelObject = getModelObject();
 
 			LOGGER.trace("createInputComponent: {}", modelObject);
 
@@ -152,7 +155,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
 			
 			if (factory != null) {
 
-				PanelContext<T> panelCtx = new PanelContext(getModel());
+				PrismPropertyPanelContext<T> panelCtx = new PrismPropertyPanelContext<T>(getModel());
 				panelCtx.setForm(form);
 				panelCtx.setRealValueModel(item.getModel());
 				panelCtx.setFeedbackPanel(feedback);
@@ -244,20 +247,20 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
     }
 	
     private void addValue(AjaxRequestTarget target) {
-		PrismPropertyWrapperImpl<T> propertyWrapper = getModel().getObject();
+		PrismPropertyWrapper<T> propertyWrapper = getModel().getObject();
 		LOGGER.debug("Adding value of {}", propertyWrapper);
 		propertyWrapper.addValue(true);
 		target.add(PrismPropertyPanel.this);
 	}
 	
-	private void removeValue(ValueWrapperOld<T> valueToRemove, AjaxRequestTarget target) {
+	private void removeValue(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) {
 		
-		PrismPropertyWrapperImpl itemWrapper = getModel().getObject();
-		try {
-			itemWrapper.removeValue(valueToRemove);
-		} catch (SchemaException e) {
-			error("Failed to remove value.");
-		}
+		PrismPropertyWrapper<T> itemWrapper = getModel().getObject();
+//		try {
+//			itemWrapper.removeValue(valueToRemove);
+//		} catch (SchemaException e) {
+//			error("Failed to remove value.");
+//		}
 		
 		LOGGER.debug("Removing value of {}", itemWrapper);
 
@@ -275,7 +278,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
 			
 	}
 	    
-    protected IModel<String> createStyleClassModel(final IModel<ValueWrapperOld<T>> value) {
+    protected IModel<String> createStyleClassModel(final IModel<PrismPropertyValueWrapper<T>> value) {
         return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
@@ -294,9 +297,9 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
     	return " col-md-offset-2 prism-value ";
     }
 
-    private int getIndexOfValue(ValueWrapperOld<T> value) {
-        ItemWrapperOld property = value.getItem();
-        List<ValueWrapperOld<T>> values = property.getValues();
+    private int getIndexOfValue(PrismPropertyValueWrapper<T> value) {
+        PrismPropertyWrapper<T> property = value.getParent();
+        List<PrismPropertyValueWrapper<T>> values = property.getValues();
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i).equals(value)) {
                 return i;
@@ -306,18 +309,21 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValue<T>, Pris
         return -1;
     }
 
-    private boolean isVisibleValue(IModel<ValueWrapperOld<T>> model) {
-        ValueWrapperOld<T> value = model.getObject();
-        return !ValueStatus.DELETED.equals(value.getStatus());
+    private boolean isVisibleValue(IModel<PrismPropertyValueWrapper<T>> model) {
+        PrismPropertyValueWrapper<T> value = model.getObject();
+        return !ValueStatus.DELETED.equals(value.getValueStatus());
     }
     
     private <O extends ObjectType, C extends Containerable> O getObject() {
-		ContainerValueWrapper cValueWrapper = getModelObject().getParent();
+		PrismContainerValueWrapper<?> cValueWrapper = getModelObject().getParent();
 		if (cValueWrapper == null) {
 			return null;
 		}
-		ContainerWrapperImpl cWrapper = cValueWrapper.getContainer();
-		ObjectWrapperImpl<O> objectWrapper = cWrapper.getObjectWrapper();
+		PrismContainerWrapper<?> cWrapper = cValueWrapper.getParent();
+		
+//	cValueWrapper.
+//		ObjectWrapperOld<O> objectWrapper = cWrapper.getPaObjectWrapper();
+		PrismObjectWrapper<O> objectWrapper = null;
 		PrismObject<O> newObject = objectWrapper.getObject().clone();
 		
 		try {

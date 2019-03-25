@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.web.component.assignment.InducedEntitlementsPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
@@ -31,7 +31,7 @@ public class InducedEntitlementsTabPanel<R extends AbstractRoleType> extends Abs
 
     private static final String ID_INDUCED_ENTITLEMENT_PANEL = "inducedEntitlementPanel";
 
-    public InducedEntitlementsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperImpl<R>> focusWrapperModel,
+    public InducedEntitlementsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperOld<R>> focusWrapperModel,
                                        PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
         initLayout();

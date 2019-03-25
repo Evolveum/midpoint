@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -159,7 +159,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 		return true;
 	}
 
-	public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, ObjectWrapperImpl<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
+	public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, ObjectWrapperOld<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
 		if (focus.getCompileTimeClass().equals(UserType.class)) {
 			parentComponent.add(new UserSummaryPanel(id,
                     Model.of((UserType)focus.asObjectable()), serviceLocator));

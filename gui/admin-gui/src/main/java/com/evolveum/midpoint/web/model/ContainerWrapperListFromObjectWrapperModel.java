@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,7 +44,7 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
     private List<ItemPath> paths;
 
    
-    public ContainerWrapperListFromObjectWrapperModel(IModel<ObjectWrapperImpl<O>> model, List<ItemPath> paths) {
+    public ContainerWrapperListFromObjectWrapperModel(IModel<ObjectWrapperOld<O>> model, List<ItemPath> paths) {
     	super(model);
 //        Validate.notNull(paths, "Item path must not be null.");
         this.paths = paths;

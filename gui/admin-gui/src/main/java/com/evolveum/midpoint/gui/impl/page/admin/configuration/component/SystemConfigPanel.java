@@ -24,7 +24,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class SystemConfigPanel extends BasePanel<ObjectWrapperImpl<SystemConfigurationType>> {
+public class SystemConfigPanel extends BasePanel<ObjectWrapperOld<SystemConfigurationType>> {
 	
     private static final long serialVersionUID = 1L;
     
@@ -46,7 +46,7 @@ public class SystemConfigPanel extends BasePanel<ObjectWrapperImpl<SystemConfigu
     private static final String ID_SYSTEM_CONFIG = "basicSystemConfiguration";
 
     
-    public SystemConfigPanel(String id, IModel<ObjectWrapperImpl<SystemConfigurationType>> model) {
+    public SystemConfigPanel(String id, IModel<ObjectWrapperOld<SystemConfigurationType>> model) {
         super(id, model);
 
         setOutputMarkupId(true);

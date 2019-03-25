@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -90,21 +91,21 @@ public class PrismPropertyHeaderPanel<IW extends ItemWrapperOld> extends Panel {
         labelContainer.add(new AttributeModifier("class", getContainerLabelCssClass()));
         add(labelContainer);
 
-        final IModel<String> label = WebComponentUtil.getDisplayName(model, PrismPropertyHeaderPanel.this);
-        Label displayName = new Label(ID_LABEL, label);
-        displayName.add(new AttributeModifier("style", new IModel<String>() {
-        	
-        	private static final long serialVersionUID = 1L;
-
-			@Override
-        	public String getObject() {
-        		if (model.getObject().isDeprecated()) {
-        			return "text-decoration: line-through;";
-        		}
-        		return "text-decoration: none;";
-        	}
-		}));
-        labelContainer.add(displayName);
+//        final IModel<String> label = WebComponentUtil.getDisplayName(model, PrismPropertyHeaderPanel.this);
+//        Label displayName = new Label(ID_LABEL, label);
+//        displayName.add(new AttributeModifier("style", new IModel<String>() {
+//        	
+//        	private static final long serialVersionUID = 1L;
+//
+//			@Override
+//        	public String getObject() {
+//        		if (model.getObject().isDeprecated()) {
+//        			return "text-decoration: line-through;";
+//        		}
+//        		return "text-decoration: none;";
+//        	}
+//		}));
+//        labelContainer.add(displayName);
 
         final IModel<String> helpText = new LoadableModel<String>(false) {
         	private static final long serialVersionUID = 1L;
@@ -240,7 +241,8 @@ public class PrismPropertyHeaderPanel<IW extends ItemWrapperOld> extends Panel {
 
     private boolean hasPendingModification(IModel<IW> model) {
         ItemWrapperOld propertyWrapper = model.getObject();
-        ContainerWrapperImpl containerWrapper = propertyWrapper.getParent();
+        ContainerValueWrapper containerValueWrapper = propertyWrapper.getParent();
+        ContainerWrapperImpl containerWrapper = containerValueWrapper.getContainer();
         if (containerWrapper == null) {
             return false;           // TODO - ok?
         }

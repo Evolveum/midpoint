@@ -108,7 +108,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
         WebMarkupContainer link;
         if (menu.getPageClass() != null) {
-            link = new AjaxLink(ID_LINK) {
+            link = new AjaxLink<Void>(ID_LINK) {
             	private static final long serialVersionUID = 1L;
 
                 @Override
@@ -117,7 +117,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                 }
             };
         } else if (menu instanceof AdditionalMenuItem){
-            link = new AjaxLink(ID_LINK) {
+            link = new AjaxLink<Void>(ID_LINK) {
                 private static final long serialVersionUID = 1L;
 
                 @Override

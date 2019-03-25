@@ -59,155 +59,155 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 	@Override
 	protected void initButtons() {
-		VisibleEnableBehaviour buttonsVisibleBehaviour = new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				return PrismContainerValueHeaderPanel.this.isButtonsVisible();
-			}
-		};
-
-		ToggleIconButton showMetadataButton = new ToggleIconButton(ID_SHOW_METADATA,
-				GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
-				wrapper.setShowMetadata(!wrapper.isShowMetadata());
-				onButtonClick(target);
-			}
-			
-			@Override
-			public boolean isOn() {
-				return PrismContainerValueHeaderPanel.this.getModelObject().isShowMetadata();
-			}
-        };
-		showMetadataButton.add(new AttributeModifier("title", new IModel() {
-
-			@Override
-			public Object getObject() {
-				return PrismContainerValueHeaderPanel.this.getModelObject() == null ? "" : (PrismContainerValueHeaderPanel.this.getModelObject().isShowMetadata() ?
-						createStringResource("PrismObjectPanel.hideMetadata").getString() :
-						createStringResource("PrismObjectPanel.showMetadata").getString());
-			}
-		}));
-		showMetadataButton.add(new VisibleEnableBehaviour() {
-			
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public boolean isVisible() {
-				for (ItemWrapperOld wrapper : getModelObject().getItems()) {
-					if (MetadataType.COMPLEX_TYPE.equals(wrapper.getItemDefinition().getTypeName())) {
-						return true;
-					}
-				}
-				return false;
-			}
-			
-		});
-		add(showMetadataButton);
-
-        ToggleIconButton sortPropertiesButton = new ToggleIconButton(ID_SORT_PROPERTIES,
-        		GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
-        	
-        	private static final long serialVersionUID = 1L;
-
-        	@Override
-        	public void onClick(AjaxRequestTarget target) {
-        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
-        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
-        		containerValueWrapper.sort();
-        		containerValueWrapper.computeStripes();
-
-        		onButtonClick(target);
-        	}
-        	
-        	@Override
-			public boolean isOn() {
-				return PrismContainerValueHeaderPanel.this.getModelObject().isSorted();
-			}
-        };
-        sortPropertiesButton.add(buttonsVisibleBehaviour);
-        add(sortPropertiesButton);
-		
-        AjaxLink addChildContainerButton = new AjaxLink(ID_ADD_CHILD_CONTAINER) {
-        	private static final long serialVersionUID = 1L;
-
-        	@Override
-        	public void onClick(AjaxRequestTarget target) {
-        		isChildContainersSelectorPanelVisible = true;
-				target.add(PrismContainerValueHeaderPanel.this);
-        	}
-        };
-		addChildContainerButton.add(new VisibleEnableBehaviour(){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible(){
-				return getModelObject().containsMultipleMultivalueContainer(isParentPanelVisible) && getModelObject().getContainer() != null
-						&& getModelObject().getDefinition().canModify()
-						&& !getModelObject().getChildMultivalueContainersToBeAdded(isParentPanelVisible).isEmpty()
-						&& buttonsVisibleBehaviour.isVisible();
-			}
-		});
-        add(addChildContainerButton);
-
-        List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded(isParentPanelVisible);
-        
-       	WebMarkupContainer childContainersSelectorPanel = new WebMarkupContainer(ID_CHILD_CONTAINERS_SELECTOR_PANEL);
-		childContainersSelectorPanel.add(new VisibleEnableBehaviour(){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible(){
-				return getModelObject().containsMultipleMultivalueContainer(isParentPanelVisible) && isChildContainersSelectorPanelVisible && buttonsVisibleBehaviour.isVisible();
-			}
-		});
-		childContainersSelectorPanel.setOutputMarkupId(true);
-		add(childContainersSelectorPanel);
-		
-		
-		Class<C> compileTimeClass = getModelObject().getContainerValue().getCompileTimeClass();
-		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
-				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
-				new QNameIChoiceRenderer(compileTimeClass != null ? compileTimeClass.getSimpleName() : ""));
-		multivalueContainersList.setOutputMarkupId(true);
-		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		childContainersSelectorPanel.add(multivalueContainersList);
-		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-				addNewContainerValuePerformed(ajaxRequestTarget);
-			}
-		});
-		
-		AjaxLink removeContainerButton = new AjaxLink(ID_REMOVE_CONTAINER) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				ContainerValueWrapper containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
-				containerValueWrapper.setStatus(ValueStatus.DELETED);
-				target.add(PrismContainerValueHeaderPanel.this);
-				PrismContainerValueHeaderPanel.this.reloadParentContainerPanel(target);
-				onButtonClick(target);
-			}
-		};
-		removeContainerButton.add(new VisibleEnableBehaviour(){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible(){
-				return getModelObject().getContainer() != null && !getModelObject().getContainer().isShowOnTopLevel() ? getModelObject().getContainer().getItemDefinition().isMultiValue() : false;
-			}
-		});
-		add(removeContainerButton);
+//		VisibleEnableBehaviour buttonsVisibleBehaviour = new VisibleEnableBehaviour() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public boolean isVisible() {
+//				return PrismContainerValueHeaderPanel.this.isButtonsVisible();
+//			}
+//		};
+//
+//		ToggleIconButton<Void> showMetadataButton = new ToggleIconButton<Void>(ID_SHOW_METADATA,
+//				GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+//				wrapper.setShowMetadata(!wrapper.isShowMetadata());
+//				onButtonClick(target);
+//			}
+//			
+//			@Override
+//			public boolean isOn() {
+//				return PrismContainerValueHeaderPanel.this.getModelObject().isShowMetadata();
+//			}
+//        };
+//		showMetadataButton.add(new AttributeModifier("title", new IModel() {
+//
+//			@Override
+//			public Object getObject() {
+//				return PrismContainerValueHeaderPanel.this.getModelObject() == null ? "" : (PrismContainerValueHeaderPanel.this.getModelObject().isShowMetadata() ?
+//						createStringResource("PrismObjectPanel.hideMetadata").getString() :
+//						createStringResource("PrismObjectPanel.showMetadata").getString());
+//			}
+//		}));
+//		showMetadataButton.add(new VisibleEnableBehaviour() {
+//			
+//			private static final long serialVersionUID = 1L;
+//			
+//			@Override
+//			public boolean isVisible() {
+//				for (ItemWrapperOld wrapper : getModelObject().getItems()) {
+//					if (MetadataType.COMPLEX_TYPE.equals(wrapper.getItemDefinition().getTypeName())) {
+//						return true;
+//					}
+//				}
+//				return false;
+//			}
+//			
+//		});
+//		add(showMetadataButton);
+//
+//        ToggleIconButton<Void> sortPropertiesButton = new ToggleIconButton<Void>(ID_SORT_PROPERTIES,
+//        		GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
+//        	
+//        	private static final long serialVersionUID = 1L;
+//
+//        	@Override
+//        	public void onClick(AjaxRequestTarget target) {
+//        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+//        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
+//        		containerValueWrapper.sort();
+//        		containerValueWrapper.computeStripes();
+//
+//        		onButtonClick(target);
+//        	}
+//        	
+//        	@Override
+//			public boolean isOn() {
+//				return PrismContainerValueHeaderPanel.this.getModelObject().isSorted();
+//			}
+//        };
+//        sortPropertiesButton.add(buttonsVisibleBehaviour);
+//        add(sortPropertiesButton);
+//		
+//        AjaxLink<Void> addChildContainerButton = new AjaxLink<Void>(ID_ADD_CHILD_CONTAINER) {
+//        	private static final long serialVersionUID = 1L;
+//
+//        	@Override
+//        	public void onClick(AjaxRequestTarget target) {
+//        		isChildContainersSelectorPanelVisible = true;
+//				target.add(PrismContainerValueHeaderPanel.this);
+//        	}
+//        };
+//		addChildContainerButton.add(new VisibleEnableBehaviour(){
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public boolean isVisible(){
+//				return getModelObject().containsMultipleMultivalueContainer(isParentPanelVisible) && getModelObject().getContainer() != null
+//						&& getModelObject().getDefinition().canModify()
+//						&& !getModelObject().getChildMultivalueContainersToBeAdded(isParentPanelVisible).isEmpty()
+//						&& buttonsVisibleBehaviour.isVisible();
+//			}
+//		});
+//        add(addChildContainerButton);
+//
+//        List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded(isParentPanelVisible);
+//        
+//       	WebMarkupContainer childContainersSelectorPanel = new WebMarkupContainer(ID_CHILD_CONTAINERS_SELECTOR_PANEL);
+//		childContainersSelectorPanel.add(new VisibleEnableBehaviour(){
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public boolean isVisible(){
+//				return getModelObject().containsMultipleMultivalueContainer(isParentPanelVisible) && isChildContainersSelectorPanelVisible && buttonsVisibleBehaviour.isVisible();
+//			}
+//		});
+//		childContainersSelectorPanel.setOutputMarkupId(true);
+//		add(childContainersSelectorPanel);
+//		
+//		
+//		Class<C> compileTimeClass = getModelObject().getContainerValue().getCompileTimeClass();
+//		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
+//				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
+//				new QNameIChoiceRenderer(compileTimeClass != null ? compileTimeClass.getSimpleName() : ""));
+//		multivalueContainersList.setOutputMarkupId(true);
+//		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+//		childContainersSelectorPanel.add(multivalueContainersList);
+//		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+//				addNewContainerValuePerformed(ajaxRequestTarget);
+//			}
+//		});
+//		
+//		AjaxLink<Void> removeContainerButton = new AjaxLink<Void>(ID_REMOVE_CONTAINER) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				ContainerValueWrapper containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+//				containerValueWrapper.setStatus(ValueStatus.DELETED);
+//				target.add(PrismContainerValueHeaderPanel.this);
+//				PrismContainerValueHeaderPanel.this.reloadParentContainerPanel(target);
+//				onButtonClick(target);
+//			}
+//		};
+//		removeContainerButton.add(new VisibleEnableBehaviour(){
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public boolean isVisible(){
+//				return getModelObject().getContainer() != null && !getModelObject().getContainer().isShowOnTopLevel() ? getModelObject().getContainer().getItemDefinition().isMultiValue() : false;
+//			}
+//		});
+//		add(removeContainerButton);
 
 	}
 
@@ -318,25 +318,25 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 	@Override
 	protected WebMarkupContainer initExpandCollapseButton(String contentAreaId) {
-		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
+	Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
 		
-		ToggleIconButton expandCollapseButton = new ToggleIconButton(ID_EXPAND_COLLAPSE_BUTTON,
-				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				onExpandClick(target);
-			}
-						
-			@Override
-			public boolean isOn() {
-				return PrismContainerValueHeaderPanel.this.getModelObject().isExpanded();
-			}
-        };
-        expandCollapseButton.setOutputMarkupId(true);
-        expandCollapseFragment.add(expandCollapseButton);
+//		ToggleIconButton<Void> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
+//				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
+//			
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				onExpandClick(target);
+//			}
+//						
+//			@Override
+//			public boolean isOn() {
+//				return PrismContainerValueHeaderPanel.this.getModelObject().isExpanded();
+//			}
+//        };
+//        expandCollapseButton.setOutputMarkupId(true);
+//        expandCollapseFragment.add(expandCollapseButton);
         
         return expandCollapseFragment;
 	}
@@ -348,7 +348,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	
 	@Override
 	protected String getHelpText() {
-		return WebComponentUtil.loadHelpText(new Model<ContainerWrapperImpl<C>>(getModelObject().getContainer()), PrismContainerValueHeaderPanel.this);
+		return "helpHere";
+//		return WebComponentUtil.loadHelpText(new Model<ContainerWrapperImpl<C>>(getModelObject().getContainer()), PrismContainerValueHeaderPanel.this);
 	}
 	
 	@Override

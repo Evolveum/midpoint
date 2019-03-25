@@ -91,7 +91,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         itemButtonContainer.add(new AttributeAppender("class", getBackgroundClass(getModelObject())));
         add(itemButtonContainer);
 
-        AjaxLink inner = new AjaxLink(ID_INNER) {
+        AjaxLink<Void> inner = new AjaxLink<Void>(ID_INNER) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -119,7 +119,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         descriptionLabel.setOutputMarkupId(true);
         inner.add(descriptionLabel);
 
-        AjaxLink detailsLink = new AjaxLink(ID_DETAILS_LINK) {
+        AjaxLink<Void> detailsLink = new AjaxLink<Void>(ID_DETAILS_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -142,7 +142,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         detailsLinkLabel.setRenderBodyOnly(true);
         detailsLink.add(detailsLinkLabel);
 
-        AjaxLink detailsLinkIcon = new AjaxLink(ID_DETAILS_LINK_ICON) {
+        AjaxLink<Void> detailsLinkIcon = new AjaxLink<Void>(ID_DETAILS_LINK_ICON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -153,7 +153,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         detailsLinkIcon.add(getAssignmentDetailsLinkVisibleBehavior());
         detailsLink.add(detailsLinkIcon);
 
-        AjaxLink addToCartLink = new AjaxLink(ID_ADD_TO_CART_LINK) {
+        AjaxLink<Void> addToCartLink = new AjaxLink<Void>(ID_ADD_TO_CART_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -172,7 +172,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         }));
         itemButtonContainer.add(addToCartLink);
 
-        AjaxLink addToCartLinkIcon = new AjaxLink(ID_ADD_TO_CART_LINK_ICON) {
+        AjaxLink<Void> addToCartLinkIcon = new AjaxLink<Void>(ID_ADD_TO_CART_LINK_ICON) {
             private static final long serialVersionUID = 1L;
 
             @Override

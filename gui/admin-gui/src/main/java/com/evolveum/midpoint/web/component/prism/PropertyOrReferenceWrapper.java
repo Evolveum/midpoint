@@ -32,7 +32,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  *
  * @author mederly
  */
-public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapperOld<I, ID, ValueWrapperOld>, Serializable {
+public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapperOld, Serializable {
 
 	private static final long serialVersionUID = -179218652752175177L;
 
@@ -86,6 +86,13 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.prismContext = prismContext;
 	}
 
+	/**
+	 * @return the status
+	 */
+	public ValueStatus getStatus() {
+		return status;
+	}
+	
 	@Override
 	public QName getName() {
 		return getItem().getElementName();
@@ -107,40 +114,40 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		
 	}
 	
-	@Override
-	@Nullable
-	public ContainerWrapperImpl getParent() {
-		return container != null ? container.getContainer() : null;
-	}
-
-	public boolean isVisible() {
-		
-        if (!isVisibleOnBasisOfModel()) {
-			return false;
-		} 
-
-        if (container == null) {
-        	return false;           // TODO: ok ?
-        }
-        switch (container.getObjectStatus()) {
-        	case ADDING : 
-        		return canAddDefault() || canAddAndShowEmpty();
-        	case MODIFYING :
-        		return canReadOrModifyAndNonEmpty() || canReadOrModifyAndShowEmpty();
-        }
-//        if (getItem().isEmpty() && isS)
-//        else if (container != null) {
-//			return container.isItemVisible(this);
-//		} else {
-			return true;
-//		}
-	}
+//	@Override
+//	@Nullable
+//	public ContainerWrapperImpl getParent() {
+//		return container != null ? container.getContainer() : null;
+//	}
+//
+//	public boolean isVisible() {
+//		
+//        if (!isVisibleOnBasisOfModel()) {
+//			return false;
+//		} 
+//
+//        if (container == null) {
+//        	return false;           // TODO: ok ?
+//        }
+//        switch (container.getObjectStatus()) {
+//        	case ADDING : 
+//        		return canAddDefault() || canAddAndShowEmpty();
+//        	case MODIFYING :
+//        		return canReadOrModifyAndNonEmpty() || canReadOrModifyAndShowEmpty();
+//        }
+////        if (getItem().isEmpty() && isS)
+////        else if (container != null) {
+////			return container.isItemVisible(this);
+////		} else {
+//			return true;
+////		}
+//	}
 	
 	private boolean isVisibleOnBasisOfModel() {
-		
-		if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
-			return false;
-		} 
+//		
+//		if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
+//			return false;
+//		} 
         
         if (getItemDefinition().isDeprecated() && isEmpty()) {
         	return false;
@@ -202,28 +209,28 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 	// TODO: unify with ContainerWrapper.getDisplayName()
 	@Override
-	public String getDisplayName() {
-		if (displayName == null) {
-			// Lazy loading of a localized name.
-			// We really want to remember a processed name in the wrapper.
-			// getDisplatName() method may be called many times, e.g. during sorting.
-			displayName = ContainerWrapperImpl.getDisplayNameFromItem(item);
-		}
-		return displayName;
-	}
+//	public String getDisplayName() {
+//		if (displayName == null) {
+//			// Lazy loading of a localized name.
+//			// We really want to remember a processed name in the wrapper.
+//			// getDisplatName() method may be called many times, e.g. during sorting.
+//			displayName = ContainerWrapperImpl.getDisplayNameFromItem(item);
+//		}
+//		return displayName;
+//	}
 	
-	@Override
-	public void setDisplayName(String displayName) {
-		this.displayName = ContainerWrapperImpl.localizeName(displayName);
-	}
+//	@Override
+//	public void setDisplayName(String displayName) {
+//		this.displayName = ContainerWrapperImpl.localizeName(displayName);
+//	}
 
-	public ValueStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(ValueStatus status) {
-		this.status = status;
-	}
+//	public ValueStatus getStatus() {
+//		return status;
+//	}
+//
+//	public void setStatus(ValueStatus status) {
+//		this.status = status;
+//	}
 
 	public List<ValueWrapperOld> getValues() {
 		return values;
@@ -247,28 +254,28 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return getItemDefinition().isMandatory() && isEnforceRequiredFields();
 	}
 	
-	@Override
-	public void removeValue(ValueWrapperOld<ValueWrapperOld> valueWrapper) throws SchemaException {
-		List<ValueWrapperOld> values = getValues();
-		
-		switch (valueWrapper.getStatus()) {
-			case ADDED:
-				values.remove(valueWrapper);
-				break;
-			case DELETED:
-				throw new SchemaException();
-			case NOT_CHANGED:
-				valueWrapper.setStatus(ValueStatus.DELETED);
-				break;
-		}
-		
-		int count = countUsableValues(this);
-		
-		if (count == 0 && !hasEmptyPlaceholder(this)) {
-			addValue(true);
-			
-		}
-	}
+//	@Override
+//	public void removeValue(ValueWrapperOld<ValueWrapperOld> valueWrapper) throws SchemaException {
+//		List<ValueWrapperOld> values = getValues();
+//		
+//		switch (valueWrapper.getStatus()) {
+//			case ADDED:
+//				values.remove(valueWrapper);
+//				break;
+//			case DELETED:
+//				throw new SchemaException();
+//			case NOT_CHANGED:
+//				valueWrapper.setStatus(ValueStatus.DELETED);
+//				break;
+//		}
+//		
+//		int count = countUsableValues(this);
+//		
+//		if (count == 0 && !hasEmptyPlaceholder(this)) {
+//			addValue(true);
+//			
+//		}
+//	}
 	
 	
 	
@@ -298,25 +305,25 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 		return false;
 	}
-	private boolean isMetadataContainer() {
-		ContainerWrapperImpl parent = getParent();
-		if (parent == null) {
-			return false;
-		}
-		ItemDefinition<?> definition = parent.getItemDefinition();
-		if (definition == null) {
-			return false;
-		}
-		return definition.getTypeName().equals(MetadataType.COMPLEX_TYPE);
-	}
+//	private boolean isMetadataContainer() {
+//		ContainerWrapperImpl parent = getParent();
+//		if (parent == null) {
+//			return false;
+//		}
+//		ItemDefinition<?> definition = parent.getItemDefinition();
+//		if (definition == null) {
+//			return false;
+//		}
+//		return definition.getTypeName().equals(MetadataType.COMPLEX_TYPE);
+//	}
 
 	@Override
 	public boolean isReadonly() {
 		//TODO this is probably not good idea
-		if (isMetadataContainer()) {
-			return true;
-		}
-		
+//		if (isMetadataContainer()) {
+//			return true;
+//		}
+//		
 		return readonly;
 	}
 
@@ -345,7 +352,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 			if (ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 				updatedItem.remove(valueWrapper.getValue());
 			} else if (!updatedItem.containsEquivalentValue(valueWrapper.getValue())) {
-				PrismValue cloned = ObjectWrapperImpl.clone(valueWrapper.getValue());
+				PrismValue cloned = ObjectWrapperOld.clone(valueWrapper.getValue());
 				if (cloned != null) {
 					updatedItem.add(cloned);
 				}
@@ -383,20 +390,20 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return getItemDefinition().getDeprecatedSince();
 	}
 	
-	@Override
-	public ExpressionType getFormItemValidator() {
-		FormItemValidationType formItemValidation = item.getDefinition().getAnnotation(ItemRefinedDefinitionType.F_VALIDATION);
-		if (formItemValidation == null) {
-			return null;
-		}
-		
-		List<FormItemServerValidationType> serverValidators = formItemValidation.getServer();
-		if (CollectionUtils.isNotEmpty(serverValidators)) {
-			return serverValidators.iterator().next().getExpression();
-		}
-		
-		return null;
-	}
+//	@Override
+//	public ExpressionType getFormItemValidator() {
+//		FormItemValidationType formItemValidation = item.getDefinition().getAnnotation(ItemRefinedDefinitionType.F_VALIDATION);
+//		if (formItemValidation == null) {
+//			return null;
+//		}
+//		
+//		List<FormItemServerValidationType> serverValidators = formItemValidation.getServer();
+//		if (CollectionUtils.isNotEmpty(serverValidators)) {
+//			return serverValidators.iterator().next().getExpression();
+//		}
+//		
+//		return null;
+//	}
 	
 	public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
 		PrismPropertyPanel propertyPanel = new PrismPropertyPanel<>(id, this, form, visibilityHandler);

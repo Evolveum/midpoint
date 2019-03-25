@@ -70,7 +70,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
         });
         add(placeholderContainer);
 
-        AjaxLink placeholderAdd = new AjaxLink(ID_PLACEHOLDER_ADD) {
+        AjaxLink<Void> placeholderAdd = new AjaxLink<Void>(ID_PLACEHOLDER_ADD) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -141,7 +141,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item, NonEmptyModel<Boolean> readOnlyModel) {
-        AjaxLink add = new AjaxLink(ID_ADD) {
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -152,7 +152,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
 		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(add);
 
-        AjaxLink remove = new AjaxLink(ID_REMOVE) {
+        AjaxLink<Void> remove = new AjaxLink<Void>(ID_REMOVE) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +30,10 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -40,13 +44,23 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
@@ -67,6 +81,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
     private static final String ID_REMOVE_CONTAINER = "removeContainer";
     
+    private static final String ID_PROPERTIES_LABEL = "properties";
+    
 	 
 	public PrismContainerValuePanel(String id, IModel<CVW> model) {
 		super(id, model);
@@ -81,7 +97,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	private void initLayout() {
 		
 		initHeader();
-		
+		initValues();
 		
 	}
 	
@@ -107,6 +123,126 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         
         initButtons();
 	}
+	
+	private  <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void initValues() {
+		
+		WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
+    	propertiesLabel.setOutputMarkupId(true);
+    	
+    	ListView<IW> properties = new ListView<IW>("properties",
+            new PropertyModel<>(getModel(), "nonContainers")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            protected void populateItem(final ListItem<IW> item) {
+				item.setOutputMarkupId(true);
+				IW itemWrapper = item.getModelObject();
+				Class<?> panelClass = getPageBase().getRegistry().getPanelClass(itemWrapper.getClass());
+				
+				Constructor<?> constructor;
+				try {
+					constructor = panelClass.getConstructor(String.class, IModel.class);
+					Panel panel = (Panel) constructor.newInstance("property", item.getModel());
+					item.add(panel);
+				} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					throw new SystemException("Cannot instantiate " + panelClass);
+				}
+				
+				
+				
+	            item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+            }
+        };
+        properties.setReuseItems(true);
+        properties.setOutputMarkupId(true);
+        add(propertiesLabel);
+       	propertiesLabel.add(properties);
+       	
+       	
+       	
+		ListView<IW> containers = new ListView<IW>("containers", new PropertyModel<>(getModel(), "containers")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(final ListItem<IW> item) {
+				item.setOutputMarkupId(true);
+
+				item.setOutputMarkupId(true);
+				IW itemWrapper = item.getModelObject();
+				Class<?> panelClass = getPageBase().getRegistry().getPanelClass(itemWrapper.getClass());
+
+				Constructor<?> constructor;
+				try {
+					constructor = panelClass.getConstructor(String.class, IModel.class);
+					Panel panel = (Panel) constructor.newInstance("container", item.getModel());
+					item.add(panel);
+				} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					throw new SystemException("Cannot instantiate " + panelClass);
+				}
+				
+
+				
+				// containerPanel.add(new VisibleEnableBehaviour() {
+				//
+				//
+				// @Override
+				// public boolean isVisible() {
+				// if(!model.getObject().isExpanded() &&
+				// !model.getObject().getContainer().isShowOnTopLevel()) {
+				// return false;
+				// }
+				//
+				//// if( ((ContainerWrapper)item.getModelObject() != null &&
+				// ((ContainerWrapper)item.getModelObject()).getItemDefinition()
+				// != null
+				//// &&
+				// ((ContainerWrapper)item.getModelObject()).getItemDefinition().getTypeName()
+				// != null
+				//// &&
+				// ((ContainerWrapper)item.getModelObject()).getItemDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)
+				// )
+				//// && ( ((ContainerWrapper)item.getModelObject()).getValues()
+				// != null &&
+				// ((ContainerWrapper)item.getModelObject()).getValues().get(0)
+				// != null
+				//// &&
+				// !((ContainerWrapper<MetadataType>)item.getModelObject()).getValues().get(0).isVisible()
+				// ) ){
+				//// return false;
+				//// }
+				//
+				// if
+				// (model.getObject().containsMultipleMultivalueContainer(isPanalVisible)
+				// && item.getModelObject().getItemDefinition().isMultiValue()
+				// &&
+				// CollectionUtils.isEmpty(item.getModelObject().getValues())) {
+				// return false;
+				// }
+				//
+				// return containerPanel.isPanelVisible(isPanalVisible,
+				// (IModel<ContainerWrapperImpl<C>>) item.getModel());
+				//
+				// }
+				// });
+				// return;
+			}
+		};
+
+		containers.setReuseItems(true);
+		containers.setOutputMarkupId(true);
+	}
+	
+	private <IW extends ItemWrapper<?,?,?,?>> IModel<String> createStyleClassModel(final IModel<IW> wrapper) {
+        return new IModel<String>() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+            	ItemWrapper<?, ?, ?,?> property = wrapper.getObject();
+                return property.isStripe() ? "stripe" : null;
+            }
+        };
+    }
 	
 	private void initButtons() {
 		initMetadataButton();

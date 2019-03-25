@@ -19,8 +19,9 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -62,7 +63,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 	private static final Trace LOGGER = TraceManager.getTrace(TaskResultTabPanel.class);
 
 	public TaskResultTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapperImpl<TaskType>> taskWrapperModel,
+			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
@@ -78,10 +79,12 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 		resultTablePanel.setOutputMarkupId(true);
 		add(resultTablePanel);
 
-		add(new AjaxFallbackLink(ID_SHOW_RESULT) {
+		AjaxFallbackLink<Void> showResult = new AjaxFallbackLink<Void>(ID_SHOW_RESULT) {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
-			public void onClick(Optional optionalTarget) {
-				AjaxRequestTarget target = (AjaxRequestTarget) optionalTarget.get();
+			public void onClick(Optional<AjaxRequestTarget> optionalTarget) {
+				AjaxRequestTarget target = optionalTarget.get();
 				OperationResult opResult = taskDtoModel.getObject().getTaskOperationResult();
 				OperationResultPanel body = new OperationResultPanel(
 						pageBase.getMainPopupBodyId(),
@@ -90,7 +93,12 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 				body.setOutputMarkupId(true);
 				pageBase.showMainPopup(body, target);
 			}
-		});
+			
+			
+		};
+			
+		add(showResult);
+		
 	}
 
 	private List<IColumn<OperationResult, String>> initResultColumns() {

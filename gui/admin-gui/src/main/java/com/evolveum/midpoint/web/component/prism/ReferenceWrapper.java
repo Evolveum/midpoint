@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -131,6 +133,51 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "values", values, indent+1);
 		return sb.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapperOld#getDisplayName()
+	 */
+	@Override
+	public String getDisplayName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapperOld#setDisplayName(java.lang.String)
+	 */
+	@Override
+	public void setDisplayName(String name) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapperOld#isVisible()
+	 */
+	@Override
+	public boolean isVisible() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapperOld#removeValue(com.evolveum.midpoint.web.component.prism.ValueWrapperOld)
+	 */
+	@Override
+	public void removeValue(ValueWrapperOld valueWrapper) throws SchemaException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapperOld#getParent()
+	 */
+	@Override
+	public ContainerValueWrapper getParent() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

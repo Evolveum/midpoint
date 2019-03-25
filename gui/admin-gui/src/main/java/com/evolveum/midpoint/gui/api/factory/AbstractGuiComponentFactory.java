@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.factory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,8 +26,13 @@ import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.factory.PanelContext;
+import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
+import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -36,10 +42,13 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
-public abstract class AbstractGuiComponentFactory implements GuiComponentFactory {
+public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFactory<PrismPropertyPanelContext<T>> {
+
+	private static final long serialVersionUID = 1L;
+
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public Panel createPanel(PrismPropertyPanelContext<T> panelCtx) {
 		Panel panel = getPanel(panelCtx);
 		
 		if (panel instanceof InputPanel) {
@@ -54,7 +63,7 @@ public abstract class AbstractGuiComponentFactory implements GuiComponentFactory
 		return null;
 	}
 	
-	protected abstract <T> Panel getPanel(PanelContext<T> panelCtx);
+	protected abstract Panel getPanel(PrismPropertyPanelContext<T> panelCtx);
 	
 	protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable) {
 		List<String> values = new ArrayList<>();

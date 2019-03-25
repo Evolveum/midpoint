@@ -163,7 +163,9 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
     }
 
     private void initButtons(Form form){
-        AjaxLink cancel = new AjaxLink(ID_BUTTON_CANCEL) {
+    	AjaxLink<Void> cancel = new AjaxLink<Void>(ID_BUTTON_CANCEL) {
+		
+    		private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -173,6 +175,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
         form.add(cancel);
 
         AjaxSubmitLink save = new AjaxSubmitLink(ID_BUTTON_SAVE) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {

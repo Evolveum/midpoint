@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
  * @author katka
  *
  */
-public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper<V, I, ID>> extends BasePanel<IW> {
+public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> extends BasePanel<IW> {
 	private static final long serialVersionUID = 1L;
 
 	
@@ -90,7 +90,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 		createExperimentalTooltip(labelContainer);
 		createDeprecated(labelContainer);
 		createRequeired(labelContainer);
-		createOutbound(labelContainer);
+//		createOutbound(labelContainer);
 	
 		//TODO: pending operations
     }
@@ -158,11 +158,11 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 		labelContainer.add(required);
 	}
 	
-	private void createOutbound(WebMarkupContainer labelContainer) {
-		  WebMarkupContainer hasOutbound = new WebMarkupContainer(ID_OUTBOUND);
-	        hasOutbound.add(new VisibleBehaviour(() -> getModelObject().hasOutboundMapping()));
-	        labelContainer.add(hasOutbound);
-	}
+//	private void createOutbound(WebMarkupContainer labelContainer) {
+//		  WebMarkupContainer hasOutbound = new WebMarkupContainer(ID_OUTBOUND);
+//	        hasOutbound.add(new VisibleBehaviour(() -> getModelObject().hasOutboundMapping()));
+//	        labelContainer.add(hasOutbound);
+//	}
 
 //	private void createPendingModification() {
 //		 WebMarkupContainer hasPendingModification = new WebMarkupContainer(ID_PENDING_OPERATION);

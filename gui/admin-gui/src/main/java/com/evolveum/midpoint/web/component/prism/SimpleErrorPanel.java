@@ -60,7 +60,7 @@ public class SimpleErrorPanel<O extends ObjectType> extends SimplePanel<FocusSub
         });
         add(description);
 
-        AjaxLink link = new AjaxLink(ID_LINK) {
+        AjaxLink<Void> link = new AjaxLink<Void>(ID_LINK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -69,6 +69,7 @@ public class SimpleErrorPanel<O extends ObjectType> extends SimplePanel<FocusSub
         };
         add(link);
 
+       
         Label showMore = new Label(ID_SHOW_MORE, new IModel<String>() {
 
             @Override

@@ -20,16 +20,19 @@ import java.io.Serializable;
 
 import org.apache.wicket.markup.html.panel.Panel;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.impl.factory.PanelContext;
+import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 
-public interface GuiComponentFactory extends Serializable {
-
+public interface GuiComponentFactory<T extends ItemPanelContext>{
 //	public void register();
 	
-	<T> boolean match(ItemWrapperOld itemWrapper);
+	 boolean match(ItemWrapper<?, ?, ?, ?> wrapper);
 	
-	<T> Panel createPanel(PanelContext<T> panelCtx);
+	Panel createPanel(T panelCtx);
 	
 	Integer getOrder();
 	

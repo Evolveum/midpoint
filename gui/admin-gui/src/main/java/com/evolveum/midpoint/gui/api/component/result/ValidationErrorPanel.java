@@ -108,7 +108,7 @@ public class ValidationErrorPanel extends BasePanel<FeedbackMessage> {
 		Label message =  new Label(ID_MESSAGE, new PropertyModel<Serializable>(getModel(), "message"));
 		box.add(message);
 
-		AjaxLink close = new AjaxLink("close") {
+		AjaxLink<Void> close = new AjaxLink<Void>("close") {
 
 			private static final long serialVersionUID = 1L;
 

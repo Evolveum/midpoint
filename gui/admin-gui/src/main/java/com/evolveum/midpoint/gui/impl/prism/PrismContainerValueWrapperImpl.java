@@ -18,12 +18,15 @@ package com.evolveum.midpoint.gui.impl.prism;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
@@ -45,9 +48,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> implements 
 	
 	private ValueStatus status;
 	
-	private PrismContainerWrapperImpl<C> parent;
+	private PrismContainerWrapper<C> parent;
 	
-	private List<ItemWrapperImpl<?, ?, ?>> items;
+	private List<ItemWrapper<?, ?, ?,?>> items;
+	
+	public PrismContainerValueWrapperImpl(PrismContainerWrapper<C> parent, PrismContainerValue<C> pcv, ValueStatus status) {
+		this.parent = parent;
+		this.newValue = pcv;
+		this.oldValue = pcv.clone();
+		this.status = status;
+	}
 	
 	@Override
 	public C getRealValue() {
@@ -75,15 +85,31 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> implements 
 	}
 	
 	@Override
+	public PrismContainerValue<C> getNewValue() {
+		return newValue;
+	}
+	
+	@Override
 	public boolean hasMetadata() {
-		for (ItemWrapperImpl<?,?,?> container : items) {
-			if (container.getItemDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
+		for (ItemWrapper<?,?,?,?> container : items) {
+			if (container.getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
 				return true;
 			}
 		}
 		
 		return false;
 	}
+	
+	@Override
+	public PrismContainerWrapper<C> getParent() {
+		return parent;
+	}
+	
+	@Override
+	public List<ItemWrapper<?, ?, ?,?>> getItems() {
+		return items;
+	}
+	
 	
 	@Override
 	public boolean isShowMetadata() {
@@ -143,19 +169,21 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> implements 
 		this.status = status;
 	}
 	
-	protected List<PrismContainerWrapperImpl<C>> getContainers() {
-		List<PrismContainerWrapperImpl<C>> containers = new ArrayList<>();
-		for (ItemWrapperImpl<?,?,?> container : items) {
-			if (container instanceof PrismContainerWrapperImpl) {
-				containers.add((PrismContainerWrapperImpl<C>) container);
+	@Override
+	public List<PrismContainerWrapper<C>> getContainers() {
+		List<PrismContainerWrapper<C>> containers = new ArrayList<>();
+		for (ItemWrapper<?,?,?,?> container : items) {
+			if (container instanceof PrismContainerWrapper) {
+				containers.add((PrismContainerWrapper<C>) container);
 			}
 		}
 		return containers;
 	}
 	
-	protected List<? extends ItemWrapperImpl<?,?,?>> getNonContainers() {
-		List<? extends ItemWrapperImpl<?,?,?>> nonContainers = new ArrayList<>();
-		for (ItemWrapperImpl<?,?,?> item : items) {
+	@Override
+	public List<? extends ItemWrapper<?,?,?,?>> getNonContainers() {
+		List<? extends ItemWrapper<?,?,?,?>> nonContainers = new ArrayList<>();
+		for (ItemWrapper<?,?,?,?> item : items) {
 			if (item instanceof PrismPropertyWrapperImpl<?>) {
 				((List)nonContainers).add(item);
 			}
@@ -169,5 +197,33 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> implements 
 
 	private ContainerStatus findObjectStatus() {
 		return ContainerStatus.ADDING;
+	}
+
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#findContainer(com.evolveum.midpoint.prism.path.ItemPath)
+	 */
+	@Override
+	public <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#findProperty(com.evolveum.midpoint.prism.path.ItemPath)
+	 */
+	@Override
+	public <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#findReference(com.evolveum.midpoint.prism.path.ItemPath)
+	 */
+	@Override
+	public PrismReferenceWrapper findReference(ItemPath path) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

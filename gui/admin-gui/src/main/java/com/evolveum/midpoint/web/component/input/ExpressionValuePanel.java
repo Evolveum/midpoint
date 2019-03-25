@@ -186,7 +186,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         literalValueInput.setOutputMarkupId(true);
         literalValueContainer.add(literalValueInput);
 
-        AjaxLink removeButton = new AjaxLink(ID_DELETE_LITERAL_VALUE_BUTTON) {
+        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_DELETE_LITERAL_VALUE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -329,7 +329,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 //        };
         shadowRefValueContainer.add(shadowRefPanel);
 
-        AjaxLink removeButton = new AjaxLink(ID_DELETE_SHADOW_REF_VALUE_BUTTON) {
+        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_DELETE_SHADOW_REF_VALUE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -355,7 +355,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         });
         add(targetSearchContainer);
 
-        AjaxLink removeButton = new AjaxLink(ID_DELETE_TARGET_SEARCH_EXP_BUTTON) {
+        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_DELETE_TARGET_SEARCH_EXP_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override

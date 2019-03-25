@@ -67,7 +67,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperImpl.class);
 
-	private ObjectWrapperImpl objectWrapper;
+	private ObjectWrapperOld objectWrapper;
 	
 	private String displayName;
 	private PrismContainer<C> container;
@@ -86,11 +86,11 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 	//TODO: HACK to have custom filter for association contianer here becasue of creating new association:
 	private ObjectFilter filter;
 	
-	public ObjectWrapperImpl getObjectWrapper() {
+	public ObjectWrapperOld getObjectWrapper() {
 		return objectWrapper;
 	}
 
-	public ContainerWrapperImpl(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+	public ContainerWrapperImpl(ObjectWrapperOld objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(container.getDefinition(), "container definition must not be null.");
@@ -103,7 +103,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 
 	}
 
-	public ContainerWrapperImpl(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
+	public ContainerWrapperImpl(ObjectWrapperOld objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
 		this(objectWrapper, container, objectStatus, status, path);
 		this.readonly = readOnly;
 	}
@@ -130,7 +130,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		this.filter = filter;
 	}
 
-	@Override
+//	@Override
 	public PrismContainerDefinition<C> getItemDefinition() {
 		return container.getDefinition();
 	}
@@ -143,12 +143,12 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		return path;
 	}
 
-	@Override
+//	@Override
 	public PrismContainer<C> getItem() {
 		return container;
 	}
 
-	@Override
+//	@Override
 	public List<ContainerValueWrapper<C>> getValues() {
 		if (values == null) {
 			values = new ArrayList<>();
@@ -244,7 +244,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 	}
 
 	// TODO: unify with PropertyOrReferenceWrapper.getDisplayName()
-	@Override
+//	@Override
 	public String getDisplayName() {
 		if (displayName == null) {
 			// Lazy loading of a localized name.
@@ -255,12 +255,12 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		return displayName;
 	}
 	
-	@Override
+//	@Override
 	public void setDisplayName(String displayName) {
 		this.displayName = localizeName(displayName);
 	}
 
-	@Override
+//	@Override
 	public QName getName() {
 		return getItem().getElementName();
 	}
@@ -375,7 +375,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		this.readonly = readonly;
 	}
 
-	@Override
+//	@Override
 	public boolean isEmpty() {
 		return getItem().isEmpty();
 	}
@@ -384,7 +384,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		getValues().add(newValue);
 	}
 	
-	@Override
+//	@Override
 	public void addValue(boolean showEmpty) {
 		// TODO: but fist need to clean up relaition between wrapper and factory.
 		throw new UnsupportedOperationException("Not implemented yet");
@@ -425,13 +425,13 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		return sb.toString();
 	}
 
-	@Override
+//	@Override
 	public boolean isStripe() {
 		// Does not make much sense, but it is given by the interface
 		return false;
 	}
 
-	@Override
+//	@Override
 	public void setStripe(boolean isStripe) {
 		for (ContainerValueWrapper value : values) {
 			value.computeStripes();
@@ -497,7 +497,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		}
 	}
 
-	@Override
+//	@Override
 	public boolean checkRequired(PageBase pageBase) {
 		boolean rv = true;
 		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
@@ -523,19 +523,19 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		getValues().forEach(value -> value.setShowMetadata(showMetadata));
 	}
 
-	@Override
+//	@Override
 	public boolean isEnforceRequiredFields() {
 		return true;// objectWrapper != null &&
 					// objectWrapper.isEnforceRequiredFields();
 	}
 
-	@Override
+//	@Override
 	public ContainerWrapperImpl getParent() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
+//	@Override
 	public boolean isVisible() {
 		PrismContainerDefinition<C> def = getItemDefinition();
 
@@ -566,7 +566,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		return false;
 	}
 	
-	@Override
+//	@Override
 	public ItemProcessing getProcessing() {
 		return getItemDefinition().getProcessing();
 	}
@@ -587,22 +587,22 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		return def.canAdd() && def.isEmphasized();
 	}
 
-	@Override
+//	@Override
 	public boolean isDeprecated() {
 		return getItemDefinition().isDeprecated();
 	}
 
-	@Override
+//	@Override
 	public String getDeprecatedSince() {
 		return getItemDefinition().getDeprecatedSince();
 	}
 
-	@Override
+//	@Override
 	public boolean isExperimental() {
 		return getItemDefinition().isExperimental();
 	}
 
-	@Override
+//	@Override
 	public ExpressionType getFormItemValidator() {
 		// TODO Auto-generated method stub
 		return null;
@@ -616,7 +616,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 		return isShowOnTopLevel;
 	}
 
-	@Override
+//	@Override
 	public void removeValue(ValueWrapperOld<ContainerValueWrapper<C>> valueWrapper) throws SchemaException {
 		throw new UnsupportedOperationException("Not impelemtned yet");
 	}
@@ -624,7 +624,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.web.component.prism.ItemWrapper#isRequired()
 	 */
-	@Override
+//	@Override
 	public boolean isRequired() {
 		// TODO Auto-generated method stub
 		return false;
@@ -633,7 +633,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.web.component.prism.ItemWrapper#createPanel(java.lang.String, org.apache.wicket.markup.html.form.Form, com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler)
 	 */
-	@Override
+//	@Override
 	public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
 		PrismContainerPanelOld<C> containerPanel = new PrismContainerPanelOld<>(id, Model.of(this), form, visibilityHandler, isShowOnTopLevel);
 		containerPanel.setOutputMarkupId(true);

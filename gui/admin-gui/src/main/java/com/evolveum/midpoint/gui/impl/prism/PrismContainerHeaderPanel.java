@@ -19,6 +19,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -34,14 +35,14 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  * @author katka
  *
  */
-public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHeaderPanel<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>, PrismContainerWrapperImpl<C>> {
+public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHeaderPanel<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>, PrismContainerWrapper<C>> {
 
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_ADD_BUTTON = "addButton";
 	
 	
-	public PrismContainerHeaderPanel(String id, IModel<PrismContainerWrapperImpl<C>> model) {
+	public PrismContainerHeaderPanel(String id, IModel<PrismContainerWrapper<C>> model) {
 		super(id, model);
 	}
 
@@ -60,6 +61,9 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	        };
 	        addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
 	        add(addButton);
+	        
+	        //TODO: sorting
+	        //TODO add/remove
 	}
 	
 	private void addValue(AjaxRequestTarget target) {

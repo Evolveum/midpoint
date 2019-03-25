@@ -17,52 +17,50 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Priority;
 
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.web.component.LockoutStatusPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 
 @Component
-public class LockoutStatusPanelFactory implements GuiComponentFactory {
+public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPropertyPanelContext<LockoutStatusType>> {
 
+	private static final long serialVersionUID = 1L;
+	
 	@Autowired GuiComponentRegistry registry;
 	
-//	@Override
 	@PostConstruct
 	public void register() {
 		registry.addToRegistry(this);
 	}
 
-	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		return ActivationType.F_LOCKOUT_STATUS.equals(itemWrapper.getItemDefinition().getName());
-	}
-
-	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
-		LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), (IModel<LockoutStatusType>) panelCtx.getRealValueModel());
-		panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(panel));
-		return panel;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.factory.GuiComponentFactory#getOrder()
-	 */
-	@Override
+		@Override
 	public Integer getOrder() {
 		return 1000;
+	}
+
+	@Override
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+		return ActivationType.F_LOCKOUT_STATUS.equals(wrapper.getName());
+	}
+
+	@Override
+	public Panel createPanel(PrismPropertyPanelContext<LockoutStatusType> panelCtx) {
+		LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+		panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(panel));
+		return panel;
 	}
 	
 }

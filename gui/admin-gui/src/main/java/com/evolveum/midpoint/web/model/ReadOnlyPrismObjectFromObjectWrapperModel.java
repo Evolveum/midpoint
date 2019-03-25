@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,9 +34,9 @@ public class ReadOnlyPrismObjectFromObjectWrapperModel<O extends ObjectType> imp
 
     private static final Trace LOGGER = TraceManager.getTrace(ReadOnlyPrismObjectFromObjectWrapperModel.class);
 
-    private IModel<ObjectWrapperImpl<O>> model;
+    private IModel<ObjectWrapperOld<O>> model;
 
-    public ReadOnlyPrismObjectFromObjectWrapperModel(IModel<ObjectWrapperImpl<O>> model) {
+    public ReadOnlyPrismObjectFromObjectWrapperModel(IModel<ObjectWrapperOld<O>> model) {
     	this.model = model;
     }
 

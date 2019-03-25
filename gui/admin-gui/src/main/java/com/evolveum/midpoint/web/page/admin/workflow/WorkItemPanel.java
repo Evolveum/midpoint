@@ -208,16 +208,22 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		}));
 		add(primaryInfoColumn);
 
-		add(new AjaxFallbackLink(ID_SHOW_REQUEST) {
-			public void onClick(Optional target) {
+		add(new AjaxFallbackLink<Void>(ID_SHOW_REQUEST) {
+
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public void onClick(Optional<AjaxRequestTarget> target) {
 				String oid = WorkItemPanel.this.getModelObject().getTaskOid();
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
 					getPageBase().navigateToNext(PageTaskEdit.class, parameters);
 				}
-			}
+			}		
 		});
+		
+		
 		add(WebComponentUtil.createHelp(ID_SHOW_REQUEST_HELP));
 
 		WebMarkupContainer triggersContainer = new WebMarkupContainer(ID_TRIGGERS_CONTAINER);

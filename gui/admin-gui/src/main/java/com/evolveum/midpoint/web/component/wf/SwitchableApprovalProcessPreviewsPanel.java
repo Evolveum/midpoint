@@ -16,6 +16,15 @@
 
 package com.evolveum.midpoint.web.component.wf;
 
+import java.util.Collections;
+import java.util.Optional;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -29,17 +38,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.TaskWfChildPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.Optional;
 
 /**
  * @author mederly
@@ -152,10 +150,12 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 		add(wholeProcessContainer);
 
 		WebMarkupContainer showNextStagesContainer = new WebMarkupContainer(ID_SHOW_NEXT_STAGES_CONTAINER);
-		showNextStagesContainer.add(new AjaxFallbackLink(ID_SHOW_NEXT_STAGES) {
+		showNextStagesContainer.add(new AjaxFallbackLink<Void>(ID_SHOW_NEXT_STAGES) {
 			
+			private static final long serialVersionUID = 1L;
+
 			@Override
-			public void onClick(Optional target) {
+			public void onClick(Optional<AjaxRequestTarget> target) {
 				displayedProcessInfoBox = ProcessInfoBox.NEXT_STAGES;
 				((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
 			}
@@ -167,10 +167,11 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 		add(showNextStagesContainer);
 
 		WebMarkupContainer showWholeProcessContainer = new WebMarkupContainer(ID_SHOW_WHOLE_PROCESS_CONTAINER);
-		showWholeProcessContainer.add(new AjaxFallbackLink(ID_SHOW_WHOLE_PROCESS) {
+		showWholeProcessContainer.add(new AjaxFallbackLink<Void>(ID_SHOW_WHOLE_PROCESS) {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
-			public void onClick(Optional target) {
+			public void onClick(Optional<AjaxRequestTarget> target) {
 				displayedProcessInfoBox = ProcessInfoBox.WHOLE_PROCESS;
 				((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
 			}

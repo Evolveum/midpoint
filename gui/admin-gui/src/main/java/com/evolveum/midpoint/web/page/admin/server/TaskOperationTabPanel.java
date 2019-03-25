@@ -17,7 +17,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -45,7 +46,7 @@ public class TaskOperationTabPanel extends AbstractObjectTabPanel<TaskType> impl
 	private static final Trace LOGGER = TraceManager.getTrace(TaskOperationTabPanel.class);
 
 	public TaskOperationTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapperImpl<TaskType>> taskWrapperModel,
+			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);

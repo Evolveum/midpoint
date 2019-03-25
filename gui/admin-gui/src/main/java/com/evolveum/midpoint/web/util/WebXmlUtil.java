@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DOMUtil;
 
 import javax.xml.XMLConstants;
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import java.util.List;
  */
 public class WebXmlUtil {
 
+	private static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
+	
 	public static List<String> declarations = new ArrayList<>();
 	static {
 		addDeclaration(null, SchemaConstantsGenerated.NS_COMMON);
@@ -43,7 +46,7 @@ public class WebXmlUtil {
 		addDeclaration("icfc", SchemaConstantsGenerated.NS_ICF_CONFIGURATION);
 		addDeclaration("mr", PrismConstants.NS_MATCHING_RULE);
 		addDeclaration("mext", SchemaConstants.NS_MODEL_EXTENSION);
-		addDeclaration("xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI);
+		addDeclaration("xsi", XSI_URI);
 	}
 
 	private static void addDeclaration(String prefix, String uri) {

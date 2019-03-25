@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.BootstrapLabel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -40,13 +40,13 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapperImpl<O>> {
+public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapperOld<O>> {
 
     private static final String ID_STATUS = "status";
     private static final String ID_SHOW_MORE = "showMore";
     public static final String ID_TITLE = "title";
 
-    public H3Header(String id, IModel<ObjectWrapperImpl<O>> model) {
+    public H3Header(String id, IModel<ObjectWrapperOld<O>> model) {
         super(id, model);
 
         add(AttributeModifier.append("class", "h3-header"));
@@ -69,7 +69,8 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapperImp
                 new Model(BootstrapLabel.State.DANGER));
         status.add(createFetchErrorVisibleBehaviour());
         add(status);
-        AjaxLink showMore = new AjaxLink(ID_SHOW_MORE) {
+       
+        AjaxLink<Void> showMore = new AjaxLink<Void>(ID_SHOW_MORE) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -115,7 +116,7 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapperImp
     }
 
     private String getDisplayName() {
-        ObjectWrapperImpl wrapper = getModel().getObject();
+        ObjectWrapperOld wrapper = getModel().getObject();
         String key = wrapper.getDisplayName();
         if (key == null) {
             key = "";

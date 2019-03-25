@@ -207,13 +207,15 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(description);
 
-        AjaxLink limitations = new AjaxLink(ID_BUTTON_LIMITATIONS) {
+        AjaxLink<Void> limitations = new AjaxLink<Void>(ID_BUTTON_LIMITATIONS) {
+        	
+        	private static final long serialVersionUID = 1L;
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                limitationsEditPerformed(target);
-            }
-        };
+        	@Override
+        	public void onClick(AjaxRequestTarget target) {
+        		limitationsEditPerformed(target);
+        	}
+		};
         add(limitations);
 
         CheckBox exclusiveStrong = new CheckBox(ID_EXCLUSIVE_STRONG, new PropertyModel<>(getModel(), "exclusiveStrong"));
@@ -266,6 +268,8 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(outboundLabel);
 
         AjaxSubmitButton outbound = new AjaxSubmitButton(ID_BUTTON_OUTBOUND) {
+        	
+        	private static final long serialVersionUID = 1L;
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 outboundEditPerformed(target);
@@ -281,6 +285,8 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(outbound);
 
 		AjaxSubmitLink deleteOutbound = new AjaxSubmitLink(ID_DELETE_OUTBOUND) {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {

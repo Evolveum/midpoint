@@ -17,16 +17,22 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
  *
  */
-public interface PrismContainerValueWrapper<C extends Containerable> extends PrismValueWrapper<C> {
+public interface PrismContainerValueWrapper<C extends Containerable> extends PrismValueWrapper<C>{
 	
 	String getDisplayName();
 	String getHelpText();
@@ -47,4 +53,19 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	
 	ValueStatus getStatus();
 	void setStatus(ValueStatus status);
+	
+	List<PrismContainerWrapper<C>> getContainers();
+	
+	List<? extends ItemWrapper<?,?,?,?>> getNonContainers();
+	
+	PrismContainerWrapper<C> getParent();
+	
+	List<? extends ItemWrapper<?,?,?,?>> getItems();
+	
+	PrismContainerValue<C> getNewValue();
+	
+	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path);
+	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath);
+	PrismReferenceWrapper findReference(ItemPath path);
+	
 }

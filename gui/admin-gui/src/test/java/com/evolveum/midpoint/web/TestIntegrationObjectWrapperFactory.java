@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
@@ -177,7 +177,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperOld<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -231,7 +231,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
 	}
 
-	private void assertContainersPaths(ObjectWrapperImpl<?> objectWrapper, Collection<ItemPath> expectedPaths) {
+	private void assertContainersPaths(ObjectWrapperOld<?> objectWrapper, Collection<ItemPath> expectedPaths) {
 		Set<UniformItemPath> expectedUniformPaths = expectedPaths.stream()
 				.map(p -> prismContext.toUniformPath(p))
 				.collect(Collectors.toSet());
@@ -256,7 +256,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperOld<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.ADDING, task);
 
 		// THEN
@@ -325,7 +325,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperOld<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.ADDING, task);
 
 		ContainerWrapperImpl<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
@@ -401,7 +401,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperOld<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -460,7 +460,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow,
+		ObjectWrapperOld<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -522,7 +522,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperOld<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -611,7 +611,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         displayWhen(TEST_NAME);
 
         ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow,
+		ObjectWrapperOld<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -667,7 +667,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperOld<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		IntegrationTestTools.display("Wrapper before", objectWrapper);
@@ -709,7 +709,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperOld<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		IntegrationTestTools.display("Wrapper before", objectWrapper);
@@ -757,7 +757,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperOld<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		IntegrationTestTools.display("Wrapper before", objectWrapper);
@@ -824,7 +824,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
-		ObjectWrapperImpl<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
+		ObjectWrapperOld<OrgType> objectWrapper = factory.createObjectWrapper("org display name", "org description", org,
 				ContainerStatus.MODIFYING, task);
 
 		IntegrationTestTools.display("Wrapper before", objectWrapper);
@@ -912,7 +912,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         // WHEN
         displayWhen(TEST_NAME);
 
-		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperOld<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN
@@ -991,7 +991,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         // WHEN
         displayWhen(TEST_NAME);
 
-		ObjectWrapperImpl<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
+		ObjectWrapperOld<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				ContainerStatus.MODIFYING, task);
 
 		// THEN

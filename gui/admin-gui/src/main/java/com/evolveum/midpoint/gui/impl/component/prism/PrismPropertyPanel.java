@@ -40,9 +40,9 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.PanelContext;
+import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -200,49 +200,49 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
 		LOGGER.trace("createInputComponent: {}", iw);
 
 		Panel component = null;
-		GuiComponentFactory componentFactory = getPageBase().getRegistry().findFactory(iw);
+		GuiComponentFactory componentFactory = getPageBase().getRegistry().findValuePanelFactory(null);
 		if (componentFactory != null) {
 
-			PanelContext<T> panelCtx = new PanelContext<>();
-			panelCtx.setItemWrapper(iw);
-			panelCtx.setForm(form);
-			panelCtx.setRealValueModel(valueWrapperModel.getObject());
-			panelCtx.setFeedbackPanel(feedback);
-			panelCtx.setComponentId(ID_INPUT);
-			panelCtx.setParentComponent(this);
-
-			try {
-				component = componentFactory.createPanel(panelCtx);
-			} catch (Throwable e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
-				getSession().error("Cannot create panel");
-				throw new RuntimeException(e);
-			}
+//			ItemPanelContext<T> panelCtx = new ItemPanelContext<>();
+//			panelCtx.setItemWrapper(iw);
+//			panelCtx.setForm(form);
+//			panelCtx.setRealValueModel(valueWrapperModel.getObject());
+//			panelCtx.setFeedbackPanel(feedback);
+//			panelCtx.setComponentId(ID_INPUT);
+//			panelCtx.setParentComponent(this);
+//
+//			try {
+//				component = componentFactory.createPanel(panelCtx);
+//			} catch (Throwable e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
+//				getSession().error("Cannot create panel");
+//				throw new RuntimeException(e);
+//			}
 		}
 
 		if (component instanceof InputPanel) {
 			InputPanel inputPanel = (InputPanel) component;
 			// adding valid from/to date range validator, if necessary
 
-			if (iw.getFormItemValidator() != null) {
-				ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(iw.getFormItemValidator(),
-						getPageBase()) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected <O extends ObjectType> O getObjectType() {
-						return getObject(iw);
-					}
-				};
-				inputPanel.getBaseFormComponent().add(expressionValidator);
-				// form.add(expressionValidator);
-			}
+//			if (iw.getFormItemValidator() != null) {
+//				ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(iw.getFormItemValidator(),
+//						getPageBase()) {
+//
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					protected <O extends ObjectType> O getObjectType() {
+//						return getObject(iw);
+//					}
+//				};
+//				inputPanel.getBaseFormComponent().add(expressionValidator);
+//				// form.add(expressionValidator);
+//			}
 
 			final List<FormComponent> formComponents = inputPanel.getFormComponents();
 			for (FormComponent<T> formComponent : formComponents) {
-				IModel<String> label = WebComponentUtil.getDisplayName(getModel(), PrismPropertyPanel.this);
-				formComponent.setLabel(label);
+//				IModel<String> label = WebComponentUtil.getDisplayName(getModel(), PrismPropertyPanel.this);
+//				formComponent.setLabel(label);
 				formComponent.setRequired(iw.isRequired());
 
 				if (formComponent instanceof TextField) {
@@ -361,7 +361,7 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
 	}
 	
 	private ContainerStatus getContainerStatus(ItemWrapperOld propertyWrapper) {
-		final ContainerWrapperImpl<Containerable> objectWrapper = propertyWrapper.getParent();
+		final ContainerWrapperImpl<Containerable> objectWrapper = null;// propertyWrapper.getParent();
 		return objectWrapper != null ? objectWrapper.getStatus() : ContainerStatus.MODIFYING;
 	}
 	
@@ -421,12 +421,12 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
 //	}
     
     private <O extends ObjectType, C extends Containerable> O getObject(ItemWrapperOld itemWrapper) {
-		ContainerWrapperImpl<C> cWrapper = itemWrapper.getParent();
+		ContainerWrapperImpl<C> cWrapper = null;//itemWrapper.getParent();
 		if (cWrapper == null) {
 			return null;
 		}
 		
-		ObjectWrapperImpl<O> objectWrapper = cWrapper.getObjectWrapper();
+		ObjectWrapperOld<O> objectWrapper = cWrapper.getObjectWrapper();
 		PrismObject<O> newObject = objectWrapper.getObject().clone();
 		
 		try {

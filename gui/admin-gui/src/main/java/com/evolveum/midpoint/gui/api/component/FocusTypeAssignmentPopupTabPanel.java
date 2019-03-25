@@ -17,7 +17,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -124,7 +124,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         if (assignmentWrapper == null){
             return null;
         }
-        ObjectWrapperImpl<O> w = assignmentWrapper.getObjectWrapper();
+        ObjectWrapperOld<O> w = assignmentWrapper.getObjectWrapper();
         if (w == null) {
             return null;
         }

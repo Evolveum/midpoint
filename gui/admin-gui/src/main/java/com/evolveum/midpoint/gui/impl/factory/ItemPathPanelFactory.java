@@ -25,9 +25,8 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -36,7 +35,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  */
 @Component
 @Priority(1000)
-public class ItemPathPanelFactory extends AbstractGuiComponentFactory {
+public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathType> {
+
+	private static final long serialVersionUID = 1L;
 
 	@Autowired private GuiComponentRegistry registry;
 
@@ -46,25 +47,22 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		return ItemPathType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
+	public boolean match(PrismPropertyWrapper<ItemPathType> wrapper) {
+		return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
+	protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
 		return new ItemPathPanel(panelCtx.getComponentId(), (ItemPathType) panelCtx.getRealValueModel().getObject()) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(ItemPathDto itemPathDto) {
-				panelCtx.getRealValueModel().setObject((T) new ItemPathType(itemPathDto.toItemPath())); 
-				
+				panelCtx.getRealValueModel().setObject(new ItemPathType(itemPathDto.toItemPath()));
+
 			}
 		};
-
-	}
-	
-	
+	}	
 	
 }

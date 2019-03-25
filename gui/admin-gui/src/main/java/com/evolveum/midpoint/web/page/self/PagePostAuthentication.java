@@ -28,7 +28,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -82,7 +82,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 	private static final String ID_WRAPPER_CONTENT = "wrapperContent";
 
 	private IModel<UserType> userModel;
-	private ObjectWrapperImpl<UserType> objectWrapper;
+	private ObjectWrapperOld<UserType> objectWrapper;
 	
 	public PagePostAuthentication(PageParameters pageParameters) {
 		super(pageParameters);

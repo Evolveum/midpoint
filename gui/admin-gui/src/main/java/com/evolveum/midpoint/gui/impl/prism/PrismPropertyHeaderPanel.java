@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
  * @author katka
  *
  */
-public class PrismPropertyHeaderPanel<T> extends ItemHeaderPanel<PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyDefinition<T>, PrismPropertyWrapperImpl<T>>{
+public class PrismPropertyHeaderPanel<T> extends ItemHeaderPanel<PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyDefinition<T>, PrismPropertyWrapper<T>>{
 
 	private static final long serialVersionUID = 1L;
 
@@ -34,7 +34,7 @@ public class PrismPropertyHeaderPanel<T> extends ItemHeaderPanel<PrismPropertyVa
 	 * @param id
 	 * @param model
 	 */
-	public PrismPropertyHeaderPanel(String id, IModel<PrismPropertyWrapperImpl<T>> model) {
+	public PrismPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<T>> model) {
 		super(id, model);
 	}
 

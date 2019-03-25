@@ -15,11 +15,15 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.List;
+
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
@@ -32,7 +36,7 @@ import com.evolveum.midpoint.prism.PrismValue;
  * @author katka
  *
  */
-public abstract class ItemPanel<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper<V, I, ID>> extends BasePanel<IW>{
+public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWrapper> extends BasePanel<IW>{
 
 	private static final long serialVersionUID = 1L;
 	
@@ -54,22 +58,22 @@ public abstract class ItemPanel<V extends PrismValue, I extends Item<V, ID>, ID 
 		Panel headerPanel = createHeaderPanel();
 		add(headerPanel);
 		
-		ListView valuesPanel = createValuesPanel();
+		ListView<VW> valuesPanel = createValuesPanel();
 		add(valuesPanel);
 		
 	}
 	
 	 protected abstract Panel createHeaderPanel();
 	 
-	 protected ListView<PrismValueWrapper<V>> createValuesPanel() {
+	 protected ListView<VW> createValuesPanel() {
 		 
-		 ListView<PrismValueWrapper<V>> values = new ListView<PrismValueWrapper<V>>(ID_VALUES, LambdaModel.of(getModel(), IW::getValues)) {
+		 ListView<VW> values = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModelObject(), "values")) { 
 		 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<PrismValueWrapper<V>> item) {
-				 GuiComponentFactory componentFactory = getPageBase().getRegistry().findFactory(ItemPanel.this.getModelObject());
+			protected void populateItem(ListItem<VW> item) {
+				 GuiComponentFactory componentFactory = getPageBase().getRegistry().findValuePanelFactory(ItemPanel.this.getModelObject());
 				 
 				 createValuePanel(item, componentFactory);
 			}
@@ -93,6 +97,6 @@ public abstract class ItemPanel<V extends PrismValue, I extends Item<V, ID>, ID 
 		    //VALUE REGION
 
 
-	 protected abstract void createValuePanel(ListItem item, GuiComponentFactory componentFactory);
+	 protected abstract void createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory);
 	 
 }

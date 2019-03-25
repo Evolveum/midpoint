@@ -206,8 +206,8 @@ public class SynchronizationStep extends WizardStep {
                 label.setOutputMarkupId(true);
                 link.add(label);
 
-                AjaxLink delete = new AjaxLink(ID_OBJECT_SYNC_DELETE){
-
+                AjaxLink<Void> delete = new AjaxLink<Void>(ID_OBJECT_SYNC_DELETE) {
+                	private static final long serialVersionUID = 1L;
                     @Override
                     public void onClick(AjaxRequestTarget target){
                         deleteSyncObjectPerformed(target, syncObject);
@@ -236,9 +236,9 @@ public class SynchronizationStep extends WizardStep {
         navigator.setOutputMarkupId(true);
         navigator.setOutputMarkupPlaceholderTag(true);
         add(navigator);
-
-        AjaxLink add = new AjaxLink(ID_OBJECT_SYNC_ADD) {
-
+        
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_OBJECT_SYNC_ADD) {
+        	private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addSyncObjectPerformed(target);

@@ -22,9 +22,11 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
@@ -39,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  * @author katka
  *
  */
-public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
+public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, VW extends PrismValueWrapper> extends ItemDefinition<I>, Itemable, Revivable, DebugDumpable, Serializable {
 
 //	
 //	void revive(PrismContext prismContext) throws SchemaException;
@@ -56,7 +58,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	boolean checkRequired(PageBase pageBase);
 	
-	ContainerValueWrapper<?> getParent();
+	PrismContainerValueWrapper<?> getParent();
 	
 	boolean isShowEmpty();
 	
@@ -65,10 +67,14 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	//NEW
 	
-	public boolean isReadOnly();
+	boolean isReadOnly();
+	
+	void setReadOnly();
 	
 	ExpressionType getFormComponentValidator();
 	
-	List<PrismValueWrapper<V>> getValues();
+	List<VW> getValues();
+	
+	boolean isStripe();
 	
 }

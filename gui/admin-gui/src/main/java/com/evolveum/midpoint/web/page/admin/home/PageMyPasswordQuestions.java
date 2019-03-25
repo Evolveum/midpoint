@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -90,7 +90,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_BACK = "back";
 	private static final String ID_SAVE = "save";
-	private LoadableModel<ObjectWrapperImpl> userModel;
+	private LoadableModel<ObjectWrapperOld> userModel;
 
 
 	private List<MyPasswordQuestionsPanel> pqPanels;
@@ -123,10 +123,10 @@ public class PageMyPasswordQuestions extends PageAdminHome {
     }
 
 	public PageMyPasswordQuestions(final PrismObject<UserType> userToEdit) {
-		userModel = new LoadableModel<ObjectWrapperImpl>(false) {
+		userModel = new LoadableModel<ObjectWrapperOld>(false) {
 
 			@Override
-			protected ObjectWrapperImpl load() {
+			protected ObjectWrapperOld load() {
 				return loadUserWrapper(userToEdit);
 			}
 		};
@@ -470,7 +470,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		setResponsePage(getMidpointApplication().getHomePage());
     }
 
-	private ObjectWrapperImpl loadUserWrapper(PrismObject<UserType> userToEdit) {
+	private ObjectWrapperOld loadUserWrapper(PrismObject<UserType> userToEdit) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 		PrismObject<UserType> user = null;
 		Task task = createSimpleTask(OPERATION_LOAD_USER);
@@ -496,7 +496,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 		ContainerStatus status = ContainerStatus.MODIFYING;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-		ObjectWrapperImpl wrapper;
+		ObjectWrapperOld wrapper;
 		try{
 			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status, task);
 		} catch (Exception ex){

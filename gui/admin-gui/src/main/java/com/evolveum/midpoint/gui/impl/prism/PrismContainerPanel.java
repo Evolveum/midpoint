@@ -20,6 +20,9 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
+import com.evolveum.midpoint.gui.impl.factory.PrismContainerPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -29,7 +32,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
  * @author katka
  *
  */
-public class PrismContainerPanel<C extends Containerable> extends ItemPanel<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>, PrismContainerWrapperImpl<C>>{
+public class PrismContainerPanel<C extends Containerable> extends ItemPanel<PrismContainerValueWrapper<C>, PrismContainerWrapper<C>>{
 
 	private static final long serialVersionUID = 1L;
 	
@@ -39,7 +42,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	 * @param id
 	 * @param model
 	 */
-	public PrismContainerPanel(String id, IModel<PrismContainerWrapperImpl<C>> model) {
+	public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model) {
 		super(id, model);
 	}
 
@@ -50,8 +53,19 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
 	@Override
 	protected void createValuePanel(ListItem item, GuiComponentFactory componentFactory) {
-		// TODO Auto-generated method stub
+		if (componentFactory == null) {
+			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<>("value", item.getModel());
+			valuePanel.setOutputMarkupId(true);
+			item.add(valuePanel);
+			item.setOutputMarkupId(true);
+			return;
+		}
 		
+		
+		PrismContainerPanelContext<C> panelCtx = new PrismContainerPanelContext<>(getModel());
+		Panel panel = componentFactory.createPanel(panelCtx);
+		item.add(panel);
+		 
 	}
 
 }

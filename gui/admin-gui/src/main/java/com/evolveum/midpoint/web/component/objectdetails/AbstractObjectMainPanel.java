@@ -17,35 +17,32 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author semancik
@@ -68,7 +65,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
 	private Form mainForm;
 
-	private LoadableModel<ObjectWrapperImpl<O>> objectModel;
+	private LoadableModel<PrismObjectWrapper<O>> objectModel;
 
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 		private static final long serialVersionUID = 1L;
@@ -79,7 +76,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		}
 	};
 
-	public AbstractObjectMainPanel(String id, LoadableModel<ObjectWrapperImpl<O>> objectModel, PageAdminObjectDetails<O> parentPage) {
+	public AbstractObjectMainPanel(String id, LoadableModel<PrismObjectWrapper<O>> objectModel, PageAdminObjectDetails<O> parentPage) {
 		super(id, objectModel);
 		Validate.notNull(objectModel, "Null object model");
 		this.objectModel = objectModel;
@@ -95,11 +92,11 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 				PARAMETER_SELECTED_TAB);
 	}
 
-	public LoadableModel<ObjectWrapperImpl<O>> getObjectModel() {
+	public LoadableModel<PrismObjectWrapper<O>> getObjectModel() {
 		return objectModel;
 	}
 
-	public ObjectWrapperImpl<O> getObjectWrapper() {
+	public PrismObjectWrapper<O> getObjectWrapper() {
 		return objectModel.getObject();
 	}
 
@@ -169,7 +166,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
             @Override
             public boolean isVisible() {
-                return !getObjectWrapper().isReadonly() &&
+                return !getObjectWrapper().isReadOnly() &&
 						!getDetailsPage().isForcedPreview();
             }
 
@@ -179,9 +176,9 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
                 // e.g. #assign authorization, Save button is disabled on page load.
                 // Save button becomes enabled just if some changes are made
                 // on the Assignments tab (in the use case with #assign authorization)
-                PrismContainerDefinition def = getObjectWrapper().getDefinition();
-                if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
-                        && !def.canModify()){
+//                PrismContainerDefinition def = getObjectWrapper().getDefinition();
+                if (ItemStatus.NOT_CHANGED.equals(getObjectWrapper().getStatus())
+                        && !getObjectWrapper().canModify()){
                     return areSavePreviewButtonsEnabled();
                 }
                 return true;
@@ -216,9 +213,9 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
             @Override
             public boolean isEnabled() {
-                PrismContainerDefinition def = getObjectWrapper().getDefinition();
-                if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
-                        && !def.canModify()){
+//                PrismContainerDefinition def = getObjectWrapper().getDefinition();
+                if (ItemStatus.NOT_CHANGED.equals(getObjectWrapper().getStatus())
+                        && !getObjectWrapper().canModify()){
                     return areSavePreviewButtonsEnabled();
                 }
                 return true;
@@ -228,7 +225,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	}
 
 	protected boolean isPreviewButtonVisible(){
-		return !getObjectWrapper().isReadonly();
+		return !getObjectWrapper().isReadOnly();
 	}
 
 	protected void initLayoutBackButton(PageAdminObjectDetails<O> parentPage) {
@@ -296,12 +293,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	}
 
     protected boolean getOptionsPanelVisibility(){
-        if (getObjectWrapper().isReadonly()){
+        if (getObjectWrapper().isReadOnly()){
 			return false;
 		}
-		PrismContainerDefinition def = getObjectWrapper().getDefinition();
-		if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
-				&& !def.canModify()){
+//		PrismContainerDefinition def = getObjectWrapper().getDefinition();
+		if (ItemStatus.NOT_CHANGED.equals(getObjectWrapper().getStatus())
+				&& !getObjectWrapper().canModify()){
 			return false;
 		}
 		return true;

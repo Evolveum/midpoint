@@ -2,7 +2,7 @@ package com.evolveum.midpoint.web.page.admin.valuePolicy.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -41,7 +41,7 @@ public class ValuePolicyStringPoliciesPanel extends AbstractObjectTabPanel {
     private void initStringPolicyList(){
         WebMarkupContainer stringPolicyContainer = new WebMarkupContainer(ID_STRING_POLICIES_LIST);
         stringPolicyContainer.setOutputMarkupId(true);
-        BoxedTablePanel<ObjectWrapperImpl<ValuePolicyType>> stringPolicyTablePanel = initTable();
+        BoxedTablePanel<ObjectWrapperOld<ValuePolicyType>> stringPolicyTablePanel = initTable();
         stringPolicyContainer.add(stringPolicyTablePanel);
 
         AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_STRINGPOLICY_BUTTON, new Model<>("fa fa-plus"),

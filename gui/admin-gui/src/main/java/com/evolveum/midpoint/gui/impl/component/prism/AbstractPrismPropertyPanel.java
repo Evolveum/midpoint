@@ -87,19 +87,19 @@ public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapperOld> exte
     public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
     	IW propertyWrapper = getModel().getObject();
     	
-    	if (visibilityHandler != null) {
-    		ItemVisibility visible = visibilityHandler.isVisible(propertyWrapper);
-    		if (visible != null) {
-    			switch (visible) {
-    				case VISIBLE:
-    					return true;
-    				case HIDDEN:
-    					return false;
-    				default:
-    					// automatic, go on ...
-    			}
-    		}
-    	}
+//    	if (visibilityHandler != null) {
+//    		ItemVisibility visible = visibilityHandler.isVisible(propertyWrapper);
+//    		if (visible != null) {
+//    			switch (visible) {
+//    				case VISIBLE:
+//    					return true;
+//    				case HIDDEN:
+//    					return false;
+//    				default:
+//    					// automatic, go on ...
+//    			}
+//    		}
+//    	}
         return propertyWrapper.isVisible();
     }
     

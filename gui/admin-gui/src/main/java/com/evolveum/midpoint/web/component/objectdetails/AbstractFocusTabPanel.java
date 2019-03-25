@@ -19,7 +19,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -31,14 +31,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  */
 public abstract class AbstractFocusTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
-	private static final long serialVersionUID = 1L;
+	
+	private static final long serialVersionUID = 1L; 
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractFocusTabPanel.class);
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 
 	public AbstractFocusTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapperImpl<F>> focusWrapperModel,
+			LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageBase pageBase) {
 		super(id, mainForm, focusWrapperModel, pageBase);

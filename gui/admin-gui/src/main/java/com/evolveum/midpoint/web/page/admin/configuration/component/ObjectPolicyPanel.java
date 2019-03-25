@@ -283,15 +283,16 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	}
 
 	private void initButtons(WebMarkupContainer buttonGroup, final ListItem<PropertyConstraintType> item) {
-		AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
+		AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
 
 			private static final long serialVersionUID = 1L;
-
+			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				addPerformed(target);
 			}
 		};
+		
 		add.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
@@ -302,8 +303,8 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		});
 		buttonGroup.add(add);
 
-		AjaxLink remove = new AjaxLink(ID_BUTTON_REMOVE) {
-
+		AjaxLink<Void> remove = new AjaxLink<Void>(ID_BUTTON_REMOVE) {
+		
 			private static final long serialVersionUID = 1L;
 
 			@Override

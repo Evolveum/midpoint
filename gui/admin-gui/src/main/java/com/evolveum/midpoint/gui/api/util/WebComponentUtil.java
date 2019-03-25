@@ -1,4 +1,5 @@
 /*
+
  * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -126,7 +127,7 @@ import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -512,12 +513,12 @@ public final class WebComponentUtil {
 	}
 
 	// quite a hack (temporary)
-	public static <T extends ObjectType> IModel<ObjectWrapperImpl<T>> adopt(
-			PropertyModel<ObjectWrapperImpl<T>> objectWrapperModel, PrismContext prismContext) {
+	public static <T extends ObjectType> IModel<ObjectWrapperOld<T>> adopt(
+			PropertyModel<ObjectWrapperOld<T>> objectWrapperModel, PrismContext prismContext) {
 		if (objectWrapperModel == null) {
 			return null;
 		}
-		ObjectWrapperImpl<T> wrapper = objectWrapperModel.getObject();
+		ObjectWrapperOld<T> wrapper = objectWrapperModel.getObject();
 		if (wrapper == null || wrapper.getObject() == null) {
 			return objectWrapperModel;
 		}
@@ -2790,10 +2791,10 @@ public final class WebComponentUtil {
 				ShadowType.F_ASSOCIATION);
 	}
 
-	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapperOld itemWrapper,
-																	 IModel<ObjectWrapperImpl<ShadowType>> shadowModel) {
+	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
+																	 IModel<ObjectWrapperOld<ShadowType>> shadowModel) {
 		
-		ObjectWrapperImpl<ShadowType> shadowWrapper = shadowModel.getObject();
+		ObjectWrapperOld<ShadowType> shadowWrapper = shadowModel.getObject();
 		PrismObject<ShadowType> shadow = shadowWrapper.getObject();
 		ShadowType shadowType = shadow.asObjectable();
 		

@@ -39,7 +39,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -88,7 +88,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_SHOPPING_CART_BUTTONS_PANEL = "shoppingCartButtonsPanel";
     private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
 
-	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapperImpl<R>> objectModel,
+	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapperOld<R>> objectModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageAdminFocus<R> parentPage) {
 		super(id, objectModel, projectionModel, parentPage);
@@ -379,7 +379,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 	@Override
 	protected boolean areSavePreviewButtonsEnabled(){
-		ObjectWrapperImpl<R> focusWrapper = getObjectModel().getObject();
+		ObjectWrapperOld<R> focusWrapper = getObjectModel().getObject();
 		ContainerWrapperImpl<AssignmentType> assignmentsWrapper =
 				focusWrapper.findContainerWrapper(AbstractRoleType.F_INDUCEMENT);
 		return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);

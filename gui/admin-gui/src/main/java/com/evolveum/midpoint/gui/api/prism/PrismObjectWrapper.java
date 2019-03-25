@@ -15,10 +15,19 @@
  */
 package com.evolveum.midpoint.gui.api.prism;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 /**
  * @author katka
  *
  */
-public interface PrismObjectWrapper extends PrismContainerWrapper {
+public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainerWrapper<O> {
 
+	PrismObject<O> getObject();
+	
+	ObjectDelta<O> getObjectDelta();
+	
+	String getOid();
 }

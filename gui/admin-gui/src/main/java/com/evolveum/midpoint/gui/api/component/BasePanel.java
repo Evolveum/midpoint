@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Contract;
  * @author lazyman
  * @author semancik
  */
-public class BasePanel<T extends Serializable> extends Panel {
+public class BasePanel<T> extends Panel {// extends Serializable> extends Panel {
     private static final long serialVersionUID = 1L;
 
     private IModel<T> model;
@@ -56,7 +56,7 @@ public class BasePanel<T extends Serializable> extends Panel {
     
     public BasePanel(String id, T object) {
         super(id);
-        this.model = Model.of(object);
+//        this.model = Model.of(object);
     }
 
     public BasePanel(String id, IModel<T> model) {

@@ -110,8 +110,8 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
         };
         add(linkContainer);
 
-        AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
-
+        AjaxLink<Void> help = new AjaxLink<Void>(ID_BUTTON_HELP) {
+        	private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHelpPerformed(target);

@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
@@ -36,7 +36,7 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
     private static final String ID_POLICY_RULES_CONTAINER = "policyRulesContainer";
     private static final String ID_POLICY_RULES_PANEL = "policyRulesPanel";
 
-    public FocusPolicyRulesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperImpl<F>> focusWrapperModel,
+    public FocusPolicyRulesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperOld<F>> focusWrapperModel,
                                     PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
         initLayout();

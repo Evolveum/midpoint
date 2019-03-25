@@ -17,7 +17,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -43,7 +44,7 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
     private static final String ID_TASK_ERRORS = "taskErrors";
 
     public TaskErrorsTabPanel(String id, Form mainForm,
-                              LoadableModel<ObjectWrapperImpl<TaskType>> taskWrapperModel,
+                              LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
                               IModel<TaskDto> taskDtoModel, PageBase pageBase) {
         super(id, mainForm, taskWrapperModel, pageBase);
         initLayout(taskDtoModel, pageBase);

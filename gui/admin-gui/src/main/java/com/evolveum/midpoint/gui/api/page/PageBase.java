@@ -1252,6 +1252,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 .setParameters(objects);
     }
     
+    public StringResourceModel createStringResource(String resourceKey, IModel model, Object... objects) {
+        return new StringResourceModel(resourceKey, model).setDefaultValue(resourceKey)
+                .setParameters(objects);
+    }
+    
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
     	String resourceKey = null;
     	if (polystringKey != null) {

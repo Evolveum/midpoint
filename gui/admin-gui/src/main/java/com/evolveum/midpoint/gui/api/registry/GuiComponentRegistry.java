@@ -27,6 +27,6 @@ public interface GuiComponentRegistry extends Serializable {
 
 	public void addToRegistry(GuiComponentFactory factory);
 	
-	public <T> GuiComponentFactory findFactory(ItemWrapper itemWrapper);
+	public <T> GuiComponentFactory findValuePanelFactory(ItemWrapper itemWrapper);
 	
 }

@@ -25,38 +25,29 @@ import javax.xml.namespace.QName;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.MutableItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
@@ -67,11 +58,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitio
  * @author katka
  *
  */
-public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>> implements ItemWrapper<PV, I, ID>, Serializable {
+public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, VW extends PrismValueWrapper> implements ItemWrapper<PV, I, ID, VW>, Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private ContainerValueWrapper<?> parent;
+	private PrismContainerValueWrapper<?> parent;
 	
 	private I item = null;
 	private ItemStatus status = null;
@@ -80,12 +71,12 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
 	private String displayName;
 	
-	private List<PrismValueWrapper<PV>> values;
+	private List<VW> values;
 	
 	//consider
 	private boolean readOnly;
 	
-	public ItemWrapperImpl(@Nullable ContainerValueWrapper<?> parent, I item, ItemStatus status, ItemPath fullPath, PrismContext prismContext) {
+	public ItemWrapperImpl(@Nullable PrismContainerValueWrapper<?> parent, I item, ItemStatus status) {
 		Validate.notNull(item, "Item must not be null.");
 		Validate.notNull(status, "Item status must not be null.");
 
@@ -93,8 +84,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		this.item = item;
 		this.status = status;
 //		this.readonly = readonly;
-		this.fullPath = fullPath;
-		this.prismContext = prismContext;
+		
 	}
 	
 	@Override
@@ -130,6 +120,10 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	public boolean isMandatory() {
 		return getItemDefinition().isMandatory();
 	}
+	
+	public ItemStatus getStatus() {
+		return status;
+	}
 
 //	@Override
 //	public boolean hasOutboundMapping() {
@@ -141,6 +135,10 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 //		
 //		return false;
 //	}
+	
+	public PrismContainerValueWrapper<?> getParent() {
+		return parent;
+	}
 	
 	@Override
 	public boolean isMultiValue() {
@@ -235,7 +233,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
 	
 	@Override
-	public List<PrismValueWrapper<PV>> getValues() {
+	public List<VW> getValues() {
 		return values;
 	}
 	/* (non-Javadoc)
@@ -323,11 +321,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#getParent()
 	 */
-	@Override
-	public ContainerValueWrapper<?> getParent() {
-		return parent;
-	}
-
+	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#isShowEmpty()
 	 */
@@ -346,22 +340,22 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		
 	}
 	
-	protected boolean isVisible(ItemVisibilityHandler visibilityHandler) {
-		if (visibilityHandler != null) {
-			ItemVisibility visible = visibilityHandler.isVisible(this);
-			if (visible != null) {
-				switch (visible) {
-					case VISIBLE:
-						return true;
-					case HIDDEN:
-						return false;
-					default:
-						// automatic, go on ...
-				}
-			}
-		}
-	    return isVisible();
-	}
+//	protected boolean isVisible(ItemVisibilityHandler visibilityHandler) {
+//		if (visibilityHandler != null) {
+//			ItemVisibility visible = visibilityHandler.isVisible(this);
+//			if (visible != null) {
+//				switch (visible) {
+//					case VISIBLE:
+//						return true;
+//					case HIDDEN:
+//						return false;
+//					default:
+//						// automatic, go on ...
+//				}
+//			}
+//		}
+//	    return isVisible();
+//	}
 	
 	@Override
 	public boolean isVisible() {
@@ -399,9 +393,9 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 //		return item.getDefinition();
 //	}
 
-	boolean isEmpty() {
-		return item.isEmpty();
-	}
+//	boolean isEmpty() {
+//		return item.isEmpty();
+//	}
 	
 	ItemStatus getItemStatus() {
 		return status;
@@ -574,7 +568,6 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	 */
 	@Override
 	public I instantiate() throws SchemaException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

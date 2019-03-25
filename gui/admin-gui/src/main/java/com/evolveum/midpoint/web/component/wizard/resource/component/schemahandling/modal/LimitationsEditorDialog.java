@@ -162,8 +162,10 @@ public class LimitationsEditorDialog extends ModalWindow{
                 Label linkLabel = new Label(ID_LIMITATIONS_LABEL, createLimitationsLabelModel(item));
                 linkContainer.add(linkLabel);
 
-                AjaxLink delete = new AjaxLink(ID_LIMITATION_DELETE) {
-
+                AjaxLink<Void> delete = new AjaxLink<Void>(ID_LIMITATION_DELETE) {
+				
+                	private static final long serialVersionUID = 1L;
+                	
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteLimitationPerformed(target, item);
@@ -203,7 +205,9 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     private void initButtons(Form form) {
-        AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
+    	AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
+		
+    		private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -213,7 +217,8 @@ public class LimitationsEditorDialog extends ModalWindow{
 		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         form.add(add);
 
-        AjaxLink cancel = new AjaxLink(ID_BUTTON_CANCEL) {
+        AjaxLink<Void> cancel = new AjaxLink<Void>(ID_BUTTON_CANCEL) {
+			private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -222,7 +227,8 @@ public class LimitationsEditorDialog extends ModalWindow{
         };
         form.add(cancel);
 
-        AjaxLink save = new AjaxLink(ID_BUTTON_SAVE) {
+        AjaxLink<Void> save = new AjaxLink<Void>(ID_BUTTON_SAVE) {
+			private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

@@ -75,7 +75,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
         });
         add(placeholderContainer);
 
-        AjaxLink placeholderAdd = new AjaxLink(ID_PLACEHOLDER_ADD) {
+        AjaxLink<Void> placeholderAdd = new AjaxLink<Void>(ID_PLACEHOLDER_ADD) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -179,27 +179,27 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item, NonEmptyModel<Boolean> readOnlyModel) {
-        AjaxLink add = new AjaxLink(ID_ADD) {
+    	  AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                addValuePerformed(target);
-            }
-        };
-        add.add(new AttributeAppender("class", getPlusClassModifier(item)));
-		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
-        buttonGroup.add(add);
+              @Override
+              public void onClick(AjaxRequestTarget target) {
+                  addValuePerformed(target);
+              }
+          };
+          add.add(new AttributeAppender("class", getPlusClassModifier(item)));
+  		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+          buttonGroup.add(add);
 
-        AjaxLink remove = new AjaxLink(ID_REMOVE) {
+          AjaxLink<Void> remove = new AjaxLink<Void>(ID_REMOVE) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                removeValuePerformed(target, item);
-            }
-        };
-        remove.add(new AttributeAppender("class", getMinusClassModifier()));
-		remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
-        buttonGroup.add(remove);
+              @Override
+              public void onClick(AjaxRequestTarget target) {
+                  removeValuePerformed(target, item);
+              }
+          };
+          remove.add(new AttributeAppender("class", getMinusClassModifier()));
+  		remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+          buttonGroup.add(remove);
     }
 
     protected String getPlusClassModifier(ListItem<T> item){

@@ -233,7 +233,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		});
 		headerRow.add(errorIcon);
 
-		AjaxLink name = new AjaxLink(ID_NAME) {
+		AjaxLink<Void> name = new AjaxLink<Void>(ID_NAME) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -243,7 +243,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 		headerRow.add(name);
 
-		AjaxLink errorLink = new AjaxLink(ID_BUTTON_SHOW_MORE) {
+		AjaxLink<Void> errorLink = new AjaxLink<Void>(ID_BUTTON_SHOW_MORE) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -268,7 +268,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", AssignmentEditorPanel.this));
 		headerRow.add(activation);
 
-		ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
+		ToggleIconButton<Void> expandButton = new ToggleIconButton<Void>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
 				GuiStyleConstants.CLASS_ICON_COLLAPSE) {
 			private static final long serialVersionUID = 1L;
 
@@ -595,7 +595,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		});
 		body.add(constructionContainer);
 
-		AjaxLink showEmpty = new AjaxLink(ID_SHOW_EMPTY) {
+		AjaxLink<Void> showEmpty = new AjaxLink<Void>(ID_SHOW_EMPTY) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {

@@ -19,10 +19,10 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -75,7 +75,7 @@ public class PageOrgUnitHistory extends PageOrgUnit {
     }
 
     @Override
-    protected ObjectWrapperImpl<OrgType> loadObjectWrapper(PrismObject<OrgType> org, boolean isReadonly) {
+    protected PrismObjectWrapper<OrgType> loadObjectWrapper(PrismObject<OrgType> org, boolean isReadonly) {
         return super.loadObjectWrapper(org, true);
     }
 

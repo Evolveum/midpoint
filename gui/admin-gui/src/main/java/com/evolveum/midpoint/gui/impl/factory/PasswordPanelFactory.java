@@ -20,14 +20,13 @@ import javax.annotation.Priority;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -37,8 +36,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 @Component
 @Priority(1000)
-public class PasswordPanelFactory extends AbstractGuiComponentFactory {
+public class PasswordPanelFactory extends AbstractGuiComponentFactory<ProtectedStringType> {
 
+	private static final long serialVersionUID = 1L;
+	
 	@Autowired private GuiComponentRegistry registry;
 	
 	@PostConstruct
@@ -47,13 +48,12 @@ public class PasswordPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		return ProtectedStringType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
+	public boolean match(PrismPropertyWrapper<ProtectedStringType> wrapper) {
+		return ProtectedStringType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
-		
+	protected Panel getPanel(PrismPropertyPanelContext<ProtectedStringType> panelCtx) {
 		if (!(panelCtx.getPageBase() instanceof PageUser)) {
 			return new PasswordPanel(panelCtx.getComponentId(), (IModel<ProtectedStringType>) panelCtx.getRealValueModel(),
 				panelCtx.isPropertyReadOnly(), true);
@@ -61,7 +61,6 @@ public class PasswordPanelFactory extends AbstractGuiComponentFactory {
 		
 		return new PasswordPanel(panelCtx.getComponentId(), (IModel<ProtectedStringType>) panelCtx.getRealValueModel(),
 				panelCtx.isPropertyReadOnly());
-		
 	}
 
 	

@@ -15,16 +15,25 @@
  */
 package com.evolveum.midpoint.gui.api.prism;
 
+import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author katka
  *
  */
-public interface PrismContainerWrapper<C extends Containerable> extends ItemWrapper<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>>{
+public interface PrismContainerWrapper<C extends Containerable> extends ItemWrapper<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>, PrismContainerValueWrapper<C>>, PrismContainerDefinition<C>{
 
 	void setExpanded(boolean expanded);
 	
@@ -33,4 +42,16 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
 	void setShowOnTopLevel(boolean setShowOnTopLevel);
 	
 	boolean isShowOnTopLevel();
+	
+	ItemStatus getStatus();
+	
+	ItemWrapper<?, ?, ?,?> findItem(ItemPath path);
+	
+	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path);
+	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath);
+	PrismReferenceWrapper findReference(ItemPath path);
+	
+	
 }
+
+

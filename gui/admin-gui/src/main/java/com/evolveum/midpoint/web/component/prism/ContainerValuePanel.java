@@ -175,7 +175,8 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
             @Override
             public String getObject() {
             	ItemWrapperOld property = wrapper.getObject();
-                return property.isStripe() ? "stripe" : null;
+//                return property.isStripe() ? "stripe" : null;
+            	return "";
             }
         };
     }
@@ -255,7 +256,8 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
     								return false;
     							}
     							
-    							return containerPanel.isPanelVisible(isPanalVisible, (IModel<ContainerWrapperImpl<C>>) item.getModel());
+//    							return containerPanel.isPanelVisible(isPanalVisible, item.getModel());
+    							return true;
     							
     						}
     					});

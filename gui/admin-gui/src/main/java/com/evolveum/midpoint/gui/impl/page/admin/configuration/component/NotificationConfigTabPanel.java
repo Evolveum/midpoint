@@ -183,7 +183,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
                 	
                 	item.add(createHeader(ID_VALUE_HEADER, fileConfigType == null || fileConfigType.getName() == null || fileConfigType.getName().isEmpty() ? (FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details") : fileConfigType.getName()));
                 	
-                	AjaxLink removeButton = new AjaxLink(ID_REMOVE_BUTTON) {
+                	AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
                     	private static final long serialVersionUID = 1L;
 
                     	@Override
@@ -232,7 +232,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
             values.setReuseItems(true);
             files.add(values);
             
-            AjaxLink addButton = new AjaxLink(ID_ADD_BUTTON) {
+            AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
             	private static final long serialVersionUID = 1L;
 
             	@Override

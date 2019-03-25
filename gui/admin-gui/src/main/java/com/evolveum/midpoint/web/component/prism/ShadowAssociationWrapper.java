@@ -19,7 +19,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -40,7 +40,7 @@ public class ShadowAssociationWrapper extends ContainerWrapperImpl<ShadowAssocia
 
 	private static transient Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapper.class);
 	
-	ShadowAssociationWrapper(ObjectWrapperImpl objectWrapper, PrismContainer<ShadowAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+	ShadowAssociationWrapper(ObjectWrapperOld objectWrapper, PrismContainer<ShadowAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		super(objectWrapper, container, objectStatus, status, path);	
 	}
 

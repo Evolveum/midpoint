@@ -31,13 +31,21 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -94,7 +102,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
-	private LoadableModel<ObjectWrapperImpl<O>> objectModel;
+	private LoadableModel<PrismObjectWrapper<O>> objectModel;
 	private LoadableModel<List<FocusSubwrapperDto<OrgType>>> parentOrgModel;
 
 	private ProgressPanel progressPanel;
@@ -136,29 +144,44 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	@Override
 	protected IModel<String> createPageTitleModel() {
-		return new LoadableModel<String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected String load() {
-				if (!isOidParameterExists() && !editingFocus) {
-					String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
-					return createStringResource(key).getObject();
-				}
-
-				String name = null;
-				if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-					name = WebComponentUtil.getName(getObjectWrapper().getObject());
-				}
-
-				String key = (getObjectWrapper().isReadonly() ? "PageAdminObjectDetails.title.view" : "PageAdminObjectDetails.title.edit")
-						+ getCompileTimeClass().getSimpleName();
-				return createStringResource(key, name).getObject();
-			}
-		};
+		if (isAdd()) {
+			return createStringResource("PageAdminObjectDetails.title.new", getCompileTimeClass().getSimpleName());
+		}
+		
+		String name = null;
+		if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
+			name = WebComponentUtil.getName(getObjectWrapper().getObject());
+		}
+		
+		return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), name);
+		
+//		return new LoadableModel<String>() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			protected String load() {
+//				if (!isOidParameterExists() && !editingFocus) {
+//					String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
+//					return createStringResource(key).getObject();
+//				}
+//
+//				String name = null;
+//				if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
+//					name = WebComponentUtil.getName(getObjectWrapper().getObject());
+//				}
+//
+//				String key = (getObjectWrapper().isReadonly() ? "PageAdminObjectDetails.title.view" : "PageAdminObjectDetails.title.edit")
+//						+ getCompileTimeClass().getSimpleName();
+//				return createStringResource(key, name).getObject();
+//			}
+//		};
+	}
+	
+	private boolean isAdd() {
+		return !isOidParameterExists() && !editingFocus;
 	}
 
-	public LoadableModel<ObjectWrapperImpl<O>> getObjectModel() {
+	public LoadableModel<PrismObjectWrapper<O>> getObjectModel() {
 		return objectModel;
 	}
 
@@ -170,7 +193,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return mainPanel;
 	}
 
-	public ObjectWrapperImpl<O> getObjectWrapper() {
+	public PrismObjectWrapper<O> getObjectWrapper() {
 		return objectModel.getObject();
 	}
 
@@ -216,13 +239,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
 		editingFocus = !isNewObject;
 
-		objectModel = new LoadableModel<ObjectWrapperImpl<O>>(false) {
+		objectModel = new LoadableModel<PrismObjectWrapper<O>>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected ObjectWrapperImpl<O> load() {
-				ObjectWrapperImpl<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
-				wrapper.sort();
+			protected PrismObjectWrapper<O> load() {
+				PrismObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
+//				wrapper.sort();
 				return wrapper;
 			}
 		};
@@ -298,7 +321,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return getObjectOidParameter() != null;
 	}
 
-	protected ObjectWrapperImpl<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
+	protected PrismObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
 		Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
 		OperationResult result = task.getResult();
 		PrismObject<O> object = null;
@@ -350,27 +373,40 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 
 		ContainerStatus status = isOidParameterExists() || editingFocus ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-		ObjectWrapperImpl<O> wrapper;
-		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+		ItemStatus itemStatus = isOidParameterExists() || editingFocus ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED;
+		PrismObjectWrapper<O> wrapper;
+		
+		PrismObjectWrapperFactory<O> factory = getRegistry().getObjectWrapperFactory(object.getDefinition());
+		WrapperContext context = new WrapperContext(task, result);
+		context.setCreateIfEmpty(ItemStatus.ADDED == itemStatus);
+		context.setReadOnly(isReadonly);
+		
+		
+		
+//		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
-			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, isReadonly, task);
+			wrapper = factory.createObjectWrapper(object, itemStatus, context);
+//			wrapper = factory.createWrapper(object, itemStatus, context);
+//			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, isReadonly, task);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			try {
-				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, task);
+				wrapper = factory.createObjectWrapper(object, itemStatus, context);
+//				wrapper = factory.createWrapper(object, itemStatus, context);
+//				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, task);
 			} catch (SchemaException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
 		}
-		wrapper.setLoadOptions(loadOptions);
+//		wrapper.setLoadOptions(loadOptions);
 
-		showResult(wrapper.getResult(), false);
+		showResult(result, false);
 
-		loadParentOrgs(wrapper, task, result);
+//		loadParentOrgs(wrapper, task, result);
 
-		wrapper.setShowEmpty(!isOidParameterExists() && !editingFocus);
-		wrapper.setReadonly(isReadonly);
+//		wrapper.setShowEmpty(!isOidParameterExists() && !editingFocus);
+//		wrapper.setReadonly(isReadonly);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
@@ -379,39 +415,39 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return wrapper;
 	}
 
-	private void loadParentOrgs(ObjectWrapperImpl<O> wrapper, Task task, OperationResult result) {
-		OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
-		PrismObject<O> focus = wrapper.getObject();
-		// Load parent organizations (full objects). There are used in the
-		// summary panel and also in the main form.
-		// Do it here explicitly instead of using resolve option to have ability
-		// to better handle (ignore) errors.
-		for (ObjectReferenceType parentOrgRef : focus.asObjectable().getParentOrgRef()) {
-
-			PrismObject<OrgType> parentOrg = null;
-			try {
-
-				parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
-						subResult);
-				LOGGER.trace("Loaded parent org with result {}",
-						new Object[] { subResult.getLastSubresult() });
-			} catch (AuthorizationException e) {
-				// This can happen if the user has permission to read parentOrgRef but it does not have
-				// the permission to read target org
-				// It is OK to just ignore it.
-				subResult.muteLastSubresultError();
-				LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
-			} catch (Exception ex) {
-				subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
-				LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
-			}
-
-			if (parentOrg != null) {
-				wrapper.getParentOrgs().add(parentOrg);
-			}
-		}
-		subResult.computeStatus();
-	}
+//	private void loadParentOrgs(PrismObjectWrapper<O> wrapper, Task task, OperationResult result) {
+//		OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
+//		PrismObject<O> focus = wrapper.getObject();
+//		// Load parent organizations (full objects). There are used in the
+//		// summary panel and also in the main form.
+//		// Do it here explicitly instead of using resolve option to have ability
+//		// to better handle (ignore) errors.
+//		for (ObjectReferenceType parentOrgRef : focus.asObjectable().getParentOrgRef()) {
+//
+//			PrismObject<OrgType> parentOrg = null;
+//			try {
+//
+//				parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
+//						subResult);
+//				LOGGER.trace("Loaded parent org with result {}",
+//						new Object[] { subResult.getLastSubresult() });
+//			} catch (AuthorizationException e) {
+//				// This can happen if the user has permission to read parentOrgRef but it does not have
+//				// the permission to read target org
+//				// It is OK to just ignore it.
+//				subResult.muteLastSubresultError();
+//				LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
+//			} catch (Exception ex) {
+//				subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
+//				LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
+//			}
+//
+//			if (parentOrg != null) {
+//				wrapper.getParentOrgs().add(parentOrg);
+//			}
+//		}
+//		subResult.computeStatus();
+//	}
 
 	protected abstract Class<? extends Page> getRestartResponsePage();
 
@@ -460,7 +496,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 		boolean delegationChangesExist = processDeputyAssignments(previewOnly);
 
-		ObjectWrapperImpl<O> objectWrapper = getObjectWrapper();
+		PrismObjectWrapper<O> objectWrapper = getObjectWrapper();
 		LOGGER.debug("Saving object {}", objectWrapper);
 
 		// todo: improve, delta variable is quickfix for MID-1006
@@ -482,9 +518,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			reviveModels();
 
 			delta = objectWrapper.getObjectDelta();
-			if (objectWrapper.getOldDelta() != null) {
-				delta = ObjectDeltaCollectionsUtil.summarize(objectWrapper.getOldDelta(), delta);
-			}
+//			if (objectWrapper.getOldDelta() != null) {
+//				delta = ObjectDeltaCollectionsUtil.summarize(objectWrapper.getOldDelta(), delta);
+//			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
@@ -496,7 +532,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 
 		switch (objectWrapper.getStatus()) {
-			case ADDING:
+			case ADDED:
 				try {
 					PrismObject<O> objectToAdd = delta.getObjectToAdd();
 					WebComponentUtil.encryptCredentials(objectToAdd, true, getMidpointApplication());
@@ -525,7 +561,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				}
 				break;
 
-			case MODIFYING:
+			case NOT_CHANGED:
 				try {
 					WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
 					prepareObjectDeltaForModify(delta);
@@ -656,7 +692,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return null;
 	}
 
-	protected boolean executeForceDelete(ObjectWrapperImpl userWrapper, Task task, ModelExecuteOptions options,
+	protected boolean executeForceDelete(PrismObjectWrapper<O> userWrapper, Task task, ModelExecuteOptions options,
 			OperationResult parentResult) {
 		return isForce();
 	}

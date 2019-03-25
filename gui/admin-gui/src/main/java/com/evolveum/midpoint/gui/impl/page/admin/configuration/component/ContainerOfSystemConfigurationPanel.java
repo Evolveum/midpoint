@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 /**
  * @author skublik
  */
-public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends BasePanel<ObjectWrapperImpl<SystemConfigurationType>> {
+public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends BasePanel<ObjectWrapperOld<SystemConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -49,7 +49,7 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     private static final String ID_CONTAINER = "container";
     private ItemName qNameContainer;
 
-    public ContainerOfSystemConfigurationPanel(String id, IModel<ObjectWrapperImpl<SystemConfigurationType>> model, QName qNameContainer) {
+    public ContainerOfSystemConfigurationPanel(String id, IModel<ObjectWrapperOld<SystemConfigurationType>> model, QName qNameContainer) {
         super(id, model);
         this.qNameContainer = ItemName.fromQName(qNameContainer);
     }

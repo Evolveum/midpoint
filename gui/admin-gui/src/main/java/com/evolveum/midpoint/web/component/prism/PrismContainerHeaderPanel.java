@@ -40,11 +40,12 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 
 			@Override
 			public boolean isVisible() {
-				return isContainerMultivalue();
+				return true;
+//				return isContainerMultivalue();
 			}
 		});
 		
-		 AjaxLink addButton = new AjaxLink(ID_ADD_BUTTON) {
+		 AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -91,29 +92,30 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 		return getModelObject() != null ? getModelObject().getDisplayName() : "";
 	}
 	
-	@Override
+//	@Override
 	protected WebMarkupContainer initExpandCollapseButton(String contentAreaId) {
 		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
 		
-		ToggleIconButton expandCollapseButton = new ToggleIconButton(ID_EXPAND_COLLAPSE_BUTTON,
-				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				onExpandClick(target);
-			}
-						
-			@Override
-			public boolean isOn() {
-				return PrismContainerHeaderPanel.this.getModelObject().isExpanded();
-			}
-        };
-        expandCollapseButton.setOutputMarkupId(true);
-        
-        expandCollapseFragment.add(expandCollapseButton);
-        
+//		
+//		ToggleIconButton expandCollapseButton = new ToggleIconButton(ID_EXPAND_COLLAPSE_BUTTON,
+//				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
+//			
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				onExpandClick(target);
+//			}
+//						
+//			@Override
+//			public boolean isOn() {
+//				return PrismContainerHeaderPanel.this.getModelObject().isExpanded();
+//			}
+//        };
+//        expandCollapseButton.setOutputMarkupId(true);
+//        
+//        expandCollapseFragment.add(expandCollapseButton);
+//        
         return expandCollapseFragment;
 	}
 	
@@ -154,7 +156,8 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	
 	@Override
 	protected String getHelpText() {
-		return WebComponentUtil.loadHelpText(new Model<ContainerWrapperImpl<C>>(getModelObject()), PrismContainerHeaderPanel.this);
+		return "help";
+//		return WebComponentUtil.loadHelpText(new Model<ContainerWrapperImpl<C>>(getModelObject()), PrismContainerHeaderPanel.this);
 	}
 	
 	@Override

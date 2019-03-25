@@ -18,6 +18,8 @@ package com.evolveum.midpoint.gui.impl.prism;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
@@ -27,5 +29,6 @@ public interface PrismValueWrapper<T> extends Serializable {
 
 	T getRealValue();
 	
+	ValueStatus getValueStatus();
 //	ItemWrapper<?, ?, ?> getParent();
 }

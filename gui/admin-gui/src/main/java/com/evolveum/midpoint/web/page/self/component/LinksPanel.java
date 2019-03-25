@@ -91,16 +91,21 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
             }
 
             WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());
-            Link linkItem = new Link(ID_LINK) {
+            Link<Void> linkItem = new Link<Void>(ID_LINK) {
+            	
+            	private static final long serialVersionUID = 1L;
 
-                @Override
-                public void onClick() {
-                }
-
-                @Override
-                protected void onComponentTag(final ComponentTag tag) {
-                    super.onComponentTag(tag);
-                    String rootContext = "";
+				@Override
+				public void onClick() {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				protected void onComponentTag(ComponentTag tag) {
+					super.onComponentTag(tag);
+					
+					String rootContext = "";
                     //TODO: what is this for???
                     if (link.getTargetUrl() != null && !link.getTargetUrl().startsWith("http://") &&
                             !link.getTargetUrl().startsWith("https://") &&
@@ -115,8 +120,10 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                         }
                     }
                     tag.put("href", rootContext + (link.getTargetUrl() == null ? "#" : link.getTargetUrl()));
-                }
-            };
+				}
+			};
+            
+         
             linkItem.add(new Label(ID_IMAGE) {
 
                 @Override

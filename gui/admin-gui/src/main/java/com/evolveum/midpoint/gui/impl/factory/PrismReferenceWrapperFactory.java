@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.gui.impl.factory;
+
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
+/**
+ * @author katka
+ *
+ */
+public class PrismReferenceWrapperFactory extends ItemWrapperFacotryImpl<PrismReferenceWrapper, PrismReferenceValue, PrismReference, PrismReferenceDefinition>{
+
+	@Override
+	public boolean match(ItemDefinition<?> def) {
+		return def instanceof PrismReferenceDefinition;
+	}
+
+	@Override
+	public void register() {
+		getRegistry().addToRegistry(this);
+	}
+
+	@Override
+	public int getOrder() {
+		return Integer.MAX_VALUE;
+	}
+
+	@Override
+	protected PrismReferenceValue createNewValue(PrismReference item) throws SchemaException {
+		PrismReferenceValue prv = getPrismContext().itemFactory().createReferenceValue();
+		item.add(prv);
+		return prv;
+	}
+
+	@Override
+	protected PrismReferenceWrapper createWrapper(PrismContainerValueWrapper<?> parent, PrismReference item,
+			ItemStatus status) {
+		PrismReferenceWrapperImpl wrapper = new PrismReferenceWrapperImpl(parent, item, status);
+		return wrapper;
+	}
+
+	@Override
+	public PrismValueWrapper<?> createValueWrapper(PrismReferenceWrapper parent, PrismReferenceValue value, ValueStatus status,
+			WrapperContext context) throws SchemaException {
+		
+	}
+
+}

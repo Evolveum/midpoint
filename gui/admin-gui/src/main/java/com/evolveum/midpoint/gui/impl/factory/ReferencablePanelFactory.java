@@ -25,28 +25,29 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
-import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 @Component
 @Priority(1000)
-public class ReferencablePanelFactory implements GuiComponentFactory {
+public class ReferencablePanelFactory<R extends Referencable> implements GuiComponentFactory<PrismReferencePanelContext<R>> {
 
+	private static final long serialVersionUID = 1L;
+	
 	@Autowired GuiComponentRegistry registry;
 	
 	@PostConstruct
@@ -55,12 +56,18 @@ public class ReferencablePanelFactory implements GuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		return itemWrapper.getItemDefinition() instanceof PrismReferenceDefinition;
+	public Integer getOrder() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+		return wrapper instanceof PrismReferenceDefinition;
+	}
+
+	@Override
+	public Panel createPanel(PrismReferencePanelContext<R> panelCtx) {
 		ValueChoosePanel panel = new ValueChoosePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
 
 			private static final long serialVersionUID = 1L;
@@ -103,13 +110,6 @@ public class ReferencablePanelFactory implements GuiComponentFactory {
 		
 		panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(panel));
 		return panel;
-		
-	}
-
-	@Override
-	public Integer getOrder() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	

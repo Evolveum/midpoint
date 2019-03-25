@@ -133,14 +133,18 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         }
         accountContainer.add(accounts);
 
-        AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
-        	private static final long serialVersionUID = 1L;
+        AjaxLink<Void> help = new AjaxLink<Void>(ID_BUTTON_HELP) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showHelpPerformed(target);
-            }
-        };
+        	private static final long serialVersionUID = 1L;
+        	
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				showHelpPerformed(target);
+			}
+        	
+        	
+		};
+        
         accountContainer.add(help);
 
         add(accountContainer);

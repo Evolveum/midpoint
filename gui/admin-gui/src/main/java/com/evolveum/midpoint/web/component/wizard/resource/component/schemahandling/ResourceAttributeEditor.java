@@ -249,13 +249,17 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(description);
 
-        AjaxLink limitations = new AjaxLink(ID_BUTTON_LIMITATIONS) {
+        AjaxLink<Void> limitations = new AjaxLink<Void>(ID_BUTTON_LIMITATIONS) {
+        	
+        	private static final long serialVersionUID = 1L;
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                limitationsEditPerformed(target);
-            }
-        };
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				limitationsEditPerformed(target);
+			}
+        	
+		};
+      
         add(limitations);
 
         CheckBox exclusiveStrong = new CheckBox(ID_EXCLUSIVE_STRONG, new PropertyModel<>(getModel(), "exclusiveStrong"));

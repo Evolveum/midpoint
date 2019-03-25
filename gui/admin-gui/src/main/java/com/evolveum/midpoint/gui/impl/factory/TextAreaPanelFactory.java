@@ -16,28 +16,28 @@
 
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.io.Serializable;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.component.input.TextAreaPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @Component
-public class TextAreaPanelFactory extends AbstractGuiComponentFactory {
+public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiComponentFactory<T> {
 
+	private static final long serialVersionUID = 1L;
+	
 	@Autowired private GuiComponentRegistry registry;
 	
 	@PostConstruct
@@ -46,20 +46,20 @@ public class TextAreaPanelFactory extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		ItemDefinition def = itemWrapper.getItemDefinition();
-		
-		return FocusType.F_DESCRIPTION.equals(def.getName()) || QueryType.COMPLEX_TYPE.equals(def.getTypeName()) || CleanupPoliciesType.COMPLEX_TYPE.equals(def.getTypeName());
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+		return FocusType.F_DESCRIPTION.equals(wrapper.getName()) || QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()) || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
-	
+
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
+	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
 		int size = 10;
 		if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
 			size = 1;
 		}
 		return new TextAreaPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
 	}
+
+
 
 	
 }

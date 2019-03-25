@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.web.component.prism;
 
-public abstract class PrismWrapper {
+import java.io.Serializable;
+
+public abstract class PrismWrapper implements Serializable{
 
 	
 	 	private boolean showEmpty;

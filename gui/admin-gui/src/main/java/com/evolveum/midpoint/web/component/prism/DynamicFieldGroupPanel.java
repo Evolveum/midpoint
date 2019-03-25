@@ -20,7 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<ObjectWrapperImpl<O>> {
+public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<ObjectWrapperOld<O>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -55,14 +55,14 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 	private List<AbstractFormItemType> formItems;
 
-	public DynamicFieldGroupPanel(String id, String groupName, IModel<ObjectWrapperImpl<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
+	public DynamicFieldGroupPanel(String id, String groupName, IModel<ObjectWrapperOld<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
 		super(id, objectWrapper);
 		setParent(parentPage);
 		this.formItems = formItems;
 		initLayout(groupName, formItems, mainForm);
 	}
 
-	public DynamicFieldGroupPanel(String id, IModel<ObjectWrapperImpl<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
+	public DynamicFieldGroupPanel(String id, IModel<ObjectWrapperOld<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
 		super(id, objectWrapper);
 		setParent(parentPage);
 		this.formItems = FormTypeUtil.getFormItems(formDefinition.getFormItems());
@@ -100,8 +100,8 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 			if (itemWrapper instanceof ContainerWrapperImpl) {
 				//noinspection unchecked
 				ContainerWrapperImpl<Containerable> containerWrapper = (ContainerWrapperImpl<Containerable>) itemWrapper;
-				PrismContainerPanelOld<?> containerPanel = new PrismContainerPanelOld<>(itemView.newChildId(),
-						Model.of(containerWrapper), mainForm, w -> ItemVisibility.AUTO);
+				PrismContainerPanelOld containerPanel = new PrismContainerPanelOld(itemView.newChildId(),
+						Model.of(containerWrapper), mainForm, null); //w -> ItemVisibility.AUTO
 				containerPanel.setOutputMarkupId(true);
 				itemView.add(containerPanel);
 			} else {
@@ -120,14 +120,14 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 	}
 
 	@NotNull
-	private ItemWrapperOld<?,?,?> findAndTailorItemWrapper(AbstractFormItemType formField, ObjectWrapperImpl<O> objectWrapper) {
+	private ItemWrapperOld<?,?,?> findAndTailorItemWrapper(AbstractFormItemType formField, ObjectWrapperOld<O> objectWrapper) {
 		ItemWrapperOld<?, ?, ?> itemWrapper = findItemWrapper(formField, objectWrapper);
 		applyFormDefinition(itemWrapper, formField);
 		return itemWrapper;
 	}
 
 	@NotNull
-	private ItemWrapperOld<?, ?, ?> findItemWrapper(AbstractFormItemType formField, ObjectWrapperImpl<O> objectWrapper) {
+	private ItemWrapperOld<?, ?, ?> findItemWrapper(AbstractFormItemType formField, ObjectWrapperOld<O> objectWrapper) {
 		ItemPath path = GuiImplUtil.getItemPath(formField);
 		if (path == null) {
 			getSession().error("Bad form item definition. It has to contain reference to the real attribute");
@@ -138,7 +138,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		ItemWrapperOld<?,?,?> itemWrapper;
 		ItemDefinition<?> itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
 		if (itemDef instanceof PrismContainerDefinition) {
-			itemWrapper = objectWrapper.findContainerWrapper(path);
+			itemWrapper = (ItemWrapperOld<?, ?, ?>) objectWrapper.findContainerWrapper(path);
 		} else {
 			itemWrapper = objectWrapper.findPropertyWrapper(path);
 		}
@@ -173,7 +173,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		}
 	}
 
-	public ObjectWrapperImpl<O> getObjectWrapper() {
+	public ObjectWrapperOld<O> getObjectWrapper() {
 		return getModelObject();
 	}
 

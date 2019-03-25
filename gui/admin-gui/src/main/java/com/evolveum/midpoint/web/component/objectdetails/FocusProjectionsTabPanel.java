@@ -40,10 +40,11 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -104,7 +105,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 
-	public FocusProjectionsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperImpl<F>> focusModel,
+	public FocusProjectionsTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, PageBase page) {
 		super(id, mainForm, focusModel, page);
 		Validate.notNull(projectionModel, "Null projection model");
@@ -119,7 +120,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		add(shadows);
 
 		InlineMenu accountMenu = new InlineMenu(ID_SHADOW_MENU, new Model((Serializable) createShadowMenu()));
-        accountMenu.setVisible(!getObjectWrapper().isReadonly());
+        accountMenu.setVisible(!getObjectWrapper().isReadOnly());
 		shadows.add(accountMenu);
 
 		final ListView<FocusSubwrapperDto<ShadowType>> projectionList = new ListView<FocusSubwrapperDto<ShadowType>>(
@@ -130,7 +131,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			protected void populateItem(final ListItem<FocusSubwrapperDto<ShadowType>> item) {
 				PackageResourceReference packageRef;
 				final FocusSubwrapperDto<ShadowType> dto = item.getModelObject();
-				final PropertyModel<ObjectWrapperImpl<ShadowType>> objectWrapperModel = new PropertyModel<>(
+				final PropertyModel<ObjectWrapperOld<ShadowType>> objectWrapperModel = new PropertyModel<>(
                     item.getModel(), "object");
 
 				final Panel shadowPanel;
@@ -166,7 +167,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					@Override
 					public boolean isVisible() {
 						FocusSubwrapperDto<ShadowType> shadowWrapperDto = item.getModelObject();
-						ObjectWrapperImpl<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
+						ObjectWrapperOld<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
 						return !shadowWrapper.isMinimalized();
 					}
 
@@ -199,7 +200,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			protected void onUpdate(AjaxRequestTarget target) {
 				for (FocusSubwrapperDto<ShadowType> dto : projectionList.getModelObject()) {
 					if (dto.isLoadedOK()) {
-						ObjectWrapperImpl<ShadowType> accModel = dto.getObject();
+						ObjectWrapperOld<ShadowType> accModel = dto.getObject();
 						accModel.setSelected(getModelObject());
 					}
 				}
@@ -214,7 +215,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	
 	private void onExpandCollapse(AjaxRequestTarget target, IModel<FocusSubwrapperDto<ShadowType>> dtoModel) {
 		FocusSubwrapperDto<ShadowType> shadowWrapperDto = dtoModel.getObject();
-		ObjectWrapperImpl<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
+		ObjectWrapperOld<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
 		if (shadowWrapper.isMinimalized()) {
 			return;
 		}
@@ -275,7 +276,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				getPrismContext().adopt(shadow);
 
 				Task task = getPageBase().createSimpleTask(OPERATION_ADD_ACCOUNT);
-				ObjectWrapperImpl<ShadowType> wrapper = ObjectWrapperUtil.createObjectWrapper(
+				ObjectWrapperOld<ShadowType> wrapper = ObjectWrapperUtil.createObjectWrapper(
 						WebComponentUtil.getOrigStringFromPoly(resource.getName()), null,
 						shadow.asPrismObject(), ContainerStatus.ADDING, task, getPageBase());
 				if (wrapper.getResult() != null
@@ -483,7 +484,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				continue;
 			}
 
-			ObjectWrapperImpl<ShadowType> wrapper = account.getObject();
+			ObjectWrapperOld<ShadowType> wrapper = account.getObject();
 			ContainerWrapperImpl<ActivationType> activation = wrapper
 					.findContainerWrapper(ShadowType.F_ACTIVATION);
 			if (activation == null) {
@@ -519,7 +520,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			if (!account.isLoadedOK()) {
 				continue;
 			}
-			ObjectWrapperImpl<ShadowType> wrapper = account.getObject();
+			ObjectWrapperOld<ShadowType> wrapper = account.getObject();
 			wrapper.setSelected(false);
 
 			ContainerWrapperImpl<ActivationType> activation = wrapper.findContainerWrapper(ShadowType.F_ACTIVATION);

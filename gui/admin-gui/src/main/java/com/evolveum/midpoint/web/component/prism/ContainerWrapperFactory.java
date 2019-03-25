@@ -27,7 +27,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -87,7 +87,7 @@ public class ContainerWrapperFactory {
         return result;
     }
 
-    public <C extends Containerable> ContainerWrapperImpl createContainerWrapper( ObjectWrapperImpl objectWrapper,
+    public <C extends Containerable> ContainerWrapperImpl createContainerWrapper( ObjectWrapperOld objectWrapper,
                                                                               PrismContainer<C> container,
                                                                               ContainerStatus status,
                                                                               ItemPath path,
@@ -108,7 +108,7 @@ public class ContainerWrapperFactory {
        return cWrapper;
     }
 
-	public <C extends Containerable> ShadowAssociationWrapper createAssociationWrapper(ObjectWrapperImpl objectWrapper, PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<C> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
+	public <C extends Containerable> ShadowAssociationWrapper createAssociationWrapper(ObjectWrapperOld objectWrapper, PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<C> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
 		if (association == null || association.getDefinition() == null
 				|| (!(association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class))
 				&& !(association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)))){
@@ -208,7 +208,7 @@ public class ContainerWrapperFactory {
     	
     }
     
-   public <C extends Containerable> ContainerWrapperImpl<C> createContainerWrapper(ObjectWrapperImpl objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly, Task task) {
+   public <C extends Containerable> ContainerWrapperImpl<C> createContainerWrapper(ObjectWrapperOld objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly, Task task) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
@@ -284,14 +284,14 @@ public class ContainerWrapperFactory {
 		}
 		Collection<? extends ItemDefinition> propertyDefinitions = definition.getDefinitions();
 		
-		if(containerWrapper.getPath().equals(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
-			ItemRealValueModel<AppenderConfigurationType> value = new ItemRealValueModel<AppenderConfigurationType>((RealValuable<AppenderConfigurationType>)cWrapper);
-			if(value != null || value.getObject() != null || value.getObject().asPrismContainerValue()!= null
-					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition() != null
-					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions() != null) {
-				propertyDefinitions = value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions();
-			}
-		}
+//		if(containerWrapper.getPath().equals(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
+//			ItemRealValueModel<AppenderConfigurationType> value = new ItemRealValueModel<AppenderConfigurationType>((RealValuable<AppenderConfigurationType>)cWrapper);
+//			if(value != null || value.getObject() != null || value.getObject().asPrismContainerValue()!= null
+//					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition() != null
+//					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions() != null) {
+//				propertyDefinitions = value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions();
+//			}
+//		}
 		
 		List<PropertyOrReferenceWrapper> propertyOrReferenceWrappers = new ArrayList<>();
 		List<ContainerWrapperImpl<C>> containerWrappers = new ArrayList<>();
@@ -499,7 +499,7 @@ public class ContainerWrapperFactory {
 //			return null;
 //		}
 
-		ObjectWrapperImpl objectWrapper = cWrapper.getContainer().getObjectWrapper();
+		ObjectWrapperOld objectWrapper = cWrapper.getContainer().getObjectWrapper();
 		if (container == null) {
 			PrismContainer<C> newContainer;
 			try {

@@ -16,29 +16,27 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Priority;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 
 /**
  * @author katka
  *
  */
 @Component
-public class EnumPanelFactory extends AbstractGuiComponentFactory {
+public class EnumPanelFactory<T extends Enum<?>> extends AbstractGuiComponentFactory<T> {
 
+	private static final long serialVersionUID = 1L;
+	
 	@Autowired GuiComponentRegistry registry;
 	
 	@PostConstruct
@@ -46,36 +44,40 @@ public class EnumPanelFactory extends AbstractGuiComponentFactory {
 		registry.addToRegistry(this);
 	}
 	
-	@Override
-	public <T> boolean match(ItemWrapperOld itemWrapper) {
-		if (itemWrapper.getItem() instanceof PrismReference) {
+	private boolean isEnum(ItemWrapper<?, ?, ?, ?> property) {
+		
+		if (!(property instanceof PrismPropertyWrapper)) {
 			return false;
 		}
-		 return isEnum((PrismProperty) itemWrapper.getItem());
+		
+		Class<T> valueType = property.getTypeClass();
+		if (valueType != null) {
+			return valueType.isEnum();
+		}
+		
+		return (((PrismPropertyWrapper)property).getAllowedValues() != null && ((PrismPropertyWrapper)property).getAllowedValues().size() > 0);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.GuiComponentFactory#createPanel(com.evolveum.midpoint.gui.impl.factory.PanelContext)
-	 */
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
-		Class clazz = panelCtx.getTypeClass();
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+		return (isEnum(wrapper));
+	}
+
+	@Override
+	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+		Class<T> clazz = panelCtx.getTypeClass();
 
 		if (clazz != null) {
-			return WebComponentUtil.createEnumPanel(clazz, panelCtx.getComponentId(), (IModel) panelCtx.getRealValueModel(),
+			return WebComponentUtil.createEnumPanel(clazz, panelCtx.getComponentId(), (IModel<T>) panelCtx.getRealValueModel(),
 					panelCtx.getParentComponent());
 		}
 
 		return WebComponentUtil.createEnumPanel(panelCtx.getAllowedValues(), panelCtx.getComponentId(),
 				panelCtx.getRealValueModel(), panelCtx.getParentComponent());
+
 	}
+
 	
-	private boolean isEnum(PrismProperty property) {
-		PrismPropertyDefinition definition = property.getDefinition();
-		if (definition == null) {
-			return property.getValueClass().isEnum();
-		}
-		return (definition.getAllowedValues() != null && definition.getAllowedValues().size() > 0);
-	}
+	
 
 }
