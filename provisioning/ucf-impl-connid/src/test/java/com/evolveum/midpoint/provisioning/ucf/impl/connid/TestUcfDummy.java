@@ -294,9 +294,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		// THEN
 		display("Generated resource schema", resourceSchema);
-		assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
+		assertEquals("Unexpected number of definitions", 4, resourceSchema.getDefinitions().size());
 
-		assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
+		assertEquals("Unexpected number of object class definitions", 4, resourceSchema.getObjectClassDefinitions().size());
 
 		display("RESOURCE SCHEMA DEFINITION" + resourceSchema.getDefinitions().iterator().next().getTypeName());
 	}

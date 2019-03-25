@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
@@ -854,16 +855,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	private AssignmentInfoDto createAssignmentsPreviewDto(EvaluatedAssignmentTarget evaluatedAbstractRole,
 			Task task, OperationResult result) {
 		return createAssignmentsPreviewDto(evaluatedAbstractRole.getTarget(), evaluatedAbstractRole.isDirectlyAssigned(),
-				evaluatedAbstractRole.getAssignment(), task, result);
+				evaluatedAbstractRole.getAssignmentPath(), evaluatedAbstractRole.getAssignment(), task, result);
 	}
 
-	protected AssignmentInfoDto createAssignmentsPreviewDto(ObjectReferenceType reference,
-																Task task, OperationResult result) {
+	protected AssignmentInfoDto createAssignmentsPreviewDto(ObjectReferenceType reference, Task task, OperationResult result) {
 		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceNoFetch(reference,
 				PageAdminFocus.this, task, result);
 
-		return createAssignmentsPreviewDto(targetObject, true,
-				null, task, result);
+		return createAssignmentsPreviewDto(targetObject, true, null, null, task, result);
 	}
 
     protected AssignmentInfoDto createDelegableAssignmentsPreviewDto(AssignmentType assignment, Task task, OperationResult result) {
@@ -878,7 +877,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					isDelegable = targetObject.getRealValue().isDelegable();
 				}
                 if (Boolean.TRUE.equals(isDelegable)) {
-                    return createAssignmentsPreviewDto(targetObject, true, assignment, task, result);
+					return createAssignmentsPreviewDto(targetObject, true, null, assignment, task, result);
                 }
             }
         }
@@ -886,7 +885,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
 	private AssignmentInfoDto createAssignmentsPreviewDto(PrismObject<? extends FocusType> targetObject,
-			boolean isDirectlyAssigned, AssignmentType assignment,
+		boolean isDirectlyAssigned, AssignmentPath assignmentPath, AssignmentType assignment,
 			Task task, OperationResult result) {
 		AssignmentInfoDto dto = new AssignmentInfoDto();
 		dto.setTargetOid(targetObject.getOid());
@@ -895,6 +894,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		dto.setTargetClass(targetObject.getCompileTimeClass());
         dto.setTargetType(WebComponentUtil.classToQName(getPrismContext(), targetObject.getCompileTimeClass()));
 		dto.setDirect(isDirectlyAssigned);
+		dto.setAssignmentParent(assignmentPath);
 		if (assignment != null) {
 			if (assignment.getTenantRef() != null) {
 				dto.setTenantName(nameFromReference(assignment.getTenantRef(),
@@ -955,6 +955,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		dto.setTargetDescription(resource.asObjectable().getDescription());
 		dto.setTargetClass(resource.getCompileTimeClass());
 		dto.setDirect(evaluatedConstruction.isDirectlyAssigned());
+		dto.setAssignmentParent(evaluatedConstruction.getAssignmentPath());
 		dto.setKind(evaluatedConstruction.getKind());
 		dto.setIntent(evaluatedConstruction.getIntent());
 		return dto;
