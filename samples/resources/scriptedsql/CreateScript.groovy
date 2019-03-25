@@ -2,12 +2,9 @@ import groovy.sql.Sql
 import org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConfiguration
 import org.forgerock.openicf.misc.scriptedcommon.OperationType
 import org.identityconnectors.common.logging.Log
-import org.identityconnectors.framework.common.exceptions.ConnectorException
 import org.identityconnectors.framework.common.objects.Attribute
 import org.identityconnectors.framework.common.objects.ObjectClass
 import org.identityconnectors.framework.common.objects.OperationOptions
-import org.identityconnectors.framework.common.objects.Uid
-import org.identityconnectors.framework.common.objects.AttributeUtil
 
 import java.sql.Connection
 
@@ -24,6 +21,11 @@ log.info("Entering " + operation + " Script")
 
 def sql = new Sql(connection)
 
+//return new Uid(_some_unique_identifier)
+return null
+
+/*
+// todo fix sample
 switch (objectClass) {
     case ObjectClass.ACCOUNT:
         return handleAccount(sql)
@@ -78,3 +80,4 @@ Uid handleOrganization(Sql sql) {
 
     return new Uid(keys[0][0])
 }
+*/
