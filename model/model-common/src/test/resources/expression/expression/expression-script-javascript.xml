@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2013 Evolveum
+  ~ Copyright (c) 2013-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,19 +24,10 @@
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<variable>
-		<name>quote</name>
-		<path>$shadow/attributes/ri:quote</path>
-	</variable>
 	<script>
+		<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
 		<code>
-			log.debug("quote={}, user={}", quote, user);
-			if (user != null &amp;&amp; quote == null &amp;&amp; user.getName() != null &amp;&amp; user.getName().getOrig().equals("drake")) {
-				// Make sure it fails if executed without quote, this should not happen
-				throw new IllegalStateException("Kaboom!");
-			}
-			// fake ... just return constant
-			true;
+			foo + bar;
 		</code>
 	</script>
 </expression>

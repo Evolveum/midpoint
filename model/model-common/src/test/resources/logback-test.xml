@@ -25,6 +25,7 @@
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
 	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.repo.expression" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.common.mapping" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model" level="TRACE" />

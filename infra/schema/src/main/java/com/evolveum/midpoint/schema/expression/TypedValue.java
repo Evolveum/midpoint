@@ -84,6 +84,13 @@ public class TypedValue<T> implements ShortDumpable {
 		this.value = value;
 		this.typeClass = typeClass;
 	}
+	
+	public TypedValue(Object value, ItemDefinition<?> definition, Class<T> typeClass) {
+		super();
+		this.value = value;
+		this.definition = definition;
+		this.typeClass = typeClass;
+	}
 
 	public Object getValue() {
 		return value;
@@ -110,6 +117,9 @@ public class TypedValue<T> implements ShortDumpable {
 		this.typeClass = typeClass;
 	}
 
+	public boolean canDetermineType() {
+		return definition != null || typeClass != null;
+	}
 	
 	public Class<T> determineClass() throws SchemaException {
 		if (definition == null) {
@@ -133,6 +143,13 @@ public class TypedValue<T> implements ShortDumpable {
 			}
 			return determinedClass;
 		}
+	}
+	
+	/**
+	 * Returns new TypedValue that has a new (transformed) value, but has the same definition.
+	 */
+	public TypedValue<T> createTransformed(Object newValue) {
+		return new TypedValue(newValue, definition, typeClass);
 	}
 
 	@Override
@@ -200,7 +217,7 @@ public class TypedValue<T> implements ShortDumpable {
 			sb.append(", class=").append(typeClass.getSimpleName());
 		}
 		if (definition == null && typeClass == null) {
-			sb.append("definition/class=null");
+			sb.append(", definition/class=null");
 		}
 	}
 	

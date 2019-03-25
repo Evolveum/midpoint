@@ -56,6 +56,7 @@ public class ExpressionProfileCompiler {
 		ExpressionPermissionProfile profile = new ExpressionPermissionProfile(permissionProfileType.getIdentifier());
 		
 		profile.setDecision(AccessDecision.translate(permissionProfileType.getDecision()));
+		profile.getPackageProfiles().addAll(permissionProfileType.getPackage());
 		profile.getClassProfiles().addAll(permissionProfileType.getClazz());
 		
 		return profile;
@@ -116,5 +117,16 @@ public class ExpressionProfileCompiler {
 		throw new SchemaException("Permission profile '"+profileIdentifier+"' not found");
 	}
 
+	public static ExpressionProfile findProfile(List<ExpressionProfile> profiles, String identifier) {
+		if (identifier == null) {
+			return null;
+		}
+		for (ExpressionProfile profile : profiles) {
+			if (identifier.equals(profile.getIdentifier())) {
+				return profile;
+			}
+		}
+		return null;
+	}
 
 }

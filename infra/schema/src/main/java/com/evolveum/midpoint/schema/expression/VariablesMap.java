@@ -79,14 +79,17 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 
 	public TypedValue put(String key, TypedValue typedValue) {
 		if (typedValue == null) {
-			throw new IllegalArgumentException("Attempt to variable '"+key+"' with null typed value");
+			throw new IllegalArgumentException("Attempt to set variable '"+key+"' with null typed value");
+		}
+		if (!typedValue.canDetermineType()) {
+			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without determinable type");
 		}
 		return variables.put(key, typedValue);
 	}
 	
 	@SuppressWarnings("rawtypes")
 	public <D extends ItemDefinition> TypedValue put(String key, Object value, D definition) {
-		return variables.put(key, new TypedValue(value, definition));
+		return variables.put(key, new TypedValue<>(value, definition));
 	}
 	
 	/**
@@ -95,7 +98,7 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 	 * of the value precisely. 
 	 */
 	public <T> TypedValue put(String key, Object value, Class<T> typeClass) {
-		return variables.put(key, new TypedValue(value, typeClass));
+		return variables.put(key, new TypedValue<>(value, typeClass));
 	}
 	
 	/**

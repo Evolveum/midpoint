@@ -459,12 +459,15 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 					scriptResults = Collections.emptyList();
 				}
 			} catch (ExpressionEvaluationException e) {
-				throw new TunnelException(
-						localizationService.translate(
-								new ExpressionEvaluationException(
-										e.getMessage() + "("+scriptVariables.dumpSingleLine()+") in "+contextDescription,
-										e,
-										ExceptionUtil.getUserFriendlyMessage(e))));
+				ExpressionEvaluationException exex = new ExpressionEvaluationException(
+						e.getMessage() + "("+scriptVariables.dumpSingleLine()+") in "+contextDescription,
+						e,
+						ExceptionUtil.getUserFriendlyMessage(e));
+				if (localizationService != null) {
+					localizationService.translate(exex);
+				}
+				throw new TunnelException(exex);
+						
 			} catch (ObjectNotFoundException e) {
 				throw new TunnelException(new ObjectNotFoundException(e.getMessage()+
 						"("+scriptVariables.dumpSingleLine()+") in "+contextDescription,e));

@@ -32,6 +32,7 @@
 			<class name="com.evolveum.midpoint.model.common.expression.script.TestExpressionFunctions" />
 			<class name="com.evolveum.midpoint.model.common.expression.script.TestScriptCaching" />
 			<class name="com.evolveum.midpoint.model.common.expression.TestExpression" />
+			<class name="com.evolveum.midpoint.model.common.expression.TestExpressionProfileSafe" />
 			<class name="com.evolveum.midpoint.model.common.expression.TestExpressionUtil" />  
 			<class name="com.evolveum.midpoint.model.common.mapping.TestMappingDynamicSimple" />
 			<class name="com.evolveum.midpoint.model.common.mapping.TestMappingDynamicSysVar" />

@@ -65,7 +65,7 @@ public class ExpressionVariables extends VariablesMap {
         		}
         		value = odo.getOldObject();
         	}
-            put(entry.getKey(), new TypedValue(value, valueDef.getDefinition()));
+            put(entry.getKey(), valueDef.createTransformed(value));
         }
     }
 
@@ -93,7 +93,7 @@ public class ExpressionVariables extends VariablesMap {
         		ItemDeltaItem<?,?> idi = (ItemDeltaItem<?,?>)value;
         		value = idi.getItemOld();
         	}
-            put(entry.getKey(), new TypedValue(value, valueDef.getDefinition()));
+            put(entry.getKey(), valueDef.createTransformed(value));
         }
     }
 
@@ -113,7 +113,7 @@ public class ExpressionVariables extends VariablesMap {
         		ItemDeltaItem<?,?> idi = (ItemDeltaItem<?,?>)value;
         		value = idi.getItemNew();
         	}
-            put(entry.getKey(), new TypedValue(value, valueDef.getDefinition()));
+            put(entry.getKey(), valueDef.createTransformed(value));
         }
     }
 

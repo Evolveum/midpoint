@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Evolveum
+ * Copyright (c) 2013-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -49,6 +50,9 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
  *
  */
 public class ExpressionTestUtil {
+	
+	public static final String CONST_FOO_NAME = "foo";
+	public static final String CONST_FOO_VALUE = "foobar";
 
 	public static Protector createInitializedProtector(PrismContext prismContext) {
 		return KeyStoreBasedProtectorBuilder.create(prismContext)
@@ -98,17 +102,22 @@ public class ExpressionTestUtil {
         ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, protector, repositoryService);
         scriptExpressionFactory.setObjectResolver(resolver);
         scriptExpressionFactory.setFunctions(functions);
-        Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
+        
+        GroovyScriptEvaluator groovyEvaluator = new GroovyScriptEvaluator(prismContext, protector, LocalizationTestUtil.getLocalizationService());
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
-        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityContextManager, prismContext);
-        expressionFactory.registerEvaluatorFactory(scriptExpressionEvaluatorFactory);
+        
+        Jsr223ScriptEvaluator jsEvaluator = new Jsr223ScriptEvaluator("ECMAScript", prismContext, protector, LocalizationTestUtil.getLocalizationService());
+        scriptExpressionFactory.registerEvaluator(jsEvaluator.getLanguageUrl(), jsEvaluator);
 
+    	ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityContextManager, prismContext);
+        expressionFactory.registerEvaluatorFactory(scriptExpressionEvaluatorFactory);
+        
         return expressionFactory;
 	}
 
 	private static Configuration createConfiguration() {
     	BaseConfiguration config = new BaseConfiguration();
-    	config.addProperty("foo", "foobar");
+    	config.addProperty(CONST_FOO_NAME, CONST_FOO_VALUE);
 		return config;
 	}
 

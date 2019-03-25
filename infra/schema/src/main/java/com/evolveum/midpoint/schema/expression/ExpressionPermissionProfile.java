@@ -21,6 +21,7 @@ import java.util.List;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionClassProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionMethodProfileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionPackageProfileType;
 
 /**
  * Compiled expression permission profile.
@@ -32,7 +33,8 @@ public class ExpressionPermissionProfile {
 	
 	private final String identifier;
 	private AccessDecision decision;
-	private List<ExpressionPermissionClassProfileType> classProfiles = new ArrayList<>();
+	private final List<ExpressionPermissionPackageProfileType> packageProfiles = new ArrayList<>();
+	private final List<ExpressionPermissionClassProfileType> classProfiles = new ArrayList<>();
 
 	public ExpressionPermissionProfile(String identifier) {
 		super();
@@ -50,19 +52,28 @@ public class ExpressionPermissionProfile {
 	public void setDecision(AccessDecision decision) {
 		this.decision = decision; 
 	}
+	
+	public List<ExpressionPermissionPackageProfileType> getPackageProfiles() {
+		return packageProfiles;
+	}
 
 	public List<ExpressionPermissionClassProfileType> getClassProfiles() {
 		return classProfiles;
 	}
 
 	public boolean hasRestrictions() {
-		return !classProfiles.isEmpty();
+		return !classProfiles.isEmpty() || !packageProfiles.isEmpty() || decision != AccessDecision.ALLOW;
 	}
 
 	public AccessDecision decideClassAccess(String className, String methodName) {
 		ExpressionPermissionClassProfileType classProfile = getClassProfile(className);
 		if (classProfile == null) {
-			return decision;
+			ExpressionPermissionPackageProfileType packageProfile = getPackageProfileByClassName(className);
+			if (packageProfile == null) {
+				return decision;
+			} else {
+				return AccessDecision.translate(packageProfile.getDecision());
+			}
 		}
 		ExpressionPermissionMethodProfileType methodProfile = getMethodProfile(classProfile, methodName);
 		if (methodProfile == null) {
@@ -72,6 +83,22 @@ public class ExpressionPermissionProfile {
 		}
 	}
 	
+	private ExpressionPermissionPackageProfileType getPackageProfileByClassName(String className) {
+		for (ExpressionPermissionPackageProfileType packageProfile : packageProfiles) {
+			if (isMemeberClass(packageProfile, className)) {
+				return packageProfile;
+			}
+		}
+		return null;
+	}
+	
+	
+
+	private boolean isMemeberClass(ExpressionPermissionPackageProfileType packageProfile, String className) {
+		// TODO Maybe too simple. But this will do for now.
+		return className.startsWith(packageProfile.getName());
+	}
+
 	private ExpressionPermissionClassProfileType getClassProfile(String className) {
 		for (ExpressionPermissionClassProfileType classProfile : classProfiles) {
 			if (className.equals(classProfile.getName())) {

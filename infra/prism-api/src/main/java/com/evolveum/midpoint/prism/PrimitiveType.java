@@ -34,6 +34,7 @@ public enum PrimitiveType {
 	SHORT("short"),
 	FLOAT("float"),
 	DOUBLE("double"),
+	BOOLEAN("boolean"),
 	BASE64BINARY("base64binary"),
 	DATETIME("dateTime"),
 	DURATION("duration"),
@@ -61,6 +62,7 @@ public enum PrimitiveType {
 	public static final QName XSD_SHORT = SHORT.getQname();
 	public static final QName XSD_FLOAT = FLOAT.getQname();
 	public static final QName XSD_DOUBLE = DOUBLE.getQname();
+	public static final QName XSD_BOOLEAN = BOOLEAN.getQname();
 	public static final QName XSD_BASE64BINARY = BASE64BINARY.getQname();
 	public static final QName XSD_DATETIME = DATETIME.getQname();
 	public static final QName XSD_DURATION = DURATION.getQname();

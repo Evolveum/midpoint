@@ -120,7 +120,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
 				try {
 					variableClass = variableTypedValue.determineClass();
 				} catch (SchemaException e) {
-					String msg = "Cannot determine class for "+variableTypedValue+" in "+contextDescription+": "+e.getMessage();
+					String msg = "Cannot determine type of variable '"+variableName+"' ("+variableTypedValue+") in "+contextDescription+": "+e.getMessage();
 					LOGGER.error("{}", msg);
 					throw new IllegalStateException(msg, e);
 				}

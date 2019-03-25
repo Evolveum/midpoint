@@ -15412,6 +15412,16 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>SystemConfigurationExpressionsType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="expressionProfile" type="tns:ExpressionProfileType" minOccurs="0" maxOccurs="unbounded">
 			    <xsd:annotation>
 			        <xsd:documentation>
@@ -15459,6 +15469,16 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
 			    <xsd:annotation>
 			        <xsd:documentation>
@@ -15501,6 +15521,16 @@
 			        </xsd:documentation>
 			        <xsd:appinfo>
 						<a:displayName>ExpressionEvaluatorProfileType.type</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionEvaluatorProfileType.name</a:displayName>
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
@@ -15551,6 +15581,16 @@
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ScriptExpressionProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
 			    <xsd:annotation>
 			        <xsd:documentation>
@@ -15617,6 +15657,16 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
 			    <xsd:annotation>
 			        <xsd:documentation>
@@ -15625,6 +15675,16 @@
 			        </xsd:documentation>
 			        <xsd:appinfo>
 						<a:displayName>ExpressionPermissionProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="package" type="tns:ExpressionPermissionPackageProfileType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Detailed specification for access to a class.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionProfileType.class</a:displayName>
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
@@ -15638,11 +15698,59 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
-			<!-- TODO: later: package? -->
 			<!-- TODO: later: sandboxing, allowed operations -->
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="ExpressionPermissionPackageProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions and permissions for a package.
+				For now package definitions MUST NOT OVERLAP. Therefore there must not be
+				a definiton of a superpackage and subpackage at the same time.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Full name of the class (including package).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionPackageProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionPackageProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Default decision for the profile. I.e. decision of those aspects of the profile
+			            (e.g. classes, permissions) that are not explicitly enumerated.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionPackageProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: classes within a package? -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
 	<xsd:complexType name="ExpressionPermissionClassProfileType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -15659,6 +15767,16 @@
 			    <xsd:annotation>
 			        <xsd:documentation>
 			            Full name of the class (including package).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionClassProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
 			        </xsd:documentation>
 			        <xsd:appinfo>
 						<a:displayName>ExpressionPermissionClassProfileType.name</a:displayName>
@@ -15708,6 +15826,16 @@
 			        </xsd:documentation>
 			        <xsd:appinfo>
 						<a:displayName>ExpressionPermissionClassProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>"ExpressionPermissionMethodProfileType".name</a:displayName>
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
