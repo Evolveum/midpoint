@@ -1298,11 +1298,17 @@
 					<source>${project.source.version}</source>
 					<target>${project.source.version}</target>
 					<fork>true</fork>
-					<meminitial>128m</meminitial>
-					<maxmem>768m</maxmem>
-					<showDeprecation>true</showDeprecation>
-					<showWarnings>true</showWarnings>
-					<verbose>true</verbose> 
+					<meminitial>1024m</meminitial>
+					<maxmem>2048m</maxmem>
+					<compilerArgs>
+                <arg>-Werror</arg>
+<!--                 <arg>-verbose</arg> -->
+            </compilerArgs>
+<!-- 					<forceJavacCompilerUse>true</forceJavacCompilerUse> -->
+<!-- 					<executable>${JAVA_HOME}/bin/javac</executable> -->
+<!-- 					<showDeprecation>false</showDeprecation> -->
+<!-- 					<showWarnings>true</showWarnings> -->
+<!-- 					<verbose>true</verbose>  -->
 					<!--<showWarnings>false</showWarnings -->
 				</configuration>
 			</plugin>
@@ -1475,7 +1481,7 @@
 							<goal>analyze-only</goal>
 						</goals>
 						<configuration>
-							<failOnWarning>true</failOnWarning>
+							<failOnWarning>false</failOnWarning>
 							<ignoreNonCompile>true</ignoreNonCompile>
 							<ignoredUnusedDeclaredDependencies>
 
