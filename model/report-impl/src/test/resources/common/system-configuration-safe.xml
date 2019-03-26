@@ -132,8 +132,18 @@
 	    			<decision>allow</decision>
 	    	</class>
 	    	<class>
+	    		<name>com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions</name>
+	    		<description>MidPoint basic functions library</description>
+	    		<decision>allow</decision>
+	    	</class>
+	    	<class>
 	    		<name>com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions</name>
 	    		<description>MidPoint logging functions library</description>
+	    		<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>com.evolveum.midpoint.report.impl.ReportFunctions</name>
+	    		<description>MidPoint report functions library</description>
 	    		<decision>allow</decision>
 	    	</class>
 	    </permissionProfile>

@@ -15,40 +15,15 @@
  */
 package com.evolveum.midpoint.report;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
-
 import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Basic report test, using "safe" expression profile.
@@ -66,5 +41,19 @@ public class TestReportSafe extends TestReport {
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_SAFE_FILE;
 	}
+	
+	/**
+     * Reports with poisonous operations in the query. This should work with null profile.
+     * But it should fail with safe profile.
+     * Field operations are safe.
+     */
+	@Test
+	@Override
+	public void test112ReportUserListExpressionsPoisonousQueryCsv() throws Exception {
+		final String TEST_NAME = "test110ReportUserListExpressionsCsv";
+		testReportListUsersCsvFailure(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID);
+	}
+	
+	// TODO TODO TODO: override test114ReportUserListExpressionsPoisonousFieldCsv
 
 }

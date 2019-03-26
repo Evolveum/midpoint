@@ -15,8 +15,10 @@
  */
 package com.evolveum.midpoint.report;
 
-import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -26,7 +28,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,9 +45,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -66,6 +65,12 @@ public class TestReport extends AbstractReportIntegrationTest {
 	protected final static File REPORT_USER_LIST_EXPRESSIONS_CSV_FILE = new File(TEST_DIR, "report-user-list-expressions-csv.xml"); 
 	protected final static String REPORT_USER_LIST_EXPRESSIONS_CSV_OID = "8fa48180-4f17-11e9-9eed-3fb4721a135e";
 	
+	protected final static File REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_FILE = new File(TEST_DIR, "report-user-list-expressions-poisonous-query-csv.xml"); 
+	protected final static String REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID = "5c5af02a-4fe9-11e9-bb07-7b4e52fe05cd";
+	
+	protected final static File REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_FILE = new File(TEST_DIR, "report-user-list-expressions-poisonous-field-csv.xml"); 
+	protected final static String REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID = "76c58132-4fe9-11e9-86fe-ff36d221f673";
+	
 	protected final static File REPORT_USER_LIST_SCRIPT_FILE = new File(TEST_DIR, "report-user-list-script.xml"); 
 	protected final static String REPORT_USER_LIST_SCRIPT_OID = "222bf2b8-c89b-11e7-bf36-ebd4e4d45a80";
 
@@ -75,6 +80,8 @@ public class TestReport extends AbstractReportIntegrationTest {
 		
 		repoAddObjectFromFile(REPORT_USER_LIST_FILE, ReportType.class, initResult);
 		repoAddObjectFromFile(REPORT_USER_LIST_EXPRESSIONS_CSV_FILE, ReportType.class, initResult);
+		repoAddObjectFromFile(REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_FILE, ReportType.class, initResult);
+		repoAddObjectFromFile(REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_FILE, ReportType.class, initResult);
 		repoAddObjectFromFile(REPORT_USER_LIST_SCRIPT_FILE, ReportType.class, initResult);
 		
 		// Let's make this more interesting by adding a couple of users
@@ -110,15 +117,63 @@ public class TestReport extends AbstractReportIntegrationTest {
       assertSuccess("Report task result", finishedTask.asObjectable().getResult());
   }
   
+  /**
+   * Ordinary user list report. Should work well under all circumstances.
+   * Even with safe expression profile.
+   */
   @Test
   public void test110ReportUserListExpressionsCsv() throws Exception {
 	  final String TEST_NAME = "test110ReportUserListExpressionsCsv";
-      displayTestTitle(TEST_NAME);
+	  testReportListUsersCsv(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_CSV_OID);
+  }
+  
+  /**
+   * Reports with poisonous operations in the query. This should work with null profile.
+   * But it should fail with safe profile.
+   * Field operations are safe.
+   */
+  @Test
+  public void test112ReportUserListExpressionsPoisonousQueryCsv() throws Exception {
+	  final String TEST_NAME = "test110ReportUserListExpressionsCsv";
+	  testReportListUsersCsv(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID);
+  }
 
+  /**
+   * Reports with poisonous operations in the field expression. This should work with null profile.
+   * But it should fail with safe profile.
+   * Query expressions are safe.
+   */
+  @Test
+  public void test114ReportUserListExpressionsPoisonousFieldCsv() throws Exception {
+	  final String TEST_NAME = "test110ReportUserListExpressionsCsv";
+	  testReportListUsersCsv(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID);
+  }
+  
+  protected void testReportListUsersCsv(final String TEST_NAME, String reportOid) throws Exception {
+	  PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
+	  
+      PrismObject<TaskType> finishedTask = runReportTaskListUsersCsv(TEST_NAME, report);
+      
+      assertSuccess("Finished report task result", finishedTask.asObjectable().getResult());
+      
+      checkCsvUserReport(report);
+  }
+  
+  protected void testReportListUsersCsvFailure(final String TEST_NAME, String reportOid) throws Exception {
+	  PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
+	  
+      PrismObject<TaskType> finishedTask = runReportTaskListUsersCsv(TEST_NAME, report);
+      
+      assertFailure("Finished report task result", finishedTask.asObjectable().getResult());
+      
+      assertNoCsvReport(report);
+  }
+
+  protected PrismObject<TaskType> runReportTaskListUsersCsv(final String TEST_NAME, PrismObject<ReportType> report) throws Exception {
+	  displayTestTitle(TEST_NAME);
+	  
       Task task = createTask(TEST_NAME);
       OperationResult result = task.getResult();
-      
-      PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_EXPRESSIONS_CSV_OID);
       
       // WHEN
       displayWhen(TEST_NAME);
@@ -126,23 +181,23 @@ public class TestReport extends AbstractReportIntegrationTest {
       
       assertInProgress(result);
       
-      display("Background task", task);
+      display("Background task (running)", task);
       
       waitForTaskFinish(task.getOid(), true);
 
       // THEN
       displayThen(TEST_NAME);
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
-      display("Background task", finishedTask);
+      display("Background task (finished)", finishedTask);
       
-      assertSuccess("Report task result", finishedTask.asObjectable().getResult());
-      
-      checkCsvUserReport(report);
+      return finishedTask;
   }
   
-  private void checkCsvUserReport(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+  
+  protected void checkCsvUserReport(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 	  File outputFile = findOutputFile(report);
 	  display("Found report file", outputFile);
+	  assertNotNull("No output file for "+report, outputFile);
 	  List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
 	  display("Report content ("+lines.size()+" lines)", String.join("\n", lines));
 	  outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
@@ -155,18 +210,28 @@ public class TestReport extends AbstractReportIntegrationTest {
 	  assertEquals("Unexpected number of report lines", currentUsers.size() + 1, lines.size());
   }
   
-  private File findOutputFile(PrismObject<ReportType> report) {
+  protected void assertNoCsvReport(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	  File outputFile = findOutputFile(report);
+	  display("Found report file (expected null)", outputFile);
+	  assertNull("Unexpected output file for "+report+": "+outputFile, outputFile);
+  }
+  
+  protected File findOutputFile(PrismObject<ReportType> report) {
 	  String filePrefix = report.getName().getOrig();
 	  File[] matchingFiles = EXPORT_DIR.listFiles(new FilenameFilter() {
 	      public boolean accept(File dir, String name) {
 	          return name.startsWith(filePrefix);
 	      }
 	  });
-	  if (matchingFiles.length != 1) {
-		  throw new IllegalStateException("Found unexpected output files for "+report+": "+Arrays.toString(matchingFiles));
+	  if (matchingFiles.length == 0) {
+		  return null;
+	  }
+	  if (matchingFiles.length > 1) {
+		  throw new IllegalStateException("Found more than one output files for "+report+": "+Arrays.toString(matchingFiles));
 	  }
 	  return matchingFiles[0];
   }
+  
   
   @Test
   public void test200ReportUserListScript() throws Exception {

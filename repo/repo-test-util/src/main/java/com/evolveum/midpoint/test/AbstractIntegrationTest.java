@@ -1823,6 +1823,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		TestUtil.assertFailure(result);
 	}
+	
+	protected void assertFailure(String message, OperationResultType result) {
+		TestUtil.assertFailure(message, result);
+	}
 
 	protected void assertPartialError(OperationResult result) {
 		if (result.isUnknown()) {

@@ -69,6 +69,7 @@ import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -118,16 +119,20 @@ public class ReportServiceImpl implements ReportService {
 			ExpressionProfile expressionProfile = determineExpressionProfile(report, result);
 			
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-			SearchFilterType filter = prismContext.parserFor(query).parseRealValue(SearchFilterType.class);
-			LOGGER.trace("filter {}", filter);
-			ObjectFilter f = prismContext.getQueryConverter().parseFilter(filter, UserType.class);
-			LOGGER.trace("f {}", f.debugDump());
-			if (!(f instanceof TypeFilter)) {
+			SearchFilterType filterType = prismContext.parserFor(query).parseRealValue(SearchFilterType.class);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("filter(SearchFilterType)\n{}", filterType.debugDump(1));
+			}
+			ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, UserType.class);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("filter(ObjectFilter)\n{}", filter.debugDump(1));
+			}
+			if (!(filter instanceof TypeFilter)) {
 				throw new IllegalArgumentException(
 						"Defined query must contain type. Use 'type filter' in your report query.");
 			}
 
-			ObjectFilter subFilter = ((TypeFilter) f).getFilter();
+			ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
 			ObjectQuery q = prismContext.queryFactory().createQuery(subFilter);
 
 			ExpressionVariables variables = new ExpressionVariables();
@@ -135,10 +140,13 @@ public class ReportServiceImpl implements ReportService {
 
 			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionProfile, expressionFactory, prismContext,
 					"parsing expression values for report", task, result);
-			((TypeFilter) f).setFilter(q.getFilter());
-			parsedQuery = prismContext.queryFactory().createQuery(f);
-
-			LOGGER.trace("report query:\n{}", parsedQuery.debugDumpLazily(1));
+			((TypeFilter) filter).setFilter(q.getFilter());
+			ObjectQueryUtil.simplify(filter, prismContext);
+			parsedQuery = prismContext.queryFactory().createQuery(filter);
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("report query (parsed):\n{}", parsedQuery.debugDump(1));
+			}
 		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block
 			throw e;
