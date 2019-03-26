@@ -339,7 +339,11 @@ public class ExpressionUtil {
 	
 	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, ObjectDeltaObject<?> rootOdo, ItemPath relativePath) throws SchemaException {
 		ItemDeltaItem<PrismValue, ItemDefinition> value = rootOdo.findIdi(relativePath);
-		ItemDefinition def = determineItemDefinition(rootOdo.getDefinition(), relativePath);
+		PrismObjectDefinition<?> rootDefinition = rootOdo.getDefinition();
+		if (rootDefinition == null) {
+			throw new IllegalArgumentException("Found ODO without a definition while processing variable '"+name+"': "+rootOdo);
+		}
+		ItemDefinition def = determineItemDefinition(rootDefinition, relativePath);
 		if (def == null) {
 			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootOdo+", value: "+value);
 		}

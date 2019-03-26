@@ -1764,7 +1764,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		public Builder<V, D> addVariableDefinition(String name, ObjectDeltaObject<?> value) {
-			return addVariableDefinition(name,(Object)value, value.getDefinition());
+			PrismObjectDefinition<?> definition = value.getDefinition();
+			if (definition == null) {
+				throw new IllegalArgumentException("Attempt to set variable '"+name+"' as ODO without a definition: "+value);
+			}
+			return addVariableDefinition(name,(Object)value, definition);
 		}
 
 		public Builder<V, D> addVariableDefinitions(VariablesMap extraVariables) {
