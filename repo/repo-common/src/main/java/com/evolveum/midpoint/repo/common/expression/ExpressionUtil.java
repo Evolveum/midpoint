@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PartiallyResolvedItem;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -216,11 +217,11 @@ public class ExpressionUtil {
 	public static Object resolvePathGetValue(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
 			TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		TypedValue valDef = resolvePathGetValueAndDefinition(path, variables, normalizeValuesToDelete, defaultContext, objectResolver, prismContext, shortDesc, task, result);
-		if (valDef == null) {
+		TypedValue typedValue = resolvePathGetTypedValue(path, variables, normalizeValuesToDelete, defaultContext, objectResolver, prismContext, shortDesc, task, result);
+		if (typedValue == null) {
 			return null;
 		}
-		return valDef.getValue();
+		return typedValue.getValue();
 	}
 	
 	/**
@@ -230,7 +231,7 @@ public class ExpressionUtil {
 	 * 1. consider setting this parameter to true at some other places where it might be relevant
 	 * 2. consider normalizing delete deltas earlier in the clockwork, probably at the very beginning of the operation
 	 */
-	public static TypedValue resolvePathGetValueAndDefinition(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
+	public static TypedValue resolvePathGetTypedValue(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
 			TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
@@ -272,28 +273,101 @@ public class ExpressionUtil {
 		}
 		
 		if (rootValue instanceof Objectable) {
-			return determineValueAndDefinition(prismContext, lastPathSegmentName, (((Objectable) rootValue).asPrismObject()).find(relativePath));
+			return determineTypedValue(prismContext, lastPathSegmentName, ((Objectable) rootValue).asPrismObject(), relativePath);
 		}
 		if (rootValue instanceof PrismObject<?>) {
-			return determineValueAndDefinition(prismContext, lastPathSegmentName, ((PrismObject<?>) rootValue).find(relativePath));
+			return determineTypedValue(prismContext, lastPathSegmentName, (PrismObject<?>) rootValue, relativePath);
 		} else if (rootValue instanceof PrismContainer<?>) {
-			return determineValueAndDefinition(prismContext, lastPathSegmentName, ((PrismContainer<?>) rootValue).find(relativePath));
+			return determineTypedValue(prismContext, lastPathSegmentName, (PrismContainer<?>) rootValue, relativePath);
 		} else if (rootValue instanceof PrismContainerValue<?>) {
-			return determineValueAndDefinition(prismContext, lastPathSegmentName, ((PrismContainerValue<?>) rootValue).find(relativePath));
+			return determineTypedValue(prismContext, lastPathSegmentName, (PrismContainerValue<?>) rootValue, relativePath);
 		} else if (rootValue instanceof Item<?, ?>) {
 			// Except for container (which is handled above)
 			throw new SchemaException(
 					"Cannot apply path " + relativePath + " to " + root + " in " + shortDesc);
 		} else if (rootValue instanceof ObjectDeltaObject<?>) {
-			return determineValueAndDefinition(prismContext, lastPathSegmentName, ((ObjectDeltaObject<?>) rootValue).findIdi(relativePath));
+			return determineTypedValue(prismContext, lastPathSegmentName, (ObjectDeltaObject<?>) rootValue, relativePath);
 		} else if (rootValue instanceof ItemDeltaItem<?, ?>) {
-			return determineValueAndDefinition(prismContext, lastPathSegmentName, ((ItemDeltaItem<?, ?>) rootValue).findIdi(relativePath));
+			return determineTypedValue(prismContext, lastPathSegmentName, (ItemDeltaItem<?,?>) rootValue, relativePath);
 		} else {
 			throw new IllegalArgumentException(
 					"Unexpected root " + rootValue + " (relative path:" + relativePath + ") in " + shortDesc);
 		}
 	}
-
+	
+	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, PrismContainer<?> rootContainer, ItemPath relativePath) throws SchemaException {
+		Object value;
+		PartiallyResolvedItem<PrismValue,ItemDefinition> partiallyResolvedItem = rootContainer.findPartial(relativePath);
+		if (partiallyResolvedItem == null) {
+			value = null;
+		} else {
+			if (partiallyResolvedItem.getResidualPath() == null) {
+				value = partiallyResolvedItem.getItem();
+			} else {
+				Object parentValue = partiallyResolvedItem.getItem().getRealValue();
+				if (parentValue instanceof Structured) {
+					value = ((Structured)parentValue).resolve(partiallyResolvedItem.getResidualPath());
+				} else {
+					throw new SchemaException("No subpath "+partiallyResolvedItem.getResidualPath()+" in "+partiallyResolvedItem.getItem());
+				}
+			}
+		}
+		ItemDefinition def = determineItemDefinition(rootContainer.getDefinition(), relativePath);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootContainer+", value: "+value);
+		}
+		return new TypedValue<>((T)value, def);
+	}
+	
+	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, PrismContainerValue<?> rootContainerValue, ItemPath relativePath) throws SchemaException {
+		Item<PrismValue,ItemDefinition> value = rootContainerValue.findItem(relativePath);
+		ItemDefinition def = determineItemDefinition(rootContainerValue.getDefinition(), relativePath);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootContainerValue+", value: "+value);
+		}
+		return new TypedValue<>((T)value, def);
+	}
+	
+	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, ItemDeltaItem<?,?> rootIdi, ItemPath relativePath) throws SchemaException {
+		ItemDeltaItem<PrismValue, ItemDefinition> value = rootIdi.findIdi(relativePath);
+		ItemDefinition def = determineItemDefinition((PrismContainerDefinition)rootIdi.getDefinition(), relativePath);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootIdi+", value: "+value);
+		}
+		return new TypedValue<>((T)value, def);
+	}
+	
+	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, ObjectDeltaObject<?> rootOdo, ItemPath relativePath) throws SchemaException {
+		ItemDeltaItem<PrismValue, ItemDefinition> value = rootOdo.findIdi(relativePath);
+		ItemDefinition def = determineItemDefinition(rootOdo.getDefinition(), relativePath);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootOdo+", value: "+value);
+		}
+		return new TypedValue<>((T)value, def);
+	}
+	
+	private static ItemDefinition determineItemDefinition(PrismContainerDefinition containerDefinition, ItemPath relativePath) {
+		ItemDefinition def = containerDefinition.findItemDefinition(relativePath);
+		if (def != null) {
+			return def;
+		}
+		// This may be a wrong path. Or it may be a path to a "subproperty" of a structured property, such as PolyString/norm.
+		// Let's find out by looking at the parent.
+		ItemPath parentPath = relativePath.allExceptLast();
+		ItemDefinition parentDef = containerDefinition.findItemDefinition(parentPath);
+		if (parentDef == null) {
+			return null;
+		}
+		if (!(parentDef instanceof PrismPropertyDefinition)) {
+			return null;
+		}
+		if (!PrismUtil.isStructuredType(parentDef.getTypeName())) {
+			return null;
+		}
+		// All "subproperties" are hardcoded as singlevalue strings
+		return parentDef.getPrismContext().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+	}
+	
 	private static TypedValue normalizeValuesToDelete(TypedValue root) {
 		Object rootValue = root.getValue();
 		if (rootValue instanceof ObjectDeltaObject<?>) {
@@ -1155,28 +1229,6 @@ public class ExpressionUtil {
 	
 	public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition(PrismContext prismContext) {
 		return prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-	}
-	
-	public static  <T> TypedValue<T> determineValueAndDefinition(PrismContext prismContext, String name, Object value) throws SchemaException {
-		ItemDefinition def;
-		if (value == null) {
-			// Guess ... not entirely right ... but the life is tough (TODO: fix later)
-			def = prismContext.definitionFactory().createPropertyDefinition(new ItemName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
-		} else if (value instanceof Item<?, ?>) {
-			return new TypedValue<>((Item)value);
-		} else if (value instanceof ObjectDeltaObject<?>) {
-			return new TypedValue<>((T)value, ((ObjectDeltaObject<?>)value).getDefinition());
-		} else if (value instanceof ItemDeltaItem<?,?>) {
-			return new TypedValue<>((T)value, ((ItemDeltaItem<?,?>)value).getDefinition());
-		} else {
-			QName xsdType = XsdTypeMapper.toXsdType(value.getClass());
-			if (xsdType == null) {
-				throw new SchemaException("Cannot determine definition for "+value.getClass()+" while setting up variable "+name);
-			} else {
-				def = prismContext.definitionFactory().createPropertyDefinition(new ItemName(SchemaConstants.NS_C, name), xsdType);
-			}
-		}
-		return new TypedValue<>((T)value, def);
 	}
 	
 	/**

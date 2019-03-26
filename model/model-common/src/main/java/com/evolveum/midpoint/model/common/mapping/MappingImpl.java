@@ -909,7 +909,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		String variableName = sourceQName.getLocalPart();
 		ItemPath resolvePath = path;
-		Object sourceObject = ExpressionUtil.resolvePathGetValue(path, variables, true, getSourceContextValueAndDefinition(), objectResolver, getPrismContext(), "source definition in "+getMappingContextDescription(), task, result);
+		TypedValue typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(path, variables, true, getSourceContextValueAndDefinition(), objectResolver, getPrismContext(), "source definition in "+getMappingContextDescription(), task, result);
+		Object sourceObject = typedSourceObject.getValue();
 		Item<IV,ID> itemOld = null;
 		ItemDelta<IV,ID> delta = null;
 		Item<IV,ID> itemNew = null;
@@ -982,7 +983,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			}
 		}
 
-		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, sourceQName);
+		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, sourceQName, (ID)typedSourceObject.getDefinition());
 		source.setResidualPath(residualPath);
 		source.setResolvePath(resolvePath);
 		source.setSubItemDeltas(subItemDeltas);

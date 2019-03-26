@@ -15,19 +15,40 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
+import com.evolveum.midpoint.model.common.ConstantsManager;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -35,18 +56,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.common.ConstantsManager;
-import com.evolveum.midpoint.prism.*;
-
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -55,12 +64,10 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfiles;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismValueDeltaSetTripleAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -79,18 +86,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author Radovan Semancik
  */
-public class TestExpression {
+public class TestExpression extends AbstractModelCommonTest {
 
-	protected static final File COMMON_DIR = new File("src/test/resources/common");
 	protected static final File TEST_DIR = new File("src/test/resources/expression/expression");
-
-	protected static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-	protected static final String EXPRESSION_PROFILE_SAFE_NAME = "safe";
 	
 	protected static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
 	protected static final String USER_JACK_NAME = "jack";
 
-	protected static final File ACCOUNT_JACK_DUMMYFILE = new File(TEST_DIR, "account-jack-dummy.xml");
+	protected static final File ACCOUNT_JACK_DUMMY_FILE = new File(TEST_DIR, "account-jack-dummy.xml");
 
 	protected static final File EXPRESSION_ASIS_FILE = new File(TEST_DIR, "expression-asis.xml");
 	
@@ -380,10 +383,18 @@ public class TestExpression {
     	rememberScriptExecutionCount();
 
     	ExpressionType expressionType = parseExpression(EXPRESSION_ITERATION_CONDITION_FILE);
+		
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
+		// We need to provide some definitions for account attributes here,
+		// otherwise the tests will fail on unknown data types
+		PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(false, null);
+		PrismContainerDefinition<Containerable> attrsDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
+		attrsDef.toMutable().createPropertyDefinition(new QName(MidPointConstants.NS_RI, "quote"), PrimitiveType.STRING.getQname());
+		account.setDefinition(shadowDef);
+		IntegrationTestTools.display("Account", account);
 
 		ExpressionVariables variables = prepareBasicVariables();
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMYFILE);
-		variables.put(ExpressionConstants.VAR_SHADOW, account, account.getDefinition());
+		variables.put(ExpressionConstants.VAR_PROJECTION, account, shadowDef);
 		variables.put(ExpressionConstants.VAR_ITERATION, 1, 
 				TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION, PrimitiveType.INT));
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "001",
@@ -409,16 +420,12 @@ public class TestExpression {
 		return PrismTestUtil.parseAtomicValue(file, ExpressionType.COMPLEX_TYPE);
 	}
 
-	protected void displayTestTitle(final String TEST_NAME) {
-		TestUtil.displayTestTitle(this, TEST_NAME);
-	}
-	
 	protected Source<PrismPropertyValue<String>,PrismPropertyDefinition<String>> prepareStringSource(String value) throws SchemaException {
 		PrismPropertyDefinition<String> propDef = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME, PrimitiveType.STRING.getQname());
 		PrismProperty<String> inputProp = prismContext.itemFactory().createProperty(ExpressionConstants.VAR_INPUT_QNAME, propDef);
 		PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(INPUT_VALUE);
 		inputProp.add(pval);
-		return new Source<>(inputProp, null, inputProp, ExpressionConstants.VAR_INPUT_QNAME);
+		return new Source<>(inputProp, null, inputProp, ExpressionConstants.VAR_INPUT_QNAME, propDef);
 	}
 	
 	protected Collection<Source<?, ?>> prepareStringSources(String value) throws SchemaException {

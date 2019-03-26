@@ -36,6 +36,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -64,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author semancik
  *
  */
-public class TestExpressionUtil {
+public class TestExpressionUtil extends AbstractModelCommonTest {
 
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	public static final File USER_JACK_FILE = new File(MidPointTestConstants.OBJECTS_DIR, USER_JACK_OID + ".xml");
@@ -78,7 +80,7 @@ public class TestExpressionUtil {
     @Test
     public void testResolvePathStringProperty() throws Exception {
     	final String TEST_NAME = "testResolvePathStringProperty";
-    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
 
@@ -92,7 +94,7 @@ public class TestExpressionUtil {
     @Test
     public void testResolvePathPolyStringProperty() throws Exception {
     	final String TEST_NAME = "testResolvePathPolyStringProperty";
-    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
 
@@ -107,7 +109,7 @@ public class TestExpressionUtil {
     @Test
     public void testResolvePathPolyStringOrig() throws Exception {
     	final String TEST_NAME = "testResolvePathPolyStringOrig";
-    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
 
@@ -121,7 +123,7 @@ public class TestExpressionUtil {
     @Test
     public void testResolvePathPolyStringNorm() throws Exception {
     	final String TEST_NAME = "testResolvePathPolyStringNorm";
-    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
 
@@ -135,7 +137,7 @@ public class TestExpressionUtil {
     @Test
     public void testResolvePathPolyStringOdo() throws Exception {
     	final String TEST_NAME = "testResolvePathPolyStringOdo";
-    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
 
@@ -156,7 +158,7 @@ public class TestExpressionUtil {
     @Test
     public void testResolvePathPolyStringOdoOrig() throws Exception {
     	final String TEST_NAME = "testResolvePathPolyStringOdoOrig";
-    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
 
@@ -175,7 +177,7 @@ public class TestExpressionUtil {
     @Test
     public void testResolvePathPolyStringOdoNorm() throws Exception {
     	final String TEST_NAME = "testResolvePathPolyStringOdoNorm";
-    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
 
@@ -211,8 +213,7 @@ public class TestExpressionUtil {
     			PrismTestUtil.getPrismContext(), TEST_NAME, null, result);
 
     	// THEN
-    	System.out.println("Resolved:");
-    	System.out.println(resolved);
+    	IntegrationTestTools.display("Resolved", resolved);
 
     	return (T) resolved;
     }

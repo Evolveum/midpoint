@@ -228,7 +228,7 @@ public class MappingTestEvaluator {
 		MappingImpl.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> builder = mappingFactory.createMappingBuilder(mappingType, testName);
 
 
-    	Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> defaultSource = new Source<>(null, delta, null, ExpressionConstants.VAR_INPUT_QNAME);
+    	Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> defaultSource = new Source<>(null, delta, null, ExpressionConstants.VAR_INPUT_QNAME, delta.getDefinition());
     	defaultSource.recompute();
 		builder.setDefaultSource(defaultSource);
 		builder.setTargetContext(getUserDefinition());

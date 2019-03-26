@@ -374,7 +374,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				// TODO: maybe refactor for readibility
 				SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
 				String name = sourceTriple.getName().getLocalPart();
-				scriptVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()), sourceTriple.getSource().getDefinition());
+				ItemDefinition definition = sourceTriple.getSource().getDefinition();
+				if (definition == null) {
+					LOGGER.error("Source '{}' without a definition; came from a source triple: {}", name, sourceTriple);
+					throw new IllegalArgumentException("Source '"+name+"' without a definition");
+				}
+				scriptVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()), definition);
 				// Note: a value may be both in plus and minus sets, e.g. in case that the value is replaced
 				// with the same value. We pretend that this is the same as ADD case.
 				// TODO: maybe we will need better handling in the future. Maybe we would need

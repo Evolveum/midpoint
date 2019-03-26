@@ -35,10 +35,23 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemDeltaItem<V,D> implements DebugDumpable, ShortDumpable {
 
 	private QName name;
+	// We need explicit definition, because source may be completely null.
+	// No item, no delta, nothing. In that case we won't be able to crete properly-typed
+	// variable from the source.
+	private D definition;
 
-	public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name) {
+	public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name, D definition) {
 		super(itemOld, delta, itemNew);
 		this.name = name;
+		if (definition == null) {
+			// Try to automatically determine definition from content.
+			this.definition = super.getDefinition();
+			if (this.definition == null) {
+				throw new IllegalArgumentException("Cannot determine definition from content in "+this);
+			}
+		} else {
+			this.definition = definition;
+		}
 	}
 
 	public Source(ItemDeltaItem<V,D> idi, QName name) {
@@ -52,6 +65,14 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 
 	public void setName(QName name) {
 		this.name = name;
+	}
+	
+	public D getDefinition() {
+		return definition;
+	}
+
+	public void setDefinition(D definition) {
+		this.definition = definition;
 	}
 
 	public Item<V,D> getEmptyItem() throws SchemaException {
@@ -85,11 +106,10 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("Source ").append(PrettyPrinter.prettyPrint(name));
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "old", getItemOld(), indent +1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "delta", getDelta(), indent +1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "new", getItemNew(), indent +1);
+		DebugUtil.debugDumpWithLabelLn(sb, "old", getItemOld(), indent +1);
+		DebugUtil.debugDumpWithLabelLn(sb, "delta", getDelta(), indent +1);
+		DebugUtil.debugDumpWithLabelLn(sb, "new", getItemNew(), indent +1);
+		DebugUtil.debugDumpWithLabel(sb, "definition", definition, indent +1);
 		return sb.toString();
 	}
 

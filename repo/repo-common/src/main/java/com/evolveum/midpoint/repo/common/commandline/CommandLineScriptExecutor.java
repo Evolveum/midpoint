@@ -126,7 +126,7 @@ public class CommandLineScriptExecutor {
 	    		} else {
 	    			sourceItem = null;
 	    		}
-				Source<?, ?> defaultSource = new Source<>(sourceItem, null, sourceItem, macroQName);
+				Source<?, ?> defaultSource = new Source<>(sourceItem, null, sourceItem, macroQName, defaultObjectValAndDef.getDefinition());
 				context.setDefaultSource(defaultSource);
 				sources.add(defaultSource);
     		}

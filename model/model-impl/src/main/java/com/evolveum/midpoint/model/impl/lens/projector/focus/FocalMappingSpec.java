@@ -116,7 +116,7 @@ public class FocalMappingSpec implements ShortDumpable, MappingPreExpression {
 		assignmentType.targetRef(role.getOid(), role.asPrismObject().getDefinition().getTypeName(), relation);
 
 		Source<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> source =
-				new Source<>(assignment, null, assignment, FocusType.F_ASSIGNMENT);
+				new Source<>(assignment, null, assignment, FocusType.F_ASSIGNMENT, assignmentDef);
 		return (Source<V, D>) source;
 	}
 	

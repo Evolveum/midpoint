@@ -26,7 +26,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<variable>
 		<name>quote</name>
-		<path>$shadow/attributes/ri:quote</path>
+		<path>$projection/attributes/ri:quote</path>
 	</variable>
 	<script>
 		<code>

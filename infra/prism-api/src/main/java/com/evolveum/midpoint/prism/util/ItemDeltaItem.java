@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,9 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 
 	public ItemDeltaItem(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew) {
 		super();
+		validate(itemOld, "itemOld");
+		validate(delta);
+		validate(itemNew, "itemNew");
 		this.itemOld = itemOld;
 		this.delta = delta;
 		this.itemNew = itemNew;
@@ -62,14 +65,18 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	public ItemDeltaItem(ItemDeltaItem<V,D> idi) {
 		super();
 		this.itemOld = idi.getItemOld();
+		validate(itemOld, "itemOld");
 		this.itemNew = idi.getItemNew();
+		validate(itemNew, "itemNew");
 		this.delta = idi.getDelta();
+		validate(delta);
 	}
 
 	public ItemDeltaItem(Item<V,D> item) {
 		super();
 		this.itemOld = item;
 		this.itemNew = item;
+		validate(itemOld, "item");
 		this.delta = null;
 	}
 
@@ -143,12 +150,14 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		return null;
 	}
 
-	public ItemDefinition getDefinition() {
-		Item<V,D> anyItem = getAnyItem();
-		if (anyItem != null) {
-			return anyItem.getDefinition();
+	public D getDefinition() {
+		if (itemNew != null && itemNew.getDefinition() != null) {
+			return itemNew.getDefinition();
 		}
-		if (delta != null) {
+		if (itemOld != null && itemOld.getDefinition() != null) {
+			return itemOld.getDefinition();
+		}
+		if (delta != null && delta.getDefinition() != null) {
 			return delta.getDefinition();
 		}
 		return null;
@@ -444,5 +453,17 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 
 	public V getSingleValue(boolean evaluateOld) {
 		return getSingleValue(evaluateOld ? itemOld : itemNew);
+	}
+	
+	private void validate(Item<V, D> item, String desc) {
+		if (item != null && item.getDefinition() == null) {
+			throw new IllegalArgumentException("Attempt to set "+desc+" without definition");
+		}
+	}
+
+	private void validate(ItemDelta<V, D> delta) {
+		if (delta != null && delta.getDefinition() == null) {
+			throw new IllegalArgumentException("Attempt to set delta without definition");
+		}
 	}
 }

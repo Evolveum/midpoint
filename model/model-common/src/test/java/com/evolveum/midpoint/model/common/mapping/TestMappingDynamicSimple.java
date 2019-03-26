@@ -42,16 +42,19 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -66,7 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 /**
  * @author Radovan Semancik
  */
-public class TestMappingDynamicSimple {
+public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
 	private static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 	private static final String PATTERN_NUMERIC = "^\\d+$";
@@ -81,6 +84,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testValueSingleDeep() throws Exception {
+    	final String TEST_NAME = "testValueSingleDeep";
+    	displayTestTitle(TEST_NAME);
+    	
         // WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-value-single-deep.xml",
@@ -98,6 +104,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testValueSingleShallow() throws Exception {
+    	final String TEST_NAME = "testValueSingleShallow";
+    	displayTestTitle(TEST_NAME);
+    	
         // WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-value-single-shallow.xml",
@@ -115,6 +124,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testValueMultiDeep() throws Exception {
+    	final String TEST_NAME = "testValueMultiDeep";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-value-multi-deep.xml",
@@ -132,6 +144,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testValueMultiShallow() throws Exception {
+    	final String TEST_NAME = "testValueMultiShallow";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-value-multi-shallow.xml",
@@ -149,6 +164,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testValueSingleEnum() throws Exception {
+    	final String TEST_NAME = "testValueSingleEnum";
+    	displayTestTitle(TEST_NAME);
+    	
         // WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<ActivationStatusType>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-value-single-enum.xml",
@@ -166,6 +184,9 @@ public class TestMappingDynamicSimple {
 
 	@Test
     public void testAsIsAdd() throws Exception {
+		final String TEST_NAME = "testAsIsAdd";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-asis.xml",
@@ -183,6 +204,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testAsIsDelete() throws Exception {
+    	final String TEST_NAME = "testAsIsDelete";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicDelete(
 				"mapping-asis.xml",
@@ -201,6 +225,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testAsIsStringToPolyString() throws Exception {
+    	final String TEST_NAME = "testAsIsStringToPolyString";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
 				"mapping-asis.xml",
@@ -216,6 +243,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testAsIsStringToProtectedString() throws Exception {
+    	final String TEST_NAME = "testAsIsStringToProtectedString";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMapping(
     			"mapping-asis.xml",
@@ -231,6 +261,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testAsIsProtectedStringToProtectedString() throws Exception {
+    	final String TEST_NAME = "testAsIsProtectedStringToProtectedString";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMapping(
     			"mapping-asis-password.xml",
@@ -246,6 +279,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testAsIsProtectedStringToString() throws Exception {
+    	final String TEST_NAME = "testAsIsProtectedStringToString";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
     			"mapping-asis-password.xml",
@@ -261,6 +297,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testAsIsProtectedStringToPolyString() throws Exception {
+    	final String TEST_NAME = "testAsIsProtectedStringToPolyString";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMapping(
     			"mapping-asis-password.xml",
@@ -277,6 +316,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testPathVariables() throws Exception {
+    	final String TEST_NAME = "testPathVariables";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
 				"mapping-path-system-variables.xml",
@@ -294,6 +336,9 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testPathExtensionProperty() throws Exception {
+    	final String TEST_NAME = "testPathExtensionProperty";
+    	displayTestTitle(TEST_NAME);
+    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
 				"mapping-path-extension-variable.xml",
@@ -594,9 +639,10 @@ public class TestMappingDynamicSimple {
 
     @Test
     public void testScriptExtraVariablesJaxb() throws Exception {
-    	// GIVEN
     	final String TEST_NAME = "testScriptExtraVariablesJaxb";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
+    	
+    	// GIVEN
     	MappingImpl.Builder<PrismPropertyValue<String>,PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
     			TEST_NAME, "employeeType", null);
 
@@ -639,7 +685,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptFullNameReplaceGivenName() throws Exception {
     	final String TEST_NAME = "testScriptFullNameReplaceGivenName";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
 				"mapping-script-fullname.xml",
@@ -658,7 +704,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptFullNameDeleteGivenName() throws Exception {
     	final String TEST_NAME = "testScriptFullNameDeleteGivenName";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -687,7 +733,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptFullNameDeleteGivenNameFromNull() throws Exception {
     	final String TEST_NAME = "testScriptFullNameDeleteGivenNameFromNull";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -719,7 +765,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptFullNameDeleteGivenNameFamilyName() throws Exception {
     	final String TEST_NAME = "testScriptFullNameDeleteGivenNameFamilyName";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -882,7 +928,7 @@ public class TestMappingDynamicSimple {
     public void testConditionNonEmptyCaptain() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testConditionNonEmptyCaptain";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
@@ -910,7 +956,7 @@ public class TestMappingDynamicSimple {
     public void testConditionNonEmptyEmpty() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testConditionNonEmptyEmpty";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
@@ -935,7 +981,7 @@ public class TestMappingDynamicSimple {
     public void testConditionNonEmptyNoValue() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testConditionNonEmptyNoValue";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
@@ -958,7 +1004,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptTransformMultiAddDelete() throws Exception {
     	final String TEST_NAME = "testScriptTransformMultiAddDelete";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -1000,7 +1046,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptTransformMultiReplace() throws Exception {
     	final String TEST_NAME = "testScriptTransformMultiReplace";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -1038,11 +1084,20 @@ public class TestMappingDynamicSimple {
     @Test
     public void testInboundMapping() throws Exception{
     	final String TEST_NAME = "testInboundMapping";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
 	    PrismContext prismContext = evaluator.getPrismContext();
 
-    	PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(MappingTestEvaluator.TEST_DIR + "/account-inbound-mapping.xml"));
+    	PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(MappingTestEvaluator.TEST_DIR, "account-inbound-mapping.xml"));
+    	// We need to provide some definitions for account attributes here,
+		// otherwise the tests will fail on unknown data types
+		PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(true, null);
+		PrismContainerDefinition<Containerable> attrsDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
+		attrsDef.toMutable().createPropertyDefinition(new QName(MidPointConstants.NS_RI, "uid"), PrimitiveType.STRING.getQname());
+		attrsDef.toMutable().createPropertyDefinition(SchemaConstants.ICFS_NAME, PrimitiveType.STRING.getQname());
+		account.setDefinition(shadowDef);
+		IntegrationTestTools.display("Account", account);
+		
     	Item oldItem = account.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaTestConstants.ICFS_NAME));
     	ItemDelta delta = prismContext.deltaFactory().property().createModificationAddProperty(SchemaTestConstants.ICFS_NAME_PATH_PARTS, (PrismPropertyDefinition) oldItem.getDefinition(), ((PrismPropertyValue) oldItem.getAnyValue()).getValue());
 
@@ -1051,6 +1106,8 @@ public class TestMappingDynamicSimple {
     	MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createInboudMapping("mapping-inbound.xml", TEST_NAME, delta, user.asObjectable(), account.asObjectable(), null, null);
 
     	OperationResult opResult = new OperationResult(TEST_NAME);
+    	
+    	displayWhen(TEST_NAME);
     	mapping.evaluate(null, opResult);
 
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -1063,7 +1120,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testGenerateDefault() throws Exception {
     	final String TEST_NAME = "testGenerateDefault";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	final ValuePolicyType stringPolicy = evaluator.getValuePolicy();
     	// GIVEN
@@ -1133,7 +1190,7 @@ public class TestMappingDynamicSimple {
 
     private void generatePolicy(final String TEST_NAME, String mappingFileName, String policyFileName, String pattern, boolean ignoreMax)
     		throws Exception {
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
@@ -1219,7 +1276,7 @@ public class TestMappingDynamicSimple {
 
     private <T> void generatePolicyNumeric(final String TEST_NAME, String mappingFileName,
     		String policyFileName, String extensionPropName, Class<T> clazz) throws Exception {
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
 
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
@@ -1277,7 +1334,7 @@ public class TestMappingDynamicSimple {
 	@Test
     public void testGenerateProtectedString() throws Exception {
     	final String TEST_NAME = "testGenerateProtectedString";
-    	TestUtil.displayTestTitle(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
     	// GIVEN
     	MappingImpl<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> mapping = evaluator.createMapping("mapping-generate.xml",
     			TEST_NAME, SchemaConstants.PATH_PASSWORD_VALUE, null);
