@@ -23,6 +23,8 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -200,6 +202,9 @@ public class ReportWebService extends AbstractModelWebService implements ReportP
 	}
 
 	private PrismObject<ReportType> authorizeReportProcessing(String reportOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		if (StringUtils.isBlank(reportOid)) {
+			throw new SchemaException("No report OID specified");
+		}
 		PrismObject<ReportType> report = reportService.getReportDefinition(reportOid, task, result);
 		// TODO TODO TODO: authorization
 		return report;
