@@ -51,6 +51,13 @@
      
         <xsd:complexType name="ProcessReportType">
           <xsd:sequence>
+          	<xsd:element name="reportOid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        OID of an report to process
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="query" type="xsd:string"/>
             <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
             <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" minOccurs="0"/>
@@ -79,7 +86,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    
+                    <xsd:element name="reportOid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of an report to process
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="script" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -124,7 +137,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    
+                    <xsd:element name="reportOid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of an report to process
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="script" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

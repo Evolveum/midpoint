@@ -40,15 +40,16 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.Objectable;
@@ -62,12 +63,12 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -79,6 +80,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -101,35 +103,21 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired private LocalizationService localizationService;
 	@Autowired private SecurityEnforcer securityEnforcer;
 	@Autowired private ScriptExpressionFactory scriptExpressionFactory;
+	@Autowired private ArchetypeManager archetypeManager;
 	
-	private ExpressionProfile determineExpressionProfile() {
-		// TODO TODO TODO TODO TODO
-		return MiscSchemaUtil.getExpressionProfile();
-	}
-	
-	private void setupExpressionProfiles(ScriptExpressionEvaluationContext context) {
-		ExpressionProfile expressionProfile = determineExpressionProfile();
-		context.setExpressionProfile(expressionProfile);
-
-		// TODO TODO TODO TODO TODO
-		ScriptExpressionProfile scriptExpressionProfile = null;
-		context.setScriptExpressionProfile(scriptExpressionProfile);
-	}
-
 	@Override
-	public ObjectQuery parseQuery(String query, VariablesMap parameters) throws SchemaException,
+	public ObjectQuery parseQuery(PrismObject<ReportType> report, String query, VariablesMap parameters, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (StringUtils.isBlank(query)) {
 			return null;
 		}
-
-		
-		ExpressionProfile expressionProfile = determineExpressionProfile();
 		
 		ObjectQuery parsedQuery;
 		try {
-			Task task = taskManager.createTaskInstance();
-			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
+			
+			ExpressionProfile expressionProfile = determineExpressionProfile(report, result);
+			
+			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 			SearchFilterType filter = prismContext.parserFor(query).parseRealValue(SearchFilterType.class);
 			LOGGER.trace("filter {}", filter);
 			ObjectFilter f = prismContext.getQueryConverter().parseFilter(filter, UserType.class);
@@ -146,7 +134,7 @@ public class ReportServiceImpl implements ReportService {
 			variables.putAll(parameters);
 
 			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionProfile, expressionFactory, prismContext,
-					"parsing expression values for report", task, task.getResult());
+					"parsing expression values for report", task, result);
 			((TypeFilter) f).setFilter(q.getFilter());
 			parsedQuery = prismContext.queryFactory().createQuery(f);
 
@@ -162,10 +150,8 @@ public class ReportServiceImpl implements ReportService {
 	}
 
 	@Override
-	public Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
-			ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException, ExpressionEvaluationException {
+	public Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		// List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
 
 		// GetOperationOptions options = GetOperationOptions.createRaw();
@@ -182,9 +168,6 @@ public class ReportServiceImpl implements ReportService {
 		}
 
 		ObjectQuery queryForSearch = prismContext.queryFactory().createQuery(typeFilter.getFilter());
-
-		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
-		OperationResult parentResult = task.getResult();
 
 		// options.add(new
 		// SelectorOptions(GetOperationOptions.createResolveNames()));
@@ -208,9 +191,8 @@ public class ReportServiceImpl implements ReportService {
 	}
 
 	@Override
-	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script,
-			VariablesMap parameters) throws SchemaException, ExpressionEvaluationException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result) 
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PrismContainerValue<? extends Containerable>> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
@@ -219,14 +201,12 @@ public class ReportServiceImpl implements ReportService {
 		// special variable for audit report
 		variables.put("auditParams", getConvertedParams(parameters));
 
-		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".evaluateScript");
-
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);
 		context.setContextDescription("report script"); // TODO: improve
 		context.setTask(task);
-		context.setResult(task.getResult());
-		setupExpressionProfiles(context);
+		context.setResult(result);
+		setupExpressionProfiles(context, report);
 		
 		Object o = evaluateReportScript(script, context);
 
@@ -250,7 +230,7 @@ public class ReportServiceImpl implements ReportService {
 	
 
 	@Override
-	public Object evaluate(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException,
+	public Object evaluate(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ExpressionVariables variables = new ExpressionVariables();
@@ -259,14 +239,12 @@ public class ReportServiceImpl implements ReportService {
 		// special variable for audit report
 		variables.put("auditParams", getConvertedParams(parameters));
 
-		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".evaluateScript");
-
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);
 		context.setContextDescription("report script"); // TODO: improve
 		context.setTask(task);
-		context.setResult(task.getResult());
-		setupExpressionProfiles(context);
+		context.setResult(result);
+		setupExpressionProfiles(context, report);
 
 		Object o = evaluateReportScript(script, context);
 
@@ -288,22 +266,21 @@ public class ReportServiceImpl implements ReportService {
         }
 	}
 
-	public Collection<AuditEventRecord> evaluateAuditScript(String script, VariablesMap parameters)
+	@Override
+	public Collection<AuditEventRecord> evaluateAuditScript(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Collection<AuditEventRecord> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
 			variables.put("auditParams", getConvertedParams(parameters));
 
-		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
-
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);
 		
 		context.setContextDescription("report script"); // TODO: improve
 		context.setTask(task);
-		context.setResult(task.getResult());
-		setupExpressionProfiles(context);
+		context.setResult(result);
+		setupExpressionProfiles(context, report);
 
 		Object o = evaluateReportScript(script, context);
 
@@ -401,5 +378,40 @@ public class ReportServiceImpl implements ReportService {
 			throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
 		}
 		return expressionResult.get(0).getRealValue();
+	}
+	
+	private ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result) throws SchemaException, ConfigurationException {
+		if (report == null) {
+			throw new IllegalArgumentException("No report defined, cannot determine profile");
+		}
+		return archetypeManager.determineExpressionProfile(report, result);
+	}
+	
+	private void setupExpressionProfiles(ScriptExpressionEvaluationContext context, PrismObject<ReportType> report) throws SchemaException, ConfigurationException {
+		ExpressionProfile expressionProfile = determineExpressionProfile(report, context.getResult());
+		LOGGER.trace("Using expression profile '"+(expressionProfile==null?null:expressionProfile.getIdentifier())+"' for report evaluation, determined from: {}", report);
+		context.setExpressionProfile(expressionProfile);
+		context.setScriptExpressionProfile(findScriptExpressionProfile(expressionProfile, report));
+	}
+
+	private ScriptExpressionProfile findScriptExpressionProfile(ExpressionProfile expressionProfile, PrismObject<ReportType> report) {
+		if (expressionProfile == null) {
+			return null;
+		}
+		ExpressionEvaluatorProfile scriptEvaluatorProfile = expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+		if (scriptEvaluatorProfile == null) {
+			return null;
+		}
+		return scriptEvaluatorProfile.getScriptExpressionProfile(getScriptLanguageName(report));
+	}
+
+	private String getScriptLanguageName(PrismObject<ReportType> report) {
+		// Hardcoded for now
+		return GroovyScriptEvaluator.LANGUAGE_NAME;
+	}
+
+	@Override
+	public PrismObject<ReportType> getReportDefinition(String reportOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return model.getObject(ReportType.class, reportOid, null, task, result);
 	}
 }

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -100,6 +101,15 @@ public class ArchetypeManager {
 			return null;
 		}
 		return determineObjectPolicyConfiguration(object, systemObjectCache.getSystemConfiguration(result).asObjectable());
+	}
+	
+	public <O extends ObjectType> ExpressionProfile determineExpressionProfile(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+		ArchetypePolicyType archetypePolicy = determineArchetypePolicy(object, result);
+		if (archetypePolicy == null) {
+			return null;
+		}
+		String expressionProfileId = archetypePolicy.getExpressionProfile();
+		return systemObjectCache.getExpressionProfile(expressionProfileId, result);
 	}
 	
 	/**

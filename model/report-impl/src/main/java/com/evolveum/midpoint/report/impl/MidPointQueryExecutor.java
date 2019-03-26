@@ -48,14 +48,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointLocalQueryExecutor.class);
+	
 	private Object query;
 	private String script;
 	private Class type;
-	private ReportService reportService;
 
 	public String getScript() {
 		return script;

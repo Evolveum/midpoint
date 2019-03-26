@@ -18,8 +18,11 @@ package com.evolveum.midpoint.report.impl;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
@@ -53,6 +57,7 @@ public class JRMidpointEvaluator extends JREvaluator {
 	private String unitName = null;
 	
 	private ReportService reportService;
+	private PrismObject<ReportType> report;
 	
 	private JasperReport jasperReport;
 	private JRDataset dataset;
@@ -63,16 +68,19 @@ public class JRMidpointEvaluator extends JREvaluator {
 	
 	
 	public JRMidpointEvaluator(Serializable compileData, String unitName) {
+		LOGGER.info("NEW1: {}, {}", compileData, unitName);
 		this.compileData = compileData;
 		this.unitName = unitName;
 	}
 	
 	public JRMidpointEvaluator(JasperReport jasperReprot, JRDataset dataset) {
+		LOGGER.info("NEW2: {}, {}", jasperReprot, dataset);
 		this.jasperReport = jasperReprot;
 		this.dataset = dataset;
 	}
 	
 	public JRMidpointEvaluator(JasperReport jasperReprot) {
+		LOGGER.info("NEW3: {}", jasperReprot);
 		this.jasperReport = jasperReprot;
 	}
 	
@@ -87,12 +95,16 @@ public class JRMidpointEvaluator extends JREvaluator {
 		this.parametersMap = parametersMap;
 		this.fieldsMap = fieldsMap;
 		this.variablesMap = variablesMap;
+		
+		// TODO TODO TODO
+		// report = ?????
 				
 		reportService = SpringApplicationContext.getBean(ReportService.class);
 	}
 
 	@Override
 	public Object evaluate(JRExpression expression) throws JRExpressionEvalException {
+		LOGGER.info("evaluate: {}", expression);
 		if (expression == null) {
 			return null;
 		}
@@ -136,7 +148,10 @@ public class JRMidpointEvaluator extends JREvaluator {
 		
 		if (reportService != null) {
 			try {
-				return reportService.evaluate(groovyCode, parameters);
+				// TODO:
+				Task task = null;
+				OperationResult result = null;
+				return reportService.evaluate(report, groovyCode, parameters, task ,result);
 			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
 					| ConfigurationException | SecurityViolationException e) {
 				throw new JRRuntimeException(e.getMessage(), e);

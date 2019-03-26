@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -35,7 +36,9 @@ import com.evolveum.midpoint.report.api.ReportPort;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -48,12 +51,17 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParametersType;
 import com.evolveum.midpoint.xml.ns._public.report.report_3.ReportPortType;
 
 @Service
-public class ReportWebService implements ReportPortType, ReportPort {
+public class ReportWebService extends AbstractModelWebService implements ReportPortType, ReportPort {
+
+	private static final String OP_EVALUATE_SCRIPT = ReportWebService.class.getName() + ".evaluateScript";
+	private static final String OP_EVALUATE_AUDIT_SCRIPT = ReportWebService.class.getName() + ".evaluateAuditScript";
+	private static final String OP_PROCESS_REPORT = ReportWebService.class.getName() + ".processReport";
 
 	private static transient Trace LOGGER = TraceManager.getTrace(ReportWebService.class);
 
@@ -61,10 +69,18 @@ public class ReportWebService implements ReportPortType, ReportPort {
 	@Autowired private ReportService reportService;
 
 	@Override
-	public ObjectListType evaluateScript(String script, RemoteReportParametersType parameters) {
+	public ObjectListType evaluateScript(String reportOid, String script, RemoteReportParametersType parameters) {
+		
+		Task task = createTaskInstance(OP_EVALUATE_SCRIPT);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
+		
 		try {
+			
+			PrismObject<ReportType> report = authorizeReportProcessing(reportOid, task, operationResult);
+			
 			VariablesMap params = getParamsMap(parameters);
-			Collection resultList = reportService.evaluateScript(script, params);
+			Collection resultList = reportService.evaluateScript(report, script, params, task, operationResult);
 			return createObjectListType(resultList);
 		} catch (Throwable e) {
 			throw new Fault(e);
@@ -73,11 +89,17 @@ public class ReportWebService implements ReportPortType, ReportPort {
 	}
 
 	@Override
-	public AuditEventRecordListType evaluateAuditScript(String script, RemoteReportParametersType parameters) {
+	public AuditEventRecordListType evaluateAuditScript(String reportOid, String script, RemoteReportParametersType parameters) {
+		
+		Task task = createTaskInstance(OP_EVALUATE_AUDIT_SCRIPT);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
 
 		try {
+			PrismObject<ReportType> report = authorizeReportProcessing(reportOid, task, operationResult);
+			
 			VariablesMap params = getParamsMap(parameters);
-			Collection<AuditEventRecord> resultList = reportService.evaluateAuditScript(script, params);
+			Collection<AuditEventRecord> resultList = reportService.evaluateAuditScript(report, script, params, task, operationResult);
 			return createAuditEventRecordListType(resultList);
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
@@ -153,15 +175,20 @@ public class ReportWebService implements ReportPortType, ReportPort {
 
 
 	@Override
-	public ObjectListType processReport(String query, RemoteReportParametersType parameters,
-			SelectorQualifiedGetOptionsType options) {
+	public ObjectListType processReport(String reportOid, String query, RemoteReportParametersType parameters, SelectorQualifiedGetOptionsType options) {
 
+		Task task = createTaskInstance(OP_PROCESS_REPORT);
+		auditLogin(task);
+		OperationResult operationResult = task.getResult();
+		
 		try {
 
+			PrismObject<ReportType> report = authorizeReportProcessing(reportOid, task, operationResult);
+			
 			VariablesMap parametersMap = getParamsMap(parameters);
-			ObjectQuery q = reportService.parseQuery(query, parametersMap);
+			ObjectQuery q = reportService.parseQuery(report, query, parametersMap, task, operationResult);
 			Collection<PrismObject<? extends ObjectType>> resultList = reportService.searchObjects(q,
-					MiscSchemaUtil.optionsTypeToOptions(options, prismContext));
+					MiscSchemaUtil.optionsTypeToOptions(options, prismContext), task, operationResult);
 
 			return createObjectListType(resultList);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
@@ -170,6 +197,12 @@ public class ReportWebService implements ReportPortType, ReportPort {
 			throw new Fault(e);
 		}
 
+	}
+
+	private PrismObject<ReportType> authorizeReportProcessing(String reportOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ReportType> report = reportService.getReportDefinition(reportOid, task, result);
+		// TODO TODO TODO: authorization
+		return report;
 	}
 
 }

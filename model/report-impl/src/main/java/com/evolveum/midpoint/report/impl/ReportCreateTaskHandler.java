@@ -81,6 +81,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -116,15 +117,18 @@ public class ReportCreateTaskHandler implements TaskHandler {
     public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-3";
     private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
 
-    private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
-    private static String PARAMETER_REPORT_OID = "reportOid";
-    private static String PARAMETER_OPERATION_RESULT = "operationResult";
+    // TODO: is this a good place for those constants?
+    public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
+    public static final String PARAMETER_REPORT_OID = "midpointReportOid";
+    public static final String PARAMETER_REPORT_OBJECT = "midpointReportObject";
+    public static final String PARAMETER_TASK = "midpointTask";
+    public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
 
-    private static String MIDPOINT_HOME = System.getProperty("midpoint.home");
-    private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
-    private static String TEMP_DIR = MIDPOINT_HOME + "tmp/";
+    private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
+    private static final String EXPORT_DIR = MIDPOINT_HOME + "export/";
+    private static final String TEMP_DIR = MIDPOINT_HOME + "tmp/";
 
-    private static String JASPER_VIRTUALIZER_PKG = "net.sf.jasperreports.engine.fill";
+    private static final String JASPER_VIRTUALIZER_PKG = "net.sf.jasperreports.engine.fill";
 
     @Autowired private TaskManager taskManager;
     @Autowired private ModelService modelService;
@@ -224,8 +228,11 @@ public class ReportCreateTaskHandler implements TaskHandler {
                     LOGGER.error("Cannot find Jasper virtualizer: " + e.getMessage());
                 }
             }
+            
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("All Report parameters:\n{}", DebugUtil.debugDump(parameters, 1));
+            }
 
-            LOGGER.trace("All Report parameters : {}", parameters);
             JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters);
             LOGGER.trace("fill report : {}", jasperPrint);
 
@@ -276,12 +283,15 @@ public class ReportCreateTaskHandler implements TaskHandler {
             params.put(subReportName, subReport);
         }
 
-        Map<String, Object> parameters = prepareReportParameters(parentReport, result);
+        Map<String, Object> parameters = prepareReportParameters(parentReport, task, result);
         params.putAll(parameters);
-        LOGGER.trace("create report params : {}", parameters);
 
         Map<String, Object> subreportParameters = processSubreportParameters(parentReport, task, result);
         params.putAll(subreportParameters);
+        
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("create report params:\n{}", DebugUtil.debugDump(parameters, 1));
+        }
         return params;
     }
 
@@ -315,7 +325,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 //
 //
 //	}
-    private Map<String, Object> prepareReportParameters(ReportType reportType, OperationResult parentResult) {
+    private Map<String, Object> prepareReportParameters(ReportType reportType, Task task, OperationResult parentResult) {
         Map<String, Object> params = new HashMap<>();
         if (reportType.getTemplateStyle() != null) {
             byte[] reportTemplateStyleBase64 = reportType.getTemplateStyle();
@@ -333,9 +343,15 @@ public class ReportCreateTaskHandler implements TaskHandler {
             }
 
         }
+        
+        if (parentResult == null) {
+        	throw new IllegalArgumentException("No result");
+        }
 
         // for our special datasource
         params.put(PARAMETER_REPORT_OID, reportType.getOid());
+        params.put(PARAMETER_REPORT_OBJECT, reportType.asPrismObject());
+        params.put(PARAMETER_TASK, task);
         params.put(PARAMETER_OPERATION_RESULT, parentResult);
         params.put(ReportService.PARAMETER_REPORT_SERVICE, reportService);
 
@@ -359,7 +375,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         ReportType reportType = objectResolver.resolve(subreportType.getReportRef(), ReportType.class, null,
                 "resolve subreport", task, subResult);
 
-        Map<String, Object> parameters = prepareReportParameters(reportType, subResult);
+        Map<String, Object> parameters = prepareReportParameters(reportType, task, subResult);
         reportParams.putAll(parameters);
 
         JasperReport jasperReport = ReportTypeUtil.loadJasperReport(reportType);

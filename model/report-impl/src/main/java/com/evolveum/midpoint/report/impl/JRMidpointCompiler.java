@@ -18,6 +18,9 @@ package com.evolveum.midpoint.report.impl;
 import java.io.File;
 import java.io.Serializable;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import net.sf.jasperreports.crosstabs.JRCrosstab;
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
@@ -37,6 +40,7 @@ import net.sf.jasperreports.engine.fill.JREvaluator;
  */
 public class JRMidpointCompiler extends JRAbstractCompiler {
 	
+	private static final transient Trace LOGGER = TraceManager.getTrace(JRMidpointCompiler.class);
 	
 	/**
 	 * @param jasperReportsContext
@@ -44,6 +48,7 @@ public class JRMidpointCompiler extends JRAbstractCompiler {
 	 */
 	public JRMidpointCompiler(JasperReportsContext jasperReportsContext) {
 		super(jasperReportsContext, false);
+		LOGGER.info("NEW: {}", jasperReportsContext);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -86,7 +91,7 @@ public class JRMidpointCompiler extends JRAbstractCompiler {
 	@Override
 	protected void checkLanguage(String language) throws JRException {
 		if (!"midPoint".equals(language)) {
-			throw new JRException("asdasd");
+			throw new JRException("Expression language '"+language+" is not supported");
 		}
 			
 	}
