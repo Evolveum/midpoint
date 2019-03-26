@@ -27,12 +27,16 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.commons.lang3.StringUtils;
@@ -92,7 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<NotificationConfigurationType>> {
+public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<NotificationConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -116,7 +120,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
 	private MailConfigurationType mailConfigType;
 	private List<MailServerConfiguration> mailServers;
 
-	public NotificationConfigTabPanel(String id, IModel<ContainerWrapperImpl<NotificationConfigurationType>> model) {
+	public NotificationConfigTabPanel(String id, IModel<PrismContainerWrapper<NotificationConfigurationType>> model) {
 		super(id, model);
 	}
 	
@@ -137,8 +141,8 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
 
 	protected void initLayout() {
 		
-		IModel<PropertyOrReferenceWrapper> mailConfig = Model.of(getModel().getObject().findPropertyWrapper(NotificationConfigurationType.F_MAIL));
-		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".details"));
+		IModel<PrismPropertyWrapper<MailConfigurationType>> mailConfig = Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_MAIL));
+		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig.getObject().getTypeName().getLocalPart() + ".details"));
 		
 		Form form = new Form<>("form");
 		
@@ -149,16 +153,16 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
 		
 		if(mailConfigType == null) {
 			mailConfigType = new MailConfigurationType();
-			((PrismPropertyValue<MailConfigurationType>)((List<ValueWrapperOld>)mailConfig.getObject().getValues()).get(0).getValue()).setValue(mailConfigType);
+			((PrismPropertyValue<MailConfigurationType>)((List<PrismPropertyValueWrapper<MailConfigurationType>>)mailConfig.getObject().getValues()).get(0)).setValue(mailConfigType);
     	}
 		
-		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
+		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
 		
-		add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<String>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
+		add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<String>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
 		
-		add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<String>(mailConfigType, "logToFile"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
+		add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<String>(mailConfigType, "logToFile"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
 		
-		add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<Boolean>(mailConfigType, "debug"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
+		add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<Boolean>(mailConfigType, "debug"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
 		
 		add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 		
@@ -166,7 +170,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
         
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
         
-        IModel<PropertyOrReferenceWrapper> fileConfig = Model.of(getModel().getObject().findPropertyWrapper(NotificationConfigurationType.F_FILE));
+        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig = Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_FILE));
         
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
@@ -237,10 +241,11 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
 
             	@Override
             	public void onClick(AjaxRequestTarget target) {
-            		ValueWrapperOld<FileConfigurationType> newValue = fileConfig.getObject().createAddedValue();
-            		((PrismPropertyValue<FileConfigurationType>)newValue.getValue()).setValue(new FileConfigurationType());
-            		fileConfig.getObject().getValues().add(newValue);
-            		target.add(files);
+            		//TODO add new value
+//            		ValueWrapperOld<FileConfigurationType> newValue = fileConfig.getObject().createAddedValue();
+//            		((PrismPropertyValue<FileConfigurationType>)newValue.getValue()).setValue(new FileConfigurationType());
+//            		fileConfig.getObject().getValues().add(newValue);
+//            		target.add(files);
             	}
             };
             add(addButton);
@@ -496,7 +501,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapperImpl<N
 		}
 		
 		PropertyModel<MailConfigurationType> mailConfigType =
-				new PropertyModel<MailConfigurationType>(Model.of(getModel().getObject().findPropertyWrapper(NotificationConfigurationType.F_MAIL))
+				new PropertyModel<MailConfigurationType>(Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_MAIL))
 						, "values[0].value.value");
 		List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
 		

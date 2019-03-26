@@ -45,7 +45,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
@@ -345,6 +345,24 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	 */
 	@Override
 	public PrismReferenceWrapper findReference(ItemPath path) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#findContainerValue(com.evolveum.midpoint.prism.path.ItemPath)
+	 */
+	@Override
+	public <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#getContainer()
+	 */
+	@Override
+	public PrismContainer<C> getContainer() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
@@ -135,8 +136,9 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
 
 		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-		PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<>(ID_ACTIVATION_PANEL, activationModel, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
-		add(acitvationContainer);
+		PrismContainerPanel<ActivationType> activationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel);
+//		PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<>(ID_ACTIVATION_PANEL, activationModel, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
+//		add(acitvationContainer);
 		
 		initContainersPanel(form, pageBase);
     }

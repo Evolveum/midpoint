@@ -21,7 +21,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang.Validate;
@@ -43,7 +43,7 @@ public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapperOld> exte
 
     private Form form;
 
-    public AbstractPrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
+    public AbstractPrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandlerOld visibilityHandler) {
         super(id, model);
         Validate.notNull(model, "no model");
         this.model = model;
@@ -84,7 +84,7 @@ public abstract class AbstractPrismPropertyPanel<IW extends ItemWrapperOld> exte
     	return !model.getObject().isReadonly();
     }
     
-    public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
+    public boolean isVisible(ItemVisibilityHandlerOld visibilityHandler) {
     	IW propertyWrapper = getModel().getObject();
     	
 //    	if (visibilityHandler != null) {

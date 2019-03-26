@@ -37,10 +37,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.Containerable;
@@ -49,17 +46,15 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -82,11 +77,11 @@ public class PrismPropertyPanel<IW extends ItemWrapperOld> extends AbstractPrism
 	
     private boolean labelContainerVisible = true;
     
-    public PrismPropertyPanel(String id, IW model, Form form, ItemVisibilityHandler visibilityHandler) {
+    public PrismPropertyPanel(String id, IW model, Form form, ItemVisibilityHandlerOld visibilityHandler) {
 		super(id, Model.of(model), form, visibilityHandler);
 	}
     
-    public PrismPropertyPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
+    public PrismPropertyPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandlerOld visibilityHandler) {
 		super(id, model, form, visibilityHandler);
 	}
     

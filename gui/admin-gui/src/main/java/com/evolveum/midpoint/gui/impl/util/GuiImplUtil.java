@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -36,7 +37,7 @@ public class GuiImplUtil {
 		}
 	}
 	
-	public static String getObjectStatus(final ContainerValueWrapper<Containerable> object) {
+	public static <C extends Containerable> String getObjectStatus(PrismContainerValueWrapper<C> object) {
 		switch (object.getStatus()) {
         case ADDED:
             return "success";

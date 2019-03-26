@@ -826,7 +826,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-	public boolean containsMultipleMultivalueContainer(ItemVisibilityHandler isPanelVisible){
+	public boolean containsMultipleMultivalueContainer(ItemVisibilityHandlerOld isPanelVisible){
 		int count = 0;
 		for (ItemWrapperOld wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapperImpl)) {
@@ -850,7 +850,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return false;
 	}
 
-	public List<QName> getChildMultivalueContainersToBeAdded(ItemVisibilityHandler isPanelVisible){
+	public List<QName> getChildMultivalueContainersToBeAdded(ItemVisibilityHandlerOld isPanelVisible){
 		List<QName> pathList = new ArrayList<>();
 		for (ItemWrapperOld wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapperImpl)) {

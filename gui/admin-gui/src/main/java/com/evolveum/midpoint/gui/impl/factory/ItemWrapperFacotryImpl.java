@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public abstract class ItemWrapperFacotryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>> implements ItemWrapperFactory<IW, PV> {
+public abstract class ItemWrapperFacotryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item> implements ItemWrapperFactory<IW, PV> {
 
 	@Autowired private GuiComponentRegistryImpl registry; 
 	@Autowired private PrismContext prismContext;
@@ -64,10 +64,10 @@ public abstract class ItemWrapperFacotryImpl<IW extends ItemWrapper, PV extends 
 	}
 	
 	
-	protected List<PrismValueWrapper<?>> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
+	protected <ID extends ItemDefinition<I>> List<PrismValueWrapper<?>> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
 		List<PrismValueWrapper<?>> pvWrappers = new ArrayList<>();
 		
-		ID definition = item.getDefinition();
+		ID definition = (ID) item.getDefinition();
 		ItemWrapperFactory<IW, PV> factory = (ItemWrapperFactory<IW, PV>) registry.findWrapperFactory(definition);
 		
 		if (item.isEmpty()) {
@@ -78,7 +78,7 @@ public abstract class ItemWrapperFacotryImpl<IW extends ItemWrapper, PV extends 
 			}
 		}
 		
-		for (PV pcv : item.getValues()) {
+		for (PV pcv : (List<PV>)item.getValues()) {
 			PrismValueWrapper<?> valueWrapper = factory.createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
 			pvWrappers.add(valueWrapper);
 		}

@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class ContainerWrapperFactoryImpl<C extends Containerable> extends ItemWrapperFacotryImpl<PrismContainerWrapper<C>, PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>> {
+public class ContainerWrapperFactoryImpl<C extends Containerable> extends ItemWrapperFacotryImpl<PrismContainerWrapper<C>, PrismContainerValue<C>, PrismContainer<C>> {
 
 	@Autowired private GuiComponentRegistryImpl registry;
 	/* (non-Javadoc)
@@ -79,11 +79,11 @@ public class ContainerWrapperFactoryImpl<C extends Containerable> extends ItemWr
 			throws SchemaException {
 		PrismContainerValueWrapper<C> containerValueWrapper = new PrismContainerValueWrapperImpl<C>(parent, value, status);
 		
-		List<ItemWrapper<?,?,?>> wrappers = new ArrayList<>();
+		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
 		for (ItemDefinition<?> def : parent.getDefinitions()) {
 			ItemWrapperFactory<?, ?> factory = registry.findWrapperFactory(def);
 			
-			ItemWrapper<?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
+			ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
 			wrappers.add(wrapper);
 			
 		}

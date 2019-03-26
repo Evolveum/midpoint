@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -139,7 +140,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             }
 
                             @Override
-                            protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
+                            protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                                 return AssignmentPopup.this.getAssignmentWrapperModel();
                             }
 
@@ -189,7 +190,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             }
 
                             @Override
-                            protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
+                            protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                                 return AssignmentPopup.this.getAssignmentWrapperModel();
                             }
 
@@ -239,7 +240,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     }
 
                     @Override
-                    protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
+                    protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                         return AssignmentPopup.this.getAssignmentWrapperModel();
                     }
 
@@ -288,7 +289,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             }
                             
                             @Override
-                            protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
+                            protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
                             	return AssignmentPopup.this.getAssignmentWrapperModel();
                             }
 
@@ -348,7 +349,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         return tabs;
     }
 
-    protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel(){
+    protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel(){
         return null;
     }
 

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import org.apache.commons.lang.StringUtils;
@@ -39,16 +40,20 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -81,7 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<ContainerWrapperImpl<GlobalPolicyRuleType>> {
+public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<PrismContainerWrapper<GlobalPolicyRuleType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -89,7 +94,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 	
     private static final String ID_GLOBAL_POLICY_RULE = "globalPolicyRule";
     
-    public GlobalPolicyRuleTabPanel(String id, IModel<ContainerWrapperImpl<GlobalPolicyRuleType>> model) {
+    public GlobalPolicyRuleTabPanel(String id, IModel<PrismContainerWrapper<GlobalPolicyRuleType>> model) {
         super(id, model);
 		
     }
@@ -112,8 +117,8 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<ContainerValueWrapper<GlobalPolicyRuleType>> postSearch(
-					List<ContainerValueWrapper<GlobalPolicyRuleType>> items) {
+			protected List<PrismContainerValueWrapper<GlobalPolicyRuleType>> postSearch(
+					List<PrismContainerValueWrapper<GlobalPolicyRuleType>> items) {
 				return getObjects();
 			}
 			
@@ -138,13 +143,13 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 			}
 			
 			@Override
-			protected List<IColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
-				return initBasicColumns();
+			protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
+				return (List) initBasicColumns();
 			}
 
 			@Override
 			protected MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
-					ListItem<ContainerValueWrapper<GlobalPolicyRuleType>> item) {
+					ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
 				return GlobalPolicyRuleTabPanel.this.getMultivalueContainerDetailsPanel(item);
 			}
 
@@ -170,20 +175,20 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 		setOutputMarkupId(true);
 	}
     
-    private List<ContainerValueWrapper<GlobalPolicyRuleType>> getObjects() {
+    private List<PrismContainerValueWrapper<GlobalPolicyRuleType>> getObjects() {
     	return getModelObject().getValues();
     }
     
     protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {
-        PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
-        ContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModel());
-        newObjectPolicyWrapper.setShowEmpty(true, true);
-        newObjectPolicyWrapper.computeStripes();
+        PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModelObject().getContainer().createNewValue();
+        PrismContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModelObject());
+//        newObjectPolicyWrapper.setShowEmpty(true, true);
+//        newObjectPolicyWrapper.computeStripes();
         getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
 	}
     
     private MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
-			ListItem<ContainerValueWrapper<GlobalPolicyRuleType>> item) {
+			ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
     	MultivalueContainerDetailsPanel<GlobalPolicyRuleType> detailsPanel =
 				new  MultivalueContainerDetailsPanel<GlobalPolicyRuleType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
@@ -192,7 +197,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 			@Override
 			protected DisplayNamePanel<GlobalPolicyRuleType> createDisplayNamePanel(String displayNamePanelId) {
 				ItemRealValueModel<GlobalPolicyRuleType> displayNameModel = 
-						new ItemRealValueModel<GlobalPolicyRuleType>(item.getModel().getObject());
+						new ItemRealValueModel<GlobalPolicyRuleType>(item.getModel());
 				return new DisplayNamePanel<GlobalPolicyRuleType>(displayNamePanelId, displayNameModel);
 			}
 			
@@ -215,76 +220,87 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 			    .setPaging(getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
     }
     
-    private List<IColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>> initBasicColumns() {
-		List<IColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>> columns = new ArrayList<>();
+    private List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> initBasicColumns() {
+		List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
 
-		columns.add(new IconColumn<ContainerValueWrapper<GlobalPolicyRuleType>>(Model.of("")) {
-
-			private static final long serialVersionUID = 1L;
-
+//		columns.add(new IconColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>>(Model.of("")) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			protected IModel<String> createIconModel(IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+//				return new IModel<String>() {
+//
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public String getObject() {
+//						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
+//					}
+//				};
+//			}
+//
+//		});
+		
+		LinkPrismPropertyColumn<GlobalPolicyRuleType, String> linkColumn = new LinkPrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, getPageBase()) {
+			
 			@Override
-			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-				return new IModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
-					}
-				};
+			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
-
-		});
+		};
+		columns.add(linkColumn);
 		
-        columns.add(new LinkPrismPropertyColumn(getModel(), GlobalPolicyRuleType.F_NAME, getPageBase()) {
-        	@Override
-        	protected void onClick(AjaxRequestTarget target, IModel rowModel) {
-        		getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-        	}
-        });
+		   
+        //TODO wrapper form wrapper model
+        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
 		
-        columns.add(new AbstractItemWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
-                                     final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-                cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(getqNameOfItem())),
-                		new Form("form"), null) {
-                	@Override
-                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
-                		ItemRealValueModel value = new ItemRealValueModel(object);
-                		String constraints = PolicyRuleTypeUtil.toShortString((PolicyConstraintsType)value.getObject());
-                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
-                	}
-                });
-            }
-
-        });
+        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
+		
+//        columns.add(new AbstractItemWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()){
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
+//                                     final IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+//                cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(getqNameOfItem())),
+//                		new Form("form"), null) {
+//                	@Override
+//                	protected IModel<String> populateContainerItem(PrismContainerValueWrapper object) {
+//                		ItemRealValueModel value = new ItemRealValueModel(object);
+//                		String constraints = PolicyRuleTypeUtil.toShortString((PolicyConstraintsType)value.getObject());
+//                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
+//                	}
+//                });
+//            }
+//
+//        });
         
-        columns.add(new StaticPrismPropertyColumn(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, getPageBase()));
         
-        columns.add(new AbstractItemWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
-                                     final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-                cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(getqNameOfItem())),
-                		new Form("form"), null) {
-                	@Override
-                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
-                		ItemRealValueModel value = new ItemRealValueModel(object);
-                		String constraints = PolicyRuleTypeUtil.toShortString((PolicyActionsType)value.getObject(), new ArrayList());
-                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
-                	}
-                });
-            }
-
-        });
+        //todo property from container model
+        
+        columns.add(new PrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, getPageBase(), true));
+        
+//        columns.add(new AbstractItemWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()){
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
+//                                     final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+//                cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(getqNameOfItem())),
+//                		new Form("form"), null) {
+//                	@Override
+//                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
+//                		ItemRealValueModel value = new ItemRealValueModel(object);
+//                		String constraints = PolicyRuleTypeUtil.toShortString((PolicyActionsType)value.getObject(), new ArrayList());
+//                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
+//                	}
+//                });
+//            }
+//
+//        });
 		
 		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));

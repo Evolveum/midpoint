@@ -31,7 +31,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFacotryImpl<PrismPropertyWrapper<T>, PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyDefinition<T>>{
+public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFacotryImpl<PrismPropertyWrapper<T>, PrismPropertyValue<T>, PrismProperty<T>>{
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {

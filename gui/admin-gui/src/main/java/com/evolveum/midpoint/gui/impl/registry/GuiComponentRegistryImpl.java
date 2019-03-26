@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.wicket.model.IModel;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -21,10 +22,12 @@ import com.evolveum.midpoint.gui.impl.factory.WrapperFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+@Component
 public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 
 	List<GuiComponentFactory> guiComponentFactories = new ArrayList<>();
@@ -93,8 +96,8 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 		return opt.get();
 	}
 	
-	public ItemWrapperFactory<?,?> findWrapperFactory(ItemDefinition<?> def) {
-		Optional<ItemWrapperFactory<?,?>> opt = wrapperFactories.stream().filter(f -> f.match(def)).findFirst();
+	public <IW extends ItemWrapper, PV extends PrismValue> ItemWrapperFactory<IW, PV> findWrapperFactory(ItemDefinition<?> def) {
+		Optional<ItemWrapperFactory<IW, PV>> opt = (Optional) wrapperFactories.stream().filter(f -> f.match(def)).findFirst();
 		if (!opt.isPresent()) {
 			return null;
 		}
@@ -106,7 +109,7 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 		return (PrismObjectWrapperFactory) findWrapperFactory(objectDef);
 	}
 	
-//	@Override
+	@Override
 	public void addToRegistry(ItemWrapperFactory factory) {
 		wrapperFactories.add(factory);
 

@@ -16,8 +16,11 @@
 
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,7 +38,7 @@ import java.util.List;
  *
  * @author katkav
  */
-public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<List<ContainerWrapperImpl<C>> ,O> {
+public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<List<PrismContainerWrapper<C>> ,O> {
 
    private static final long serialVersionUID = 1L;
 
@@ -44,7 +47,7 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
     private List<ItemPath> paths;
 
    
-    public ContainerWrapperListFromObjectWrapperModel(IModel<ObjectWrapperOld<O>> model, List<ItemPath> paths) {
+    public ContainerWrapperListFromObjectWrapperModel(IModel<PrismObjectWrapper<O>> model, List<ItemPath> paths) {
     	super(model);
 //        Validate.notNull(paths, "Item path must not be null.");
         this.paths = paths;
@@ -56,13 +59,13 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
     }
 
 	@Override
-	public List<ContainerWrapperImpl<C>> getObject() {
-		List<ContainerWrapperImpl<C>> wrappers = new ArrayList<>();
+	public List<PrismContainerWrapper<C>> getObject() {
+		List<PrismContainerWrapper<C>> wrappers = new ArrayList<>();
 		if (paths == null) {
 			return (List) getWrapper().getContainers();
 		}
 		for (ItemPath path : paths) {
-			ContainerWrapperImpl<C> containerWrapper = getWrapper().findContainerWrapper(path);
+			PrismContainerWrapper<C> containerWrapper = getWrapper().findContainer(path);
 			if (containerWrapper != null) {
 				containerWrapper.setShowEmpty(true, false);
 				wrappers.add(containerWrapper);
@@ -72,7 +75,7 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
 	}
 
 	@Override
-	public void setObject(List<ContainerWrapperImpl<C>> arg0) {
+	public void setObject(List<PrismContainerWrapper<C>> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
 	}

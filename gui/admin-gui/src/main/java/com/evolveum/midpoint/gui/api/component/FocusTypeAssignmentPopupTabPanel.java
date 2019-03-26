@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
@@ -112,7 +114,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected boolean isInducement(){
-        ContainerWrapperImpl<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+    	PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper != null && assignmentWrapper.getPath() != null && assignmentWrapper.getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT)){
             return true;
         }
@@ -120,18 +122,18 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
-        ContainerWrapperImpl<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+    	PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper == null){
             return null;
         }
-        ObjectWrapperOld<O> w = assignmentWrapper.getObjectWrapper();
+        PrismObjectWrapper<O> w = (PrismObjectWrapper<O>) assignmentWrapper.getParent().getParent();
         if (w == null) {
             return null;
         }
         return w.getObject();
     }
 
-    protected ContainerWrapperImpl<AssignmentType> getAssignmentWrapperModel() {
+    protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
         return null;
     }
 

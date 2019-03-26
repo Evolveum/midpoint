@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,7 +37,7 @@ import java.util.List;
 /**
  * @author Kate Honchar
  */
-public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
+public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
 
     private static final String DOT_CLASS = LinksPanel.class.getName() + ".";
 
@@ -52,14 +53,20 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     private static final Trace LOGGER = TraceManager.getTrace(LinksPanel.class);
 
     public LinksPanel(String id) {
-        super(id, null);
+        this(id, null);
     }
 
     public LinksPanel(String id, IModel<List<RichHyperlinkType>> model) {
         super(id, model);
     }
-
+    
     @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
+
+  
     protected void initLayout() {
 
         final List<RichHyperlinkType> linksList = getModel().getObject();

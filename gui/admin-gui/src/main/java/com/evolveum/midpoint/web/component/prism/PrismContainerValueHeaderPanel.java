@@ -50,9 +50,9 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
     
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerValueHeaderPanel.class);
     
-    private ItemVisibilityHandler isParentPanelVisible;
+    private ItemVisibilityHandlerOld isParentPanelVisible;
 	
-	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model, ItemVisibilityHandler isParentPanelVisible) {
+	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model, ItemVisibilityHandlerOld isParentPanelVisible) {
 		super(id, model);
 		this.isParentPanelVisible = isParentPanelVisible;
 	}

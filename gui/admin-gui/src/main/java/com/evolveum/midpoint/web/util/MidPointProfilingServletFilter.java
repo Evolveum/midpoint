@@ -16,16 +16,23 @@
 
 package com.evolveum.midpoint.web.util;
 
+import java.io.IOException;
+import java.text.DecimalFormat;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.catalina.connector.ClientAbortException;
+
 import com.evolveum.midpoint.util.aspect.ProfilingDataLog;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.catalina.connector.ClientAbortException;
-
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.text.DecimalFormat;
 
 /**
  *  //TODO - After upgrading to javax.servlet version API 3.0, add response status code logging

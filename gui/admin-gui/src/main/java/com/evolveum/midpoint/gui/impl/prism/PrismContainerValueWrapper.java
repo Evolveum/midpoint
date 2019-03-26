@@ -68,4 +68,14 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath);
 	PrismReferenceWrapper findReference(ItemPath path);
 	
+	ItemPath getPath();
+	
+	boolean isSelected();
+	boolean setSelected(boolean selected);
+	
+	
+	boolean isReadOnly();
+	void setReadOnly(boolean readOnly, boolean recursive);
+	
+	boolean hasChanged();
 }

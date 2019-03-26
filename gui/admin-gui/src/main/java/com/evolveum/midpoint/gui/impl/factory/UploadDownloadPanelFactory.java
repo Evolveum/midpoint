@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -49,7 +50,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T
 	}
 
 	@Override
-	public boolean match(PrismPropertyWrapper<T> wrapper) {
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
 		return DOMUtil.XSD_BASE64BINARY.equals(wrapper.getTypeName());
 	}
 

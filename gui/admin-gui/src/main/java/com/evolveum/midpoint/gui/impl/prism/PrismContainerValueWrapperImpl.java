@@ -226,4 +226,67 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> implements 
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper#getValueStatus()
+	 */
+	@Override
+	public ValueStatus getValueStatus() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#getPath()
+	 */
+	@Override
+	public ItemPath getPath() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#isSelected()
+	 */
+	@Override
+	public boolean isSelected() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#setSelected(boolean)
+	 */
+	@Override
+	public boolean setSelected(boolean selected) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#isReadOnly()
+	 */
+	@Override
+	public boolean isReadOnly() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#setReadOnly(boolean, boolean)
+	 */
+	@Override
+	public void setReadOnly(boolean readOnly, boolean recursive) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#hasChanged()
+	 */
+	@Override
+	public boolean hasChanged() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

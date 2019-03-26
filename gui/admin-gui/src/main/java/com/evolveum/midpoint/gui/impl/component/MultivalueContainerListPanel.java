@@ -26,6 +26,8 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+
+import org.apache.lucene.queries.function.valuesource.MultiFunction.Values;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,7 +41,11 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -48,6 +54,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -71,7 +78,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
  * @author skublik
  */
 
-public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends BasePanel<ContainerWrapperImpl<C>> {
+public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends BasePanel<PrismContainerWrapper<C>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -88,7 +95,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	
 	private LoadableModel<Search> searchModel = null;
 	
-	public MultivalueContainerListPanel(String id, IModel<ContainerWrapperImpl<C>> model, TableId tableId, PageStorage pageStorage) {
+	public MultivalueContainerListPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
 		super(id, model);
 		this.tableId = tableId;
 		this.pageStorage = pageStorage;
@@ -99,10 +106,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
 			@Override
 			protected Search load() {
-				PrismContainerDefinition<C> containerDef = model.getObject().getItemDefinition();
-		    	List<SearchItemDefinition> availableDefs = initSearchableItems(containerDef);
+				List<SearchItemDefinition> availableDefs = initSearchableItems(model.getObject());
 		    	
-		    	Search search = new Search(model.getObject().getItem().getCompileTimeClass(), availableDefs);
+		    	Search search = new Search(model.getObject().getCompileTimeClass(), availableDefs);
 				return search;
 			}
 
@@ -141,7 +147,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		itemsContainer.setOutputMarkupId(true);
 		add(itemsContainer);
 
-		BoxedTablePanel<ContainerValueWrapper<C>> itemTable = initItemTable();
+		BoxedTablePanel<PrismContainerValueWrapper<C>> itemTable = initItemTable();
 		itemsContainer.add(itemTable);
 
 		WebMarkupContainer searchContainer = getSearchPanel(ID_SEARCH_ITEM_PANEL);
@@ -168,7 +174,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	
 	protected abstract boolean enableActionNewObject();
 
-	private BoxedTablePanel<ContainerValueWrapper<C>> initItemTable() {
+	private BoxedTablePanel<PrismContainerValueWrapper<C>> initItemTable() {
 
 		MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, new PropertyModel<>(getModel(), "values")) {
 			private static final long serialVersionUID = 1L;
@@ -184,17 +190,17 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 			}
 			
 			@Override
-			protected List<ContainerValueWrapper<C>> searchThroughList() {
-				List<ContainerValueWrapper<C>> resultList = super.searchThroughList();
+			protected List<PrismContainerValueWrapper<C>> searchThroughList() {
+				List<PrismContainerValueWrapper<C>> resultList = super.searchThroughList();
 				return postSearch(resultList);
 			}
 
 		};
 
-		List<IColumn<ContainerValueWrapper<C>, String>> columns = createColumns();
+		List<IColumn<PrismContainerValueWrapper<C>, String>> columns = createColumns();
 
 		int itemPerPage = (int) getPageBase().getItemsPerPage(tableId);
-		BoxedTablePanel<ContainerValueWrapper<C>> itemTable = new BoxedTablePanel<ContainerValueWrapper<C>>(ID_ITEMS_TABLE,
+		BoxedTablePanel<PrismContainerValueWrapper<C>> itemTable = new BoxedTablePanel<PrismContainerValueWrapper<C>>(ID_ITEMS_TABLE,
 				containersProvider, columns, tableId, itemPerPage) {
 			private static final long serialVersionUID = 1L;
 
@@ -210,15 +216,15 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 			}
 
 			@Override
-			protected Item<ContainerValueWrapper<C>> customizeNewRowItem(Item<ContainerValueWrapper<C>> item,
-																					  IModel<ContainerValueWrapper<C>> model) {
+			protected Item<PrismContainerValueWrapper<C>> customizeNewRowItem(Item<PrismContainerValueWrapper<C>> item,
+																					  IModel<PrismContainerValueWrapper<C>> model) {
 				item.add(AttributeModifier.append("class", new IModel<String>() {
 					
 							private static final long serialVersionUID = 1L;
 
 							@Override
 							public String getObject() {
-								return GuiImplUtil.getObjectStatus(((ContainerValueWrapper<Containerable>)model.getObject()));
+								return GuiImplUtil.getObjectStatus(model.getObject());
 							}
 						}));
 				return item;
@@ -382,7 +388,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         };
     }
 	
-	protected abstract List<ContainerValueWrapper<C>> postSearch(List<ContainerValueWrapper<C>> items);
+	protected abstract List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items);
 
 	private ObjectQuery createProviderQuery() {
 		ObjectQuery searchQuery = getQuery();
@@ -401,14 +407,14 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
 	protected abstract ObjectQuery createQuery();
 
-	protected abstract List<IColumn<ContainerValueWrapper<C>, String>> createColumns();
+	protected abstract List<IColumn<PrismContainerValueWrapper<C>, String>> createColumns();
 	
 	protected void newItemPerformed(AjaxRequestTarget target){}
 	
 	protected void newItemPerformed(AjaxRequestTarget target, S influencingObject){}
 
-	public BoxedTablePanel<ContainerValueWrapper<C>> getItemTable() {
-		return (BoxedTablePanel<ContainerValueWrapper<C>>) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
+	public BoxedTablePanel<PrismContainerValueWrapper<C>> getItemTable() {
+		return (BoxedTablePanel<PrismContainerValueWrapper<C>>) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
 	}
 
 	public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
@@ -427,8 +433,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		return null;
 	}
 	
-	public List<ContainerValueWrapper<C>> getSelectedItems() {
-		BoxedTablePanel<ContainerValueWrapper<C>> itemsTable = getItemTable();
+	public List<PrismContainerValueWrapper<C>> getSelectedItems() {
+		BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getItemTable();
 		MultivalueContainerListDataProvider<C> itemsProvider = (MultivalueContainerListDataProvider<C>) itemsTable.getDataTable()
 				.getDataProvider();
 		return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
@@ -441,20 +447,32 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		}
 	}
 	
-	public ContainerValueWrapper<C> createNewItemContainerValueWrapper(
+	//TODO generalize for properites
+	public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
 			PrismContainerValue<C> newItem,
-			IModel<ContainerWrapperImpl<C>> model) {
-    	ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
-		Task task = getPageBase().createSimpleTask("Creating new object policy");
-		ContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,
-				model.getObject().getObjectStatus(), ValueStatus.ADDED, model.getObject().getPath(), task);
-		valueWrapper.setShowEmpty(true, true);
-		model.getObject().getValues().add(valueWrapper);
-		return valueWrapper;
+			PrismContainerWrapper<C> model) {
+		
+		WrapperContext context = new WrapperContext(null, null);
+		context.setCreateIfEmpty(true);
+		PrismValueWrapper<?> valueWrapper = null;
+		try {
+			valueWrapper = getPageBase().createValueWrapper(model, model, newItem, ValueStatus.ADDED, context);
+		} catch (SchemaException e) {
+			//TODO error handling
+		}
+		model.getValues().add((PrismContainerValueWrapper) valueWrapper);
+//		
+//    	ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+//		Task task = getPageBase().createSimpleTask("Creating new object policy");
+//		PrismContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,
+//				model.getObject().getObjectStatus(), ValueStatus.ADDED, model.getObject().getPath(), task);
+//		valueWrapper.setShowEmpty(true, true);
+//		model.getObject().getValues().add(valueWrapper);
+		return (PrismContainerValueWrapper<C>) valueWrapper;
 	}
 	
-	public ColumnMenuAction<ContainerValueWrapper<C>> createDeleteColumnAction() {
-		return new ColumnMenuAction<ContainerValueWrapper<C>>() {
+	public ColumnMenuAction<PrismContainerValueWrapper<C>> createDeleteColumnAction() {
+		return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -462,7 +480,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 				if (getRowModel() == null) {
 					deleteItemPerformed(target, getSelectedItems());
 				} else {
-					List<ContainerValueWrapper<C>> toDelete = new ArrayList<>();
+					List<PrismContainerValueWrapper<C>> toDelete = new ArrayList<>();
 					toDelete.add(getRowModel().getObject());
 					deleteItemPerformed(target, toDelete);
 				}
@@ -470,8 +488,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		};
 	}
 
-	public ColumnMenuAction<ContainerValueWrapper<C>> createEditColumnAction() {
-		return new ColumnMenuAction<ContainerValueWrapper<C>>() {
+	public ColumnMenuAction<PrismContainerValueWrapper<C>> createEditColumnAction() {
+		return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -481,9 +499,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		};
 	}
 	
-	protected abstract void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<ContainerValueWrapper<C>> rowModel, List<ContainerValueWrapper<C>> listItems);
+	protected abstract void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems);
 	
-	protected void deleteItemPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<C>> toDelete) {
+	protected void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
 		if (toDelete == null || toDelete.isEmpty()){
 			warn(createStringResource("MultivalueContainerListPanel.message.noAssignmentSelected").getString());
 			target.add(getPageBase().getFeedbackPanel());
@@ -491,7 +509,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		}
 		toDelete.forEach(value -> {
 			if (value.getStatus() == ValueStatus.ADDED) {
-				ContainerWrapperImpl<C> wrapper = getModelObject();
+				PrismContainerWrapper<C> wrapper = getModelObject();
 				wrapper.getValues().remove(value);
 			} else {
 				value.setStatus(ValueStatus.DELETED);

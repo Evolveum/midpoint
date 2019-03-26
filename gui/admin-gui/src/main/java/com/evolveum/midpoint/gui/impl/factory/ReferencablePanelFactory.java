@@ -32,9 +32,7 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
@@ -57,13 +55,12 @@ public class ReferencablePanelFactory<R extends Referencable> implements GuiComp
 	
 	@Override
 	public Integer getOrder() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
-		return wrapper instanceof PrismReferenceDefinition;
+		return wrapper.getDefinition() instanceof PrismReferenceDefinition;
 	}
 
 	@Override

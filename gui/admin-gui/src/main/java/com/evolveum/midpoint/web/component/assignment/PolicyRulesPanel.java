@@ -19,12 +19,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -60,70 +64,77 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRulesPanel.class);
 
-    public PolicyRulesPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentContainerWrapperModel){
+    public PolicyRulesPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
         super(id, assignmentContainerWrapperModel);
 
     }
 
-    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
 
-        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()) {
-					private static final long serialVersionUID = 1L;
+        columns.add(new PrismContainerWrapperColumn<AssignmentType>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS), getPageBase()));
+        
+//        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()) {
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
+//							String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+//						cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
+//		                		new Form("form"), null) {
+//		                	@Override
+//		                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
+//		                		ItemRealValueModel value = new ItemRealValueModel(object);
+//		                		String constraints = PolicyRuleTypeUtil.toShortString(((PolicyRuleType)value.getObject()).getPolicyConstraints());
+//		                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
+//		                	}
+//		                });
+//					}
+//        });
 
-					@Override
-					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
-							String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-						cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
-		                		new Form("form"), null) {
-		                	@Override
-		                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
-		                		ItemRealValueModel value = new ItemRealValueModel(object);
-		                		String constraints = PolicyRuleTypeUtil.toShortString(((PolicyRuleType)value.getObject()).getPolicyConstraints());
-		                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
-		                	}
-		                });
-					}
-        });
+        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_SITUATION), getPageBase(), true));
+        
+//        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_SITUATION, getPageBase()) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
+//					String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+//				cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
+//                		new Form("form"), null) {
+//                	@Override
+//                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
+//                		ItemRealValueModel value = new ItemRealValueModel(object);
+//                		String situation = ((PolicyRuleType)value.getObject()).getPolicySituation();
+//                		return Model.of(situation != null && !situation.equals("null") ? situation : "");
+//                	}
+//                });
+//			}
+//        });
 
-        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_SITUATION, getPageBase()) {
-			private static final long serialVersionUID = 1L;
+        
+        columns.add(new PrismContainerWrapperColumn<AssignmentType>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_ACTIONS), getPageBase()));
+        
+//        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_ACTIONS, getPageBase()) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
+//					String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+//				cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
+//                		new Form("form"), null) {
+//                	@Override
+//                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
+//                		ItemRealValueModel value = new ItemRealValueModel(object);
+//                		String constraints = PolicyRuleTypeUtil.toShortString(((PolicyRuleType)value.getObject()).getPolicyActions(), new ArrayList<>());
+//                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
+//                	}
+//                });
+//			}
+//        });
 
-			@Override
-			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
-					String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
-                		new Form("form"), null) {
-                	@Override
-                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
-                		ItemRealValueModel value = new ItemRealValueModel(object);
-                		String situation = ((PolicyRuleType)value.getObject()).getPolicySituation();
-                		return Model.of(situation != null && !situation.equals("null") ? situation : "");
-                	}
-                });
-			}
-        });
-
-        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_ACTIONS, getPageBase()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
-					String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(AssignmentType.F_POLICY_RULE)),
-                		new Form("form"), null) {
-                	@Override
-                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
-                		ItemRealValueModel value = new ItemRealValueModel(object);
-                		String constraints = PolicyRuleTypeUtil.toShortString(((PolicyRuleType)value.getObject()).getPolicyActions(), new ArrayList<>());
-                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
-                	}
-                });
-			}
-        });
-
-        columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_ORDER, getPageBase()));
+        columns.add(new PrismPropertyColumn<AssignmentType, Integer>(getModel(), AssignmentType.F_ORDER, getPageBase(), true));
 
         return columns;
     }
@@ -142,11 +153,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
-        PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
-        newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
-        ContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModel());
-        newAssignmentWrapper.setShowEmpty(true, false);
-        newAssignmentWrapper.computeStripes();
+        PrismContainerValue<AssignmentType> newAssignment = getModelObject().getContainer().createNewValue();
+//        newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
+        PrismContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModelObject());
+//        newAssignmentWrapper.setShowEmpty(true, false);
+//        newAssignmentWrapper.computeStripes();
         getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
 	}
 

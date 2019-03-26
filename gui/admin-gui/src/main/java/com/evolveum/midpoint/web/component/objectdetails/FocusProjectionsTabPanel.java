@@ -26,6 +26,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -139,11 +141,13 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				if (dto.isLoadedOK()) {
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
-					shadowPanel = new PrismPanel<F>(ID_SHADOW,
-							new ContainerWrapperListFromObjectWrapperModel<>(objectWrapperModel, 
-									WebComponentUtil.getShadowItemsToShow()), packageRef,
-							getMainForm(), itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(
-									itemWrapper, WebComponentUtil.adopt(objectWrapperModel, getPageBase().getPrismContext())), getPageBase());
+					//TODO shadowPanel
+					shadowPanel = new TextPanel(ID_SHADOW, Model.of("shadows here"));
+//					shadowPanel = new PrismPanel<F>(ID_SHADOW,
+//							new ContainerWrapperListFromObjectWrapperModel(objectWrapperModel, 
+//									WebComponentUtil.getShadowItemsToShow()), packageRef,
+//							getMainForm(), itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(
+//									itemWrapper, WebComponentUtil.adopt(objectWrapperModel, getPageBase().getPrismContext())), getPageBase());
 				} else {
 					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {
 						private static final long serialVersionUID = 1L;

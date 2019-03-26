@@ -29,8 +29,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -44,23 +47,23 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
 
 	private static final long serialVersionUID = 1L;
 
-	public GenericAbstractRoleAssignmentPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentContainerWrapperModel) {
+	public GenericAbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
 	}
 
 	@Override
-	protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
+	protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(List<PrismContainerValueWrapper<AssignmentType>> assignments) {
 		
 		if(assignments == null) {
 			return null;
 		}
 		
-		List<ContainerValueWrapper<AssignmentType>> resultList = new ArrayList<>();
+		List<PrismContainerValueWrapper<AssignmentType>> resultList = new ArrayList<>();
 		Task task = getPageBase().createSimpleTask("load assignment targets");
-		Iterator<ContainerValueWrapper<AssignmentType>> assignmentIterator = assignments.iterator();
+		Iterator<PrismContainerValueWrapper<AssignmentType>> assignmentIterator = assignments.iterator();
 		while (assignmentIterator.hasNext()) {
-			ContainerValueWrapper<AssignmentType> ass = assignmentIterator.next();
-			AssignmentType assignment = ass.getContainerValue().asContainerable();
+			PrismContainerValueWrapper<AssignmentType> ass = assignmentIterator.next();
+			AssignmentType assignment = ass.getRealValue();
 			if (assignment == null || assignment.getTargetRef() == null) {
 				continue;
 			}

@@ -16,21 +16,19 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.util.List;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
 
-import java.util.List;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
@@ -40,7 +38,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  * @author semancik
  */
-public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<ContainerWrapperImpl<C> ,O> {
+public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<PrismContainerWrapper<C> ,O> {
 
    private static final long serialVersionUID = 1L;
 
@@ -48,7 +46,7 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 
     private ItemPath path;
 
-    public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapperOld<O>> model, ItemPath path) {
+    public ContainerWrapperFromObjectWrapperModel(IModel<PrismObjectWrapper<O>> model, ItemPath path) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;
@@ -60,19 +58,19 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
     }
 
 	@Override
-	public ContainerWrapperImpl<C> getObject() {
-		ContainerWrapperImpl<C> containerWrapper = getWrapper().findContainerWrapper(path);
+	public PrismContainerWrapper<C> getObject() {
+		PrismContainerWrapper<C> containerWrapper = getWrapper().findContainer(path);
 		return containerWrapper;
 	}
 
 	@Override
-	public void setObject(ContainerWrapperImpl<C> arg0) {
+	public void setObject(com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper<C> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
 	}
 
-	public IModel<? extends List<ContainerValueWrapper<C>>> getValuesModel() {
-		return new IModel<List<ContainerValueWrapper<C>>>() {
+	public IModel<? extends List<PrismContainerValueWrapper<C>>> getValuesModel() {
+		return new IModel<List<PrismContainerValueWrapper<C>>>() {
 
 			@Override
 			public void detach() {
@@ -80,12 +78,12 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 			}
 
 			@Override
-			public List<ContainerValueWrapper<C>> getObject() {
+			public List<PrismContainerValueWrapper<C>> getObject() {
 				return ContainerWrapperFromObjectWrapperModel.this.getObject().getValues();
 			}
 
 			@Override
-			public void setObject(List<ContainerValueWrapper<C>> object) {
+			public void setObject(List<PrismContainerValueWrapper<C>> object) {
 				throw new UnsupportedOperationException();
 			}
 			

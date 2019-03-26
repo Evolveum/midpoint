@@ -82,7 +82,7 @@ public class ExpressionWrapper extends PropertyWrapper<ExpressionType> {
         return false;
     }
     
-    public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
+    public Panel createPanel(String id, Form form, ItemVisibilityHandlerOld visibilityHandler) {
     	return new ExpressionPropertyPanel(id, this, form, visibilityHandler);
     };
     

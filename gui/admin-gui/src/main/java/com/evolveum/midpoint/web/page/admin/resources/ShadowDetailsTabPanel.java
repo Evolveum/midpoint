@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -40,8 +41,8 @@ public class ShadowDetailsTabPanel extends AbstractObjectTabPanel<ShadowType> {
 
 	private static final String ID_ACCOUNT = "account";
 
-	public ShadowDetailsTabPanel(String id, Form<ObjectWrapperOld<ShadowType>> mainForm,
-								 LoadableModel<ObjectWrapperOld<ShadowType>> objectWrapperModel, PageBase pageBase) {
+	public ShadowDetailsTabPanel(String id, Form<PrismObjectWrapper<ShadowType>> mainForm,
+								 LoadableModel<PrismObjectWrapper<ShadowType>> objectWrapperModel, PageBase pageBase) {
 		super(id, mainForm, objectWrapperModel, pageBase);
 	}
 

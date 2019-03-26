@@ -1,9 +1,12 @@
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,7 +36,7 @@ import java.util.List;
 public class ConstructionAssignmentPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;
 
-    public ConstructionAssignmentPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentContainerWrapperModel){
+    public ConstructionAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
         super(id, assignmentContainerWrapperModel);
     }
 
@@ -56,44 +59,45 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new StaticPrismPropertyColumn<AssignmentType>(
-        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
-        		ConstructionType.F_KIND, getPageBase()) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-						AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
-						String kindValue = "";
-						if (assignment.getConstruction() != null){
-							ConstructionType construction = assignment.getConstruction();
-							kindValue = construction.getKind() != null && !StringUtils.isEmpty(construction.getKind().value()) ?
-									construction.getKind().value() : createStringResource("AssignmentEditorPanel.undefined").getString();
-						}
-						item.add(new Label(componentId, kindValue));
-					}
-        });
-        
-        columns.add(new StaticPrismPropertyColumn<AssignmentType>(
-        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
-        		ConstructionType.F_INTENT, getPageBase()) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-						AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
-						String intentValue = "";
-						if (assignment.getConstruction() != null){
-							ConstructionType construction = assignment.getConstruction();
-							intentValue = !StringUtils.isEmpty(construction.getIntent()) ? construction.getIntent()
-									: createStringResource("AssignmentEditorPanel.undefined").getString();
-						}
-						item.add(new Label(componentId, intentValue));
-					}
-        });
+        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), getPageBase(), true));
+//        columns.add(new PrismPropertyColumn<AssignmentType>(
+//        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
+//        		ConstructionType.F_KIND, getPageBase()) {
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
+//						AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
+//						String kindValue = "";
+//						if (assignment.getConstruction() != null){
+//							ConstructionType construction = assignment.getConstruction();
+//							kindValue = construction.getKind() != null && !StringUtils.isEmpty(construction.getKind().value()) ?
+//									construction.getKind().value() : createStringResource("AssignmentEditorPanel.undefined").getString();
+//						}
+//						item.add(new Label(componentId, kindValue));
+//					}
+//        });
+        columns.add(new PrismPropertyColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), getPageBase(), true));
+//        columns.add(new PrismPropertyColumn<AssignmentType>(
+//        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
+//        		ConstructionType.F_INTENT, getPageBase()) {
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
+//						AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
+//						String intentValue = "";
+//						if (assignment.getConstruction() != null){
+//							ConstructionType construction = assignment.getConstruction();
+//							intentValue = !StringUtils.isEmpty(construction.getIntent()) ? construction.getIntent()
+//									: createStringResource("AssignmentEditorPanel.undefined").getString();
+//						}
+//						item.add(new Label(componentId, intentValue));
+//					}
+//        });
 
         return columns;
     }
@@ -106,19 +110,18 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected IModel<ContainerWrapperImpl> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
-        if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
-            ContainerWrapperImpl<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-                    AssignmentType.F_CONSTRUCTION));
+    protected IModel<PrismContainerWrapper> getSpecificContainerModel(PrismContainerValueWrapper<AssignmentType> modelObject) {
+        AssignmentType assignment = modelObject.getRealValue();
+    	if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
+            PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION));
 
             return Model.of(constructionWrapper);
         }
 
-        if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+        if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
             //TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
             //but not PolicyRuleType
-            ContainerWrapperImpl<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
-                    AssignmentType.F_PERSONA_CONSTRUCTION));
+        	PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_PERSONA_CONSTRUCTION));
 
             return Model.of(personasWrapper);
         }
@@ -126,7 +129,7 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapperOld itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
+    protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, AssignmentType prismContainerValue) {
         if (itemWrapper.getPath().containsNameExactly(AssignmentType.F_CONSTRUCTION)) {
             return ItemVisibility.AUTO;
         } else {

@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.gui.api.prism;
+package com.evolveum.midpoint.web.component.prism;
 
-import java.util.List;
+import java.io.Serializable;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 
-/**
- * @author katka
- *
- */
-public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainerWrapper<O> {
+@FunctionalInterface
+public interface ItemVisibilityHandlerOld extends Serializable{
 
-	List<PrismContainerWrapper<?>> getContainers();
-	
-	PrismObject<O> getObject();
-	
-	ObjectDelta<O> getObjectDelta();
-	
-	String getOid();
+	public ItemVisibility isVisible(ItemWrapperOld wrapper);
 }

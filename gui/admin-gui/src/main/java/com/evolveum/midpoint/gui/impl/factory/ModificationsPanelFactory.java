@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -49,7 +50,7 @@ public class ModificationsPanelFactory extends AbstractGuiComponentFactory<Objec
 	}
 	
 	@Override
-	public boolean match(PrismPropertyWrapper<ObjectDeltaType> wrapper) {
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
 		return ObjectDeltaType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 

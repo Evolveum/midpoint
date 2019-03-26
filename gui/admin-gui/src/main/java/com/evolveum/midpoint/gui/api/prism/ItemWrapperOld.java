@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -134,6 +134,6 @@ public interface ItemWrapperOld<V extends PrismValue, I extends Item<V, ID>, ID 
 	////Shoul be in pripoerty/reference not in item boolean isStripe();
 //	ExpressionType getFormItemValidator();
 	
-	Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler);
+//	Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler);
 
 }

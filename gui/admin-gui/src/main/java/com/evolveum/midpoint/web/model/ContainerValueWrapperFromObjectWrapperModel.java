@@ -16,18 +16,16 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
@@ -35,7 +33,7 @@ import javax.xml.namespace.QName;
  * @author katkav
  * 
  */
-public class ContainerValueWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<ContainerValueWrapper<C> ,O> {
+public class ContainerValueWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<PrismContainerValueWrapper<C> ,O> {
 
    private static final long serialVersionUID = 1L;
 
@@ -43,7 +41,7 @@ public class ContainerValueWrapperFromObjectWrapperModel<C extends Containerable
 
     private ItemPath path;
 
-    public ContainerValueWrapperFromObjectWrapperModel(IModel<ObjectWrapperOld<O>> model, ItemPath path) {
+    public ContainerValueWrapperFromObjectWrapperModel(IModel<PrismObjectWrapper<O>> model, ItemPath path) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;
@@ -55,13 +53,13 @@ public class ContainerValueWrapperFromObjectWrapperModel<C extends Containerable
     }
 
 	@Override
-	public ContainerValueWrapper<C> getObject() {
-		ContainerValueWrapper<C> containerWrapper = getWrapper().findContainerValueWrapper(path);
+	public PrismContainerValueWrapper<C> getObject() {
+		PrismContainerValueWrapper<C> containerWrapper = getWrapper().findContainerValue(path);
 		return containerWrapper;
 	}
 
 	@Override
-	public void setObject(ContainerValueWrapper<C> arg0) {
+	public void setObject(PrismContainerValueWrapper<C> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
 	}

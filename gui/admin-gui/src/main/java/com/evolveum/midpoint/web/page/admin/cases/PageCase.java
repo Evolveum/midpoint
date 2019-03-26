@@ -1,8 +1,12 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -60,7 +64,7 @@ public class PageCase  extends PageAdminCases {
     private static final String ID_BACK_BUTTON = "backButton";
     private static final String ID_SAVE_BUTTON = "saveButton";
 
-    private LoadableModel<ObjectWrapperOld<CaseType>> caseModel;
+    private LoadableModel<PrismObjectWrapper<CaseType>> caseModel;
 
     public PageCase() {
         initialize();
@@ -71,17 +75,17 @@ public class PageCase  extends PageAdminCases {
         initialize();
     }
     private void initialize(){
-        caseModel = new LoadableModel<ObjectWrapperOld<CaseType>>(false) {
+        caseModel = new LoadableModel<PrismObjectWrapper<CaseType>>(false) {
 
             @Override
-            protected ObjectWrapperOld<CaseType> load() {
+            protected PrismObjectWrapper<CaseType> load() {
                 return loadCase();
             }
         };
         initLayout();
     }
 
-    private ObjectWrapperOld<CaseType> loadCase() {
+    private PrismObjectWrapper<CaseType> loadCase() {
         Task task = createSimpleTask(OPERATION_LOAD_CASE);
         OperationResult result = task.getResult();
 
@@ -124,34 +128,39 @@ public class PageCase  extends PageAdminCases {
             throw new RestartResponseException(PageCasesAll.class);
         }
 
-        ObjectWrapperOld<CaseType> wrapper;
-        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-        ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        PrismObjectWrapperFactory<CaseType> owf = getRegistry().getObjectWrapperFactory(caseInstance.getDefinition());
+        PrismObjectWrapper<CaseType> wrapper;
+//        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+        ItemStatus status = isEditingFocus() ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED;
         try {
-            wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, status, task);
+        	WrapperContext context = new WrapperContext(task, result);
+            wrapper = owf.createObjectWrapper(caseInstance, status, context);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get case.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
             try {
-				wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status, task);
+            	WrapperContext context = new WrapperContext(task, result);
+				wrapper = owf.createObjectWrapper(caseInstance,status, context);
 			} catch (SchemaException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
         }
 
-        wrapper.setShowEmpty(emptyCase);
+//        wrapper.setShowEmpty(emptyCase);
 
         //for now decided to make targetRef readonly
-        wrapper.getContainers().forEach(containerWrapper -> {
-            if (containerWrapper.isMain()){
-                containerWrapper.getValues().forEach(containerValueWrapper -> {
-                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
-                    if (itemWrapper != null){
-                        itemWrapper.setReadonly(true);
-                    }
-                });
-            }
-        });
+      
+        //TODO maybe do it while creating wrappers
+//        wrapper.getContainers().forEach(containerWrapper -> {
+//            if (containerWrapper.isMain()){
+//                containerWrapper.getValues().forEach(containerValueWrapper -> {
+//                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
+//                    if (itemWrapper != null){
+//                        itemWrapper.setReadonly(true);
+//                    }
+//                });
+//            }
+//        });
 
         return wrapper;
     }
@@ -221,7 +230,7 @@ public class PageCase  extends PageAdminCases {
         Task task = createSimpleTask(OPERATION_SAVE_CASE);
         try {
             WebComponentUtil.revive(caseModel, getPrismContext());
-            ObjectWrapperOld<CaseType> wrapper = caseModel.getObject();
+            PrismObjectWrapper<CaseType> wrapper = caseModel.getObject();
             ObjectDelta<CaseType> delta = wrapper.getObjectDelta();
             if (delta == null) {
                 return;

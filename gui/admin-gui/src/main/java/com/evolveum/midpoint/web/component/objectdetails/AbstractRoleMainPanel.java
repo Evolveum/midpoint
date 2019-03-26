@@ -36,6 +36,9 @@ import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
@@ -88,7 +91,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_SHOPPING_CART_BUTTONS_PANEL = "shoppingCartButtonsPanel";
     private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
 
-	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapperOld<R>> objectModel,
+	public AbstractRoleMainPanel(String id, LoadableModel<PrismObjectWrapper<R>> objectModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageAdminFocus<R> parentPage) {
 		super(id, objectModel, projectionModel, parentPage);
@@ -251,7 +254,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public boolean isVisible() {
 				return super.isVisible() &&
-						getObjectWrapper().getStatus() != ContainerStatus.ADDING &&
+						getObjectWrapper().getStatus() != ItemStatus.ADDED &&
 						isAllowedToReadRoleMembership(getObjectWrapper().getOid(), parentPage);
 			}
 		});
@@ -270,7 +273,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public boolean isVisible() {
-				return super.isVisible() && getObjectWrapper().getStatus() != ContainerStatus.ADDING;
+				return super.isVisible() && getObjectWrapper().getStatus() != ItemStatus.ADDED;
 			}
 		});
 		
@@ -379,9 +382,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 	@Override
 	protected boolean areSavePreviewButtonsEnabled(){
-		ObjectWrapperOld<R> focusWrapper = getObjectModel().getObject();
-		ContainerWrapperImpl<AssignmentType> assignmentsWrapper =
-				focusWrapper.findContainerWrapper(AbstractRoleType.F_INDUCEMENT);
+		PrismObjectWrapper<R> focusWrapper = getObjectModel().getObject();
+		PrismContainerWrapper<AssignmentType> assignmentsWrapper =
+				focusWrapper.findContainer(AbstractRoleType.F_INDUCEMENT);
 		return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
 	}
 }

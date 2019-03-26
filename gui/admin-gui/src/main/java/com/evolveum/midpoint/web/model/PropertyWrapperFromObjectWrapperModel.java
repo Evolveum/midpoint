@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,7 +38,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  * @author semancik
  */
-public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<PropertyWrapper<T>,O> {
+public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<PrismPropertyWrapper<T>,O> {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PropertyWrapperFromObjectWrapperModel.class);
@@ -51,12 +52,12 @@ public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> exten
     }
 
     @Override
-    public PropertyWrapper<T> getObject() {
-    	PropertyWrapper<T> propertyWrapper = getWrapper().findPropertyWrapper(path);
+    public PrismPropertyWrapper<T> getObject() {
+    	PrismPropertyWrapper<T> propertyWrapper = getWrapper().findProperty(path);
         return propertyWrapper;
     }
 
-    @Override public void setObject(PropertyWrapper<T> prismPropertyPropertyWrapper) {
+    @Override public void setObject(PrismPropertyWrapper<T> prismPropertyPropertyWrapper) {
         throw new UnsupportedOperationException("PropertyWrapperFromObjectWrapperModel.setObject called");
     }
 

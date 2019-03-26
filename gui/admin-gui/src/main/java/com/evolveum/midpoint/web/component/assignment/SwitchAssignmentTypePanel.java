@@ -34,9 +34,12 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -52,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 /**
  * Created by honchar
  */
-public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<AssignmentType>> {
+public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ASSIGNMENT_TYPE_BUTTONS = "assignmentTypeButtons";
@@ -70,7 +73,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<As
 
     private String activeButtonId = ID_ALL_ASSIGNMENTS;
 
-    public SwitchAssignmentTypePanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentContainerWrapperModel) {
+    public SwitchAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
         super(id, assignmentContainerWrapperModel);
     }
 
@@ -266,8 +269,10 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<As
         };
         policyRuleTypeAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_POLICY_RULE_TYPE_ASSIGNMENTS)));
         policyRuleTypeAssignmentsButton.setOutputMarkupId(true);
-        policyRuleTypeAssignmentsButton.add(new VisibleBehaviour(()  ->
-                getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
+        
+        //TODO visibility behaviour
+//        policyRuleTypeAssignmentsButton.add(new VisibleBehaviour(()  ->
+//                getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
         buttonsContainer.add(policyRuleTypeAssignmentsButton);
 
         AjaxButton dataProtectionButton = new AjaxButton(ID_DATA_PROTECTION_ASSIGNMENTS, createStringResource("pageAdminFocus.dataProtection")) {
@@ -326,8 +331,9 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<As
         };
         entitlementAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ENTITLEMENT_ASSIGNMENTS)));
         entitlementAssignmentsButton.setOutputMarkupId(true);
-        entitlementAssignmentsButton.add(new VisibleBehaviour(()  ->
-                (getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType) && isInducement()));
+        //TODO visible behaviour
+//        entitlementAssignmentsButton.add(new VisibleBehaviour(()  ->
+//                (getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType) && isInducement()));
         buttonsContainer.add(entitlementAssignmentsButton);
 
         AjaxButton focusMappingAssignmentsButton = new AjaxButton(ID_FOCUS_MAPPING_ASSIGNMENTS, createStringResource("AssignmentType.focusMappings")) {
@@ -341,34 +347,34 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<As
 
                             //TODO may be we will need FocusMappingsAssignmentsPanel later
                             @Override
-                            protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
-                                List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+                            protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
+                                List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-                                columns.add(new IconColumn<ContainerValueWrapper<AssignmentType>>(Model.of("")) {
+                                columns.add(new IconColumn<PrismContainerValueWrapper<AssignmentType>>(Model.of("")) {
 
                                     private static final long serialVersionUID = 1L;
 
                                     @Override
-                                    protected IModel<String> createIconModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                                    protected IModel<String> createIconModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
                                         return new IModel<String>() {
 
                                             private static final long serialVersionUID = 1L;
 
                                             @Override
                                             public String getObject() {
-                                                return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable()));
+                                                return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue()));
                                             }
                                         };
                                     }
 
                                 });
 
-                                columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("PolicyRulesPanel.nameColumn")){
+                                columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("PolicyRulesPanel.nameColumn")){
                                     private static final long serialVersionUID = 1L;
 
                                     @Override
-                                    public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem,
-                                                                          String componentId, final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> cellItem,
+                                                                          String componentId, final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
                                         String name = AssignmentsUtil.getName(rowModel.getObject(), getParentPage());
                                         if (StringUtils.isBlank(name)) {
                                             name = createStringResource("AssignmentPanel.noName").getString();
@@ -407,8 +413,9 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapperImpl<As
         };
         focusMappingAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_FOCUS_MAPPING_ASSIGNMENTS)));
         focusMappingAssignmentsButton.setOutputMarkupId(true);
-        focusMappingAssignmentsButton.add(new VisibleBehaviour(()  ->
-                getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
+        //TODO visible behaviour
+//        focusMappingAssignmentsButton.add(new VisibleBehaviour(()  ->
+//                getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
         buttonsContainer.add(focusMappingAssignmentsButton);
 
         //GDPR feature.. temporary disabled MID-4281

@@ -44,9 +44,13 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,16 +66,16 @@ public class AssignmentsUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsUtil.class);
 
-    public static IModel<String> createActivationTitleModel(ActivationType activation, String defaultTitle, BasePanel basePanel) {
+    public static String createActivationTitleModel(ActivationType activation, String defaultTitle, PageBase basePanel) {
         if (activation == null) {
-            return Model.of("");
+            return"";
         }
         return createActivationTitleModel(activation.getAdministrativeStatus(), activation.getValidFrom(), activation.getValidTo(), basePanel);
     }
 
-    public static IModel<String> createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
-                                                            BasePanel basePanel) {
-        return new IModel<String>() {
+    public static String createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
+                                                            PageBase basePanel) {
+        IModel<String> label = new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -94,6 +98,8 @@ public class AssignmentsUtil {
                 return strEnabled;
             }
         };
+        
+        return label.getObject();
     }
 
     public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentType> model, BasePanel basePanel) {
@@ -248,8 +254,8 @@ public class AssignmentsUtil {
         };
     }
 
-    public static String getName(ContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
-    	AssignmentType assignment = assignmentValueWrapper.getContainerValue().asContainerable();
+    public static String getName(PrismContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
+    	AssignmentType assignment = assignmentValueWrapper.getRealValue();
     	
 		if (assignment == null) {
 			return null;
@@ -257,12 +263,12 @@ public class AssignmentsUtil {
 
 		if (assignment.getPolicyRule() != null){
 			StringBuilder sbName = new StringBuilder("");
-			ContainerWrapperImpl<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
+			PrismContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainer(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
 			if(policyRuleWrapper != null) {
-				PropertyOrReferenceWrapper property = policyRuleWrapper.findPropertyWrapper(PolicyRuleType.F_NAME);
+				PrismPropertyWrapper<String> property = policyRuleWrapper.findProperty(PolicyRuleType.F_NAME);
 				if(property != null && !property.getValues().isEmpty()) {
-					for (ValueWrapperOld value : (List<ValueWrapperOld>)property.getValues()) {
-						ItemRealValueModel<String> name = new ItemRealValueModel<String>(value);
+					for (PrismPropertyValueWrapper<String> value :property.getValues()) {
+						ItemRealValueModel<String> name = new ItemRealValueModel<String>(Model.of(value));
 						sbName.append(name.getObject()).append("\n");
 					}
 				}

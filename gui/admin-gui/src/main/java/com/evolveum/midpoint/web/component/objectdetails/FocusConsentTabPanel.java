@@ -4,7 +4,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.assignment.GdprAssignmentPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
@@ -19,7 +21,7 @@ public class FocusConsentTabPanel<F extends FocusType> extends AbstractObjectTab
 
 	private LoadableModel<List<AssignmentType>> consentsModel;
 
-	public FocusConsentTabPanel(String id, Form<ObjectWrapperOld<F>> mainForm, LoadableModel<ObjectWrapperOld<F>> objectWrapperModel,
+	public FocusConsentTabPanel(String id, Form<PrismObjectWrapper<F>> mainForm, LoadableModel<PrismObjectWrapper<F>> objectWrapperModel,
 			PageBase pageBase) {
 		super(id, mainForm, objectWrapperModel, pageBase);
 
@@ -28,7 +30,7 @@ public class FocusConsentTabPanel<F extends FocusType> extends AbstractObjectTab
 
 	private void initLayout() {
 		GdprAssignmentPanel consentRoles =  new GdprAssignmentPanel(ID_ROLES,
-				new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), FocusType.F_ASSIGNMENT));
+				new ContainerWrapperFromObjectWrapperModel<AssignmentType, F>(getObjectWrapperModel(), ItemPath.create(FocusType.F_ASSIGNMENT)));
 		add(consentRoles);
 		consentRoles.setOutputMarkupId(true);
 

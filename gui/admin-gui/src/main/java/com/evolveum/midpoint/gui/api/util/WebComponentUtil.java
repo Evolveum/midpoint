@@ -123,11 +123,16 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -183,6 +188,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.google.common.base.Equivalence.Wrapper;
 
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket
@@ -3251,56 +3257,68 @@ public final class WebComponentUtil {
 		return sb.toString();
 	}
 
-	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper) {
-		return getAssociationExpression(assignmentValueWrapper, false, null);
+	@Deprecated
+	public static ExpressionType getAssociationExpression(PrismContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
+		return getAssociationExpression(assignmentValueWrapper, false, null, pageBase);
 	}
 
-	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper,
-			boolean createIfNotExist, PrismContext prismContext) {
+	//TODO refactor..
+	@Deprecated
+	public static ExpressionType getAssociationExpression(PrismContainerValueWrapper<AssignmentType> assignmentValueWrapper,
+			boolean createIfNotExist, PrismContext prismContext, PageBase pageBase) {
 		if (assignmentValueWrapper == null){
 			return null;
 		}
 		if (createIfNotExist && prismContext == null) {
 			throw new IllegalArgumentException("createIfNotExist is set but prismContext is null");
 		}
-		ContainerWrapperImpl<ConstructionType> construction = assignmentValueWrapper
-				.findContainerWrapper(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
+		PrismContainerWrapper<ConstructionType> construction = assignmentValueWrapper
+				.findContainer(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
 		if (construction == null){
 			return null;
 		}
-		ContainerWrapperImpl<ResourceObjectAssociationType> association = construction
-				.findContainerWrapper(ItemPath.create(construction.getPath(), ConstructionType.F_ASSOCIATION));
+		PrismContainerWrapper<ResourceObjectAssociationType> association = construction
+				.findContainer(ItemPath.create(construction.getPath(), ConstructionType.F_ASSOCIATION));
 		if (association == null || association.getValues() == null || association.getValues().size() == 0){
 			return null;
 		}
-		//HACK not to add empty association value
+		//FIXME HACK not to add empty association value
 		if (ContainerStatus.ADDING.equals(association.getStatus())){
-			association.getItem().clear();
+			association.getContainer().clear();
 		}
-		ContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
-		ContainerWrapperImpl<MappingType> outbound =
-				associationValueWrapper.findContainerWrapper(ItemPath.create(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
+		PrismContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
+		PrismContainerWrapper<MappingType> outbound =
+				associationValueWrapper.findContainer(ItemPath.create(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
 
 		if (outbound == null){
 			return null;
 		}
-		PropertyOrReferenceWrapper expressionWrapper = outbound.findPropertyWrapper(MappingType.F_EXPRESSION);
+		PrismPropertyWrapper<ExpressionType> expressionWrapper = outbound.findProperty(MappingType.F_EXPRESSION);
 		if (expressionWrapper == null){
 			return null;
 		}
-		List<ValueWrapperOld<ExpressionType>> expressionValues = expressionWrapper.getValues();
+		List<PrismPropertyValueWrapper<ExpressionType>> expressionValues = expressionWrapper.getValues();
 		if (expressionValues == null || expressionValues.size() == 0){
 			return null;
 		}
-		ExpressionType expression = expressionValues.get(0).getValue().getRealValue();
-		if (expression == null && createIfNotExist){
-			expression = new ExpressionType();
-			PrismPropertyValue<ExpressionType> exp = prismContext.itemFactory().createPropertyValue(expression);
-			ValueWrapperOld<ExpressionType> val = new ValueWrapperOld<>(expressionWrapper, exp, prismContext);
-			expressionValues.remove(0);
-			expressionValues.add(0, val);
+		try {
+			ExpressionType expression = expressionValues.get(0).getRealValue();
+			if (expression == null && createIfNotExist) {
+				expression = new ExpressionType();
+				PrismPropertyValue<ExpressionType> exp = prismContext.itemFactory().createPropertyValue(expression);
+				WrapperContext context = new WrapperContext(null, null);
+				PrismPropertyValueWrapper<ExpressionType> val = (PrismPropertyValueWrapper<ExpressionType>) pageBase
+						.createValueWrapper(expressionWrapper, expressionWrapper, exp, ValueStatus.ADDED, context);
+				// ValueWrapperOld<ExpressionType> val = new
+				// ValueWrapperOld<>(expressionWrapper, exp, prismContext);
+				expressionValues.remove(0);
+				expressionValues.add(0, val);
+			}
+		} catch (SchemaException e) {
+			// TODO erro handling
+			return null;
 		}
-		return expressionValues.get(0).getValue().getRealValue();
+		return expressionValues.get(0).getRealValue();
 	}
 
 	public static PrismObject<ResourceType> getConstructionResource(ConstructionType construction, String operation, PageBase pageBase){

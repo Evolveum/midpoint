@@ -405,8 +405,8 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 //		return null;
 //	}
 	
-	public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
-		PrismPropertyPanel propertyPanel = new PrismPropertyPanel<>(id, this, form, visibilityHandler);
+	public Panel createPanel(String id, Form form, ItemVisibilityHandlerOld visibilityHandler) {
+		PrismPropertyPanel<?> propertyPanel = new PrismPropertyPanel<>(id, this, form, visibilityHandler);
 		propertyPanel.setOutputMarkupId(true);
 		propertyPanel.add(new VisibleEnableBehaviour() {
 			

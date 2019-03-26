@@ -18,8 +18,10 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -34,35 +36,35 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	public GdprAssignmentPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentContainerWrapperModel) {
+	public GdprAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
 	}
 
 
 	@Override
-	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
-		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+	protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+		List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 		
-		columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_LIFECYCLE_STATE, getPageBase()));
+		columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), AssignmentType.F_LIFECYCLE_STATE, getPageBase(), false));
 
-		columns.add(new CheckBoxColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
+		columns.add(new CheckBoxColumn<PrismContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<Boolean> getEnabled(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+			protected IModel<Boolean> getEnabled(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
 				return Model.of(Boolean.FALSE);
 			}
 
 			@Override
-			protected IModel<Boolean> getCheckBoxValueModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+			protected IModel<Boolean> getCheckBoxValueModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
 				return new IModel<Boolean>() {
 
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public Boolean getObject() {
-						AssignmentType assignmentType = rowModel.getObject().getContainerValue().getValue();
+						AssignmentType assignmentType = rowModel.getObject().getRealValue();
 						if (assignmentType.getLifecycleState() == null) {
 							return Boolean.FALSE;
 						}

@@ -21,7 +21,9 @@ import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
@@ -100,6 +102,12 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 			@Override
 			public Locale getLocale() {
 				return Locale.US;
+			}
+
+			@Override
+			public GuiComponentRegistry getRegistry() {
+				// TODO Auto-generated method stub
+				return null;
 			}
 		};
 	}

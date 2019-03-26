@@ -207,7 +207,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-cas</artifactId>
-            <version>${spring.security.version}</version>
+<!--             <version>${spring.security.version}</version> -->
         </dependency>
         <dependency>
             <groupId>org.jasig.cas.client</groupId>
@@ -217,7 +217,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.35</version>
+<!--             <version>0.35</version> -->
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
@@ -325,6 +325,12 @@
             <artifactId>prism-impl</artifactId>
             <version>4.0-SNAPSHOT</version>
             <scope>runtime</scope>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.ow2.asm</groupId>
+            		<artifactId>asm</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -478,6 +484,10 @@
                 <exclusion>
                     <artifactId>jaxb-impl</artifactId>
                     <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+                <exclusion>
+                	<groupId>org.ow2.asm</groupId>
+                	<artifactId>asm</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -737,7 +747,26 @@
         </dependency>
 
         <!-- TEST -->
+        
+        <dependency>  
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <exclusions>
+    	<exclusion>
+    	 <artifactId>asm</artifactId>
+    	 <groupId>org.ow2.asm</groupId>
+    	</exclusion>
+    </exclusions>
+<!--     <version>{version}</version> -->
+    <scope>test</scope>
+</dependency>  
 
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-util</artifactId>
+            <version>7.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
@@ -778,6 +807,17 @@
             <artifactId>javax.annotation-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>
@@ -899,6 +939,13 @@
             <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+		    <groupId>cglib</groupId>
+		    <artifactId>cglib-nodep</artifactId>
+		    <version>3.2.10</version>
+		    <scope>test</scope>
+		</dependency>
+
     </dependencies>
 
     <profiles>
@@ -934,7 +981,7 @@
                             <dependency>
                                 <groupId>com.evolveum.midpoint</groupId>
                                 <artifactId>midpoint-war-layout</artifactId>
-                                <version>${project.version}</version>
+                                <version>4.0-M2</version>
                             </dependency>
                         </dependencies>
                     </plugin>

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 
 /**
  * @author lazyman
@@ -34,7 +34,7 @@ public class PrismPropertyColumnPanel<IW extends ItemWrapperOld> extends PrismPr
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyColumnPanel.class);
 
-    public PrismPropertyColumnPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
+    public PrismPropertyColumnPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandlerOld visibilityHandler) {
 		super(id, model, form, visibilityHandler);
 	}
     
@@ -47,7 +47,7 @@ public class PrismPropertyColumnPanel<IW extends ItemWrapperOld> extends PrismPr
     }
     
     @Override
-    public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
+    public boolean isVisible(ItemVisibilityHandlerOld visibilityHandler) {
     	return true;
     }
     

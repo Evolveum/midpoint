@@ -27,10 +27,14 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -89,6 +93,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -316,7 +321,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean
     private MidpointFunctions midpointFunctions;
     
-    @SpringBean private GuiComponentRegistryImpl registry;
+    @SpringBean private GuiComponentRegistry registry;
     
     @SpringBean private CounterManager counterManager;
 
@@ -588,7 +593,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return modelDiagnosticService;
     }
     
-    public GuiComponentRegistryImpl getRegistry() {
+    public GuiComponentRegistry getRegistry() {
 		return registry;
 	}
 
@@ -1301,6 +1306,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return showResult(result, null, true);
     }
 
+    public StringResourceModel createStringResource(Enum e, String prefix, String nullKey) {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(prefix)) {
+            sb.append(prefix).append('.');
+        }
+
+        if (e == null) {
+            if (StringUtils.isNotEmpty(nullKey)) {
+                sb.append(nullKey);
+            } else {
+                sb = new StringBuilder();
+            }
+        } else {
+            sb.append(e.getDeclaringClass().getSimpleName()).append('.');
+            sb.append(e.name());
+        }
+
+        return createStringResource(sb.toString());
+    }
+    
     public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
@@ -2528,5 +2553,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @Override
     public Locale getLocale() {
         return getSession().getLocale();
+    }
+    
+    
+    public <IW extends ItemWrapper, PV extends PrismValue> PrismValueWrapper<?> createValueWrapper(ItemDefinition<?> def, IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
+    	
+    	ItemWrapperFactory<IW, PV> factory = (ItemWrapperFactory<IW, PV>) registry.findWrapperFactory(def);
+    	
+    	return factory.createValueWrapper(parentWrapper, newValue, status, context);
+    	
     }
 }

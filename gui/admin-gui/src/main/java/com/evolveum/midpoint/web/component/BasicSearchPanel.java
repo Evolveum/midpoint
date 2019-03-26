@@ -16,22 +16,22 @@
 
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
+import java.io.Serializable;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
 /**
  * @author lazyman
  */
-public class BasicSearchPanel<T extends Serializable> extends SimplePanel<T> {
+public class BasicSearchPanel<T extends Serializable> extends BasePanel<T> {
 
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_SEARCH = "search";
@@ -48,6 +48,11 @@ public class BasicSearchPanel<T extends Serializable> extends SimplePanel<T> {
     }
 
     @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
+    
     protected void initLayout() {
         Label label = new Label(ID_LABEL, createTextNameModel());
         add(label);

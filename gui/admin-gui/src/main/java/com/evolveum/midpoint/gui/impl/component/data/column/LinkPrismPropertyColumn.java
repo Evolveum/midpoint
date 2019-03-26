@@ -16,103 +16,90 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
-import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 
 /**
  * @author skublik
  */
-public class LinkPrismPropertyColumn<T,C extends Containerable> extends AbstractItemWrapperColumn<C> implements IExportableColumn<ContainerValueWrapper<C>, String>{
+public class LinkPrismPropertyColumn<C extends Containerable, T> extends PrismPropertyColumn<C, T> implements IExportableColumn<PrismContainerValueWrapper<C>, String>{
 
-	public LinkPrismPropertyColumn(final IModel<ContainerWrapperImpl<Containerable>> headerModel, ItemName name, PageBase pageBase) {
-		super(headerModel == null ? null : getPropertyOrReferenceForHeaderWrapper(headerModel, name, pageBase),
-				pageBase);
+
+	private static final long serialVersionUID = 1L;
+	private static final String ID_LABEL = "label";
+	
+	public LinkPrismPropertyColumn(IModel<PrismContainerWrapper<C>> mainModel, ItemPath itemName, PageBase pageBase) {
+		super(mainModel, itemName, pageBase, false);
 	}
 	
-	public LinkPrismPropertyColumn(IModel<PropertyOrReferenceWrapper> headerModel, PageBase pageBase) {
-		super(headerModel, pageBase);
+
+	protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel) {
 	}
+	
 	
 	@Override
-	public void populateItem(Item<ICellPopulator<ContainerValueWrapper<C>>> cellItem, String componentId,
-			IModel<ContainerValueWrapper<C>> rowModel) {
-		PropertyOrReferenceWrapperFromContainerModel property = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), getqNameOfItem());
-		cellItem.add(new StaticItemWrapperColumnPanel(componentId, property, new Form("form"), null) {
-			@Override
-			protected Component getDisplayComponent(String componentId, IModel model) {
-				return new LinkPanel(componentId, model) {
-		        	private static final long serialVersionUID = 1L;
-
-		            @Override
-		            public void onClick(AjaxRequestTarget target) {
-		            	LinkPrismPropertyColumn.this.onClick(target, rowModel);
-		            }
-
-		            @Override
-		            public boolean isEnabled() {
-		                return LinkPrismPropertyColumn.this.isEnabled(rowModel);
-		            }
-		        };
-			}
-			
-			@Override
-			protected IModel populatePropertyItem(ValueWrapperOld object) {
-				return LinkPrismPropertyColumn.this.populatePropertyItem(object);
-			}
-			
-			@Override
-			protected IModel populateReferenceItem(ValueWrapperOld object) {
-				return LinkPrismPropertyColumn.this.populateReferenceItem(object);
-			}
-		});
-	}
-	
-	protected IModel<String> populatePropertyItem(ValueWrapperOld object) {
-    	return new ItemRealValueModel<String>(object);
-	}
-	
-	protected IModel<String> populateReferenceItem(ValueWrapperOld object) {
-    	return new IModel<String>() {
+	protected void populate(ListItem<PrismPropertyValueWrapper<T>> item, IModel<?> rowModel) {
+		LinkPanel linkPanel = new LinkPanel(ID_LABEL,
+				new ItemRealValueModel(item.getModel())) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			public String getObject() {
-				return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(
-						new ItemRealValueModel<Referencable>(object).getObject(), false);
+			public void onClick(AjaxRequestTarget target) {
+				LinkPrismPropertyColumn.this.onClick(target, (IModel<PrismContainerValueWrapper<C>>) rowModel);
 			}
-			
+
+			@Override
+			public boolean isEnabled() {
+				return !isReadOnly();
+			}
 		};
+		item.add(linkPanel);
 	}
+	
 
-	protected boolean isEnabled(IModel<ContainerValueWrapper<C>> rowModel) {
-		return true;
-	}
+//		PropertyOrReferenceWrapperFromContainerModel property = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), getqNameOfItem());
+//		cellItem.add(new StaticItemWrapperColumnPanel(componentId, property, new Form("form"), null) {
+//			@Override
+//			protected Component getDisplayComponent(String componentId, IModel model) {
+//				return new LinkPanel(componentId, model) {
+//		        	private static final long serialVersionUID = 1L;
+//
+//		            @Override
+//		            public void onClick(AjaxRequestTarget target) {
+//		            	LinkPrismPropertyColumn.this.onClick(target, rowModel);
+//		            }
+//
+//		            @Override
+//		            public boolean isEnabled() {
+//		                return LinkPrismPropertyColumn.this.isEnabled(rowModel);
+//		            }
+//		        };
+//			}
+//			
+//			@Override
+//			protected IModel populatePropertyItem(ValueWrapperOld object) {
+//				return LinkPrismPropertyColumn.this.populatePropertyItem(object);
+//			}
+//			
+//			@Override
+//			protected IModel populateReferenceItem(ValueWrapperOld object) {
+//				return LinkPrismPropertyColumn.this.populateReferenceItem(object);
+//			}
+//		});Pri
 
-	protected void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<C>> rowModel) {
-	}
-
-	@Override
-	public IModel<?> getDataModel(IModel<ContainerValueWrapper<C>> rowModel) {
-		return new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), getqNameOfItem());
-	}
+	
 
 }
 

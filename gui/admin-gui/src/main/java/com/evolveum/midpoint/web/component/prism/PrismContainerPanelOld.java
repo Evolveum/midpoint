@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -56,14 +55,14 @@ public class PrismContainerPanelOld<C extends Containerable> extends BasePanel<C
     private static final String ID_HEADER = "header";
     private static final String STRIPED_CLASS = "striped";
     
-    private ItemVisibilityHandler itemVisibility = null;
+    private ItemVisibilityHandlerOld itemVisibility = null;
     private Form form;
     
-    public PrismContainerPanelOld(String id, final IModel<ContainerWrapperImpl<C>> model, Form form, ItemVisibilityHandler isPanelVisible) {
+    public PrismContainerPanelOld(String id, final IModel<ContainerWrapperImpl<C>> model, Form form, ItemVisibilityHandlerOld isPanelVisible) {
     	this(id, model, form, isPanelVisible, true);
     }
 
-    public PrismContainerPanelOld(String id, final IModel<ContainerWrapperImpl<C>> model, Form form, ItemVisibilityHandler isPanelVisible, boolean isModelOnTopLevel) {
+    public PrismContainerPanelOld(String id, final IModel<ContainerWrapperImpl<C>> model, Form form, ItemVisibilityHandlerOld isPanelVisible, boolean isModelOnTopLevel) {
         super(id, model);
         setOutputMarkupId(true); 
 		this.itemVisibility = isPanelVisible;
@@ -164,24 +163,24 @@ public class PrismContainerPanelOld<C extends Containerable> extends BasePanel<C
 		}
 	}
 
-	public boolean isPanelVisible(ItemVisibilityHandler isPanelVisible, IModel<ContainerWrapperImpl<C>> model) {
-    	if (isPanelVisible != null && model.getObject() != null) {
-			ItemVisibility visible = isPanelVisible.isVisible(model.getObject());
-			if (visible != null) {
-				switch (visible) {
-    				case VISIBLE:
-    					return true;
-    				case HIDDEN:
-    					return false;
-    				default:
-    					// automatic, go on ...
-    			}
-			}
-		}
+	public boolean isPanelVisible(ItemVisibilityHandlerOld isPanelVisible, IModel<ContainerWrapperImpl<C>> model) {
+//    	if (isPanelVisible != null && model.getObject() != null) {
+//			ItemVisibility visible = isPanelVisible.isVisible(model.getObject());
+//			if (visible != null) {
+//				switch (visible) {
+//    				case VISIBLE:
+//    					return true;
+//    				case HIDDEN:
+//    					return false;
+//    				default:
+//    					// automatic, go on ...
+//    			}
+//			}
+//		}
         return model.getObject() != null && model.getObject().isVisible();
     }
     
-    private void initLayout(final Form form, ItemVisibilityHandler isPanelVisible) {
+    private void initLayout(final Form form, ItemVisibilityHandlerOld isPanelVisible) {
     	final IModel<ContainerWrapperImpl<C>> model = getModel();
     	
     	PrismContainerHeaderPanel<C> header = model.getObject().createHeader(ID_HEADER);
@@ -190,7 +189,7 @@ public class PrismContainerPanelOld<C extends Containerable> extends BasePanel<C
         addOrReplaceProperties(model, form, isPanelVisible, false);
     }
 
-    private void addOrReplaceProperties(IModel<ContainerWrapperImpl<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
+    private void addOrReplaceProperties(IModel<ContainerWrapperImpl<C>> model, final Form form, ItemVisibilityHandlerOld isPanelVisible, boolean isToBeReplaced){
     	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
 			
 			private static final long serialVersionUID = 1L;
@@ -217,7 +216,8 @@ public class PrismContainerPanelOld<C extends Containerable> extends BasePanel<C
 
 						@Override
 						public String getObject() {
-							return GuiImplUtil.getObjectStatus(((ContainerValueWrapper<Containerable>)item.getModelObject()));
+							return "some status here";
+//							return GuiImplUtil.getObjectStatus(((ContainerValueWrapper<Containerable>)item.getModelObject()));
 						}
 					}));
                     if(((ContainerValueWrapper)item.getModelObject()).getContainer() !=null && ((ContainerValueWrapper)item.getModelObject()).getContainer().isShowOnTopLevel()) {

@@ -23,7 +23,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.prism.ExpressionWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -43,7 +43,7 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionWrappe
 	 * @param visibilityHandler
 	 */
 	public ExpressionPropertyPanel(String id, ExpressionWrapper model, Form form,
-			ItemVisibilityHandler visibilityHandler) {
+			ItemVisibilityHandlerOld visibilityHandler) {
 		super(id, model, form, visibilityHandler);
 	}
 

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -47,7 +48,7 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathTy
 	}
 	
 	@Override
-	public boolean match(PrismPropertyWrapper<ItemPathType> wrapper) {
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
 		return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 

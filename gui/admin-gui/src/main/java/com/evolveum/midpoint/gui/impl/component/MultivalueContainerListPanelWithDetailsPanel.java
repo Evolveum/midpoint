@@ -25,7 +25,9 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -55,10 +57,10 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
 	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanelWithDetailsPanel.class);
 
-	private List<ContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
+	private List<PrismContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
 	private boolean itemDetailsVisible;
 	
-	public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<ContainerWrapperImpl<C>> model, TableId tableId, PageStorage pageStorage) {
+	public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
 		super(id, model, tableId, pageStorage);
 	}
 	
@@ -78,7 +80,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 		this.itemDetailsVisible = itemDetailsVisible;
 	}
 
-	protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<ContainerValueWrapper<C>> item);
+	protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
 
 	protected void initDetailsPanel() {
 		WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
@@ -95,12 +97,12 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
 		add(details);
 		
-		ListView<ContainerValueWrapper<C>> itemDetailsView = new ListView<ContainerValueWrapper<C>>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
-				new IModel<List<ContainerValueWrapper<C>>>() {
+		ListView<PrismContainerValueWrapper<C>> itemDetailsView = new ListView<PrismContainerValueWrapper<C>>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
+				new IModel<List<PrismContainerValueWrapper<C>>>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public List<ContainerValueWrapper<C>> getObject() {
+					public List<PrismContainerValueWrapper<C>> getObject() {
 						return detailsPanelItemsList;
 					}
 				}) {
@@ -108,7 +110,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
+			protected void populateItem(ListItem<PrismContainerValueWrapper<C>> item) {
 				MultivalueContainerDetailsPanel<C> detailsPanel = getMultivalueContainerDetailsPanel(item);
 				item.add(detailsPanel);
 				detailsPanel.setOutputMarkupId(true);
@@ -148,11 +150,11 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 		details.add(cancelButton);
 	}
 
-	public void itemDetailsPerformed(AjaxRequestTarget target, IModel<ContainerValueWrapper<C>> rowModel) {
+	public void itemDetailsPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel) {
 		itemPerformedForDefaultAction(target, rowModel, null);
 	}
 
-	public void itemDetailsPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<C>> listItems) {
+	public void itemDetailsPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> listItems) {
 		itemPerformedForDefaultAction(target, null, listItems);
 	}
 
@@ -160,8 +162,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	}
 	
 	@Override
-	protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<ContainerValueWrapper<C>> rowModel,
-			List<ContainerValueWrapper<C>> listItems) {
+	protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
+			List<PrismContainerValueWrapper<C>> listItems) {
 		
 		if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
 			setItemDetailsVisible(true);

@@ -33,7 +33,7 @@ import java.util.Date;
  *
  *  @author shood
  * */
-@Deprecated
+//@Deprecated
 public class ProfilingDataLog {
 
     private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);

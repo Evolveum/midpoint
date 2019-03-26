@@ -15,11 +15,28 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -28,7 +45,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,8 +53,6 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -46,23 +60,8 @@ import com.evolveum.midpoint.web.page.admin.resources.ShadowDetailsTabPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ShadowSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -90,13 +89,13 @@ public class PageAccount extends PageAdmin {
 
 	public static final String PARAMETER_SELECTED_TAB = "tab";
 
-	private LoadableModel<ObjectWrapperOld<ShadowType>> accountModel;
+	private LoadableModel<PrismObjectWrapper<ShadowType>> accountModel;
 
 	public PageAccount(final PageParameters parameters) {
-		accountModel = new LoadableModel<ObjectWrapperOld<ShadowType>>(false) {
+		accountModel = new LoadableModel<PrismObjectWrapper<ShadowType>>(false) {
 
 			@Override
-			protected ObjectWrapperOld<ShadowType> load() {
+			protected PrismObjectWrapper<ShadowType> load() {
 				return loadAccount(parameters);
 			}
 		};
@@ -108,7 +107,7 @@ public class PageAccount extends PageAdmin {
 		initLayout();
 	}
 
-	private ObjectWrapperOld<ShadowType> loadAccount(PageParameters parameters) {
+	private PrismObjectWrapper<ShadowType> loadAccount(PageParameters parameters) {
 		Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
 		OperationResult result = task.getResult();
 
@@ -125,14 +124,24 @@ public class PageAccount extends PageAdmin {
 			throw new RestartResponseException(PageResources.class);
 		}
 
-		ObjectWrapperOld wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, task, this);
-		OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
+		PrismObjectWrapperFactory<ShadowType> owf = getRegistry().getObjectWrapperFactory(account.getDefinition());
+		WrapperContext context = new WrapperContext(task, result);
+//		context.setCreateIfEmpty(false);
+		PrismObjectWrapper<ShadowType> wrapper = null;
 		try {
-			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
+			wrapper = owf.createObjectWrapper(account, ItemStatus.NOT_CHANGED, context);
 		} catch (SchemaException e) {
-			throw new SystemException(e.getMessage(), e);
+			//TODO error handling
 		}
-		wrapper.setShowEmpty(false);
+		
+//		ObjectWrapperOld wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, task, this);
+//		OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
+//		try {
+//			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
+//		} catch (SchemaException e) {
+//			throw new SystemException(e.getMessage(), e);
+//		}
+//		wrapper.setShowEmpty(false);
 		return wrapper;
 	}
 
@@ -145,8 +154,10 @@ public class PageAccount extends PageAdmin {
 
 			@Override
 			public boolean isVisible() {
-				ObjectWrapperOld wrapper = accountModel.getObject();
-				return wrapper.isProtectedAccount();
+				PrismObjectWrapper<ShadowType> wrapper = accountModel.getObject();
+				return false;
+				//TODO protected
+//				return wrapper.isProtectedAccount();
 			}
 		});
 		add(protectedMessage);
@@ -161,7 +172,7 @@ public class PageAccount extends PageAdmin {
 	}
 
 
-	private AjaxTabbedPanel<ITab> createTabsPanel(com.evolveum.midpoint.web.component.form.Form<ObjectWrapperOld<ShadowType>> form) {
+	private AjaxTabbedPanel<ITab> createTabsPanel(com.evolveum.midpoint.web.component.form.Form<PrismObjectWrapper<ShadowType>> form) {
 		List<ITab> tabs = new ArrayList<>();
 
 		tabs.add(new PanelTab(createStringResource("PageAccount.tab.details")) {
@@ -204,8 +215,10 @@ public class PageAccount extends PageAdmin {
 
 			@Override
 			public boolean isVisible() {
-				ObjectWrapperOld wrapper = accountModel.getObject();
-				return !wrapper.isProtectedAccount();
+				PrismObjectWrapper<ShadowType> wrapper = accountModel.getObject();
+				//TODO protected
+				return true;
+//				return !wrapper.isProtectedAccount();
 			}
 		});
 		mainForm.add(save);
@@ -243,7 +256,7 @@ public class PageAccount extends PageAdmin {
 		OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
 		try {
 			WebComponentUtil.revive(accountModel, getPrismContext());
-			ObjectWrapperOld wrapper = accountModel.getObject();
+			PrismObjectWrapper<ShadowType> wrapper = accountModel.getObject();
 			ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
 			if (delta == null) {
 				return;

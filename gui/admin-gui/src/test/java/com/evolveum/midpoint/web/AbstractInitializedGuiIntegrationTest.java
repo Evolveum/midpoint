@@ -67,7 +67,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 		dummyResourceCtl.setResource(resourceDummy);
-
+ 
 		repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
 		repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
 

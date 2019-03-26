@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
@@ -48,7 +49,7 @@ public class PasswordPanelFactory extends AbstractGuiComponentFactory<ProtectedS
 	}
 	
 	@Override
-	public boolean match(PrismPropertyWrapper<ProtectedStringType> wrapper) {
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
 		return ProtectedStringType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 

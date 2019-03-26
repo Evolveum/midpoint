@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -57,13 +57,13 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Pris
     private static final String ID_HEADER = "header";
     private static final String STRIPED_CLASS = "striped";
     
-    private ItemVisibilityHandler itemVisibility = null;
+    private ItemVisibilityHandlerOld itemVisibility = null;
     private Form form;
     
     private PrismContainerWrapper<C> containerWrapper;
     
 
-    public PrismContainerPanel(String id, final PrismContainerWrapper<C> model, Form form, ItemVisibilityHandler isPanelVisible) {
+    public PrismContainerPanel(String id, final PrismContainerWrapper<C> model, Form form, ItemVisibilityHandlerOld isPanelVisible) {
         super(id);
         setOutputMarkupId(true); 
 		this.itemVisibility = isPanelVisible;
@@ -155,62 +155,62 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Pris
 //	}
 
     
-    private void initLayout(final Form form, ItemVisibilityHandler isPanelVisible) {
+    private void initLayout(final Form form, ItemVisibilityHandlerOld isPanelVisible) {
     	
-    	PrismContainerHeaderPanel<C> header = containerWrapper.createHeader(ID_HEADER);
-    	add(header);
+//    	PrismContainerHeaderPanel<C> header = containerWrapper.createHeader(ID_HEADER);
+//    	add(header);
 
         addOrReplaceProperties(form, isPanelVisible, false);
     }
 
-    private void addOrReplaceProperties(final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
-    	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
-                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, getPageBase());
-                    containerPanel.setOutputMarkupId(true);
-                    item.add(new VisibleEnableBehaviour() {
-                    	@Override
-                    	public boolean isVisible() {
-                    		if(!containerWrapper.isExpanded()) {
-    							return false;
-    						}
-    						return containerPanel.isVisible();
-                    	}
-                    });
-                    
-                    item.add(containerPanel);
-                    item.setOutputMarkupId(true);
-                    containerPanel.add(AttributeModifier.append("class", new IModel<String>() {
-    					
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public String getObject() {
-							return GuiImplUtil.getObjectStatus(((ContainerValueWrapper<Containerable>)item.getModelObject()));
-						}
-					}));
-                    if(((ContainerValueWrapper)item.getModelObject()).getContainer() !=null && ((ContainerValueWrapper)item.getModelObject()).getContainer().isShowOnTopLevel()) {
-						item.add(AttributeModifier.append("class", "top-level-prism-container"));
-					}
-                    
-                    if(!containerPanel.hasAnyProperty()) {
-                    	item.add(AttributeModifier.append("style", " border-top: none; padding-top: 0px; "));
-                    }
-
-			}
-			
-		};
-    	values.setReuseItems(true);
-    	values.setOutputMarkupId(true);
-        if (isToBeReplaced) {
-            replace(values);
-        } else {
-            add(values);
-        }
+    private void addOrReplaceProperties(final Form form, ItemVisibilityHandlerOld isPanelVisible, boolean isToBeReplaced){
+//    	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
+//			
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
+//                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, getPageBase());
+//                    containerPanel.setOutputMarkupId(true);
+//                    item.add(new VisibleEnableBehaviour() {
+//                    	@Override
+//                    	public boolean isVisible() {
+//                    		if(!containerWrapper.isExpanded()) {
+//    							return false;
+//    						}
+//    						return containerPanel.isVisible();
+//                    	}
+//                    });
+//                    
+//                    item.add(containerPanel);
+//                    item.setOutputMarkupId(true);
+////                    containerPanel.add(AttributeModifier.append("class", new IModel<String>() {
+////    					
+////						private static final long serialVersionUID = 1L;
+////
+////						@Override
+////						public String getObject() {
+////							return GuiImplUtil.getObjectStatus(((ContainerValueWrapper<Containerable>)item.getModelObject()));
+////						}
+////					}));
+//                    if(((ContainerValueWrapper)item.getModelObject()).getContainer() !=null && ((ContainerValueWrapper)item.getModelObject()).getContainer().isShowOnTopLevel()) {
+//						item.add(AttributeModifier.append("class", "top-level-prism-container"));
+//					}
+//                    
+//                    if(!containerPanel.hasAnyProperty()) {
+//                    	item.add(AttributeModifier.append("style", " border-top: none; padding-top: 0px; "));
+//                    }
+//
+//			}
+//			
+//		};
+//    	values.setReuseItems(true);
+//    	values.setOutputMarkupId(true);
+//        if (isToBeReplaced) {
+//            replace(values);
+//        } else {
+//            add(values);
+//        }
     }
 
 }

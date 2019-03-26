@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -46,7 +47,7 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> {
 		registry.addToRegistry(this);
 	}
 	@Override
-	public boolean match(PrismPropertyWrapper<T> wrapper) {
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
 		QName type = wrapper.getTypeName();
 		return SchemaConstants.T_POLY_STRING_TYPE.equals(type) || DOMUtil.XSD_STRING.equals(type) || DOMUtil.XSD_DURATION.equals(type)
 				|| DOMUtil.XSD_ANYURI.equals(type) || DOMUtil.XSD_INT.equals(type);

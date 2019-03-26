@@ -63,12 +63,14 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
+import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -122,7 +124,7 @@ import ro.isdc.wro.http.WroFilter;
         HealthIndicatorAutoConfiguration.class
 })
 @SpringBootConfiguration
-@ComponentScan(basePackages = {"com.evolveum.midpoint.gui"}, basePackageClasses = TextAreaPanelFactory.class)
+@ComponentScan(basePackages = {"com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
 //@EnableAutoConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
 	
@@ -256,6 +258,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     	return new MidPointErrorPageRegistrar();
     }
 
+    @Profile("!test")
     @Component
     public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
     	

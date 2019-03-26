@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 
 import org.apache.wicket.AttributeModifier;
@@ -49,7 +49,7 @@ public class StaticItemWrapperColumnPanel<IW extends ItemWrapperOld> extends Pri
 
 	private static final Trace LOGGER = TraceManager.getTrace(StaticItemWrapperColumnPanel.class);
 
-    public StaticItemWrapperColumnPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
+    public StaticItemWrapperColumnPanel(String id, IModel<IW> model, Form form, ItemVisibilityHandlerOld visibilityHandler) {
 		super(id, model, form, visibilityHandler);
 	}
 

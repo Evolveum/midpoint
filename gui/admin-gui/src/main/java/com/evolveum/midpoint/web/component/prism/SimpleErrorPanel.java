@@ -16,21 +16,21 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 
 /**
  *  @author shood
  * */
-public class SimpleErrorPanel<O extends ObjectType> extends SimplePanel<FocusSubwrapperDto<O>>{
+public class SimpleErrorPanel<O extends ObjectType> extends BasePanel<FocusSubwrapperDto<O>>{
 	private static final long serialVersionUID = 1L;
 
 	//    private static final String ID_CHECK = "check";
@@ -44,8 +44,13 @@ public class SimpleErrorPanel<O extends ObjectType> extends SimplePanel<FocusSub
 
         add(AttributeModifier.append("class", "check-table-header"));
     }
-
+    
     @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
+
     protected void initLayout(){
 
         Label icon = new Label(ID_ICON);

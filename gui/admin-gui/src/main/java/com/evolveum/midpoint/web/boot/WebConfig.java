@@ -53,20 +53,6 @@ public class WebConfig {
         return new MidpointFormValidatorRegistry();
     }
     
-    @Bean
-    public GuiComponentRegistry registry() {
-    	return new GuiComponentRegistryImpl();
-    }
-    
-    @Bean
-    public GuiComponentFactory textAreaFactory() {
-    	return new TextAreaPanelFactory();
-    }
-    
-    @Bean
-    public GuiComponentFactory lockoutStatusFactory() {
-    	return new LockoutStatusPanelFactory();
-    }
 
     @Bean
     public AsyncWebProcessManager asyncWebProcessManager() {

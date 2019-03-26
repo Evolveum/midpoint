@@ -20,11 +20,13 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
@@ -77,7 +79,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
 
-    public AbstractRoleAssignmentPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> assignmentContainerWrapperModel){
+    public AbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
         super(id, assignmentContainerWrapperModel);
     }
 
@@ -123,28 +125,28 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         pageBase.showMainPopup(assignmentsDialog, target);
     }
 
-    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
         
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(
                 createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
             @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
                 item.add(new Label(componentId, getRelationLabelValue(assignmentModel.getObject())));
             }
         });
 
         if (!OrgType.COMPLEX_TYPE.equals(getAssignmentType())) {
-        	columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_TENANT_REF, getPageBase()));
-        	columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_ORG_REF, getPageBase()));
+        	columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), AssignmentType.F_TENANT_REF, getPageBase(), false));
+        	columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), AssignmentType.F_ORG_REF, getPageBase(), false));
         }
         
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
                 item.add(new Label(componentId, getIdentifierLabelModel(rowModel.getObject())));
             }
         });
@@ -152,13 +154,13 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return columns;
     }
 
-    private String getRelationLabelValue(ContainerValueWrapper<AssignmentType> assignmentWrapper){
-        if (assignmentWrapper == null || assignmentWrapper.getContainerValue() == null || assignmentWrapper.getContainerValue().getValue() == null
-                || assignmentWrapper.getContainerValue().getValue().getTargetRef() == null
-                || assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation() == null){
+    private String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper){
+        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null  
+                || assignmentWrapper.getRealValue().getTargetRef() == null
+                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null){
             return "";
         }
-        return assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation().getLocalPart();
+        return assignmentWrapper.getRealValue().getTargetRef().getRelation().getLocalPart();
     }
 
     protected boolean showAllAssignmentsVisible(){
@@ -209,11 +211,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return AbstractRoleType.COMPLEX_TYPE;
     }
 
-    private <O extends ObjectType> IModel<String> getIdentifierLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-        if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
+    private <O extends ObjectType> IModel<String> getIdentifierLabelModel(PrismContainerValueWrapper<AssignmentType> assignmentContainer){
+        if (assignmentContainer == null || assignmentContainer.getRealValue() == null){
             return Model.of("");
         }
-        AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
+        AssignmentType assignment = assignmentContainer.getRealValue();
         if (assignment.getTargetRef() == null){
             return Model.of("");
         }

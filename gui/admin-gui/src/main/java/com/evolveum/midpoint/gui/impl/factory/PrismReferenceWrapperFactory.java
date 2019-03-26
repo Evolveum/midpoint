@@ -29,7 +29,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class PrismReferenceWrapperFactory extends ItemWrapperFacotryImpl<PrismReferenceWrapper, PrismReferenceValue, PrismReference, PrismReferenceDefinition>{
+public class PrismReferenceWrapperFactory extends ItemWrapperFacotryImpl<PrismReferenceWrapper, PrismReferenceValue, PrismReference>{
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {
@@ -63,7 +63,9 @@ public class PrismReferenceWrapperFactory extends ItemWrapperFacotryImpl<PrismRe
 	@Override
 	public PrismValueWrapper<?> createValueWrapper(PrismReferenceWrapper parent, PrismReferenceValue value, ValueStatus status,
 			WrapperContext context) throws SchemaException {
-		
+			
+		PrismReferenceValueWrapper refValue = new PrismReferenceValueWrapper<>();
+		return refValue;
 	}
 
 }

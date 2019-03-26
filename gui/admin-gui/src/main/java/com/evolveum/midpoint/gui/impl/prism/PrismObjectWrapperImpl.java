@@ -15,7 +15,10 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.List;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -51,6 +54,15 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 	@Override
 	public String getOid() {
 		return prismObjectOld.getOid();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper#getContainers()
+	 */
+	@Override
+	public List<PrismContainerWrapper<?>> getContainers() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 

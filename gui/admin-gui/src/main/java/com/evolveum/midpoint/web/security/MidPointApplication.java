@@ -81,8 +81,10 @@ import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -154,7 +156,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 /**
  * @author lazyman
  */
-public class MidPointApplication extends AuthenticatedWebApplication {
+public class MidPointApplication extends AuthenticatedWebApplication implements ApplicationContextAware {
 
 	/**
      * Max. photo size for user/jpegPhoto
@@ -204,7 +206,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
     }
-
+    
     @Autowired
     transient ModelService model;
     @Autowired
@@ -282,7 +284,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 new PackageResourceReference(MidPointApplication.class,
                         "../../../../../webjars/adminlte/2.3.11/plugins/jQuery/jquery-2.2.3.min.js"));
 
-        getComponentInstantiationListeners().add(new SpringComponentInjector(this));
+        getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext, true));
 
         systemConfigurationChangeDispatcher.registerListener(new DeploymentInformationChangeListener(this));
         SystemConfigurationType config = getSystemConfigurationIfAvailable();
@@ -738,4 +740,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             return true;
         }
     }
+
+	/* (non-Javadoc)
+	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
+	 */
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
 }

@@ -32,7 +32,7 @@ public class ValuePolicyBasicPanel extends AbstractObjectTabPanel {
 
         itemPath.add(ItemPath.EMPTY_PATH);
         //itemPath.add(prismContext.path(ValuePolicyType.F_STRING_POLICY));
-        PrismPanel<ValuePolicyType> valuePolicyForm = new PrismPanel<>(ID_VALUE_POLICY_BASIC_DETAIL, new ContainerWrapperListFromObjectWrapperModel<ValuePolicyType,ValuePolicyType>(getObjectWrapperModel(), itemPath),null, getMainForm(), null, getPageBase());
-        add(valuePolicyForm);
+//        PrismPanel<ValuePolicyType> valuePolicyForm = new PrismPanel<>(ID_VALUE_POLICY_BASIC_DETAIL, new ContainerWrapperListFromObjectWrapperModel<ValuePolicyType,ValuePolicyType>(getObjectWrapperModel(), itemPath),null, getMainForm(), null, getPageBase());
+//        add(valuePolicyForm);
     }
 }

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -44,7 +45,7 @@ public class ThreeStateComboPanelFactory extends AbstractGuiComponentFactory<Boo
 		registry.addToRegistry(this);
 	}
 	@Override
-	public boolean match(PrismPropertyWrapper<Boolean> wrapper) {
+	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
 		return DOMUtil.XSD_BOOLEAN.equals(wrapper.getTypeName());
 	}
 

@@ -48,7 +48,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.component.prism.PrismWrapper;
@@ -634,7 +634,7 @@ public class ContainerWrapperImpl<C extends Containerable> extends PrismWrapper 
 	 * @see com.evolveum.midpoint.web.component.prism.ItemWrapper#createPanel(java.lang.String, org.apache.wicket.markup.html.form.Form, com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler)
 	 */
 //	@Override
-	public Panel createPanel(String id, Form form, ItemVisibilityHandler visibilityHandler) {
+	public Panel createPanel(String id, Form form, ItemVisibilityHandlerOld visibilityHandler) {
 		PrismContainerPanelOld<C> containerPanel = new PrismContainerPanelOld<>(id, Model.of(this), form, visibilityHandler, isShowOnTopLevel);
 		containerPanel.setOutputMarkupId(true);
 		return containerPanel;

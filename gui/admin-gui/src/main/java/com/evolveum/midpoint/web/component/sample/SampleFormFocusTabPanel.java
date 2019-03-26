@@ -24,6 +24,8 @@ import org.apache.wicket.markup.html.basic.Label;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -65,14 +67,14 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
 
     public SampleFormFocusTabPanel(String id, Form mainForm,
-                                   LoadableModel<ObjectWrapperOld<F>> focusWrapperModel,
+                                   LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
                                    LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
                                    PageBase pageBase) {
         super(id, mainForm, focusWrapperModel, projectionModel, pageBase);
         initLayout(focusWrapperModel, pageBase);
     }
 
-    private void initLayout(final LoadableModel<ObjectWrapperOld<F>> focusModel, PageBase pageBase) {
+    private void initLayout(final LoadableModel<PrismObjectWrapper<F>> focusModel, PageBase pageBase) {
         add(new Label(ID_HEADER, "Object details"));
         WebMarkupContainer body = new WebMarkupContainer("body");
         add(body);
@@ -93,7 +95,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
             // TODO: better error reporting
         }
 
-        ContainerWrapperImpl<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(FocusType.F_ASSIGNMENT);
+        PrismContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
 
         add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, Model.of(assignmentsContainerWrapper), availableRoles));
     }

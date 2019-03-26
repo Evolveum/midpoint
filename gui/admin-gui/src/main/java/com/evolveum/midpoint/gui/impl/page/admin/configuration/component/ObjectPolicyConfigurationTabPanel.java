@@ -42,17 +42,20 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditablePrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -84,7 +87,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends BasePanel<ContainerWrapperImpl<ObjectPolicyConfigurationType>> {
+public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends BasePanel<PrismContainerWrapper<ObjectPolicyConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -92,7 +95,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 	
     private static final String ID_OBJECTS_POLICY = "objectsPolicy";
     
-    public ObjectPolicyConfigurationTabPanel(String id, IModel<ContainerWrapperImpl<ObjectPolicyConfigurationType>> model) {
+    public ObjectPolicyConfigurationTabPanel(String id, IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> model) {
         super(id, model);
         
         
@@ -124,8 +127,8 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			private static final long serialVersionUID = 1L;
 			
 			@Override
-			protected List<ContainerValueWrapper<ObjectPolicyConfigurationType>> postSearch(
-					List<ContainerValueWrapper<ObjectPolicyConfigurationType>> items) {
+			protected List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> postSearch(
+					List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> items) {
 				return getObjects();
 			}
 			
@@ -150,13 +153,13 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			}
 			
 			@Override
-			protected List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
+			protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
 				return initBasicColumns();
 			}
 
 			@Override
 			protected MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
-					ListItem<ContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
+					ListItem<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
 				return ObjectPolicyConfigurationTabPanel.this.getMultivalueContainerDetailsPanel(item);
 			}
 
@@ -177,20 +180,20 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 		setOutputMarkupId(true);
 	}
     
-    private List<ContainerValueWrapper<ObjectPolicyConfigurationType>> getObjects() {
+    private List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> getObjects() {
     	return getModelObject().getValues();
     }
     
     protected void newObjectPolicyClickPerformed(AjaxRequestTarget target) {
-        PrismContainerValue<ObjectPolicyConfigurationType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
-        ContainerValueWrapper<ObjectPolicyConfigurationType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModel());
-        newObjectPolicyWrapper.setShowEmpty(true, false);
-        newObjectPolicyWrapper.computeStripes();
+        PrismContainerValue<ObjectPolicyConfigurationType> newObjectPolicy = getModel().getObject().getContainer().createNewValue();
+        PrismContainerValueWrapper<ObjectPolicyConfigurationType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModelObject());
+//        newObjectPolicyWrapper.setShowEmpty(true, false);
+//        newObjectPolicyWrapper.computeStripes();
         getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
 	}
     
     private MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
-			ListItem<ContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
+			ListItem<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
     	MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> detailsPanel = new  MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
@@ -198,7 +201,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			@Override
 			protected DisplayNamePanel<ObjectPolicyConfigurationType> createDisplayNamePanel(String displayNamePanelId) {
 				ItemRealValueModel<ObjectPolicyConfigurationType> displayNameModel = 
-						new ItemRealValueModel<ObjectPolicyConfigurationType>(item.getModel().getObject());
+						new ItemRealValueModel<ObjectPolicyConfigurationType>(item.getModel());
 				return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
 			}
 		};
@@ -220,16 +223,16 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
     			getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
     }
     
-    private List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {
-		List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> columns = new ArrayList<>();
+    private List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {
+		List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
-		columns.add(new IconColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>>(Model.of("")) {
+		columns.add(new IconColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>>(Model.of("")) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
+			protected IModel<String> createIconModel(IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				return Model.of(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
 		});
@@ -241,48 +244,38 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 			
-			@Override
-			protected IModel populatePropertyItem(ValueWrapperOld object) {
-				return new IModel<String>() {
-
-					@Override
-					public String getObject() {
-						ItemRealValueModel<QName> value =  new ItemRealValueModel<QName>(object);
-						return value == null ? null : value.getObject().getLocalPart();
-					}
-				};
-			}
 		});
 		
-		columns.add(new StaticPrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_SUBTYPE, getPageBase()));
+		columns.add(new PrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_SUBTYPE, getPageBase(), false));
 		
-		columns.add(new StaticPrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, getPageBase()));
+		columns.add(new PrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, getPageBase(), false));
 
-		columns.add(new AbstractItemWrapperColumn<ObjectPolicyConfigurationType>(getModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, getPageBase()){
-            private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
-									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				ContainerWrapperImpl lifecycleStateModel = rowModel.getObject().findContainerWrapperByName(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
-				
-				Label label = null;
-				if (lifecycleStateModel == null || lifecycleStateModel.getValues() == null || lifecycleStateModel.getValues().isEmpty()) {
-					item.add(new Label(componentId, ""));
-				} else {
-					ContainerWrapperImpl lifecycleState = lifecycleStateModel.findContainerWrapperByName(LifecycleStateModelType.F_STATE);
-					if (lifecycleState == null || lifecycleState.getValues() == null || lifecycleState.getValues().isEmpty()) {
-						item.add(new Label(componentId, ""));
-					} else {
-						item.add(new StaticItemWrapperColumnPanel(componentId, new PropertyModel(lifecycleState, ""), new Form("form"), null) {
-							protected IModel populateContainerItem(ContainerValueWrapper object) {
-								return Model.of(object != null ? WebComponentUtil.getDisplayName(object.getContainerValue()) : "");
-							};
-						});
-					}
-				}
-			}
-        });
+		columns.add(new PrismContainerWrapperColumn<ObjectPolicyConfigurationType>(getModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, getPageBase()));
+//		columns.add(new AbstractItemWrapperColumn<ObjectPolicyConfigurationType>(getModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, getPageBase()){
+//            private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
+//									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
+//				ContainerWrapperImpl lifecycleStateModel = rowModel.getObject().findContainerWrapperByName(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
+//				
+//				Label label = null;
+//				if (lifecycleStateModel == null || lifecycleStateModel.getValues() == null || lifecycleStateModel.getValues().isEmpty()) {
+//					item.add(new Label(componentId, ""));
+//				} else {
+//					ContainerWrapperImpl lifecycleState = lifecycleStateModel.findContainerWrapperByName(LifecycleStateModelType.F_STATE);
+//					if (lifecycleState == null || lifecycleState.getValues() == null || lifecycleState.getValues().isEmpty()) {
+//						item.add(new Label(componentId, ""));
+//					} else {
+//						item.add(new StaticItemWrapperColumnPanel(componentId, new PropertyModel(lifecycleState, ""), new Form("form"), null) {
+//							protected IModel populateContainerItem(ContainerValueWrapper object) {
+//								return Model.of(object != null ? WebComponentUtil.getDisplayName(object.getContainerValue()) : "");
+//							};
+//						});
+//					}
+//				}
+//			}
+//        });
 		
 		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));

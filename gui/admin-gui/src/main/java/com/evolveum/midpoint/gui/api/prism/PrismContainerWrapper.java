@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
@@ -49,8 +50,11 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
 	
 	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path);
 	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath);
-	PrismReferenceWrapper findReference(ItemPath path);
+	<R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path);
+	<T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path);
 	
+	PrismContainer<C> getContainer();
+
 	
 }
 
