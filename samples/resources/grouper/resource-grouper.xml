@@ -38,12 +38,15 @@
 	</connectorRef>
 	<connectorConfiguration>
 		<icfc:configurationProperties>
-			<rest:baseUrl>192.168.56.101:9443</rest:baseUrl>
+			<rest:baseUrl>https://192.168.56.101:9443</rest:baseUrl>
 			<rest:username>banderson</rest:username>
 			<rest:password>password</rest:password>
 			<rest:superGroup>etc:midpointGroups</rest:superGroup>
-			<rest:rootStem>midpoint</rest:rootStem>
+			<rest:groupIncludePattern>midpoint:.*</rest:groupIncludePattern>
+			<rest:groupIncludePattern>ref:.*</rest:groupIncludePattern>
+			<rest:groupExcludePattern>ref:.*_(includes|excludes|systemOfRecord|systemOfRecordAndIncludes)</rest:groupExcludePattern>
 			<rest:subjectSource>ldap</rest:subjectSource>
+			<rest:groupSource>g:gsa</rest:groupSource>
 			<rest:ignoreSslValidation>true</rest:ignoreSslValidation>
 		</icfc:configurationProperties>
 	</connectorConfiguration>
@@ -72,9 +75,10 @@
 						// ------------------ START OF CONFIGURATION ------------------
 
 						parameters = [
-						superGroup: 'etc:midpointGroups',
-						exportedGroupPrefix: 'midpoint:',
-						relevantSourceId: 'ldap'
+							superGroup: 'etc:midpointGroups',
+							groupIncludePattern: [ 'midpoint:.*', 'ref:.*' ],
+							groupExcludePattern: [ 'ref:.*_(includes|excludes|systemOfRecord|systemOfRecordAndIncludes)' ],
+							relevantSourceId: 'ldap'
 						]
 
 						// ------------------ END OF CONFIGURATION ------------------
