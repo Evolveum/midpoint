@@ -978,7 +978,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			// 1. Authorizations (MID-4893). User may be authorized just for roleMemberhsipRef and not for assignment
 			//    Authorization for roleMembershipRef is enough to display member panel.
 			// 2. There may be assignments that are not valid. We do not want to display relation for those.
-			for (ObjectReferenceType roleMembershipRef : ((FocusType) focusObject).getRoleMembershipRef()) {
+			for (ObjectReferenceType roleMembershipRef : getMembershipReferenceList((FocusType) focusObject)) {
 				relation = buildRelation(roleMembershipRef, relation);
 			}
 			
@@ -986,7 +986,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return relation;
 				
 	}
-	
+
+	protected List<ObjectReferenceType> getMembershipReferenceList(FocusType focusObject){
+		return focusObject.getRoleMembershipRef();
+	}
+
 	private String buildRelation(ObjectReferenceType roleMembershipRef, String relation) {
 		if (roleMembershipRef.getOid().equals(getModelObject().getOid())) {
 			QName assignmentRelation = roleMembershipRef.getRelation();
