@@ -2291,7 +2291,11 @@ public class ShadowCache {
 				return resultMetadata.getApproxNumberOfAllResults();
 
 			} else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
-
+				//fix for MID-5204. as sequentialSearch option causes to fetch all resource objects,
+				// query paging is senseless here
+				if (query != null){
+					query.setPaging(null);
+				}
 				LOGGER.trace("countObjects: simulating counting with sequential search (likely performance impact)");
 				// traditional way of counting objects (i.e. counting them one by one)
 				final Holder<Integer> countHolder = new Holder<>(0);

@@ -119,7 +119,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
 		box.add(createHeader(ID_HEADER));
 		WebMarkupContainer footer = createFooter(ID_FOOTER);
-		footer.add(new VisibleBehaviour(() -> isFooterVisible(provider.size(), pageSize)));
+		footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() ||  provider.size() > pageSize));
 		box.add(footer);
 	}
 
@@ -136,8 +136,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 		return item;
 	}
 
-	protected boolean isFooterVisible(long providerSize, int pageSize){
-		return true;
+	protected boolean hideFooterIfSinglePage(){
+		return false;
 	}
 
 	@Override

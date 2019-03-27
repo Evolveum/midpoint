@@ -94,8 +94,8 @@ public class ProcessInstancesPanel extends BasePanel {
 			}
 
 			@Override
-			protected boolean isFooterVisible(long providerSize, int pageSize){
-				return ProcessInstancesPanel.this.isFooterVisible(providerSize, pageSize);
+			protected boolean hideFooterIfSinglePage(){
+				return ProcessInstancesPanel.this.hideFooterIfSinglePage();
 			}
 		};
 		table.setOutputMarkupId(true);
@@ -231,8 +231,8 @@ public class ProcessInstancesPanel extends BasePanel {
 		};
 	}
 
-	protected boolean isFooterVisible(long providerSize, int pageSize){
-		return true;
+	protected boolean hideFooterIfSinglePage(){
+		return false;
 	}
 
 	private void itemDetailsPerformed(AjaxRequestTarget target, String pid) {

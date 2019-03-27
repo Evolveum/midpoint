@@ -167,8 +167,8 @@ public class WorkItemsPanel extends BasePanel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected boolean isFooterVisible(long providerSize, int pageSize){
-				return WorkItemsPanel.this.isFooterVisible(providerSize, pageSize);
+			protected boolean hideFooterIfSinglePage(){
+				return WorkItemsPanel.this.hideFooterIfSinglePage();
 			}
 		};
 		workItemsTable.setAdditionalBoxCssClasses("without-box-header-top-border");
@@ -350,7 +350,7 @@ public class WorkItemsPanel extends BasePanel {
 		};
 	}
 
-	protected boolean isFooterVisible(long providerSize, int pageSize){
-		return true;
+	protected boolean hideFooterIfSinglePage(){
+		return false;
 	}
 }
