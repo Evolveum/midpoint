@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -78,8 +79,8 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 		//JRFillParameter fillparam = (JRFillParameter) parametersMap.get(JRParameter.REPORT_PARAMETERS_MAP);
 		//Map reportParams = (Map) fillparam.getValue();
 		reportService = getParameterValue(parametersMap, ReportService.PARAMETER_REPORT_SERVICE);
-		report = getParameterValue(parametersMap, ReportCreateTaskHandler.PARAMETER_REPORT_OBJECT);
-		task = getParameterValue(parametersMap, ReportCreateTaskHandler.PARAMETER_TASK);
+		report = getParameterValue(parametersMap, ReportTypeUtil.PARAMETER_REPORT_OBJECT);
+		task = getParameterValue(parametersMap, ReportTypeUtil.PARAMETER_TASK);
 
 		// The PARAMETER_OPERATION_RESULT will not make it here. It is properly set in the task, but it won't arrive here.
 		// No idea why.

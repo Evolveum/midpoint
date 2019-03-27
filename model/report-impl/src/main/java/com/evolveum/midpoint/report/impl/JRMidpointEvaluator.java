@@ -18,10 +18,12 @@ package com.evolveum.midpoint.report.impl;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -57,6 +59,7 @@ public class JRMidpointEvaluator extends JREvaluator {
 	private String unitName = null;
 	
 	private ReportService reportService;
+	
 	private PrismObject<ReportType> report;
 	
 	private JasperReport jasperReport;
@@ -96,15 +99,42 @@ public class JRMidpointEvaluator extends JREvaluator {
 		this.fieldsMap = fieldsMap;
 		this.variablesMap = variablesMap;
 		
-		// TODO TODO TODO
-		// report = ?????
 				
 		reportService = SpringApplicationContext.getBean(ReportService.class);
+		
+	}
+	
+	private Task getTask() {
+		JRFillParameter taskParam = parametersMap.get(ReportTypeUtil.PARAMETER_TASK);
+		if (taskParam == null) {
+			//TODO throw exception??
+			return null;
+		}
+		
+		return (Task) taskParam.getValue();
+	}
+	
+	private OperationResult getOperationResult() {
+		JRFillParameter resultParam = parametersMap.get(ReportTypeUtil.PARAMETER_OPERATION_RESULT);
+		if (resultParam == null) {
+			//TODO throw exception???
+			return null;
+		}
+		return (OperationResult) resultParam.getValue();
+	}
+	
+	private PrismObject<ReportType> getReport() {
+		JRFillParameter resultParam = parametersMap.get(ReportTypeUtil.PARAMETER_REPORT_OBJECT);
+		if (resultParam == null) {
+			//TODO throw exception???
+			return null;
+		}
+		return (PrismObject<ReportType>) resultParam.getValue();
 	}
 
 	@Override
 	public Object evaluate(JRExpression expression) throws JRExpressionEvalException {
-		LOGGER.info("evaluate: {}", expression);
+		LOGGER.info("evaluate expression: {}", expression);
 		if (expression == null) {
 			return null;
 		}
@@ -119,27 +149,24 @@ public class JRMidpointEvaluator extends JREvaluator {
 				break;
 			}
 			
+			groovyCode += chunk.getText();
 			switch (chunk.getType()){
 				case JRExpressionChunk.TYPE_FIELD:
-					groovyCode += chunk.getText();
 					JRFillField field = fieldsMap.get(chunk.getText());
 					parameters.put(field.getName(), field.getValue(), field.getValueClass());
 					break;
 				case JRExpressionChunk.TYPE_PARAMETER:
-					groovyCode += chunk.getText();
 					JRFillParameter param = parametersMap.get(chunk.getText());
 					parameters.put(param.getName(), param.getValue(), param.getValueClass());
 					break;
 				case JRExpressionChunk.TYPE_VARIABLE:
-					groovyCode += chunk.getText();
 					JRFillVariable var = variablesMap.get(chunk.getText());
 					parameters.put(var.getName(), var.getValue(), var.getValueClass());
 					break;
 				case JRExpressionChunk.TYPE_TEXT:
-					groovyCode += chunk.getText();
 					break;
 				default :
-					groovyCode += chunk.getText();
+					LOGGER.trace("nothing to do.");
 						
 			}
 			
@@ -149,9 +176,8 @@ public class JRMidpointEvaluator extends JREvaluator {
 		if (reportService != null) {
 			try {
 				// TODO:
-				Task task = null;
-				OperationResult result = null;
-				return reportService.evaluate(report, groovyCode, parameters, task ,result);
+				
+				return reportService.evaluate(getReport(), groovyCode, parameters, getTask(), getOperationResult());
 			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
 					| ConfigurationException | SecurityViolationException e) {
 				throw new JRRuntimeException(e.getMessage(), e);
