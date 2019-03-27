@@ -40,6 +40,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  *  Async Update source for AMQP 0.9.1 brokers.
  *
@@ -48,6 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Amqp091AsyncUpdateSource.class);
+	private static final int DEFAULT_PREFETCH = 10;
 
 	@NotNull private final Amqp091SourceType sourceConfiguration;
 	@NotNull private final PrismContext prismContext;
@@ -97,6 +100,7 @@ public class Amqp091AsyncUpdateSource implements AsyncUpdateSource {
 				state = State.PREPARING;
 				activeConnection = connectionFactory.newConnection();
 				activeChannel = activeConnection.createChannel();
+				activeChannel.basicQos(defaultIfNull(sourceConfiguration.getPrefetch(), DEFAULT_PREFETCH));
 				LOGGER.info("Opened AMQP connection = {}, channel = {}", activeConnection, activeChannel);  // todo debug
 				DeliverCallback deliverCallback = (consumerTag, message) -> {
 					try {

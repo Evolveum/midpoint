@@ -117,6 +117,11 @@ public interface ConnectorInstance {
 			throws CommunicationException, GenericFrameworkException, ConfigurationException;
 
 	/**
+	 * Updates stored resource schema and capabilities.
+	 */
+	void updateSchema(ResourceSchema resourceSchema);
+
+	/**
 	 * Retrieves native connector capabilities.
 	 *
 	 * The capabilities specify what the connector can do without any kind of simulation or other workarounds.

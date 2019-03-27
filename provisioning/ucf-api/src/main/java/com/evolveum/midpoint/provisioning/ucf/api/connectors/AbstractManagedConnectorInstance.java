@@ -121,10 +121,15 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 		result.addContext("connector", getConnectorObject().toString());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, this.getClass());
 
-		setResourceSchema(resourceSchema);
+		updateSchema(resourceSchema);
 		setCapabilities(capabilities);
 
 		result.recordSuccessIfUnknown();
+	}
+
+	@Override
+	public void updateSchema(ResourceSchema resourceSchema) {
+		setResourceSchema(resourceSchema);
 	}
 
 	@Override
