@@ -118,11 +118,11 @@ public class ReportCreateTaskHandler implements TaskHandler {
     private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
 
     // TODO: is this a good place for those constants?
-    public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
-    public static final String PARAMETER_REPORT_OID = "midpointReportOid";
-    public static final String PARAMETER_REPORT_OBJECT = "midpointReportObject";
-    public static final String PARAMETER_TASK = "midpointTask";
-    public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
+//    public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
+//    public static final String PARAMETER_REPORT_OID = "midpointReportOid";
+//    public static final String PARAMETER_REPORT_OBJECT = "midpointReportObject";
+//    public static final String PARAMETER_TASK = "midpointTask";
+//    public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
 
     private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
     private static final String EXPORT_DIR = MIDPOINT_HOME + "export/";
@@ -295,36 +295,6 @@ public class ReportCreateTaskHandler implements TaskHandler {
         return params;
     }
 
-//	private JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
-//
-//			if (reportType.getTemplate() == null) {
-//				throw new IllegalStateException("Could not create report. No jasper template defined.");
-//			}
-//			try	 {
-//		    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
-//		    	
-//		    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
-//		    	 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
-//		    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
-//
-//				 if (reportType.getTemplateStyle() != null){
-//					JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
-//					jasperDesign.addTemplate(templateStyle);
-//					JRDesignParameter parameter = new JRDesignParameter();
-//					parameter.setName(PARAMETER_TEMPLATE_STYLES);
-//					parameter.setValueClass(JRTemplate.class);
-//					parameter.setForPrompting(false);
-//					jasperDesign.addParameter(parameter);
-//				 }
-//				 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
-//				 return jasperReport;
-//			 } catch (JRException ex){
-//				 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
-//				 throw new SchemaException(ex.getMessage(), ex.getCause());
-//			 }
-//
-//
-//	}
     private Map<String, Object> prepareReportParameters(ReportType reportType, Task task, OperationResult parentResult) {
         Map<String, Object> params = new HashMap<>();
         if (reportType.getTemplateStyle() != null) {
@@ -334,7 +304,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
                 LOGGER.trace("Style template string {}", new String(reportTemplateStyle));
                 InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle);
                 JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
-                params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
+                params.put(ReportTypeUtil.PARAMETER_TEMPLATE_STYLES, templateStyle);
                 LOGGER.trace("Style template parameter {}", templateStyle);
 
             } catch (Exception ex) {
@@ -349,10 +319,10 @@ public class ReportCreateTaskHandler implements TaskHandler {
         }
 
         // for our special datasource
-        params.put(PARAMETER_REPORT_OID, reportType.getOid());
-        params.put(PARAMETER_REPORT_OBJECT, reportType.asPrismObject());
-        params.put(PARAMETER_TASK, task);
-        params.put(PARAMETER_OPERATION_RESULT, parentResult);
+        params.put(ReportTypeUtil.PARAMETER_REPORT_OID, reportType.getOid());
+        params.put(ReportTypeUtil.PARAMETER_REPORT_OBJECT, reportType.asPrismObject());
+        params.put(ReportTypeUtil.PARAMETER_TASK, task);
+        params.put(ReportTypeUtil.PARAMETER_OPERATION_RESULT, parentResult);
         params.put(ReportService.PARAMETER_REPORT_SERVICE, reportService);
 
         return params;

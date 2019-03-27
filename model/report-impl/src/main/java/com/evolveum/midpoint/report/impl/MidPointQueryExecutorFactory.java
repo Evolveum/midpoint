@@ -18,6 +18,7 @@ package com.evolveum.midpoint.report.impl;
 import java.util.Map;
 
 import com.evolveum.midpoint.report.api.ReportService;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
@@ -41,9 +42,9 @@ public class MidPointQueryExecutorFactory extends AbstractQueryExecuterFactory {
 
 
 	private final static Object[] MIDPOINT_BUILTIN_PARAMETERS = {
-		ReportService.PARAMETER_REPORT_SERVICE, ReportCreateTaskHandler.PARAMETER_OPERATION_RESULT,
-		ReportCreateTaskHandler.PARAMETER_REPORT_OBJECT, ReportCreateTaskHandler.PARAMETER_REPORT_OID,
-		ReportCreateTaskHandler.PARAMETER_TASK,
+		ReportService.PARAMETER_REPORT_SERVICE, ReportTypeUtil.PARAMETER_OPERATION_RESULT,
+		ReportTypeUtil.PARAMETER_REPORT_OBJECT, ReportTypeUtil.PARAMETER_REPORT_OID,
+		ReportTypeUtil.PARAMETER_TASK,
 		"midpoint.connection"
 		};
 
