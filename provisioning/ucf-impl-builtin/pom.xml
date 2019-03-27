@@ -26,7 +26,7 @@
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>4.0-SNAPSHOT</version>
 	</parent>
-	<description>Implementation for the built-in midpoint connectors, such as the built-in &quot;manaual connector&quot; capability.</description>
+	<description>Implementation for the built-in midpoint connectors, such as the built-in &quot;manual connector&quot; capability.</description>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
