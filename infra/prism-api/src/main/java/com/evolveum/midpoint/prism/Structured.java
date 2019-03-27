@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,14 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
- * @author semancik
- *
+ * Interface for properties that have inner structur, such as PolyString.
+ * This was created due to a limitation that we cannot make every structured
+ * data into a container (yet).
+ * 
+ * This is a temporary solution in 3.x and 4.x. It should be gone in 5.x.
+ * Do not realy on this with any new development.
+ * 
+ * @author Radovan Semancik
  */
 @FunctionalInterface
 public interface Structured {

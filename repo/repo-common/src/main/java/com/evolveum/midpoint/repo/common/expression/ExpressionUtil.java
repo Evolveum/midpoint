@@ -286,7 +286,7 @@ public class ExpressionUtil {
 			throw new SchemaException(
 					"Cannot apply path " + relativePath + " to " + root + " in " + shortDesc);
 		} else if (rootValue instanceof ObjectDeltaObject<?>) {
-			return determineTypedValue(prismContext, lastPathSegmentName, (ObjectDeltaObject<?>) rootValue, relativePath);
+			return determineTypedValueOdo(prismContext, lastPathSegmentName, root, relativePath);
 		} else if (rootValue instanceof ItemDeltaItem<?, ?>) {
 			return determineTypedValue(prismContext, lastPathSegmentName, (ItemDeltaItem<?,?>) rootValue, relativePath);
 		} else {
@@ -337,9 +337,10 @@ public class ExpressionUtil {
 		return new TypedValue<>((T)value, def);
 	}
 	
-	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, ObjectDeltaObject<?> rootOdo, ItemPath relativePath) throws SchemaException {
+	private static  <T,O extends ObjectType> TypedValue<T> determineTypedValueOdo(PrismContext prismContext, String name, TypedValue<O> root, ItemPath relativePath) throws SchemaException {
+		ObjectDeltaObject<O> rootOdo = (ObjectDeltaObject<O>) root.getValue();
 		ItemDeltaItem<PrismValue, ItemDefinition> value = rootOdo.findIdi(relativePath);
-		PrismObjectDefinition<?> rootDefinition = rootOdo.getDefinition();
+		PrismObjectDefinition<?> rootDefinition = root.getDefinition();
 		if (rootDefinition == null) {
 			throw new IllegalArgumentException("Found ODO without a definition while processing variable '"+name+"': "+rootOdo);
 		}
