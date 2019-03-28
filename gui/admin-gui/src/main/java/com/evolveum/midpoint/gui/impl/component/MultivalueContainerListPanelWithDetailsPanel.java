@@ -86,7 +86,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 			}
 		});
 
-		getItemContainer().add(details);
+		add(details);
 		
 		ListView<ContainerValueWrapper<C>> itemDetailsView = new ListView<ContainerValueWrapper<C>>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
 				new IModel<List<ContainerValueWrapper<C>>>() {
