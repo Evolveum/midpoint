@@ -24,6 +24,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,10 +59,6 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
@@ -717,8 +714,12 @@ public class ShadowManager {
 		
 		ObjectQuery repoQuery = query.clone();
 		processQueryMatchingRules(repoQuery, ctx.getObjectClassDefinition());
-		
-		return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, true, parentResult);
+
+		boolean strictlySequential = RepositoryService.isCustomPagingOkWithPagedSeqIteration(query);
+		if (!strictlySequential) {
+			LOGGER.debug("Avoiding strictly sequential paged iteration default because custom paging is used");
+		}
+		return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, strictlySequential, parentResult);
 	}
 
 	/**
