@@ -452,8 +452,8 @@ public class IntegrationTestTools {
 
 	public static void display(String message, Collection collection) {
 		String dump = DebugUtil.dump(collection);
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message + "\n" + dump);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" + dump);
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message + " (" + collection.size() + ")\n" + dump);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + " (" + collection.size() + ")\n" + dump);
 	}
 
 	public static void display(String title, Entry entry) {
