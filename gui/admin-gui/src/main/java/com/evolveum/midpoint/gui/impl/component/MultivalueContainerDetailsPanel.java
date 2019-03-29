@@ -52,7 +52,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     
     protected abstract DisplayNamePanel<C> createDisplayNamePanel(String displayNamePanelId);
 
-    protected void initLayout(){
+    private void initLayout(){
     	
     	DisplayNamePanel<C> displayNamePanel = createDisplayNamePanel(ID_DISPLAY_NAME);
 
