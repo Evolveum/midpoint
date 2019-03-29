@@ -131,9 +131,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-		assignmentIdi.recompute();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -173,9 +171,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-		assignmentIdi.recompute();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -218,11 +214,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-		assignmentIdi.setSubItemDeltas(userDelta.getModifications());
-		assignmentIdi.recompute();
-
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
@@ -285,10 +278,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-		assignmentIdi.setSubItemDeltas(userDelta.getModifications());
-		assignmentIdi.recompute();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -363,9 +353,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-        assignmentIdi.recompute();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -412,9 +400,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-        assignmentIdi.recompute();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -460,9 +446,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-        assignmentIdi.recompute();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -515,9 +499,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-        assignmentIdi.recompute();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -591,9 +573,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-        assignmentIdi.recompute();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -657,9 +637,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-        assignmentIdi.recompute();
+        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -718,9 +696,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-		assignmentIdi.recompute();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -782,9 +758,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-		assignmentIdi.recompute();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -839,9 +813,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-		assignmentIdi.recompute();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -988,4 +960,11 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		return userOdo;
 	}
 
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> createAssignmentIdi(AssignmentType assignmentType) throws SchemaException {
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+		assignmentIdi.setDefinition(getAssignmentDefinition());
+		assignmentIdi.recompute();
+		return assignmentIdi;
+	}
 }

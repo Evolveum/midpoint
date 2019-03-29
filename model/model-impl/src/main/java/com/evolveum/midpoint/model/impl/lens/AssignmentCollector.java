@@ -151,6 +151,7 @@ public class AssignmentCollector {
 				try {
 					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+					assignmentIdi.setDefinition(assignmentType.asPrismContainerValue().getDefinition());
 					assignmentIdi.recompute();
 					EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, assignmentHolder, assignmentHolder.toString(), virtual, task, result);
 					evaluatedAssignments.add(assignment);

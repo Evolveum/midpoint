@@ -169,7 +169,7 @@ public class MappingTestEvaluator {
         mappingBuilder.prismContext(prismContext);
 
         // Source context: user
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userOld, userDelta, null, userOld.getDefinition());
+		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userOld, userDelta, null, prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class));
         userOdo.recompute();
 		mappingBuilder.sourceContext(userOdo);
 

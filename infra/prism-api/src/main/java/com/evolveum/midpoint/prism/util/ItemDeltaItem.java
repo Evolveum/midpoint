@@ -185,6 +185,10 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	public D getDefinition() {
 		return definition;
 	}
+	
+	public void setDefinition(D definition) {
+		this.definition = definition;
+	}
 
 	public void recompute() throws SchemaException {
 		if (delta != null) {

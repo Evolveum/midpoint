@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -160,7 +161,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	}
 
 	@Override
-	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) {
+	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(@NotNull ItemPath path) {
 		Item<IV,ID> subItemOld = null;
 		ItemPath subResidualPath = null;
 		if (oldObject != null) {
@@ -229,7 +230,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 		}
 		ID subDefinition = null;
 		if (definition != null) {
-			subDefinition = definition.findItemDefinition(subResidualPath);
+			subDefinition = definition.findItemDefinition(path);
 		}
 		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, itemDelta, subItemNew, subDefinition);
 		subIdi.setSubItemDeltas(subSubItemDeltas);
