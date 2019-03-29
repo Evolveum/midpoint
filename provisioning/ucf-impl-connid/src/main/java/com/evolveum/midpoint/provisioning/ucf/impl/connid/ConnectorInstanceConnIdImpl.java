@@ -1843,8 +1843,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		ResultsHandler connIdHandler = new ResultsHandler() {
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
-				// Convert ConnId-specific connector object to a generic
-				// ResourceObject
+				// Convert ConnId-specific connector object to a generic ResourceObject
 				recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
                 int count = countHolder.getValue();
                 countHolder.setValue(count+1);

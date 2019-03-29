@@ -76,14 +76,9 @@ class EntitlementConverter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(EntitlementConverter.class);
 
-	@Autowired(required=true)
-	private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
-
-	@Autowired(required=true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
+	@Autowired private PrismContext prismContext;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
 	//////////
 	// GET

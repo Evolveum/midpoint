@@ -294,9 +294,7 @@ public class ShadowCache {
 				}
 			}
 			
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Shadow returned by ResouceObjectConverter:\n{}", resourceShadow.debugDump(1));
-			}
+			LOGGER.trace("Shadow returned by ResourceObjectConverter:\n{}", resourceShadow.debugDumpLazily(1));
 
 			// Resource shadow may have different auxiliary object classes than
 			// the original repo shadow. Make sure we have the definition that 
