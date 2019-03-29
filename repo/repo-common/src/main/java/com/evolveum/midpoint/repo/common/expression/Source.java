@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,23 +35,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemDeltaItem<V,D> implements DebugDumpable, ShortDumpable {
 
 	private QName name;
-	// We need explicit definition, because source may be completely null.
-	// No item, no delta, nothing. In that case we won't be able to crete properly-typed
-	// variable from the source.
-	private D definition;
 
 	public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name, D definition) {
-		super(itemOld, delta, itemNew);
+		super(itemOld, delta, itemNew, definition);
 		this.name = name;
-		if (definition == null) {
-			// Try to automatically determine definition from content.
-			this.definition = super.getDefinition();
-			if (this.definition == null) {
-				throw new IllegalArgumentException("Cannot determine definition from content in "+this);
-			}
-		} else {
-			this.definition = definition;
-		}
 	}
 
 	public Source(ItemDeltaItem<V,D> idi, QName name) {
@@ -67,14 +54,6 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		this.name = name;
 	}
 	
-	public D getDefinition() {
-		return definition;
-	}
-
-	public void setDefinition(D definition) {
-		this.definition = definition;
-	}
-
 	public Item<V,D> getEmptyItem() throws SchemaException {
 		ItemDefinition definition = getDefinition();
 		if (definition == null) {
@@ -109,7 +88,6 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		DebugUtil.debugDumpWithLabelLn(sb, "old", getItemOld(), indent +1);
 		DebugUtil.debugDumpWithLabelLn(sb, "delta", getDelta(), indent +1);
 		DebugUtil.debugDumpWithLabelLn(sb, "new", getItemNew(), indent +1);
-		DebugUtil.debugDumpWithLabel(sb, "definition", definition, indent +1);
 		return sb.toString();
 	}
 

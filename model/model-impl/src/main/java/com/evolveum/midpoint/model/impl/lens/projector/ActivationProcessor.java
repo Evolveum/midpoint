@@ -804,7 +804,7 @@ public class ActivationProcessor {
 			propertyOld.setRealValue(old);
 			PropertyDelta<Boolean> delta = propertyOld.createDelta();
 			delta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(current));
-			return new ItemDeltaItem<>(propertyOld, delta, property);
+			return new ItemDeltaItem<>(propertyOld, delta, property, definition);
 		}
 	}
 
@@ -847,7 +847,7 @@ public class ActivationProcessor {
 			existsPropOld.setRealValue(existsOld);
 			PropertyDelta<Boolean> existsDelta = existsPropOld.createDelta();
 			existsDelta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(existsNew));
-			return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp);
+			return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp, existsDef);
 		}
 	}
 

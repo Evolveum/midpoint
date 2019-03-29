@@ -112,7 +112,7 @@ public class AssignmentCollector {
 			AssignmentEvaluator.Builder<AH> builder =
 					new AssignmentEvaluator.Builder<AH>()
 							.repository(repositoryService)
-							.focusOdo(new ObjectDeltaObject<>(assignmentHolder, null, assignmentHolder))
+							.focusOdo(new ObjectDeltaObject<>(assignmentHolder, null, assignmentHolder, assignmentHolder.getDefinition()))
 							.channel(null)
 							.objectResolver(objectResolver)
 							.systemObjectCache(systemObjectCache)

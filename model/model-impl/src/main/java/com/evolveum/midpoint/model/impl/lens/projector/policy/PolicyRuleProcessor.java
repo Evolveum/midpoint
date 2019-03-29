@@ -617,7 +617,7 @@ public class PolicyRuleProcessor {
 
 		MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder = mappingFactory
 				.createMappingBuilder();
-		ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus);
+		ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition());
 		builder = builder.mappingType(condition)
 				.contextDescription("condition in global policy rule " + globalPolicyRule.getName())
 				.sourceContext(focusOdo)

@@ -526,7 +526,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 		AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator.Builder<UserType>()
 				.repository(repositoryService)
-				.focusOdo(new ObjectDeltaObject<>(jack, null, jack))
+				.focusOdo(new ObjectDeltaObject<>(jack, null, jack, jack.getDefinition()))
 				.lensContext(context)
 				.channel(context.getChannel())
 				.objectResolver(objectResolver)

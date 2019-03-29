@@ -339,16 +339,19 @@ public class ExpressionUtil {
 	
 	private static  <T,O extends ObjectType> TypedValue<T> determineTypedValueOdo(PrismContext prismContext, String name, TypedValue<O> root, ItemPath relativePath) throws SchemaException {
 		ObjectDeltaObject<O> rootOdo = (ObjectDeltaObject<O>) root.getValue();
-		ItemDeltaItem<PrismValue, ItemDefinition> value = rootOdo.findIdi(relativePath);
-		PrismObjectDefinition<?> rootDefinition = root.getDefinition();
+		ItemDeltaItem<PrismValue, ItemDefinition> subValue = rootOdo.findIdi(relativePath);
+		PrismObjectDefinition<O> rootDefinition = root.getDefinition();
 		if (rootDefinition == null) {
-			throw new IllegalArgumentException("Found ODO without a definition while processing variable '"+name+"': "+rootOdo);
+			rootDefinition = rootOdo.getDefinition();
+			if (rootDefinition == null) {
+				throw new IllegalArgumentException("Found ODO without a definition while processing variable '"+name+"': "+rootOdo);
+			}
 		}
 		ItemDefinition def = determineItemDefinition(rootDefinition, relativePath);
 		if (def == null) {
-			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootOdo+", value: "+value);
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootOdo+", value: "+subValue);
 		}
-		return new TypedValue<>((T)value, def);
+		return new TypedValue<>((T)subValue, def);
 	}
 	
 	private static ItemDefinition determineItemDefinition(PrismContainerDefinition containerDefinition, ItemPath relativePath) {
@@ -618,11 +621,11 @@ public class ExpressionUtil {
 
 		if (object instanceof PrismObject<?>) {
 			return (ItemDeltaItem<IV, ID>) new ObjectDeltaObject((PrismObject<?>) object, null,
-					(PrismObject<?>) object);
+					(PrismObject<?>) object, ((PrismObject) object).getDefinition());
 		} else if (object instanceof Item<?, ?>) {
-			return new ItemDeltaItem<>((Item<IV, ID>) object, null, (Item<IV, ID>) object);
+			return new ItemDeltaItem<>((Item<IV, ID>) object, null, (Item<IV, ID>) object, ((Item<IV, ID>) object).getDefinition());
 		} else if (object instanceof ItemDelta<?, ?>) {
-			return new ItemDeltaItem<>(null, (ItemDelta<IV, ID>) object, null);
+			return new ItemDeltaItem<>(null, (ItemDelta<IV, ID>) object, null, ((ItemDelta<IV, ID>) object).getDefinition());
 		} else {
 			throw new IllegalArgumentException("Unexpected object " + object + " " + object.getClass());
 		}

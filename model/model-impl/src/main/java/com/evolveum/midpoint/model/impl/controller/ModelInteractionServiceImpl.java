@@ -1593,7 +1593,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		AssignmentEvaluator.Builder<UserType> builder =
 				new AssignmentEvaluator.Builder<UserType>()
 						.repository(cacheRepositoryService)
-						.focusOdo(new ObjectDeltaObject<>(potentialDeputy, null, potentialDeputy))
+						.focusOdo(new ObjectDeltaObject<>(potentialDeputy, null, potentialDeputy, potentialDeputy.getDefinition()))
 						.channel(null)
 						.objectResolver(objectResolver)
 						.systemObjectCache(systemObjectCache)

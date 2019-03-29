@@ -169,22 +169,22 @@ public class MappingTestEvaluator {
         mappingBuilder.prismContext(prismContext);
 
         // Source context: user
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userOld, userDelta, null);
+		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userOld, userDelta, null, userOld.getDefinition());
         userOdo.recompute();
-		mappingBuilder.setSourceContext(userOdo);
+		mappingBuilder.sourceContext(userOdo);
 
 		// Variable $user
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 
 		// Variable $account
 		PrismObject<ShadowType> account = getAccount();
-		ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<>(account, null, null);
+		ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<>(account, null, null, account.getDefinition());
 		accountOdo.recompute();
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
 
 		// Target context: user
 		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
-		mappingBuilder.setTargetContext(userDefinition);
+		mappingBuilder.targetContext(userDefinition);
 
 
 		ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {

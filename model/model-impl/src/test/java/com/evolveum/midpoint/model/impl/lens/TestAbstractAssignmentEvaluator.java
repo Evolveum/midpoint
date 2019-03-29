@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,8 +129,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_DIRECT_FILE);
 
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
-		userOdo.recompute();
+		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
@@ -157,7 +156,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
 	}
-
+	
 	@Test
 	public void test110DirectExpression() throws Exception {
 		final String TEST_NAME = "test110DirectExpression";
@@ -170,7 +169,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_DIRECT_EXPRESSION_FILE);
 
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
+		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
@@ -216,8 +215,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
 				.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
 				path, "captain");
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
-		userOdo.recompute();
+		ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
@@ -283,7 +281,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
 				.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
 				path, "sailor");
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
+		ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
@@ -363,8 +361,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_VISITOR_FILE);
 
-        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
-        userOdo.recompute();
+        ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
@@ -413,8 +410,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_VISITOR_FILE);
         assignmentType.setActivation(ActivationUtil.createDisabled());
 
-        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
-        userOdo.recompute();
+        ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
@@ -462,8 +458,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
-        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
-        userOdo.recompute();
+        ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
@@ -516,8 +511,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
 		        .createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT,
 				        assignmentForUser.asPrismContainerValue());
-        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
-        userOdo.recompute();
+        ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -593,8 +587,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
 		        .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
                 UserType.F_COST_CENTER, "management");
-        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
-        userOdo.recompute();
+        ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -660,8 +653,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
 		        .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
                 UserType.F_COST_CENTER);
-        ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
-        userOdo.recompute();
+        ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -724,8 +716,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 		AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
-		userOdo.recompute();
+		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
@@ -745,22 +736,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		display("Evaluated assignment",evaluatedAssignment.debugDump());
 
 		// TODO
-//		assertEquals(2, evaluatedAssignment.getConstructions().size());
-//		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
-//
-//		assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Engineer");
-//		assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
-//		assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
-//		assertNoConstruction(evaluatedAssignment, PLUS, "title");
-//		assertNoConstruction(evaluatedAssignment, MINUS, "title");
-//
-//		assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");
-//		assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
-//		assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
-//		assertNoConstruction(evaluatedAssignment, PLUS, "location");
-//		assertNoConstruction(evaluatedAssignment, MINUS, "location");
-//
-//		assertEquals("Wrong number of admin GUI configs", 1, evaluatedAssignment.getAdminGuiConfigurations().size());
 	}
 
 	@Test(enabled = false)
@@ -805,8 +780,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 		AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
-		userOdo.recompute();
+		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
@@ -863,8 +837,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 		AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_ENGINEER_FILE);
 
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userTypeJack.asPrismObject(), null, null);
-		userOdo.recompute();
+		ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
@@ -978,8 +951,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 	protected AssignmentEvaluator<UserType> createAssignmentEvaluator() throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> userJack = userTypeJack.asPrismObject();
-		ObjectDeltaObject<UserType> focusOdo = new ObjectDeltaObject<>(userJack, null, null);
-		focusOdo.recompute();
+		ObjectDeltaObject<UserType> focusOdo = createUserOdo(userJack);
 		return createAssignmentEvaluator(focusOdo);
 	}
 
@@ -1006,23 +978,14 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 				.build();
 	}
 
-//	protected AssignmentEvaluator<UserType> createLoginModeAssignmentEvaluator(PrismObject<UserType> focus) throws ObjectNotFoundException, SchemaException {
-//		return new AssignmentEvaluator.Builder<UserType>()
-//				.repository(repositoryService)
-//				.focusOdo(new ObjectDeltaObject<>(focus, null, focus))
-//				.channel(null)
-//				.objectResolver(objectResolver)
-//				.systemObjectCache(systemObjectCache)
-//				.prismContext(prismContext)
-//				.mappingFactory(mappingFactory)
-//				.mappingEvaluator(mappingEvaluator)
-//				.activationComputer(activationComputer)
-//				.now(clock.currentTimeXMLGregorianCalendar())
-//				.loginMode(true)
-//				// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
-//				// will need something to push on the stack. So give them context placeholder.
-//				.lensContext(new LensContextPlaceholder<>(focus, prismContext))
-//				.build();
-//	}
+	private ObjectDeltaObject<UserType> createUserOdo(PrismObject<UserType> user) throws SchemaException {
+		return createUserOdo(user, null);
+	}
+	
+	private ObjectDeltaObject<UserType> createUserOdo(PrismObject<UserType> user, ObjectDelta<UserType> userDelta) throws SchemaException {
+		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null, user.getDefinition());
+		userOdo.recompute();
+		return userOdo;
+	}
 
 }

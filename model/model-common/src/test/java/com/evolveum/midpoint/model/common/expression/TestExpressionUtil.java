@@ -231,7 +231,7 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 		ObjectDelta<UserType> delta = PrismTestUtil.getPrismContext().deltaFactory().object().createModificationReplaceProperty(UserType.class,
 				userOld.getOid(), UserType.F_FULL_NAME,
 				PrismTestUtil.createPolyString("Captain Jack Sparrow"));
-		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<>(userOld, delta, null);
+		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<>(userOld, delta, null, userOld.getDefinition());
 		odo.recompute();
 		variables.addVariableDefinition(ExpressionConstants.VAR_USER, odo, odo.getDefinition());
 		return variables;

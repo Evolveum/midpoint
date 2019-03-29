@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import org.apache.commons.collections4.CollectionUtils;
+
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PartiallyResolvedItem;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * A class defining old object state (before change), delta (change) and new object state (after change).
@@ -42,12 +53,34 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	private PrismObject<O> oldObject;
 	private ObjectDelta<O> delta;
 	private PrismObject<O> newObject;
+	// We need explicit definition, because source may be completely null.
+	// No item, no delta, nothing. In that case we won't be able to crete properly-typed
+	// variable from the source.
+	private PrismObjectDefinition<O> definition;
 
-	public ObjectDeltaObject(PrismObject<O> oldObject, ObjectDelta<O> delta, PrismObject<O> newObject) {
+	public ObjectDeltaObject(PrismObject<O> oldObject, ObjectDelta<O> delta, PrismObject<O> newObject, PrismObjectDefinition<O> definition) {
 		super();
 		this.oldObject = oldObject;
 		this.delta = delta;
 		this.newObject = newObject;
+		if (definition == null) {
+			this.definition = determineDefinition();
+			if (this.definition == null) {
+				throw new IllegalArgumentException("Cannot determine definition from content in "+this);
+			}
+		} else {
+			this.definition = definition;
+		}
+	}
+	
+	private PrismObjectDefinition<O> determineDefinition() {
+		if (newObject != null && newObject.getDefinition() != null) {
+			return newObject.getDefinition();
+		}
+		if (oldObject != null && oldObject.getDefinition() != null) {
+			return oldObject.getDefinition();
+		}
+		return null;
 	}
 
 	public PrismObject<O> getOldObject() {
@@ -84,7 +117,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 		}
 		return oldObject;
 	}
-
+	
 	@Override
 	public ItemDelta<PrismContainerValue<O>,PrismObjectDefinition<O>> getDelta() {
 		throw new UnsupportedOperationException("You probably wanted to call getObjectDelta()");
@@ -102,6 +135,9 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 
 	@Override
 	public PrismObjectDefinition<O> getDefinition() {
+		if (definition != null) {
+			return definition;
+		}
 		PrismObject<O> anyObject = getAnyObject();
 		if (anyObject != null) {
 			return anyObject.getDefinition();
@@ -191,7 +227,11 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	        	}
 			}
 		}
-		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, itemDelta, subItemNew);
+		ID subDefinition = null;
+		if (definition != null) {
+			subDefinition = definition.findItemDefinition(subResidualPath);
+		}
+		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, itemDelta, subItemNew, subDefinition);
 		subIdi.setSubItemDeltas(subSubItemDeltas);
 		subIdi.setResolvePath(path);
 		subIdi.setResidualPath(subResidualPath);
@@ -253,7 +293,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	public static <T extends Objectable> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ObjectDelta<T> delta) throws SchemaException {
 		PrismObject<T> newObject = oldObject.clone();
 		delta.applyTo(newObject);
-		return new ObjectDeltaObject<>(oldObject, delta, newObject);
+		return new ObjectDeltaObject<>(oldObject, delta, newObject, oldObject.getDefinition());
 	}
 
 	public static <T extends Objectable> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ItemDelta<?,?>... itemDeltas) throws SchemaException {
@@ -317,6 +357,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 			}
 		}
 		dumpObject(sb, newObject, "new", indent +1);
+		DebugUtil.debugDumpWithLabelLn(sb, "definition", definition, indent + 1);
 		return sb.toString();
 	}
 
@@ -341,7 +382,8 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 		ObjectDeltaObject<O> clone = new ObjectDeltaObject<>(
 				CloneUtil.clone(oldObject),
 				CloneUtil.clone(delta),
-				CloneUtil.clone(newObject));
+				CloneUtil.clone(newObject),
+				definition);
 		// TODO what about the internals?
 		return clone;
 	}

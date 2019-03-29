@@ -43,6 +43,10 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	private Item<V,D> itemOld;
 	private ItemDelta<V,D> delta;
 	private Item<V,D> itemNew;
+	// We need explicit definition, because source may be completely null.
+	// No item, no delta, nothing. In that case we won't be able to crete properly-typed
+	// variable from the source.
+	private D definition;
 	private ItemPath resolvePath = ItemPath.EMPTY_PATH;
 	
 	// Residual path is a temporary solution to Structured attriebutes in 3.x and 4.x.
@@ -55,7 +59,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 
 	public ItemDeltaItem() { }
 
-	public ItemDeltaItem(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew) {
+	public ItemDeltaItem(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, D definition) {
 		super();
 		validate(itemOld, "itemOld");
 		validate(delta);
@@ -63,6 +67,29 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		this.itemOld = itemOld;
 		this.delta = delta;
 		this.itemNew = itemNew;
+		if (definition == null) {
+			// Try to automatically determine definition from content.
+			this.definition = determineDefinition();
+			if (this.definition == null) {
+				throw new IllegalArgumentException("Cannot determine definition from content in "+this);
+			}
+		} else {
+			this.definition = definition;
+		}
+
+	}
+
+	private D determineDefinition() {
+		if (itemNew != null && itemNew.getDefinition() != null) {
+			return itemNew.getDefinition();
+		}
+		if (itemOld != null && itemOld.getDefinition() != null) {
+			return itemOld.getDefinition();
+		}
+		if (delta != null && delta.getDefinition() != null) {
+			return delta.getDefinition();
+		}
+		return null;
 	}
 
 	public ItemDeltaItem(ItemDeltaItem<V,D> idi) {
@@ -73,6 +100,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		validate(itemNew, "itemNew");
 		this.delta = idi.getDelta();
 		validate(delta);
+		this.definition = idi.getDefinition();
 	}
 
 	public ItemDeltaItem(Item<V,D> item) {
@@ -81,6 +109,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		this.itemNew = item;
 		validate(itemOld, "item");
 		this.delta = null;
+		this.definition = item.getDefinition();
 	}
 
 	public Item<V,D> getItemOld() {
@@ -154,16 +183,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	}
 
 	public D getDefinition() {
-		if (itemNew != null && itemNew.getDefinition() != null) {
-			return itemNew.getDefinition();
-		}
-		if (itemOld != null && itemOld.getDefinition() != null) {
-			return itemOld.getDefinition();
-		}
-		if (delta != null && delta.getDefinition() != null) {
-			return delta.getDefinition();
-		}
-		return null;
+		return definition;
 	}
 
 	public void recompute() throws SchemaException {
@@ -217,7 +237,15 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 				}
 			}
 		}
-		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, subDelta, subItemNew);
+		ID subDefinition = null;
+		if (definition != null) {
+			if (definition instanceof PrismContainerDefinition<?>) {
+				subDefinition = ((PrismContainerDefinition<?>)definition).findItemDefinition(path);
+			} else {
+				throw new IllegalArgumentException("Attempt to resolve definition on non-container " + definition);
+			}
+		}
+		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, subDelta, subItemNew, subDefinition);
 		subIdi.setResidualPath(subResidualPath);
 		subIdi.resolvePath = newResolvePath;
 
@@ -303,7 +331,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		PrismProperty<X> outputPropertyNew = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemNew(), resolvePath, outputDefinition);
 		PrismProperty<X> outputPropertyOld = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemOld(), resolvePath, outputDefinition);
 		PropertyDelta<X> outputDelta = resolveStructuredPropertyDelta((PropertyDelta<Structured>) thisIdi.getDelta(), resolvePath, outputDefinition, outputPath, prismContext);
-		return new ItemDeltaItem<>(outputPropertyOld, outputDelta, outputPropertyNew);
+		return new ItemDeltaItem<>(outputPropertyOld, outputDelta, outputPropertyNew, outputDefinition);
 	}
 
 	private <X> PrismProperty<X> resolveStructuredPropertyItem(PrismProperty<Structured> sourceProperty, ItemPath resolvePath, PrismPropertyDefinition outputDefinition) {
@@ -383,6 +411,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		if (this.itemOld != null) {
 			clone.itemOld = this.itemOld.clone();
 		}
+		clone.definition = this.definition;
 		clone.residualPath = this.residualPath;
 		clone.resolvePath = this.resolvePath;
 		if (this.subItemDeltas != null) {
@@ -439,6 +468,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		DebugUtil.debugDumpWithLabelLn(sb, "itemOld", itemOld, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "delta", delta, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "itemNew", itemNew, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "definition", definition, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "resolvePath", resolvePath, indent + 1);
 		DebugUtil.debugDumpWithLabelToString(sb, "residualPath", residualPath, indent + 1);
 		return sb.toString();

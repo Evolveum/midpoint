@@ -161,7 +161,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	@Override
 	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
-		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew());
+		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew(), getObjectDefinition());
 	}
 
 	@Override
