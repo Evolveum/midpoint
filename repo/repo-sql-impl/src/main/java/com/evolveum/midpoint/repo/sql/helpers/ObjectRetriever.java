@@ -801,7 +801,7 @@ main:       while (remaining > 0) {
             throws SchemaException {
 
         try {
-	        if (!SqlRepositoryServiceImpl.isCustomPagingOkWithPagedSeqIteration(query)) {
+	        if (!RepositoryService.isCustomPagingOkWithPagedSeqIteration(query)) {
 		        throw new IllegalArgumentException("Externally specified paging is not supported on strictly sequential "
 				        + "iterative search. Query = " + query);
 	        }
