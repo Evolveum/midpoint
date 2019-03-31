@@ -169,6 +169,15 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="notUpdatedShadowsDuration" type="xsd:duration">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="objectType" type="xsd:QName">
         <xsd:annotation>
             <xsd:documentation>

@@ -480,6 +480,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final File TASK_MOCK_JACK_FILE = new File(COMMON_DIR, "task-mock-jack.xml");
 	protected static final String TASK_MOCK_JACK_OID = "10000000-0000-0000-5656-565674633311";
+	
+	protected static final String TASK_DELETE_NOT_UPDATED_SHADOWS = COMMON_DIR + "/task-delete-not-updated-shadows.xml";
+	protected static final String TASK_DELETE_NOT_UPDATED_SHADOWS_OID = "5b2ba49f-6d4f-4618-afdf-4d138117e40a";
 
 	public static final File LOOKUP_LANGUAGES_FILE = new File(COMMON_DIR, "lookup-languages.xml");
 	public static final String LOOKUP_LANGUAGES_OID = "70000000-0000-0000-1111-000000000001";
