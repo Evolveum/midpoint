@@ -553,14 +553,34 @@ public class OpenDJController extends AbstractResourceController {
 	}
 
 	public static String getAttributeValue(Entry response, String name) {
+		return getAttributeValue(response, name, null);
+	}
+	
+	public static String getAttributeValue(Entry response, String name, String option) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
-		if (attrs == null || attrs.size() == 0) {
+		Attribute attribute = findAttribute(name, option, attrs);
+		if (attribute == null) {
 			return null;
 		}
-		assertEquals("Too many attributes for name "+name+": ",
-				1, attrs.size());
-		Attribute attribute = attrs.get(0);
 		return getAttributeValue(attribute);
+	}
+
+	private static Attribute findAttribute(String name, String option, List<Attribute> attributes) {
+		if (attributes == null || attributes.size() == 0) {
+			return null;
+		}
+		for (Attribute attr : attributes) {
+			if (option == null) {
+				if (attr.getOptions() == null || attr.getOptions().isEmpty()) {
+					return attr;
+				}
+			} else {
+				if (attr.getOptions() != null && attr.getOptions().contains(option)) {
+					return attr;
+				}
+			}
+		}
+		return null;
 	}
 
 	public static String getAttributeValue(Attribute attribute) {

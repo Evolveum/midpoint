@@ -382,8 +382,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
@@ -438,7 +438,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 	@Override
 	public synchronized ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+			GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchResourceSchema");
@@ -468,8 +468,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public synchronized Collection<Object> fetchCapabilities(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public synchronized Collection<Object> fetchCapabilities(OperationResult parentResult) 
+		throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName() + ".fetchCapabilities");
@@ -497,7 +497,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 
-	private void retrieveAndParseResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException {
+	private void retrieveAndParseResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
 		
 		ConnIdCapabilitiesAndSchemaParser parser = new ConnIdCapabilitiesAndSchemaParser();
 		parser.setConnectorHumanReadableName(getHumanReadableName());

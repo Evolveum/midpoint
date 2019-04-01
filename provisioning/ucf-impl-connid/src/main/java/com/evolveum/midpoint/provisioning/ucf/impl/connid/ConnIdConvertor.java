@@ -18,13 +18,18 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -269,7 +274,7 @@ public class ConnIdConvertor {
 			if (full) {
 				// Convert the values. While most values do not need conversions, some of them may need it (e.g. GuardedString)
 				for (Object connIdValue : values) {
-					Object value = convertValueFromIcf(connIdValue, qname);
+					Object value = convertValueFromConnId(connIdValue, qname);
 					resourceAttribute.addRealValue(value);
 				}
 
@@ -283,7 +288,7 @@ public class ConnIdConvertor {
 				// conversions, some of them may need it (e.g. GuardedString)
 				for (Object connIdValue : values) {
 					if (connIdValue != null) {
-						Object value = convertValueFromIcf(connIdValue, qname);
+						Object value = convertValueFromConnId(connIdValue, qname);
 						resourceAttribute.addRealValue(value);
 					}
 				}
@@ -345,7 +350,7 @@ public class ConnIdConvertor {
 
 		Set<Object> connIdAttributeValues = new HashSet<>();
 		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
-			connIdAttributeValues.add(ConnIdUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
+			connIdAttributeValues.add(ConnIdUtil.convertValueToConnId(pval, protector, mpAttribute.getElementName()));
 		}
 
 		try {
@@ -362,7 +367,7 @@ public class ConnIdConvertor {
 			if (values.size() > 1) {
 				throw new SchemaException("Expected single value for " + icfAttr.getName());
 			}
-			Object val = convertValueFromIcf(values.get(0), null);
+			Object val = convertValueFromConnId(values.get(0), null);
 			if (val == null) {
 				return null;
 			}
@@ -378,17 +383,21 @@ public class ConnIdConvertor {
 
 	}
 
-	private Object convertValueFromIcf(Object icfValue, QName propName) {
-		if (icfValue == null) {
+	private Object convertValueFromConnId(Object connIdValue, QName propName) {
+		if (connIdValue == null) {
 			return null;
 		}
-		if (icfValue instanceof ZonedDateTime) {
-			return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime)icfValue);
+		if (connIdValue instanceof ZonedDateTime) {
+			return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime)connIdValue);
 		}
-		if (icfValue instanceof GuardedString) {
-			return fromGuardedString((GuardedString) icfValue);
+		if (connIdValue instanceof GuardedString) {
+			return fromGuardedString((GuardedString) connIdValue);
 		}
-		return icfValue;
+		if (connIdValue instanceof Map) {
+			// TODO: check type that this is really PolyString
+			return polyStringFromConnIdMap((Map)connIdValue);
+		}
+		return connIdValue;
 	}
 
 	private ProtectedStringType fromGuardedString(GuardedString icfValue) {
@@ -405,5 +414,24 @@ public class ConnIdConvertor {
 			}
 		});
 		return ps;
+	}
+	
+	private Object polyStringFromConnIdMap(Map<String,String> connIdMap) {
+		String orig = null;
+		Map<String,String> lang = null;
+		for (Entry<String, String> connIdMapEntry : connIdMap.entrySet()) {
+			String key = connIdMapEntry.getKey();
+			if (ConnIdUtil.POLYSTRING_ORIG_KEY.equals(key)) {
+				orig = connIdMapEntry.getValue();
+			} else {
+				if (lang == null) {
+					lang = new HashMap<>();
+				}
+				lang.put(key, connIdMapEntry.getValue());
+			}
+		}
+		PolyString polyString = new PolyString(orig);
+		polyString.setLang(lang);
+		return polyString;
 	}
 }

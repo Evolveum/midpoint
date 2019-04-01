@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.StringUtils;
@@ -121,6 +122,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 
@@ -466,6 +468,17 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("Bad createTimestamp create", createTimestampDef.canAdd());
 		assertFalse("Bad createTimestamp update", createTimestampDef.canModify());
 		assertEquals("Wrong createTimestamp matching rule", null, createTimestampDef.getMatchingRuleQName());
+		
+		// MID-5210
+		ResourceAttributeDefinition<String> descriptionDef = accountDef.findAttributeDefinition(ATTRIBUTE_DESCRIPTION_NAME);
+		assertNotNull("No definition for description", descriptionDef);
+		assertPolyStringType("description", descriptionDef);
+		assertEquals(-1, descriptionDef.getMaxOccurs());
+		assertEquals(0, descriptionDef.getMinOccurs());
+		assertTrue("No description read", descriptionDef.canRead());
+		assertTrue("Bad description create", descriptionDef.canAdd());
+		assertTrue("Bad description update", descriptionDef.canModify());
+		assertEquals("Wrong description matching rule", null, descriptionDef.getMatchingRuleQName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
@@ -532,6 +545,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 	protected void assertTimestampType(String attrName, ResourceAttributeDefinition<?> def) {
 		assertEquals("Wrong "+attrName+" type", DOMUtil.XSD_DATETIME, def.getTypeName());
+	}
+	
+	protected void assertPolyStringType(String attrName, ResourceAttributeDefinition<?> def) {
+		assertEquals("Wrong "+attrName+" type", PolyStringType.COMPLEX_TYPE, def.getTypeName());
 	}
 
 	@Test
@@ -840,21 +857,27 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType object = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
+		PrismObject<ShadowType> accountBefore = parseObject(ACCOUNT_WILL_FILE);
 
-		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().debugDump());
+		display("Account before", accountBefore);
 
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
+		// WHEN
+		displayWhen(TEST_NAME);
+		String addedObjectOid = provisioningService.addObject(accountBefore, null, null, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		ShadowType repoShadowType =  getShadowRepo(ACCOUNT_WILL_OID).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
-		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_WILL_DN));
+		ShadowType repoShadowTypeAfter =  getShadowRepo(ACCOUNT_WILL_OID).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowTypeAfter.getName());
+		assertAttribute(repoShadowTypeAfter, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_WILL_DN));
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
+		ShadowType provisioningAccountTypeAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, task, result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will,ou=People,dc=example,dc=com", provisioningAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will,ou=People,dc=example,dc=com", provisioningAccountTypeAfter.getName());
 
 		assertShadows(1 + getNumberOfBaseContextShadows());
 	}
@@ -2875,6 +2898,105 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals("Wrong number of objects found", 1, objects.size());
 
 		assertShadows(24);
+	}
+	
+	/**
+	 * Description is a "language tag" attribute (PolyString).
+	 * MID-5210
+	 */
+	@Test
+	public void test470AddAccountPolyDescription() throws Exception {
+		final String TEST_NAME = "test470AddAccountPolyDescription";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<ShadowType> accountBefore = parseObject(ACCOUNT_POLY_FILE);
+
+		display("Account before", accountBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		String addedObjectOid = provisioningService.addObject(accountBefore, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		Entry entry = openDJController.fetchEntry(ACCOUNT_POLY_DN);
+		display("LDAP Entry", entry);
+		String descriptionStringAfter = OpenDJController.getAttributeValue(entry, ATTRIBUTE_DESCRIPTION_NAME);
+		assertNotNull("No description in LDAP entry", descriptionStringAfter);
+		assertEquals("Unexpected description in LDAP entry", ACCOUNT_POLY_DESCRIPTION_ORIG, descriptionStringAfter);
+
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_POLY_OID, null, taskManager.createTaskInstance(), result);
+
+		display("Object after change",shadow);
+
+		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismProperty<PolyString> descAttr = attributesContainer.findProperty(ATTRIBUTE_DESCRIPTION_QNAME);
+		PolyString descriptionPolyStringAfter = descAttr.getValues().get(0).getValue();
+		display("description after (shadow)", descriptionPolyStringAfter);
+
+		assertEquals("Wrong orig in description polystring (shadow)", ACCOUNT_POLY_DESCRIPTION_ORIG, descriptionPolyStringAfter.getOrig());
+
+		assertShadows(25);
+	}
+
+	
+	/**
+	 * Description is a "language tag" attribute (PolyString).
+	 * Simple modification with just "orig". No languages yet.
+	 * MID-5210
+	 */
+	@Test
+	public void test472ModifyAccountJackDescriptionOrig() throws Exception {
+		final String TEST_NAME = "test472ModifyAccountJackDescriptionOrig";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PolyString descriptionBefore = new PolyString("Bar");
+		
+		PropertyDelta<PolyString> descriptionDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTRIBUTE_DESCRIPTION_QNAME),
+				null);
+		descriptionDelta.setRealValuesToReplace(descriptionBefore);
+
+		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
+
+		display("Modifications",modifications);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
+				modifications, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		Entry entry = openDJController.searchByUid("rename");
+		display("LDAP Entry", entry);
+		String descriptionStringAfter = OpenDJController.getAttributeValue(entry, ATTRIBUTE_DESCRIPTION_NAME);
+		assertNotNull("No description in LDAP entry", descriptionStringAfter);
+		assertEquals("Unexpected description in LDAP entry", descriptionBefore.getOrig(), descriptionStringAfter);
+
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_JACK_OID, null, taskManager.createTaskInstance(), result);
+
+		display("Object after change",shadow);
+
+		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismProperty<PolyString> descAttr = attributesContainer.findProperty(ATTRIBUTE_DESCRIPTION_QNAME);
+		PolyString descriptionPolyStringAfter = descAttr.getValues().get(0).getValue();
+		display("description after (shadow)", descriptionPolyStringAfter);
+
+		assertEquals("Wrong orig in description polystring (shadow)", descriptionBefore.getOrig(), descriptionPolyStringAfter.getOrig());
+
+		assertShadows(25);
 	}
 
 	@Test

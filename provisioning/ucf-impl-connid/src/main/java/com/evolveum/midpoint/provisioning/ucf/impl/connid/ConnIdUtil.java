@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +59,7 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -96,6 +98,7 @@ public class ConnIdUtil {
     private static final String DOT_NET_ARGUMENT_EXCEPTION = "System.ArgumentException";
 
     private static final String CONNECTIONS_EXCEPTION_CLASS_NAME = "CommunicationsException";
+	public static final String POLYSTRING_ORIG_KEY = "";
 
     static Throwable processConnIdException(Throwable connIdException, ConnectorInstanceConnIdImpl conn,
 			OperationResult icfResult) {
@@ -632,13 +635,13 @@ public class ConnIdUtil {
 		}
 	}
 
-	public static Object convertValueToIcf(Object value, Protector protector, QName propName) throws SchemaException {
+	public static Object convertValueToConnId(Object value, Protector protector, QName propName) throws SchemaException {
 		if (value == null) {
 			return null;
 		}
 
 		if (value instanceof PrismPropertyValue) {
-			return convertValueToIcf(((PrismPropertyValue) value).getValue(), protector, propName);
+			return convertValueToConnId(((PrismPropertyValue) value).getValue(), protector, propName);
 		}
 		
 		if (value instanceof XMLGregorianCalendar) {
@@ -649,6 +652,11 @@ public class ConnIdUtil {
 			ProtectedStringType ps = (ProtectedStringType) value;
 			return toGuardedString(ps, protector, propName.toString());
 		}
+		
+		if (value instanceof PolyString) {
+			return polyStringToMap((PolyString)value);
+		}
+		
 		return value;
 	}
 
@@ -672,6 +680,16 @@ public class ConnIdUtil {
 					+ e.getMessage(), e);
 		}
 	}
+	
+	private static Object polyStringToMap(PolyString polyString) {
+		Map<String,String> map = new HashMap<>();
+		map.put(POLYSTRING_ORIG_KEY, polyString.getOrig());
+		if (polyString.getLang() != null) {
+			map.putAll(polyString.getLang());
+		}
+		return map;
+	}
+
 
 	public static String dumpOptions(OperationOptions options) {
 		if (options == null) {
@@ -694,39 +712,5 @@ public class ConnIdUtil {
 		return sb.toString();
 	}
 
-	public static QName icfTypeToXsdType(Class<?> type, boolean isConfidential) {
-		// For arrays we are only interested in the component type
-		if (isMultivaluedType(type)) {
-			type = type.getComponentType();
-		}
-		QName propXsdType = null;
-		if (GuardedString.class.equals(type) ||
-				(String.class.equals(type) && isConfidential)) {
-			// GuardedString is a special case. It is a ICF-specific
-			// type
-			// implementing Potemkin-like security. Use a temporary
-			// "nonsense" type for now, so this will fail in tests and
-			// will be fixed later
-//			propXsdType = SchemaConstants.T_PROTECTED_STRING_TYPE;
-			propXsdType = ProtectedStringType.COMPLEX_TYPE;
-		} else if (GuardedByteArray.class.equals(type) ||
-				(Byte.class.equals(type) && isConfidential)) {
-			// GuardedString is a special case. It is a ICF-specific
-			// type
-			// implementing Potemkin-like security. Use a temporary
-			// "nonsense" type for now, so this will fail in tests and
-			// will be fixed later
-//			propXsdType = SchemaConstants.T_PROTECTED_BYTE_ARRAY_TYPE;
-			propXsdType = ProtectedByteArrayType.COMPLEX_TYPE;
-		} else {
-			propXsdType = XsdTypeMapper.toXsdType(type);
-		}
-		return propXsdType;
-	}
-
-	public static boolean isMultivaluedType(Class<?> type) {
-		// We consider arrays to be multi-valued
-		// ... unless it is byte[] or char[]
-		return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
-	}
+	
 }
