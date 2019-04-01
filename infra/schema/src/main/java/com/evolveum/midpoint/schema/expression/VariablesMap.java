@@ -79,10 +79,10 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 
 	public TypedValue put(String key, TypedValue typedValue) {
 		if (typedValue == null) {
-			throw new IllegalArgumentException("Attempt to set variable '"+key+"' with null typed value");
+			throw new IllegalArgumentException("Attempt to set variable '"+key+"' with null typed value: "+typedValue);
 		}
 		if (!typedValue.canDetermineType()) {
-			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without determinable type");
+			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without determinable type: "+typedValue);
 		}
 		return variables.put(key, typedValue);
 	}
@@ -90,7 +90,7 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 	@SuppressWarnings("rawtypes")
 	public <D extends ItemDefinition> TypedValue put(String key, Object value, D definition) {
 		if (definition == null) {
-			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without definition");
+			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without definition: " + value);
 		}
 		return variables.put(key, new TypedValue<>(value, definition));
 	}
@@ -102,7 +102,7 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 	 */
 	public <T> TypedValue put(String key, Object value, Class<T> typeClass) {
 		if (typeClass == null) {
-			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without class specification");
+			throw new IllegalArgumentException("Attempt to set variable '"+key+"' without class specification: " + value);
 		}
 		return variables.put(key, new TypedValue<>(value, typeClass));
 	}

@@ -213,7 +213,7 @@ public class VariablesUtil {
 		if (valueClone == valueAndDef.getValue()) {
 			return valueAndDef;
 		} else {
-			return new TypedValue<T>(valueClone, (ItemDefinition)valueAndDef.getDefinition());
+			return valueAndDef.createTransformed(valueClone);
 		}
 	}
 

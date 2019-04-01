@@ -140,7 +140,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test100JackAttemptAssignRoleStudent() throws Exception {
 		final String TEST_NAME = "test100JackAttemptAssignRoleStudent";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -155,13 +155,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		dumpPolicyRules(context);
 		//dumpPolicySituations(context);
@@ -184,7 +183,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test110JoeAttemptAssignRoleStudent() throws Exception {
 		final String TEST_NAME = "test110JoeAttemptAssignRoleStudent";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -199,11 +198,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -231,7 +230,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test120JackAttemptToMoveTo1900AndAssignRoleStudent() throws Exception {
 		final String TEST_NAME = "test120JackAttemptToMoveTo1900AndAssignRoleStudent";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -250,11 +249,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -284,7 +283,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test130JackMoveTo1900AndAssignRoleStudent() throws Exception {
 		final String TEST_NAME = "test130JackMoveTo1900AndAssignRoleStudent";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -303,12 +302,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		clockwork.run(context, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -340,7 +339,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test135JackChangeValidTo() throws Exception {
 		final String TEST_NAME = "test135JackChangeValidTo";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -358,13 +357,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		// cannot run the clockwork as in the secondary state the deltas are no longer considered (!)
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -388,7 +387,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test140JackNoChange() throws Exception {
 		final String TEST_NAME = "test140JackNoChange";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -401,12 +400,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -429,7 +428,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test142JackNoChangeButTaskExists() throws Exception {
 		final String TEST_NAME = "test142JackNoChangeButTaskExists";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -460,12 +459,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -490,7 +489,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test150FrankAttemptToAssignRoleStudentButDisabled() throws Exception {
 		final String TEST_NAME = "test150FrankAttemptToAssignRoleStudentButDisabled";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -510,11 +509,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -538,7 +537,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test160AttemptToAddPeter() throws Exception {
 		final String TEST_NAME = "test160AttemptToAddPeter";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -551,11 +550,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -578,7 +577,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test170AddPeter() throws Exception {
 		final String TEST_NAME = "test170AddPeter";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -591,11 +590,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		clockwork.run(context, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -636,7 +635,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test180StudentRecompute() throws Exception {
 		final String TEST_NAME = "test180StudentRecompute";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -649,12 +648,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -672,7 +671,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test200AddUnresolvable() throws Exception {
 		final String TEST_NAME = "test200AddUnresolvable";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -685,13 +684,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		try {
 			clockwork.run(context, task, result);
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			fail("unexpected success");
 		} catch (ObjectNotFoundException e) {
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
 			if (!e.getMessage().contains("No policy constraint named 'unresolvable' could be found")) {
@@ -703,7 +702,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test210AddCyclic() throws Exception {
 		final String TEST_NAME = "test210AddCyclic";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -716,13 +715,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		try {
 			clockwork.run(context, task, result);
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			fail("unexpected success");
 		} catch (SchemaException e) {
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
 			if (!e.getMessage().contains("Trying to resolve cyclic reference to constraint")) {
@@ -734,7 +733,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test220AddChained() throws Exception {
 		final String TEST_NAME = "test220AddChained";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -747,10 +746,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		clockwork.run(context, task, result);
 
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		display("Output context", context);
 
 		Map<String,EvaluatedPolicyRule> rules = new HashMap<>();
@@ -794,7 +793,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test230AddAmbiguous() throws Exception {
 		final String TEST_NAME = "test230AddAmbiguous";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -807,13 +806,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		try {
 			clockwork.run(context, task, result);
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			fail("unexpected success");
 		} catch (SchemaException e) {
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
 			if (!e.getMessage().contains("Conflicting definitions of 'constraint-B'")) {
@@ -826,7 +825,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test300ModifyInducement() throws Exception {
 		final String TEST_NAME = "test300ModifyInducement";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -842,13 +841,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		try {
 			clockwork.run(context, task, result);
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			fail("unexpected success");
 		} catch (PolicyViolationException e) {
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
 			if (!getTranslatedMessage(e).contains("Role \"Immutable inducements\" is to be modified")) {
@@ -861,7 +860,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test310ModifyInducementPass() throws Exception {
 		final String TEST_NAME = "test310ModifyInducementPass";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -877,9 +876,9 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		clockwork.run(context, task, result);
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess("unexpected failure", result);
 	}
@@ -888,7 +887,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test320ModifyInducementPass2() throws Exception {
 		final String TEST_NAME = "test320ModifyInducementPass2";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -904,9 +903,9 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		clockwork.run(context, task, result);
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess("unexpected failure", result);
 	}
@@ -915,7 +914,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test330AddInducement() throws Exception {
 		final String TEST_NAME = "test330AddInducement";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -931,13 +930,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		try {
 			clockwork.run(context, task, result);
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			fail("unexpected success");
 		} catch (PolicyViolationException e) {
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
 			if (!getTranslatedMessage(e).contains("Role \"No inducements add or delete\" is to be modified")) {
@@ -950,7 +949,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	@Test
 	public void test340AddInducementViaExpression() throws Exception {
 		final String TEST_NAME = "test340AddInducementViaExpression";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
@@ -966,13 +965,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		try {
 			clockwork.run(context, task, result);
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			fail("unexpected success");
 		} catch (PolicyViolationException e) {
-			TestUtil.displayThen(TEST_NAME);
+			displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
 			if (!getTranslatedMessage(e).contains("Role \"No inducements add or delete (expression)\" is to be modified")) {

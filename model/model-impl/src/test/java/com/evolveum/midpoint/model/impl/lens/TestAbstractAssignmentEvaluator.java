@@ -119,7 +119,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test100Direct() throws Exception {
 		final String TEST_NAME = "test100Direct";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -134,12 +134,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -158,7 +158,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test110DirectExpression() throws Exception {
 		final String TEST_NAME = "test110DirectExpression";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -174,12 +174,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -197,7 +197,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test120DirectExpressionReplaceDescription() throws Exception {
 		final String TEST_NAME = "test120DirectExpressionReplaceDescription";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -215,16 +215,18 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+		assignmentIdi.setSubItemDeltas(userDelta.getModifications());
+		assignmentIdi.recompute();
+		display("Assignment IDI", assignmentIdi);
 		
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment",evaluatedAssignment);
@@ -236,6 +238,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		assertEquals(1,construction.getAttributeMappings().size());
 		MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping = (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
+		display("output triple", outputTriple);
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, "The best captain the world has ever seen");
 	  	PrismAsserts.assertTripleMinus(outputTriple, "The best pirate the world has ever seen");
@@ -254,7 +257,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test130DirectExpressionReplaceDescriptionFromNull() throws Exception {
 		final String TEST_NAME = "test130DirectExpressionReplaceDescriptionFromNull";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -265,11 +268,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		assignmentType.setDescription(null);
 		user.asObjectable().getAssignment().add(assignmentType.clone());
 
-//		// We need to make sure that the assignment has a parent
-//		PrismContainerDefinition<AssignmentType> assignmentContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-//		PrismContainer<AssignmentType> assignmentContainer = assignmentContainerDefinition.instantiate();
-//		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
-
 		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
 		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
 				.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
@@ -279,16 +277,17 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+		assignmentIdi.setSubItemDeltas(userDelta.getModifications());
+		assignmentIdi.recompute();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment",evaluatedAssignment);
@@ -341,7 +340,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test140RoleVisitor() throws Exception {
         final String TEST_NAME = "test140RoleVisitor";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -356,14 +355,13 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
@@ -387,7 +385,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test142RoleVisitorDisabledAssignment() throws Exception {
         final String TEST_NAME = "test142RoleVisitorDisabledAssignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -403,12 +401,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -434,7 +432,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test150RoleEngineer() throws Exception {
         final String TEST_NAME = "test150RoleEngineer";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -449,14 +447,13 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
@@ -481,7 +478,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test160AddRoleEngineer() throws Exception {
         final String TEST_NAME = "test160AddRoleEngineer";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -502,14 +499,13 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
@@ -553,7 +549,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test170RoleManagerChangeCostCenter() throws Exception {
         final String TEST_NAME = "test170RoleManagerChangeCostCenter";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -576,12 +572,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -616,7 +612,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test180RoleManagerRemoveCostCenter() throws Exception {
         final String TEST_NAME = "test180RoleManagerRemoveCostCenter";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -640,12 +636,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -676,7 +672,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test(enabled = false)
 	public void test200DisableEngineerEmployeeInducement() throws Exception {
 		final String TEST_NAME = "test200DisableEngineerEmployeeInducement";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -699,12 +695,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -717,7 +713,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test(enabled = false)
 	public void test299ReenableEngineerEmployeeInducement() throws Exception {
 		final String TEST_NAME = "test299ReenableEngineerEmployeeInducement";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -738,7 +734,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test300DisableRoleEmployee() throws Exception {
 		final String TEST_NAME = "test300DisableRoleEmployee";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -761,12 +757,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -793,7 +789,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test310DisableRoleEngineer() throws Exception {
 		final String TEST_NAME = "test310DisableRoleEngineer";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -816,12 +812,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -853,7 +849,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test400UserFred() throws Exception {
 		final String TEST_NAME = "test400UserFred";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -878,13 +874,12 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		addFocusDeltaToContext(lensContext, descriptionDelta);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		projector.project(lensContext, "test", task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = lensContext.getEvaluatedAssignmentTriple();
 		display("Evaluated assignment triple", triple.debugDump());
