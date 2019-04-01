@@ -819,11 +819,31 @@ public class ResourceManager {
 
 		schemaResult.recordSuccess();
 
+		try {
+			updateResourceSchema(allConnectorSpecs, parentResult, resource);
+		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
+			parentResult.recordFatalError("Couldn't update resource schema: " + e.getMessage(), e);
+			return;
+		}
+
 		// TODO: connector sanity (e.g. refined schema, at least one account type, identifiers
 		// in schema, etc.)
 
 	}
-	
+
+	private void updateResourceSchema(List<ConnectorSpec> allConnectorSpecs, OperationResult parentResult,
+			PrismObject<ResourceType> resource)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+		if (resourceSchema != null) {
+			for (ConnectorSpec connectorSpec : allConnectorSpecs) {
+				ConnectorInstance instance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
+				instance.updateSchema(resourceSchema);
+			}
+		}
+	}
+
 	public void testConnectionConnector(ConnectorSpec connectorSpec, Map<String,Collection<Object>> capabilityMap, Task task, OperationResult parentResult) {
 
 		// === test INITIALIZATION ===

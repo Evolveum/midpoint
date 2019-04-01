@@ -20,6 +20,7 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.testng.BrowserPerClass;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.LoginPage;
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
@@ -193,16 +194,22 @@ public abstract class TestBase {
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
         if(shouldBeSuccess){
-            Assert.assertTrue(
-                    listResourcesPage
-                        .table()
-                            .search()
-                                .byName()
-                                .inputValue(resourceName)
-                                .updateSearch()
-                            .and()
-                            .clickByName(resourceName)
-                                .clickEditResourceConfiguration()
+            ViewResourcePage viewResourcePage = listResourcesPage
+                    .table()
+                    .search()
+                    .byName()
+                    .inputValue(resourceName)
+                    .updateSearch()
+                    .and()
+                    .clickByName(resourceName);
+            Selenide.screenshot("beforeEditConfiguration");
+            ResourceConfigurationTab resourceConfigurationTab = viewResourcePage
+                    .clickEditResourceConfiguration();
+            Selenide.screenshot("afterEditConfigurationClick");
+            Selenide.sleep(60000);
+            Selenide.screenshot("afterMinuteSleep");
+
+            Assert.assertTrue(resourceConfigurationTab
                                     .form()
                                     .changeAttributeValue(attributeName,oldValue, newValue)
                                 .and()

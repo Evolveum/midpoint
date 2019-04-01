@@ -73,8 +73,12 @@
 			<type>xsd:string</type>
 		</parameter>
 		<parameter>
-			<name>exportedGroupPrefix</name>
-			<type>xsd:string</type>
+			<name>groupIncludePattern</name>
+			<type>xsd:anyType</type>
+		</parameter>
+		<parameter>
+			<name>groupExcludePattern</name>
+			<type>xsd:anyType</type>
 		</parameter>
 		<parameter>
 			<name>relevantSourceId</name>
@@ -97,7 +101,7 @@
 						log.warn('No group name in membership change message, ignoring it: {}', esbEvent)
 						return null
 					}
-					isExported = groupName.startsWith(exportedGroupPrefix)
+					isExported = matches(groupName, groupIncludePattern, groupExcludePattern)
 					isSuper = groupName == superGroup
 					if (!isExported &amp;&amp; !isSuper) {
 						log.info('Irrelevant group membership change, ignoring it: {}', groupName)
@@ -129,7 +133,7 @@
 				} else if (eventType == 'GROUP_ADD' || eventType == 'GROUP_DELETE') {
 					groupName = esbEvent['name']
 					groupId = esbEvent['id']
-					isExported = groupName.startsWith(exportedGroupPrefix)
+					isExported = matches(groupName, groupIncludePattern, groupExcludePattern)
 					if (!isExported) {
 						log.info('Irrelevant group add/delete event, ignoring it: {}', groupName)
 						return null
@@ -148,6 +152,23 @@
 				} else {
 					log.warn('Unsupported event type: {} -> {}', eventType, esbEvent)
 					return null
+				}
+
+				def matches(String name, Collection includes, Collection excludes) {
+					matches(name, includes) &amp;&amp; !matches(name, excludes)
+				}
+
+				def matches(String name, Collection patterns) {
+					if (name == null || patterns == null) {
+						false
+					} else {
+						for (pattern in patterns) {
+							if (name ==~ pattern) {
+								return true
+							}
+						}
+						false
+					}
 				}
 			</code>
 		</script>
