@@ -51,93 +51,99 @@ import java.util.List;
  *
  */
 @Component
-public class UnassignExecutor extends BaseActionExecutor {
+public class UnassignExecutor extends AssignmentOperationsExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(UnassignExecutor.class);
 
-    private static final String NAME = "unassign";
-    private static final String PARAM_RESOURCE = "resource";
-    private static final String PARAM_ROLE = "role";
-    private static final String PARAM_RELATION = "relation";
+//    private static final String NAME = "unassign";
+//    private static final String PARAM_RESOURCE = "resource";
+//    private static final String PARAM_ROLE = "role";
+//    private static final String PARAM_RELATION = "relation";
 
-    @PostConstruct
-    public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+//    @PostConstruct
+//    public void init() {
+//        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+//    }
+
+//    @Override
+//    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+//
+//        ModelExecuteOptions executionOptions = getOptions(expression, input, context, globalResult);
+//        boolean dryRun = getParamDryRun(expression, input, context, globalResult);
+//
+//        ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
+//        ActionParameterValueType roleParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
+//        Collection<String> relations = expressionHelper.getArgumentValues(expression.getParameter(), PARAM_RELATION, false, false, NAME, input, context, String.class, globalResult);
+//
+//	    Collection<ObjectReferenceType> resources;
+//        try {
+//	        if (resourceParameterValue != null) {
+//		        PipelineData data = expressionHelper
+//				        .evaluateParameter(resourceParameterValue, null, input, context, globalResult);
+//		        resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE, ResourceType.class, context, globalResult);
+//	        } else {
+//		        resources = null;
+//	        }
+//        } catch (CommonException e) {
+//        	throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_RESOURCE + "' parameter of a scripting expression: " + e.getMessage(), e);
+//        }
+//
+//        Collection<ObjectReferenceType> roles;
+//        try {
+//	        if (roleParameterValue != null) {
+//		        PipelineData data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, globalResult);
+//		        roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE, AbstractRoleType.class, context, globalResult);        // if somebody wants to assign Org, he has to use full reference value (including object type)
+//	        } else {
+//		        roles = null;
+//	        }
+//        } catch (CommonException e) {
+//	        throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_ROLE + "' parameter of a scripting expression: " + e.getMessage(), e);
+//        }
+//
+//        if (resources == null && roles == null) {
+//            throw new ScriptExecutionException("Nothing to assign: neither resource nor role specified");
+//        }
+//
+//        if (CollectionUtils.isEmpty(resources) && CollectionUtils.isEmpty(roles)) {
+//        	LOGGER.warn("No resources and no roles to unassign in a scripting expression");
+//        	context.println("Warning: no resources and no roles to unassign");        // TODO some better handling?
+//	        return input;
+//        }
+//
+//        for (PipelineItem item : input.getData()) {
+//            PrismValue value = item.getValue();
+//            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
+//            context.checkTaskStop();
+//            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof AssignmentHolderType) {
+//                @SuppressWarnings({"unchecked", "raw"})
+//                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
+//	            AssignmentHolderType objectType = (AssignmentHolderType) prismObject.asObjectable();
+//                long started = operationsHelper.recordStart(context, objectType);
+//                Throwable exception = null;
+//                try {
+//                    operationsHelper.applyDelta(createDelta(objectType, resources, roles, relations), executionOptions, dryRun, context, result);
+//                    operationsHelper.recordEnd(context, objectType, started, null);
+//                } catch (Throwable ex) {
+//                    operationsHelper.recordEnd(context, objectType, started, ex);
+//					exception = processActionException(ex, NAME, value, context);
+//                }
+//                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
+//            } else {
+//				//noinspection ThrowableNotThrown
+//				processActionException(new ScriptExecutionException("Item is not a PrismObject of AssignmentHolderType"), NAME, value, context);
+//            }
+//            operationsHelper.trimAndCloneResult(result, globalResult, context);
+//        }
+//        return input;           // TODO updated objects?
+//    }
+    
+    @Override
+    protected String getName() {
+    	return AssignmentOperationsExecutor.UNASSIGN_NAME;
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
-
-        ModelExecuteOptions executionOptions = getOptions(expression, input, context, globalResult);
-        boolean dryRun = getParamDryRun(expression, input, context, globalResult);
-
-        ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
-        ActionParameterValueType roleParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
-        Collection<String> relations = expressionHelper.getArgumentValues(expression.getParameter(), PARAM_RELATION, false, false, NAME, input, context, String.class, globalResult);
-
-	    Collection<ObjectReferenceType> resources;
-        try {
-	        if (resourceParameterValue != null) {
-		        PipelineData data = expressionHelper
-				        .evaluateParameter(resourceParameterValue, null, input, context, globalResult);
-		        resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE, ResourceType.class, context, globalResult);
-	        } else {
-		        resources = null;
-	        }
-        } catch (CommonException e) {
-        	throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_RESOURCE + "' parameter of a scripting expression: " + e.getMessage(), e);
-        }
-
-        Collection<ObjectReferenceType> roles;
-        try {
-	        if (roleParameterValue != null) {
-		        PipelineData data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, globalResult);
-		        roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE, AbstractRoleType.class, context, globalResult);        // if somebody wants to assign Org, he has to use full reference value (including object type)
-	        } else {
-		        roles = null;
-	        }
-        } catch (CommonException e) {
-	        throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_ROLE + "' parameter of a scripting expression: " + e.getMessage(), e);
-        }
-
-        if (resources == null && roles == null) {
-            throw new ScriptExecutionException("Nothing to assign: neither resource nor role specified");
-        }
-
-        if (CollectionUtils.isEmpty(resources) && CollectionUtils.isEmpty(roles)) {
-        	LOGGER.warn("No resources and no roles to unassign in a scripting expression");
-        	context.println("Warning: no resources and no roles to unassign");        // TODO some better handling?
-	        return input;
-        }
-
-        for (PipelineItem item : input.getData()) {
-            PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
-            context.checkTaskStop();
-            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof AssignmentHolderType) {
-                @SuppressWarnings({"unchecked", "raw"})
-                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
-	            AssignmentHolderType objectType = (AssignmentHolderType) prismObject.asObjectable();
-                long started = operationsHelper.recordStart(context, objectType);
-                Throwable exception = null;
-                try {
-                    operationsHelper.applyDelta(createDelta(objectType, resources, roles, relations), executionOptions, dryRun, context, result);
-                    operationsHelper.recordEnd(context, objectType, started, null);
-                } catch (Throwable ex) {
-                    operationsHelper.recordEnd(context, objectType, started, ex);
-					exception = processActionException(ex, NAME, value, context);
-                }
-                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
-            } else {
-				//noinspection ThrowableNotThrown
-				processActionException(new ScriptExecutionException("Item is not a PrismObject of AssignmentHolderType"), NAME, value, context);
-            }
-            operationsHelper.trimAndCloneResult(result, globalResult, context);
-        }
-        return input;           // TODO updated objects?
-    }
-
-    private ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException {
+	protected ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles, Collection<String> relations) throws ScriptExecutionException {
     	if (relations == null || relations.isEmpty()) {
     		QName defaultRelation = prismContext.getDefaultRelation() != null ?
 				    prismContext.getDefaultRelation() : RelationTypes.MEMBER.getRelation();
