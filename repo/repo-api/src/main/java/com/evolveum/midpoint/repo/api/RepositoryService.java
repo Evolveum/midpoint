@@ -21,6 +21,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
@@ -636,4 +637,13 @@ public interface RepositoryService {
 	void unregisterConflictWatcher(ConflictWatcher watcher);
 
 	boolean hasConflict(ConflictWatcher watcher, OperationResult result);
+
+	// TODO move to some util class
+	static boolean isCustomPagingOkWithPagedSeqIteration(ObjectQuery query) {
+		if (query == null || query.getPaging() == null) {
+			return true;
+		}
+		ObjectPaging paging = query.getPaging();
+		return !paging.hasOrdering() && !paging.hasGrouping() && paging.getOffset() == null;
+	}
 }

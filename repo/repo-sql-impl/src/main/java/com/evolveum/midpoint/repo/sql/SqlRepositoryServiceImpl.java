@@ -52,7 +52,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -818,7 +817,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (explicitIterationMethod == null || explicitIterationMethod == IterationMethodType.DEFAULT) {
 	        if (getConfiguration().isIterativeSearchByPaging()) {
 		        if (strictlySequential) {
-		        	if (isCustomPagingOkWithPagedSeqIteration(query)) {
+		        	if (RepositoryService.isCustomPagingOkWithPagedSeqIteration(query)) {
 				        iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
 			        } else {
 		        		// TODO switch to LOGGER.error
@@ -855,14 +854,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 	    return null;
     }
-
-	public static boolean isCustomPagingOkWithPagedSeqIteration(ObjectQuery query) {
-    	if (query == null || query.getPaging() == null) {
-    		return true;
-	    }
-		ObjectPaging paging = query.getPaging();
-    	return !paging.hasOrdering() && !paging.hasGrouping() && paging.getOffset() == null;
-	}
 
 	@Nullable
 	private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(Class<T> type,
