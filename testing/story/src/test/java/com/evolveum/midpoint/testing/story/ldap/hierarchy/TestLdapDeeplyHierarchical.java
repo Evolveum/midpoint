@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.testing.story.ldaphierarchy;
+package com.evolveum.midpoint.testing.story.ldap.hierarchy;
 
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.List;
@@ -31,20 +30,16 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -52,7 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * Hierarchical LDAP structure. All accounts are in ou=people. The organizational structure is
+ * Deeply hierarchical LDAP structure. The accounts are distributed around the tree in OUs.
+ * The organizational structure is
  * reflected to hierachical OUs (OUs inside OUs). Each OU contains groups. Users are members of
  * the groups to reflect their direct membership in orgstruct. Groups are members of parent OU
  * groups.
@@ -62,9 +58,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
+public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-hierarchical");
+	public static final File TEST_DIR = new File(LDAP_HIERARCHY_TEST_DIR, "deeply-hierarchical");
 	private static final String LDAP_OU_INTENT = "ou";
 
 	@Override
@@ -81,6 +77,9 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 	protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
 		Entry accountEntry = openDJController.searchSingle("uid="+username);
+
+		String expectedDn = getAccountDn(user);
+		assertEquals("Wrong account DN", expectedDn, accountEntry.getDN().toString().toLowerCase());
 
 		Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
 		assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
@@ -131,6 +130,28 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 				break;
 			}
 			org = getObject(OrgType.class, parentOid);
+		}
+		sb.append("dc=example,dc=com");
+		return sb.toString();
+	}
+
+	private String getAccountDn(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		StringBuilder sb = new StringBuilder();
+		sb.append("uid=").append(user.getName().getOrig()).append(",");
+		PrismObject<FocusType> org = (PrismObject)user;
+		while (true) {
+			List<ObjectReferenceType> parentOrgRefs = org.asObjectable().getParentOrgRef();
+			if (parentOrgRefs.isEmpty()) {
+				break;
+			}
+			String parentOid = parentOrgRefs.get(0).getOid();
+			if (ORG_TOP_OID.equals(parentOid)) {
+				break;
+			}
+			org = (PrismObject)getObject(OrgType.class, parentOid);
+			sb.append("ou=");
+			sb.append(org.getName().getOrig().toLowerCase());
+			sb.append(",");
 		}
 		sb.append("dc=example,dc=com");
 		return sb.toString();
