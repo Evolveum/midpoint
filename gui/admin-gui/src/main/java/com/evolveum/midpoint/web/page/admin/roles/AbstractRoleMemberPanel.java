@@ -244,7 +244,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 					@Override
 					protected DisplayType getAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation){
-						return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation, AbstractRoleMemberPanel.this.getPageBase());
+						return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation,
+								createStringResource("abstractRoleMemberPanel.menu.assignMember").getString());
 					}
 
 					@Override

@@ -67,10 +67,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 
-    private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
-    private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
-    private static final String ID_BUTTON_TOOLBAR_FRAGMENT = "buttonToolbarFragment";
-
     protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
 
@@ -78,47 +74,34 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         super(id, assignmentContainerWrapperModel);
     }
 
-    protected Fragment initCustomButtonToolbar(String contentAreaId){
-        Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
-
-        MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
-        searchContainer.add(newObjectIcon);
-
-        AjaxIconButton showAllAssignmentsButton = new AjaxIconButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON, new Model<>("fa fa-address-card"),
-                createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                showAllAssignments(ajaxRequestTarget);
-            }
-        };
-        searchContainer.addOrReplace(showAllAssignmentsButton);
-        showAllAssignmentsButton.setOutputMarkupId(true);
-        showAllAssignmentsButton.add(new VisibleEnableBehaviour(){
-
-            private static final long serialVersionUID = 1L;
-
-            public boolean isVisible(){
-                return showAllAssignmentsVisible();
-            }
-        });
-        return searchContainer;
-    }
-
-    protected void showAllAssignments(AjaxRequestTarget target) {
-        PageBase pageBase = getPageBase();
-        List<AssignmentInfoDto> previewAssignmentsList;
-        if (pageBase instanceof PageAdminFocus) {
-            previewAssignmentsList = ((PageAdminFocus<?>) pageBase).showAllAssignmentsPerformed(target);
-        } else {
-            previewAssignmentsList = Collections.emptyList();
-        }
-        AllAssignmentsPreviewDialog assignmentsDialog = new AllAssignmentsPreviewDialog(pageBase.getMainPopupBodyId(), previewAssignmentsList,
-                pageBase);
-        pageBase.showMainPopup(assignmentsDialog, target);
-    }
+//    protected Fragment initCustomButtonToolbar(String contentAreaId){
+//        Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
+//
+//        MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
+//        searchContainer.add(newObjectIcon);
+//
+//        AjaxIconButton showAllAssignmentsButton = new AjaxIconButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON, new Model<>("fa fa-address-card"),
+//                createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+//                showAllAssignments(ajaxRequestTarget);
+//            }
+//        };
+//        searchContainer.addOrReplace(showAllAssignmentsButton);
+//        showAllAssignmentsButton.setOutputMarkupId(true);
+//        showAllAssignmentsButton.add(new VisibleEnableBehaviour(){
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            public boolean isVisible(){
+//                return showAllAssignmentsVisible();
+//            }
+//        });
+//        return searchContainer;
+//    }
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
@@ -174,9 +157,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation().getLocalPart();
     }
 
-    protected boolean showAllAssignmentsVisible(){
-        return true;
-    }
 
     protected void initCustomPaging(){
     	getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
