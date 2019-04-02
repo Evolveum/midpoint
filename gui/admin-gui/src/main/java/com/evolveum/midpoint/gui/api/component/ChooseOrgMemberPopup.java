@@ -72,5 +72,10 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
         });
         return tabs;
     }
+    
+    @Override
+    protected QName getDefaultTargetType() {
+    	return OrgType.COMPLEX_TYPE;
+    }
 
 }
