@@ -658,17 +658,6 @@ public final class WebComponentUtil {
 		}
 	}
 
-	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
-											  ObjectDelta delta, String category, OperationResult parentResult, PageBase pageBase) throws SchemaException{
-		ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
-				? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
-				: null;
-		TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
-				memberQuery, delta, options, category, pageBase);
-		WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
-
-	}
-
 	public static boolean isAuthorized(String... action) {
 		if (action == null || action.length == 0) {
 			return true;

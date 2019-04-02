@@ -791,8 +791,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 	
 	protected void recomputeMembersPerformed(AjaxRequestTarget target) {
-		MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true), getActionQuery(getQueryScope(true), getSupportedRelations()), getSupportedRelations(), target);
-		
+		MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true), getActionQuery(getQueryScope(true), getSupportedRelations()), target);
 	}
 
 	protected ObjectQuery createContentQuery() {
