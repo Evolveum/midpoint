@@ -200,7 +200,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                                            } else if (passwordAccountDto.getCssClass().equals(DESELECTED_ACCOUNT_ICON_CSS)) {
                                                passwordAccountDto.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
                                            }
-                                           target.add(imagePanel);
+                                           target.add(imagePanel.findParent(SelectableDataTable.class));
                                        } else {
                                            midpointAccountSelected = !midpointAccountSelected;
                                            if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)) {
