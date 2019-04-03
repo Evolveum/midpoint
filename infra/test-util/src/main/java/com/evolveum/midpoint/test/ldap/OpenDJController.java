@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -553,14 +555,34 @@ public class OpenDJController extends AbstractResourceController {
 	}
 
 	public static String getAttributeValue(Entry response, String name) {
+		return getAttributeValue(response, name, null);
+	}
+	
+	public static String getAttributeValue(Entry response, String name, String option) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
-		if (attrs == null || attrs.size() == 0) {
+		Attribute attribute = findAttribute(name, option, attrs);
+		if (attribute == null) {
 			return null;
 		}
-		assertEquals("Too many attributes for name "+name+": ",
-				1, attrs.size());
-		Attribute attribute = attrs.get(0);
 		return getAttributeValue(attribute);
+	}
+
+	private static Attribute findAttribute(String name, String option, List<Attribute> attributes) {
+		if (attributes == null || attributes.size() == 0) {
+			return null;
+		}
+		for (Attribute attr : attributes) {
+			if (option == null) {
+				if (attr.getOptions() == null || attr.getOptions().isEmpty()) {
+					return attr;
+				}
+			} else {
+				if (attr.getOptions() != null && attr.getOptions().contains(option)) {
+					return attr;
+				}
+			}
+		}
+		return null;
 	}
 
 	public static String getAttributeValue(Attribute attribute) {
@@ -709,6 +731,43 @@ public class OpenDJController extends AbstractResourceController {
 			return;
 		}
 		AssertJUnit.fail("Attribute "+name+" exists while not expecting it: "+attribute);
+	}
+	
+	public static void assertAttributeLang(Entry entry, String attributeName, String expectedOrigValue, String... params) {
+		List<Attribute> attrs = entry.getAttribute(attributeName.toLowerCase());
+		if (attrs == null || attrs.size() == 0) {
+			AssertJUnit.fail("Attribute "+attributeName+" does not have any value");
+		}
+		Map<String,String> expectedLangs = MiscUtil.paramsToMap(params);
+		List<String> langsSeen = new ArrayList<>();
+		for (Attribute attr : attrs) {
+			if (attr.size() == 0) {
+				throw new IllegalArgumentException("No values in attribute "+attributeName+": "+attr);
+			}
+			if (attr.size() > 1) {
+				throw new IllegalArgumentException("Too many values in attribute "+attributeName+": "+attr);
+			}
+			String attrValue = attr.iterator().next().toString();
+			if (attr.getOptions() == null || attr.getOptions().isEmpty()) {
+				assertEquals("Wrong orig value in attribute '"+attributeName+" in entry "+entry.getDN(), expectedOrigValue, attrValue);
+			} else if (attr.getOptions().size() == 1) {
+				String option = attr.getOptions().iterator().next();
+				if (!option.startsWith("lang-")) {
+					throw new IllegalArgumentException("Non-lang option "+option+" in attribute "+attributeName+": "+attr);
+				}
+				String lang = option.substring("lang-".length());
+				String expectedValue = expectedLangs.get(lang);
+				assertEquals("Wrong "+option+" value in attribute '"+attributeName+" in entry "+entry.getDN(), expectedValue, attrValue);
+				langsSeen.add(lang);
+			} else {
+				throw new IllegalArgumentException("More than one option in attribute "+attributeName+": "+attr);
+			}
+		}
+		for (Map.Entry<String, String> expectedLangEntry : expectedLangs.entrySet()) {
+			if (!langsSeen.contains(expectedLangEntry.getKey())) {
+				AssertJUnit.fail("No lang "+expectedLangEntry.getKey()+" in attribute "+attributeName+" in entry "+entry.getDN()+"; expected "+expectedLangEntry.getValue());
+			}
+		}
 	}
 
 	public void assertActive(Entry response, boolean active) {

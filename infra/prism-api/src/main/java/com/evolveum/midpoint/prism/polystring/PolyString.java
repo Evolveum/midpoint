@@ -371,7 +371,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	 * Returns true in case that there are language mutations, translation, etc.
 	 */
 	public boolean isSimple() {
-		return translation == null;
+		return translation == null && lang == null;
 	}
 
 	@Override

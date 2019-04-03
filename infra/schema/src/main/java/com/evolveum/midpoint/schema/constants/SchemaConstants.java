@@ -427,6 +427,9 @@ public abstract class SchemaConstants {
 	// be inverted, eventually (MID-356)
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
 	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
+	public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";
+	public static final QName ICF_SUBTYPES_POLYSTRING_QNAME = new QName(NS_ICF_SUBTYPES, "PolyString");
+	public static final String ICF_SUBTYPES_POLYSTRING_URI = QNameUtil.qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
 	public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
 			"configurationProperties");
 	public static final ItemName ICF_TIMEOUTS = new ItemName(NS_ICF_CONFIGURATION, "timeouts");
