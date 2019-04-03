@@ -20,6 +20,7 @@ import java.util.Date;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandl
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -267,11 +269,11 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
 
     @Override
     public String getCategoryName(Task task) {
-        return TaskCategory.RECONCILIATION;
+        return TaskCategory.DELETE_NOT_UPDATED_SHADOWS;
     }
     
 	@Override
 	protected String getDefaultChannel() {
-		return SchemaConstants.CHANGE_CHANNEL_RECON_URI;
+		return SchemaConstants.CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI;
 	}
 }
