@@ -101,6 +101,11 @@ public class PolyStringAsserter<RA> extends AbstractAsserter<RA> {
 		return this;
 	}
 	
+	public PolyStringAsserter<RA> assertNoLangs() {
+		assertNull("Unexpected langs in "+desc(), polystring.getLang());
+		return this;
+	}
+	
 	protected String desc() {
 		return descWithDetails(polystring);
 	}

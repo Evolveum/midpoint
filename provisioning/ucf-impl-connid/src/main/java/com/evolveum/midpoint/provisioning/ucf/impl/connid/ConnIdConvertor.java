@@ -430,6 +430,9 @@ public class ConnIdConvertor {
 				lang.put(key, connIdMapEntry.getValue());
 			}
 		}
+		if (orig == null) {
+			return null;
+		}
 		PolyString polyString = new PolyString(orig);
 		polyString.setLang(lang);
 		return polyString;

@@ -136,9 +136,16 @@
 
 			<!-- The 'description' attribute is a polystring. It is mapped from polystring (fullName),
 			     and as it is also a polystring, all the "lang" variants should be used.
-			     cf. attribute 'cn' above. -->
+			     cf. attribute 'cn' above.
+			     This is EXPERIMENTAL functionality. It is not officialy supported. Use only at your own risk. -->
             <attribute>
                 <ref>ri:description</ref>
+                <limitations>
+                	<!-- Poly-attributes only work with single-value attributes -->
+                	<maxOccurs>1</maxOccurs>
+                </limitations>
+                <!-- PolyString strict matching - to make sure that the langs in polystring get compared. -->
+                <matchingRule>mr:polyStringStrict</matchingRule>
                 <outbound>
                 	<source>
 	                    <path>fullName</path>

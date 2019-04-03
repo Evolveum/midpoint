@@ -17,62 +17,30 @@
 package com.evolveum.midpoint.testing.story.ldap;
 
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.testing.story.TestTrafo;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Testing PolyString all the way to LDAP connector. The PolyString data should be translated
@@ -92,6 +60,26 @@ public class TestLdapPolyString extends AbstractLdapTest {
 	private static final String[] JACK_FULL_NAME_LANG_EN_SK = {
 			"en", "Jack Sparrow",
 			"sk", "Džek Sperou"
+		};
+	
+	private static final String[] JACK_FULL_NAME_LANG_EN_SK_RU_HR = {
+			"en", "Jack Sparrow",
+			"sk", "Džek Sperou",
+			"ru", "Джек Воробей",
+			"hr", "Ðek Sperou"
+		};
+	
+	private static final String[] JACK_FULL_NAME_LANG_CZ_HR = {
+			"cz", "Džek Sperou",
+			"hr", "Ðek Sperou"
+		};
+	
+	protected static final String USER_JACK_FULL_NAME_CAPTAIN = "Captain Jack Sparrow";
+	
+	private static final String[] JACK_FULL_NAME_LANG_CAPTAIN_EN_CZ_SK = {
+			"en", "Captain Jack Sparrow",
+			"cz", "Kapitán Džek Sperou",
+			"sk", "Kapitán Džek Sperou"
 		};
 
 	private PrismObject<ResourceType> resourceOpenDj;
@@ -218,8 +206,189 @@ public class TestLdapPolyString extends AbstractLdapTest {
         		.end()
 			.links()
 				.assertNone();
-        	
 
+	}
+	
+	/**
+	 * Assign LDAP account to jack. Jack's fullName is full of langs,
+	 * those should be translated to description;lang-* LDAP attributes.
+	 * MID-5210
+	 */
+	@Test
+    public void test110AssignAccountOpenDjLang() throws Exception {
+		final String TEST_NAME = "test110AssignAccountOpenDjLang";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		accountJackOid = assertUserAfter(USER_JACK_OID)
+			.fullName()
+        		.assertOrig(USER_JACK_FULL_NAME)
+        		.assertLangs(JACK_FULL_NAME_LANG_EN_SK)
+        		.end()
+			.singleLink()
+				.getOid();
+		
+		assertModelShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME, JACK_FULL_NAME_LANG_EN_SK);
+	}
+	
+	/**
+	 * Adding more langs to Jack's fullName. This should update all
+	 * LDAP language tags properly.
+	 */
+	@Test
+    public void test112ModifyJackFullNameLangEnSkRuHr() throws Exception {
+		final String TEST_NAME = "test112ModifyJackFullNameLangEnSkRuHr";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PolyString newFullName = new PolyString(USER_JACK_FULL_NAME);
+        newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_EN_SK_RU_HR));
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+        	.fullName()
+        		.display()
+        		.assertOrig(USER_JACK_FULL_NAME)
+        		.assertLangs(JACK_FULL_NAME_LANG_EN_SK_RU_HR)
+        		.end()
+    		.singleLink()
+				.assertOid(accountJackOid);
+
+        Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME, JACK_FULL_NAME_LANG_EN_SK_RU_HR);
+	}
+	
+	/**
+	 * Modifying langs in Jack's fullName again. Some are removed, some are new. 
+	 * This should update all LDAP language tags properly.
+	 */
+	@Test
+    public void test114ModifyJackFullNameLangCzHr() throws Exception {
+		final String TEST_NAME = "test114ModifyJackFullNameLangCzHr";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PolyString newFullName = new PolyString(USER_JACK_FULL_NAME);
+        newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_CZ_HR));
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+        	.fullName()
+        		.display()
+        		.assertOrig(USER_JACK_FULL_NAME)
+        		.assertLangs(JACK_FULL_NAME_LANG_CZ_HR)
+        		.end()
+    		.singleLink()
+				.assertOid(accountJackOid);
+
+        Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME, JACK_FULL_NAME_LANG_CZ_HR);
+	}
+	
+	/**
+	 * Modifying Jack's full name to include proper "Captain" title.
+	 * The orig is also changed this time. 
+	 */
+	@Test
+    public void test116ModifyJackFullNameLangCaptain() throws Exception {
+		final String TEST_NAME = "test116ModifyJackFullNameLangCaptain";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PolyString newFullName = new PolyString(USER_JACK_FULL_NAME_CAPTAIN);
+        newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_CAPTAIN_EN_CZ_SK));
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+        	.fullName()
+        		.display()
+        		.assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
+        		.assertLangs(JACK_FULL_NAME_LANG_CAPTAIN_EN_CZ_SK)
+        		.end()
+    		.singleLink()
+				.assertOid(accountJackOid);
+
+        Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN, JACK_FULL_NAME_LANG_CAPTAIN_EN_CZ_SK);
+	}
+	
+	/**
+	 * Back to simple polystring. No langs.
+	 */
+	@Test
+    public void test118ModifyJackFullNameCaptain() throws Exception {
+		final String TEST_NAME = "test118ModifyJackFullNameCaptain";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PolyString newFullName = new PolyString(USER_JACK_FULL_NAME_CAPTAIN);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+        	.fullName()
+        		.display()
+        		.assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
+        		.assertNoLangs()
+        		.end()
+    		.singleLink()
+				.assertOid(accountJackOid);
+
+        Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN /* no langs */);
 	}
 	
 	private Entry getLdapEntryByUid(String uid) throws DirectoryException {

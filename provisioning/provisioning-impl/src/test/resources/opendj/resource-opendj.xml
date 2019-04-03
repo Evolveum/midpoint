@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -100,6 +100,13 @@
 				<ref>ri:secretary</ref>
 				<matchingRule>mr:xml</matchingRule> <!-- matching rule override. Secretary is normally distinguishedName  -->
 				<fetchStrategy>explicit</fetchStrategy>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<limitations>
+                	<!-- Poly-attributes only work with single-value attributes -->
+                	<maxOccurs>1</maxOccurs>
+                </limitations>
 			</attribute>
             <association>
             	<ref>ri:group</ref>
