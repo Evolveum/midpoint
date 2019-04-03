@@ -89,6 +89,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import org.apache.wicket.model.ResourceModel;
 
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
@@ -567,7 +568,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			
 			@Override
 			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getSupportedObjectTypes(false);
+				return AbstractRoleMemberPanel.this.getNewMemberObjectTypes();
 			}
 			
 			@Override
@@ -576,6 +577,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			}
 
 			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+			    if (type == null){
+                    getSession().warn("No type was selected. Cannot create member");
+                    target.add(this);
+                    target.add(getPageBase().getFeedbackPanel());
+                    return;
+                }
 				if (relations == null || relations.isEmpty()) {
 					getSession().warn("No relation was selected. Cannot create member");
 					target.add(this);
@@ -641,14 +648,36 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 				Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getOrgSearchScope() : scopeDefaultValue),
 				scopeValues,
 				WebComponentUtil.getEnumChoiceRenderer(AbstractRoleMemberPanel.this),
-				"abstractRoleMemberPanel.searchScope", "abstractRoleMemberPanel.searchScope.tooltip");
+				"abstractRoleMemberPanel.searchScope", "abstractRoleMemberPanel.searchScope.tooltip", true);
 		searchScrope.add(new VisibleBehaviour(() -> getModelObject() instanceof OrgType));
 		form.add(searchScrope);
-		
+
+		List<QName> supportedTypes = getSupportedObjectTypes(false);
 		DropDownFormGroup<QName> typeSelect = createDropDown(ID_OBJECT_TYPE,
 				Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getType().getTypeQName() : WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType())),
-				getSupportedObjectTypes(true), new QNameObjectTypeChoiceRenderer(),
-				"abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip");
+				supportedTypes, new QNameObjectTypeChoiceRenderer(){
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public Object getDisplayValue(QName qname) {
+						if (qname == null || AssignmentHolderType.COMPLEX_TYPE.equals(qname)){
+							return StringUtils.leftPad(createStringResource("ObjectTypes.all").getString(), 1);
+						} else {
+							return super.getDisplayValue(qname);
+						}
+					}
+
+                    @Override
+                    public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
+                        QName qname = super.getObject(id, choices);
+                        if (qname == null){
+                            return AssignmentHolderType.COMPLEX_TYPE;
+                        }
+                        return qname;
+                    }
+
+				},
+				"abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip", false);
 		form.add(typeSelect);
 
 		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION,
@@ -695,6 +724,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return WebComponentUtil.createFocusTypeList(includeAbstractTypes);
 	}
 	
+	protected List<QName> getNewMemberObjectTypes() {
+		return WebComponentUtil.createFocusTypeList();
+	}
+
 	private ChooseTypePanel<OrgType> createParameterPanel(String id, boolean isTenant) {
 
 		ChooseTypePanel<OrgType> orgSelector = new ChooseTypePanel<OrgType>(id, Model.of(new ObjectViewDto())) {
@@ -744,9 +777,16 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 		
 	private <V> DropDownFormGroup<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
-			IChoiceRenderer<V> renderer, String labelKey, String tooltipKey) {
+			IChoiceRenderer<V> renderer, String labelKey, String tooltipKey, boolean required) {
 		DropDownFormGroup<V> listSelect = new DropDownFormGroup<V>(id, defaultModel, Model.ofList(values), renderer, createStringResource(labelKey), 
-				tooltipKey, false, "col-md-4", "col-md-8", true);
+				tooltipKey, false, "col-md-4", "col-md-8", required){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+		    protected String getNullValidDisplayValue(){
+                return getString("ObjectTypes.all");
+            }
+        };
 
 		listSelect.getInput().add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;

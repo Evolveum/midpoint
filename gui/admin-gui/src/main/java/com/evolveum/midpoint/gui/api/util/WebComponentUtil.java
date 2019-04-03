@@ -3435,4 +3435,16 @@ public final class WebComponentUtil {
 		}
 		return polyString.getOrig();
 	}
+
+    public static <T> List<T> sortDropDownChoices(IModel<? extends List<? extends T>> choicesModel, IChoiceRenderer<T> renderer){
+        List<T> sortedList = choicesModel.getObject().stream().sorted((choice1, choice2) -> {
+            Validate.notNull(choice1);
+            Validate.notNull(choice2);
+
+            return String.CASE_INSENSITIVE_ORDER.compare(renderer.getDisplayValue(choice1).toString(), renderer.getDisplayValue(choice2).toString());
+
+
+        }).collect(Collectors.toList());
+        return sortedList;
+    }
 }
