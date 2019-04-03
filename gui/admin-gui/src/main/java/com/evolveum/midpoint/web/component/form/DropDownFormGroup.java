@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -166,13 +167,13 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
 	protected DropDownChoice<T> createDropDown(String id, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
                                             boolean required) {
-        DropDownChoice<T> choice = new DropDownChoice<T>(id, getModel(), choices, renderer){
+        DropDownChoice<T> choice = new DropDownChoice<T>(id, getModel(), Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer)), renderer){
 
             private static final long serialVersionUID = 1L;
 
 			@Override
             protected String getNullValidDisplayValue() {
-                return getString("DropDownChoicePanel.empty");
+                return DropDownFormGroup.this.getNullValidDisplayValue();
             }
         };
         choice.setNullValid(!required);
@@ -182,5 +183,9 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
     public DropDownChoice<T> getInput() {
         return (DropDownChoice<T>) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_SELECT_WRAPPER, ID_SELECT));
+    }
+
+    protected String getNullValidDisplayValue(){
+        return getString("DropDownChoicePanel.empty");
     }
 }
