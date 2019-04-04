@@ -52,7 +52,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
         super(id);
 
         DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model,
-                Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer)), renderer) {
+                choices, renderer) {
 
         	private static final long serialVersionUID = 1L;
 
@@ -68,6 +68,12 @@ public class DropDownChoicePanel<T> extends InputPanel {
             @Override
             protected String getNullValidDisplayValue() {
                 return DropDownChoicePanel.this.getNullValidDisplayValue();
+            }
+
+            @Override
+            public IModel<? extends List<? extends T>> getChoicesModel() {
+                IModel<? extends List<? extends T>> choices = super.getChoicesModel();
+                return Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer));
             }
         };
         input.setNullValid(allowNull);
