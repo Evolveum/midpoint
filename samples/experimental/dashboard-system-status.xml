@@ -45,17 +45,10 @@
     	
     	<data>
     		<sourceType>auditSearch</sourceType>
-    		<auditSearch> <!-- EXPERIMENTAL!!! Will be most likely moved to a separate object a la ObjectCollectionType -->
-    			<search>
-    				QUERY <!-- TODO: hql for now? change later? -->
-    			</search>
-    			<domain>
-    				QUERY <!-- TODO: hql for now? change later? -->
-    			</domain>
-    			<interval>
-    				<last>P3D</last> <!-- means: last three days -->
-    				<!-- TODO: specify from-to specific dates? expressions? -->
-    			</interval>
+    		<collection>
+    			<!-- EXPERIMENTAL!!! Will be most likely moved to a separate object other than ObjectCollectionType -->
+				<collectionRef oid="02ed230e-56bb-11e9-b2bb-8bcc562d194a" type="ObjectCollectionType"/> <!-- Collection: Audit Errors -->
+			</collection>
     		</auditSearch>
     	</data>
     	

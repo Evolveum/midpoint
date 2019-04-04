@@ -67,6 +67,7 @@ import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincip
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
@@ -196,6 +197,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private Clockwork clockwork;
+	@Autowired private CollectionProcessor collectionProcessor;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -1908,6 +1910,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return null;
 		}
 		return objectPolicyConfiguration;
+	}
+
+	@Override
+	public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(String collectionOid, Task task, OperationResult result) {
+		return collectionProcessor.evaluateCollectionPolicyRules(collectionOid, task, result);
 	}
 
 }

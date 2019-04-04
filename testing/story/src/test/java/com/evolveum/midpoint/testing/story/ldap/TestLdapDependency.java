@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.testing.story.ldap;
 
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -45,6 +45,8 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.testing.story.TestTrafo;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -78,9 +80,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public  class TestLdapDependency extends AbstractStoryTest {
+public  class TestLdapDependency extends AbstractLdapTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-dependency");
+	public static final File TEST_DIR = new File(LDAP_TEST_DIR, "dependency");
 
 	private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
@@ -190,14 +192,13 @@ public  class TestLdapDependency extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_IT_NAME, ORG_TOP_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         dumpOrgTree();
 		dumpLdap();
@@ -219,14 +220,13 @@ public  class TestLdapDependency extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("orgBefore: ", orgBefore);
         assignRoleToOrg(orgItOid, ROLE_META_ORG_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         dumpOrgTree();
 		dumpLdap();
@@ -250,14 +250,13 @@ public  class TestLdapDependency extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("unassigning vip role org", orgBefore);
         unassignRoleFromOrg(orgItOid, ROLE_META_ORG_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         dumpOrgTree();
 		dumpLdap();
@@ -282,14 +281,13 @@ public  class TestLdapDependency extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = createOrg(ORG_HR_NAME, ORG_TOP_OID);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         dumpOrgTree();
 		dumpLdap();
@@ -311,15 +309,14 @@ public  class TestLdapDependency extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("orgBefore: ", orgBefore);
         assignRoleToOrg(orgHrOid, ROLE_META_ORG_OID, task, result);
         assignRoleToOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         dumpOrgTree();
 		dumpLdap();
@@ -345,14 +342,13 @@ public  class TestLdapDependency extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("unassigning vip role org", orgBefore);
         unassignRoleFromOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         dumpOrgTree();
 		dumpLdap();
@@ -379,15 +375,14 @@ public  class TestLdapDependency extends AbstractStoryTest {
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("orgBefore: ", orgBefore);
         assignRoleToOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
         assignRoleToOrg(orgHrOid, ROLE_META_ORG_SUPERVIP_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         dumpOrgTree();
 		dumpLdap();
@@ -417,7 +412,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 
         try {
 	        // WHEN
-	        TestUtil.displayWhen(TEST_NAME);
+	        displayWhen(TEST_NAME);
 	        unassignRoleFromOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
 
 	        assertNotReached();
@@ -427,9 +422,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
         }
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertFailure(result);
+        displayThen(TEST_NAME);
+        assertFailure(result);
 
         dumpOrgTree();
 		dumpLdap();
@@ -509,79 +503,6 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		}
 
 	}
-
-	private void dumpLdap() throws DirectoryException {
-		display("LDAP server tree", openDJController.dumpTree());
-		display("LDAP server content", openDJController.dumpEntries());
-	}
-
-	////should be in AbstractModelIntegrationTest
-
-	private void modifyOrgAssignment(String orgOid, String roleOid, QName refType, QName relation, Task task,
-			PrismContainer<?> extension, ActivationType activationType, boolean add, OperationResult result)
-			throws ObjectNotFoundException,
-			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<OrgType> orgDelta = createAssignmentOrgDelta(orgOid, roleOid, refType, relation, extension, activationType, add);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(orgDelta);
-		modelService.executeChanges(deltas, null, task, result);
-	}
-
-	private ObjectDelta<OrgType> createAssignmentOrgDelta(String orgOid, String roleOid, QName refType, QName relation,
-			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
-		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
-		ObjectDelta<OrgType> userDelta = prismContext.deltaFactory().object()
-				.createModifyDelta(orgOid, modifications, OrgType.class);
-		return userDelta;
-	}
-
-	private void assignRoleToOrg(String orgOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
-	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-	PolicyViolationException, SecurityViolationException {
-	assignRoleToOrg(orgOid, roleOid, (ActivationType) null, task, result);
-	}
-
-	private void assignRoleToOrg(String orgOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
-	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-	PolicyViolationException, SecurityViolationException {
-	modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
-	}
-
-	private void unassignRoleFromOrg(String orgOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
-	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-	PolicyViolationException, SecurityViolationException {
-	unassignRoleFromOrg(orgOid, roleOid, (ActivationType) null, task, result);
-	}
-
-	private void unassignRoleFromOrg(String orgOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
-	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-	PolicyViolationException, SecurityViolationException {
-	modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
-	}
-
-	public static <F extends FocusType> void assertOrgNotAssignedRole(PrismObject<F> focus, String roleOid) {
-		assertNotAssigned(focus, roleOid, RoleType.COMPLEX_TYPE);
-		//assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
-	}
-
-	//TODO: maybe a replacement for MidpointAsserts.assertNotAssigned()
-	//it can be used not only for user
-	public static <F extends FocusType> void assertNotAssigned(PrismObject<F> focus, String targetOid, QName refType) {
-		F focusType = focus.asObjectable();
-		for (AssignmentType assignmentType: focusType.getAssignment()) {
-			ObjectReferenceType targetRef = assignmentType.getTargetRef();
-			if (targetRef != null) {
-				if (refType.equals(targetRef.getType())) {
-					if (targetOid.equals(targetRef.getOid())) {
-						AssertJUnit.fail(focus + " does have assigned "+refType.getLocalPart()+" "+targetOid+" while not expecting it");
-					}
-				}
-			}
-		}
-	}
-
-
 
 
 }

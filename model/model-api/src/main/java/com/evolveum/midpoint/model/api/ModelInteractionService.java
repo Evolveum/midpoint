@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
@@ -407,5 +408,15 @@ public interface ModelInteractionService {
 	 * It should use cached archetype information.
 	 */
 	<O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result) throws SchemaException, ConfigurationException;
+	
+	/**
+	 * Returns all policy rules that apply to the collection.
+	 * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
+	 * But for now we support only policy rules that are directly placed in collection assignments.
+	 * EXPERIMENTAL. Quite likely to change later.
+	 */
+	@Experimental
+	@NotNull
+	Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(String collectionOid, Task task, OperationResult result);
 	
 }

@@ -15589,6 +15589,26 @@
 					        </xsd:documentation>
 					    </xsd:annotation>
 		            </xsd:element>
+           	      	<xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
+		  				<xsd:annotation>
+		  					<xsd:documentation>
+		  						Specification of an explicit or implicit object collection that will be used as data source for the view.
+		  						
+		  						EXTREMELY ABSOLUTELY GIGANTICALLY ENORMOUSLY MEGA GIGA TERA SUPER HYPER EXPERIMENTAL
+		  						
+		  						This is almost certain to change in the future. It does not even belong here well
+		  						as this is supposed to be *object* collection and not audit collection. But for now it solves a
+		  						couple of problems in dashboards and report functionality, which is also experimental.
+		  						Therefore this is a good temporary choice.
+		  						However, if you ever rely on this element the karma will get you, eventually.
+		  						If that happens, don't come to us crying. You have been warned.
+		  					</xsd:documentation>
+		  					<xsd:appinfo>
+								<a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
+								<a:experimental>true</a:experimental>
+		  					</xsd:appinfo>
+		  				</xsd:annotation>
+		  			</xsd:element>				            
 		            <xsd:element name="baseCollection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
 					    <xsd:annotation>
 					        <xsd:documentation>
@@ -16463,18 +16483,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-	      	<xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
-  				<xsd:annotation>
-  					<xsd:documentation>
-  						Specification of an explicit or implicit object collection that will be used as data source for the view.
-  						EXTREMELY EXPERIMENTAL. This is almost certain to change in the future.
-  					</xsd:documentation>
-  					<xsd:appinfo>
-						<a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
-						<a:experimental>true</a:experimental>
-  					</xsd:appinfo>
-  				</xsd:annotation>
-  			</xsd:element>
       	</xsd:sequence>	
     </xsd:complexType>
     

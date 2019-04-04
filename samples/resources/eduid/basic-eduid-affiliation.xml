@@ -1,0 +1,15 @@
+<role oid="4f656347-4515-4825-9a3c-61d6742cef8c" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:ext="http://midpoint.evolveum.com/xml/ns/custom/union/extension-1">
+	
+	<name>Basic affiliation</name>
+	
+	<inducement>
+		<construction>
+			<resourceRef oid="c29764b3-6205-4460-811a-9c3af7b0a59f" type="c:ResourceType" />
+			<kind>account</kind>
+			<intent>default</intent>
+		</construction>
+	</inducement>
+</role>
