@@ -114,7 +114,7 @@ public interface ConnectorInstance {
 	 * @throws ConfigurationException
 	 */
 	void initialize(ResourceSchema previousResourceSchema, Collection<Object> previousCapabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, ConfigurationException;
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
 	/**
 	 * Updates stored resource schema and capabilities.
@@ -136,8 +136,8 @@ public interface ConnectorInstance {
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException
 	 */
-	Collection<Object> fetchCapabilities(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException;
+	Collection<Object> fetchCapabilities(OperationResult parentResult) 
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
 	 * Retrieves the schema from the resource.
@@ -155,7 +155,8 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
      * @throws ConfigurationException
 	 */
-	ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
+	ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
 	/**
 	 * Retrieves a specific object from the resource.

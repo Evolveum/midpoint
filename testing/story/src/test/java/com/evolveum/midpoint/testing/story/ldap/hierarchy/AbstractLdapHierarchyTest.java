@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.testing.story.ldaphierarchy;
+package com.evolveum.midpoint.testing.story.ldap.hierarchy;
 
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -47,8 +45,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.testing.story.TestTrafo;
+import com.evolveum.midpoint.testing.story.ldap.AbstractLdapTest;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -77,7 +75,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
+public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
+	
+	public static final File LDAP_HIERARCHY_TEST_DIR = new File(LDAP_TEST_DIR, "hierarchy");
 
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;

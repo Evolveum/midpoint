@@ -18,35 +18,63 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.fe-assign_horizontal_B_piece:before {
-  content: "\e90c";
-}
-.fe-assign_horizontal_A_piece:before {
-  content: "\e90d";
-}
-.fe-arrow:before {
-  content: "\e90e";
-}
-.fe-officer-cap-object:before {
-  content: "\e90b";
-}
-.fe-assignment-straight-thicker-object:before {
-  content: "\e90a";
-}
-.fe-unemployer-icon:before {
-  content: "\e910";
-}
-.fe-employer-icon:before {
-  content: "\e911";
-}
-.fe-assignment-straight-object:before {
-  content: "\e912";
+.fe-archetype_smooth:before {
+  content: "\e918";
 }
 .fe-crown-object:before {
   content: "\e900";
 }
 .fe-approver-object:before {
   content: "\e901";
+}
+.fe-manager-tie-object:before {
+  content: "\e90b";
+}
+.fe-policeman-object:before {
+  content: "\e90c";
+}
+.fe-action-draft:before {
+  content: "\e90d";
+}
+.fe-action-locked:before {
+  content: "\e90e";
+}
+.fe-action-assign:before {
+  content: "\e90f";
+}
+.fe-assign-horizontal-A:before {
+  content: "\e910";
+}
+.fe-assign-horizontal-B:before {
+  content: "\e911";
+}
+.fe-assignment-horizontal-slim:before {
+  content: "\e912";
+}
+.fe-assignment-horizontal-thick:before {
+  content: "\e90a";
+}
+.fe-unemployee-object:before {
+  content: "\e913";
+}
+.fe-employee-object .path1:before {
+  content: "\e914";
+  color: rgb(0, 0, 0);
+}
+.fe-employee-object .path2:before {
+  content: "\e915";
+  margin-left: -1em;
+  color: rgb(0, 0, 0);
+}
+.fe-employee-object .path3:before {
+  content: "\e916";
+  margin-left: -1em;
+  color: rgb(0, 0, 0);
+}
+.fe-employee-object .path4:before {
+  content: "\e917";
+  margin-left: -1em;
+  color: rgb(0, 0, 0);
 }
 .fe-assignment:before {
   content: "\e902";

@@ -259,6 +259,8 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
 	public static final String CHANGE_CHANNEL_DISCOVERY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DISCOVERY);
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
+	public static final QName CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS = new QName(NS_PROVISIONING_CHANNEL, "delNotUpdatedShadows");
+	public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
 	public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
@@ -425,6 +427,9 @@ public abstract class SchemaConstants {
 	// be inverted, eventually (MID-356)
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
 	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
+	public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";
+	public static final QName ICF_SUBTYPES_POLYSTRING_QNAME = new QName(NS_ICF_SUBTYPES, "PolyString");
+	public static final String ICF_SUBTYPES_POLYSTRING_URI = QNameUtil.qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
 	public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
 			"configurationProperties");
 	public static final ItemName ICF_TIMEOUTS = new ItemName(NS_ICF_CONFIGURATION, "timeouts");

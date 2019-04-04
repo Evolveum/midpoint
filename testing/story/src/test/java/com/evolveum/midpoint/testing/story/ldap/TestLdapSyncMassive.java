@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.testing.story.ldap;
 
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -65,9 +66,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public  class TestLdapSyncMassive extends AbstractStoryTest {
+public  class TestLdapSyncMassive extends AbstractLdapTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-sync-massive");
+	public static final File TEST_DIR = new File(LDAP_TEST_DIR, "sync-massive");
 
 	private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
@@ -565,7 +566,8 @@ public  class TestLdapSyncMassive extends AbstractStoryTest {
 		}
 	}
 
-	private void dumpLdap() throws DirectoryException {
+	@Override
+	protected void dumpLdap() throws DirectoryException {
 		display("LDAP server tree", openDJController.dumpTree());
 	}
 
