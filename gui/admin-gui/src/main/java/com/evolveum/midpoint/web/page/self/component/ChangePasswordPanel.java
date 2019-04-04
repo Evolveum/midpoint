@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.page.self.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -153,27 +156,21 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         	private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createIconModel(final IModel<PasswordAccountDto> rowModel) {
-                return new IModel<String>() {
-                	private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        PasswordAccountDto item = rowModel.getObject();
-                        if (item.getCssClass() == null || item.getCssClass().trim().equals("")) {
-                            if (item.isMidpoint()) {
-                                item.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
-                            } else if (!item.isPasswordCapabilityEnabled()){
-                            	item.setCssClass(NO_CAPABILITY_ICON_CSS);
-                            } else if (item.isPasswordOutbound()) {
-                                item.setCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
-                            } else {
-                                item.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
-                            }
-                        }
-                        return item.getCssClass();
+            protected DisplayType getIconDisplayType(IModel<PasswordAccountDto> rowModel) {
+                PasswordAccountDto item = rowModel.getObject();
+                if (item.getCssClass() == null || item.getCssClass().trim().equals("")) {
+                    if (item.isMidpoint()) {
+                        item.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
+                    } else if (!item.isPasswordCapabilityEnabled()){
+                        item.setCssClass(NO_CAPABILITY_ICON_CSS);
+                    } else if (item.isPasswordOutbound()) {
+                        item.setCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
+                    } else {
+                        item.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
                     }
-                };
+                }
+                return WebComponentUtil.createDisplayType(item.getCssClass());
+
             }
 
             @Override

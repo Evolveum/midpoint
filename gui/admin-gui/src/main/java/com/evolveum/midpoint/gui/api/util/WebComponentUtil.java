@@ -3245,6 +3245,10 @@ public final class WebComponentUtil {
 		return displayType.getTooltip().getOrig();
 	}
 
+	public static DisplayType createDisplayType(String iconCssClass){
+		return createDisplayType(iconCssClass, "", "");
+	}
+
 	public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title){
 		DisplayType displayType = new DisplayType();
 		IconType icon = new IconType();
