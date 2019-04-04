@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -115,6 +116,42 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<OrgType> object, String date){
 				PageOrgUnit.this.navigateToNext(new PageOrgUnitHistory(object, date));
 			}
+
+			@Override
+			public OrgMemberPanel createMemberPanel(String panelId) {
+
+				return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected List<QName> getSupportedRelations() {
+						return getSupportedMembersTabRelations();
+					}
+
+				};
+			}
+
+			@Override
+			public OrgMemberPanel createGovernancePanel(String panelId) {
+
+				return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected List<QName> getSupportedRelations() {
+						return getSupportedGovernanceTabRelations();
+					}
+
+					@Override
+					protected Map<String, String> getAuthorizations(QName complexType) {
+						return getGovernanceTabAuthorizations();
+					}
+
+				};
+			}
+
 
 		};
 	}

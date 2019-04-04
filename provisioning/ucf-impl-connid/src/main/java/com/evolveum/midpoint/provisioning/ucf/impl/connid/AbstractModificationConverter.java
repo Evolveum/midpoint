@@ -360,7 +360,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 	}
 	
 	protected <T> Object covertAttributeValueToConnId(PrismPropertyValue<T> pval, QName midPointAttributeName) throws SchemaException {
-		return ConnIdUtil.convertValueToIcf(pval, protector, midPointAttributeName);
+		return ConnIdUtil.convertValueToConnId(pval, protector, midPointAttributeName);
 	}
 	
 	private <T> List<Object> covertAuxiliaryObjectClassValuesToConnId(Collection<PrismPropertyValue<QName>> pvals, QName midPointAttributeName, Map<QName,ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap) throws SchemaException {

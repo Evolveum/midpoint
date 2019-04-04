@@ -165,7 +165,7 @@ public class ValueOperation extends Operation {
     	}
         Collection<Object> convertedValues = new ArrayList<>();
         for (PrismValue value : values) {
-            Object converted = ConnIdUtil.convertValueToIcf(value, null, propName);
+            Object converted = ConnIdUtil.convertValueToConnId(value, null, propName);
             convertedValues.add(converted);
         }
 

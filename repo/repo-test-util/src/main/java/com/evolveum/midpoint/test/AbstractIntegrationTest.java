@@ -69,6 +69,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
@@ -2429,6 +2430,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		asserter.setPrismContext(prismContext);
 		asserter.setObjectResolver(repoSimpleObjectResolver);
 		asserter.setProtector(protector);
+	}
+	
+	protected PolyStringAsserter<Void> assertPolyString(PolyString polystring, String desc) {
+		PolyStringAsserter<Void> asserter = new PolyStringAsserter<>(polystring, desc);
+		initializeAsserter(asserter);
+		return asserter;
 	}
 	
 	protected RefinedResourceSchemaAsserter<Void> assertRefinedResourceSchema(PrismObject<ResourceType> resource, String details) throws SchemaException {

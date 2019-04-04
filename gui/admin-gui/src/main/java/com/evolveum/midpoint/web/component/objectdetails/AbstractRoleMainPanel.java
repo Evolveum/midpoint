@@ -286,10 +286,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			protected List<QName> getSupportedRelations() {
-				List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
-				List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
-				governance.forEach(r -> relations.remove(r));
-				return relations;
+				return getSupportedMembersTabRelations();
 			}
 			
 		};
@@ -304,15 +301,30 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			protected List<QName> getSupportedRelations() {
-				return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+				return getSupportedGovernanceTabRelations();
 			}
 			
 			@Override
 			protected Map<String, String> getAuthorizations(QName complexType) {
-				return GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS;
+				return getGovernanceTabAuthorizations();
 			}
 		
 		};
+	}
+
+	protected List<QName> getSupportedMembersTabRelations(){
+		List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
+		List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+		governance.forEach(r -> relations.remove(r));
+		return relations;
+	}
+
+	protected List<QName> getSupportedGovernanceTabRelations(){
+		return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+	}
+
+	protected Map<String, String> getGovernanceTabAuthorizations(){
+		return GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS;
 	}
 	
 	private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage){

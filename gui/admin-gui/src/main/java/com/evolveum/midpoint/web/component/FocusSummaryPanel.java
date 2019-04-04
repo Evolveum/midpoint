@@ -18,10 +18,12 @@ package com.evolveum.midpoint.web.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
@@ -52,7 +54,8 @@ import java.util.stream.Collectors;
 public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSummaryPanel<O> {
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_ACTIVATION_TAG = "activationTag";
+	private static final String DOT_CLASS = FocusSummaryPanel.class.getName() + ".";
+	private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "activationTag";
 
 	public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, ModelServiceLocator serviceLocator) {
 		super(id, type, model, serviceLocator);
@@ -108,7 +111,8 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 	protected IModel<String> getDefaltParentOrgModel() {
 		return new ReadOnlyModel<String>(() -> {
 			O focusObject = FocusSummaryPanel.this.getModel().getObject();
-			List<OrgType> parentOrgs = focusObject != null ? focusObject.getParentOrg() : null;
+			List<OrgType> parentOrgs = focusObject != null ? WebComponentUtil.loadReferencedObjectList(focusObject.getParentOrgRef(),
+					OPERATION_LOAD_PARENT_ORGS, FocusSummaryPanel.this.getPageBase()) : null;
 			if (parentOrgs == null || parentOrgs.isEmpty()) {
 				return "";
 			}
@@ -116,11 +120,21 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 			// this whole thing should be driven by an expression later on
 			for (OrgType orgType : parentOrgs) {
 				if (FocusTypeUtil.determineSubTypes(orgType).contains("functional")) {
-					return PolyString.getOrig(orgType.getDisplayName());
+					return WebComponentUtil.getDisplayNameOrName(orgType.asPrismObject());
+				}
+			}
+			//search for manager org at first
+			for (ObjectReferenceType orgRef : focusObject.getParentOrgRef()) {
+				if (orgRef.getRelation() != null && RelationTypes.MANAGER.equals(orgRef.getRelation())) {
+					for (OrgType orgType : parentOrgs){
+						if (orgType.getOid().equals(orgRef.getOid())){
+							return WebComponentUtil.getDisplayNameOrName(orgType.asPrismObject());
+						}
+					}
 				}
 			}
 			// Just use the first one as a fallback
-			return PolyString.getOrig(parentOrgs.iterator().next().getDisplayName());
+			return WebComponentUtil.getDisplayNameOrName(parentOrgs.iterator().next().asPrismObject());
 		});
 	}
 

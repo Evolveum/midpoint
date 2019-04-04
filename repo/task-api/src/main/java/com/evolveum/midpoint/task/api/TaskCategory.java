@@ -37,4 +37,5 @@ public class TaskCategory {
     public static final String CUSTOM = "Custom";
     public static final String ACCESS_CERTIFICATION = "AccessCertification";
     public static final String UTIL = "Utility";
+    public static final String DELETE_NOT_UPDATED_SHADOWS = "deleteNotUpdatedShadows";
 }

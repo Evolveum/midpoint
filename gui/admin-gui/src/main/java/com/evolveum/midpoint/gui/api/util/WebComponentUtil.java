@@ -658,17 +658,6 @@ public final class WebComponentUtil {
 		}
 	}
 
-	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
-											  ObjectDelta delta, String category, OperationResult parentResult, PageBase pageBase) throws SchemaException{
-		ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
-				? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
-				: null;
-		TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
-				memberQuery, delta, options, category, pageBase);
-		WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
-
-	}
-
 	public static boolean isAuthorized(String... action) {
 		if (action == null || action.length == 0) {
 			return true;
@@ -3360,7 +3349,7 @@ public final class WebComponentUtil {
 		return combinedRelationList;
 	}
 
-	public static DisplayType getAssignmentObjectRelationDisplayType(AssignmentObjectRelation assignmentTargetRelation, PageBase pageBase){
+	public static DisplayType getAssignmentObjectRelationDisplayType(AssignmentObjectRelation assignmentTargetRelation, String defaultTitle){
 		QName relation = assignmentTargetRelation != null && !org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
 				assignmentTargetRelation.getRelations().get(0) : null;
 		if (relation != null){
@@ -3368,12 +3357,11 @@ public final class WebComponentUtil {
 			if (def != null){
 				DisplayType displayType = def.getDisplay();
 				if (displayType == null || displayType.getIcon() == null){
-					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
-							pageBase.createStringResource("assignment.details.newValue").getString());
+					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", defaultTitle);
 				}
 				if (PolyStringUtils.isEmpty(displayType.getTooltip())){
 					StringBuilder sb = new StringBuilder();
-					sb.append(pageBase.createStringResource("MainObjectListPanel.newObject").getString());
+					sb.append(defaultTitle);
 					sb.append(" ");
 					sb.append(relation.getLocalPart());
 					displayType.setTooltip(createPolyFromOrigString(sb.toString()));
@@ -3447,4 +3435,16 @@ public final class WebComponentUtil {
 		}
 		return polyString.getOrig();
 	}
+
+    public static <T> List<T> sortDropDownChoices(IModel<? extends List<? extends T>> choicesModel, IChoiceRenderer<T> renderer){
+        List<T> sortedList = choicesModel.getObject().stream().sorted((choice1, choice2) -> {
+            Validate.notNull(choice1);
+            Validate.notNull(choice2);
+
+            return String.CASE_INSENSITIVE_ORDER.compare(renderer.getDisplayValue(choice1).toString(), renderer.getDisplayValue(choice2).toString());
+
+
+        }).collect(Collectors.toList());
+        return sortedList;
+    }
 }
