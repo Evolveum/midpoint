@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+  <!--
+   
+EXTREMELY ABSOLUTELY GIGANTICALLY ENORMOUSLY MEGA GIGA TERA SUPER HYPER EXPERIMENTAL
+		  						
+This is almost certain to change in the future. It does not even belong here well
+as this is supposed to be *object* collection and not audit collection. But for now it solves a
+couple of problems in dashboards and report functionality, which is also experimental.
+Therefore this is a good temporary choice.
+However, if you ever rely on this element the karma will get you, eventually.
+If that happens, don't come to us crying. You have been warned.
+
+   -->
+  
+<objectCollection oid="02ed230e-56bb-11e9-b2bb-8bcc562d194a"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Audit Errors</name>
+    <!-- Collection: all resources where lastAvailabilityStatus=up -->
+    <type>ResourceType</type>
+    <auditSearch> <!-- EXPERIMENTAL!!! RADIOACTIVITY!!! BIOHAZARD!!! BEWARE THE DOG!!! -->
+		<search>
+			QUERY <!-- TODO: hql for now? change later? -->
+		</search>
+		<domain>
+			QUERY <!-- TODO: hql for now? change later? -->
+		</domain>
+		<interval>
+			<last>P3D</last> <!-- means: last three days -->
+			<!-- TODO: specify from-to specific dates? expressions? -->
+		</interval>
+	</auditSearch>    
+</objectCollection>
