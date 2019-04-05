@@ -147,6 +147,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected static final Random RND = new Random();
 
+	private static final float FLOAT_EPSILON = 0.001f;
+
 	// Values used to check if something is unchanged or changed properly
 
 	protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
@@ -1755,6 +1757,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			Long actual) {
 		TestUtil.assertBetween(message, start, end, actual);
 	}
+	
+	protected void assertFloat(String message, Integer expectedIntPercentage, Float actualPercentage) {
+		assertFloat(message, expectedIntPercentage==null?null:new Float(expectedIntPercentage), actualPercentage);
+	}
+	
+	protected void assertFloat(String message, Float expectedPercentage, Float actualPercentage) {
+		if (expectedPercentage == null) {
+			if (actualPercentage == null) {
+				return;
+			} else {
+				fail(message + ", expected: " + expectedPercentage + ", but was "+actualPercentage);
+			}
+		}
+		if (actualPercentage > expectedPercentage + FLOAT_EPSILON || actualPercentage < expectedPercentage - FLOAT_EPSILON) {
+			fail(message + ", expected: " + expectedPercentage + ", but was "+actualPercentage);
+		}
+	}
 
 	protected Task createTask(String operationName) {
 		if (!operationName.contains(".")) {
@@ -1795,6 +1814,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.assertSuccess(message, result);
 	}
 	
+	protected void assertSuccess(String message, OperationResultType resultType) {
+		TestUtil.assertSuccess(message, resultType);
+	}
+	
 	protected void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
 		if (result.isUnknown()) {
 			result.computeStatus();
@@ -1819,6 +1842,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			result.computeStatus();
 		}
 		TestUtil.assertFailure(result);
+	}
+	
+	protected void assertFailure(String message, OperationResultType result) {
+		TestUtil.assertFailure(message, result);
 	}
 
 	protected void assertPartialError(OperationResult result) {
@@ -2520,4 +2547,5 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected ItemFactory itemFactory() {
 		return prismContext.itemFactory();
 	}
+	
 }

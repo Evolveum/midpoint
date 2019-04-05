@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelIntegrationTest{
+public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelIntegrationTest {
 
 	private static final String TEST_DIR = "src/test/resources/sync";
 	private static final String CORRELATION_OR_FILTER = TEST_DIR + "/correlation-or-filter.xml";
@@ -243,7 +243,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 		assertNotNull("Unexpected null system configuration", systemConfiguration);
 		
-		SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(), resourceType.asPrismObject(), null, task, result);
+		SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(), resourceType.asPrismObject(), null, prismContext, task, result);
 		syncCtx.setSystemConfiguration(systemConfiguration);
 		syncCtx.setObjectSynchronization(objectSynchronizationType);
 		syncCtx.setFocusClass(UserType.class);

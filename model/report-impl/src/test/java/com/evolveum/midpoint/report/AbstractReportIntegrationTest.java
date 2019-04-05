@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest {
 
 	protected final static File TEST_DIR_COMMON = new File("src/test/resources/common");
+	protected final static File EXPORT_DIR = new File("target/midpoint-home/export");
+
+	protected final static File TEST_REPOSTS_DIR = new File("src/test/resources/reports");
+		
+	protected final static File REPORT_USER_LIST_FILE = new File(TEST_REPOSTS_DIR, "report-user-list.xml"); 
+	protected final static String REPORT_USER_LIST_OID = "00000000-0000-0000-0000-000000000110";
+	
+	protected final static File REPORT_USER_LIST_EXPRESSIONS_CSV_FILE = new File(TEST_REPOSTS_DIR, "report-user-list-expressions-csv.xml"); 
+	protected final static String REPORT_USER_LIST_EXPRESSIONS_CSV_OID = "8fa48180-4f17-11e9-9eed-3fb4721a135e";
+	
+	protected final static File REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_FILE = new File(TEST_REPOSTS_DIR, "report-user-list-expressions-poisonous-query-csv.xml"); 
+	protected final static String REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID = "5c5af02a-4fe9-11e9-bb07-7b4e52fe05cd";
+	
+	protected final static File REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_FILE = new File(TEST_REPOSTS_DIR, "report-user-list-expressions-poisonous-field-csv.xml"); 
+	protected final static String REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID = "76c58132-4fe9-11e9-86fe-ff36d221f673";
+	
+	protected final static File REPORT_USER_LIST_SCRIPT_FILE = new File(TEST_REPOSTS_DIR, "report-user-list-script.xml"); 
+	protected final static String REPORT_USER_LIST_SCRIPT_OID = "222bf2b8-c89b-11e7-bf36-ebd4e4d45a80";
 
 	protected final static File USER_JACK_FILE = new File(TEST_DIR_COMMON, "user-jack.xml"); 
 	protected final static String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	
+	protected final static File USERS_MONKEY_ISLAND_FILE = new File(TEST_DIR_COMMON, "users-monkey-island.xml");
+	
 	protected final static File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR_COMMON, "system-configuration.xml");
+	protected final static File SYSTEM_CONFIGURATION_SAFE_FILE = new File(TEST_DIR_COMMON, "system-configuration-safe.xml");
 
 	protected final static File RESOURCE_OPENDJ_FILE = new File(TEST_DIR_COMMON, "resource-opendj.xml");
 	protected final static String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
@@ -67,7 +88,7 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 		// System Configuration
 		modelService.postInit(initResult);
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+			repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -79,6 +100,10 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 		login(userAdministrator);
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+	}
+
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
 	}
 
 	@Override

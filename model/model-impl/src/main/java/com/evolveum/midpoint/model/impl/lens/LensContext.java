@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -1465,4 +1467,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			projectionContext.finishBuild();
 		}
 	}
+	
+	/**
+	 * Expression profile to use for "privileged" operations, such as scripting hooks.
+	 */
+	public ExpressionProfile getPrivilegedExpressionProfile() {
+		// TODO: determine from system configuration.
+		return MiscSchemaUtil.getExpressionProfile();
+	}
+	
 }

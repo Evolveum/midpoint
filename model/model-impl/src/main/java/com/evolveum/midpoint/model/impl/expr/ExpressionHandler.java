@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,9 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -52,18 +54,10 @@ import java.util.Collection;
 @Component
 public class ExpressionHandler {
 
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
-
-	@Autowired(required = true)
-	private ExpressionFactory expressionFactory;
-
-	@Autowired(required = true)
-	private ModelObjectResolver modelObjectResolver;
-
-    @Autowired(required = true)
-    private PrismContext prismContext;
+	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private ModelObjectResolver modelObjectResolver;
+    @Autowired private PrismContext prismContext;
 
 	public String evaluateExpression(ShadowType shadow, ExpressionType expressionType,
 			String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -78,7 +72,7 @@ public class ExpressionHandler {
 		PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_STRING);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType,
-				outputDefinition, shortDesc, task, result);
+				outputDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
@@ -109,8 +103,9 @@ public class ExpressionHandler {
 
 		PrismPropertyDefinition<Boolean> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN);
+		ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType,
-				outputDefinition, shortDesc, task, result);
+				outputDefinition, expressionProfile, shortDesc, task, result);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
@@ -155,16 +150,16 @@ public class ExpressionHandler {
 
 		ExpressionVariables variables = new ExpressionVariables();
 		if (user != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_USER, user.asPrismObject());
+			variables.put(ExpressionConstants.VAR_USER, user.asPrismObject(), user.asPrismObject().getDefinition());
 		}
 
 		if (shadow != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject());
-			variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadow.asPrismObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject(), shadow.asPrismObject().getDefinition());
+			variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadow.asPrismObject(), shadow.asPrismObject().getDefinition());
 		}
 
 		if (resource != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource.asPrismObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource.asPrismObject(), resource.asPrismObject().getDefinition());
 		}
 
 		return variables;

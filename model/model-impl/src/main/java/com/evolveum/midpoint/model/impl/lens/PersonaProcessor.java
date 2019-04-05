@@ -277,7 +277,7 @@ public class PersonaProcessor {
 		FocusTypeUtil.setSubtype(target, constructionType.getTargetSubtype());
 
 		// pretend ADD focusOdo. We need to push all the items through the object template
-		ObjectDeltaObject<F> focusOdo = new ObjectDeltaObject<>(null, focus.createAddDelta(), focus);
+		ObjectDeltaObject<F> focusOdo = new ObjectDeltaObject<>(null, focus.createAddDelta(), focus, context.getFocusContext().getObjectDefinition());
 		ObjectDelta<T> targetDelta = target.createAddDelta();
 
 		String contextDesc = "object mapping "+objectMappingType+ " for persona construction for "+focus;

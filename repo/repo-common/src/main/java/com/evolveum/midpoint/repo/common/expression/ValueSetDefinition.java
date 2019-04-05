@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -40,26 +40,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionTy
  */
 public class ValueSetDefinition {
 
-	private ValueSetDefinitionType setDefinitionType;
-	private String shortDesc;
-	private Task task;
-	private OperationResult result;
-	private QName additionalVariableName;
+	private final ValueSetDefinitionType setDefinitionType;
+	private final ExpressionProfile expressionProfile;
+	private final String shortDesc;
+	private final Task task;
+	private final OperationResult result;
+	private final String additionalVariableName;
 	private ExpressionVariables additionalVariables;
 	private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
 
-	public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, QName additionalVariableName, String shortDesc, Task task, OperationResult result) {
+	public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, ExpressionProfile expressionProfile, String additionalVariableName, String shortDesc, Task task, OperationResult result) {
 		super();
 		this.setDefinitionType = setDefinitionType;
+		this.expressionProfile = expressionProfile;
 		this.additionalVariableName = additionalVariableName;
 		this.shortDesc = shortDesc;
 		this.task = task;
 		this.result = result;
 	}
 
-	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException {
+	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		ExpressionType conditionType = setDefinitionType.getCondition();
-		condition = ExpressionUtil.createCondition(conditionType, expressionFactory, shortDesc, task, result);
+		condition = ExpressionUtil.createCondition(conditionType, expressionProfile, expressionFactory, shortDesc, task, result);
 	}
 
 	public void setAdditionalVariables(ExpressionVariables additionalVariables) {
@@ -67,7 +69,7 @@ public class ValueSetDefinition {
 	}
 
 	public <IV extends PrismValue> boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return evalCondition(pval.getRealValue());
+		return evalCondition(pval);
 	}
 
 	/**
@@ -81,11 +83,13 @@ public class ValueSetDefinition {
 		}
 	}
 
-	private boolean evalCondition(Object value) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <IV extends PrismValue> boolean evalCondition(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value);
+		Object value = pval.getRealValue();
+		ItemDefinition definition = pval.getParent().getDefinition();
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, definition);
 		if (additionalVariableName != null) {
-			variables.addVariableDefinition(additionalVariableName, value);
+			variables.addVariableDefinition(additionalVariableName, value, definition);
 		}
 		if (additionalVariables != null) {
 			variables.addVariableDefinitions(additionalVariables, variables.keySet());
@@ -97,7 +101,5 @@ public class ValueSetDefinition {
 		}
 		return ExpressionUtil.computeConditionResult(outputTriple.getNonNegativeValues());
 	}
-
-
 
 }

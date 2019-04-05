@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Evolveum
+ * Copyright (c) 2013-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -89,8 +90,12 @@ public class MappingEvaluator {
     @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
+    
+    public PrismContext getPrismContext() {
+		return prismContext;
+	}
 
-    public static final List<QName> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
+	public static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
 	public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
 			MappingImpl<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -146,7 +151,7 @@ public class MappingEvaluator {
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer =
 			builder -> {
 
-				builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx).getMap());
+				builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx));
 
 		        builder.originType(OriginType.OUTBOUND);
 				builder.originObject(projCtx.getResource());
@@ -670,13 +675,14 @@ public class MappingEvaluator {
 		};
 
 		ExpressionVariables variables = new ExpressionVariables();
-		FOCUS_VARIABLE_NAMES.forEach(name -> variables.addVariableDefinition(name, focusOdo));
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
+		FOCUS_VARIABLE_NAMES.forEach(name -> variables.addVariableDefinition(name, focusOdo, focusOdo.getDefinition()));
+		variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
+		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
+		variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, SystemConfigurationType.class);
+		variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
 
-		Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
+		TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(defaultTargetObject);
+		Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingType.getTarget(), defaultTargetContext, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
 
 		MappingImpl.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
 				.sourceContext(focusOdo)

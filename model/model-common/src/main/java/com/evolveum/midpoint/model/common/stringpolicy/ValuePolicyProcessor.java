@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,15 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.LocalizableMessageList;
@@ -53,6 +59,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -155,7 +162,9 @@ public class ValuePolicyProcessor {
 			if (result.isError()) {
 				throw new ExpressionEvaluationException(result.getMessage());
 			}
-			if (checkAttempt(generatedValue, policy, originResolver, shortDesc, task, result)) {
+			// TODO: this needs to be determined from ValuePolicyType archetype
+			ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+			if (checkAttempt(generatedValue, policy, expressionProfile, originResolver, shortDesc, task, result)) {
 				break;
 			}
 			LOGGER.trace("Generator attempt {}: check failed", attempt);
@@ -206,7 +215,10 @@ public class ValuePolicyProcessor {
 		testMinimalUniqueCharacters(newValue, lims, result, messages);
 
 		testProhibitedValues(newValue, pp.getProhibitedValues(), originResolver, shortDesc, task, result, messages);
-		testCheckExpression(newValue, lims, originResolver, shortDesc, task, result, messages);
+		
+		// TODO: this needs to be determined from ValuePolicyType archetype
+		ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+		testCheckExpression(newValue, lims, expressionProfile, originResolver, shortDesc, task, result, messages);
 
 		if (!lims.getLimit().isEmpty()) {
 			// check limitation
@@ -395,7 +407,7 @@ public class ValuePolicyProcessor {
 	}
 	
 	private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims,
-			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result,
+			ExpressionProfile expressionProfile, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result,
 			List<LocalizableMessage> messages) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		for (CheckExpressionType checkExpression: lims.getCheckExpression()) {
@@ -403,7 +415,7 @@ public class ValuePolicyProcessor {
 			if (expressionType == null) {
 				return;
 			}
-			if (!checkExpression(newPassword, expressionType, originResolver, shortDesc, task, result)) {
+			if (!checkExpression(newPassword, expressionType, expressionProfile, originResolver, shortDesc, task, result)) {
 				LocalizableMessage msg;
 				if (checkExpression.getLocalizableFailureMessage() != null) {
 					msg = LocalizationUtil.toLocalizableMessage(checkExpression.getLocalizableFailureMessage());
@@ -732,13 +744,13 @@ public class ValuePolicyProcessor {
 		return sb.toString();
 	}
 
-	private <O extends ObjectType> boolean checkAttempt(String generatedValue, ValuePolicyType policy, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <O extends ObjectType> boolean checkAttempt(String generatedValue, ValuePolicyType policy, ExpressionProfile expressionProfile, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		StringPolicyType stringPolicy = policy.getStringPolicy();
 		if (stringPolicy != null) {
 			LimitationsType limitationsType = stringPolicy.getLimitations();
 			if (limitationsType != null) {
 				List<CheckExpressionType> checkExpressionTypes = limitationsType.getCheckExpression();
-				if (!checkExpressions(generatedValue, checkExpressionTypes, originResolver, shortDesc, task, result)) {
+				if (!checkExpressions(generatedValue, checkExpressionTypes, expressionProfile, originResolver, shortDesc, task, result)) {
 					LOGGER.trace("Check expression returned false for generated value in {}", shortDesc);
 					return false;
 				}
@@ -752,10 +764,11 @@ public class ValuePolicyProcessor {
 		return true;
 	}
 	
-	private <O extends ObjectType> boolean checkExpressions(String generatedValue, List<CheckExpressionType> checkExpressionTypes, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <O extends ObjectType> boolean checkExpressions(String generatedValue, List<CheckExpressionType> checkExpressionTypes, 
+			ExpressionProfile expressionProfile, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		for (CheckExpressionType checkExpressionType: checkExpressionTypes) {
 			ExpressionType expression = checkExpressionType.getExpression();
-			if (!checkExpression(generatedValue, expression, originResolver, shortDesc, task, result)) {
+			if (!checkExpression(generatedValue, expression, expressionProfile, originResolver, shortDesc, task, result)) {
 				return false;
 			}
 		}
@@ -763,13 +776,29 @@ public class ValuePolicyProcessor {
 	}
 
 	private <O extends ObjectType> boolean checkExpression(String generatedValue, ExpressionType checkExpression,
-			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result)
+			ExpressionProfile expressionProfile, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, generatedValue);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, originResolver == null ? null : originResolver.getObject());
-		PrismPropertyValue<Boolean> output = ExpressionUtil.evaluateCondition(variables, checkExpression, expressionFactory, shortDesc, task, result);
+		
+		MutablePrismPropertyDefinition<Object> defInput = prismContext.definitionFactory().createPropertyDefinition(
+				new ItemName(SchemaConstants.NS_C, ExpressionConstants.VAR_INPUT), PrimitiveType.STRING.getQname());
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, generatedValue, defInput);
+		
+		PrismObject<O> object = null;
+		PrismObjectDefinition<O> objectDef = null;
+		if (originResolver != null) {
+			object = originResolver.getObject();
+			if (object != null) {
+				objectDef = object.getDefinition();
+			}
+		}
+		if (objectDef == null) {
+			objectDef = (PrismObjectDefinition<O>) prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+		}
+		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, objectDef);
+		
+		PrismPropertyValue<Boolean> output = ExpressionUtil.evaluateCondition(variables, checkExpression, expressionProfile, expressionFactory, shortDesc, task, result);
 		return ExpressionUtil.getBooleanConditionOutput(output);
 	}
 	

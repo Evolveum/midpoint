@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -95,6 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectiona
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -551,11 +553,7 @@ public class InboundProcessor {
 		LOGGER.trace("Producing value {} ", value);
 		PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
 		LOGGER.trace("Resolved entitlement {}", entitlement);
-		if (variables.containsKey(ExpressionConstants.VAR_ENTITLEMENT)) {
-			variables.replaceVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
-		} else {
-			variables.addVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
-		}
+		variables.put(ExpressionConstants.VAR_ENTITLEMENT, entitlement, entitlement.getDefinition());
 	}
 
 	private <F extends FocusType> void processAuxiliaryObjectClassInbound(
@@ -733,18 +731,25 @@ public class InboundProcessor {
     		return;
     	}
     	
-    	PrismObject<ShadowType> accountNew = projectionCtx.getObjectNew();
+    	PrismObject<ShadowType> shadowNew = projectionCtx.getObjectNew();
+    	PrismObjectDefinition<ShadowType> shadowNewDef;
+    	if (shadowNew == null) {
+    		shadowNewDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+    	} else {
+    		shadowNewDef = shadowNew.getDefinition();
+    	}
     	ExpressionVariables variables = new ExpressionVariables();
-    	variables.addVariableDefinition(ExpressionConstants.VAR_USER, focusNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
-    	variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
+    	variables.put(ExpressionConstants.VAR_USER, focusNew, focusNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_FOCUS, focusNew, focusNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_ACCOUNT, shadowNew, shadowNewDef);
+    	variables.put(ExpressionConstants.VAR_SHADOW, shadowNew, shadowNewDef);
+    	variables.put(ExpressionConstants.VAR_PROJECTION, shadowNew, shadowNewDef);
+    	variables.put(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition());
+    	variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
+    	variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
     	    	
-    	Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT);
+    	RefinedAttributeDefinition<Object> attributeDefinition = projectionCtx.findAttributeDefinition(accountAttributeName);
+    	Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, (D)attributeDefinition);
     	defaultSource.recompute();
 		builder = builder.defaultSource(defaultSource)
 				.targetContext(LensUtil.getFocusDefinition(context))
@@ -755,7 +760,8 @@ public class InboundProcessor {
 				.originObject(resource);
 		
 		if (!context.getFocusContext().isDelete()){
-				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), focusNew, variables, mappingFactory.getObjectResolver() , "resolving range",
+				TypedValue<PrismObject<F>> targetContext = new TypedValue<>(focusNew);
+				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), targetContext, variables, mappingFactory.getObjectResolver() , "resolving range",
 						prismContext, task, result);
 				builder.originalTargetValues(originalValues);
 		}
@@ -1337,17 +1343,19 @@ public class InboundProcessor {
 				if (specialAttributeDelta == null){
 					specialAttributeDelta = sourceIdi.getDelta();
 				}
-				Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(sourceIdi.getItemOld(), specialAttributeDelta,
-						sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
+				Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(
+						sourceIdi.getItemOld(), specialAttributeDelta, sourceIdi.getItemOld(),
+						ExpressionConstants.VAR_INPUT_QNAME, 
+						(PrismPropertyDefinition<?>)sourceIdi.getDefinition());
 				builder = builder.defaultSource(source)
-						.addVariableDefinition(ExpressionConstants.VAR_USER, newUser)
-						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
+						.addVariableDefinition(ExpressionConstants.VAR_USER, newUser, UserType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser, FocusType.class);
 
 				PrismObject<ShadowType> accountNew = projContext.getObjectNew();
-				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource())
+				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
 						.valuePolicyResolver(createStringPolicyResolver(context, task, opResult))
 						.originType(OriginType.INBOUND)
 						.originObject(projContext.getResource());

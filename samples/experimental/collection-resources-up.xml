@@ -28,10 +28,9 @@
     		<q:value>up</q:value>
     	</q:equal>
     </filter>
-    <domainCollection>
+    <domain>
     	<!-- Domain: all resources -->
-    	<type>ResourceType</type>
-    </domainCollection>
+    </domain>
     <!-- TODO: maybe we would like to define default view here. E.g. default list of columns. -->
 
     <!-- We really like to define default thresholds here.

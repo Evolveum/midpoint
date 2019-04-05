@@ -1769,7 +1769,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		discriminator.setIntent(intent);
 		
 		SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
-				resource.asPrismObject(), getCurrentTask().getChannel(), getCurrentTask(), getCurrentResult());
+				resource.asPrismObject(), getCurrentTask().getChannel(), getPrismContext(), getCurrentTask(), getCurrentResult());
 		
 		ObjectSynchronizationType applicablePolicy = null;
 		

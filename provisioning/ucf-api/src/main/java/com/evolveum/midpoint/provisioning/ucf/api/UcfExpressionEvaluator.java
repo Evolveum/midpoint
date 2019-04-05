@@ -16,13 +16,13 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import javax.xml.namespace.QName;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -33,7 +33,7 @@ public interface UcfExpressionEvaluator {
 	/**
 	 * Evaluates given expression.
 	 */
-	<O> List<O> evaluate(ExpressionType expressionBean, Map<QName, Object> variables, QName outputPropertyName,
+	<O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
 			String contextDescription)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException;

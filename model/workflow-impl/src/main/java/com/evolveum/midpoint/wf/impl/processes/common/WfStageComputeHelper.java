@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public class WfStageComputeHelper {
 		ExpressionVariables variables = getDefaultVariables(wfTask.getWorkflowContext(), wfTask.getChannel(), result);
 		// Activiti process instance variables (use with care)
 		if (execution != null) {
-			execution.getVariables().forEach((key, value) -> variables.addVariableDefinition(new QName("_" + key), value));
+			execution.getVariables().forEach((key, value) -> variables.put("_" + key, value, value.getClass()));
 		}
 		return variables;
 	}
@@ -81,15 +81,15 @@ public class WfStageComputeHelper {
 
 		ExpressionVariables variables = new ExpressionVariables();
 
-		variables.addVariableDefinition(C_REQUESTER,
-				miscDataUtil.resolveObjectReference(wfContext.getRequesterRef(), result));
+		variables.put(ExpressionConstants.VAR_REQUESTER,
+				miscDataUtil.resolveTypedObjectReference(wfContext.getRequesterRef(), result));
 
-		variables.addVariableDefinition(C_OBJECT,
-				miscDataUtil.resolveObjectReference(wfContext.getObjectRef(), result));
+		variables.put(ExpressionConstants.VAR_OBJECT,
+				miscDataUtil.resolveTypedObjectReference(wfContext.getObjectRef(), result));
 
 		// might be null
-		variables.addVariableDefinition(C_TARGET,
-				miscDataUtil.resolveObjectReference(wfContext.getTargetRef(), result));
+		variables.put(ExpressionConstants.VAR_TARGET,
+				miscDataUtil.resolveTypedObjectReference(wfContext.getTargetRef(), result));
 
 		ObjectDelta objectDelta;
 		try {
@@ -97,11 +97,11 @@ public class WfStageComputeHelper {
 		} catch (JAXBException e) {
 			throw new SchemaException("Couldn't get object delta: " + e.getMessage(), e);
 		}
-		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, objectDelta);
+		variables.put(ExpressionConstants.VAR_OBJECT_DELTA, objectDelta, ObjectDelta.class);
 
-		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, requestChannel);
+		variables.put(ExpressionConstants.VAR_CHANNEL, requestChannel, String.class);
 
-		variables.addVariableDefinition(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext);
+		variables.put(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext, WfContextType.class);
 		// todo other variables?
 
 		return variables;
@@ -143,7 +143,7 @@ public class WfStageComputeHelper {
 		ExpressionVariables expressionVariables = null;
 		VariablesProvider enhancedVariablesProvider = () -> {
 			ExpressionVariables variables = variablesProvider.get();
-			variables.addVariableDefinition(ExpressionConstants.VAR_STAGE_DEFINITION, stageDef);
+			variables.put(ExpressionConstants.VAR_STAGE_DEFINITION, stageDef, ApprovalStageDefinitionType.class);
 			return variables;
 		};
 

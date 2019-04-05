@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -87,7 +88,7 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 				try {
 					ExecuteScriptType executeScriptRequest = executeScriptRequestTemplate.clone();
 					executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
-					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, emptyMap(),
+					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, VariablesMap.emptyMap(),
 							false, workerTask, result);
 					LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
 					LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());

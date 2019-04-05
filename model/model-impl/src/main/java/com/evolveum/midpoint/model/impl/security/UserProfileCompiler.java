@@ -19,62 +19,47 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.query.RefFilter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
 import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -85,9 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
@@ -102,7 +85,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
@@ -132,10 +114,7 @@ public class UserProfileCompiler {
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private PrismContext prismContext;
-//	@Autowired private MappingFactory mappingFactory;
-//	@Autowired private MappingEvaluator mappingEvaluator;
-//	@Autowired private ActivationComputer activationComputer;
-//	@Autowired private Clock clock;
+	@Autowired private CollectionProcessor collectionProcessor;
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 	
 	@Autowired private AssignmentCollector assignmentCollector;
@@ -508,100 +487,15 @@ public class UserProfileCompiler {
 		
 		compileCollection(existingView, collectionSpec, task, result);
 	}
-		
+	
 	private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
 		
 		QName targetObjectType = existingView.getObjectType();
 		Class<? extends ObjectType> targetTypeClass = ObjectType.class;
 		if (targetObjectType != null) {
 			targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
 		}
-		QName collectionRefType = collectionRef.getType();
-		
-		// TODO: support more cases
-		if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
-			RefFilter filter = null;
-			filter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
-				.item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
-				.buildFilter();
-			filter.setTargetTypeNullAsAny(true);
-			filter.setRelationNullAsAny(true);
-			existingView.setFilter(filter);
-			
-			try {
-				PrismObject<ArchetypeType> archetype = systemObjectCache.getArchetype(collectionRef.getOid(), result);
-				ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
-				if (archetypePolicy != null) {
-					DisplayType archetypeDisplay = archetypePolicy.getDisplay();
-					if (archetypeDisplay != null) {
-						DisplayType viewDisplay = existingView.getDisplay();
-						if (viewDisplay == null) {
-							viewDisplay = new DisplayType();
-							existingView.setDisplay(viewDisplay);
-						}
-						mergeDisplay(viewDisplay, archetypeDisplay);
-					}
-				}
-			} catch (ObjectNotFoundException e) {
-				// We do not want to throw exception here. This code takes place at login time.
-				// We do not want to stop all logins because of missing archetype.
-				LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRef.getOid(), existingView.getViewIdentifier());
-			}
-			
-			return;
-		}
-		
-		if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionRefType)) {
-			ObjectCollectionType objectCollectionType;
-			try {
-				// TODO: caching?
-				objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewIdentifier(), task, result);
-			} catch (ObjectNotFoundException e) {
-				throw new ConfigurationException(e.getMessage(), e);
-			}
-			SearchFilterType collectionFilterType = objectCollectionType.getFilter();
-			ObjectFilter collectionFilter = null;
-			if (collectionFilterType != null) {
-				collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
-			}
-			CollectionRefSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
-			if (baseCollectionSpec == null) {
-				existingView.setFilter(collectionFilter);
-			} else {
-				compileCollection(existingView, baseCollectionSpec, task, result);
-				ObjectFilter baseFilter = existingView.getFilter();
-				ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, collectionFilter, prismContext);
-				existingView.setFilter(combinedFilter);
-			}
-			return;
-		}
-		
-		// TODO
-		throw new UnsupportedOperationException("Unsupported collection type: " + collectionRefType);
-	}
-	
-	private void mergeDisplay(DisplayType viewDisplay, DisplayType archetypeDisplay) {
-		if (viewDisplay.getLabel() == null) {
-			viewDisplay.setLabel(archetypeDisplay.getLabel());
-		}
-		if (viewDisplay.getPluralLabel() == null) {
-			viewDisplay.setPluralLabel(archetypeDisplay.getPluralLabel());
-		}
-		IconType archetypeIcon = archetypeDisplay.getIcon();
-		if (archetypeIcon != null) {
-			IconType viewIcon = viewDisplay.getIcon();
-			if (viewIcon == null) {
-				viewIcon = new IconType();
-				viewDisplay.setIcon(viewIcon);
-			}
-			if (viewIcon.getCssClass() == null) {
-				viewIcon.setCssClass(archetypeIcon.getCssClass());
-			}
-			if (viewIcon.getColor() == null) {
-				viewIcon.setColor(archetypeIcon.getColor());
-			}
-		}
+		collectionProcessor.compileObjectCollectionView(existingView, collectionSpec, targetTypeClass, task, result);
 	}
 
 	private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -625,7 +519,7 @@ public class UserProfileCompiler {
 		if (existingView.getDisplay() == null) {
 			existingView.setDisplay(newDisplay);
 		}
-		mergeDisplay(existingView.getDisplay(), newDisplay);
+		MiscSchemaUtil.mergeDisplay(existingView.getDisplay(), newDisplay);
 	}
 
 	private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {

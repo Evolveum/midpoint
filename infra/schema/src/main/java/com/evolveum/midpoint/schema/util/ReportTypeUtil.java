@@ -22,7 +22,24 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.codec.binary.Base64;
+import org.jfree.data.gantt.Task;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -33,21 +50,6 @@ import net.sf.jasperreports.engine.design.JRDesignReportTemplate;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
-import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
 /**
  * @author lazyman
  */
@@ -57,10 +59,16 @@ public class ReportTypeUtil {
 	public static final String HEADER_USERAGENT = "mp-cluster-peer-client";
 	public static String URLENCODING = "UTF-8";
 	
+	public static final String REPORT_LANGUAGE = "midPoint";
 	
-	private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
-
-
+	
+	public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
+	public static final String PARAMETER_REPORT_OID = "midpointReportOid";
+	public static final String PARAMETER_REPORT_OBJECT = "midpointReportObject";
+	public static final String PARAMETER_TASK = "midpointTask";
+	public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
+	
+	
 	 public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
 	    	try	 {
 	    	byte[] reportTemplate = Base64.decodeBase64(template);
@@ -81,29 +89,26 @@ public class ReportTypeUtil {
 			throw new IllegalStateException("Could not create report. No jasper template defined.");
 		}
 		try	 {
-//	    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
-//	    	
-//	    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
-	    	 	JasperDesign jasperDesign = loadJasperDesign(reportType.getTemplate());//JRXmlLoader.load(inputStreamJRXML);
+	    	 	JasperDesign jasperDesign = loadJasperDesign(reportType.getTemplate());
 //	    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+	    	 	jasperDesign.setLanguage(REPORT_LANGUAGE);
 
 			 if (reportType.getTemplateStyle() != null){
 				JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
 				jasperDesign.addTemplate(templateStyle);
-				JRDesignParameter parameter = new JRDesignParameter();
-				parameter.setName(PARAMETER_TEMPLATE_STYLES);
-				parameter.setValueClass(JRTemplate.class);
-				parameter.setForPrompting(false);
-				jasperDesign.addParameter(parameter);
+				
+				jasperDesign.addParameter(createParameter(PARAMETER_TEMPLATE_STYLES, JRTemplate.class));
+				
 			 }
 
-//			 if (StringUtils.isNotEmpty(finalQuery)){
-				 JRDesignParameter parameter = new JRDesignParameter();
-					parameter.setName("finalQuery");
-					parameter.setValueClass(Object.class);
-					parameter.setForPrompting(false);
-					jasperDesign.addParameter(parameter);
-//			 }
+			 jasperDesign.addParameter(createParameter("finalQuery", Object.class));
+			 jasperDesign.addParameter(createParameter(PARAMETER_REPORT_OID, String.class));
+			 //TODO is this right place, we don't see e.g. task
+//			 jasperDesign.addParameter(createParameter(PARAMETER_TASK, Object.class));
+			 jasperDesign.addParameter(createParameter(PARAMETER_OPERATION_RESULT, OperationResult.class));
+			 
+			 //TODO maybe other paramteres? sunch as PARAMETER_REPORT_OBJECT PARAMETER_REPORT_SERVICE ???
+
 			 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
 			 return jasperReport;
 		 } catch (JRException ex){
@@ -113,6 +118,16 @@ public class ReportTypeUtil {
 
 
 }
+	
+	private static JRDesignParameter createParameter(String paramName, Class<?> valueClass) {
+		JRDesignParameter param = new JRDesignParameter();
+		param.setName(paramName);
+		param.setValueClass(valueClass);
+		param.setForPrompting(false);
+		param.setSystemDefined(true);
+		return param;
+		
+	}
 
     public static PrismSchema parseReportConfigurationSchema(PrismObject<ReportType> report, PrismContext context)
             throws SchemaException {

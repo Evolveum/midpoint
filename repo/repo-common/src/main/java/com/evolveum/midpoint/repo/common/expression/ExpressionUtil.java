@@ -18,24 +18,61 @@ package com.evolveum.midpoint.repo.common.expression;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ExpressionWrapper;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PartiallyResolvedItem;
+import com.evolveum.midpoint.prism.PrimitiveType;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AllFilter;
+import com.evolveum.midpoint.prism.query.ExistsFilter;
+import com.evolveum.midpoint.prism.query.FilterCreationUtil;
+import com.evolveum.midpoint.prism.query.FullTextFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.UndefinedFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -43,8 +80,15 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -71,8 +115,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -171,6 +213,17 @@ public class ExpressionUtil {
 		return convertedVal;
 	}
 
+	// TODO: do we need this?
+	public static Object resolvePathGetValue(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
+			TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
+					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		TypedValue typedValue = resolvePathGetTypedValue(path, variables, normalizeValuesToDelete, defaultContext, objectResolver, prismContext, shortDesc, task, result);
+		if (typedValue == null) {
+			return null;
+		}
+		return typedValue.getValue();
+	}
+	
 	/**
 	 * normalizeValuesToDelete: Whether to normalize container values that are to be deleted, i.e. convert them
 	 * from id-only to full data (MID-4863).
@@ -178,22 +231,22 @@ public class ExpressionUtil {
 	 * 1. consider setting this parameter to true at some other places where it might be relevant
 	 * 2. consider normalizing delete deltas earlier in the clockwork, probably at the very beginning of the operation
 	 */
-	public static Object resolvePath(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
-			Object defaultContext, ObjectResolver objectResolver, String shortDesc, Task task, OperationResult result)
+	public static TypedValue resolvePathGetTypedValue(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
+			TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-		Object root = defaultContext;
+		TypedValue root = defaultContext;
 		ItemPath relativePath = path;
 		Object first = path.first();
-		String varDesc = "default context";
+		String topVarDesc = "default context";
 		if (ItemPath.isVariable(first)) {
-			QName varName = ItemPath.toVariableName(first);
-			varDesc = "variable " + PrettyPrinter.prettyPrint(varName);
+			String topVarName = ItemPath.toVariableName(first).getLocalPart();
+			topVarDesc = "variable " + PrettyPrinter.prettyPrint(topVarName);
 			relativePath = path.rest();
-			if (variables.containsKey(varName)) {
-				root = variables.get(varName);
+			if (variables.containsKey(topVarName)) {
+				root = variables.get(topVarName);
 			} else {
-				throw new SchemaException("No variable with name " + varName + " in " + shortDesc);
+				throw new SchemaException("No variable with name " + topVarName + " in " + shortDesc);
 			}
 		}
 		if (root == null) {
@@ -207,38 +260,127 @@ public class ExpressionUtil {
 			root = normalizeValuesToDelete(root);
 		}
 
-		if (root instanceof ObjectReferenceType) {
-			root = resolveReference((ObjectReferenceType) root, objectResolver, varDesc, shortDesc, task,
+		if (root.getValue() instanceof ObjectReferenceType) {
+			root = resolveReference((TypedValue<ObjectReferenceType>) root, objectResolver, topVarDesc, shortDesc, task,
 					result);
 		}
 
-		if (root instanceof Objectable) {
-			return (((Objectable) root).asPrismObject()).find(relativePath);
+		String lastPathSegmentName = relativePath.lastName().getLocalPart();
+		
+		Object rootValue = root.getValue();
+		if (rootValue == null) {
+			return root;
 		}
-		if (root instanceof PrismObject<?>) {
-			return ((PrismObject<?>) root).find(relativePath);
-		} else if (root instanceof PrismContainer<?>) {
-			return ((PrismContainer<?>) root).find(relativePath);
-		} else if (root instanceof PrismContainerValue<?>) {
-			return ((PrismContainerValue<?>) root).find(relativePath);
-		} else if (root instanceof Item<?, ?>) {
+		
+		if (rootValue instanceof Objectable) {
+			return determineTypedValue(prismContext, lastPathSegmentName, ((Objectable) rootValue).asPrismObject(), relativePath);
+		}
+		if (rootValue instanceof PrismObject<?>) {
+			return determineTypedValue(prismContext, lastPathSegmentName, (PrismObject<?>) rootValue, relativePath);
+		} else if (rootValue instanceof PrismContainer<?>) {
+			return determineTypedValue(prismContext, lastPathSegmentName, (PrismContainer<?>) rootValue, relativePath);
+		} else if (rootValue instanceof PrismContainerValue<?>) {
+			return determineTypedValue(prismContext, lastPathSegmentName, (PrismContainerValue<?>) rootValue, relativePath);
+		} else if (rootValue instanceof Item<?, ?>) {
 			// Except for container (which is handled above)
 			throw new SchemaException(
 					"Cannot apply path " + relativePath + " to " + root + " in " + shortDesc);
-		} else if (root instanceof ObjectDeltaObject<?>) {
-			return ((ObjectDeltaObject<?>) root).findIdi(relativePath);
-		} else if (root instanceof ItemDeltaItem<?, ?>) {
-			return ((ItemDeltaItem<?, ?>) root).findIdi(relativePath);
+		} else if (rootValue instanceof ObjectDeltaObject<?>) {
+			return determineTypedValueOdo(prismContext, lastPathSegmentName, root, relativePath);
+		} else if (rootValue instanceof ItemDeltaItem<?, ?>) {
+			return determineTypedValue(prismContext, lastPathSegmentName, (ItemDeltaItem<?,?>) rootValue, relativePath);
 		} else {
 			throw new IllegalArgumentException(
-					"Unexpected root " + root + " (relative path:" + relativePath + ") in " + shortDesc);
+					"Unexpected root " + rootValue + " (relative path:" + relativePath + ") in " + shortDesc);
 		}
 	}
-
-	private static Object normalizeValuesToDelete(Object root) {
-		if (root instanceof ObjectDeltaObject<?>) {
-			return ((ObjectDeltaObject<?>) root).normalizeValuesToDelete(true);
-		} else if (root instanceof ItemDeltaItem<?, ?>) {
+	
+	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, PrismContainer<?> rootContainer, ItemPath relativePath) throws SchemaException {
+		Object value;
+		PartiallyResolvedItem<PrismValue,ItemDefinition> partiallyResolvedItem = rootContainer.findPartial(relativePath);
+		if (partiallyResolvedItem == null) {
+			value = null;
+		} else {
+			if (partiallyResolvedItem.getResidualPath() == null) {
+				value = partiallyResolvedItem.getItem();
+			} else {
+				Object parentValue = partiallyResolvedItem.getItem().getRealValue();
+				if (parentValue instanceof Structured) {
+					value = ((Structured)parentValue).resolve(partiallyResolvedItem.getResidualPath());
+				} else {
+					throw new SchemaException("No subpath "+partiallyResolvedItem.getResidualPath()+" in "+partiallyResolvedItem.getItem());
+				}
+			}
+		}
+		ItemDefinition def = determineItemDefinition(rootContainer.getDefinition(), relativePath);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootContainer+", value: "+value);
+		}
+		return new TypedValue<>((T)value, def);
+	}
+	
+	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, PrismContainerValue<?> rootContainerValue, ItemPath relativePath) throws SchemaException {
+		Item<PrismValue,ItemDefinition> value = rootContainerValue.findItem(relativePath);
+		ItemDefinition def = determineItemDefinition(rootContainerValue.getDefinition(), relativePath);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootContainerValue+", value: "+value);
+		}
+		return new TypedValue<>((T)value, def);
+	}
+	
+	private static  <T> TypedValue<T> determineTypedValue(PrismContext prismContext, String name, ItemDeltaItem<?,?> rootIdi, ItemPath relativePath) throws SchemaException {
+		ItemDeltaItem<PrismValue, ItemDefinition> value = rootIdi.findIdi(relativePath);
+		ItemDefinition def = determineItemDefinition((PrismContainerDefinition)rootIdi.getDefinition(), relativePath);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootIdi+", value: "+value);
+		}
+		return new TypedValue<>((T)value, def);
+	}
+	
+	private static  <T,O extends ObjectType> TypedValue<T> determineTypedValueOdo(PrismContext prismContext, String name, TypedValue<O> root, ItemPath relativePath) throws SchemaException {
+		ObjectDeltaObject<O> rootOdo = (ObjectDeltaObject<O>) root.getValue();
+		ItemDeltaItem<PrismValue, ItemDefinition> subValue = rootOdo.findIdi(relativePath);
+		PrismObjectDefinition<O> rootDefinition = root.getDefinition();
+		if (rootDefinition == null) {
+			rootDefinition = rootOdo.getDefinition();
+			if (rootDefinition == null) {
+				throw new IllegalArgumentException("Found ODO without a definition while processing variable '"+name+"': "+rootOdo);
+			}
+		}
+		ItemDefinition def = determineItemDefinition(rootDefinition, relativePath);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot determine definition for '"+relativePath+"' from "+rootOdo+", value: "+subValue);
+		}
+		return new TypedValue<>((T)subValue, def);
+	}
+	
+	private static ItemDefinition determineItemDefinition(PrismContainerDefinition containerDefinition, ItemPath relativePath) {
+		ItemDefinition def = containerDefinition.findItemDefinition(relativePath);
+		if (def != null) {
+			return def;
+		}
+		// This may be a wrong path. Or it may be a path to a "subproperty" of a structured property, such as PolyString/norm.
+		// Let's find out by looking at the parent.
+		ItemPath parentPath = relativePath.allExceptLast();
+		ItemDefinition parentDef = containerDefinition.findItemDefinition(parentPath);
+		if (parentDef == null) {
+			return null;
+		}
+		if (!(parentDef instanceof PrismPropertyDefinition)) {
+			return null;
+		}
+		if (!PrismUtil.isStructuredType(parentDef.getTypeName())) {
+			return null;
+		}
+		// All "subproperties" are hardcoded as singlevalue strings
+		return parentDef.getPrismContext().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+	}
+	
+	private static TypedValue normalizeValuesToDelete(TypedValue root) {
+		Object rootValue = root.getValue();
+		if (rootValue instanceof ObjectDeltaObject<?>) {
+			return new TypedValue(((ObjectDeltaObject<?>) rootValue).normalizeValuesToDelete(true), root.getDefinition());
+		} else if (rootValue instanceof ItemDeltaItem<?, ?>) {
 			// TODO normalize as well
 			return root;
 		} else {
@@ -248,7 +390,7 @@ public class ExpressionUtil {
 
 	public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(
 			VariableBindingDefinitionType target,
-			Object defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
+			TypedValue defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
 			PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (target == null) {
 			// Is this correct? What about default targets?
@@ -262,7 +404,7 @@ public class ExpressionUtil {
 		}
 		ItemPath path = itemPathType.getItemPath();
 
-		Object object = resolvePath(path, variables, false, defaultTargetContext, objectResolver, contextDesc, task, result);
+		Object object = resolvePathGetValue(path, variables, false, defaultTargetContext, objectResolver, prismContext, contextDesc, task, result);
 		if (object == null) {
 			return new ArrayList<>();
 		} else if (object instanceof Item) {
@@ -279,82 +421,103 @@ public class ExpressionUtil {
 	}
 
 	// TODO what about collections of values?
-	public static Object convertVariableValue(Object originalValue, String variableName, ObjectResolver objectResolver,
+	public static <T> TypedValue<T> convertVariableValue(TypedValue<T> originalValueAndDefinition, String variableName, ObjectResolver objectResolver,
 			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		if (originalValue instanceof PrismValue) {
-			((PrismValue) originalValue).setPrismContext(prismContext);			// TODO - or revive? Or make sure prismContext is set here?
-		} else if (originalValue instanceof Item) {
-			((Item) originalValue).setPrismContext(prismContext);				// TODO - or revive? Or make sure prismContext is set here?
+		Object valueToConvert = originalValueAndDefinition.getValue();
+		if (valueToConvert == null) {
+			return originalValueAndDefinition;
 		}
-		if (originalValue instanceof ObjectReferenceType) {
+		TypedValue<T> convertedValueAndDefinition = new TypedValue<T>(valueToConvert, (ItemDefinition)originalValueAndDefinition.getDefinition());
+		if (valueToConvert instanceof PrismValue) {
+			((PrismValue) valueToConvert).setPrismContext(prismContext);			// TODO - or revive? Or make sure prismContext is set here?
+		} else if (valueToConvert instanceof Item) {
+			((Item) valueToConvert).setPrismContext(prismContext);				// TODO - or revive? Or make sure prismContext is set here?
+		}
+		if (valueToConvert instanceof ObjectReferenceType) {
 			try {
-				originalValue = resolveReference((ObjectReferenceType)originalValue, objectResolver, variableName,
+				convertedValueAndDefinition = (TypedValue<T>) resolveReference((TypedValue<ObjectReferenceType>) originalValueAndDefinition, objectResolver, variableName,
 						contextDescription, task, result);
+				valueToConvert = convertedValueAndDefinition.getValue();
 			} catch (SchemaException e) {
 				throw new ExpressionSyntaxException("Schema error during variable "+variableName+" resolution in "+contextDescription+": "+e.getMessage(), e);
 			}
 		}
-		if (originalValue instanceof PrismObject<?>) {
-			return ((PrismObject<?>)originalValue).asObjectable();
+		if (valueToConvert instanceof PrismObject<?>) {
+			convertedValueAndDefinition.setValue(((PrismObject<?>)valueToConvert).asObjectable());
+			return convertedValueAndDefinition;
 		}
-		if (originalValue instanceof PrismContainerValue<?>) {
-			return ((PrismContainerValue<?>)originalValue).asContainerable();
+		if (valueToConvert instanceof PrismContainerValue<?>) {
+			convertedValueAndDefinition.setValue(((PrismContainerValue<?>)valueToConvert).asContainerable());
+			return convertedValueAndDefinition;
 		}
-		if (originalValue instanceof PrismPropertyValue<?>) {
-			return ((PrismPropertyValue<?>)originalValue).getValue();
+		if (valueToConvert instanceof PrismPropertyValue<?>) {
+			convertedValueAndDefinition.setValue(((PrismPropertyValue<?>)valueToConvert).getValue());
+			return convertedValueAndDefinition;
 		}
-		if (originalValue instanceof PrismReferenceValue) {
-			if (((PrismReferenceValue) originalValue).getDefinition() != null) {
-				return ((PrismReferenceValue) originalValue).asReferencable();
+		if (valueToConvert instanceof PrismReferenceValue) {
+			if (((PrismReferenceValue) valueToConvert).getDefinition() != null) {
+				convertedValueAndDefinition.setValue(((PrismReferenceValue) valueToConvert).asReferencable());
+				return convertedValueAndDefinition;
 			}
 		}
-		if (originalValue instanceof PrismProperty<?>) {
-			PrismProperty<?> prop = (PrismProperty<?>)originalValue;
+		if (valueToConvert instanceof PrismProperty<?>) {
+			PrismProperty<?> prop = (PrismProperty<?>)valueToConvert;
 			PrismPropertyDefinition<?> def = prop.getDefinition();
 			if (def != null) {
 				if (def.isSingleValue()) {
-					return prop.getRealValue();
+					return new TypedValue(prop.getRealValue(), def);
 				} else {
-					return prop.getRealValues();
+					return new TypedValue(prop.getRealValues(), def);
 				}
 			} else {
-				return prop.getValues();
+				// Guess, but we may be wrong
+				def = prismContext.definitionFactory().createPropertyDefinition(prop.getElementName(), PrimitiveType.STRING.getQname());
+				return new TypedValue(prop.getRealValues(), def);
 			}
 		}
-		if (originalValue instanceof PrismReference) {
-			PrismReference prop = (PrismReference)originalValue;
-			PrismReferenceDefinition def = prop.getDefinition();
+		if (valueToConvert instanceof PrismReference) {
+			PrismReference ref = (PrismReference)valueToConvert;
+			PrismReferenceDefinition def = ref.getDefinition();
 			if (def != null) {
 				if (def.isSingleValue()) {
-					return prop.getRealValue();
+					return new TypedValue(ref.getRealValue(), def);
 				} else {
-					return prop.getRealValues();
+					return new TypedValue(ref.getRealValues(), def);
 				}
 			} else {
-				return prop.getValues();
+				def = prismContext.definitionFactory().createReferenceDefinition(ref.getElementName(), ObjectType.COMPLEX_TYPE);
+				return new TypedValue(ref.getRealValues(), def);
 			}
 		}
-		if (originalValue instanceof PrismContainer<?>) {
-			PrismContainer<?> container = (PrismContainer<?>)originalValue;
+		if (valueToConvert instanceof PrismContainer<?>) {
+			PrismContainer<?> container = (PrismContainer<?>)valueToConvert;
 			PrismContainerDefinition<?> def = container.getDefinition();
 			if (def != null) {
 				if (def.isSingleValue()) {
-					return container.getRealValue();
+					return new TypedValue(container.getRealValue(), def);
 				} else {
-					return container.getRealValues();
+					return new TypedValue(container.getRealValues(), def);
 
 				}
 			} else {
-				return container.getValues();
+				PrismContainerValue<?> cval = container.getValue();
+				if (cval != null) {
+					Containerable containerable = cval.asContainerable();
+					if (containerable != null) {
+						return new TypedValue(container.getRealValues(), containerable.getClass());
+					}
+				}
+				return new TypedValue(container.getRealValues(), Object.class);
 			}
 		}
 
-		return originalValue;
+		return convertedValueAndDefinition;
 	}
 
-	private static PrismObject<?> resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver,
+	private static TypedValue<PrismObject<?>> resolveReference(TypedValue<ObjectReferenceType> refAndDef, ObjectResolver objectResolver,
 			String varDesc, String contextDescription, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		ObjectReferenceType ref = (ObjectReferenceType) refAndDef.getValue();
 		if (ref.getOid() == null) {
 			throw new SchemaException(
 					"Null OID in reference in variable " + varDesc + " in " + contextDescription);
@@ -367,7 +530,7 @@ public class ExpressionUtil {
 					throw new IllegalArgumentException(
 							"Resolve returned null for " + ref + " in " + contextDescription);
 				}
-				return objectType.asPrismObject();
+				return new TypedValue<>(objectType.asPrismObject());
 
 			} catch (ObjectNotFoundException e) {
 				throw new ObjectNotFoundException("Object not found during variable " + varDesc
@@ -402,9 +565,10 @@ public class ExpressionUtil {
 		Object first = path.first();
 		if (ItemPath.isVariable(first)) {
 			relativePath = path.rest();
-			QName varName = ItemPath.toVariableName(first);
+			String varName = ItemPath.toVariableName(first).getLocalPart();
 			if (variables.containsKey(varName)) {
-				Object varValue = variables.get(varName);
+				TypedValue typeVarValue = variables.get(varName);
+				Object varValue = typeVarValue.getValue();
 				if (varValue instanceof ItemDeltaItem<?, ?>) {
 					root = ((ItemDeltaItem<?, ?>) varValue).getDefinition();
 				} else if (varValue instanceof Item<?, ?>) {
@@ -419,10 +583,10 @@ public class ExpressionUtil {
 				}
 				if (root == null) {
 					throw new IllegalStateException(
-							"Null definition in content of variable " + varName + ": " + varValue);
+							"Null definition in content of variable '" + varName + "': " + varValue);
 				}
 			} else {
-				throw new SchemaException("No variable with name " + varName + " in " + shortDesc);
+				throw new SchemaException("No variable with name '" + varName + "' in " + shortDesc);
 			}
 		}
 		if (root == null) {
@@ -457,18 +621,18 @@ public class ExpressionUtil {
 
 		if (object instanceof PrismObject<?>) {
 			return (ItemDeltaItem<IV, ID>) new ObjectDeltaObject((PrismObject<?>) object, null,
-					(PrismObject<?>) object);
+					(PrismObject<?>) object, ((PrismObject) object).getDefinition());
 		} else if (object instanceof Item<?, ?>) {
-			return new ItemDeltaItem<>((Item<IV, ID>) object, null, (Item<IV, ID>) object);
+			return new ItemDeltaItem<>((Item<IV, ID>) object, null, (Item<IV, ID>) object, ((Item<IV, ID>) object).getDefinition());
 		} else if (object instanceof ItemDelta<?, ?>) {
-			return new ItemDeltaItem<>(null, (ItemDelta<IV, ID>) object, null);
+			return new ItemDeltaItem<>(null, (ItemDelta<IV, ID>) object, null, ((ItemDelta<IV, ID>) object).getDefinition());
 		} else {
 			throw new IllegalArgumentException("Unexpected object " + object + " " + object.getClass());
 		}
 
 	}
 
-	public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables,
+	public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables, ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory, PrismContext prismContext, String shortDesc, Task task,
 			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -476,21 +640,21 @@ public class ExpressionUtil {
 			return null;
 		}
 		ObjectQuery query = origQuery.clone();
-		ObjectFilter evaluatedFilter = evaluateFilterExpressionsInternal(query.getFilter(), variables,
+		ObjectFilter evaluatedFilter = evaluateFilterExpressionsInternal(query.getFilter(), variables, expressionProfile,
 				expressionFactory, prismContext, shortDesc, task, result);
 		query.setFilter(evaluatedFilter);
 		return query;
 	}
 
 	public static ObjectFilter evaluateFilterExpressions(ObjectFilter origFilter,
-			ExpressionVariables variables, ExpressionFactory expressionFactory, PrismContext prismContext,
+			ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (origFilter == null) {
 			return null;
 		}
 
-		return evaluateFilterExpressionsInternal(origFilter, variables, expressionFactory, prismContext,
+		return evaluateFilterExpressionsInternal(origFilter, variables, expressionProfile, expressionFactory, prismContext,
 				shortDesc, task, result);
 	}
 
@@ -511,7 +675,7 @@ public class ExpressionUtil {
 	}
 
 	private static ObjectFilter evaluateFilterExpressionsInternal(ObjectFilter filter,
-			ExpressionVariables variables, ExpressionFactory expressionFactory, PrismContext prismContext,
+			ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (filter == null) {
@@ -533,7 +697,7 @@ public class ExpressionUtil {
 
 			try {
 				Collection<String> expressionResult = evaluateStringExpression(variables, prismContext,
-						valueExpression, expressionFactory, shortDesc, task, result);
+						valueExpression, expressionProfile, expressionFactory, shortDesc, task, result);
 
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
@@ -562,7 +726,7 @@ public class ExpressionUtil {
 
 			try {
 				Collection<String> expressionResult = evaluateStringExpression(variables, prismContext,
-						valueExpression, expressionFactory, shortDesc, task, result);
+						valueExpression, expressionProfile, expressionFactory, shortDesc, task, result);
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
@@ -586,7 +750,7 @@ public class ExpressionUtil {
 			List<ObjectFilter> conditions = ((LogicalFilter) filter).getConditions();
 			LogicalFilter evaluatedFilter = ((LogicalFilter) filter).cloneEmpty();
 			for (ObjectFilter condition : conditions) {
-				ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(condition, variables,
+				ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(condition, variables, expressionProfile,
 						expressionFactory, prismContext, shortDesc, task, result);
 				evaluatedFilter.addCondition(evaluatedSubFilter);
 			}
@@ -607,7 +771,7 @@ public class ExpressionUtil {
 			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
 
 			try {
-				PrismValue expressionResult = evaluateExpression(variables, prismContext, valueExpression,
+				PrismValue expressionResult = evaluateExpression(variables, prismContext, valueExpression, expressionProfile,
 						filter, expressionFactory, shortDesc, task, result);
 
 				if (expressionResult == null || expressionResult.isEmpty()) {
@@ -655,13 +819,13 @@ public class ExpressionUtil {
 		} else if (filter instanceof ExistsFilter) {
 			ExistsFilter evaluatedFilter = ((ExistsFilter) filter).cloneEmpty();
 			ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(((ExistsFilter) filter).getFilter(), variables,
-					expressionFactory, prismContext, shortDesc, task, result);
+					expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
 			evaluatedFilter.setFilter(evaluatedSubFilter);
 			return evaluatedFilter;
 		} else if (filter instanceof TypeFilter) {
 			TypeFilter evaluatedFilter = ((TypeFilter) filter).cloneEmpty();
 			ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(((TypeFilter) filter).getFilter(), variables,
-						expressionFactory, prismContext, shortDesc, task, result);
+						expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
 			evaluatedFilter.setFilter(evaluatedSubFilter);
 			return evaluatedFilter;
 		} else if (filter instanceof OrgFilter) {
@@ -731,7 +895,7 @@ public class ExpressionUtil {
 	}
 
 	private static <V extends PrismValue> V evaluateExpression(ExpressionVariables variables,
-			PrismContext prismContext, ExpressionType expressionType, ObjectFilter filter,
+			PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ObjectFilter filter,
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -746,7 +910,7 @@ public class ExpressionUtil {
 					DOMUtil.XSD_STRING);
 		}
 
-		return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc,
+		return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc,
 				task, parentResult);
 
 		// String expressionResult =
@@ -755,11 +919,11 @@ public class ExpressionUtil {
 	}
 
 	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
-			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType,
+			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
+		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 				shortDesc, task, parentResult);
 
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
@@ -787,7 +951,7 @@ public class ExpressionUtil {
 	}
 
 	public static Collection<String> evaluateStringExpression(ExpressionVariables variables,
-			PrismContext prismContext, ExpressionType expressionType, ExpressionFactory expressionFactory,
+			PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
 			String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -795,7 +959,7 @@ public class ExpressionUtil {
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 		outputDefinition.setMaxOccurs(-1);
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
-				.makeExpression(expressionType, outputDefinition, shortDesc, task, parentResult);
+				.makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				parentResult);
@@ -816,12 +980,12 @@ public class ExpressionUtil {
 	}
 
 	public static PrismPropertyValue<Boolean> evaluateCondition(ExpressionVariables variables,
-			ExpressionType expressionType, ExpressionFactory expressionFactory, String shortDesc, Task task,
+			ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
 			OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
-		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,
+		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
 				expressionFactory, shortDesc, task, parentResult);
 	}
 
@@ -836,18 +1000,16 @@ public class ExpressionUtil {
 		return value;
 	}
 
-	public static Map<QName, Object> compileVariablesAndSources(ExpressionEvaluationContext params) {
-		Map<QName, Object> variablesAndSources = new HashMap<>();
+	public static VariablesMap compileVariablesAndSources(ExpressionEvaluationContext params) {
+		VariablesMap variablesAndSources = new VariablesMap();
 
 		if (params.getVariables() != null) {
-			for (Entry<QName, Object> entry : params.getVariables().entrySet()) {
-				variablesAndSources.put(entry.getKey(), entry.getValue());
-			}
+			variablesAndSources.putAll(params.getVariables());
 		}
 
 		if (params.getSources() != null) {
 			for (Source<?, ?> source : params.getSources()) {
-				variablesAndSources.put(source.getName(), source);
+				variablesAndSources.put(source.getName().getLocalPart(), source, source.getDefinition());
 			}
 		}
 
@@ -906,7 +1068,7 @@ public class ExpressionUtil {
 		throw new IllegalStateException("notreached");
 	}
 
-	public static void addActorVariable(ExpressionVariables scriptVariables, SecurityContextManager securityContextManager) {
+	public static void addActorVariable(ExpressionVariables scriptVariables, SecurityContextManager securityContextManager, PrismContext prismContext) {
 		// There can already be a value, because for mappings, we create the
 		// variable before parsing sources.
 		// For other scripts we do it just before the execution, to catch all
@@ -924,7 +1086,8 @@ public class ExpressionUtil {
 					// This is most likely evaluation of role
 					// condition before
 					// the authentication is complete.
-					scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, null);
+					PrismObjectDefinition<UserType> actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+					scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, null, actorDef);
 					return;
 				}
 				MidPointPrincipal principal = securityContextManager.getPrincipal();
@@ -942,7 +1105,13 @@ public class ExpressionUtil {
 			LoggingUtils.logUnexpectedException(LOGGER,
 					"Couldn't get principal information - the 'actor' variable is set to null", e);
 		}
-		scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, actor);
+		PrismObjectDefinition<UserType> actorDef;
+		if (actor == null) {
+			actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+		} else {
+			actorDef = actor.getDefinition();
+		}
+		scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, actor, actorDef);
 	}
 
 	public static <D extends ItemDefinition> Object convertToOutputValue(Long longValue, D outputDefinition,
@@ -1039,9 +1208,10 @@ public class ExpressionUtil {
 
 	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(
 			ExpressionType conditionExpressionType,
+			ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory,
-			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(expressionFactory.getPrismContext()), shortDesc, task, result);
+			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+		return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(expressionFactory.getPrismContext()), expressionProfile, shortDesc, task, result);
 	}
 
 	public static Function<Object, Object> createRefConvertor(QName defaultType) {
@@ -1068,4 +1238,44 @@ public class ExpressionUtil {
 	public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition(PrismContext prismContext) {
 		return prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 	}
+	
+	/**
+	 * Used in cases when we do not have a definition.
+	 */
+	public static  ItemDefinition determineDefinitionFromValueClass(PrismContext prismContext, String name, Class<?> valueClass, QName typeQName) {
+		if (valueClass == null) {
+			return null;
+		}
+		if (ObjectType.class.isAssignableFrom(valueClass)) {
+			return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass((Class<? extends ObjectType>) valueClass);
+		}
+		if (PrismObject.class.isAssignableFrom(valueClass)) {
+			return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+		}
+		if (Containerable.class.isAssignableFrom(valueClass)) {
+			PrismContainerDefinition<? extends Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass((Class<? extends Containerable>) valueClass);
+			if (def == null) {
+				ComplexTypeDefinition ctd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass((Class<? extends Containerable>) valueClass);
+				def = prismContext.definitionFactory().createContainerDefinition(new QName(SchemaConstants.NS_C, name), ctd);
+			}
+			return def;
+		}
+		MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(new QName(SchemaConstants.NS_C, name), typeQName);
+		return def;
+	}
+	
+	/**
+	 * Works only for simple evaluators that do not have any profile settings. 
+	 */
+	public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?,?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
+		ExpressionEvaluatorProfile profile = context.getExpressionEvaluatorProfile();
+		if (profile == null) {
+			return; // no restrictions
+		}
+		if (profile.getDecision() != AccessDecision.ALLOW) {
+			throw new SecurityViolationException("Access to evaluator "+evaluator.shortDebugDump()+
+					" not allowed (expression profile: "+context.getExpressionProfile().getIdentifier()+") in "+context.getContextDescription());
+		}
+	}
+	
 }

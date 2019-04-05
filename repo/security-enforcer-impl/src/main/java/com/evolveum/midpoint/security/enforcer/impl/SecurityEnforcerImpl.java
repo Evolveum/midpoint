@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -58,7 +60,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
@@ -797,8 +798,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			if (principal != null) {
 				subject = principal.getUser().asPrismObject();
 			}
-			variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject);
-			return ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, 
+			PrismObjectDefinition<UserType> def;
+			if (subject == null) {
+				def = subject.getDefinition();
+			} else {
+				def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+			}
+			variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject, def);
+			return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext, 
 					"expression in " + objectTargetDesc + " in authorization " + autzHumanReadableDesc, task, result);
 		};
 	}
