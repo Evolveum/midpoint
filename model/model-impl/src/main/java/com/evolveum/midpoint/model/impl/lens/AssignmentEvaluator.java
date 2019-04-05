@@ -730,7 +730,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), ObjectType.class);
 			AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 			if (assignmentPathVariables != null) {
-				ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
+				ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
 			}
 			variables.addVariableDefinitions(getAssignmentEvaluationVariables());
 			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, targetClass);
@@ -1314,7 +1314,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
 				.rootNode(focusOdo);
-        builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
+        builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, prismContext);
 
 		MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 

@@ -711,9 +711,9 @@ public class LensUtil {
 	    }
 	}
 
-	public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
+	public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
-		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
+		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables, prismContext);
 		return builder.addVariableDefinitions(expressionVariables);
     }
 

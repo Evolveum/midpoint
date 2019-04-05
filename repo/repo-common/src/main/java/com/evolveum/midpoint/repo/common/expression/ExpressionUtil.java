@@ -269,7 +269,17 @@ public class ExpressionUtil {
 		
 		Object rootValue = root.getValue();
 		if (rootValue == null) {
-			return root;
+			// The result value is going to be null, but we still need a definition. Try to determine that from root definition.
+			if (root.getDefinition() == null) {
+				throw new IllegalArgumentException("No definition for path "+path+": "+root);
+			}
+			// Relative path is not empty here. Therefore the root must be a container.
+			ItemDefinition subitemDefinition = ((PrismContainerDefinition<?>)root.getDefinition()).findItemDefinition(relativePath);
+			if (subitemDefinition == null) {
+				// this must be something dynamic, e.g. assignment extension. Just assume string here. Not completely correct. But what can we do?
+				subitemDefinition = prismContext.definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+			}
+			return new TypedValue<>(null, subitemDefinition);
 		}
 		
 		if (rootValue instanceof Objectable) {

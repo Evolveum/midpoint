@@ -245,7 +245,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 		if (assignmentPathVariables == null) {
 			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
 		}
-		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
+		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
 		LOGGER.info("Expression variables for filter evaluation: {}", variables);
 
 		ObjectFilter origFilter = getPrismContext().getQueryConverter().parseFilter(getConstructionType().getResourceRef().getFilter(),
@@ -579,7 +579,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 					assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
 		}
 		builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
-		builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
+		builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, getPrismContext());
 		if (getSystemConfiguration() != null) {
 			builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration(), SystemConfigurationType.class);
 		}
