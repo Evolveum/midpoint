@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathSegmentImpl;
@@ -91,8 +92,7 @@ public class CollectionProcessor {
 	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private ModelService modelService;
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
-	// TODO change to archetype manager
-	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private ArchetypeManager archetypeManager;
 	
 	public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (collectionView == null) {
@@ -253,7 +253,7 @@ public class CollectionProcessor {
 			existingView.setFilter(filter);
 			
 			try {
-				PrismObject<ArchetypeType> archetype = systemObjectCache.getArchetype(collectionRef.getOid(), result);
+				PrismObject<ArchetypeType> archetype = archetypeManager.getArchetype(collectionRef.getOid(), result);
 				ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
 				if (archetypePolicy != null) {
 					DisplayType archetypeDisplay = archetypePolicy.getDisplay();

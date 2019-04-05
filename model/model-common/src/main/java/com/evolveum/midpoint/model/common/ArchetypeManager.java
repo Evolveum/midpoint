@@ -56,6 +56,11 @@ public class ArchetypeManager {
 	
 	@Autowired private SystemObjectCache systemObjectCache;
 	
+	public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		// TODO: make this efficient (use cache)
+		return systemObjectCache.getArchetype(oid, result);
+	}
+	
 	public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
 		if (assignmentHolder == null) {
 			return null;
