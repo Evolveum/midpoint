@@ -9669,6 +9669,7 @@
             </xsd:documentation>
             <xsd:appinfo>
 				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9691,6 +9692,7 @@
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
                 <a:since>4.0</a:since>
+	 	<a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">

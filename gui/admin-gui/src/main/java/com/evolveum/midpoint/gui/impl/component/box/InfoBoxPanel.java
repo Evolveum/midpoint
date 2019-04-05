@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component.box;
 
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -56,11 +59,14 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordItemType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditSearchType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetDataFieldTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetPresentationType;
@@ -72,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IntegerStatType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -92,7 +99,9 @@ public abstract class InfoBoxPanel extends Panel{
 	private static final String DEFAULT_BACKGROUND_COLOR = "background-color:#00a65a;";
 	private static final String DEFAULT_COLOR = "color: #fff !important;";
 	private static final String DEFAULT_ICON = "fa fa-question";
+	
 	private static final String NUMBER_MESSAGE_UNKNOWN = "InfoBoxPanel.message.unknown";
+	private static final String TIMESTAMP_VALUE_NAME = "timestampValue";
 	
 	private static HashMap<String, Class<? extends WebPage>> linksRefCollections;
 	private static HashMap<QName, Class<? extends WebPage>> linksRefObjects;
@@ -254,14 +263,14 @@ public abstract class InfoBoxPanel extends Panel{
 			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
 		}
 		
-		String query = getQueryForCount(auditSearch.getRecordQuery());
+		String query = getQueryForCount(addTimestampToQuery(auditSearch.getRecordQuery()));
 		int value = (int) getPageBase().getAuditService().countObjects(
 				query, new HashMap<String, Object>());
 		Integer domainValue = null;
 		if(auditSearch.getDomainQuery() == null) {
 			LOGGER.error("DomainQuery of auditSearch is not defined");
 		} else {
-			query = getQueryForCount(auditSearch.getDomainQuery());
+			query = getQueryForCount(addTimestampToQuery(auditSearch.getDomainQuery()));
 			domainValue = (int) getPageBase().getAuditService().countObjects(
 					query, new HashMap<String, Object>());
 		}
@@ -426,7 +435,7 @@ public abstract class InfoBoxPanel extends Panel{
 		return pageBase;
 	}
 	
-	protected WebPage getLinkRef() {
+	protected WebPage getLinkRef(boolean onClick) {
 		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
 		DashboardWidgetSourceTypeType sourceType = getSourceType(model);
 		switch (sourceType) {
@@ -440,20 +449,47 @@ public abstract class InfoBoxPanel extends Panel{
 			}
 			break;
 		case AUDIT_SEARCH:
-			Class<? extends WebPage> pageType = getLinksRefCollections().get(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart());
-			return getPageBase().createWebPage(pageType, null);
+			collection = getObjectCollectionType();
+			if(collection != null && collection.getAuditSearch() != null && collection.getAuditSearch().getRecordQuery() != null) {
+				Class<? extends WebPage> pageType = getLinksRefCollections().get(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart());
+				AuditSearchDto searchDto = new AuditSearchDto();
+				String origQuery =collection.getAuditSearch().getRecordQuery();
+				collection.getAuditSearch().setRecordQuery(addTimestampToQuery(origQuery));
+				searchDto.setCollection(collection);
+				if(onClick){
+					getPageBase().getSessionStorage().getAuditLog().setSearchDto(searchDto);
+				}
+				return getPageBase().createWebPage(pageType, null);
+			}  else {
+				LOGGER.error("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
+			}
+			break;
 		case OBJECT:
 			ObjectType object = getObjectFromObjectRef();
 			if(object == null) {
 				return null;
 			}
 			QName typeName = WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass());
-			pageType = getLinksRefObjects().get(typeName);
+			Class<? extends WebPage> pageType = getLinksRefObjects().get(typeName);
 			PageParameters parameters = new PageParameters();
-			parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
+			if(onClick){
+				parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
+			}
 			return getPageBase().createWebPage(pageType, parameters);
 	}
 	return null;
+	}
+	
+	private String addTimestampToQuery(String origQuery) {
+		String [] partsOfQuery = origQuery.split("where");
+		Date date = new Date(System.currentTimeMillis() - (24*3600000));
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		String dateString = format.format(date);
+		String query = partsOfQuery[0] + " where " + TIMESTAMP_VALUE_NAME + " >= '" + dateString + "' ";
+		if(partsOfQuery.length > 1) {
+			query+= "and" +partsOfQuery[1]; 
+		}
+		return query;
 	}
 	
 	private boolean isDataNull(IModel<DashboardWidgetType> model) {
@@ -514,13 +550,11 @@ public abstract class InfoBoxPanel extends Panel{
 	}
 	
 	private AuditSearchType getAuditSearchType() {
-		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
-		if(isDataNull(model)) {
-			return null;
-		}
-		AuditSearchType auditSearch = model.getObject().getData().getAuditSearch();
+		ObjectCollectionType collection = getObjectCollectionType();
+		AuditSearchType auditSearch = collection.getAuditSearch();
 		if(auditSearch == null) {
-			LOGGER.error("AuditSearch of data is not found in widget " + model.getObject().getIdentifier());
+			LOGGER.error("AuditSearch of data is not found in widget " +
+		((IModel<DashboardWidgetType>)getDefaultModel()).getObject().getIdentifier());
 		}
 		return auditSearch;
 	}

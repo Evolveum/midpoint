@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -68,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -101,7 +103,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
     }
 
     @Override
-    public TaskRunResult run(Task task) {
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         // TODO Auto-generated method stub
         OperationResult parentResult = task.getResult();
         OperationResult result = parentResult.createSubresult(ReportHTMLCreateTaskHandler.class.getSimpleName() + ".run");
