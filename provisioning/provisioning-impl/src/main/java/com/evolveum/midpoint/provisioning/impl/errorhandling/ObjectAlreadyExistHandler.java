@@ -159,7 +159,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 					conflictingShadow==null ? "  null" : conflictingShadow.debugDump(1));
 		}
 		
-		try{
+		try {
 			if (conflictingShadow != null) {
 				// Original object and found object share the same object class, therefore they must
 				// also share a kind. We can use this short-cut.
@@ -170,13 +170,11 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 				change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 				change.setOldShadow(oldShadow);
 				change.setCurrentShadow(conflictingShadow);
-				// TODO: task initialization
-//				Task task = taskManager.createTaskInstance();
 				changeNotificationDispatcher.notifyChange(change, task, result);
 			}
-			} finally {
-				result.computeStatus();
-			}
+		} finally {
+			result.computeStatus();
+		}
 	}
 	
 	// TODO: maybe move to ShadowManager?

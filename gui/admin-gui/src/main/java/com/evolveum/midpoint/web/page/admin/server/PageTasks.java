@@ -541,14 +541,14 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 		columns.add(new IconColumn<TaskDto>(createStringResource("")) {
 			@Override
-			protected IModel<String> createIconModel(IModel<TaskDto> rowModel) {
+			protected DisplayType getIconDisplayType(IModel<TaskDto> rowModel) {
 				ObjectReferenceType ref = rowModel.getObject().getObjectRef();
 				if (ref == null || ref.getType() == null) {
-					return Model.of("");
+					return WebComponentUtil.createDisplayType("");
 				}
 				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(ref.getType());
 				String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-				return new Model<>(icon);
+				return WebComponentUtil.createDisplayType(icon);
 			}
 
 			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(QName type) {
@@ -656,37 +656,25 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		columns.add(new IconColumn<TaskDto>(createStringResource("pageTasks.task.status")) {
 
 			@Override
-			protected IModel<String> createTitleModel(final IModel<TaskDto> rowModel) {
+			protected DisplayType getIconDisplayType(final IModel<TaskDto> rowModel) {
+				String icon = "";
+				if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getStatus() != null) {
+					icon = OperationResultStatusPresentationProperties
+							.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon()
+							+ " fa-lg";
+				} else {
+					icon = OperationResultStatusPresentationProperties.UNKNOWN.getIcon() + " fa-lg";
+				}
 
-				return new IModel<String>() {
+				String title = "";
+				TaskDto dto = rowModel.getObject();
 
-					@Override
-					public String getObject() {
-						TaskDto dto = rowModel.getObject();
-
-						if (dto != null && dto.getStatus() != null) {
-							return createStringResourceStatic(PageTasks.this, dto.getStatus()).getString();
-						} else {
-							return createStringResourceStatic(PageTasks.this, OperationResultStatus.UNKNOWN).getString();
-						}
-					}
-				};
-			}
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<TaskDto> rowModel) {
-				return new IModel<String>() {
-
-					@Override
-					public String getObject() {
-						if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getStatus() != null) {
-							return OperationResultStatusPresentationProperties
-									.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon()
-									+ " fa-lg";
-						} else
-							return OperationResultStatusPresentationProperties.UNKNOWN.getIcon() + " fa-lg";
-					}
-				};
+				if (dto != null && dto.getStatus() != null) {
+					title = createStringResourceStatic(PageTasks.this, dto.getStatus()).getString();
+				} else {
+					title = createStringResourceStatic(PageTasks.this, OperationResultStatus.UNKNOWN).getString();
+				}
+				return WebComponentUtil.createDisplayType(icon, "", title);
 			}
 		});
 

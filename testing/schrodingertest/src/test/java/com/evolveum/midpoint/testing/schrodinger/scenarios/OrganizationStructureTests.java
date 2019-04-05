@@ -4,6 +4,7 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
@@ -41,9 +42,6 @@ public class OrganizationStructureTests extends TestBase {
     private static final String DIRECTORY_CURRENT_TEST = "organizationStructureTests";
     private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
 
-    //TODO seems that some problems with property files in the csv resource which is being used for tests, replace value after resolution
-    protected static final String CSV_RESOURCE_ATTR_UNIQUE= "UI_CSV_NAME_ATTRIBUTE";
-
     @Test
     public void importOrgStructure() throws IOException, ConfigurationException {
 
@@ -67,7 +65,7 @@ public class OrganizationStructureTests extends TestBase {
     @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
     public void assignOrgUnit(){
          ListUsersPage users = basicPage.listUsers();
-            users
+         UserPage userPage = (UserPage) users
                 .table()
                     .search()
                     .byName()
@@ -87,8 +85,8 @@ public class OrganizationStructureTests extends TestBase {
                             .selectCheckboxByName(NAME_ORG_UNIT_ASSIGN)
                         .and()
                     .clickAdd()
-                .and()
-                .checkKeepDisplayingResults()
+                .and();
+        userPage.checkKeepDisplayingResults()
                 .clickSave()
                     .feedback()
                     .isSuccess()
@@ -98,7 +96,7 @@ public class OrganizationStructureTests extends TestBase {
     @Test (dependsOnMethods ={ORG_UNIT_ACCOUNT_INDUCEMENT_DEPENDENCY})
     public void unassignOrgUnit(){
         ListUsersPage users = basicPage.listUsers();
-            users
+        UserPage userPage = (UserPage) users
                 .table()
                     .search()
                     .byName()
@@ -110,8 +108,8 @@ public class OrganizationStructureTests extends TestBase {
                         .table()
                         .unassignByName(NAME_ORG_UNIT_UNASSIGN)
                     .and()
-                .and()
-                .checkKeepDisplayingResults()
+                .and();
+        userPage.checkKeepDisplayingResults()
                 .clickSave()
                     .feedback()
                     .isSuccess();
@@ -121,14 +119,14 @@ public class OrganizationStructureTests extends TestBase {
     public void orgUnitAccountInducement(){
         importObject(CSV_RESOURCE_ADVANCED_SYNC,true);
         importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
-        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE);
+        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE, true);
 
         changeResourceFilePath();
 
        refreshResourceSchema(NAME_CSV_RESOURCE_ADVANCED_SYNC);
 
          ListUsersPage users = basicPage.listUsers();
-            users
+         UserPage userPage = (UserPage) users
                 .table()
                     .search()
                     .byName()
@@ -148,7 +146,8 @@ public class OrganizationStructureTests extends TestBase {
                             .selectCheckboxByName(NAME_ORG_UNIT_ASSIGN_AND_INDUCE)
                         .and()
                     .clickAdd()
-                .and()
+                .and();
+         userPage
                 .checkKeepDisplayingResults()
                 .clickSave()
                     .feedback()
@@ -160,7 +159,12 @@ public class OrganizationStructureTests extends TestBase {
 
         Assert.assertTrue(listResourcesPage
                 .table()
-                .clickByName("CSV (target with groups)")
+                .search()
+                .byName()
+                .inputValue(NAME_CSV_RESOURCE_ADVANCED_SYNC)
+                .updateSearch()
+                .and()
+                .clickByName(NAME_CSV_RESOURCE_ADVANCED_SYNC)
                     .clickEditResourceConfiguration()
                         .form()
                         .changeAttributeValue("File path", "", CSV_TARGET_FILE.getAbsolutePath())

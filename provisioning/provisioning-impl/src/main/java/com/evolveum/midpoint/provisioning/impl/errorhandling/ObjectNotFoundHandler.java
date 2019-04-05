@@ -165,8 +165,6 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 		// Otherwise the synchronization situation won't be updated because SynchronizationService could think that
 		// there is not shadow at all.
 		change.setCurrentShadow(repositoryShadow);
-		// TODO: task initialization
-//		Task task = taskManager.createTaskInstance();
 		changeNotificationDispatcher.notifyChange(change, task, result);
 		
 		result.computeStatus();

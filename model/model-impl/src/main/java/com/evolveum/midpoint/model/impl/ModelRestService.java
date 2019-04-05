@@ -109,6 +109,9 @@ public class ModelRestService {
 	public static final String OPERATION_STOP_LOCAL_SCHEDULER = CLASS_DOT + "stopScheduler";
 	public static final String OPERATION_START_LOCAL_SCHEDULER = CLASS_DOT + "startScheduler";
 	public static final String OPERATION_STOP_LOCAL_TASK = CLASS_DOT + "stopLocalTask";
+	public static final String OPERATION_GET_THREADS_DUMP = CLASS_DOT + "getThreadsDump";
+	public static final String OPERATION_GET_RUNNING_TASKS_THREADS_DUMP = CLASS_DOT + "getRunningTasksThreadsDump";
+	public static final String OPERATION_GET_TASK_THREADS_DUMP = CLASS_DOT + "getTaskThreadsDump";
 
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
@@ -572,7 +575,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			if (clazz.isAssignableFrom(TaskType.class)) {
-				model.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
+				taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
 				parentResult.computeStatus();
 				finishRequest(task);
 				if (parentResult.isSuccess()) {
@@ -644,7 +647,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.notifyChange(changeDescription, parentResult, task);
+			modelService.notifyChange(changeDescription, task, parentResult);
 			response = RestServiceUtil.createResponse(Response.Status.OK, parentResult);
 //			return Response.ok().build();
 //			String oldShadowOid = changeDescription.getOldShadowOid();
@@ -676,7 +679,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
+			PrismObject<UserType> user = modelService.findShadowOwner(shadowOid, task, parentResult);
 //			response = Response.ok().entity(user).build();
 			response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult);
 		} catch (Exception ex) {
@@ -766,7 +769,7 @@ public class ModelRestService {
 		QName objClass = new QName(MidPointConstants.NS_RI, objectClass);
 		Response response;
 		try {
-			model.importFromResource(resourceOid, objClass, task, parentResult);
+			modelService.importFromResource(resourceOid, objClass, task, parentResult);
 			response = RestServiceUtil.createResponse(Response.Status.SEE_OTHER, (uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
 					.build(ObjectTypes.TASK.getRestType(), task.getOid())), parentResult);
 //			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
@@ -792,7 +795,7 @@ public class ModelRestService {
 		Response response;
 		OperationResult testResult = null;
 		try {
-			testResult = model.testResource(resourceOid, task);
+			testResult = modelService.testResource(resourceOid, task);
 			response = RestServiceUtil.createResponse(Response.Status.OK, testResult, parentResult);
 //			response = Response.ok(testResult).build();
 		} catch (Exception ex) {
@@ -816,7 +819,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, parentResult);
+			taskService.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, task, parentResult);
 		} catch (Exception ex) {
@@ -862,7 +865,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.resumeTask(taskOid, task, parentResult);
+			taskService.resumeTask(taskOid, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.ACCEPTED, parentResult);
 		} catch (Exception ex) {
@@ -883,7 +886,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.scheduleTaskNow(taskOid, task, parentResult);
+			taskService.scheduleTaskNow(taskOid, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
 		} catch (Exception ex) {
@@ -1054,8 +1057,72 @@ public class ModelRestService {
 		finishRequest(task);
 		return response;
 
+
 	}
-	
+
+	@GET
+	@Path("/threads")
+	@Produces({"text/plain"})
+	public Response getThreadsDump(@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_THREADS_DUMP);
+
+		Response response;
+		try {
+			String dump = taskService.getThreadsDump(task, result);
+			response = Response.ok(dump).build();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get threads dump", ex);
+			response = RestServiceUtil.handleExceptionNoLog(result, ex);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@GET
+	@Path("/tasks/threads")
+	@Produces({"text/plain"})
+	public Response getRunningTasksThreadsDump(@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_RUNNING_TASKS_THREADS_DUMP);
+
+		Response response;
+		try {
+			String dump = taskService.getRunningTasksThreadsDump(task, result);
+			response = Response.ok(dump).build();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get running tasks threads dump", ex);
+			response = RestServiceUtil.handleExceptionNoLog(result, ex);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@GET
+	@Path("/tasks/{oid}/threads")
+	@Produces({"text/plain"})
+	public Response getTaskThreadsDump(@PathParam("oid") String oid, @Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_TASK_THREADS_DUMP);
+
+		Response response;
+		try {
+			String dump = taskService.getTaskThreadsDump(oid, task, result);
+			response = Response.ok(dump).build();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get task threads dump for task " + oid, ex);
+			response = RestServiceUtil.handleExceptionNoLog(result, ex);
+		}
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
 	//    @GET
 //    @Path("tasks/{oid}")
 //    public Response getTaskByIdentifier(@PathParam("oid") String identifier) throws SchemaException, ObjectNotFoundException {

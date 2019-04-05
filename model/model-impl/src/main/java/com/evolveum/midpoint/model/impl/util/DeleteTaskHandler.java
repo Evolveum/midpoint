@@ -59,6 +59,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -92,11 +93,11 @@ public class DeleteTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		return runInternal(task);
 	}
 
-	private <O extends ObjectType> TaskRunResult runInternal(Task task) {
+	private <O extends ObjectType> TaskRunResult runInternal(RunningTask task) {
 		LOGGER.trace("Delete task run starting ({})", task);
 		long startTimestamp = System.currentTimeMillis();
 
@@ -189,7 +190,7 @@ public class DeleteTaskHandler implements TaskHandler {
             }
 
             SearchResultList<PrismObject<O>> objects;
-            while (true) {
+            while (task.canRun()) {
 	            objects = modelService.searchObjects(objectType, query, searchOptions, task, opResult);
 	            if (objects.isEmpty()) {
 	            	break;
@@ -197,6 +198,9 @@ public class DeleteTaskHandler implements TaskHandler {
 
 	            int skipped = 0;
 	            for (PrismObject<O> object: objects) {
+		            if (!task.canRun()) {
+			            break;
+		            }
 	            	if (!optionRaw && ShadowType.class.isAssignableFrom(objectType)
 	            			&& isTrue(((ShadowType)(object.asObjectable())).isProtectedObject())) {
 	            		LOGGER.debug("Skipping delete of protected object {}", object);
@@ -204,8 +208,7 @@ public class DeleteTaskHandler implements TaskHandler {
 	            		continue;
 	            	}
 
-	            	ObjectDelta<?> delta = prismContext.deltaFactory().object().createDeleteDelta(objectType, object.getOid()
-		            );
+	            	ObjectDelta<?> delta = prismContext.deltaFactory().object().createDeleteDelta(objectType, object.getOid());
 
 					String objectName = PolyString.getOrig(object.getName());
 					String objectDisplayName = StatisticsUtil.getDisplayName(object);
@@ -225,14 +228,13 @@ public class DeleteTaskHandler implements TaskHandler {
 
 				opResult.summarize();
 	            if (LOGGER.isTraceEnabled()) {
-	            	LOGGER.trace("Search returned {} objects, {} skipped, progress: {}, result:\n{}",
-				            objects.size(), skipped, task.getProgress(), opResult.debugDump());
+	            	LOGGER.trace("Search returned {} objects, {} skipped, progress: {} (interrupted: {}), result:\n{}",
+				            objects.size(), skipped, task.getProgress(), !task.canRun(), opResult.debugDump());
 	            }
 
 	            if (objects.size() == skipped) {
 	            	break;
 	            }
-
             }
 
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
@@ -260,11 +262,14 @@ public class DeleteTaskHandler implements TaskHandler {
         if (task.getProgress() > 0) {
             statistics += " Wall clock time average: " + ((float) wallTime / (float) task.getProgress()) + " milliseconds";
         }
+        if (!task.canRun()) {
+        	statistics += " (task run was interrupted)";
+        }
 
         opResult.createSubresult(DeleteTaskHandler.class.getName() + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
 
         LOGGER.info(finishMessage + statistics);
-        LOGGER.trace("Run finished (task {}, run result {})", task, runResult);
+        LOGGER.trace("Run finished (task {}, run result {}); interrupted = {}", task, runResult, !task.canRun());
 
         return runResult;
 	}

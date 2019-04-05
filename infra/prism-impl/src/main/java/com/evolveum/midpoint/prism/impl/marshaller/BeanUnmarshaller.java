@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1151,13 +1151,46 @@ public class BeanUnmarshaller {
 	}
 
 	private Object unmarshalPolyStringFromMap(MapXNodeImpl map, Class<?> beanClass, ParsingContext pc) throws SchemaException {
+		
 		String orig = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
 		if (orig == null) {
 			throw new SchemaException("Null polystring orig in "+map);
 		}
+		
 		String norm = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
-		Object value = new PolyStringType(new PolyString(orig, norm));
+		
+		PolyStringTranslationType translation = null;
+		XNodeImpl xTranslation = map.get(QNameUtil.nullNamespace(PolyString.F_TRANSLATION));
+		if (xTranslation != null) {
+			translation = unmarshal(xTranslation, PolyStringTranslationType.class, pc);
+		}
+		
+		XNodeImpl xLang = map.get(QNameUtil.nullNamespace(PolyString.F_LANG));
+		Map<String,String> lang = unmarshalLang(xLang, pc);
+		
+		Object value = new PolyStringType(new PolyString(orig, norm, translation, lang));
 		return toCorrectPolyStringClass(value, beanClass, map);
+	}
+
+	private Map<String, String> unmarshalLang(XNodeImpl xLang, ParsingContext pc) throws SchemaException {
+		if (xLang == null) {
+			return null;
+		}
+		if (!(xLang instanceof MapXNodeImpl)) {
+			throw new SchemaException("Polystring lang is not a map, it is "+xLang);
+		}
+		MapXNodeImpl xLangMap = (MapXNodeImpl)xLang;
+		Map<String, String> lang = new HashMap<>();
+		for (Entry<QName, XNodeImpl> xLangEntry : xLangMap.entrySet()) {
+			QName key = xLangEntry.getKey();
+			XNodeImpl xLangEntryVal = xLangEntry.getValue();
+			if (!(xLangEntryVal instanceof PrimitiveXNodeImpl)) {
+				throw new SchemaException("Polystring lang for key '"+key.getLocalPart()+"' is not primitive, it is "+xLangEntryVal);
+			}
+			String value = ((PrimitiveXNodeImpl<String>)xLangEntryVal).getParsedValue(DOMUtil.XSD_STRING, String.class);
+			lang.put(key.getLocalPart(), value);
+		}
+		return lang;
 	}
 
 	private Object toCorrectPolyStringClass(Object value, Class<?> beanClass, XNodeImpl node) {

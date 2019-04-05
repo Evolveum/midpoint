@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -571,6 +571,11 @@ public class ObjectTypeUtil {
     	return object != null ? (ObjectType) object.asObjectable() : null;
 	}
 
+	public static <T extends Objectable> PrismObject<T> toPrismObject(T objectable) {
+		//noinspection unchecked
+		return objectable != null ? objectable.asPrismObject() : null;
+	}
+
 	public static boolean containsOid(Collection<ObjectReferenceType> values, @NotNull String oid) {
 		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
 	}
@@ -581,6 +586,15 @@ public class ObjectTypeUtil {
     		return null;
 		}
 		Item item = extension.asPrismContainerValue().findItem(ItemName.fromQName(itemName));
+    	return item != null ? (T) item.getRealValue() : null;
+	}
+	
+	public static <T> T getExtensionItemRealValue(@NotNull PrismObject<? extends ObjectType> object, @NotNull QName itemName) {
+		PrismContainer<?> extension = object.getExtension();
+    	if (extension == null) {
+    		return null;
+		}
+		Item item = extension.findItem(ItemName.fromQName(itemName));
     	return item != null ? (T) item.getRealValue() : null;
 	}
 

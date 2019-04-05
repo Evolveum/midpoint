@@ -76,6 +76,10 @@
                     <input type="checkbox" wicket:id="includeServices">
                     <wicket:message key="PageCertDefinition.scopeIncludeServices"/>
                 </span>
+              <span style="margin-left: 30px;">
+                    <input type="checkbox" wicket:id="includeUsers">
+                    <wicket:message key="PageCertDefinition.scopeIncludeUsers"/>
+                </span>
           </td>
         </tr>
         <tr class="row">
@@ -87,6 +91,12 @@
             </span>
           </td>
         </tr>
+          <tr class="row">
+              <td class="col-md-3"><wicket:message key="PageCertDefinition.scopeRelation"/> <i wicket:id="scopeRelationHelp" wicket:message="title:PageCertDefinition.scopeRelationHelp"/></td>
+              <td class="col-md-9">
+                  <div wicket:id="relations"/>
+              </td>
+          </tr>
       </table>
     </div>
   </div>

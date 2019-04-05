@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.web.component.dialog.*;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -187,8 +189,6 @@ public class PageDebugList extends PageAdminConfiguration {
 		} catch (Exception ex) {
 			// todo implement error handling
 		}
-
-		Collections.sort(objects, (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
 
 		return objects;
 	}
@@ -697,7 +697,8 @@ public class PageDebugList extends PageAdminConfiguration {
 	private void exportSelected(AjaxRequestTarget target, DebugObjectItem item) {
 		List<DebugObjectItem> selected = getSelectedData(target, item);
 		if (selected.isEmpty()) {
-			return;
+			RepositoryObjectDataProvider provider = getTableDataProvider();
+			selected = IteratorUtils.toList(provider.internalIterator(0, provider.size()));
 		}
 
 		List<String> oids = new ArrayList<>();
@@ -737,18 +738,14 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		items = WebComponentUtil.getSelectedData(getListTable());
-		if (items.isEmpty()) {
-			warn(getString("pageDebugList.message.nothingSelected"));
-			target.add(getFeedbackPanel());
-		}
-
 		return items;
 	}
 
 	private void deleteSelected(AjaxRequestTarget target, DebugObjectItem item) {
 		List<DebugObjectItem> selected = getSelectedData(target, item);
 		if (selected.isEmpty()) {
-			return;
+			RepositoryObjectDataProvider provider = getTableDataProvider();
+			selected = IteratorUtils.toList(provider.internalIterator(0, provider.size()));
 		}
 
 		DebugSearchDto searchDto = searchModel.getObject();
@@ -952,11 +949,11 @@ public class PageDebugList extends PageAdminConfiguration {
 			choiceContainer.setOutputMarkupId(true);
 			searchForm.add(choiceContainer);
 
-			DropDownChoice choice = new DropDownChoice(ID_CHOICE,
+			DropDownChoicePanel choice = new DropDownChoicePanel<ObjectTypes>(ID_CHOICE,
 					new PropertyModel(model, DebugSearchDto.F_TYPE), createChoiceModel(renderer), renderer);
-//			choice.add(getDropDownStyleAppender());
+//			choice.getBaseFormComponent().add(getDropDownStyleAppender());
 			choiceContainer.add(choice);
-			choice.add(new OnChangeAjaxBehavior() {
+			choice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
@@ -965,19 +962,18 @@ public class PageDebugList extends PageAdminConfiguration {
 				}
 			});
 
-			DropDownChoice resource = new DropDownChoice(ID_RESOURCE,
+			DropDownChoicePanel resource = new DropDownChoicePanel(ID_RESOURCE,
 					new PropertyModel(model, DebugSearchDto.F_RESOURCE), resourcesModel,
-					createResourceRenderer());
-//			resource.add(getDropDownStyleAppender());
-			resource.setNullValid(true);
-			resource.add(new AjaxFormComponentUpdatingBehavior("blur") {
+					createResourceRenderer(), true);
+//			resource.getBaseFormComponent().add(getDropDownStyleAppender());
+			resource.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
 					// nothing to do, it's here just to update model
 				}
 			});
-			resource.add(new OnChangeAjaxBehavior() {
+			resource.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
@@ -1028,12 +1024,6 @@ public class PageDebugList extends PageAdminConfiguration {
 
 					Collections.addAll(choices, ObjectTypes.values());
 					choices.remove(ObjectTypes.OBJECT);
-
-					choices.sort((o1, o2) -> {
-						String str1 = (String) renderer.getDisplayValue(o1);
-						String str2 = (String) renderer.getDisplayValue(o2);
-						return String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-					});
 
 					return choices;
 				}

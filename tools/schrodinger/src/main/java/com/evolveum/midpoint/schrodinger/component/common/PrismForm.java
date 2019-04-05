@@ -22,6 +22,7 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.configuration.ObjectCollectionViewsPanel;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -35,6 +36,8 @@ import static com.codeborne.selenide.Selenide.$;
  * Created by Viliam Repan (lazyman).
  */
 public class PrismForm<T> extends Component<T> {
+
+    private static final String CARET_DOWN_ICON_STYLE = "fa-caret-down";
 
     public PrismForm(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
@@ -76,7 +79,7 @@ public class PrismForm<T> extends Component<T> {
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() == 1) {
-            values.first().$(By.className("form-control")).setValue(newValue);
+            values.first().$(By.className("form-control")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S).setValue(newValue);
         }
 
         // todo implement
@@ -218,7 +221,7 @@ public class PrismForm<T> extends Component<T> {
         return null;
     }
 
-    private SelenideElement findProperty(String name) {
+    public SelenideElement findProperty(String name) {
 
         Selenide.sleep(5000);
 
@@ -254,4 +257,45 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public PrismForm<T> expandContainerPropertiesPanel(String containerHeaderKey){
+        SelenideElement panelHeader = $(Schrodinger.byElementAttributeValue("div", "data-s-resource-key", containerHeaderKey));
+
+        SelenideElement headerChevron = panelHeader.$(By.tagName("i"));
+        if (headerChevron.getAttribute("class") != null && !headerChevron.getAttribute("class").contains(CARET_DOWN_ICON_STYLE)) {
+            headerChevron.click();
+            panelHeader
+                    .$(Schrodinger.byElementAttributeValue("i", "class","fa fa-caret-down fa-lg"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
+        panelHeader
+                .parent()
+                .$(By.className("prism-properties"))
+                .shouldBe(Condition.visible);
+        return this;
+    }
+
+    public PrismForm<T> addNewContainerValue(String containerHeaderKey, String newContainerHeaderKey){
+        SelenideElement panelHeader = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
+        panelHeader.$(Schrodinger.byDataId("addButton")).click();
+
+        panelHeader
+                .parent()
+                .$(Schrodinger.byDataResourceKey(newContainerHeaderKey))
+                .shouldBe(Condition.visible)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return this;
+    }
+
+    public SelenideElement getPrismPropertiesPanel(String containerHeaderKey){
+        expandContainerPropertiesPanel(containerHeaderKey);
+
+        SelenideElement containerHeaderPanel = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
+        return containerHeaderPanel
+                .parent()
+                .$(By.className("prism-properties"))
+                .shouldBe(Condition.visible)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+    }
 }

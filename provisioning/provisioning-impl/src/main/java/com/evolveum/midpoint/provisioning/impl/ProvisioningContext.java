@@ -31,10 +31,7 @@ import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -301,17 +298,17 @@ public class ProvisioningContext extends StateReporter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		OperationResult connectorResult = parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
 		try {
-			ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), operationCapabilityClass, false, parentResult);
+			ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), operationCapabilityClass, false, connectorResult);
 			connectorResult.recordSuccess();
 			return connector;
-		} catch (ObjectNotFoundException | SchemaException e){
+		} catch (ObjectNotFoundException | SchemaException e) {
 			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
 			// Wrap those exceptions to a configuration exception. In the context of the provisioning operation we really cannot throw
 			// ObjectNotFoundException exception. If we do that then the consistency code will interpret that as if the resource object
 			// (shadow) is missing. But that's wrong. We do not have connector therefore we do not know anything about the shadow. We cannot
 			// throw ObjectNotFoundException here.
 			throw new ConfigurationException(e.getMessage(), e);
-		} catch (CommunicationException | ConfigurationException | SystemException e){
+		} catch (CommunicationException | ConfigurationException | RuntimeException e) {
 			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
 			throw e;
 		}
@@ -337,5 +334,11 @@ public class ProvisioningContext extends StateReporter {
 
 	public ItemPath path(Object... components) {
 		return ItemPath.create(components);
+	}
+
+	public CachingStategyType getCachingStrategy()
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		return ProvisioningUtil.getCachingStrategy(this);
 	}
 }

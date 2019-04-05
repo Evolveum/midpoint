@@ -32,36 +32,25 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
-import com.evolveum.midpoint.schema.result.OperationConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -108,6 +97,7 @@ public class ResourceObjectConverter {
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
+	@Autowired private AsyncUpdateListeningRegistry listeningRegistry;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -1798,7 +1788,7 @@ public class ResourceObjectConverter {
 		Iterator<Change> iterator = changes.iterator();
 		while (iterator.hasNext()) {
 			Change change = iterator.next();
-			LOGGER.trace("Original change:\n{}", change.debugDump());
+			LOGGER.trace("Original change:\n{}", change.debugDumpLazily());
 			if (change.isTokenOnly()) {
 				continue;
 			}
@@ -1814,7 +1804,7 @@ public class ResourceObjectConverter {
 			if (ctx.isWildcard() && changeObjectClassDefinition != null) {
 				shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
 				if (shadowCtx.isWildcard()) {
-					String message = "Unkown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta";
+					String message = "Unknown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta";
 					parentResult.recordFatalError(message);
 					throw new SchemaException(message);
 				}
@@ -1827,12 +1817,11 @@ public class ResourceObjectConverter {
 				if (currentShadow == null) {
 					// There is no current shadow in a change. Add it by fetching it explicitly.
 					try {
-						
+						// TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented [pmed]
 						LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
 						currentShadow = fetchResourceObject(shadowCtx, 
 								change.getIdentifiers(), shadowAttrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
 						change.setCurrentShadow(currentShadow);
-						
 					} catch (ObjectNotFoundException ex) {
 						parentResult.recordHandledError(
 								"Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
@@ -1852,7 +1841,6 @@ public class ResourceObjectConverter {
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
 							currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, parentResult);
 						}
-						
 					}
 							
 					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
@@ -1868,7 +1856,82 @@ public class ResourceObjectConverter {
 		LOGGER.trace("END fetch changes ({} changes)", changes == null ? "null" : changes.size());
 		return changes;
 	}
-	
+
+	String startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
+			@NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
+			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+
+		LOGGER.trace("START start listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
+		ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
+
+		ChangeListener innerListener = change -> {
+			try {
+				LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
+				setResourceOidIfMissing(change, ctx.getResourceOid());
+				ProvisioningContext shadowCtx = ctx;
+				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
+				if (changeObjectClassDefinition == null) {
+					if (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
+						throw new SchemaException("No object class definition in change "+change);
+					}
+				}
+				if (ctx.isWildcard() && changeObjectClassDefinition != null) {
+					shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
+					if (shadowCtx.isWildcard()) {
+						String message = "Unknown object class " + changeObjectClassDefinition.getTypeName()
+								+ " found in synchronization delta";
+						throw new SchemaException(message);
+					}
+					change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
+				}
+
+				if (change.getCurrentShadow() != null) {
+					shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
+					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
+							change.getCurrentShadow(), true, parentResult);
+					change.setCurrentShadow(processedCurrentShadow);
+				} else {
+					// we will fetch current shadow later
+				}
+				return outerListener.onChange(change);
+			} catch (Throwable t) {
+				throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
+			}
+		};
+		ListeningActivity listeningActivity = connector.startListeningForChanges(innerListener, parentResult);
+		String handle = listeningRegistry.registerListeningActivity(listeningActivity);
+		computeResultStatus(parentResult);
+
+		LOGGER.trace("END start listening for async updates; listening handle = {}", handle);
+		return handle;
+	}
+
+	private void setResourceOidIfMissing(Change change, String resourceOid) {
+		setResourceOidIfMissing(change.getOldShadow(), resourceOid);
+		setResourceOidIfMissing(change.getCurrentShadow(), resourceOid);
+		if (change.getObjectDelta() != null) {
+			setResourceOidIfMissing(change.getObjectDelta().getObjectToAdd(), resourceOid);
+		}
+	}
+
+	private void setResourceOidIfMissing(PrismObject<ShadowType> object, String resourceOid) {
+		if (object != null && object.asObjectable().getResourceRef() == null && resourceOid != null) {
+			object.asObjectable().setResourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE));
+		}
+	}
+
+	void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
+		LOGGER.trace("START stop listening for async updates, handle: {}", listeningActivityHandle);
+		listeningRegistry.removeListeningActivity(listeningActivityHandle).stop();
+		computeResultStatus(parentResult);
+		LOGGER.trace("END stop listening for async updates");
+	}
+
+	AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
+		ListeningActivity listeningActivity = listeningRegistry.getListeningActivity(listeningActivityHandle);
+		return listeningActivity != null ? listeningActivity.getInformation() : null;
+	}
+
 	/**
 	 * Process simulated activation, credentials and other properties that are added to the object by midPoint. 
 	 */

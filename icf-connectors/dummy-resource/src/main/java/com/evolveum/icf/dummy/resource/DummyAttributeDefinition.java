@@ -26,6 +26,7 @@ public class DummyAttributeDefinition {
 	private boolean isRequired;
 	private boolean isMulti;
 	private boolean isReturnedByDefault = true;
+	private boolean isReturnedAsIncomplete;
 
 	public DummyAttributeDefinition(String attributeName, Class<?> attributeType) {
 		super();
@@ -84,4 +85,11 @@ public class DummyAttributeDefinition {
 		this.isReturnedByDefault = isReturnedByDefault;
 	}
 
+	public boolean isReturnedAsIncomplete() {
+		return isReturnedAsIncomplete;
+	}
+
+	public void setReturnedAsIncomplete(boolean returnedAsIncomplete) {
+		isReturnedAsIncomplete = returnedAsIncomplete;
+	}
 }

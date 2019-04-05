@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
@@ -62,7 +64,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
             IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required) {
-    	this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required, false);
+    	this(id, value, choices, renderer, label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required, false);
     }
     
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, String tooltipKey,
@@ -76,6 +78,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
                             boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
                             boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        labelContainer.add(new VisibleBehaviour(() -> label != null && StringUtils.isNotEmpty(label.getObject())));
         add(labelContainer);
 
         Label l = new Label(ID_LABEL, label);
@@ -170,7 +173,13 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
 			@Override
             protected String getNullValidDisplayValue() {
-                return getString("DropDownChoicePanel.empty");
+                return DropDownFormGroup.this.getNullValidDisplayValue();
+            }
+
+            @Override
+            public IModel<? extends List<? extends T>> getChoicesModel() {
+                IModel<? extends List<? extends T>> choices = super.getChoicesModel();
+                return Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer));
             }
         };
         choice.setNullValid(!required);
@@ -180,5 +189,9 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
     public DropDownChoice<T> getInput() {
         return (DropDownChoice<T>) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_SELECT_WRAPPER, ID_SELECT));
+    }
+
+    protected String getNullValidDisplayValue(){
+        return getString("DropDownChoicePanel.empty");
     }
 }

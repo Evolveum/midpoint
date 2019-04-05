@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -169,20 +170,20 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-		List<QName> objectTypeList = WebComponentUtil.createObjectTypeList();
-		Collections.sort(objectTypeList, new Comparator<QName>() {
-			@Override
-			public int compare(QName o1, QName o2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(o1.getLocalPart(), o2.getLocalPart());
-			}
-		});
-		DropDownChoice<QName> objectTypeChoice = new DropDownChoice<>(ID_OBJECT_TYPE,
+//		List<QName> objectTypeList = WebComponentUtil.createObjectTypeList();
+//		Collections.sort(objectTypeList, new Comparator<QName>() {
+//			@Override
+//			public int compare(QName o1, QName o2) {
+//				return String.CASE_INSENSITIVE_ORDER.compare(o1.getLocalPart(), o2.getLocalPart());
+//			}
+//		});
+		DropDownChoicePanel<QName> objectTypeChoice = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
             new PropertyModel<>(model, RepoQueryDto.F_OBJECT_TYPE),
-				new ListModel<>(objectTypeList),
+				new ListModel<>(WebComponentUtil.createObjectTypeList()),
 				new QNameChoiceRenderer());
 		objectTypeChoice.setOutputMarkupId(true);
-		objectTypeChoice.setNullValid(true);
-		objectTypeChoice.add(new OnChangeAjaxBehavior() {
+		objectTypeChoice.getBaseFormComponent().setNullValid(true);
+		objectTypeChoice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(get(ID_MAIN_FORM).get(ID_MIDPOINT_QUERY_BUTTON_BAR));
@@ -264,20 +265,14 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		});
 		midPointQueryButtonBar.add(useInObjectList);
 
-		final DropDownChoice<String> sampleChoice = new DropDownChoice<>(ID_QUERY_SAMPLE,
-				Model.of(""),
-				new IModel<List<String>>() {
-					@Override
-					public List<String> getObject() {
-						return SAMPLES;
-					}
-				},
-				new StringResourceChoiceRenderer("PageRepositoryQuery.sample"));
-		sampleChoice.setNullValid(true);
-		sampleChoice.add(new OnChangeAjaxBehavior() {
+		final DropDownChoicePanel<String> sampleChoice = new DropDownChoicePanel<String>(ID_QUERY_SAMPLE,
+				Model.of(""), Model.ofList(SAMPLES),
+				new StringResourceChoiceRenderer("PageRepositoryQuery.sample"), true);
+		sampleChoice.getBaseFormComponent().setNullValid(true);
+		sampleChoice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				String sampleName = sampleChoice.getModelObject();
+				String sampleName = sampleChoice.getModel().getObject();
 				if (StringUtils.isEmpty(sampleName)) {
 					return;
 				}

@@ -194,7 +194,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         	staticVal = this.toString();
         }
 
-        log.info("Connected to dummy resource instance {0} ({1} connections open)", resource, resource.getConnectionCount());
+        log.info("Connected connector #{0} to dummy resource instance {1} ({2} connections open)", instanceNumber, resource, resource.getConnectionCount());
     }
     
     private static synchronized int getNextInstanceNumber() {
@@ -210,7 +210,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     public void dispose() {
     	connected = false;
     	resource.disconnect();
-    	log.info("Disconnected from dummy resource instance {0} ({1} connections still open)", resource, resource.getConnectionCount());
+    	log.info("Disconnected connector #{0} from dummy resource instance {1} ({2} connections still open)", instanceNumber, resource, resource.getConnectionCount());
     }
 
     @Override
@@ -1213,8 +1213,18 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			if (configuration.isVaryLetterCase()) {
 				name = varyLetterCase(name);
 			}
-			if (values != null && !values.isEmpty()) {
-				builder.addAttribute(name, values);
+			AttributeBuilder attributeBuilder = new AttributeBuilder();
+			attributeBuilder.setName(name);
+			attributeBuilder.addValue(values);
+			boolean store;
+			if (attrDef.isReturnedAsIncomplete()) {
+				attributeBuilder.setAttributeValueCompleteness(AttributeValueCompleteness.INCOMPLETE);
+				store = true;
+			} else {
+				store = values != null && !values.isEmpty();
+			}
+			if (store) {
+				builder.addAttribute(attributeBuilder.build());
 			}
 		}
 

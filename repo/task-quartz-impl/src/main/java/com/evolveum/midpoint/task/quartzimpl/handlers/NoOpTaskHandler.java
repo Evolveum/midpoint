@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
@@ -57,8 +58,8 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 	}
 
 	@Override
-	public TaskWorkBucketProcessingResult run(Task task, WorkBucketType workBucket,
-			TaskWorkBucketProcessingResult previousRunResult) {
+	public TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
+			TaskPartitionDefinitionType taskPartition, TaskWorkBucketProcessingResult previousRunResult) {
 
 		String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4
 
@@ -69,10 +70,8 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 		runResult.setBucketComplete(false);     // overridden later
 		runResult.setShouldContinue(false);     // overridden later
 
-		PrismContainer taskExtension = task.getExtension();
-
-        PrismProperty<Integer> delayProp = taskExtension != null ? taskExtension.findProperty(SchemaConstants.NOOP_DELAY_QNAME) : null;
-        PrismProperty<Integer> stepsProp = taskExtension != null ? taskExtension.findProperty(SchemaConstants.NOOP_STEPS_QNAME) : null;
+        PrismProperty<Integer> delayProp = task.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty<Integer> stepsProp = task.getExtensionProperty(SchemaConstants.NOOP_STEPS_QNAME);
 
 		PrismPropertyDefinition delayPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.NOOP_DELAY_QNAME);
 		PrismPropertyDefinition stepsPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.NOOP_STEPS_QNAME);

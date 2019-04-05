@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationPolicyAc
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -241,7 +243,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	}
 
 	@Override
-	protected void finish(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
+	protected void finish(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult)
 			throws SchemaException {
 		TimeValidityPolicyConstraintType validityConstraintType = getValidityPolicyConstraint(coordinatorTask);
 
@@ -256,13 +258,13 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	@NotNull
 	@Override
-	protected AbstractScannerResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractScannerResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
 			OperationResult opResult) {
 
 		AbstractScannerResultHandler<FocusType> handler = new AbstractScannerResultHandler<FocusType>(
 				coordinatorTask, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+			protected boolean handleObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
 				if (oidAlreadySeen(coordinatorTask, object.getOid())) {
 					LOGGER.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));
 				} else {

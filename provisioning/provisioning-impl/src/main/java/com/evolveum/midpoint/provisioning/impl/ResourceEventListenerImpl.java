@@ -21,6 +21,7 @@ import java.util.Collection;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,6 +45,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -77,44 +80,48 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 	}
 
 	@Override
-	public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+	public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException,
+			ExpressionEvaluationException, PolicyViolationException {
 
 		Validate.notNull(eventDescription, "Event description must not be null.");
 		Validate.notNull(task, "Task must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null");
 
-		LOGGER.trace("Received event notification with the description: {}", eventDescription.debugDump());
+		LOGGER.trace("Received event notification with the description: {}", eventDescription.debugDumpLazily());
 
-		if (eventDescription.getCurrentShadow() == null && eventDescription.getDelta() == null){
+		if (eventDescription.getCurrentShadow() == null && eventDescription.getDelta() == null) {
 			throw new IllegalStateException("Neither current shadow, nor delta specified. It is required to have at least one of them specified.");
 		}
 
 		applyDefinitions(eventDescription, parentResult);
 
-		PrismObject<ShadowType> shadow = null;
-
-		shadow = eventDescription.getShadow();
-
+		PrismObject<ShadowType> shadow = eventDescription.getShadow();
 		ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);
 		ctx.assertDefinition();
 
 		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 
-		Change change = new Change(identifiers, eventDescription.getCurrentShadow(), eventDescription.getOldShadow(), eventDescription.getDelta());
-		ObjectClassComplexTypeDefinition objectClassDefinition = ShadowUtil.getObjectClassDefinition(shadow);
-		change.setObjectClassDefinition(objectClassDefinition);
+		// TODO reconsider this
+		if (ctx.getCachingStrategy() == CachingStategyType.PASSIVE) {
+			if (eventDescription.getCurrentShadow() == null && eventDescription.getOldShadow() != null && eventDescription.getDelta() != null) {
+				PrismObject<ShadowType> newShadow = eventDescription.getOldShadow().clone();
+				eventDescription.getDelta().applyTo(newShadow);
+				eventDescription.setCurrentShadow(newShadow);
+			}
+		}
 
-		LOGGER.trace("Start to precess change: {}", change.toString());
+		Change change = new Change(identifiers, eventDescription.getCurrentShadow(), eventDescription.getOldShadow(), eventDescription.getDelta());
+		change.setObjectClassDefinition(ShadowUtil.getObjectClassDefinition(shadow));
+
+		LOGGER.trace("Starting to synchronize change: {}", change);
 		try {
-			shadowCache.processChange(ctx, change, null, parentResult);
+			shadowCache.processSynchronization(ctx, false, change, task, null, parentResult);
 		} catch (EncryptionException e) {
 			// TODO: better handling
 			throw new SystemException(e.getMessage(), e);
 		}
-
-		LOGGER.trace("Change after processing {} . Start synchronizing.", change.toString());
-		shadowCache.processSynchronization(ctx, change, parentResult);
-
 	}
 
 	private void applyDefinitions(ResourceEventDescription eventDescription,
@@ -127,7 +134,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 			shadowCache.applyDefinition(eventDescription.getOldShadow(), parentResult);
 		}
 
-		if (eventDescription.getDelta() != null){
+		if (eventDescription.getDelta() != null) {
 			shadowCache.applyDefinition(eventDescription.getDelta(), null, parentResult);
 		}
 	}

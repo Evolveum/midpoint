@@ -35,6 +35,8 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,7 +75,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     //region Body
     @SuppressWarnings("unchecked")
     @Override
-    public TaskRunResult run(Task task) {
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
         TaskRunResult.TaskRunResultStatus status = TaskRunResult.TaskRunResultStatus.FINISHED;
 
@@ -115,7 +117,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                 }
                 wfTask.storeModelContext(modelContext, true);
             }
-            task.savePendingModifications(result);
+            task.flushPendingModifications(result);
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare child model context", e);
             status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;

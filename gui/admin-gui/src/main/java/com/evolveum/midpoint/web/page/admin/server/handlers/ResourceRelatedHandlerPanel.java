@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
@@ -42,7 +43,6 @@ import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSe
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -124,7 +124,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 		resourceRefContainer.setOutputMarkupId(true);
 		add(resourceRefContainer);
 
-		final DropDownChoice<TaskAddResourcesDto> resourceRef = new DropDownChoice<>(ID_RESOURCE_REF,
+		final DropDownChoicePanel<TaskAddResourcesDto> resourceRef = new DropDownChoicePanel<>(ID_RESOURCE_REF,
             new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_RESOURCE_REFERENCE),
 				new IModel<List<TaskAddResourcesDto>>() {
 					@Override
@@ -133,8 +133,8 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 					}
 				}, new ChoiceableChoiceRenderer<>());
 		resourceRef.setOutputMarkupId(true);
-		resourceRef.add(enabledIfEdit);
-		resourceRef.add(new AjaxFormComponentUpdatingBehavior("change") {
+		resourceRef.getBaseFormComponent().add(enabledIfEdit);
+		resourceRef.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -172,11 +172,11 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 		kindContainer.add(visibleForResourceCoordinates);
 		add(kindContainer);
 
-		final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
+		final DropDownChoicePanel kind = new DropDownChoicePanel<>(ID_KIND,
             new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_KIND),
 				WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<>());
 		kind.setOutputMarkupId(true);
-		kind.setNullValid(true);
+		kind.getBaseFormComponent().setNullValid(true);
 		kindContainer.add(kind);
 
 		WebMarkupContainer intentContainer = new WebMarkupContainer(ID_INTENT_CONTAINER);

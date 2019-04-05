@@ -363,6 +363,11 @@ public class AssignmentsUtil {
                 && assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null;
     }
 
+   public static boolean isArchetypeAssignment(AssignmentType assignment) {
+        return assignment.getTargetRef() != null
+                && ArchetypeType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
+    }
+
     public static boolean isConsentAssignment(AssignmentType assignment) {
         if (assignment.getTargetRef() == null) {
             return false;

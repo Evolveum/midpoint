@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -49,13 +50,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * <p>Provisioning Service Interface.</p>
@@ -197,9 +192,26 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+	int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;
 
+	/**
+	 * Starts listening for asynchronous updates for a given resource.
+	 * Returns "listening activity handle" that will be used to stop the listening activity.
+	 *
+	 * Note that although it is possible to specify other parameters in addition to resource OID (e.g. objectClass), these
+	 * settings are not supported now.
+	 */
+	String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException;
+
+	/**
+	 * Stops the given listening activity.
+	 */
+	void stopListeningForAsyncUpdates(String listeningActivityHandle, Task task, OperationResult parentResult);
+
+	AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(String listeningActivityHandle, Task task, OperationResult parentResult);
 
 	/**
 	 * Search for objects. Searches through all object types. Returns a list of
@@ -216,7 +228,7 @@ public interface ProvisioningService {
 	 * @param query
 	 *            search query
 	 * @param task
-	 *@param parentResult
+	 * @param parentResult
 	 *            parent OperationResult (in/out)  @return all objects of specified type that match search criteria (subject
 	 *         to paging)
 	 *

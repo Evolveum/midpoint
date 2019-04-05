@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URL;
 import java.security.Key;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,6 +70,7 @@ import org.identityconnectors.framework.api.operations.SearchApiOp;
 import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.api.operations.UpdateApiOp;
+import org.identityconnectors.framework.api.operations.UpdateDeltaApiOp;
 import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.identityconnectors.framework.common.FrameworkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,7 +155,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER = "enableCaseInsensitiveFilter";
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER = "enableAttributesToGetSearchResultsHandler";
 
-    static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<>();
+    static final Map<String, Collection<Class<? extends APIOperation>>> apiOpMap = new HashMap<>();
 
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
@@ -437,14 +439,14 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
 			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 
-			QName propXsdType = ConnIdUtil.icfTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
+			QName propXsdType = ConnIdCapabilitiesAndSchemaParser.connIdTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
 			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", this,
 					icfPropertyName, icfProperty.getType(), propXsdType);
 			MutablePrismPropertyDefinition<?> propertyDefinition = configPropertiesTypeDef.toMutable().createPropertyDefinition(
 					icfPropertyName, propXsdType);
 			propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
 			propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
-			if (ConnIdUtil.isMultivaluedType(icfProperty.getType())) {
+			if (ConnIdCapabilitiesAndSchemaParser.isMultivaluedType(icfProperty.getType())) {
 				propertyDefinition.setMaxOccurs(-1);
 			} else {
 				propertyDefinition.setMaxOccurs(1);
@@ -892,23 +894,23 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		result.computeStatus();
 	}
 
-	static Class<? extends APIOperation> resolveApiOpClass(String opName) {
+	static Collection<Class<? extends APIOperation>> resolveApiOpClass(String opName) {
 		return apiOpMap.get(opName);
 	}
 
 	static {
-		apiOpMap.put("create", CreateApiOp.class);
-		apiOpMap.put("get", GetApiOp.class);
-		apiOpMap.put("update", UpdateApiOp.class);
-		apiOpMap.put("delete", DeleteApiOp.class);
-		apiOpMap.put("test", TestApiOp.class);
-		apiOpMap.put("scriptOnConnector", ScriptOnConnectorApiOp.class);
-		apiOpMap.put("scriptOnResource", ScriptOnResourceApiOp.class);
-		apiOpMap.put("authentication", AuthenticationApiOp.class);
-		apiOpMap.put("search", SearchApiOp.class);
-		apiOpMap.put("validate", ValidateApiOp.class);
-		apiOpMap.put("sync", SyncApiOp.class);
-		apiOpMap.put("schema", SchemaApiOp.class);
+		apiOpMap.put("create", Arrays.asList(CreateApiOp.class));
+		apiOpMap.put("get", Arrays.asList(GetApiOp.class));
+		apiOpMap.put("update", Arrays.asList(UpdateApiOp.class, UpdateDeltaApiOp.class));
+		apiOpMap.put("delete", Arrays.asList(DeleteApiOp.class));
+		apiOpMap.put("test", Arrays.asList(TestApiOp.class));
+		apiOpMap.put("scriptOnConnector", Arrays.asList(ScriptOnConnectorApiOp.class));
+		apiOpMap.put("scriptOnResource", Arrays.asList(ScriptOnResourceApiOp.class));
+		apiOpMap.put("authentication", Arrays.asList(AuthenticationApiOp.class));
+		apiOpMap.put("search", Arrays.asList(SearchApiOp.class));
+		apiOpMap.put("validate", Arrays.asList(ValidateApiOp.class));
+		apiOpMap.put("sync", Arrays.asList(SyncApiOp.class));
+		apiOpMap.put("schema", Arrays.asList(SchemaApiOp.class));
 	}
 
 	@Override

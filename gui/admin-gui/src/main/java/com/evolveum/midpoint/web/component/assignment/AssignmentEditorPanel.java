@@ -73,6 +73,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -993,7 +994,13 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 					ref.setRelation(getRelationValue());
 				}
 			}
-		};		relationDropDown.setEnabled(getModel().getObject().isEditable());
+
+			@Override
+			protected IModel<String> getRelationLabelModel(){
+				return Model.of();
+			}
+		};
+		relationDropDown.setEnabled(getModel().getObject().isEditable());
 		relationDropDown.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
@@ -1132,7 +1139,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				&& !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
 			List<UserType> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
 			if (targetUserList == null || targetUserList.size() == 0){
-				operationObject = pageBase.loadUserSelf();
+				operationObject = pageBase.getPrincipalUser().asPrismObject();
 			} else {
 				operationObject = targetUserList.get(0).asPrismObject();
 			}

@@ -76,6 +76,21 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
 
 		collectAssignments(assignmentDelta);
 	}
+	
+	public void collectAssignmentsForPreprocessing(PrismContainer<AssignmentType> assignmentContainer, Collection<AssignmentType> forcedAssignments) throws SchemaException {
+		
+		aMap = new HashMap<>();
+		idMap = new HashMap<>();
+		
+		if (assignmentContainer != null) {
+			collectAssignments(assignmentContainer, Mode.CURRENT);
+		}
+		
+		collectVirtualAssignments(forcedAssignments, Mode.CURRENT);
+		
+//		aMap = null;
+//		idMap = null;
+	}
 
 	private void collectAssignments(PrismContainer<AssignmentType> assignmentContainer, Mode mode) throws SchemaException {
 		if (assignmentContainer == null) {

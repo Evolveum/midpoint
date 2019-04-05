@@ -47,6 +47,6 @@ public interface ResourceObjectChangeListener extends ProvisioningListener {
 	 * @param change
 	 *            change description
 	 */
-	public <F extends FocusType> void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
+	 <F extends FocusType> void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
 
 }

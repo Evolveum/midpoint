@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
@@ -47,7 +48,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +69,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	protected static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
 
 	private final TaskManager taskManager;
-	private final Task coordinatorTask;
+	private final RunningTask coordinatorTask;
 	private final String taskOperationPrefix;
 	private final String processShortName;
 	private String contextDesc;
@@ -91,15 +92,16 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 	private List<OperationResult> workerSpecificResults;
 	
-	private TaskStageType stageType;
+	private TaskPartitionDefinitionType stageType;
 
-	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
+	public AbstractSearchIterativeResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
 			String contextDesc, TaskManager taskManager) {
 		this(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, null, taskManager);
 	}
 	
-	public AbstractSearchIterativeResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
-			String contextDesc, TaskStageType taskStageType, TaskManager taskManager) {
+
+	public AbstractSearchIterativeResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
+			String contextDesc, TaskPartitionDefinitionType taskStageType, TaskManager taskManager) {
 		super();
 		this.coordinatorTask = coordinatorTask;
 		this.taskOperationPrefix = taskOperationPrefix;
@@ -292,7 +294,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 
 		@Override
-		public void run(Task workerTask) {
+		public void run(RunningTask workerTask) {
 
 			// temporary hack: how to see thread name for this task
 			workerTask.setName(workerTask.getName().getOrig() + " (" + Thread.currentThread().getName() + ")");
@@ -318,7 +320,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
-	private void processRequest(ProcessingRequest request, Task workerTask, OperationResult parentResult) {
+	private void processRequest(ProcessingRequest request, RunningTask workerTask, OperationResult parentResult) {
 
 		PrismObject<O> object = request.object;
 
@@ -348,8 +350,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			// The meat
 			cont = handleObject(object, workerTask, result);
 
-			LOGGER.info("###Recon result: {}", result.getStatus());
-			LOGGER.info("###Recon result dump: {}", result.debugDump());
+//			LOGGER.info("###Recon result: {}", result.getStatus());
+//			LOGGER.info("###Recon result dump: {}", result.debugDump());
 			
 			// We do not want to override the result set by handler. This is just a fallback case
 			if (result.isUnknown() || result.isInProgress()) {
@@ -360,10 +362,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				// Alternative way how to indicate an error.
 				if (isRecordIterationStatistics()) {
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
-							null /* TODO */, object.getOid(), startTime, getException(result));
+							null /* TODO */, object.getOid(), startTime, RepoCommonUtils.getResultException(result));
 				}
 				
-				cont = processError(object, workerTask, getException(result), result);
+				cont = processError(object, workerTask, RepoCommonUtils.getResultException(result), result);
 			} else {
 				if (isRecordIterationStatistics()) {
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
@@ -394,7 +396,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			long duration = System.currentTimeMillis()-startTime;
 			long total = totalTimeProcessing.addAndGet(duration);
-			int progress = objectsProcessed.incrementAndGet();
+			long progress = objectsProcessed.incrementAndGet();
 
 			result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
@@ -408,7 +410,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					workerTask.setProgress(workerTask.getProgress()+1);
 				}
 				// todo report current op result?
-				coordinatorTask.storeOperationStatsIfNeeded();  // includes savePendingModifications
+				coordinatorTask.storeOperationStatsIfNeeded();  // includes flushPendingModifications
 			}
 
 			if (logObjectProgress) {
@@ -439,16 +441,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 
 	// TODO implement better
-	protected Throwable getException(OperationResult result) {
-		if (result.getCause() != null) {
-			return result.getCause();
-		} else if (result.getLastSubresult().getCause() != null) {
-			return result.getLastSubresult().getCause();
-		} else {
-			return new SystemException(result.getMessage());
-		}
-	}
-
+	
 	// @pre: result is "error" or ex is not null
 	private boolean processError(PrismObject<O> object, Task task, Throwable ex, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 		int errorsCount = errors.incrementAndGet();
@@ -488,7 +481,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	/**
 	 * @return the stageType
 	 */
-	public TaskStageType getStageType() {
+	public TaskPartitionDefinitionType getStageType() {
 		return stageType;
 	}
 	
@@ -521,7 +514,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.logErrors = logErrors;
 	}
 
-	protected abstract boolean handleObject(PrismObject<O> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException;
+	protected abstract boolean handleObject(PrismObject<O> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException;
 
 	public class ProcessingRequest {
 		public PrismObject<O> object;
@@ -531,7 +524,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
-	public void createWorkerThreads(Task coordinatorTask, OperationResult opResult) {
+	public void createWorkerThreads(RunningTask coordinatorTask, OperationResult opResult) {
 		Integer threadsCount = getWorkerThreadsCount(coordinatorTask);
 		if (threadsCount == null || threadsCount == 0) {
 			return;             // nothing to do
@@ -549,7 +542,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			workerSpecificResult.addContext("subtaskIndex", i+1);
 			workerSpecificResults.add(workerSpecificResult);
 
-			Task subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
+			RunningTask subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
 			if (isEnableIterationStatistics()) {
 				subtask.resetIterativeTaskInformation(null);
 			}

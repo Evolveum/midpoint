@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -40,6 +41,9 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * @author semancik
@@ -453,13 +457,49 @@ public class PrismMarshaller {
         }
     }
 
-	private XNodeImpl serializePolyString(PolyString realValue) {
-        PrimitiveXNodeImpl<PolyString> xprim = new PrimitiveXNodeImpl<>();
-        xprim.setValue(realValue, PolyStringType.COMPLEX_TYPE);
-        return xprim;
+	private XNodeImpl serializePolyString(PolyString realValue) throws SchemaException {
+		if (realValue.isSimple()) {
+	        PrimitiveXNodeImpl<PolyString> xprim = new PrimitiveXNodeImpl<>();
+	        xprim.setValue(realValue, PolyStringType.COMPLEX_TYPE);
+	        return xprim;
+	        
+		} else {
+			MapXNodeImpl xmap = new MapXNodeImpl();
+			
+			PrimitiveXNodeImpl<String> xorig = new PrimitiveXNodeImpl<>();
+			xorig.setValue(realValue.getOrig(), DOMUtil.XSD_STRING);
+			xmap.put(PolyString.F_ORIG, xorig);
+			
+			PrimitiveXNodeImpl<String> xnorm = new PrimitiveXNodeImpl<>();
+			xnorm.setValue(realValue.getNorm(), DOMUtil.XSD_STRING);
+			xmap.put(PolyString.F_NORM, xnorm);
+			
+			PolyStringTranslationType translation = realValue.getTranslation();
+			if (translation != null) {
+				XNodeImpl xTranslation = beanMarshaller.marshall(translation);
+				xmap.put(PolyString.F_TRANSLATION, xTranslation);
+			}
+			
+			Map<String, String> lang = realValue.getLang();
+			if (lang != null) {
+				XNodeImpl xTranslation = serializePolyStringLang(lang);
+				xmap.put(PolyString.F_LANG, xTranslation);
+			}
+			
+			return xmap;
+		}
     }
 
-    @NotNull
+    private XNodeImpl serializePolyStringLang(Map<String, String> lang) {
+    	MapXNodeImpl xmap = new MapXNodeImpl();
+    	for (Entry<String, String> langEntry : lang.entrySet()) {
+    		PrimitiveXNodeImpl<String> xPrim = new PrimitiveXNodeImpl<String>(langEntry.getValue());
+    		xmap.put(new QName(PolyString.F_LANG.getNamespaceURI(), langEntry.getKey()), xPrim);
+    	}
+		return xmap;
+	}
+
+	@NotNull
     private <T> XNodeImpl serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {
         XNodeImpl rawElement = (XNodeImpl) value.getRawElement();
         if (rawElement != null) {

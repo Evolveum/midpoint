@@ -10,6 +10,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.GenericColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -94,8 +96,8 @@ public class ProcessInstancesPanel extends BasePanel {
 			}
 
 			@Override
-			protected boolean isFooterVisible(long providerSize, int pageSize){
-				return ProcessInstancesPanel.this.isFooterVisible(providerSize, pageSize);
+			protected boolean hideFooterIfSinglePage(){
+				return ProcessInstancesPanel.this.hideFooterIfSinglePage();
 			}
 		};
 		table.setOutputMarkupId(true);
@@ -184,28 +186,17 @@ public class ProcessInstancesPanel extends BasePanel {
 	@NotNull
 	private IconColumn<ProcessInstanceDto> createOutcomeColumn() {
 		return new IconColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.result")) {
-			@Override
-			protected IModel<String> createIconModel(final IModel<ProcessInstanceDto> rowModel) {
-				return new IModel<String>() {
-					@Override
-					public String getObject() {
-						return choose(rowModel, null, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
-					}
-				};
-			}
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createTitleModel(final IModel<ProcessInstanceDto> rowModel) {
-				return new IModel<String>() {
-					@Override
-					public String getObject() {
-						return choose(rowModel,
+			protected DisplayType getIconDisplayType(IModel<ProcessInstanceDto> rowModel) {
+				return WebComponentUtil.createDisplayType(choose(rowModel, null, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(),
+						ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon()),
+						"", choose(rowModel,
 								null,
 								createStringResource("MyRequestsPanel.inProgress").getString(),
 								createStringResource("MyRequestsPanel.approved").getString(),
-								createStringResource("MyRequestsPanel.rejected").getString());
-					}
-				};
+								createStringResource("MyRequestsPanel.rejected").getString()));
 			}
 			
 			// Cannot have the default "icon" class here. This column has text label in the header.
@@ -231,8 +222,8 @@ public class ProcessInstancesPanel extends BasePanel {
 		};
 	}
 
-	protected boolean isFooterVisible(long providerSize, int pageSize){
-		return true;
+	protected boolean hideFooterIfSinglePage(){
+		return false;
 	}
 
 	private void itemDetailsPerformed(AjaxRequestTarget target, String pid) {
@@ -268,13 +259,13 @@ public class ProcessInstancesPanel extends BasePanel {
 	public IColumn<ProcessInstanceDto, String> createTypeIconColumn(final boolean object) {		// true = object, false = target
 		return new IconColumn<ProcessInstanceDto>(createStringResource("")) {
 			@Override
-			protected IModel<String> createIconModel(IModel<ProcessInstanceDto> rowModel) {
+			protected DisplayType getIconDisplayType(IModel<ProcessInstanceDto> rowModel) {
 				if (getObjectType(rowModel) == null) {
-					return null;
+					return WebComponentUtil.createDisplayType("");
 				}
 				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
 				String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-				return new Model<>(icon);
+				return WebComponentUtil.createDisplayType(icon);
 			}
 
 			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<ProcessInstanceDto> rowModel) {

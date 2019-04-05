@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,9 +162,9 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
 	}
 	
 	@Override
-	public void dispose() {
+	public void disconnect(OperationResult result) {
 		connected = false;
-		LOGGER.info("DISPOSE");
+		LOGGER.info("DISCONNECT");
 	}
 	
 	@Override

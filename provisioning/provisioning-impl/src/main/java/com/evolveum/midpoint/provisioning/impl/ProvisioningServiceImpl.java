@@ -25,7 +25,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -53,6 +55,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -84,14 +87,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Implementation of provisioning service.
@@ -330,8 +325,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 
 		Validate.notNull(shadowCoordinates, "Coordinates oid must not be null.");
 		String resourceOid = shadowCoordinates.getResourceOid();
@@ -349,7 +344,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// Resolve resource
 			PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
 			ResourceType resourceType = resource.asObjectable();
-
+ 
 			LOGGER.trace("Start synchronization of resource {} ", resourceType);
 
 			// getting token form task
@@ -359,20 +354,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-			processedChanges = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, result);
+			processedChanges = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
 			LOGGER.debug("Synchronization of {} done, token {}, {} changes", resource, tokenProperty, processedChanges);
 
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
 			throw e;
 		} catch (ObjectAlreadyExistsException | EncryptionException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
 			throw new SystemException(e);
 		} catch (GenericFrameworkException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result,
 					"Synchronization error: generic connector framework error: " + e.getMessage(), e);
+			result.summarize(true);
 			throw new GenericConnectorException(e.getMessage(), e);
-		}
+		} 
 
 		result.recordSuccess();
 		result.cleanupResult();
@@ -380,15 +378,73 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
+	@Override
+	public String startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+			@NotNull OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		String resourceOid = shadowCoordinates.getResourceOid();
+		Validate.notNull(resourceOid, "Resource oid must not be null.");
+
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".startListeningForAsyncUpdates");
+		result.addParam(OperationResult.PARAM_OID, resourceOid);
+		result.addParam(OperationResult.PARAM_TASK, task.toString());
+
+		String listeningActivityHandle;
+		try {
+			LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
+			listeningActivityHandle = shadowCache.startListeningForAsyncUpdates(shadowCoordinates, task, result);
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+		result.addReturn("listeningActivityHandle", listeningActivityHandle);
+		result.recordSuccess();
+		result.cleanupResult();
+		return listeningActivityHandle;
+	}
+
+	@Override
+	public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".stopListeningForAsyncUpdates");
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
+
+		try {
+			LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
+			shadowCache.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
+		} catch (RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+		result.recordSuccess();
+		result.cleanupResult();
+	}
+
+	@Override
+	public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getAsyncUpdatesListeningActivityInformation");
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
+
+		try {
+			AsyncUpdateListeningActivityInformationType rv = shadowCache.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, result);
+			result.recordSuccess();
+			result.cleanupResult();
+			return rv;
+		} catch (RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+	}
+
 	@SuppressWarnings("rawtypes")
 	private PrismProperty getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-		PrismProperty tokenProperty = null;
-		if (task.getExtension() != null) {
-			tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
-		}
+		PrismProperty tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 
-		if (tokenProperty != null && (tokenProperty.getAnyRealValue() == null)) {
+		if (tokenProperty != null && tokenProperty.getAnyRealValue() == null) {
 			LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Empty sync token property:\n{}", tokenProperty.debugDump());
@@ -791,7 +847,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		testResult.addParam("resourceOid", resourceOid);
 		testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		PrismObject<ResourceType> resource = null;
+		PrismObject<ResourceType> resource;
 
 		try {
 			resource = getRepoObject(ResourceType.class, resourceOid, null, testResult);

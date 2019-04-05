@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.listeners.SchedulerListenerSupport;
@@ -460,16 +462,33 @@ public class LocalNodeManager {
         }
     }
 
+    @Nullable
+    Thread getLocalTaskThread(@NotNull String oid) {
+        try {
+            for (JobExecutionContext jec : getQuartzScheduler().getCurrentlyExecutingJobs()) {
+                if (oid.equals(jec.getJobDetail().getKey().getName())) {
+                    Job job = jec.getJobInstance();
+                    if (job instanceof JobExecutor) {
+                        return ((JobExecutor) job).getExecutingThread();
+                    }
+                }
+            }
+        } catch (SchedulerException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get the list of currently executing jobs", e);
+        }
+        return null;
+    }
+
     /**
      * Returns all the currently executing tasks.
      *
      * @return
      */
-    Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
+    Collection<Task> getLocallyRunningTasks(OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasks");
 
-        Set<Task> retval = new HashSet<>();
+        List<Task> retval = new ArrayList<>();
 
         for (String oid : getLocallyRunningTasksOids(result)) {
             OperationResult result1 = result.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTask");

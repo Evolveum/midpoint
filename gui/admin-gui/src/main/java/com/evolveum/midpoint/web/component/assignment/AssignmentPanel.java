@@ -34,12 +34,19 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -83,6 +90,10 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
 	private final static String ID_ACTIVATION_PANEL = "activationPanel";
 	protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
+	private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
+	private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
+	private static final String ID_BUTTON_TOOLBAR_FRAGMENT = "buttonToolbarFragment";
+
 
 	private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
 	protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
@@ -155,12 +166,15 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			@Override
 			protected DisplayType getNewObjectButtonDisplayType() {
 				return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
-						AssignmentPanel.this.createStringResource("assignment.details.newValue").getString());
+						AssignmentPanel.this.createStringResource(isInducement() ?
+								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle").getString());
 			}
 
 			@Override
 			protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
-				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation, AssignmentPanel.this.getPageBase());
+				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation,
+						AssignmentPanel.this.createStringResource(isInducement() ?
+								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle").getString());
 			}
 
 			@Override
@@ -222,8 +236,39 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		setOutputMarkupId(true);
 	}
 
-	protected WebMarkupContainer initCustomButtonToolbar(String id) {
-		return null;
+	protected Fragment initCustomButtonToolbar(String contentAreaId){
+		Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
+
+		MultifunctionalButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
+		searchContainer.add(newObjectIcon);
+
+		AjaxIconButton showAllAssignmentsButton = new AjaxIconButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON, new Model<>("fa fa-address-card"),
+				createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+				showAllAssignments(ajaxRequestTarget);
+			}
+		};
+		searchContainer.addOrReplace(showAllAssignmentsButton);
+		showAllAssignmentsButton.setOutputMarkupId(true);
+		showAllAssignmentsButton.add(new VisibleBehaviour(() -> !isInducement()));
+		return searchContainer;
+	}
+
+	protected void showAllAssignments(AjaxRequestTarget target) {
+		PageBase pageBase = getPageBase();
+		List<AssignmentInfoDto> previewAssignmentsList;
+		if (pageBase instanceof PageAdminFocus) {
+			previewAssignmentsList = ((PageAdminFocus<?>) pageBase).showAllAssignmentsPerformed(target);
+		} else {
+			previewAssignmentsList = Collections.emptyList();
+		}
+		AllAssignmentsPreviewDialog assignmentsDialog = new AllAssignmentsPreviewDialog(pageBase.getMainPopupBodyId(), previewAssignmentsList,
+				pageBase);
+		pageBase.showMainPopup(assignmentsDialog, target);
 	}
 
 	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef){
@@ -255,8 +300,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	protected ObjectTabStorage getAssignmentsTabStorage(){
-		boolean isInducement = getModelObject().getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT);
-		if (isInducement){
+		if (isInducement()){
 			return getParentPage().getSessionStorage().getInducementsTabStorage();
 		} else {
 			return getParentPage().getSessionStorage().getAssignmentsTabStorage();
@@ -280,11 +324,26 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	protected ObjectQuery createObjectQuery(){
 		Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
 				.getAllRelationsFor(RelationKindType.DELEGATION);
-		return getParentPage().getPrismContext().queryFor(AssignmentType.class)
+
+
+		//do not show archetype assignments
+		ObjectReferenceType archetypeRef = new ObjectReferenceType();
+		archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
+		archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+		RefFilter archetypeFilter = (RefFilter) getParentPage().getPrismContext().queryFor(AssignmentType.class)
+				.item(AssignmentType.F_TARGET_REF)
+				.ref(archetypeRef.asReferenceValue())
+				.buildFilter();
+		archetypeFilter.setOidNullAsAny(true);
+		archetypeFilter.setRelationNullAsAny(true);
+
+		ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
 				.not()
 				.item(AssignmentType.F_TARGET_REF)
 				.ref(delegationRelations.toArray(new QName[0]))
 				.build();
+		query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
+		return query;
 	}
 
 	protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target){
@@ -315,16 +374,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				return new IModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable()));
-					}
-				};
+			protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+						AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable())));
 			}
 
 		});
@@ -420,6 +472,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			@Override
 			protected List<ObjectReferenceType> getArchetypeRefList(){
 				return assignmentTargetRelation != null ? assignmentTargetRelation.getArchetypeRefs() : null;
+			}
+
+			@Override
+			protected ObjectFilter getSubtypeFilter(){
+				return AssignmentPanel.this.getSubtypeFilter();
 			}
 
 			@Override
@@ -935,5 +992,13 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		}
 		return actionPerformed ? (changedItems + selectedAssignmentsCount) > assignmentsRequestsLimit :
 				(changedItems + selectedAssignmentsCount)  >= assignmentsRequestsLimit;
+	}
+
+	protected boolean isInducement(){
+		return getModelObject().getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT);
+	}
+
+	protected ObjectFilter getSubtypeFilter(){
+		return null;
 	}
 }

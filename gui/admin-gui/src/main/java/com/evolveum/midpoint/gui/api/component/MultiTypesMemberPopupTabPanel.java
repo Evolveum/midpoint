@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,6 +30,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -59,20 +61,19 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
         typePanel.setOutputMarkupId(true);
         add(typePanel);
 
-        DropDownChoice<ObjectTypes> typeSelect = new DropDownChoice<>(ID_TYPE, new LoadableModel<ObjectTypes>() {
+        DropDownChoicePanel<ObjectTypes> typeSelect = new DropDownChoicePanel<ObjectTypes>(ID_TYPE, new LoadableModel<ObjectTypes>() {
             @Override
             protected ObjectTypes load() {
                 return defaultObjectType;
             }
-        },
-                getSupportedTypesList(), new EnumChoiceRenderer<>(this));
-        typeSelect.add(new OnChangeAjaxBehavior() {
+        }, Model.ofList(getSupportedTypesList()), new EnumChoiceRenderer<>(this));
+        typeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                defaultObjectType = typeSelect.getModelObject();
+                defaultObjectType = typeSelect.getModel().getObject();
                 MultiTypesMemberPopupTabPanel.this.addOrReplace(initObjectListPanel());
                 target.add(MultiTypesMemberPopupTabPanel.this);
             }
@@ -92,7 +93,7 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
     }
 
     protected List<ObjectTypes> getSupportedTypesList(){
-        List<ObjectTypes> supportedTypes = new ArrayList<>(Arrays.asList(ObjectTypes.values()));
+        List<ObjectTypes> supportedTypes = WebComponentUtil.createAssignmentHolderTypesList();
         supportedTypes.remove(ObjectTypes.USER);
         supportedTypes.remove(ObjectTypes.ROLE);
         supportedTypes.remove(ObjectTypes.SERVICE);

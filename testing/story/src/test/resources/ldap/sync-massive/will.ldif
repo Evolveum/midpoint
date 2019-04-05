@@ -1,0 +1,15 @@
+dn: uid=will,ou=People,dc=example,dc=com
+uid: will
+cn: Will Turner
+sn: Turner
+givenname: Will
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: will.turner@blackpearl.com
+telephonenumber: +1 408 555 1234
+facsimiletelephonenumber: +1 408 555 4321
+userpassword: supersecret
+

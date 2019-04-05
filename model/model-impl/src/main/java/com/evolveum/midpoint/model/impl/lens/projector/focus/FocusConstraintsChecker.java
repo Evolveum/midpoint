@@ -26,11 +26,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.caching.AbstractCache;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -125,9 +128,23 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		}
 		String oid = objectNew.getOid();
 
-		ObjectQuery query = prismContext.queryFor(objectNew.getCompileTimeClass())
+		ObjectQuery query;
+		if (property.getDefinition() != null && QNameUtil.match(PolyStringType.COMPLEX_TYPE, property.getDefinition().getTypeName())) {
+			List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismValueCollectionsUtil.cloneCollection(property.getValues());
+			query = prismContext.queryFor(objectNew.getCompileTimeClass())
+						.item(property.getPath())
+						.eq(clonedValues)
+						.matchingOrig()
+					.or()
+						.item(property.getPath())
+						.eq(clonedValues)
+						.matchingNorm()
+					.build();
+		} else {
+			query = prismContext.queryFor(objectNew.getCompileTimeClass())
 				.itemAs(property)
 				.build();
+		}
 
 		List<PrismObject<AH>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
 		if (LOGGER.isTraceEnabled()) {

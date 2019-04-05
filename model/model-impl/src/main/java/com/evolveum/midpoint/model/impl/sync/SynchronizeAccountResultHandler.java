@@ -25,19 +25,21 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Iterative search result handler for account synchronization. Works both for
@@ -64,10 +66,10 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private ObjectClassComplexTypeDefinition objectClassDef;
 	private QName sourceChannel;
 	private boolean forceAdd;
-	
+
 	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
-			String processShortName, Task coordinatorTask, ResourceObjectChangeListener objectChangeListener,
-			TaskStageType stageType, TaskManager taskManager) {
+			String processShortName, RunningTask coordinatorTask, ResourceObjectChangeListener objectChangeListener,
+			TaskPartitionDefinitionType stageType, TaskManager taskManager) {
 		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, stageType, taskManager);
 		this.objectChangeListener = objectChangeListener;
 		this.resourceReadOnly = resource;
@@ -111,21 +113,21 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		return objectClassDef;
 	}
 
-	
+
 	/**
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account
 	 * was created and invoke notification interface.
 	 */
 	@Override
-	protected boolean handleObject(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
+	protected boolean handleObject(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
 		long started = System.currentTimeMillis();
 		try {
 			workerTask.recordIterativeOperationStart(accountShadow.asObjectable());
 			boolean rv = handleObjectInternal(accountShadow, workerTask, result);
 			result.computeStatusIfUnknown();
 			if (result.isError()) {
-				workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, getException(result));
+				workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, RepoCommonUtils.getResultException(result));
 			} else {
 				workerTask.recordIterativeOperationEnd(accountShadow.asObjectable(), started, null);
 			}
@@ -136,7 +138,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		}
 	}
 
-	protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
+	protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, RunningTask workerTask, OperationResult result) {
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), accountShadow.debugDump(1));
@@ -163,29 +165,25 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		}
 
 		// We are going to pretend that all of the objects were just created.
-		// That will efficiently import them to the IDM repository
+		// That will effectively import them to the IDM repository
 
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
 		change.setResource(getResourceWorkingCopy().asPrismObject());
-		if (getStageType() != null && ReconciliationTaskHandler.SIMULATE_URI.equals(getStageType().getStage())) {
+		if (getStageType() != null && ExecutionModeType.SIMULATE == getStageType().getStage()) {
 			change.setSimulate(true);
 		}
 
 		if (forceAdd) {
 			// We should provide shadow in the state before the change. But we are
-			// pretending that it has
-			// not existed before, so we will not provide it.
-			ObjectDelta<ShadowType> shadowDelta = accountShadow.getPrismContext().deltaFactory().object().create(
-                ShadowType.class, ChangeType.ADD);
-			//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
-			PrismObject<ShadowType> shadowToAdd = newShadowType.asPrismObject();
-			shadowDelta.setObjectToAdd(shadowToAdd);
-			shadowDelta.setOid(newShadowType.getOid());
+			// pretending that it has not existed before, so we will not provide it.
+			ObjectDelta<ShadowType> shadowDelta = accountShadow.getPrismContext().deltaFactory().object()
+					.create(ShadowType.class, ChangeType.ADD);
+			shadowDelta.setObjectToAdd(accountShadow);
+			shadowDelta.setOid(accountShadow.getOid());
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
 			change.setCurrentShadow(accountShadow);
-
 		} else {
 			// No change, therefore the delta stays null. But we will set the current
 			change.setCurrentShadow(accountShadow);
@@ -194,9 +192,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		try {
 			change.checkConsistence();
 		} catch (RuntimeException ex) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Check consistence failed: {}\nChange:\n{}", ex, change.debugDump());
-			}
+			LOGGER.trace("Check consistence failed: {}\nChange:\n{}", ex, change.debugDumpLazily());
 			throw ex;
 		}
 
@@ -204,21 +200,21 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		ModelImplUtils.clearRequestee(workerTask);
 		objectChangeListener.notifyChange(change, workerTask, result);
 		
-		LOGGER.info("#### notify chnage finished.");
-		
+		LOGGER.debug("#### notify change finished");
+
 		// No exception thrown here. The error is indicated in the result. Will be processed by superclass.
 		return workerTask.canRun();
 	}
-	
+
 	private boolean isShadowUnknown(ShadowType shadowType) {
 		if (ShadowKindType.UNKNOWN == shadowType.getKind()) {
 			return true;
 		}
-		
+
 		if (SchemaConstants.INTENT_UNKNOWN.equals(shadowType.getIntent())) {
 			return true;
 		}
-		
+
 		return false;
 	}
 }

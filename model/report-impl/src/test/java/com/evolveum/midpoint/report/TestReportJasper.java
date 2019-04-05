@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.task.api.RunningTask;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -86,7 +87,7 @@ public class TestReportJasper extends AbstractReportIntegrationTest {
 	  JasperDesign jd = JRXmlLoader.load(new File("src/test/resources/reports/report-users-ds.jrxml"));
 	  JasperReport jr = JasperCompileManager.compileReport(jd);
 
-	  Task task = taskManager.createTaskInstance();
+	  RunningTask task = taskManager.createFakeRunningTask(taskManager.createTaskInstance());
 	  Map<String, Object> params = new HashMap<>();
 //	  params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
 //	  params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);

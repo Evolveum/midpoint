@@ -435,7 +435,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	return add(newValue, checkUniqueness, getEqualsHashCodeStrategy());
 	}
 
-	public boolean add(@NotNull V newValue, boolean checkUniqueness, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException {
+	// equivalenceStrategy must not be null if checkUniqueness is true
+	public boolean add(@NotNull V newValue, boolean checkUniqueness, EquivalenceStrategy equivalenceStrategy) throws SchemaException {
 		checkMutability();
 		if (newValue.getPrismContext() == null) {
 			newValue.setPrismContext(prismContext);

@@ -122,7 +122,7 @@ public abstract class TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 
-		assertUserJack(user, true);
+		assertUserJack(user, true, false);
 	}
 
 	@Test
@@ -149,7 +149,7 @@ public abstract class TestPrismParsing {
 		final String TEST_NAME = "test200RoundTrip";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_FILE_BASENAME));
+		roundTrip(getFile(USER_JACK_FILE_BASENAME), true);
 	}
 
 	@Test
@@ -157,7 +157,7 @@ public abstract class TestPrismParsing {
 		final String TEST_NAME = "test210RoundTripNoNs";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_NO_NS_BASENAME));
+		roundTrip(getFile(USER_JACK_NO_NS_BASENAME), true);
 	}
 
 	@Test
@@ -165,11 +165,11 @@ public abstract class TestPrismParsing {
 		final String TEST_NAME = "test220RoundTripObject";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_OBJECT_BASENAME));
+		roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false);
 	}
 
 
-	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
+	private void roundTrip(File file, boolean expectFullPolyName) throws SchemaException, SAXException, IOException {
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -180,7 +180,7 @@ public abstract class TestPrismParsing {
 		assertNotNull(originalUser);
 
 		// precondition
-		assertUserJack(originalUser, true);
+		assertUserJack(originalUser, true, expectFullPolyName);
 
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
@@ -199,7 +199,7 @@ public abstract class TestPrismParsing {
 		System.out.println(parsedUser.debugDump());
 		assertNotNull(parsedUser);
 
-		assertUserJack(parsedUser, true);
+		assertUserJack(parsedUser, true, expectFullPolyName);
 
 		ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
 		System.out.println("Diff:");
@@ -412,7 +412,7 @@ public abstract class TestPrismParsing {
 
 	protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		user.checkConsistence();
-		assertUserJackContent(user, expectRawInConstructions);
+		assertUserJackContent(user, expectRawInConstructions, true);
 		assertUserExtensionAdhoc(user);
 		assertVisitor(user, 58);
 	}

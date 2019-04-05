@@ -46,4 +46,9 @@
 			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.SynchronizationTests"/>
 		</classes>
 	</test>
+	<test name="Schrodinger.scenarios.ObjectListArchetypeTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.ObjectListArchetypeTests"/>
+		</classes>
+	</test>
 </suite>

@@ -1,98 +1,165 @@
+import groovy.sql.Sql
+import org.forgerock.openicf.connectors.scriptedsql.ScriptedSQLConfiguration
+import org.forgerock.openicf.misc.scriptedcommon.ICFObjectBuilder
+import org.forgerock.openicf.misc.scriptedcommon.MapFilterVisitor
+import org.forgerock.openicf.misc.scriptedcommon.OperationType
+import org.identityconnectors.common.logging.Log
+import org.identityconnectors.framework.common.exceptions.ConnectorException
+import org.identityconnectors.framework.common.objects.ObjectClass
+import org.identityconnectors.framework.common.objects.OperationOptions
+import org.identityconnectors.framework.common.objects.ResultsHandler
+import org.identityconnectors.framework.common.objects.SearchResult
+import org.identityconnectors.framework.common.objects.filter.Filter
+
+import java.sql.Connection
+
+def log = log as Log
+def operation = operation as OperationType
+def options = options as OperationOptions
+def objectClass = objectClass as ObjectClass
+def configuration = configuration as ScriptedSQLConfiguration
+def filter = filter as Filter
+def connection = connection as Connection
+def query = query as Closure
+def handler = handler as ResultsHandler
+
+log.info("Entering " + operation + " Script")
+
+def sql = new Sql(connection)
+
+// todo use handler to result  connector objects
+
+return new SearchResult()   // update search result values if needed
+
+// todo fix sample
 /*
- * Copyright (c) 2010-2013 Evolveum
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import groovy.sql.Sql;
-import groovy.sql.DataSet;
+switch (objectClass) {
+    case ObjectClass.ACCOUNT:
+        handleAccount(sql)
+        break
+    case BaseScript.GROUP:
+        handleGroup(sql)
+        break
+    case BaseScript.ORGANIZATION:
+        handleOrganization(sql)
+        break
+    default:
+        throw new ConnectorException("Unknown object class " + objectClass)
+}
 
-// Parameters:
-// The connector sends the following:
-// connection: handler to the SQL connection
-// objectClass: a String describing the Object class (__ACCOUNT__ / __GROUP__ / other)
-// action: a string describing the action ("SEARCH" here)
-// log: a handler to the Log facility
-// options: a handler to the OperationOptions Map
-// query: a handler to the Query Map
-//
-// The Query map describes the filter used.
-//
-// query = [ operation: "CONTAINS", left: attribute, right: "value", not: true/false ]
-// query = [ operation: "ENDSWITH", left: attribute, right: "value", not: true/false ]
-// query = [ operation: "STARTSWITH", left: attribute, right: "value", not: true/false ]
-// query = [ operation: "EQUALS", left: attribute, right: "value", not: true/false ]
-// query = [ operation: "GREATERTHAN", left: attribute, right: "value", not: true/false ]
-// query = [ operation: "GREATERTHANOREQUAL", left: attribute, right: "value", not: true/false ]
-// query = [ operation: "LESSTHAN", left: attribute, right: "value", not: true/false ]
-// query = [ operation: "LESSTHANOREQUAL", left: attribute, right: "value", not: true/false ]
-// query = null : then we assume we fetch everything
-//
-// AND and OR filter just embed a left/right couple of queries.
-// query = [ operation: "AND", left: query1, right: query2 ]
-// query = [ operation: "OR", left: query1, right: query2 ]
-//
-// Returns: A list of Maps. Each map describing one row.
-// !!!! Each Map must contain a '__UID__' and '__NAME__' attribute.
-// This is required to build a ConnectorObject.
+return new SearchResult()
 
-log.info("Entering "+action+" Script");
+// =================================================================================
 
-def sql = new Sql(connection);
-def result = []
-def where = "";
+void handleAccount(Sql sql) {
+    Closure closure = { row ->
+        ICFObjectBuilder.co {
+            uid row.id as String
+            id row.login
+            attribute '__ENABLE__', !row.disabled
+            attribute 'fullname', row.fullname
+            attribute 'firstname', row.firstname
+            attribute 'lastname', row.lastname
+            attribute 'email', row.email
+            attribute 'organization', row.organization
+        }
+    }
 
-if (query != null){
-    //Need to handle the __UID__ in queries
-    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("__ACCOUNT__")) query.put("left","id");
-    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("Group")) query.put("left","id");
-    if (query.get("left").equalsIgnoreCase("__UID__") && objectClass.equalsIgnoreCase("Organization")) query.put("left","id")
+    Map params = [:]
+    String where = buildWhereClause(filter, params, 'id', 'login')
 
-    // We can use Groovy template engine to generate our custom SQL queries
-    def engine = new groovy.text.SimpleTemplateEngine();
+    sql.eachRow(params, "SELECT * FROM Users " + where, closure);
+}
+
+
+void handleGroup(Sql sql) {
+    Closure closure = { row ->
+        ICFObjectBuilder.co {
+            uid row.id as String
+            id row.name
+            attribute 'description', row.description
+        }
+    }
+
+    Map params = [:]
+    String where = buildWhereClause(filter, params, 'id', 'name')
+
+    sql.eachRow(params, "SELECT * FROM Groups " + where, closure)
+}
+
+void handleOrganization(Sql sql) {
+    Closure closure = { row ->
+        ICFObjectBuilder.co {
+            uid row.id as String
+            id row.name
+            attribute 'description', row.description
+        }
+    }
+
+    Map params = [:]
+    String where = buildWhereClause(filter, params, 'id', 'name')
+
+    sql.eachRow(params, "SELECT * FROM Organizations " + where, closure)
+}
+
+static String buildWhereClause(Filter filter, Map sqlParams, String uidColumn, String nameColumn) {
+    if (filter == null) {
+        log.info("Returning empty where clause")
+        return ""
+    }
+
+    Map query = filter.accept(MapFilterVisitor.INSTANCE, null)
+
+    log.info("Building where clause, query {0}, uidcolumn {1}, nameColumn {2}", query, uidColumn, nameColumn)
+
+    String columnName = uidColumn.replaceFirst("[\\w]+\\.", "")
+
+    String left = query.get("left")
+    if (Uid.NAME.equals(left)) {
+        left = uidColumn
+    } else if (Name.NAME.equals(left)) {
+        left = nameColumn
+    }
+
+    String right = query.get("right")
+
+    String operation = query.get("operation")
+    switch (operation) {
+        case "CONTAINS":
+            right = '%' + right + '%'
+            break;
+        case "ENDSWITH":
+            right = '%' + right
+            break;
+        case "STARTSWITH":
+            right = right + '%'
+            break;
+    }
+
+    sqlParams.put(columnName, right)
+    right = ":" + columnName
+
+    def engine = new groovy.text.SimpleTemplateEngine()
 
     def whereTemplates = [
-        CONTAINS:' WHERE $left ${not ? "NOT " : ""}LIKE "%$right%"',
-        ENDSWITH:' WHERE $left ${not ? "NOT " : ""}LIKE "%$right"',
-        STARTSWITH:' WHERE $left ${not ? "NOT " : ""}LIKE "$right%"',
-        EQUALS:' WHERE $left ${not ? "<>" : "="} \'$right\'',
-        GREATERTHAN:' WHERE $left ${not ? "<=" : ">"} "$right"',
-        GREATERTHANOREQUAL:' WHERE $left ${not ? "<" : ">="} "$right"',
-        LESSTHAN:' WHERE $left ${not ? ">=" : "<"} "$right"',
-        LESSTHANOREQUAL:' WHERE $left ${not ? ">" : "<="} "$right"'
+            CONTAINS          : ' $left ${not ? "not " : ""}like $right',
+            ENDSWITH          : ' $left ${not ? "not " : ""}like $right',
+            STARTSWITH        : ' $left ${not ? "not " : ""}like $right',
+            EQUALS            : ' $left ${not ? "<>" : "="} $right',
+            GREATERTHAN       : ' $left ${not ? "<=" : ">"} $right',
+            GREATERTHANOREQUAL: ' $left ${not ? "<" : ">="} $right',
+            LESSTHAN          : ' $left ${not ? ">=" : "<"} $right',
+            LESSTHANOREQUAL   : ' $left ${not ? ">" : "<="} $right'
     ]
 
-    def wt = whereTemplates.get(query.get("operation"));
-    def binding = [left:query.get("left"),right:query.get("right"),not:query.get("not")];
-    def template = engine.createTemplate(wt).make(binding);
-    where = template.toString();
-    log.ok("Search WHERE clause is: "+ where)
+    def wt = whereTemplates.get(operation)
+    def binding = [left: left, right: right, not: query.get("not")]
+    def template = engine.createTemplate(wt).make(binding)
+    def where = template.toString()
+
+    log.info("Where clause: {0}, with parameters {1}", where, sqlParams)
+
+    return where
 }
+*/
 
-switch ( objectClass ) {
-    case "__ACCOUNT__":
-    sql.eachRow("SELECT * FROM Users" + where, {result.add([__UID__:it.id, __NAME__:it.login, __ENABLE__:!it.disabled, fullname:it.fullname, firstname:it.firstname, lastname:it.lastname, email:it.email, organization:it.organization])} );
-    break
-
-    case "Group":
-    sql.eachRow("SELECT * FROM Groups" + where, {result.add([__UID__:it.id, __NAME__:it.name, description:it.description])} );
-    break
-
-    case "Organization":
-    sql.eachRow("SELECT * FROM Organizations" + where, {result.add([__UID__:it.id, __NAME__:it.name, description:it.description])} );
-    break
-
-    default:
-    result;
-}
-
-return result;

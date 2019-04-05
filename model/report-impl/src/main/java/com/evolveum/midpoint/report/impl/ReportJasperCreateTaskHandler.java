@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 
+import com.evolveum.midpoint.task.api.*;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -72,17 +73,13 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -102,6 +99,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.fill.JRAbstractLRUVirtualizer;
@@ -144,8 +142,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     }
 
     @Override
-    public TaskRunResult run(Task task) {
-        // TODO Auto-generated method stub
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         OperationResult parentResult = task.getResult();
         OperationResult result = parentResult.createSubresult(ReportJasperCreateTaskHandler.class.getSimpleName() + ".run");
 
@@ -171,7 +168,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
                     for (Item item : items) {
                         PrismProperty pp = (PrismProperty) item;
                         String paramName = pp.getPath().lastName().getLocalPart();
-                        Object value = null;
+                        Object value;
                         if (isSingleValue(paramName, jasperReport.getParameters())) {
                         	value = pp.getRealValues().iterator().next();
                         } else {
@@ -526,12 +523,12 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         deltas.add(objectDelta);
         subResult = parentResult.createSubresult(ReportJasperCreateTaskHandler.class.getName() + "createRepourtOutput");
 
-        modelService.executeChanges(deltas, null, task, subResult);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = modelService.executeChanges(deltas, null, task, subResult);
+        String reportOutputOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportOutputType.asPrismObject());
 
-		String outputOid = objectDelta.getOid();
-		LOGGER.debug("Created report output with OID {}", outputOid);
+		LOGGER.debug("Created report output with OID {}", reportOutputOid);
 		PrismProperty<String> outputOidProperty = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME).instantiate();
-		outputOidProperty.setRealValue(outputOid);
+		outputOidProperty.setRealValue(reportOutputOid);
 		task.setExtensionPropertyImmediate(outputOidProperty, subResult);
 
         subResult.computeStatus();

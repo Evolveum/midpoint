@@ -69,7 +69,17 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
 	protected static final String ACCOUNT_WILL_DN = "uid=will,ou=People,dc=example,dc=com";
-
+	
+	protected static final File ACCOUNT_POLY_FILE = new File(TEST_DIR, "account-poly.xml");
+	protected static final String ACCOUNT_POLY_OID = "cef31578-5493-11e9-bbed-17f032005a6b";
+	protected static final String ACCOUNT_POLY_DN = "uid=poly,ou=People,dc=example,dc=com";
+	protected static final String ACCOUNT_POLY_DESCRIPTION_ORIG = "Poly the Parrot";
+	protected static final String ACCOUNT_POLY_DESCRIPTION_EN = "Polly the Parrot";
+	protected static final String ACCOUNT_POLY_DESCRIPTION_SK = "Papagáj Poly";
+	protected static final String ACCOUNT_POLY_DESCRIPTION_CZ = "Papoušek Poly";
+	protected static final String ACCOUNT_POLY_DESCRIPTION_HR = "Papiga Poly";
+	protected static final String ACCOUNT_POLY_DESCRIPTION_RU = "Попугай Поли";
+	
 	protected static final File ACCOUNT_BAD_FILE = new File(TEST_DIR, "account-bad.xml");
 	protected static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 
@@ -140,6 +150,8 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	public static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS, "inetOrgPerson");
 	public static final QName RESOURCE_OPENDJ_GROUP_OBJECTCLASS = new QName(RESOURCE_NS, "groupOfUniqueNames");
 	public static final QName RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS, "posixAccount");
+	public static final String ATTRIBUTE_DESCRIPTION_NAME = "description";
+	public static final ItemName ATTRIBUTE_DESCRIPTION_QNAME = new ItemName(RESOURCE_OPENDJ_NS, ATTRIBUTE_DESCRIPTION_NAME);
 
 	protected static final File QUERY_COMPLEX_FILTER_FILE = new File(TEST_DIR, "query-complex-filter.xml");
 	protected static final File QUERY_ALL_ACCOUNTS_FILE = new File(TEST_DIR, "query-filter-all-accounts.xml");

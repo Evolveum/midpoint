@@ -25,7 +25,20 @@ user:
   additionalNames:
   - "Captain"
   - "Jackie"
-  polyName: "Džek Sperou"
+  polyName:
+    '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+    orig: "Džek Sperou"
+    norm: "dzek sperou"
+    translation:
+      key: "JACK"
+      fallback: "Jack"
+      argument:
+      - value: "Sparrow"
+    lang:
+      en: "Jack Sparrow"
+      sk: "Džek Sperou"
+      ru: "Джек Воробей"
+      hr: "Ðek Sperou"
   assignment:
   - id: !int 1111
     description: "Assignment 1"

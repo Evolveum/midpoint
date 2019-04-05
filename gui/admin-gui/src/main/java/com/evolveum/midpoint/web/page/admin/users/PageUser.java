@@ -63,6 +63,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.*;
@@ -140,7 +141,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel() {
-    	return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    	return new UserSummaryPanel(ID_SUMMARY_PANEL, isEditingFocus() ?
+                Model.of(getObjectModel().getObject().getObject().asObjectable()) : Model.of(), this);
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {

@@ -209,18 +209,6 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		assignmentsTabPanel = new FocusAssignmentsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
         return assignmentsTabPanel;
 	}
-	
-//	protected WebMarkupContainer createFocusDataProtectionTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-//		assignmentsTabPanel = new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage) {
-//
-//			 @Override
-//			protected SwitchAssignmentTypePanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
-//				return new GenericAbstractRoleAssignmentPanel(panelId, model);
-//			}
-//
-//		};
-//        return assignmentsTabPanel;
-//	}
 
 	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new ObjectHistoryTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage){
@@ -294,45 +282,6 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return Integer.toString(countAssignments());
 					}
 				});
-		
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL, false, isFocusHistoryPage(), parentPage);
-		
-		if (WebModelServiceUtils.isEnableExperimentalFeature(parentPage)) {
-//			tabs.add(new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.dataProtection"), authorization) {
-//
-//				private static final long serialVersionUID = 1L;
-//
-//				@Override
-//				public WebMarkupContainer createPanel(String panelId) {
-//					return createFocusDataProtectionTabPanel(panelId, parentPage);
-//				}
-//
-//				@Override
-//				public String getCount() {
-//					PrismObject<F> focus = getObjectModel().getObject().getObject();
-//					List<AssignmentType> assignments = focus.asObjectable().getAssignment();
-//					int count = 0;
-//					for (AssignmentType assignment : assignments) {
-//						if (assignment.getTargetRef() == null) {
-//							continue;
-//						}
-//						if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
-//							Task task = parentPage.createSimpleTask("load data protection obejcts");
-//							PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), parentPage,
-//									task, task.getResult());
-//
-//							if (org != null) {
-//								if (FocusTypeUtil.determineSubTypes(org).contains("access")) {
-//									count++;
-//								}
-//							}
-//						}
-//					}
-//
-//					return String.valueOf(count);
-//				}
-//			});
-		}
 
 		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
 			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage(), parentPage);
@@ -410,7 +359,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
-					&& AssignmentsUtil.isAssignmentRelevant(assignment)) {
+					&& AssignmentsUtil.isAssignmentRelevant(assignment) && !AssignmentsUtil.isArchetypeAssignment(assignment)) {
 				rv++;
 			}
 		}

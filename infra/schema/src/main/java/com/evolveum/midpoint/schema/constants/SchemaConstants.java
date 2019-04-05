@@ -250,6 +250,8 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
 	public static final String CHANGE_CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_LIVE_SYNC);
+	public static final QName CHANGE_CHANNEL_ASYNC_UPDATE = new QName(NS_PROVISIONING_CHANNEL, "asyncUpdate");
+	public static final String CHANGE_CHANNEL_ASYNC_UPDATE_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_ASYNC_UPDATE);
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
 	public static final String CHANGE_CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECON);
 	public static final QName CHANGE_CHANNEL_RECOMPUTE = new QName(NS_PROVISIONING_CHANNEL, "recompute");
@@ -257,6 +259,8 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
 	public static final String CHANGE_CHANNEL_DISCOVERY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DISCOVERY);
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
+	public static final QName CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS = new QName(NS_PROVISIONING_CHANNEL, "delNotUpdatedShadows");
+	public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
 	public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
@@ -423,6 +427,9 @@ public abstract class SchemaConstants {
 	// be inverted, eventually (MID-356)
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
 	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
+	public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";
+	public static final QName ICF_SUBTYPES_POLYSTRING_QNAME = new QName(NS_ICF_SUBTYPES, "PolyString");
+	public static final String ICF_SUBTYPES_POLYSTRING_URI = QNameUtil.qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
 	public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
 			"configurationProperties");
 	public static final ItemName ICF_TIMEOUTS = new ItemName(NS_ICF_CONFIGURATION, "timeouts");
@@ -441,6 +448,8 @@ public abstract class SchemaConstants {
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
 	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
+	public static final ItemName RI_ACCOUNT_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+	public static final ItemName RI_GROUP_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, GROUP_OBJECT_CLASS_LOCAL_NAME);
 
 	public static final String UCF_FRAMEWORK_URI_BUILTIN = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1";
 
@@ -602,11 +611,23 @@ public abstract class SchemaConstants {
 
 	public static final ItemPath PATH_PARENT = ItemPath.create(PrismConstants.T_PARENT);
 	public static final ItemPath PATH_OBJECT_REFERENCE = ItemPath.create(PrismConstants.T_OBJECT_REFERENCE);
-	
+
+	// diagnostic information types
+
+	public static final QName TASK_THREAD_DUMP = new QName(NS_C, "taskThreadDump");
+	public static final String TASK_THREAD_DUMP_URI = QNameUtil.qNameToUri(TASK_THREAD_DUMP);
+
+	// diagnostic information causes
+
+	public static final QName USER_REQUEST = new QName(NS_C, "userRequest");
+	public static final String USER_REQUEST_URI = QNameUtil.qNameToUri(USER_REQUEST);
+	public static final QName INTERNAL = new QName(NS_C, "internal");
+	public static final String INTERNAL_URI = QNameUtil.qNameToUri(INTERNAL);
+
 	//task stages
 	private static final String RECON_HANDLER = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3";
 	public static final String DRY_RUN_URI = RECON_HANDLER + "#dryRun";
 	public static final String SIMULATE_URI = RECON_HANDLER + "#simulate";
 	public static final String EXECUTE_URI = RECON_HANDLER + "#execute";
-	
+
 }

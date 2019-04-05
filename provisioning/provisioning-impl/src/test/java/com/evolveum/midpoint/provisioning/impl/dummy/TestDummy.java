@@ -353,6 +353,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
 	/**
+	 * Incomplete attributes should not be cached.
+	 */
+	@Test
+	public void test107CSkipCachingForIncompleteAttributes() throws Exception {
+		// overridden in TestDummyCaching
+	}
+
+	/**
 	 * Staleness of one millisecond is too small for the cache to work.
 	 * Fresh data should be returned - both in case the cache is enabled and disabled.
 	 * MID-3481
@@ -3980,7 +3988,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -4021,7 +4029,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -4084,7 +4092,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -4248,7 +4256,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4320,7 +4328,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4381,7 +4389,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4458,7 +4466,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4526,7 +4534,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4582,7 +4590,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);

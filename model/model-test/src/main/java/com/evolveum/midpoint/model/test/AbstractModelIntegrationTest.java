@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
@@ -288,7 +289,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected SecurityContextManager securityContextManager;
 	@Autowired protected MidpointFunctions libraryMidpointFunctions;
 	@Autowired protected ValuePolicyProcessor valuePolicyProcessor;
-	
+
 	@Autowired(required = false)
 	@Qualifier("modelObjectResolver")
 	protected ObjectResolver modelObjectResolver;
@@ -345,6 +346,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		securityContext.setAuthentication(null);
 	}
 
+	protected void initDummyResource(String name, DummyResourceContoller controller) {
+		dummyResourceCollection.initDummyResource(name, controller);
+	}
+	
 	protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
 			FailableProcessor<DummyResourceContoller> controllerInitLambda,
 			Task task, OperationResult result) throws Exception {
@@ -1788,6 +1793,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
+	protected <O extends ObjectType> void assertObjectByName(Class<O> type, String name, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+		SearchResultList<PrismObject<O>> objects = modelService
+				.searchObjects(type, prismContext.queryFor(type).item(ObjectType.F_NAME).eqPoly(name).build(), null, task,
+						result);
+		if (objects.isEmpty()) {
+			fail("Expected that " + type + " " + name + " did exist but it did not");
+		}
+	}
+
+	protected <O extends ObjectType> void assertNoObjectByName(Class<O> type, String name, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+		SearchResultList<PrismObject<O>> objects = modelService
+				.searchObjects(type, prismContext.queryFor(type).item(ObjectType.F_NAME).eqPoly(name).build(), null, task,
+						result);
+		if (!objects.isEmpty()) {
+			fail("Expected that " + type + " " + name + " did not exists but it did: " + objects);
+		}
+	}
+
 	protected void assertNoShadow(String username, PrismObject<ResourceType> resource,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		ObjectQuery query = createAccountShadowQuery(username, resource);
@@ -3134,6 +3161,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return taskResult;
 	}
 
+	protected OperationResult waitForTaskNextRun(final String taskOid) throws Exception {
+		return waitForTaskNextRun(taskOid, false, DEFAULT_TASK_WAIT_TIMEOUT, false);
+	}
+	
 	protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
 		return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
 	}
@@ -3322,6 +3353,69 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return result != null ? result.getLastSubresult() : null;
 		}
 		return result;
+	}
+	
+	protected OperationResult waitForTaskResume(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskResume");
+		Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
+		
+		final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
+		final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
+		
+		taskManager.resumeTask(origTask, waitResult);
+		
+		final Holder<OperationResult> taskResultHolder = new Holder<>();
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws CommonException {
+				Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+				OperationResult taskResult = freshTask.getResult();
+//				display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp)
+//						+ " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+				if (verbose) display("Check result", taskResult);
+				taskResultHolder.setValue(taskResult);
+				if (isError(taskResult, checkSubresult)) {
+                    return true;
+                }
+				if (isUnknown(taskResult, checkSubresult)) {
+					return false;
+				}
+				if (freshTask.getLastRunFinishTimestamp() == null) {
+					return false;
+				}
+				if (freshTask.getLastRunStartTimestamp() == null) {
+					return false;
+				}
+				return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
+						&& !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
+						&& freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
+			}
+			@Override
+			public void timeout() {
+				try {
+					Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+					OperationResult result = freshTask.getResult();
+					LOGGER.debug("Timed-out task:\n{}", freshTask.debugDump());
+					display("Times", "origLastRunStartTimestamp="+longTimeToString(origLastRunStartTimestamp)
+					+ ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
+					+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+					+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" next run. Last result "+result;
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e, e);
+				}
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for task " + origTask + " resume", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+
+		Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
+		LOGGER.debug("Final task:\n{}", freshTask.debugDump());
+		display("Times", "origLastRunStartTimestamp="+longTimeToString(origLastRunStartTimestamp)
+		+ ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
+		+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+		+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+
+		return taskResultHolder.getValue();
 	}
 
 	protected void restartTask(String taskOid) throws CommonException {
@@ -3609,7 +3703,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<O> addDelta = object.createAddDelta();
         assertFalse("Immutable object provided?",addDelta.getObjectToAdd().isImmutable());
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(addDelta, options, task, result);
-        object.setOid(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas));
+        object.setOid(ObjectDeltaOperation.findAddDeltaOid(executedDeltas, object));
         return object.getOid();
 	}
 
@@ -5554,7 +5648,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		asserter.assertOid(oid);
 		return asserter;
 	}
-	
+
+	protected OrgAsserter<Void> assertOrgByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<OrgType> org = findObjectByName(OrgType.class, name);
+		assertNotNull("No org with name '"+name+"'", org);
+		OrgAsserter<Void> asserter = OrgAsserter.forOrg(org, message);
+		initializeAsserter(asserter);
+		asserter.assertName(name);
+		return asserter;
+	}
+
 	protected RoleAsserter<Void> assertRole(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<RoleType> role = getObject(RoleType.class, oid);
 		RoleAsserter<Void> asserter = assertRole(role, message);

@@ -202,7 +202,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             wfTaskUtil.storeModelContext(rootTask, lensContextType);
         }
 
-        rootTask.savePendingModifications(result);
+        rootTask.flushPendingModifications(result);
         LOGGER.trace("onProcessEnd ending for task {}", task);
     }
     //endregion

@@ -3,9 +3,12 @@ package com.evolveum.midpoint.schrodinger.page.user;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
+import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.common.SummaryPanel;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.component.user.*;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.PreviewPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -17,7 +20,7 @@ import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserPage extends BasicPage {
+public class UserPage extends AssignmentHolderDetailsPage {
 
     public UserPage checkForce() {
         setOptionChecked("executeOptions:force", true);
@@ -59,32 +62,11 @@ public class UserPage extends BasicPage {
         return this;
     }
 
-    public BasicPage clickBack() {
-        $(Schrodinger.byDataResourceKey("pageAdminFocus.button.back")).click();
-        return new BasicPage();
-    }
-
     public PreviewPage clickPreviewChanges() {
         $(Schrodinger.byDataId("previewChanges")).click();
         return new PreviewPage();
     }
 
-    public ProgressPage clickSave() {
-        $(Schrodinger.byDataId("save")).click();
-        return new ProgressPage();
-    }
-
-    private TabPanel findTabPanel() {
-        SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"));
-        return new TabPanel<>(this, tabPanelElement);
-    }
-
-    public UserBasicTab selectTabBasic() {
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.basic")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new UserBasicTab(this, element);
-    }
 
     public UserProjectionsTab selectTabProjections() {
         SelenideElement element = findTabPanel().clickTab("pageAdminFocus.projections");
@@ -96,12 +78,6 @@ public class UserPage extends BasicPage {
         SelenideElement element = findTabPanel().clickTab("pageAdminFocus.personas");
 
         return new UserPersonasTab(this, element);
-    }
-
-    public UserAssignmentsTab selectTabAssignments() {
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.assignments");
-
-        return new UserAssignmentsTab(this, element);
     }
 
     public UserTasksTab selectTabTasks() {
@@ -145,4 +121,19 @@ public class UserPage extends BasicPage {
             return "".equals(summaryPanel.getText());
         }
     }
+
+    @Override
+    public AssignmentHolderBasicTab<UserPage> selectTabBasic(){
+        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.basic")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new AssignmentHolderBasicTab<UserPage>(this, element);
+    }
+
+    public AssignmentsTab<UserPage> selectTabAssignments(){
+        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.assignments");
+
+        return new AssignmentsTab<UserPage>(this, element);
+    }
+
 }

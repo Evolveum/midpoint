@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.component.wf;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -70,36 +72,20 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(final IModel<DecisionDto> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return choose(rowModel, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
-					}
-				};
+			protected DisplayType getIconDisplayType(final IModel<DecisionDto> rowModel) {
+				return WebComponentUtil.createDisplayType(choose(rowModel,
+						ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon()),
+						"",
+						choose(rowModel,
+								createStringResource("MyRequestsPanel.inProgress").getString(),
+								createStringResource("MyRequestsPanel.approved").getString(),
+								createStringResource("MyRequestsPanel.rejected").getString()));
 			}
 			
 			@Override
 		    public String getCssClass() {
 		        return "shrink";
 		    }
-
-			@Override
-			protected IModel<String> createTitleModel(final IModel<DecisionDto> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return choose(rowModel,
-								createStringResource("MyRequestsPanel.inProgress").getString(),
-								createStringResource("MyRequestsPanel.approved").getString(),
-								createStringResource("MyRequestsPanel.rejected").getString());
-					}
-				};
-			}
 
 			private String choose(IModel<DecisionDto> rowModel, String inProgress, String approved, String rejected) {
 				DecisionDto dto = rowModel.getObject();

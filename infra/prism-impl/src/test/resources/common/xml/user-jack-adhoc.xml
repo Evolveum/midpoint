@@ -39,6 +39,19 @@
     <polyName>
     	<t:orig>Džek Sperou</t:orig>
     	<t:norm>dzek sperou</t:norm>
+    	<t:translation>
+    		<t:key>JACK</t:key>
+    		<t:fallback>Jack</t:fallback>
+    		<t:argument>
+    			<t:value>Sparrow</t:value>
+    		</t:argument>
+    	</t:translation>
+    	<t:lang>
+    		<t:en>Jack Sparrow</t:en>
+    		<t:sk>Džek Sperou</t:sk>
+    		<t:ru>Джек Воробей</t:ru>
+    		<t:hr>Ðek Sperou</t:hr>
+    	</t:lang>
     </polyName>
 
 	<assignment id="1111">
