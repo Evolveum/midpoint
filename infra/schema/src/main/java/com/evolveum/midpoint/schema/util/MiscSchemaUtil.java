@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -498,4 +498,26 @@ public class MiscSchemaUtil {
 		return null;
 	}
 
+	public static void mergeDisplay(DisplayType viewDisplay, DisplayType archetypeDisplay) {
+		if (viewDisplay.getLabel() == null) {
+			viewDisplay.setLabel(archetypeDisplay.getLabel());
+		}
+		if (viewDisplay.getPluralLabel() == null) {
+			viewDisplay.setPluralLabel(archetypeDisplay.getPluralLabel());
+		}
+		IconType archetypeIcon = archetypeDisplay.getIcon();
+		if (archetypeIcon != null) {
+			IconType viewIcon = viewDisplay.getIcon();
+			if (viewIcon == null) {
+				viewIcon = new IconType();
+				viewDisplay.setIcon(viewIcon);
+			}
+			if (viewIcon.getCssClass() == null) {
+				viewIcon.setCssClass(archetypeIcon.getCssClass());
+			}
+			if (viewIcon.getColor() == null) {
+				viewIcon.setColor(archetypeIcon.getColor());
+			}
+		}
+	}
 }

@@ -287,7 +287,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		this.prismContext = prismContext;
 	}
 
-	AssignmentPathSegmentImpl(ObjectType source, String sourceDescription, AssignmentType assignment, boolean isAssignment,
+	public AssignmentPathSegmentImpl(ObjectType source, String sourceDescription, AssignmentType assignment, boolean isAssignment,
 			RelationRegistry relationRegistry, PrismContext prismContext) {
 		this(source, sourceDescription, createAssignmentIdi(assignment), isAssignment, false, relationRegistry, prismContext);
 	}
@@ -445,8 +445,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return computeMatchingOrder(evaluationOrder, assignmentType.getOrder(), assignmentType.getOrderConstraint());
 	}
 
-	static boolean computeMatchingOrder(EvaluationOrder evaluationOrder, Integer assignmentOrder,
-			List<OrderConstraintsType> assignmentOrderConstraint) {
+	static boolean computeMatchingOrder(EvaluationOrder evaluationOrder, Integer assignmentOrder, List<OrderConstraintsType> assignmentOrderConstraint) {
 		boolean rv;
 		List<QName> extraRelations = new ArrayList<>(evaluationOrder.getExtraRelations());
 		if (assignmentOrder == null && assignmentOrderConstraint.isEmpty()) {

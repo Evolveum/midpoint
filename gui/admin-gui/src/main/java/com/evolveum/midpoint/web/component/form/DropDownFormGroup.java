@@ -167,13 +167,19 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
 	protected DropDownChoice<T> createDropDown(String id, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
                                             boolean required) {
-        DropDownChoice<T> choice = new DropDownChoice<T>(id, getModel(), Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer)), renderer){
+        DropDownChoice<T> choice = new DropDownChoice<T>(id, getModel(), choices, renderer){
 
             private static final long serialVersionUID = 1L;
 
 			@Override
             protected String getNullValidDisplayValue() {
                 return DropDownFormGroup.this.getNullValidDisplayValue();
+            }
+
+            @Override
+            public IModel<? extends List<? extends T>> getChoicesModel() {
+                IModel<? extends List<? extends T>> choices = super.getChoicesModel();
+                return Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer));
             }
         };
         choice.setNullValid(!required);

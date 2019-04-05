@@ -69,7 +69,8 @@
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersona"/>
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersonaPassword"/>
             <class name="com.evolveum.midpoint.model.intest.TestLifecycle"/>
-            <class name="com.evolveum.midpoint.model.intest.TestArchetypes"/>
+            <class name="com.evolveum.midpoint.model.intest.archetypes.TestArchetypes"/>
+            <class name="com.evolveum.midpoint.model.intest.archetypes.TestCollections"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMisc"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestUuidNonUniqueName"/>
         </classes>

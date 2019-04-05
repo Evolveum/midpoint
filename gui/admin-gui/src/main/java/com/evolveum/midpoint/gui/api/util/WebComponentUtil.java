@@ -3245,6 +3245,10 @@ public final class WebComponentUtil {
 		return displayType.getTooltip().getOrig();
 	}
 
+	public static DisplayType createDisplayType(String iconCssClass){
+		return createDisplayType(iconCssClass, "", "");
+	}
+
 	public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title){
 		DisplayType displayType = new DisplayType();
 		IconType icon = new IconType();
@@ -3438,9 +3442,9 @@ public final class WebComponentUtil {
 
     public static <T> List<T> sortDropDownChoices(IModel<? extends List<? extends T>> choicesModel, IChoiceRenderer<T> renderer){
         List<T> sortedList = choicesModel.getObject().stream().sorted((choice1, choice2) -> {
-            Validate.notNull(choice1);
-            Validate.notNull(choice2);
-
+            if (choice1 == null || choice2 == null){
+            	return 0;
+			}
             return String.CASE_INSENSITIVE_ORDER.compare(renderer.getDisplayValue(choice1).toString(), renderer.getDisplayValue(choice2).toString());
 
 

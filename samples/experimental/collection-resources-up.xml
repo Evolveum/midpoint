@@ -28,17 +28,16 @@
     		<q:value>up</q:value>
     	</q:equal>
     </filter>
-    <domainCollection>
+    <domain>
     	<!-- Domain: all resources -->
-    	<type>ResourceType</type>
-    </domainCollection>
+    </domain>
     <!-- TODO: maybe we would like to define default view here. E.g. default list of columns. -->
 
-    <!-- We really like to define default thresholds here. 
+    <!-- We really like to define default thresholds here.
          We want to use thresholds in scanner tasks, notifications and so on.
          We may want to send the notification when the widget turns red.
          But the there may be also more specific thresholds. W.g. turn widget orange,
-         but do not send any notification about that.  -->    
+         but do not send any notification about that.  -->
     <assignment>
     	<policyRule>
     		<policyConstraints>

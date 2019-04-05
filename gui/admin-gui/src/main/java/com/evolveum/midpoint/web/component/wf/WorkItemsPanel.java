@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -321,13 +322,13 @@ public class WorkItemsPanel extends BasePanel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<WorkItemDto> rowModel) {
+			protected DisplayType getIconDisplayType(IModel<WorkItemDto> rowModel) {
 				if (getObjectType(rowModel) == null) {
-					return null;
+					return WebComponentUtil.createDisplayType("");
 				}
 				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
 				String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-				return new Model<>(icon);
+				return WebComponentUtil.createDisplayType(icon);
 			}
 
 			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<WorkItemDto> rowModel) {

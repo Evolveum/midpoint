@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.assignment.AssignmentHeaderPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -55,35 +57,27 @@ public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
         	private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createIconModel(final IModel<AssignmentItemDto> rowModel) {
-                return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
+            protected DisplayType getIconDisplayType(IModel<AssignmentItemDto> rowModel) {
+                AssignmentItemDto item = rowModel.getObject();
+                String iconClass = "";
+                if (item.getType() == null) {
+                    iconClass = OperationResultStatusPresentationProperties.FATAL_ERROR.getIcon() + " fa-lg";
+                } else {
+                    iconClass = item.getType().getIconCssClass();
+                }
+                return WebComponentUtil.createDisplayType(iconClass, "",
+                        AssignmentsUtil.createAssignmentIconTitleModel(MyAssignmentsPanel.this, rowModel.getObject().getType()).getObject());
 
-					@Override
-                    public String getObject() {
-                        AssignmentItemDto item = rowModel.getObject();
-                        if (item.getType() == null) {
-                            return OperationResultStatusPresentationProperties.FATAL_ERROR.getIcon() + " fa-lg";
-                        }
-
-                        return item.getType().getIconCssClass();
-                    }
-                };
             }
+        });
+
+        columns.add(new AbstractColumn<AssignmentItemDto, String>(
+                createStringResource("MyAssignmentsPanel.assignment.displayName")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createTitleModel(final IModel<AssignmentItemDto> rowModel) {
-                return AssignmentsUtil.createAssignmentIconTitleModel(MyAssignmentsPanel.this, rowModel.getObject().getType());
-            }
-                    });
-
-                    columns.add(new AbstractColumn<AssignmentItemDto, String>(
-        createStringResource("MyAssignmentsPanel.assignment.displayName")) {
-private static final long serialVersionUID = 1L;
-
-@Override
-public void populateItem(Item<ICellPopulator<AssignmentItemDto>> cellItem, String componentId,
-final IModel<AssignmentItemDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<AssignmentItemDto>> cellItem, String componentId,
+                                     final IModel<AssignmentItemDto> rowModel) {
 
         AssignmentHeaderPanel panel = new AssignmentHeaderPanel(componentId, rowModel);
         panel.add(new AttributeModifier("class", "dash-assignment-header"));

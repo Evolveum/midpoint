@@ -43,7 +43,6 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -373,17 +372,32 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			private static final long serialVersionUID = 1L;
 
+//			@Override
 			@Override
-			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				return new IModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable()));
+			protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<AssignmentType>> rowModel){
+				AssignmentType assignment = rowModel.getObject().getContainerValue().asContainerable();
+				if (assignment != null && assignment.getTargetRef() != null && StringUtils.isNotEmpty(assignment.getTargetRef().getOid())){
+					List<ObjectType> targetObjectList = WebComponentUtil.loadReferencedObjectList(Arrays.asList(assignment.getTargetRef()), OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ,
+							AssignmentPanel.this.getPageBase());
+					if (targetObjectList != null && targetObjectList.size() > 0){
+						ObjectType targetObject = targetObjectList.get(0);
+						DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(targetObject, AssignmentPanel.this.getPageBase());
+						if (displayType != null){
+							String disabledStyle = "";
+							if (targetObject instanceof FocusType) {
+								disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)targetObject).asPrismObject());
+								if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
+										disabledStyle != null){
+									displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
+									displayType.getIcon().setColor("");
+								}
+							}
+							return displayType;
+						}
 					}
-				};
+				}
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+						AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable())));
 			}
 
 		});
