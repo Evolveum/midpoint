@@ -20,17 +20,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.IPageFactory;
+import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -48,7 +55,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditSearchType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetDataFieldTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetPresentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourceTypeType;
@@ -60,6 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -78,15 +92,29 @@ public abstract class InfoBoxPanel extends Panel{
 	private static final String DEFAULT_BACKGROUND_COLOR = "background-color:#00a65a;";
 	private static final String DEFAULT_COLOR = "color: #fff !important;";
 	private static final String DEFAULT_ICON = "fa fa-question";
+	private static final String NUMBER_MESSAGE_UNKNOWN = "InfoBoxPanel.message.unknown";
 	
-	private static HashMap<String, Class<? extends IRequestablePage>> linksRef;
+	private static HashMap<String, Class<? extends WebPage>> linksRefCollections;
+	private static HashMap<QName, Class<? extends WebPage>> linksRefObjects;
 	
 	static {
-	    linksRef = new HashMap<String, Class<? extends IRequestablePage>>() {
+	    linksRefCollections = new HashMap<String, Class<? extends WebPage>>() {
 			private static final long serialVersionUID = 1L;
 
 			{
 	            put(ResourceType.COMPLEX_TYPE.getLocalPart(), PageResources.class);
+	            put(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart(), PageAuditLogViewer.class);
+	            put(TaskType.COMPLEX_TYPE.getLocalPart(), PageTasks.class);
+	        }
+	    };
+	}
+	
+	static {
+	    linksRefObjects = new HashMap<QName, Class<? extends WebPage>>() {
+			private static final long serialVersionUID = 1L;
+
+			{
+	            put(TaskType.COMPLEX_TYPE, PageTaskEdit.class);
 	        }
 	    };
 	}
@@ -156,100 +184,167 @@ public abstract class InfoBoxPanel extends Panel{
         customInitLayout(infoBox);
 	}
 	
+	private DashboardWidgetSourceTypeType getSourceType(IModel<DashboardWidgetType> model) {
+		if(isSourceTypeOfDataNull(model)) {
+			return null;
+		}
+		return model.getObject().getData().getSourceType();
+	}
+	
 	private IModel<?> getNumberMessage() {
 		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
-		if(model.getObject().getData() != null) {
-			if (model.getObject().getData().getSourceType() != null) {
-				switch (model.getObject().getData().getSourceType()) {
-				case OBJECT_COLLECTION:
-					if(existDataFields(model.getObject().getPresentation())) {
-						return getNumberMessageForCollection(model.getObject().getPresentation());
-					}
-				
-				case AUDIT_SEARCH:
-					if(existDataFields(model.getObject().getPresentation())) {
-						return getNumberMessageForAuditSearch(model.getObject().getPresentation());
-					}
-				case OBJECT:
-					return getNumberMessageForObject();
-				}
-			} else {
-				LOGGER.warn("SourceType of data is not defined");
-			} 
-		} else {
-			LOGGER.warn("Data of widget is not defined");
+		DashboardWidgetSourceTypeType sourceType = getSourceType(model);
+		DashboardWidgetPresentationType presentation = model.getObject().getPresentation();
+		switch (sourceType) {
+		case OBJECT_COLLECTION:
+			if(!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+				return generateNumberMessageForCollection(presentation);
+			}
+			break;
+		case AUDIT_SEARCH:
+			if(!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+				return generateNumberMessageForAuditSearch(presentation);
+			}
+			break;
+		case OBJECT:
+			if(!isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+				return generateNumberMessageForObject(presentation);
+			}
+			break;
 		}
-		return getPageBase().createStringResource("InfoBoxPanel.message.unknown");
+		return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
 	}
 
-	private boolean existDataFields(DashboardWidgetPresentationType presentation) {
+	private boolean isDataFieldsOfPresentationNullOrEmpty(DashboardWidgetPresentationType presentation) {
 		if(presentation != null) {
 			if(presentation.getDataField() != null) {
 				if(!presentation.getDataField().isEmpty()) {
-					return true;
+					return false;
 				} else {
-					LOGGER.warn("DataField of presentation is empty");
+					LOGGER.error("DataField of presentation is empty");
 				}
 			} else {
-				LOGGER.warn("DataField of presentation is not defined");
+				LOGGER.error("DataField of presentation is not defined");
 			}
 		} else {
-			LOGGER.warn("Presentation of widget is not defined");
+			LOGGER.error("Presentation of widget is not defined");
 		}
 		
-		return false;
+		return true;
 	}
 
-	private IModel<String> getNumberMessageForObject() {
-		return getPageBase().createStringResource("InfoBoxPanel.message.unknown");
+	private IModel<String> generateNumberMessageForObject(DashboardWidgetPresentationType dashboardWidgetPresentationType) {
+		ObjectType object = getObjectFromObjectRef();
+		if(object == null) {
+			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
+		}
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object.asPrismObject());
+		return generateNumberMessage(dashboardWidgetPresentationType, variables);
 	}
 
-	private IModel<String> getNumberMessageForAuditSearch(DashboardWidgetPresentationType dashboardWidgetPresentationType) {
-		return getPageBase().createStringResource("InfoBoxPanel.message.unknown");
+	private IModel<String> generateNumberMessageForAuditSearch(DashboardWidgetPresentationType dashboardWidgetPresentationType) {
+		AuditSearchType auditSearch = getAuditSearchType();
+		if(auditSearch == null) {
+			LOGGER.error("AuditSearch of data is not defined");
+			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
+		}
+		if(auditSearch.getRecordQuery() == null) {
+			LOGGER.error("RecordQuery of auditSearch is not defined");
+			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
+		}
+		
+		String query = getQueryForCount(auditSearch.getRecordQuery());
+		int value = (int) getPageBase().getAuditService().countObjects(
+				query, new HashMap<String, Object>());
+		Integer domainValue = null;
+		if(auditSearch.getDomainQuery() == null) {
+			LOGGER.error("DomainQuery of auditSearch is not defined");
+		} else {
+			query = getQueryForCount(auditSearch.getDomainQuery());
+			domainValue = (int) getPageBase().getAuditService().countObjects(
+					query, new HashMap<String, Object>());
+		}
+		IntegerStatType statType = generateIntegerStat(value, domainValue);
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, statType);
+		return generateNumberMessage(dashboardWidgetPresentationType, variables);
 	}
-
-	private IModel<String> getNumberMessageForCollection(DashboardWidgetPresentationType dashboardWidgetPresentationType) {
+	
+	private String getQueryForCount(String query) {
+		query = "select count (*) " + query;
+		query = query.split("order")[0];
+		LOGGER.debug("Query for select: " + query);
+		return query;
+	}
+	
+	private IModel<String> generateNumberMessageForCollection(DashboardWidgetPresentationType dashboardWidgetPresentationType) {
+		ObjectCollectionType valueCollection = getObjectCollectionType();
+		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
+		if(valueCollection != null && valueCollection.getType() != null && valueCollection.getType().getLocalPart() != null) {
+			int value = getObjectCount(valueCollection, true);
+			
+			evaluateVariation(model.getObject(), valueCollection);
+			
+			int domainValue;
+			if( valueCollection.getDomain() != null && valueCollection.getDomain().getCollectionRef() != null) {
+				ObjectReferenceType ref = valueCollection.getDomain().getCollectionRef();
+				Task task = getPageBase().createSimpleTask("Search domain collection");
+				ObjectCollectionType domainCollection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref, 
+						getPageBase(), task, task.getResult()).getRealValue();
+				domainValue = getObjectCount(domainCollection, true);
+			} else {
+				LOGGER.error("Domain or collectionRef in domain is null in collection " + valueCollection.toString());
+				LOGGER.trace("Using filter for all object based on type");
+				domainValue = getObjectCount(valueCollection, false);
+			}
+			IntegerStatType statType = generateIntegerStat(value, domainValue);
+			ExpressionVariables variables = new ExpressionVariables();
+			variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, statType);
+			return generateNumberMessage(dashboardWidgetPresentationType, variables);
+		}  else {
+			LOGGER.error("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
+		}
+		return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
+	}
+	
+	private IntegerStatType generateIntegerStat(Integer value, Integer domainValue){
+		IntegerStatType statType = new IntegerStatType();
+		statType.setValue(value);
+		statType.setDomain(domainValue);
+		return statType;
+	}
+	
+	private IModel<String> generateNumberMessage(DashboardWidgetPresentationType dashboardWidgetPresentationType, ExpressionVariables variables) {
 		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
 		Map<DashboardWidgetDataFieldTypeType, String> numberMessagesParts = new HashMap<DashboardWidgetDataFieldTypeType, String>(); 
 		model.getObject().getPresentation().getDataField().forEach(dataField -> {
 			switch(dataField.getFieldType()) {
 			
 			case VALUE:
-				ObjectCollectionType valueCollection = getObjectCollectionType();
-				if(valueCollection != null && valueCollection.getType() != null && valueCollection.getType().getLocalPart() != null) {
-					int value = getObjectCount(valueCollection, true);
-					
-					evaluateVariation(model.getObject(), valueCollection);
-					
-					int domainValue;
-					if( valueCollection.getDomain() != null && valueCollection.getDomain().getCollectionRef() != null) {
-						ObjectReferenceType ref = valueCollection.getDomain().getCollectionRef();
-						Task task = getPageBase().createSimpleTask("Search domain collection");
-						ObjectCollectionType domainCollection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref, 
-								getPageBase(), task, task.getResult()).getRealValue();
-						domainValue = getObjectCount(domainCollection, true);
-					} else {
-						LOGGER.warn("Domain or collectionRef in domain is null in collection " + valueCollection.toString());
-						LOGGER.trace("Using filter for all object based on type");
-						domainValue = getObjectCount(valueCollection, false);
-					}
-					String valueMessaget = getNumberMessageFromExpression(value, domainValue, dataField.getExpression());
-					numberMessagesParts.put(DashboardWidgetDataFieldTypeType.VALUE, valueMessaget);
-				}  else {
-					LOGGER.warn("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
+				Task task = getPageBase().createSimpleTask("Search domain collection");
+				try {
+				String valueMessage = getStringExpressionMessage(variables, task, task.getResult(),
+						dataField.getExpression(), "Get value message");
+				if(valueMessage == null) {
+					valueMessage = getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN).toString();
+				}
+				numberMessagesParts.put(DashboardWidgetDataFieldTypeType.VALUE, valueMessage);
+				} catch (Exception e) {
+					LOGGER.error(e.getMessage(), e);
 				}
 				break;
 				
 			case UNIT:
-				Task task = getPageBase().createSimpleTask("Get unit");
+				task = getPageBase().createSimpleTask("Get unit");
 				String unit = getStringExpressionMessage(new ExpressionVariables(), task, task.getResult(), dataField.getExpression(), "Unit");
 				numberMessagesParts.put(DashboardWidgetDataFieldTypeType.UNIT, unit);
 				break;
 			}
 		});
 		if(!numberMessagesParts.containsKey(DashboardWidgetDataFieldTypeType.VALUE)) {
-			LOGGER.warn("Value message is not generate from widget " + model.getObject().getIdentifier());
-			return getPageBase().createStringResource("InfoBoxPanel.message.unknown");
+			LOGGER.error("Value message is not generate from widget " + model.getObject().getIdentifier());
+			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append(numberMessagesParts.get(DashboardWidgetDataFieldTypeType.VALUE));
@@ -260,7 +355,6 @@ public abstract class InfoBoxPanel extends Panel{
 	}
 
 	private void evaluateVariation(DashboardWidgetType widget, ObjectCollectionType collection) {
-		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ObjectCollectionType.F_POLICY_SITUATION, collection.getPolicySituation());
 		if(widget.getPresentation() != null) {
@@ -282,22 +376,11 @@ public abstract class InfoBoxPanel extends Panel{
 					}
 				});
 			}  else {
-				LOGGER.warn("Variation of presentation is not found in widget " + widget.getIdentifier());
+				LOGGER.error("Variation of presentation is not found in widget " + widget.getIdentifier());
 			}
 		}  else {
-			LOGGER.warn("Presentation is not found in widget " + widget.getIdentifier());
+			LOGGER.error("Presentation is not found in widget " + widget.getIdentifier());
 		}
-	}
-
-	private String getNumberMessageFromExpression(Integer value, Integer domainValue, ExpressionType expression) {
-		Task task = getPageBase().createSimpleTask("Search domain collection");
-		IntegerStatType statType = new IntegerStatType();
-		statType.setValue(value);
-		statType.setDomain(domainValue);
-		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, statType);
-		String valueMessaget = getStringExpressionMessage(variables, task, task.getResult(), expression, "Proportional message");
-		return valueMessaget;
 	}
 
 	private int getObjectCount(ObjectCollectionType collection, boolean usingFilter) {
@@ -331,47 +414,134 @@ public abstract class InfoBoxPanel extends Panel{
 		};
 	}
 	
-	protected static HashMap<String, Class<? extends IRequestablePage>> getLinksRef() {
-		return linksRef;
+	protected static HashMap<String, Class<? extends WebPage>> getLinksRefCollections() {
+		return linksRefCollections;
+	}
+	
+	protected static HashMap<QName, Class<? extends WebPage>> getLinksRefObjects() {
+		return linksRefObjects;
 	}
 	
 	protected static PageBase getPageBase() {
 		return pageBase;
 	}
 	
-	protected Class<? extends IRequestablePage> getLinkRef() {
+	protected WebPage getLinkRef() {
 		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
-		ObjectCollectionType collection = getObjectCollectionType();
-		if(collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
-			return getLinksRef().get(collection.getType().getLocalPart());
-		}  else {
-			LOGGER.warn("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
+		DashboardWidgetSourceTypeType sourceType = getSourceType(model);
+		switch (sourceType) {
+		case OBJECT_COLLECTION:
+			ObjectCollectionType collection = getObjectCollectionType();
+			if(collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
+		        Class<? extends WebPage> pageType = getLinksRefCollections().get(collection.getType().getLocalPart());
+				return getPageBase().createWebPage(pageType, null);
+			}  else {
+				LOGGER.error("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
+			}
+			break;
+		case AUDIT_SEARCH:
+			Class<? extends WebPage> pageType = getLinksRefCollections().get(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart());
+			return getPageBase().createWebPage(pageType, null);
+		case OBJECT:
+			ObjectType object = getObjectFromObjectRef();
+			if(object == null) {
+				return null;
+			}
+			QName typeName = WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass());
+			pageType = getLinksRefObjects().get(typeName);
+			PageParameters parameters = new PageParameters();
+			parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
+			return getPageBase().createWebPage(pageType, parameters);
+	}
+	return null;
+	}
+	
+	private boolean isDataNull(IModel<DashboardWidgetType> model) {
+		if(model.getObject().getData() == null) {
+			LOGGER.error("Data is not found in widget " + model.getObject().getIdentifier());
+			return true;
 		}
-		return null;
+		return false;
+	}
+	
+	private boolean isSourceTypeOfDataNull(IModel<DashboardWidgetType> model) {
+		if(isDataNull(model)) {
+			return true;
+		}
+		if(model.getObject().getData().getSourceType() == null) {
+			LOGGER.error("SourceType of data is not found in widget " + model.getObject().getIdentifier());
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isCollectionOfDataNull(IModel<DashboardWidgetType> model) {
+		if(isDataNull(model)) {
+			return true;
+		}
+		if(model.getObject().getData().getCollection() == null) {
+			LOGGER.error("Collection of data is not found in widget " + model.getObject().getIdentifier());
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isCollectionRefOfCollectionNull(IModel<DashboardWidgetType> model) {
+		if(isDataNull(model)) {
+			return true;
+		}
+		if(isCollectionOfDataNull(model)) {
+			return true;
+		}
+		ObjectReferenceType ref = model.getObject().getData().getCollection().getCollectionRef();
+		if(ref == null) {
+			LOGGER.error("CollectionRef of collection is not found in widget " + model.getObject().getIdentifier());
+			return true;
+		}
+		return false;
 	}
 	
 	private ObjectCollectionType getObjectCollectionType() {
 		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
-		if(model.getObject().getData() != null) {
-				if( model.getObject().getData().getSourceType().equals(DashboardWidgetSourceTypeType.OBJECT_COLLECTION)){
-					if( model.getObject().getData().getCollection() != null) {
-						ObjectReferenceType ref = model.getObject().getData().getCollection().getCollectionRef();
-						if (ref != null) {
-							Task task = getPageBase().createSimpleTask("Search collection");
-							ObjectCollectionType collection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref, 
-									getPageBase(), task, task.getResult()).getRealValue();
-								return collection;
-						}  else {
-							LOGGER.warn("CollectionRef of collection is not found in widget " + model.getObject().getIdentifier());
-						}
-					} else {
-						LOGGER.warn("Collection of data is not found in widget " + model.getObject().getIdentifier());
-					}
-				}
-		} else {
-			LOGGER.warn("Data is not found in widget " + model.getObject().getIdentifier());
+		if(isCollectionRefOfCollectionNull(model)) {
+			return null;
 		}
-		return null;
+		ObjectReferenceType ref = model.getObject().getData().getCollection().getCollectionRef();
+		Task task = getPageBase().createSimpleTask("Search collection");
+		ObjectCollectionType collection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref, 
+				getPageBase(), task, task.getResult()).getRealValue();
+		return collection;
+	}
+	
+	private AuditSearchType getAuditSearchType() {
+		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
+		if(isDataNull(model)) {
+			return null;
+		}
+		AuditSearchType auditSearch = model.getObject().getData().getAuditSearch();
+		if(auditSearch == null) {
+			LOGGER.error("AuditSearch of data is not found in widget " + model.getObject().getIdentifier());
+		}
+		return auditSearch;
+	}
+	
+	private ObjectType getObjectFromObjectRef() {
+		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
+		if(isDataNull(model)) {
+			return null;
+		}
+		ObjectReferenceType ref = model.getObject().getData().getObjectRef();
+		if(ref == null) {
+			LOGGER.error("ObjectRef of data is not found in widget " + model.getObject().getIdentifier());
+			return null;
+		}
+		Task task = getPageBase().createSimpleTask("Search domain collection");
+		ObjectType object = WebModelServiceUtils.loadObject(ref, 
+				getPageBase(), task, task.getResult()).getRealValue();
+		if(object == null) {
+			LOGGER.error("Object from ObjectRef " + ref + " is null in widget " + model.getObject().getIdentifier());
+		}
+		return object;
 	}
 	
 	public static String getStringExpressionMessage(ExpressionVariables variables,
@@ -383,13 +553,14 @@ public abstract class InfoBoxPanel extends Panel{
 	        			expression, getPageBase().getExpressionFactory() , shortDes, task, result);
         	} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
         			| ConfigurationException | SecurityViolationException e) {
-        		LOGGER.error("Couldn't evaluate ProportionalExpression " + expression.toString(), e);
+        		LOGGER.error("Couldn't evaluate Expression " + expression.toString(), e);
         	}
             if (contentTypeList == null || contentTypeList.isEmpty()) {
-               throw new IllegalStateException("Proportional expression returned nothing");
+            	LOGGER.error("Expression " + expression + " returned nothing");
+            	return null;
             }
             if (contentTypeList.size() > 1) {
-                LOGGER.warn("Proportional expression returned more than 1 item.");
+                LOGGER.error("Expression returned more than 1 item. First item is used.");
             }
             return contentTypeList.iterator().next();
         } else {

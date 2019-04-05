@@ -1960,7 +1960,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					label = createStringResource(dashboard.getName());
 				}
 				PageParameters pageParameters = new PageParameters();
-				pageParameters.add(PageDashboardConfigurable.PARAM_DASHBOARD_ID, dashboard.getOid());
+				pageParameters.add(PageDashboardConfigurable.PARAM_DASHBOARD_OID, dashboard.getOid());
 				MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
 	        	item.getItems().add(menu);
 			});
@@ -2322,15 +2322,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void navigateToNext(Class<? extends WebPage> pageType, PageParameters params) {
-        IPageFactory pFactory = Session.get().getPageFactory();
+    	WebPage page = createWebPage(pageType, params);
+        navigateToNext(page);
+    }
+    
+    public WebPage createWebPage(Class<? extends WebPage> pageType, PageParameters params) {
+    	IPageFactory pFactory = Session.get().getPageFactory();
         WebPage page;
         if (params == null) {
             page = pFactory.newPage(pageType);
         } else {
             page = pFactory.newPage(pageType, params);
         }
-
-        navigateToNext(page);
+        return page;
     }
 
     public void navigateToNext(WebPage page) {

@@ -105,7 +105,7 @@ public class PageDashboardConfigurable extends PageDashboard {
 	
 	private IModel<DashboardType> dashboardModel;
 
-	public static final String PARAM_DASHBOARD_ID = "dashboardId";
+	public static final String PARAM_DASHBOARD_OID = "oid";
 	private static final String ID_WIDGETS = "widgets";
 	private static final String ID_WIDGET = "widget";
 //    private static final String ID_INFO_BOX_ERRORS = "smallInfoBoxErrors";
@@ -142,7 +142,7 @@ public class PageDashboardConfigurable extends PageDashboard {
 
 			@Override
 			public DashboardType getObject() {
-				StringValue dashboardOid = getPageParameters().get(PARAM_DASHBOARD_ID);
+				StringValue dashboardOid = getPageParameters().get(PARAM_DASHBOARD_OID);
                 if (dashboardOid == null || StringUtils.isEmpty(dashboardOid.toString())) {
                     getSession().error(getString("PageDashboardConfigurable.message.oidNotDefined"));
                     throw new RestartResponseException(PageDashboardInfo.class);

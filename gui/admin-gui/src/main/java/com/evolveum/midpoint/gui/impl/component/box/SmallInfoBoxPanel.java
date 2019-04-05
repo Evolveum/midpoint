@@ -20,23 +20,15 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.component.IRequestablePage;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourceTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author skublik
@@ -64,19 +56,19 @@ public class SmallInfoBoxPanel extends InfoBoxPanel{
 		Label moreInfoBoxLabel = new Label(ID_MORE_INFO_BOX_LABEL, getPageBase().createStringResource("PageDashboard.infobox.moreInfo"));
     	moreInfoBox.add(moreInfoBoxLabel);
     	
-    	Class<? extends IRequestablePage> linkPage = getLinkRef();
-        if (linkPage != null) {
+    	WebPage page = getLinkRef();
+        if (page != null) {
         	moreInfoBox.add(new AjaxEventBehavior("click") {
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onEvent(AjaxRequestTarget target) {
-					setResponsePage(linkPage);
+					getPageBase().navigateToNext(page);
 				}
 			});
         	moreInfoBox.add(AttributeModifier.append("class", "cursor-pointer"));
         } else {
-        	LOGGER.warn("Link is not found for widget " + model.getObject());
+        	LOGGER.warn("Link is not found for widget " + model.getObject().getIdentifier());
         	setInvisible(moreInfoBoxIcon);
         	setInvisible(moreInfoBoxLabel);
         	moreInfoBox.add(AttributeModifier.append("style", "height: 26px; background:rgba(0, 0, 0, 0.1) !important;"));
