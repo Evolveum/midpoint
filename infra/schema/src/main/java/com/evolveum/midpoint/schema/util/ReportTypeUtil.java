@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -68,6 +70,8 @@ public class ReportTypeUtil {
 	public static final String PARAMETER_TASK = "midpointTask";
 	public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
 	
+	private static final Trace LOGGER = TraceManager.getTrace(ReportTypeUtil.class);
+	
 	
 	 public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
 	    	try	 {
@@ -81,53 +85,6 @@ public class ReportTypeUtil {
 	    		throw new SchemaException(ex.getMessage(), ex.getCause());
 	    	}
 	    }
-
-
-	public static JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
-
-		if (reportType.getTemplate() == null) {
-			throw new IllegalStateException("Could not create report. No jasper template defined.");
-		}
-		try	 {
-	    	 	JasperDesign jasperDesign = loadJasperDesign(reportType.getTemplate());
-//	    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
-	    	 	jasperDesign.setLanguage(REPORT_LANGUAGE);
-
-			 if (reportType.getTemplateStyle() != null){
-				JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
-				jasperDesign.addTemplate(templateStyle);
-				
-				jasperDesign.addParameter(createParameter(PARAMETER_TEMPLATE_STYLES, JRTemplate.class));
-				
-			 }
-
-			 jasperDesign.addParameter(createParameter("finalQuery", Object.class));
-			 jasperDesign.addParameter(createParameter(PARAMETER_REPORT_OID, String.class));
-			 //TODO is this right place, we don't see e.g. task
-//			 jasperDesign.addParameter(createParameter(PARAMETER_TASK, Object.class));
-			 jasperDesign.addParameter(createParameter(PARAMETER_OPERATION_RESULT, OperationResult.class));
-			 
-			 //TODO maybe other paramteres? sunch as PARAMETER_REPORT_OBJECT PARAMETER_REPORT_SERVICE ???
-
-			 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
-			 return jasperReport;
-		 } catch (JRException ex){
-//			 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
-			 throw new SchemaException(ex.getMessage(), ex.getCause());
-		 }
-
-
-}
-	
-	private static JRDesignParameter createParameter(String paramName, Class<?> valueClass) {
-		JRDesignParameter param = new JRDesignParameter();
-		param.setName(paramName);
-		param.setValueClass(valueClass);
-		param.setForPrompting(false);
-		param.setSystemDefined(true);
-		return param;
-		
-	}
 
     public static PrismSchema parseReportConfigurationSchema(PrismObject<ReportType> report, PrismContext context)
             throws SchemaException {

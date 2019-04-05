@@ -99,6 +99,8 @@ public class JRMidpointEvaluator extends JREvaluator {
 		this.fieldsMap = fieldsMap;
 		this.variablesMap = variablesMap;
 		
+		PrismObject<ReportType> midPointReportObject = (PrismObject<ReportType>) parametersMap.get(ReportTypeUtil.PARAMETER_REPORT_OBJECT).getValue();
+		LOGGER.info("midPointReportObject : {}", midPointReportObject);
 				
 		reportService = SpringApplicationContext.getBean(ReportService.class);
 		
@@ -172,20 +174,26 @@ public class JRMidpointEvaluator extends JREvaluator {
 			
 		}
 		
+		LOGGER.info("### EVALUATE ###\nParameters:\n{}\nCode:\n  {}\n################", parameters.debugDump(1), groovyCode);
 		
-		if (reportService != null) {
-			try {
-				// TODO:
-				
-				return reportService.evaluate(getReport(), groovyCode, parameters, getTask(), getOperationResult());
-			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-					| ConfigurationException | SecurityViolationException e) {
-				throw new JRRuntimeException(e.getMessage(), e);
-			}
+		if (reportService == null) {
+			throw new JRRuntimeException("No report service");
 		}
 		
-		byte type = ch[0].getType();
-		return "tralalal";
+		try {
+			// TODO:
+			
+			Object evaluationResult = reportService.evaluate(getReport(), groovyCode, parameters, getTask(), getOperationResult());
+			
+			LOGGER.info("### evaluation result: {}", evaluationResult);
+			
+			return evaluationResult;
+			
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+				| ConfigurationException | SecurityViolationException e) {
+			throw new JRRuntimeException(e.getMessage(), e);
+		}
+
 	}
 
 	@Override
