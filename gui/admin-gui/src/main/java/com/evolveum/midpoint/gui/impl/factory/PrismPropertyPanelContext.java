@@ -39,11 +39,11 @@ public class PrismPropertyPanelContext<T> extends ItemPanelContext<T, PrismPrope
 
 	
 	public Collection<? extends DisplayableValue<T>> getAllowedValues() {
-		return unwrapModel().getAllowedValues();
+		return unwrapWrapperModel().getAllowedValues();
 	}
 
 	public LookupTableType getPredefinedValues() {
-		return unwrapModel().getPredefinedValues();
+		return unwrapWrapperModel().getPredefinedValues();
 	}
 	
 }

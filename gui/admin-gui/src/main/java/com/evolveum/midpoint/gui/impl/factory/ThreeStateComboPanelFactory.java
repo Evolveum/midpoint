@@ -45,7 +45,7 @@ public class ThreeStateComboPanelFactory extends AbstractGuiComponentFactory<Boo
 		registry.addToRegistry(this);
 	}
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return DOMUtil.XSD_BOOLEAN.equals(wrapper.getTypeName());
 	}
 

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -43,6 +44,8 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -64,14 +67,17 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	
 	private PrismContainerValueWrapper<?> parent;
 	
-	private I item = null;
 	private ItemStatus status = null;
 	private ItemPath fullPath = null;
-	private PrismContext prismContext = null;
+//	private PrismContext prismContext = null;
 
 	private String displayName;
 	
-	private List<VW> values;
+	private List<VW> values = new ArrayList<>();
+	
+	private I oldItem;
+	private I newItem;
+	
 	
 	//consider
 	private boolean readOnly;
@@ -81,7 +87,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		Validate.notNull(status, "Item status must not be null.");
 
 		this.parent = parent;
-		this.item = item;
+		this.newItem = item;
+		this.oldItem = (I) item.clone();
 		this.status = status;
 //		this.readonly = readonly;
 		
@@ -95,6 +102,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		
 		return displayName;
 	}
+	
+	
 
 	@Override
 	public String getHelp() {
@@ -125,6 +134,11 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return status;
 	}
 
+	@Override
+	public I getItem() {
+		return newItem;
+	}
+	
 //	@Override
 //	public boolean hasOutboundMapping() {
 //		ID def = getItemDefinition();
@@ -151,6 +165,11 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	@Override
+	public ItemPath getPath() {
+		return newItem.getPath();
+	}
+	
+	@Override
 	public ExpressionType getFormComponentValidator() {
 		FormItemValidationType formItemValidation = getItemDefinition().getAnnotation(ItemRefinedDefinitionType.F_VALIDATION);
 		if (formItemValidation == null) {
@@ -166,7 +185,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	ID getItemDefinition() {
-		return item.getDefinition();
+		return newItem.getDefinition();
 	}
 	//OLD
 
@@ -190,28 +209,40 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	 */
 	@Override
 	public String debugDump(int indent) {
-		// TODO Auto-generated method stub
-		return null;
+		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
+		sb.append(toString());
+		sb.append("Original definition: ").append(newItem.getDefinition()).append("\n");
+		sb.append("Display nam: ").append(displayName).append("\n");
+		sb.append("Item status: ").append(status).append("\n");
+		sb.append("Read only: ").append(isReadOnly()).append("\n");
+		sb.append("New item: \n").append(newItem).append("\n");
+		sb.append("Old item: \n").append(oldItem).append("\n");
+		sb.append("Values: \n");
+		for (VW value : values) {
+			sb.append(value.debugDump());
+		}
+		return sb.toString();
+		
 	}
 	
 	private String getLocalizedDisplayName() {
-		Validate.notNull(item, "Item must not be null.");
+		Validate.notNull(newItem, "Item must not be null.");
 
-		String displayName = item.getDisplayName();
+		String displayName = newItem.getDisplayName();
 		if (!StringUtils.isEmpty(displayName)) {
 			return localizeName(displayName);
 		}
 
-		QName name = item.getElementName();
+		QName name = newItem.getElementName();
 		if (name != null) {
 			displayName = name.getLocalPart();
 
-			PrismValue val = item.getParent();
+			PrismValue val = newItem.getParent();
 			if (val != null && val.getTypeName() != null) {
 				displayName = val.getTypeName().getLocalPart() + "." + displayName;
 			}
 		} else {
-			displayName = item.getDefinition().getTypeName().getLocalPart();
+			displayName = newItem.getDefinition().getTypeName().getLocalPart();
 		}
 
 		return localizeName(displayName);
@@ -236,27 +267,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	public List<VW> getValues() {
 		return values;
 	}
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#setStripe(boolean)
-	 */
-//	@Override
-//	public void setStripe(boolean isStripe) {
-//		// TODO Auto-generated method stub
-//		
-//	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#addValue(boolean)
-	 */
-	@Override
-	public void addValue(boolean showEmpty) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#removeValue(com.evolveum.midpoint.web.component.prism.ValueWrapper)
-	 */
+	
+	
 //	@Override
 //	public void removeValue(ValueWrapperOld<PV> valueWrapper) throws SchemaException {
 //		List<ValueWrapperOld<PV>> values = getValues();
@@ -315,7 +327,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	 */
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
-		return item.getDefinition().isMandatory();
+		return newItem.getDefinition().isMandatory();
 	}
 
 	/* (non-Javadoc)
@@ -389,448 +401,260 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return def.canAdd() && def.isEmphasized();
 	}
 	
-//	ID getItemDefinition() {
-//		return item.getDefinition();
-//	}
-
-//	boolean isEmpty() {
-//		return item.isEmpty();
-//	}
-	
 	ItemStatus getItemStatus() {
 		return status;
 	}
+	
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#getName()
-	 */
 	@Override
 	public ItemName getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getName();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#getNamespace()
-	 */
 	@Override
 	public String getNamespace() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getNamespace();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#getMinOccurs()
-	 */
 	@Override
 	public int getMinOccurs() {
-		// TODO Auto-generated method stub
-		return 0;
+		return getItemDefinition().getMinOccurs();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#getMaxOccurs()
-	 */
 	@Override
 	public int getMaxOccurs() {
-		// TODO Auto-generated method stub
-		return 0;
+		return getItemDefinition().getMaxOccurs();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#isSingleValue()
-	 */
 	@Override
 	public boolean isSingleValue() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isSingleValue();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#isOptional()
-	 */
 	@Override
 	public boolean isOptional() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isOptional();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#isOperational()
-	 */
 	@Override
 	public boolean isOperational() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isOperational();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#isInherited()
-	 */
 	@Override
 	public boolean isInherited() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isInherited();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#isDynamic()
-	 */
 	@Override
 	public boolean isDynamic() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isDynamic();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#canRead()
-	 */
 	@Override
 	public boolean canRead() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().canRead();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#canModify()
-	 */
 	@Override
 	public boolean canModify() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().canModify();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#canAdd()
-	 */
 	@Override
 	public boolean canAdd() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().canAdd();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#getSubstitutionHead()
-	 */
 	@Override
 	public QName getSubstitutionHead() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getSubstitutionHead();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#isHeterogeneousListItem()
-	 */
 	@Override
 	public boolean isHeterogeneousListItem() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isHeterogeneousListItem();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#getValueEnumerationRef()
-	 */
 	@Override
 	public PrismReferenceValue getValueEnumerationRef() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getValueEnumerationRef();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#isValidFor(javax.xml.namespace.QName, java.lang.Class)
-	 */
 	@Override
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isValidFor(elementQName, clazz);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#isValidFor(javax.xml.namespace.QName, java.lang.Class, boolean)
-	 */
 	@Override
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isValidFor(elementQName, clazz, caseInsensitive);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#adoptElementDefinitionFrom(com.evolveum.midpoint.prism.ItemDefinition)
-	 */
 	@Override
 	public void adoptElementDefinitionFrom(ItemDefinition otherDef) {
-		// TODO Auto-generated method stub
-		
+		getItemDefinition().adoptElementDefinitionFrom(otherDef);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#instantiate()
-	 */
 	@Override
 	public I instantiate() throws SchemaException {
-		return null;
+		return getItemDefinition().instantiate();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#instantiate(javax.xml.namespace.QName)
-	 */
 	@Override
 	public I instantiate(QName name) throws SchemaException {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().instantiate();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#findItemDefinition(com.evolveum.midpoint.prism.path.ItemPath, java.lang.Class)
-	 */
 	@Override
 	public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().findItemDefinition(path, clazz);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#createEmptyDelta(com.evolveum.midpoint.prism.path.ItemPath)
-	 */
 	@Override
 	public ItemDelta createEmptyDelta(ItemPath path) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().createEmptyDelta(path);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#clone()
-	 */
 	@Override
 	public ItemDefinition<I> clone() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().clone();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#deepClone(boolean, java.util.function.Consumer)
-	 */
 	@Override
 	public ItemDefinition<I> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().deepClone(ultraDeep, postCloneAction);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#deepClone(java.util.Map, java.util.Map, java.util.function.Consumer)
-	 */
 	@Override
 	public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath,
 			Consumer<ItemDefinition> postCloneAction) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().deepClone(ctdMap, onThisPath, postCloneAction);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#revive(com.evolveum.midpoint.prism.PrismContext)
-	 */
 	@Override
 	public void revive(PrismContext prismContext) {
-		// TODO Auto-generated method stub
-		
+		getItemDefinition().revive(prismContext);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#debugDumpShortToString(java.lang.StringBuilder)
-	 */
 	@Override
 	public void debugDumpShortToString(StringBuilder sb) {
-		// TODO Auto-generated method stub
-		
+		//TODO implement for wrappers
+		getItemDefinition().debugDumpShortToString(sb);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#canBeDefinitionOf(com.evolveum.midpoint.prism.Item)
-	 */
 	@Override
 	public boolean canBeDefinitionOf(I item) {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().canBeDefinitionOf(item);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#canBeDefinitionOf(com.evolveum.midpoint.prism.PrismValue)
-	 */
 	@Override
 	public boolean canBeDefinitionOf(PrismValue pvalue) {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().canBeDefinitionOf(pvalue);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.ItemDefinition#toMutable()
-	 */
 	@Override
 	public MutableItemDefinition<I> toMutable() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().toMutable();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getTypeName()
-	 */
 	@Override
 	public QName getTypeName() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getTypeName();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#isRuntimeSchema()
-	 */
 	@Override
 	public boolean isRuntimeSchema() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isRuntimeSchema();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#isIgnored()
-	 */
 	@Override
+	@Deprecated
 	public boolean isIgnored() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isIgnored();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getProcessing()
-	 */
 	@Override
 	public ItemProcessing getProcessing() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getProcessing();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#isAbstract()
-	 */
 	@Override
 	public boolean isAbstract() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isAbstract();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getPlannedRemoval()
-	 */
 	@Override
 	public String getPlannedRemoval() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getPlannedRemoval();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#isElaborate()
-	 */
 	@Override
 	public boolean isElaborate() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isElaborate();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#isEmphasized()
-	 */
 	@Override
 	public boolean isEmphasized() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isEmphasized();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getDisplayOrder()
-	 */
 	@Override
 	public Integer getDisplayOrder() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getDisplayOrder();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getDocumentation()
-	 */
 	@Override
 	public String getDocumentation() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getDocumentation();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getDocumentationPreview()
-	 */
 	@Override
 	public String getDocumentationPreview() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getDocumentationPreview();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getPrismContext()
-	 */
 	@Override
 	public PrismContext getPrismContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getPrismContext();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getTypeClassIfKnown()
-	 */
 	@Override
 	public Class getTypeClassIfKnown() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getTypeClassIfKnown();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getTypeClass()
-	 */
 	@Override
 	public Class getTypeClass() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getTypeClass();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#getAnnotation(javax.xml.namespace.QName)
-	 */
 	@Override
 	public <A> A getAnnotation(QName qname) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getAnnotation(qname);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Definition#setAnnotation(javax.xml.namespace.QName, java.lang.Object)
-	 */
 	@Override
 	public <A> void setAnnotation(QName qname, A value) {
-		// TODO Auto-generated method stub
-		
+		getItemDefinition().setAnnotation(qname, value);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Visitable#accept(com.evolveum.midpoint.prism.Visitor)
-	 */
 	@Override
 	public void accept(Visitor visitor) {
+		getItemDefinition().accept(visitor);
+	}
+
+	
+	@Override
+	public void setReadOnly() {
 		// TODO Auto-generated method stub
 		
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#removeValue(com.evolveum.midpoint.web.component.prism.ValueWrapperOld)
-	 */
 	@Override
-	public void removeValue(ValueWrapperOld<PV> valueWrapper) throws SchemaException {
+	public boolean isStripe() {
 		// TODO Auto-generated method stub
-		
+		return false;
 	}
 	
 }

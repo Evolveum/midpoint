@@ -16,39 +16,27 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.prism.component.PrismContainerPanel;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
-import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author katka
@@ -62,8 +50,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	
 	private boolean expanded;
 	
-	private PrismContainer<C> newContainer;
-	private PrismContainer<C> oldContainer;
+//	private List<PrismContainerValueWrapper<C>> values = new ArrayList<>();
 	
 	/**
 	 * @param parent
@@ -72,200 +59,110 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	 * @param fullPath
 	 * @param prismContext
 	 */
-	public PrismContainerWrapperImpl(PrismContainerValueWrapper<C> parent, PrismContainer<C> item, ItemStatus status) {
+	public PrismContainerWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<C> item, ItemStatus status) {
 		super(parent, item, status);
-		this.newContainer = item;
-		this.oldContainer = item.clone();
 		this.expanded = !item.isEmpty();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#setExpanded(boolean)
-	 */
 	@Override
 	public void setExpanded(boolean expanded) {
-		// TODO Auto-generated method stub
-		
+		this.expanded = expanded;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#isExpanded()
-	 */
 	@Override
 	public boolean isExpanded() {
-		// TODO Auto-generated method stub
-		return false;
+		return expanded;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#setShowOnTopLevel(boolean)
-	 */
 	@Override
 	public void setShowOnTopLevel(boolean setShowOnTopLevel) {
-		// TODO Auto-generated method stub
-		
+		this.showOnTopLevel = showOnTopLevel;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#isShowOnTopLevel()
-	 */
 	@Override
 	public boolean isShowOnTopLevel() {
-		// TODO Auto-generated method stub
-		return false;
+		return showOnTopLevel;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#isStripe()
-	 */
 	@Override
 	public boolean isStripe() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#getValues()
-	 */
-	@Override
-	public List<PrismContainerValueWrapper<C>> getValues() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#getCompileTimeClass()
-	 */
 	@Override
 	public Class<C> getCompileTimeClass() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getCompileTimeClass();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#getComplexTypeDefinition()
-	 */
 	@Override
 	public ComplexTypeDefinition getComplexTypeDefinition() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getComplexTypeDefinition();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#getDefaultNamespace()
-	 */
 	@Override
 	public String getDefaultNamespace() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getDefaultNamespace();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#getIgnoredNamespaces()
-	 */
 	@Override
 	public List<String> getIgnoredNamespaces() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getIgnoredNamespaces();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#getDefinitions()
-	 */
 	@Override
 	public List<? extends ItemDefinition> getDefinitions() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getDefinitions();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#getPropertyDefinitions()
-	 */
 	@Override
 	public List<PrismPropertyDefinition> getPropertyDefinitions() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getPropertyDefinitions();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#createEmptyDelta(com.evolveum.midpoint.prism.path.ItemPath)
-	 */
 	@Override
 	public ContainerDelta<C> createEmptyDelta(ItemPath path) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().createEmptyDelta(path);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#clone()
-	 */
 	@Override
 	public PrismContainerDefinition<C> clone() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().clone();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#cloneWithReplacedDefinition(javax.xml.namespace.QName, com.evolveum.midpoint.prism.ItemDefinition)
-	 */
 	@Override
 	public PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().cloneWithReplacedDefinition(itemName, newDefinition);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#replaceDefinition(javax.xml.namespace.QName, com.evolveum.midpoint.prism.ItemDefinition)
-	 */
 	@Override
 	public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
-		// TODO Auto-generated method stub
-		
+		getItemDefinition().replaceDefinition(itemName, newDefinition);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#createValue()
-	 */
 	@Override
 	public PrismContainerValue<C> createValue() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().createValue();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#canRepresent(javax.xml.namespace.QName)
-	 */
 	@Override
 	public boolean canRepresent(QName type) {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().canRepresent(type);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#toMutable()
-	 */
 	@Override
 	public MutablePrismContainerDefinition<C> toMutable() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().toMutable();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.LocalDefinitionStore#findLocalItemDefinition(javax.xml.namespace.QName, java.lang.Class, boolean)
-	 */
 	@Override
 	public <ID extends ItemDefinition> ID findLocalItemDefinition(QName name, Class<ID> clazz, boolean caseInsensitive) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().findLocalItemDefinition(name, clazz, caseInsensitive);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.LocalDefinitionStore#findNamedItemDefinition(javax.xml.namespace.QName, com.evolveum.midpoint.prism.path.ItemPath, java.lang.Class)
-	 */
 	@Override
 	public <ID extends ItemDefinition> ID findNamedItemDefinition(QName firstName, ItemPath rest, Class<ID> clazz) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().findNamedItemDefinition(firstName, rest, clazz);
 	}
 
 	/* (non-Javadoc)
@@ -273,100 +170,85 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	 */
 	@Override
 	public void setReadOnly() {
-		// TODO Auto-generated method stub
 		
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismContainerDefinition#isEmpty()
-	 */
+
+	
+	//TODO : unify with PrismContainerImpl findContainer();
 	@Override
-	public boolean isEmpty() {
-		// TODO Auto-generated method stub
-		return false;
+	public <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException {
+		return findItem(path, PrismContainerWrapper.class);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Itemable#getElementName()
-	 */
-	@Override
-	public ItemName getElementName() {
-		// TODO Auto-generated method stub
+	private PrismContainerValueWrapper<C> findValue(Long id) {
+		if (isSingleValue()) {
+			if (getValues() != null) {
+				return getValues().iterator().next();
+			}
+		}
+		
+		for (PrismContainerValueWrapper<C> value : getValues()) {
+			PrismContainerValue<C> newValue = value.getNewValue();
+			if (id == null) {
+				//TODO : what to do?? can be recently added
+				return null;
+			}
+			
+			if (id.equals(newValue.getId())) {
+				return value;
+			}
+		}
+		
 		return null;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Itemable#getDefinition()
-	 */
+	
 	@Override
-	public ItemDefinition getDefinition() {
-		// TODO Auto-generated method stub
-		return null;
+	public <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException {
+		return findItem(propertyPath, PrismPropertyWrapper.class);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Itemable#getPath()
-	 */
 	@Override
-	public ItemPath getPath() {
-		// TODO Auto-generated method stub
-		return null;
+	public PrismReferenceWrapper findReference(ItemPath path) throws SchemaException {
+		return findItem(path, PrismReferenceWrapper.class);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#findItem(com.evolveum.midpoint.prism.path.ItemPath)
-	 */
-	@Override
-	public ItemWrapper<?, ?, ?, ?> findItem(ItemPath path) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#findContainer(com.evolveum.midpoint.prism.path.ItemPath)
-	 */
-	@Override
-	public <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#findProperty(com.evolveum.midpoint.prism.path.ItemPath)
-	 */
-	@Override
-	public <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#findReference(com.evolveum.midpoint.prism.path.ItemPath)
-	 */
-	@Override
-	public PrismReferenceWrapper findReference(ItemPath path) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#findContainerValue(com.evolveum.midpoint.prism.path.ItemPath)
-	 */
 	@Override
 	public <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper#getContainer()
-	 */
+	
 	@Override
-	public PrismContainer<C> getContainer() {
+	public boolean isEmpty() {
 		// TODO Auto-generated method stub
-		return null;
+		return false;
 	}
 
+	@Override
+	public <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException {
+		if (ItemPath.isEmpty(path)) {
+			if (type.isAssignableFrom(this.getClass())) {
+				return (IW) this;
+			}
+    		return null;
+    	}
+    	
+		Long id = path.firstToIdOrNull();
+    	PrismContainerValueWrapper<C> cval = findValue(id);
+    	if (cval == null) {
+    		return null;
+    	}
+    	// descent to the correct value
+	    ItemPath rest = path.startsWithId() ? path.rest() : path;
+    	return cval.findItem(rest, type);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		return super.debugDump(indent);
+	}
 	
 //	@Override
 //	public boolean isVisible() {

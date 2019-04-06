@@ -52,7 +52,7 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
 	}
 
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return ActivationType.F_LOCKOUT_STATUS.equals(wrapper.getName());
 	}
 

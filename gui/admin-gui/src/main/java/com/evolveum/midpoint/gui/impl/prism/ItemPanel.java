@@ -67,7 +67,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	 
 	 protected ListView<VW> createValuesPanel() {
 		 
-		 ListView<VW> values = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModelObject(), "values")) { 
+		 ListView<VW> values = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) { 
 		 
 			private static final long serialVersionUID = 1L;
 

@@ -15,7 +15,10 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 
 import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -40,6 +43,14 @@ public class PrismReferenceHeaderPanel<R extends Referencable> extends ItemHeade
 	protected void initButtons() {
 		// TODO Auto-generated method stub
 		
+	}
+
+
+	@Override
+	protected Component createTitle(IModel<String> label) {
+		Label displayName = new Label(ID_LABEL, label);
+        
+        return displayName;
 	}
 
 }

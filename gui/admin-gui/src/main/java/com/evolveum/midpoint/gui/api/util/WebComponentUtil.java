@@ -124,6 +124,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
@@ -2169,31 +2170,32 @@ public final class WebComponentUtil {
 	}
 
 	public static double getSystemLoad() {
-		com.sun.management.OperatingSystemMXBean operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory
-				.getOperatingSystemMXBean();
-		RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-		int availableProcessors = operatingSystemMXBean.getAvailableProcessors();
-		long prevUpTime = runtimeMXBean.getUptime();
-		long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
-
-		try {
-			Thread.sleep(150);
-		} catch (Exception ignored) {
-			// ignored
-		}
-
-		operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory
-				.getOperatingSystemMXBean();
-		long upTime = runtimeMXBean.getUptime();
-		long processCpuTime = operatingSystemMXBean.getProcessCpuTime();
-		long elapsedCpu = processCpuTime - prevProcessCpuTime;
-		long elapsedTime = upTime - prevUpTime;
-
-		double cpuUsage = Math.min(99F, elapsedCpu / (elapsedTime * 10000F * availableProcessors));
-
-		return cpuUsage;
+		java.lang.management.OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+//		RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+		return operatingSystemMXBean.getSystemLoadAverage();
+//		int availableProcessors = operatingSystemMXBean.getAvailableProcessors();
+//		long prevUpTime = runtimeMXBean.getUptime();
+//		long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
+//
+//		try {
+//			Thread.sleep(150);
+//		} catch (Exception ignored) {
+//			// ignored
+//		}
+//
+//		operatingSystemMXBean = ManagementFactory
+//				.getOperatingSystemMXBean();
+//		long upTime = runtimeMXBean.getUptime();
+//		long processCpuTime = operatingSystemMXBean.getProcessCpuTime();
+//		long elapsedCpu = processCpuTime - prevProcessCpuTime;
+//		long elapsedTime = upTime - prevUpTime;
+//
+//		double cpuUsage = Math.min(99F, elapsedCpu / (elapsedTime * 10000F * availableProcessors));
+//
+//		return cpuUsage;
 	}
 
+	
 	public static double getMaxRam() {
 		int MB = 1024 * 1024;
 
@@ -2798,9 +2800,9 @@ public final class WebComponentUtil {
 	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
-																	 IModel<ObjectWrapperOld<ShadowType>> shadowModel) {
+																	 IModel<PrismObjectWrapper<ShadowType>> shadowModel) {
 		
-		ObjectWrapperOld<ShadowType> shadowWrapper = shadowModel.getObject();
+		PrismObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
 		PrismObject<ShadowType> shadow = shadowWrapper.getObject();
 		ShadowType shadowType = shadow.asObjectable();
 		
@@ -3272,28 +3274,33 @@ public final class WebComponentUtil {
 		if (createIfNotExist && prismContext == null) {
 			throw new IllegalArgumentException("createIfNotExist is set but prismContext is null");
 		}
-		PrismContainerWrapper<ConstructionType> construction = assignmentValueWrapper
-				.findContainer(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
-		if (construction == null){
+		PrismContainerWrapper<ResourceObjectAssociationType> association;
+		try {
+			association = assignmentValueWrapper
+					.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot find association wrapper, reason: {}", e.getMessage(), e);
+			pageBase.getSession().error("Cannot find association wrapper, reason: " + e.getMessage());
 			return null;
 		}
-		PrismContainerWrapper<ResourceObjectAssociationType> association = construction
-				.findContainer(ItemPath.create(construction.getPath(), ConstructionType.F_ASSOCIATION));
+		
 		if (association == null || association.getValues() == null || association.getValues().size() == 0){
 			return null;
 		}
 		//FIXME HACK not to add empty association value
 		if (ContainerStatus.ADDING.equals(association.getStatus())){
-			association.getContainer().clear();
+			association.getItem().clear();
 		}
 		PrismContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
-		PrismContainerWrapper<MappingType> outbound =
-				associationValueWrapper.findContainer(ItemPath.create(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
-
-		if (outbound == null){
+		PrismPropertyWrapper<ExpressionType> expressionWrapper;
+		try {
+			expressionWrapper = associationValueWrapper.findProperty(ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot find expression wrapper, reason: {}", e.getMessage(), e);
+			pageBase.getSession().error("Cannot find expression wrapper, reason: " + e.getMessage());
 			return null;
 		}
-		PrismPropertyWrapper<ExpressionType> expressionWrapper = outbound.findProperty(MappingType.F_EXPRESSION);
+
 		if (expressionWrapper == null){
 			return null;
 		}
@@ -3308,7 +3315,7 @@ public final class WebComponentUtil {
 				PrismPropertyValue<ExpressionType> exp = prismContext.itemFactory().createPropertyValue(expression);
 				WrapperContext context = new WrapperContext(null, null);
 				PrismPropertyValueWrapper<ExpressionType> val = (PrismPropertyValueWrapper<ExpressionType>) pageBase
-						.createValueWrapper(expressionWrapper, expressionWrapper, exp, ValueStatus.ADDED, context);
+						.createValueWrapper(expressionWrapper, exp, ValueStatus.ADDED, context);
 				// ValueWrapperOld<ExpressionType> val = new
 				// ValueWrapperOld<>(expressionWrapper, exp, prismContext);
 				expressionValues.remove(0);

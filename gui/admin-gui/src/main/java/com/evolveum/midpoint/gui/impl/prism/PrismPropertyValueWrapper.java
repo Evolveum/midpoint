@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
@@ -23,12 +25,20 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
  */
 public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, PrismPropertyValue<T>> {
 
-	private static final long serialVersionUID = 1L;
-
-	public PrismPropertyWrapper<T> getParent() {
-		return null;
+	/**
+	 * @param parent
+	 * @param value
+	 * @param status
+	 */
+	public PrismPropertyValueWrapper(ItemWrapper<?, ?, ?, ?> parent, PrismPropertyValue<T> value, ValueStatus status) {
+		super(parent, value, status);
 	}
 
+	private static final long serialVersionUID = 1L;
 	
+	@Override
+	public void setRealValue(T realValue) {
+		getNewValue().setValue(realValue);
+	}
 
 }

@@ -15,8 +15,15 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
@@ -31,13 +38,15 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFacotryImpl<PrismPropertyWrapper<T>, PrismPropertyValue<T>, PrismProperty<T>>{
+@Component
+public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<PrismPropertyWrapper<T>, PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyValueWrapper<T>>{
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		return def instanceof PrismPropertyDefinition;
 	}
 
+	@PostConstruct
 	@Override
 	public void register() {
 		getRegistry().addToRegistry(this);
@@ -58,15 +67,16 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFacotryImpl<P
 	@Override
 	protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
 			ItemStatus status) {
+		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
 		PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
 		return propertyWrapper;
 	}
 	
 	@Override
-	public PrismValueWrapper<?> createValueWrapper(PrismPropertyWrapper<T> parent, PrismPropertyValue<T> value,
+	public PrismPropertyValueWrapper<T> createValueWrapper(PrismPropertyWrapper<T> parent, PrismPropertyValue<T> value,
 			ValueStatus status, WrapperContext context) throws SchemaException {
-		// TODO Auto-generated method stub
-		return null;
+		PrismPropertyValueWrapper<T> valueWrapper = new PrismPropertyValueWrapper<>(parent, value, status);
+		return valueWrapper;
 	}
 
 }

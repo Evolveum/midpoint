@@ -53,17 +53,25 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 	private SynchronizationInformationPanel synchronizationInformationPanelAfter;
 	private ActionsExecutedInformationPanel actionsExecutedInformationPanel;
 
+	private IModel<TaskDto> taskDtoModel = null;
+	
 	public TaskProgressTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
-			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		super(id, mainForm, taskWrapperModel, pageBase);
-		initLayout(taskDtoModel, pageBase);
+			IModel<TaskDto> taskDtoModel) {
+		super(id, mainForm, taskWrapperModel);
+		this.taskDtoModel = taskDtoModel;
 		setOutputMarkupId(true);
 	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout() {
 		final TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
-		iterativeInformationPanel = new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase);
+		iterativeInformationPanel = new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, getPageBase());
 		iterativeInformationPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {

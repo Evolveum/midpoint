@@ -48,7 +48,7 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathTy
 	}
 	
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 

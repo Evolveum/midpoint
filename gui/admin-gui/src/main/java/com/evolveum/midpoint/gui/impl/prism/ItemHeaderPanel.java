@@ -17,8 +17,11 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 
@@ -68,21 +71,21 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
 		setOutputMarkupId(true);
 		
-		add(initExpandCollapseButton(ID_EXPAND_COLLAPSE_CONTAINER));
+//		add(initExpandCollapseButton(ID_EXPAND_COLLAPSE_CONTAINER));
 		initButtons();
 		initHeaderLabel();
 
     }
 
-    protected WebMarkupContainer initExpandCollapseButton(String contentAreaId){
-    	return new WebMarkupContainer(contentAreaId);
-    }
+//    protected WebMarkupContainer initExpandCollapseButton(String contentAreaId){
+//    	return new WebMarkupContainer(contentAreaId);
+//    }
 
 	protected void initHeaderLabel(){
 		
 		WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
-        labelContainer.add(new AttributeModifier("class", getLabelCssClass()));
+//        labelContainer.add(new AttributeModifier("class", getLabelCssClass()));
         add(labelContainer);
 
 		createTitle(labelContainer);
@@ -96,15 +99,14 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 	
 	private void createTitle(WebMarkupContainer labelContainer) {
-		
-        
-        IModel<String> label = LambdaModel.of(getModel(), IW::getDisplayName);
-        
-        Label displayName = new Label(ID_LABEL, label);
+		Component displayName = createTitle(LambdaModel.of(getModel(), IW::getDisplayName));
         displayName.add(new AttributeModifier("style", getDeprecatedCss()));
 
         labelContainer.add(displayName);
+        
 	}
+	
+	protected abstract Component createTitle(IModel<String> model);
 	
 	private void createHelpText(WebMarkupContainer labelContainer) {
 		
@@ -216,9 +218,9 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 //        return false;
 //    }
 	
-	public String getLabelCssClass() {
-	    	return " col-md-2 col-xs-12 prism-property-label ";
-	    }
+//	public String getLabelCssClass() {
+//	    	return " col-md-2 col-xs-12 prism-property-label ";
+//	    }
 	
 	public IModel<String> getDeprecatedCss() {
 		return () -> getModelObject().isDeprecated() ? "text-decoration: line-through;" : "text-decoration: none;";

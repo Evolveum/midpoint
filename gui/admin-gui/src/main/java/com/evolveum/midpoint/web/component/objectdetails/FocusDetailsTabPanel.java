@@ -18,25 +18,26 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.PrismPanel;
-import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -45,23 +46,38 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	private static final long serialVersionUID = 1L;
 
 	protected static final String ID_FOCUS_FORM = "focusDetails";	
+	
+	private static final String ID_MAIN_PANEL = "main";
+	private static final String ID_ACTIVATION_PANEL = "activation";
+	private static final String ID_PASSWORD_PANEL = "password";
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
 
 	public FocusDetailsTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-			PageBase pageBase) {
-		super(id, mainForm, focusWrapperModel, projectionModel, pageBase);
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+		super(id, mainForm, focusWrapperModel, projectionModel);
+		
+	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initLayout();
 	}
 
 	private void initLayout() {
-				
-		PrismPanel<F> panel = new PrismPanel<F>(ID_FOCUS_FORM,  new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
-				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), 
-				null, getPageBase());
-		add(panel);
+		
+		try {
+			Panel main = getPageBase().initPanel(ID_MAIN_PANEL, getObjectWrapper().getTypeName(), new PrismContainerWrapperModel<F, F>(getObjectWrapperModel(), ItemPath.EMPTY_PATH), false);
+			add(main);
+			Panel activation = getPageBase().initPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, new PrismContainerWrapperModel<F,ActivationType>(getObjectWrapperModel(), FocusType.F_ACTIVATION), false);
+			add(activation);
+			Panel password = getPageBase().initPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, new PrismContainerWrapperModel<F, PasswordType>(getObjectWrapperModel(), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), false);
+			add(password);
+		} catch (SchemaException e) {
+			LOGGER.error("Could not create focu details panel. Reason: ", e.getMessage(), e);
+		}
 	}
 	
 	private List<ItemPath> getVisibleContainers() {

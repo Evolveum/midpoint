@@ -15,10 +15,34 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.List;
+
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 /**
  * @author katka
  *
  */
-public class PrismObjectValueWrapperImpl {
+public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismContainerValueWrapperImpl<O> implements PrismObjectValueWrapper<O>{
 
+	private static final long serialVersionUID = 1L;
+
+	public PrismObjectValueWrapperImpl(PrismObjectWrapper<O> parent, PrismObjectValue<O> pcv, ValueStatus status) {
+		super(parent, pcv, status);
+	}
+	
+	@Override
+	public List<PrismContainerWrapper<O>> getContainers() {
+		return null;
+	}
+
+	@Override
+	public String getDisplayName() {
+		return "prismContainer.mainPanelDisplayName";
+	}
+	
 }

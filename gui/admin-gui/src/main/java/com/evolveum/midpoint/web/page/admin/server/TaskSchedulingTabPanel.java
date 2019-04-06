@@ -115,7 +115,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 	public TaskSchedulingTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
-		super(id, mainForm, taskWrapperModel, parentPage);
+		super(id, mainForm, taskWrapperModel);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
 		initLayoutForInfoPanel();

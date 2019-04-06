@@ -38,8 +38,14 @@ public class HelloObjectTabPanel<F extends FocusType> extends AbstractObjectTabP
 
 	private static final String ID_HELLO_LABEL = "helloLabel";
 
-	public HelloObjectTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel, PageBase pageBase) {
-		super(id, mainForm, focusModel, pageBase);
+	public HelloObjectTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+		super(id, mainForm, focusModel);
+		
+	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initLayout();
 	}
 

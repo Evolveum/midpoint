@@ -15,13 +15,14 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_LOCKOUT_EXPIRATION_TIMESTAMP;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -36,11 +37,20 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_LOCKOUT_EXPIRATION_TIMESTAMP;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * Created by honchar
@@ -135,10 +145,10 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		add(assignmentPanel);
 
 
-		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
+		PrismContainerWrapperModel<F, ActivationType> activationModel = new PrismContainerWrapperModel<F, ActivationType>(pageBase.getObjectModel(), AssignmentType.F_ACTIVATION);
 		PrismContainerPanel<ActivationType> activationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel);
 //		PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<>(ID_ACTIVATION_PANEL, activationModel, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
-//		add(acitvationContainer);
+		add(activationContainer);
 		
 		initContainersPanel(form, pageBase);
     }

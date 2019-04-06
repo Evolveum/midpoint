@@ -49,7 +49,7 @@ public class PasswordPanelFactory extends AbstractGuiComponentFactory<ProtectedS
 	}
 	
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return ProtectedStringType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 

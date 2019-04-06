@@ -15,18 +15,29 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismObjectValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismObjectWrapperImpl;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -36,6 +47,9 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -46,30 +60,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author katka
  *
  */
-public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends ContainerWrapperFactoryImpl<O> {
+@Component
+public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismContainerWrapperFactoryImpl<O> implements PrismObjectWrapperFactory<O> {
 	
-	@Autowired private GuiComponentRegistryImpl registry;
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
+	
+	@Autowired private GuiComponentRegistry registry;
 	@Autowired private ModelInteractionService modelInteractionService;
 	@Autowired private ModelService modelService;
 
-	
-	
-	
-	
-	
 	public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws SchemaException {
 		applySecurityConstraints(object, context);
 		
 		PrismObjectWrapperImpl<O> objectWrapper = new PrismObjectWrapperImpl<>(object, status);
-		createValuesWrapper(objectWrapper, object, context);
+		PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(objectWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
+		objectWrapper.getValues().add(valueWrapper);
 		
+		registry.registerWrapperPanel(object.getDefinition().getTypeName(), PrismObjectValuePanel.class);
 		return objectWrapper;
 		
 	}
 	
-
-
-
+	@Override
+	public PrismObjectValueWrapper<O> createContainerValueWrapper(PrismContainerWrapper<O> objectWrapper, PrismContainerValue<O> objectValue, ValueStatus status) {
+		return new PrismObjectValueWrapperImpl<O>((PrismObjectWrapper<O>) objectWrapper, (PrismObjectValue<O>) objectValue, status);
+	}
+	
 	/** 
 	 * 
 	 * @param object
@@ -143,9 +159,11 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends Contain
 		return def instanceof PrismObjectDefinition;
 	}
 
+	
 	@Override
+	@PostConstruct
 	public void register() {
-		getRegistry().addToRegistry(this);
+		registry.addToRegistry(this);
 	}
 
 	@Override

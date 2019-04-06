@@ -15,18 +15,32 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
  *
  */
 public class PrismReferenceValueWrapper<T extends Referencable> extends PrismValueWrapperImpl<T, PrismReferenceValue> {
+	
+	private static final long serialVersionUID = 1L;
 
-		private static final long serialVersionUID = 1L;
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapper.class);
 
+	public PrismReferenceValueWrapper(ItemWrapper<?, ?, ?, ?> parent, PrismReferenceValue value, ValueStatus status) {
+		super(parent, value, status);
+	}
+
+	@Override
+	public void setRealValue(T realValue) {
+		LOGGER.trace("Nothing to do");
+	}
 	
 
 }

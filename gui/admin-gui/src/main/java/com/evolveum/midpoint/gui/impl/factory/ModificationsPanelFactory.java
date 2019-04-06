@@ -50,7 +50,7 @@ public class ModificationsPanelFactory extends AbstractGuiComponentFactory<Objec
 	}
 	
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return ObjectDeltaType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 

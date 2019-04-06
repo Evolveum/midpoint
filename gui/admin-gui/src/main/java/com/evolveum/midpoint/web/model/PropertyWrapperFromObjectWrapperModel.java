@@ -38,6 +38,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  * @author semancik
  */
+@Deprecated
 public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<PrismPropertyWrapper<T>,O> {
 	private static final long serialVersionUID = 1L;
 
@@ -53,8 +54,9 @@ public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> exten
 
     @Override
     public PrismPropertyWrapper<T> getObject() {
-    	PrismPropertyWrapper<T> propertyWrapper = getWrapper().findProperty(path);
-        return propertyWrapper;
+//    	PrismPropertyWrapper<T> propertyWrapper = getWrapper().findProperty(path);
+//        return propertyWrapper;
+    	return null;
     }
 
     @Override public void setObject(PrismPropertyWrapper<T> prismPropertyPropertyWrapper) {

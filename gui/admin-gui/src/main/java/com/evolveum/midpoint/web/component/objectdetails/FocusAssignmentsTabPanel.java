@@ -15,36 +15,34 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
-import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * @author semancik
  */
-public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
+public class FocusAssignmentsTabPanel<F extends AssignmentHolderType> extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
 	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 	private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
 
-	public FocusAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel, PageBase page) {
-		super(id, mainForm, focusWrapperModel, page);
+	public FocusAssignmentsTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+		super(id, mainForm, focusWrapperModel);
+		
+	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initLayout();
 	}
 
@@ -52,13 +50,13 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
-		ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), FocusType.F_ASSIGNMENT);
+		PrismContainerWrapperModel<F, AssignmentType> model = new PrismContainerWrapperModel<>(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
 		SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, model);
 
 		assignments.add(panel);
 	}
 	
-	protected SwitchAssignmentTypePanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
+	protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<F, AssignmentType> model) {
 		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model);
 		return panel;
 	}

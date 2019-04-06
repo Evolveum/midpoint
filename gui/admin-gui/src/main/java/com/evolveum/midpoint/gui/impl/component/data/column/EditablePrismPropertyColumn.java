@@ -83,7 +83,7 @@ public class EditablePrismPropertyColumn<C extends Containerable, T> extends Abs
 	 * @see com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn#createHeader(org.apache.wicket.model.IModel)
 	 */
 	@Override
-	protected Component createHeader(IModel<PrismContainerWrapper<C>> mainModel) {
+	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -38,6 +39,7 @@ import java.util.List;
  *
  * @author katkav
  */
+@Deprecated
 public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<List<PrismContainerWrapper<C>> ,O> {
 
    private static final long serialVersionUID = 1L;
@@ -61,16 +63,21 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
 	@Override
 	public List<PrismContainerWrapper<C>> getObject() {
 		List<PrismContainerWrapper<C>> wrappers = new ArrayList<>();
-		if (paths == null) {
-			return (List) getWrapper().getContainers();
-		}
-		for (ItemPath path : paths) {
-			PrismContainerWrapper<C> containerWrapper = getWrapper().findContainer(path);
-			if (containerWrapper != null) {
-				containerWrapper.setShowEmpty(true, false);
-				wrappers.add(containerWrapper);
-			}
-		}
+//		if (paths == null) {
+//			return (List) getWrapper().getContainers();
+//		}
+//		for (ItemPath path : paths) {
+//			PrismContainerWrapper<C> containerWrapper;
+//			try {
+//				containerWrapper = getWrapper().findContainer(path);
+//			} catch (SchemaException e) {
+//				return null;
+//			}
+//			if (containerWrapper != null) {
+//				containerWrapper.setShowEmpty(true, false);
+//				wrappers.add(containerWrapper);
+//			}
+//		}
 		return wrappers;
 	}
 

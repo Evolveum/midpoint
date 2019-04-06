@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
 
@@ -19,22 +21,27 @@ import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.factory.WrapperFactory;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @Component
 public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 
+	private static final transient Trace LOGGER = TraceManager.getTrace(GuiComponentRegistryImpl.class);
+	
 	List<GuiComponentFactory> guiComponentFactories = new ArrayList<>();
 	
-	Map<Class<? extends ItemWrapper<?, ?, ?,?>>, Class<?>> wrapperPanels = new HashMap<>(); 
+	Map<QName, Class<?>> wrapperPanels = new HashMap<>(); 
 	
-	List<ItemWrapperFactory<?,?>> wrapperFactories = new ArrayList<>();
+	List<ItemWrapperFactory<?,?,?>> wrapperFactories = new ArrayList<>();
 	
 	@Override
 	public void addToRegistry(GuiComponentFactory factory) {
@@ -67,19 +74,19 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 		
 	}
 	
-	public void registerWrapperPanel(Class<? extends ItemWrapper<?,?,?,?>> wrapperClass, Class<?> panelClass) {
-		if (wrapperPanels.containsKey(wrapperClass)) {
-			if (!panelClass.equals(wrapperPanels.get(wrapperClass))) {
-				wrapperPanels.replace(wrapperClass, wrapperPanels.get(wrapperClass), panelClass);
+	public void registerWrapperPanel(QName typeName, Class<?> panelClass) {
+		if (wrapperPanels.containsKey(typeName)) {
+			if (!panelClass.equals(wrapperPanels.get(typeName))) {
+				wrapperPanels.replace(typeName, wrapperPanels.get(typeName), panelClass);
 				return;
 			}
 			return;
 		}
-		wrapperPanels.put(wrapperClass, panelClass);		
+		wrapperPanels.put(typeName, panelClass);		
 	}
 	
-	public <IW extends ItemWrapper<?,?,?,?>> Class<?> getPanelClass(Class<IW> wrapperClass) {
-		return wrapperPanels.get(wrapperClass);
+	public Class<?> getPanelClass(QName typeName) {
+		return wrapperPanels.get(typeName);
 	}
 
 	
@@ -90,19 +97,25 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 		
 		Optional<GuiComponentFactory> opt = guiComponentFactories.stream().filter(f -> f.match(itemWrapper)).findFirst();
 		if (!opt.isPresent()) {
+			LOGGER.trace("No factory found for {}", itemWrapper.debugDump());
 			return null;
 		}
-		
-		return opt.get();
+		GuiComponentFactory factory = opt.get();
+		LOGGER.trace("Found component factory {} for {}", factory, itemWrapper.debugDump());
+		return factory;
 	}
 	
-	public <IW extends ItemWrapper, PV extends PrismValue> ItemWrapperFactory<IW, PV> findWrapperFactory(ItemDefinition<?> def) {
-		Optional<ItemWrapperFactory<IW, PV>> opt = (Optional) wrapperFactories.stream().filter(f -> f.match(def)).findFirst();
+	public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> ItemWrapperFactory<IW, VW, PV> findWrapperFactory(ItemDefinition<?> def) {
+		Optional<ItemWrapperFactory<IW, VW, PV>> opt = (Optional) wrapperFactories.stream().filter(f -> f.match(def)).findFirst();
 		if (!opt.isPresent()) {
+			LOGGER.trace("Could not find factory for {}.", def);
 			return null;
 		}
 		
-		return opt.get();
+		ItemWrapperFactory<IW, VW, PV> factory = opt.get();
+		LOGGER.trace("Found factory: {}", factory);
+		return factory;
+		
 	}
 	
 	public <O extends ObjectType> PrismObjectWrapperFactory<O> getObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {

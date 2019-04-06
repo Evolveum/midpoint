@@ -52,13 +52,18 @@ public class FocusTasksTabPanel<F extends FocusType>
 	private TaskDtoProvider taskDtoProvider;
 
 	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel,
-			TaskDtoProvider taskDtoProvider, PageBase page) {
-		super(id, mainForm, focusModel, page);
+			TaskDtoProvider taskDtoProvider) {
+		super(id, mainForm, focusModel);
 		this.taskDtoProvider = taskDtoProvider;
-		initLayout(page);
 	}
 
-	private void initLayout(final PageBase page) {
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
+	
+	private void initLayout() {
 
 		Label label = new Label(ID_LABEL, new IModel<String>() {
 			private static final long serialVersionUID = 1L;

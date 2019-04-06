@@ -20,9 +20,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -41,21 +38,20 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
@@ -64,13 +60,11 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -190,7 +184,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+						return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel());
 					}
 				});
 
@@ -203,7 +197,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
+						new PrismContainerWrapperModel<>(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -380,11 +374,16 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			return Integer.toString(count);
 	}
 
+	//TODO what? why? when?
 	@Override
 	protected boolean areSavePreviewButtonsEnabled(){
 		PrismObjectWrapper<R> focusWrapper = getObjectModel().getObject();
-		PrismContainerWrapper<AssignmentType> assignmentsWrapper =
-				focusWrapper.findContainer(AbstractRoleType.F_INDUCEMENT);
+		PrismContainerWrapper<AssignmentType> assignmentsWrapper;
+		try {
+			assignmentsWrapper = focusWrapper.findContainer(AbstractRoleType.F_INDUCEMENT);
+		} catch (SchemaException e) {
+			return false;
+		}
 		return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
 	}
 }

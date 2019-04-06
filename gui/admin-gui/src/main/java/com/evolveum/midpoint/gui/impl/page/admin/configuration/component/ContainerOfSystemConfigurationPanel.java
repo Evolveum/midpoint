@@ -18,21 +18,19 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
@@ -66,7 +64,7 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
 
     	Form form = new Form<>("form");
     	
-    	ContainerWrapperFromObjectWrapperModel<C, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getModel(), qNameContainer);
+    	PrismContainerWrapperModel<SystemConfigurationType, C> model = new PrismContainerWrapperModel<SystemConfigurationType, C>(getModel(), qNameContainer);
     	PrismContainerPanel<C> panel = new PrismContainerPanel<>(ID_CONTAINER, model);
 //		PrismContainerPanelOld<C> panel = new PrismContainerPanelOld<>(ID_CONTAINER, model, form, itemWrapper -> getVisibity(itemWrapper.getPath()));
 		add(panel);

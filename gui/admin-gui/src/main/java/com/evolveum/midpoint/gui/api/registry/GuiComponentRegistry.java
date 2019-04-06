@@ -18,15 +18,16 @@ package com.evolveum.midpoint.gui.api.registry;
 
 import java.io.Serializable;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface GuiComponentRegistry extends Serializable {
@@ -35,13 +36,15 @@ public interface GuiComponentRegistry extends Serializable {
 	
 	public <T> GuiComponentFactory findValuePanelFactory(ItemWrapper itemWrapper);
 	
-	void registerWrapperPanel(Class<? extends ItemWrapper<?,?,?,?>> wrapperClass, Class<?> panelClass);
+	void registerWrapperPanel(QName typeName, Class<?> panelClass);
 	
-	<IW extends ItemWrapper, PV extends PrismValue> ItemWrapperFactory<IW, PV> findWrapperFactory(ItemDefinition<?> def);
+	Class<?> getPanelClass(QName typeName);
+	
+	<IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> ItemWrapperFactory<IW, VW, PV> findWrapperFactory(ItemDefinition<?> def);
 	
 	<O extends ObjectType> PrismObjectWrapperFactory<O> getObjectWrapperFactory(PrismObjectDefinition<O> objectDef);
 	
 	void addToRegistry(ItemWrapperFactory factory);
 	
-	<IW extends ItemWrapper<?,?,?,?>> Class<?> getPanelClass(Class<IW> wrapperClass);
+	
 }

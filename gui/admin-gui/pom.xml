@@ -325,12 +325,6 @@
             <artifactId>prism-impl</artifactId>
             <version>4.0-SNAPSHOT</version>
             <scope>runtime</scope>
-            <exclusions>
-            	<exclusion>
-            		<groupId>org.ow2.asm</groupId>
-            		<artifactId>asm</artifactId>
-            	</exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -485,10 +479,6 @@
                     <artifactId>jaxb-impl</artifactId>
                     <groupId>com.sun.xml.bind</groupId>
                 </exclusion>
-                <exclusion>
-                	<groupId>org.ow2.asm</groupId>
-                	<artifactId>asm</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -596,6 +586,12 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-ioc</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.apache.ant</groupId>
+            		<artifactId>ant</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.wicket</groupId>
@@ -766,6 +762,19 @@
             <artifactId>asm-util</artifactId>
             <version>7.0</version>
             <scope>test</scope>
+<!--             <exclusions> -->
+<!--             	<exclusion> -->
+<!--             		<groupId>org.ow2.asm</groupId> -->
+<!--             		<artifactId>asm</artifactId> -->
+<!--             	</exclusion> -->
+<!--             </exclusions> -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>7.0</version>
+<!--             <scope>test</scope> -->
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

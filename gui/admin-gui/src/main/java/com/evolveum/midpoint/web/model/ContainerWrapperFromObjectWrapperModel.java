@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author lazyman
  * @author semancik
  */
+@Deprecated
 public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<PrismContainerWrapper<C> ,O> {
 
    private static final long serialVersionUID = 1L;
@@ -59,8 +60,9 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 
 	@Override
 	public PrismContainerWrapper<C> getObject() {
-		PrismContainerWrapper<C> containerWrapper = getWrapper().findContainer(path);
-		return containerWrapper;
+//		PrismContainerWrapper<C> containerWrapper = getWrapper().findContainer(path);
+//		return containerWrapper;
+		return null;
 	}
 
 	@Override

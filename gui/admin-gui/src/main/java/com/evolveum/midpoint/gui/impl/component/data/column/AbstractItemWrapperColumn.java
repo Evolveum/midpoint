@@ -72,6 +72,7 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
 		this.pageBase = pageBase;
 		this.mainModel = mainModel;
 		this.itemName = itemName;
+		this.readOnly = readonly;
 //		this.headerModel = headerModel;
 //		this.headerModel = new IModel<ItemWrapperOld>() {
 //			private static final long serialVersionUID = 1L;
@@ -101,7 +102,7 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
 	
 	@Override
 	public Component getHeader(String componentId) {
-		return createHeader(mainModel);
+		return createHeader(componentId, mainModel);
 //		PrismPropertyHeaderPanel<ItemWrapperOld> header = new PrismPropertyHeaderPanel<ItemWrapperOld>(componentId, headerModel, getPageBase()) {
 //			@Override
 //			public String getContainerLabelCssClass() {
@@ -118,7 +119,7 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
 	public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId,
 			IModel<PrismContainerValueWrapper<C>> rowModel) {
 		
-		ListView<VW> listView = new ListView<VW>(ID_VALUE, new PropertyModel<>(getDataModel(rowModel), "values")) {
+		ListView<VW> listView = new ListView<VW>(componentId, new PropertyModel<>(getDataModel(rowModel), "values")) {
 
 			@Override
 			protected void populateItem(ListItem<VW> item) {
@@ -126,6 +127,10 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
 				
 			}
 		};
+		listView.setReuseItems(true);
+		listView.setOutputMarkupId(true);
+		
+		cellItem.add(listView);
 		
 	}
 	
@@ -146,7 +151,7 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
 	protected abstract String createLabel(VW object);
 	protected abstract Panel createValuePanel(IModel<?> headerModel, VW object);
 	
-	protected abstract Component createHeader(IModel<PrismContainerWrapper<C>> mainModel);
+	protected abstract Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel);
 
 //	public QName getqNameOfItem() {
 //		return qNameOfItem;

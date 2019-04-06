@@ -165,35 +165,6 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
 	public void setReadOnly() {
 		// TODO Auto-generated method stub
 		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Itemable#getElementName()
-	 */
-	@Override
-	public ItemName getElementName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Itemable#getDefinition()
-	 */
-	@Override
-	public ItemDefinition getDefinition() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Itemable#getPath()
-	 */
-	@Override
-	public ItemPath getPath() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	
+	}	
 
 }

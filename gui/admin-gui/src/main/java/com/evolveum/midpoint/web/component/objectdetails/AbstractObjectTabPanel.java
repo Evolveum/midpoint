@@ -26,18 +26,15 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -51,14 +48,14 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
 	private LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
-	protected PageBase pageBase;
+//	protected PageBase pageBase;
 	private Form<PrismObjectWrapper<O>> mainForm;
 
-	public AbstractObjectTabPanel(String id, Form<PrismObjectWrapper<O>> mainForm, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel, PageBase pageBase) {
+	public AbstractObjectTabPanel(String id, Form<PrismObjectWrapper<O>> mainForm, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
 		super(id);
 		this.objectWrapperModel = objectWrapperModel;
 		this.mainForm = mainForm;
-		this.pageBase = pageBase;
+//		this.pageBase = pageBase;
 	}
 
 	public LoadableModel<PrismObjectWrapper<O>> getObjectWrapperModel() {
@@ -70,15 +67,15 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	}
 
 	protected PrismContext getPrismContext() {
-		return pageBase.getPrismContext();
+		return getPageBase().getPrismContext();
 	}
 
 	protected PageParameters getPageParameters() {
-		return pageBase.getPageParameters();
+		return getPageBase().getPageParameters();
 	}
 
 	public PageBase getPageBase() {
-		return pageBase;
+		return (PageBase) getPage();
 	}
 
 	public Form<PrismObjectWrapper<O>> getMainForm() {
@@ -99,16 +96,16 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	}
 
 	protected void showResult(OperationResult result) {
-		pageBase.showResult(result);
+		getPageBase().showResult(result);
 	}
 
 	protected void showResult(OperationResult result, boolean showSuccess) {
-		pageBase.showResult(result, false);
+		getPageBase().showResult(result, false);
 	}
 
 
 	protected WebMarkupContainer getFeedbackPanel() {
-		return pageBase.getFeedbackPanel();
+		return getPageBase().getFeedbackPanel();
 	}
 
 	public Object findParam(String param, String oid, OperationResult result) {
@@ -134,10 +131,9 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		target.add(getFeedbackPanel());
 	}
 
-	protected PrismPropertyPanel addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
-		PrismPropertyPanel panel = new PrismPropertyPanel(id,
-				new PropertyWrapperFromObjectWrapperModel<PolyString,O>(getObjectWrapperModel(), propertyPath),
-				mainForm, wrapper -> ItemVisibility.VISIBLE);
+	protected <T> PrismPropertyPanel<T> addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
+		PrismPropertyPanel<T> panel = new PrismPropertyPanel<>(id, new PrismPropertyWrapperModel<O, T>(getObjectWrapperModel(), propertyPath));
+				//mainForm, wrapper -> ItemVisibility.VISIBLE);
 		parentComponent.add(panel);
 		return panel;
 	}

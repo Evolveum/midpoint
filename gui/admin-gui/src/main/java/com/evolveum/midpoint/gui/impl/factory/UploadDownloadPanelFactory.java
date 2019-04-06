@@ -50,7 +50,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T
 	}
 
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return DOMUtil.XSD_BASE64BINARY.equals(wrapper.getTypeName());
 	}
 

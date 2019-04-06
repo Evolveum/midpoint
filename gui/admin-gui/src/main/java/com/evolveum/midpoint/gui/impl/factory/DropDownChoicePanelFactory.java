@@ -55,7 +55,7 @@ public class DropDownChoicePanelFactory implements GuiComponentFactory<PrismProp
 		registry.addToRegistry(this);
 	}
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return AssignmentType.F_FOCUS_TYPE.equals(wrapper.getName()) || DOMUtil.XSD_QNAME.equals(wrapper.getTypeName());
 	}
 

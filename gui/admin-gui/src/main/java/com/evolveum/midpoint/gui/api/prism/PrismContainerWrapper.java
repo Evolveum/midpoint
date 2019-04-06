@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author katka
@@ -46,16 +47,14 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
 	
 	ItemStatus getStatus();
 	
-	ItemWrapper<?, ?, ?,?> findItem(ItemPath path);
+//	ItemWrapper<?, ?, ?,?> findItem(ItemPath path);
 	
-	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path);
-	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath);
-	<R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path);
-	<T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path);
-	
-	PrismContainer<C> getContainer();
-
-	
+	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
+	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
+	<R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException;
+	<T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) throws SchemaException;
+	<IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException;
+		
 }
 
 

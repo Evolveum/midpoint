@@ -180,7 +180,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
     }
     
     protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {
-        PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModelObject().getContainer().createNewValue();
+        PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModelObject().getItem().createNewValue();
         PrismContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModelObject());
 //        newObjectPolicyWrapper.setShowEmpty(true, true);
 //        newObjectPolicyWrapper.computeStripes();

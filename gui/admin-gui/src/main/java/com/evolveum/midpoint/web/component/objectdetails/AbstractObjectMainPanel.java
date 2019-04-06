@@ -30,6 +30,7 @@ import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -310,7 +311,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
     }
 
-    protected boolean areSavePreviewButtonsEnabled(){
+    protected boolean areSavePreviewButtonsEnabled() {
         return false;
     }
 }

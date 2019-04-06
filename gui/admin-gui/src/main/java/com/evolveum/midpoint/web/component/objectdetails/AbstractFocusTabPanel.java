@@ -40,9 +40,8 @@ public abstract class AbstractFocusTabPanel<F extends FocusType> extends Abstrac
 
 	public AbstractFocusTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-			PageBase pageBase) {
-		super(id, mainForm, focusWrapperModel, pageBase);
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+		super(id, mainForm, focusWrapperModel);
 		this.projectionModel = projectionModel;
 	}
 

@@ -51,6 +51,10 @@ public class EnumPanelFactory<T extends Enum<?>> extends AbstractGuiComponentFac
 		}
 		
 		Class<T> valueType = property.getTypeClass();
+		if (valueType == null) {
+			valueType = property.getPrismContext().getSchemaRegistry().getCompileTimeClass(property.getTypeName());
+		}
+		
 		if (valueType != null) {
 			return valueType.isEnum();
 		}
@@ -59,7 +63,7 @@ public class EnumPanelFactory<T extends Enum<?>> extends AbstractGuiComponentFac
 	}
 
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return (isEnum(wrapper));
 	}
 

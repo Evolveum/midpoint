@@ -18,30 +18,22 @@ package com.evolveum.midpoint.gui.api.prism;
 import java.io.Serializable;
 import java.util.List;
 
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Panel;
-
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
  * @author katka
  *
  */
-public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, VW extends PrismValueWrapper> extends ItemDefinition<I>, Itemable, Revivable, DebugDumpable, Serializable {
+public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, VW extends PrismValueWrapper> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
 
 //	
 //	void revive(PrismContext prismContext) throws SchemaException;
@@ -52,10 +44,6 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	boolean isVisible();
 	
-	void addValue(boolean showEmpty);
-	
-	void removeValue(ValueWrapperOld<V> valueWrapper) throws SchemaException;
-	
 	boolean checkRequired(PageBase pageBase);
 	
 	PrismContainerValueWrapper<?> getParent();
@@ -64,6 +52,8 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	void setShowEmpty(boolean isShowEmpty, boolean recursive);
 	
+	
+	ItemPath getPath();
 	
 	//NEW
 	
@@ -76,5 +66,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	List<VW> getValues();
 	
 	boolean isStripe();
+	
+	I getItem();
 	
 }

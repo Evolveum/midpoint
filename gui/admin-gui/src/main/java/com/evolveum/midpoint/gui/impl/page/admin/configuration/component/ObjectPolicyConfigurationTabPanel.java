@@ -185,7 +185,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
     }
     
     protected void newObjectPolicyClickPerformed(AjaxRequestTarget target) {
-        PrismContainerValue<ObjectPolicyConfigurationType> newObjectPolicy = getModel().getObject().getContainer().createNewValue();
+        PrismContainerValue<ObjectPolicyConfigurationType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
         PrismContainerValueWrapper<ObjectPolicyConfigurationType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModelObject());
 //        newObjectPolicyWrapper.setShowEmpty(true, false);
 //        newObjectPolicyWrapper.computeStripes();

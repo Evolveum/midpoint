@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author katka
  *
  */
-public interface PrismObjectWrapperFactory<O extends ObjectType> extends ItemWrapperFactory<PrismObjectWrapper<O>, PrismObjectValue<O>> {
+public interface PrismObjectWrapperFactory<O extends ObjectType> {
 	
 	public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws SchemaException;
 

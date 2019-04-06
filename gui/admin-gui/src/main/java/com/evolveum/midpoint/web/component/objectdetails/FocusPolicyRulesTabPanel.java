@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -30,16 +31,20 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
  * will be removed in a while as policy rule panel is moved strictly to the assignments/inducements tab
  */
 @Deprecated
-public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObjectTabPanel{
+public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObjectTabPanel<F>{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_POLICY_RULES_CONTAINER = "policyRulesContainer";
     private static final String ID_POLICY_RULES_PANEL = "policyRulesPanel";
 
-    public FocusPolicyRulesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapperOld<F>> focusWrapperModel,
-                                    PageBase page) {
-        super(id, mainForm, focusWrapperModel, page);
-        initLayout();
+    public FocusPolicyRulesTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+        super(id, mainForm, focusWrapperModel);
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
     }
 
     private void initLayout() {

@@ -45,15 +45,24 @@ public class TaskOperationTabPanel extends AbstractObjectTabPanel<TaskType> impl
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskOperationTabPanel.class);
 
+	private IModel<TaskDto> taskDtoModel = null;
+	
 	public TaskOperationTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		super(id, mainForm, taskWrapperModel, pageBase);
-		initLayout(taskDtoModel, pageBase);
+		super(id, mainForm, taskWrapperModel);
+		this.taskDtoModel = taskDtoModel;
 		setOutputMarkupId(true);
 	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+		
+	}
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout() {
 
 		final PropertyModel<ModelOperationStatusDto> operationStatusModel = new PropertyModel<>(taskDtoModel, TaskDto.F_MODEL_OPERATION_STATUS);
 		VisibleEnableBehaviour modelOpBehaviour = new VisibleEnableBehaviour() {

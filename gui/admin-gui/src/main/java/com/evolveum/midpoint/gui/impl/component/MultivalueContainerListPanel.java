@@ -454,9 +454,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		
 		WrapperContext context = new WrapperContext(null, null);
 		context.setCreateIfEmpty(true);
-		PrismValueWrapper<?> valueWrapper = null;
+		PrismValueWrapper<?,?> valueWrapper = null;
 		try {
-			valueWrapper = getPageBase().createValueWrapper(model, model, newItem, ValueStatus.ADDED, context);
+			valueWrapper = getPageBase().createValueWrapper(model, newItem, ValueStatus.ADDED, context);
 		} catch (SchemaException e) {
 			//TODO error handling
 		}

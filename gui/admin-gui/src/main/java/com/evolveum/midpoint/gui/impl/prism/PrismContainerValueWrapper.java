@@ -26,13 +26,14 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
  *
  */
-public interface PrismContainerValueWrapper<C extends Containerable> extends PrismValueWrapper<C>{
+public interface PrismContainerValueWrapper<C extends Containerable> extends PrismValueWrapper<C, PrismContainerValue<C>>{
 	
 	String getDisplayName();
 	String getHelpText();
@@ -58,15 +59,16 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	
 	List<? extends ItemWrapper<?,?,?,?>> getNonContainers();
 	
-	PrismContainerWrapper<C> getParent();
+//	PrismContainerWrapper<C> getParent();
 	
 	List<? extends ItemWrapper<?,?,?,?>> getItems();
 	
-	PrismContainerValue<C> getNewValue();
+//	PrismContainerValue<C> getNewValue();
 	
-	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path);
-	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath);
-	PrismReferenceWrapper findReference(ItemPath path);
+	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
+	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
+	PrismReferenceWrapper findReference(ItemPath path) throws SchemaException;
+	<IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException;
 	
 	ItemPath getPath();
 	
@@ -78,4 +80,8 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	void setReadOnly(boolean readOnly, boolean recursive);
 	
 	boolean hasChanged();
+	
+	boolean isShowEmpty();
+	void setShowEmpty(boolean setShowEmpty);
+	
 }

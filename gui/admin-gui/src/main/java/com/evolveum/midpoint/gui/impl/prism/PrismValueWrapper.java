@@ -19,16 +19,21 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
  *
  */
-public interface PrismValueWrapper<T> extends Serializable {
+public interface PrismValueWrapper<T, V extends PrismValue> extends Serializable, DebugDumpable {
 
 	T getRealValue();
+	void setRealValue(T realValue);
 	
-	ValueStatus getValueStatus();
-//	ItemWrapper<?, ?, ?> getParent();
+	ValueStatus getStatus();
+	void setStatus(ValueStatus status);
+	
+	V getNewValue();
+	<IW extends ItemWrapper> IW getParent();
 }

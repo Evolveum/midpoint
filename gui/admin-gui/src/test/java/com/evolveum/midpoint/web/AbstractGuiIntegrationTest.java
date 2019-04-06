@@ -126,6 +126,15 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	
 	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+	
+	public static final File ROLE_ENDUSER_FILE = new File(COMMON_DIR, "role-enduser.xml");
+	protected static final String ROLE_ENDUSER_OID = "00000000-0000-0000-0000-000000000008";
+	
+	public static final File VALUE_POLICY_FILE = new File(COMMON_DIR, "value-policy.xml");
+	protected static final String VALUE_POLICY_OID = "00000000-0000-0000-0000-000000000003";
+	
+	public static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "value-policy.xml");
+	protected static final String SECURITY_POLICY_OID = "00000000-0000-0000-0000-000000000120";
 
     @Autowired private MidPointApplication application;
     
@@ -141,26 +150,39 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
     @Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+    	LOGGER.info("before super init");
 		super.initSystem(initTask, initResult);
+		
+		LOGGER.info("after super init");
 	    WebComponentUtil.setStaticallyProvidedRelationRegistry(relationRegistry);
 	    
-//	    PrismObject<SystemConfigurationType> configuration = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-//	    relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
+	    PrismObject<SystemConfigurationType> configuration = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+	    relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
 	    
-//	    repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+//	    repoAddObjectFromFile(VALUE_POLICY_FILE, initResult);
+	    repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+	    repoAddObjectFromFile(ROLE_ENDUSER_FILE, initResult);
+	    repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+	    repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+	    
+//	    repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
 	    
 	  	login(USER_ADMINISTRATOR_USERNAME);
+	  	LOGGER.info("user logged in");
+	  	
+	  	tester = new WicketTester(application);
 	}
     
-    @PostConstruct
-    public void setupApplication() throws ServletException {
-    	
-    	display("PostContruct");
-    	for (String key: Application.getApplicationKeys()) {
-    		display("App "+key, Application.get(key));
-    	}
-    	initializeMidPointApplication();
-    }
+//    @PostConstruct
+//    public void setupApplication() throws ServletException {
+//    	
+//    	display("PostContruct");
+//    	for (String key: Application.getApplicationKeys()) {
+//    		display("App "+key, Application.get(key));
+//    	}
+//    	initializeMidPointApplication();
+//    	tester = new WicketTester(application);
+//    }
     
     private void initializeMidPointApplication() throws ServletException {
 //    	WicketFilter wicketFilter = new WicketFilter(application);
@@ -180,7 +202,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     @BeforeMethod
     public void beforeMethodApplication() {
 //    	ThreadContext.setApplication(application);
-    	tester = new WicketTester(application);
+    	
     }
     
     @AfterMethod

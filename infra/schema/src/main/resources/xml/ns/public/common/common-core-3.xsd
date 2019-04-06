@@ -4663,6 +4663,9 @@
                         It depends on the policy setting. If
                         not present, value of zero (0) is assumed.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:operational>true</a:operational>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="lastSuccessfulLogin" type="tns:LoginEventType" minOccurs="0">
@@ -4670,6 +4673,9 @@
                     <xsd:documentation>
                         The date and time of last successful login attempt.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:operational>true</a:operational>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="previousSuccessfulLogin" type="tns:LoginEventType" minOccurs="0">
@@ -4677,6 +4683,9 @@
                     <xsd:documentation>
                         The date and time of successful before the last login attempt.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:operational>true</a:operational>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="lastFailedLogin" type="tns:LoginEventType" minOccurs="0">
@@ -4684,6 +4693,9 @@
                     <xsd:documentation>
                         The date and time of last successful login attempt.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:operational>true</a:operational>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: lockoutTimestamp -->

@@ -32,17 +32,12 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 
 	private static final long serialVersionUID = 1L;
 	
-	private PrismObject<O> prismObjectNew;
-	private PrismObject<O> prismObjectOld;
-	
+//	private PrismObject<O> prismObjectNew;
+//	private PrismObject<O> prismObjectOld;
+//	
 	public PrismObjectWrapperImpl(PrismObject<O> item, ItemStatus status) {
 		super(null, item, status);
 		// TODO Auto-generated constructor stub
-	}
-	
-	@Override
-	public PrismObject<O> getObject() {
-		return prismObjectNew;
 	}
 	
 	@Override
@@ -52,18 +47,32 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 	}
 	
 	@Override
+	@Deprecated
 	public String getOid() {
-		return prismObjectOld.getOid();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper#getContainers()
-	 */
-	@Override
-	public List<PrismContainerWrapper<?>> getContainers() {
-		// TODO Auto-generated method stub
-		return null;
+		return ((PrismObject<O>) getItem()).getOid();
 	}
 	
+	@Override
+	public PrismObject<O> getObject() {
+		return (PrismObject<O>) getItem();
+	}
 
+//	/* (non-Javadoc)
+//	 * @see com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper#getContainers()
+//	 */
+//	@Override
+//	public List<PrismContainerWrapper<?>> getContainers() {
+//		return getCon
+//	}
+	
+	@Override
+	public PrismObjectValueWrapper<O> getValue() {
+		return (PrismObjectValueWrapper<O>) getValues().iterator().next();
+	}
+	
+	@Override
+	public String getDisplayName() {
+		return "properties";
+	}
+	
 }

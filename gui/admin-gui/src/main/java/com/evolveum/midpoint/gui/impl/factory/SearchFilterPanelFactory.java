@@ -51,7 +51,7 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
 	}
 	
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return SearchFilterType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 

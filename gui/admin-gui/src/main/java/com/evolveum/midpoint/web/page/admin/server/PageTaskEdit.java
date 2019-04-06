@@ -435,7 +435,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected boolean isEditable() {
-		return isEditable(objectWrapperModel.getObject().getDefinition());
+		return isEditable(objectWrapperModel.getObject());
 	}
 
 	private boolean isEditable(ItemDefinition<?> definition) {
@@ -460,7 +460,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected boolean isEditable(ItemPath itemPath) {
-		ItemDefinition<?> itemDefinition = ((PrismObjectDefinition<TaskType>)objectWrapperModel.getObject().getDefinition()).findItemDefinition(itemPath);
+		ItemDefinition<?> itemDefinition = ((PrismObjectDefinition<TaskType>)objectWrapperModel.getObject()).findItemDefinition(itemPath);
 		if (itemDefinition != null) {
 			return itemDefinition.canRead() && itemDefinition.canModify();
 		} else {
@@ -469,7 +469,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected boolean isReadable(ItemPath itemPath) {
-		ItemDefinition<?> itemDefinition =  ((PrismObjectDefinition<TaskType>)objectWrapperModel.getObject().getDefinition()).findItemDefinition(itemPath);
+		ItemDefinition<?> itemDefinition =  ((PrismObjectDefinition<TaskType>)objectWrapperModel.getObject()).findItemDefinition(itemPath);
 		if (itemDefinition != null) {
 			return itemDefinition.canRead();
 		} else {

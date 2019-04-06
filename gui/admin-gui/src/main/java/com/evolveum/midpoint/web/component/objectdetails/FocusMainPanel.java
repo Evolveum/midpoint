@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -204,20 +205,20 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusDetailsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
+		return new FocusDetailsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel);
 	}
 
 	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusProjectionsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
+		return new FocusProjectionsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel);
 	}
 
 	protected WebMarkupContainer createFocusAssignmentsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		assignmentsTabPanel = new FocusAssignmentsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+		assignmentsTabPanel = new FocusAssignmentsTabPanel<>(panelId, getMainForm(), getObjectModel());
         return assignmentsTabPanel;
 	}
 
 	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new ObjectHistoryTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage){
+		return new ObjectHistoryTabPanel<F>(panelId, getMainForm(), getObjectModel()){
 			protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date){
 				viewObjectHistoricalDataPerformed(target, object, date);
 			}
@@ -311,7 +312,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel(), taskDtoProvider, parentPage);
+						return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel(), taskDtoProvider);
 					}
 
 					@Override
@@ -327,10 +328,16 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	@Override
-    protected boolean areSavePreviewButtonsEnabled(){
+	@Deprecated
+    protected boolean areSavePreviewButtonsEnabled() {
 		PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
-		PrismContainerWrapper<AssignmentType> assignmentsWrapper =
-				focusWrapper.findContainer(FocusType.F_ASSIGNMENT);
+		PrismContainerWrapper<AssignmentType> assignmentsWrapper;
+		try {
+			assignmentsWrapper = focusWrapper.findContainer(FocusType.F_ASSIGNMENT);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
+			return false;
+		}
 		return isAssignmentsModelChanged(assignmentsWrapper);
     }
 

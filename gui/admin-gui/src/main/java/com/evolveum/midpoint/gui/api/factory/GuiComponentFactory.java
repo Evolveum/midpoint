@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 public interface GuiComponentFactory<T extends ItemPanelContext>{
 //	public void register();
 	
-	 boolean match(ItemWrapper<?, ?, ?, ?> wrapper);
+	<IW extends ItemWrapper> boolean match(IW wrapper);
 	
 	Panel createPanel(T panelCtx);
 	

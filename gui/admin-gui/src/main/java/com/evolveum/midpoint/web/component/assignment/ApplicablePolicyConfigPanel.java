@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
@@ -39,7 +40,7 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapperImpl<AssignmentType>>{
+public class ApplicablePolicyConfigPanel extends BasePanel<PrismContainerWrapper<AssignmentType>>{
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicablePolicyConfigPanel.class);
@@ -51,7 +52,7 @@ public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapperImpl<
 
     private LoadableModel<List<ObjectReferenceType>> policyGroupsListModel;
 
-    public ApplicablePolicyConfigPanel(String id, IModel<ContainerWrapperImpl<AssignmentType>> model){
+    public ApplicablePolicyConfigPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model){
         super(id, model);
     }
 

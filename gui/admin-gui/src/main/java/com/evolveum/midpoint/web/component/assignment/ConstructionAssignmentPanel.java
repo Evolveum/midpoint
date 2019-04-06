@@ -15,6 +15,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -110,20 +111,22 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected IModel<PrismContainerWrapper> getSpecificContainerModel(PrismContainerValueWrapper<AssignmentType> modelObject) {
-        AssignmentType assignment = modelObject.getRealValue();
+    protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+        AssignmentType assignment = modelObject.getObject().getRealValue();
     	if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-            PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION));
-
-            return Model.of(constructionWrapper);
+    		return (IModel) new PrismContainerWrapperModel<AssignmentType, ConstructionType>(modelObject, AssignmentType.F_CONSTRUCTION, true);
+//            PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION));
+//
+//            return Model.of(constructionWrapper);
         }
 
         if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
+        	return (IModel) new PrismContainerWrapperModel<AssignmentType, PersonaConstructionType>(modelObject, AssignmentType.F_CONSTRUCTION, true);
             //TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
             //but not PolicyRuleType
-        	PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_PERSONA_CONSTRUCTION));
-
-            return Model.of(personasWrapper);
+//        	PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_PERSONA_CONSTRUCTION));
+//
+//            return Model.of(personasWrapper);
         }
         return Model.of();
     }

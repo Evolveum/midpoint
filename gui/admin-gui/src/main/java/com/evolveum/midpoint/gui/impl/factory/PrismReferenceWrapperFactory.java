@@ -15,13 +15,19 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -29,13 +35,15 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class PrismReferenceWrapperFactory extends ItemWrapperFacotryImpl<PrismReferenceWrapper, PrismReferenceValue, PrismReference>{
+@Component
+public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWrapperFactoryImpl<PrismReferenceWrapper<R>, PrismReferenceValue, PrismReference, PrismReferenceValueWrapper<R>>{
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		return def instanceof PrismReferenceDefinition;
 	}
 
+	@PostConstruct
 	@Override
 	public void register() {
 		getRegistry().addToRegistry(this);
@@ -54,17 +62,19 @@ public class PrismReferenceWrapperFactory extends ItemWrapperFacotryImpl<PrismRe
 	}
 
 	@Override
-	protected PrismReferenceWrapper createWrapper(PrismContainerValueWrapper<?> parent, PrismReference item,
+	protected PrismReferenceWrapper<R> createWrapper(PrismContainerValueWrapper<?> parent, PrismReference item,
 			ItemStatus status) {
-		PrismReferenceWrapperImpl wrapper = new PrismReferenceWrapperImpl(parent, item, status);
+		PrismReferenceWrapperImpl<R> wrapper = new PrismReferenceWrapperImpl<>(parent, item, status);
+		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
 		return wrapper;
 	}
+	
 
 	@Override
-	public PrismValueWrapper<?> createValueWrapper(PrismReferenceWrapper parent, PrismReferenceValue value, ValueStatus status,
+	public PrismReferenceValueWrapper<R> createValueWrapper(PrismReferenceWrapper<R> parent, PrismReferenceValue value, ValueStatus status,
 			WrapperContext context) throws SchemaException {
 			
-		PrismReferenceValueWrapper refValue = new PrismReferenceValueWrapper<>();
+		PrismReferenceValueWrapper<R> refValue = new PrismReferenceValueWrapper<>(parent, value, status);
 		return refValue;
 	}
 

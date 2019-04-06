@@ -32,6 +32,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
@@ -167,6 +168,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -185,6 +187,8 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -2555,12 +2559,36 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return getSession().getLocale();
     }
     
+    //REGISTRY
     
-    public <IW extends ItemWrapper, PV extends PrismValue> PrismValueWrapper<?> createValueWrapper(ItemDefinition<?> def, IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
+    public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
     	
-    	ItemWrapperFactory<IW, PV> factory = (ItemWrapperFactory<IW, PV>) registry.findWrapperFactory(def);
+    	ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(parentWrapper);
     	
     	return factory.createValueWrapper(parentWrapper, newValue, status, context);
     	
+    }
+    
+    public Class<?> getWrapperPanel(QName typeName) {
+    	return registry.getPanelClass(typeName);
+    }
+    
+    public <IW extends ItemWrapper> Panel initPanel(String panelId, QName typeName, IModel<IW> wrapperModel, boolean errorOnNullPanel) throws SchemaException{
+    	Class<?> panelClass = getWrapperPanel(typeName);
+    	
+    	if (panelClass == null) {
+    		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for" + typeName);
+    		errorPanel.add(new VisibleBehaviour(() -> errorOnNullPanel));
+    		return errorPanel;
+    	}
+    	
+    	Constructor<?> constructor;
+		try {
+			constructor = panelClass.getConstructor(String.class, IModel.class);
+			Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel);
+			return panel;
+		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new SystemException("Cannot instantiate " + panelClass);
+		}
     }
 }

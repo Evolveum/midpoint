@@ -70,7 +70,7 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 	public TaskSubtasksAndThreadsTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
-		super(id, mainForm, taskWrapperModel, parentPage);
+		super(id, mainForm, taskWrapperModel);
 		this.parentPage = parentPage;
 		initLayout(taskDtoModel);
 		setOutputMarkupId(true);

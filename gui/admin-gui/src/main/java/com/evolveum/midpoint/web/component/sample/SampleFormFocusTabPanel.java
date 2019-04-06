@@ -42,7 +42,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
+
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 /**
@@ -65,16 +68,21 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
     private static final String ID_ROLES = "roles";
 
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
-
+    
     public SampleFormFocusTabPanel(String id, Form mainForm,
                                    LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-                                   LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-                                   PageBase pageBase) {
-        super(id, mainForm, focusWrapperModel, projectionModel, pageBase);
-        initLayout(focusWrapperModel, pageBase);
+                                   LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+        super(id, mainForm, focusWrapperModel, projectionModel);
+        
     }
 
-    private void initLayout(final LoadableModel<PrismObjectWrapper<F>> focusModel, PageBase pageBase) {
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
+    
+    private void initLayout() {
         add(new Label(ID_HEADER, "Object details"));
         WebMarkupContainer body = new WebMarkupContainer("body");
         add(body);
@@ -83,10 +91,10 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
         addPrismPropertyPanel(body, ID_PROP_FULL_NAME, UserType.F_FULL_NAME);
 
         // TODO: create proxy for these operations
-        Task task = pageBase.createSimpleTask(OPERATION_SEARCH_ROLES);
+        Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_ROLES);
         List<PrismObject<RoleType>> availableRoles;
         try {
-            availableRoles = pageBase.getModelService().searchObjects(RoleType.class, null, null, task, task.getResult());
+            availableRoles = getPageBase().getModelService().searchObjects(RoleType.class, null, null, task, task.getResult());
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
         		ConfigurationException | ExpressionEvaluationException e) {
             task.getResult().recordFatalError(e);
@@ -95,9 +103,10 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
             // TODO: better error reporting
         }
 
-        PrismContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
+        PrismContainerWrapperModel<F, AssignmentType> assignmentsModel = new PrismContainerWrapperModel<>(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
+//        PrismContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
 
-        add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, Model.of(assignmentsContainerWrapper), availableRoles));
+        add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, availableRoles));
     }
 
 }

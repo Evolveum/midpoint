@@ -23,12 +23,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
@@ -36,17 +34,18 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
 /**
  * @author katka
@@ -54,6 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
  */
 public class PrismContainerWrapperColumn<C extends Containerable> extends AbstractItemWrapperColumn<C, PrismContainerValueWrapper<C>>{
 
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
+	
 	public PrismContainerWrapperColumn(IModel<PrismContainerWrapper<C>> rowModel, ItemPath itemName, PageBase pageBase) {
 		super(rowModel, itemName, pageBase, true);
 		// TODO Auto-generated constructor stub
@@ -65,7 +66,7 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
 
 	@Override
 	public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
-		return Model.of(rowModel.getObject().findContainer(itemName));
+		return new PrismContainerWrapperModel(rowModel, itemName, true);
 	}
 
 	@Override
@@ -81,7 +82,7 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
 		}
 		
 		if (ActivationType.class.isAssignableFrom(realValue.getClass())) {
-			return getActivationLabelModel((ActivationType) object);
+			return getActivationLabelModel((ActivationType) realValue);
 		}
 		
 		
@@ -125,7 +126,12 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
 		}
 		
 		PrismContainerWrapper<AssignmentType> assignmentModel =  (PrismContainerWrapper<AssignmentType>) getMainModel().getObject();
-		PrismPropertyWrapper<String> lifecycle = assignmentModel.findProperty(AssignmentType.F_LIFECYCLE_STATE);
+		PrismPropertyWrapper<String> lifecycle = null;
+		try {
+			lifecycle = assignmentModel.findProperty(AssignmentType.F_LIFECYCLE_STATE);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot find lifecycle property: ", e.getMessage(), e);
+		}
 		
 		String lifecycleState = getLifecycleState(lifecycle);
 		
@@ -228,8 +234,8 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
 	}
 
 	@Override
-	protected Component createHeader(IModel<PrismContainerWrapper<C>> mainModel) {
-		return new PrismContainerHeaderPanel<>(ID_HEADER, Model.of(mainModel.getObject().findContainer(itemName)));
+	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
+		return new PrismContainerHeaderPanel<>(componentId, new PrismContainerWrapperModel<>(mainModel, itemName));
 	}
 	
 }

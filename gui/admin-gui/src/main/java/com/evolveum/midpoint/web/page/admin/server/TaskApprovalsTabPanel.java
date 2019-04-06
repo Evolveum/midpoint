@@ -45,18 +45,25 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 	private TaskWfChildPanel childPanel;
 	private TaskWfParentPanel parentPanel;
 
+	private IModel<TaskDto> taskDtoModel = null;
+	
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
 	public TaskApprovalsTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
-			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
-		super(id, mainForm, taskWrapperModel, parentPage);
-		this.parentPage = parentPage;
-		initLayout(taskDtoModel);
+			IModel<TaskDto> taskDtoModel) {
+		super(id, mainForm, taskWrapperModel);
+		this.taskDtoModel = taskDtoModel;
 		setOutputMarkupId(true);
 	}
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel) {
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
+	
+	private void initLayout() {
 
 		childPanel = new TaskWfChildPanel(ID_WORKFLOW_CHILD_PANEL, taskDtoModel, parentPage);
 		childPanel.add(new VisibleEnableBehaviour() {

@@ -108,14 +108,20 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 
 	public FocusProjectionsTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, PageBase page) {
-		super(id, mainForm, focusModel, page);
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+		super(id, mainForm, focusModel);
 		Validate.notNull(projectionModel, "Null projection model");
 		this.projectionModel = projectionModel;
-		initLayout(page);
+		
+	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
 	}
 
-	private void initLayout(final PageBase page) {
+	private void initLayout() {
 
 		final WebMarkupContainer shadows = new WebMarkupContainer(ID_SHADOWS);
 		shadows.setOutputMarkupId(true);
@@ -157,7 +163,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 							OperationResult fetchResult = dto.getResult();
 							if (fetchResult != null) {
 								showResult(fetchResult);
-								target.add(page.getFeedbackPanel());
+								target.add(getFeedbackPanel());
 							}
 						}
 					};

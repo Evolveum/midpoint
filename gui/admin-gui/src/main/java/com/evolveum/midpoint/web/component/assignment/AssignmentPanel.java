@@ -15,73 +15,98 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
@@ -172,7 +197,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			@Override
 			protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
 				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation, AssignmentPanel.this.getPageBase());
-			}
+			} 
 
 			@Override
 			protected boolean isNewObjectButtonEnabled(){
@@ -498,7 +523,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		}
 
 		newAssignmentsList.forEach(assignment -> {
-			PrismContainerDefinition<AssignmentType> definition = getModelObject().getContainer().getDefinition();
+			PrismContainerDefinition<AssignmentType> definition = getModelObject().getItem().getDefinition();
 			PrismContainerValue<AssignmentType> newAssignment;
 			try {
 				newAssignment = definition.instantiate().createNewValue();
@@ -550,12 +575,13 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 			@Override
 			protected  Fragment getSpecificContainers(String contentAreaId) {
-				Fragment specificContainers = getCustomSpecificContainers(contentAreaId, item.getModelObject());
+				Fragment specificContainers = getCustomSpecificContainers(contentAreaId, item.getModel());
 				Form form = this.findParent(Form.class);
 
 				ItemPath assignmentPath = item.getModelObject().getRealValue().asPrismContainerValue().getPath();
-				ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType>(((PageAdminObjectDetails<FocusType>)getPageBase()).getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-				PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
+				PrismContainerWrapperModel<AssignmentType, ActivationType> activationModel = new PrismContainerWrapperModel<AssignmentType, ActivationType>(item.getModel(), AssignmentType.F_ACTIVATION, true);
+				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, activationModel);
+//				PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
 				specificContainers.add(acitvationContainer);
 
 				return specificContainers;
@@ -595,7 +621,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 	protected PrismContainerValuePanel<AssignmentType, PrismContainerValueWrapper<AssignmentType>> getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>>  model) {
 		Form form = new Form<>("form");
 		ItemPath itemPath = getModelObject().getPath();
-		model.getObject().getParent().setShowOnTopLevel(true);
+//		model.getObject().getParent().setShowOnTopLevel(true);
 		return new PrismContainerValuePanel<>(idPanel, model);
 		
 //		(idPanel, model, true, form,
@@ -652,15 +678,15 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		return mergedList;
 	}
 
-	protected Fragment getCustomSpecificContainers(String contentAreaId, PrismContainerValueWrapper<AssignmentType> modelObject) {
+	protected Fragment getCustomSpecificContainers(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
 		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
 		specificContainers.add(getSpecificContainerPanel(modelObject));
 		return specificContainers;
 	}
 
-	protected PrismContainerPanel getSpecificContainerPanel(PrismContainerValueWrapper<AssignmentType> modelObject) {
+	protected PrismContainerPanel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
 		Form form = new Form<>("form");
-		ItemPath assignmentPath = modelObject.getPath();
+//		ItemPath assignmentPath = modelObject.getPath();
 		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER, getSpecificContainerModel(modelObject));
 //		PrismContainerPanelOld constraintsContainerPanel = new PrismContainerPanelOld(ID_SPECIFIC_CONTAINER,
 //				getSpecificContainerModel(modelObject), form,
@@ -687,26 +713,34 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		}
 	}
 
-	protected IModel<PrismContainerWrapper> getSpecificContainerModel(PrismContainerValueWrapper<AssignmentType> modelObject){
-		AssignmentType assignment = modelObject.getRealValue();
+	@Deprecated
+	protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject){
+		//TODO cannot this be done by inheritance for concrete panel???
+		AssignmentType assignment = modelObject.getObject().getRealValue();
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-			PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
-					AssignmentType.F_CONSTRUCTION));
-
-			return Model.of(constructionWrapper);
+			IModel<PrismContainerWrapper<ConstructionType>> constructionModel = new PrismContainerWrapperModel<AssignmentType, ConstructionType>(modelObject, AssignmentType.F_CONSTRUCTION, true);
+			return (IModel) constructionModel;
+//			PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
+//					AssignmentType.F_CONSTRUCTION));
+//
+//			return Model.of(constructionWrapper);
 		}
 
 		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
+			IModel<PrismContainerWrapper<PersonaConstructionType>> constructionModel = new PrismContainerWrapperModel<AssignmentType, PersonaConstructionType>(modelObject, AssignmentType.F_PERSONA_CONSTRUCTION, true);
+			return (IModel) constructionModel;
 			//TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
 			//but not PolicyRuleType
-			PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
-					AssignmentType.F_PERSONA_CONSTRUCTION));
-
-			return Model.of(personasWrapper);
+//			PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
+//					AssignmentType.F_PERSONA_CONSTRUCTION));
+//
+//			return Model.of(personasWrapper);
 		}
 		if (PolicyRuleType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-			PrismContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
-			return Model.of(policyRuleWrapper);
+			IModel<PrismContainerWrapper<PolicyRuleType>> constructionModel = new PrismContainerWrapperModel<AssignmentType, PolicyRuleType>(modelObject, AssignmentType.F_POLICY_RULE, true);
+			return (IModel) constructionModel;
+//			PrismContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
+//			return Model.of(policyRuleWrapper);
 		}
 		return Model.of();
 	}

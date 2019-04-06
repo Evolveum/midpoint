@@ -65,7 +65,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 	public TaskResultTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		super(id, mainForm, taskWrapperModel, pageBase);
+		super(id, mainForm, taskWrapperModel);
 		initLayout(taskDtoModel, pageBase);
 		setOutputMarkupId(true);
 	}

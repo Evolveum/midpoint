@@ -68,15 +68,23 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     private static final String DOT_CLASS = ObjectHistoryTabPanel.class.getName() + ".";
     private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
 
-    public ObjectHistoryTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-                                 PageAdminObjectDetails<F> parentPage) {
-        super(id, mainForm, focusWrapperModel, parentPage);
-        parentPage.getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
-        initLayout(focusWrapperModel, parentPage);
+    public ObjectHistoryTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+        super(id, mainForm, focusWrapperModel);
+        
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	
+    	//TODO seriously???
+    	getPageBase().getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
+    	
+        initLayout();
     }
 
-    private void initLayout(final LoadableModel<PrismObjectWrapper<F>> focusWrapperModel, final PageAdminObjectDetails<F> page) {
-        AuditSearchDto auditSearchDto = createAuditSearchDto(focusWrapperModel.getObject().getObject().asObjectable());
+    private void initLayout() {
+        AuditSearchDto auditSearchDto = createAuditSearchDto(getObjectWrapper().getObject().asObjectable());
         AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, Model.of(auditSearchDto), true) {
             private static final long serialVersionUID = 1L;
 
@@ -106,8 +114,8 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle"),
                                                 new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO),
                                                 target ->
-                                                        currentStateButtonClicked(target, getReconstructedObject(focusWrapperModel.getObject().getOid(),
-                                                                model.getObject().getEventIdentifier(), page.getCompileTimeClass()),
+                                                        currentStateButtonClicked(target, getReconstructedObject(getObjectWrapper().getOid(),
+                                                                model.getObject().getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
                                                                 WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                     case 1:
@@ -115,9 +123,9 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectXmlTitle"),
                                                 new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS),
                                                 target ->
-                                                        viewObjectXmlButtonClicked(focusWrapperModel.getObject().getOid(),
+                                                        viewObjectXmlButtonClicked(getObjectWrapper().getOid(),
                                                                 model.getObject().getEventIdentifier(),
-                                                                page.getCompileTimeClass(),
+                                                                getObjectWrapper().getCompileTimeClass(),
                                                                 WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                 }
@@ -143,7 +151,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
 
             @Override
             protected void resetAuditSearchStorage() {
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(focusWrapperModel.getObject().getObject().asObjectable()));
+                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(getObjectWrapper().getObject().asObjectable()));
 
             }
 

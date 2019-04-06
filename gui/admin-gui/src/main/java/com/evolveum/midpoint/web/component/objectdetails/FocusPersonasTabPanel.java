@@ -57,9 +57,8 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
 
     private static final String ID_PERSONAS_TABLE = "personasTable";
 
-    public FocusPersonasTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel,
-                                 PageBase page) {
-        super(id, mainForm, focusModel, page);
+    public FocusPersonasTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+        super(id, mainForm, focusModel);
     }
 
     @Override
@@ -189,7 +188,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                     QueryFactory factory = getPrismContext().queryFactory();
                     ObjectQuery query = factory.createQuery(factory.createInOid(personaOidsList));
                     OperationResult result = new OperationResult(OPERATION_SEARCH_PERSONAS_OBJECTS);
-                    personasList = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
+                    personasList = WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
 
                 }
                 return personasList == null ? new ArrayList<>() : personasList;

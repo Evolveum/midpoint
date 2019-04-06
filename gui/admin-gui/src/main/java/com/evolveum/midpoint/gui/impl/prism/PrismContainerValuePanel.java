@@ -55,6 +55,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
@@ -81,10 +82,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
     private static final String ID_REMOVE_CONTAINER = "removeContainer";
     
-    private static final String ID_PROPERTIES_LABEL = "properties";
+    private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
+    private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
     
-	 
-	public PrismContainerValuePanel(String id, IModel<CVW> model) {
+    public PrismContainerValuePanel(String id, IModel<CVW> model) {
 		super(id, model);
 	}
 	
@@ -117,15 +118,24 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 		};
 		labelComponent.setOutputMarkupId(true);
 		labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
-        labelContainer.add(new Label(ID_LABEL, LambdaModel.of(getModel(), CVW::getDisplayName)));
+        labelContainer.add(labelComponent);
         
         labelContainer.add(getHelpLabel());
         
         initButtons();
+        
+        //TODO always visible if isObject
 	}
 	
-	private  <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void initValues() {
+	private void initValues() {
 		
+		createPropertiesPanel();
+		
+		createContainersPanel();
+		
+	}
+	
+	private <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void createPropertiesPanel() {
 		WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
     	propertiesLabel.setOutputMarkupId(true);
     	
@@ -137,7 +147,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             protected void populateItem(final ListItem<IW> item) {
 				item.setOutputMarkupId(true);
 				IW itemWrapper = item.getModelObject();
-				Class<?> panelClass = getPageBase().getRegistry().getPanelClass(itemWrapper.getClass());
+				Class<?> panelClass = getPageBase().getWrapperPanel(itemWrapper.getTypeName());
 				
 				Constructor<?> constructor;
 				try {
@@ -158,8 +168,34 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         add(propertiesLabel);
        	propertiesLabel.add(properties);
        	
-       	
-       	
+        AjaxButton labelShowEmpty = new AjaxButton(ID_SHOW_EMPTY_BUTTON) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				onShowEmptyClick(target);
+				target.add(PrismContainerValuePanel.this);
+			}
+			
+			@Override
+			public IModel<?> getBody() {
+				return getNameOfShowEmptyButton();
+			}
+		};
+		labelShowEmpty.setOutputMarkupId(true);
+		labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
+		labelShowEmpty.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return getModelObject().isExpanded();// && !model.getObject().isShowEmpty();
+			}
+		});
+		add(labelShowEmpty);
+	}
+	
+	private <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void createContainersPanel() {
 		ListView<IW> containers = new ListView<IW>("containers", new PropertyModel<>(getModel(), "containers")) {
 			private static final long serialVersionUID = 1L;
 
@@ -169,7 +205,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
 				item.setOutputMarkupId(true);
 				IW itemWrapper = item.getModelObject();
-				Class<?> panelClass = getPageBase().getRegistry().getPanelClass(itemWrapper.getClass());
+				Class<?> panelClass = getPageBase().getWrapperPanel(itemWrapper.getTypeName());
 
 				Constructor<?> constructor;
 				try {
@@ -212,7 +248,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				//// }
 				//
 				// if
-				// (model.getObject().containsMultipleMultivalueContainer(isPanalVisible)
+				// (model.getObject().containsMultipleMultivalueContainer(isPanalVisible)al
 				// && item.getModelObject().getItemDefinition().isMultiValue()
 				// &&
 				// CollectionUtils.isEmpty(item.getModelObject().getValues())) {
@@ -230,7 +266,24 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
 		containers.setReuseItems(true);
 		containers.setOutputMarkupId(true);
+		add(containers);
+
 	}
+	
+	 private StringResourceModel getNameOfShowEmptyButton() {
+	    	return getPageBase().createStringResource("ShowEmptyButton.showMore.${showEmpty}", getModel());
+	    	
+	    }
+	    
+	    private void onShowEmptyClick(AjaxRequestTarget target) {
+			
+	    	PrismContainerValueWrapper<C> wrapper = getModelObject();
+			wrapper.setShowEmpty(!wrapper.isShowEmpty());
+				
+//			wrapper.computeStripes();
+//			target.add(ContainerValuePanel.this);
+			target.add(getPageBase().getFeedbackPanel());
+		}
 	
 	private <IW extends ItemWrapper<?,?,?,?>> IModel<String> createStyleClassModel(final IModel<IW> wrapper) {
         return new IModel<String>() {

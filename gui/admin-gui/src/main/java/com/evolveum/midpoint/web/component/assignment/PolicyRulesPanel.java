@@ -153,7 +153,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
-        PrismContainerValue<AssignmentType> newAssignment = getModelObject().getContainer().createNewValue();
+        PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
 //        newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
         PrismContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModelObject());
 //        newAssignmentWrapper.setShowEmpty(true, false);

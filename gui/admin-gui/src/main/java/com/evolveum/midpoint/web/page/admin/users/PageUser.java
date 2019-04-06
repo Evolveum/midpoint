@@ -196,7 +196,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             public WebMarkupContainer createPanel(String panelId) {
-                                return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+                                return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel());
                             }
 
                         });
@@ -211,7 +211,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         userDelegationsTabPanel = new UserDelegationsTabPanel<>(panelId, getMainForm(), getObjectModel(),
-								delegationsModel, privilegesListModel, PageUser.this);
+								delegationsModel, privilegesListModel);
                         return userDelegationsTabPanel;
                     }
 

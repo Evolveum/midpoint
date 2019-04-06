@@ -21,12 +21,8 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.factory.PrismContainerPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 
 /**
  * @author katka
@@ -52,7 +48,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	}
 
 	@Override
-	protected void createValuePanel(ListItem item, GuiComponentFactory componentFactory) {
+	protected void createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory) {
 		if (componentFactory == null) {
 			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<>("value", item.getModel());
 			valuePanel.setOutputMarkupId(true);

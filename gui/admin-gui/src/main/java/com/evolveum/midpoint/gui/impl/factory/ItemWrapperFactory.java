@@ -27,10 +27,10 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public interface ItemWrapperFactory<IW extends ItemWrapper, PV extends PrismValue> extends WrapperFactory {
+public interface ItemWrapperFactory<IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> extends WrapperFactory {
 
 	
 	IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException;
-	PrismValueWrapper<?> createValueWrapper(IW parent, PV value, ValueStatus status, WrapperContext context) throws SchemaException;
+	VW createValueWrapper(IW parent, PV value, ValueStatus status, WrapperContext context) throws SchemaException;
 
 }

@@ -92,7 +92,8 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public Date getObject() {
-                PersonalInfoDto dto = getModel().getObject();
+
+            	PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastLoginDate();
             }
         }, WebComponentUtil.getLongDateTimeFormat(parentPage));

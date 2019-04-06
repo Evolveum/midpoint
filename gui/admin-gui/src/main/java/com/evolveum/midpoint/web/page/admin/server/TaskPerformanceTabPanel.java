@@ -48,13 +48,19 @@ public class TaskPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> im
 	public TaskPerformanceTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		super(id, mainForm, taskWrapperModel, pageBase);
+		super(id, mainForm, taskWrapperModel);
 		this.taskDtoModel = taskDtoModel;
-		initLayout(pageBase);
+		
 		setOutputMarkupId(true);
 	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
 
-	private void initLayout(PageBase pageBase) {
+	private void initLayout() {
 		StatisticsDtoModel statisticsDtoModel = new StatisticsDtoModel(taskDtoModel);
 		StatisticsPanel statisticsPanel = new StatisticsPanel(ID_STATISTICS_PANEL, statisticsDtoModel);
 		add(statisticsPanel);

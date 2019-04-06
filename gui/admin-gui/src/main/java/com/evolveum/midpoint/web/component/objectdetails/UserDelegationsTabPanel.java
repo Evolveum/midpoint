@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * Created by honchar
  */
-public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
+public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_DELEGATIONS_CONTAINER = "delegationsContainer";
@@ -65,11 +65,17 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
 
     public UserDelegationsTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
             LoadableModel<List<AssignmentEditorDto>> delegationsModel,
-			LoadableModel<List<AssignmentInfoDto>> privilegesListModel, PageBase page) {
-        super(id, mainForm, focusWrapperModel, page);
+			LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
+        super(id, mainForm, focusWrapperModel);
         this.delegationsModel = delegationsModel;
         this.privilegesListModel = privilegesListModel;
-        initLayout();
+        
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
     }
 
     private void initLayout() {
@@ -84,7 +90,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
             @Override
             public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
-                        privilegesListModel, pageBase);
+                        privilegesListModel, getPageBase());
                 item.add(editor);
             }
 
@@ -118,13 +124,13 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                                     ObjectFilter filter = getPrismContext().queryFactory().createInOid(getObjectWrapper().getOid());
                                     ObjectFilter notFilter = getPrismContext().queryFactory().createNot(filter);
                                     ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
-                                            pageBase.getMainPopupBodyId(), UserType.class,
-                                            supportedTypes, false, pageBase, notFilter) {
+                                            getPageBase().getMainPopupBodyId(), UserType.class,
+                                            supportedTypes, false, getPageBase(), notFilter) {
                                         private static final long serialVersionUID = 1L;
 
                                         @Override
                                         protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
-                                            pageBase.hideMainPopup(target);
+                                        	getPageBase().hideMainPopup(target);
                                             List<ObjectType> newAssignmentsList = new ArrayList<>();
                                             newAssignmentsList.add(user);
                                             addSelectedAssignablePerformed(target, newAssignmentsList, null, getPageBase().getMainPopup().getId());
@@ -132,7 +138,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
 
                                     };
                                     panel.setOutputMarkupId(true);
-                                    pageBase.showMainPopup(panel, target);
+                                    getPageBase().showMainPopup(panel, target);
 
                                 }
                             };

@@ -47,7 +47,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> {
 		this.itemWrapper = itemWrapper;
 	}
 	
-	protected IW unwrapModel() {
+	public IW unwrapWrapperModel() {
 		return itemWrapper.getObject();
 	}
 
@@ -60,23 +60,26 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> {
 	}
 	
 	public PrismReferenceValue getValueEnumerationRef() {
-		return unwrapModel().getValueEnumerationRef();
+		return unwrapWrapperModel().getValueEnumerationRef();
 	}
 	
 	
+	public IModel<IW> getItemWrapperModel() {
+		return itemWrapper;
+	}
 	
 	public PrismContext getPrismContext() {
-		return unwrapModel().getPrismContext();
+		return unwrapWrapperModel().getPrismContext();
 	}
 	
 	
 	
 	public boolean isPropertyReadOnly() {
-		return unwrapModel().isReadOnly();
+		return unwrapWrapperModel().isReadOnly();
 	}
 	
 	public ItemName getDefinitionName() {
-		return unwrapModel().getName();
+		return unwrapWrapperModel().getName();
 	}
 	
 	public Component getParentComponent() {
@@ -84,9 +87,9 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> {
 	}
 	
 	public Class<T> getTypeClass() {
-		Class<T> clazz = unwrapModel().getTypeClass();
+		Class<T> clazz = unwrapWrapperModel().getTypeClass();
 		if (clazz == null) {
-			clazz = getPrismContext().getSchemaRegistry().determineClassForType(unwrapModel().getTypeName());
+			clazz = getPrismContext().getSchemaRegistry().determineClassForType(unwrapWrapperModel().getTypeName());
 		}
 		if (clazz != null && clazz.isPrimitive()) {
 			clazz = ClassUtils.primitiveToWrapper(clazz);
@@ -103,7 +106,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> {
 		return feedbackPanel;
 	}
 	
-	public void setRealValueModel(IModel<PrismValueWrapper<T>> valueWrapper) {
+	public <V extends PrismValue> void setRealValueModel(IModel<PrismValueWrapper<T, V>> valueWrapper) {
 		this.realValueModel = new ItemRealValueModel<T>(valueWrapper);
 	}
 	

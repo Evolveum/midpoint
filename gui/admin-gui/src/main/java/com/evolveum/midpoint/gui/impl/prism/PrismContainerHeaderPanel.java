@@ -15,21 +15,24 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author katka
@@ -40,6 +43,8 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_ADD_BUTTON = "addButton";
+	private static final String ID_EXPAND_COLLAPSE_FRAGMENT = "expandCollapseFragment";
+    private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
 	
 	
 	public PrismContainerHeaderPanel(String id, IModel<PrismContainerWrapper<C>> model) {
@@ -48,7 +53,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 
 	@Override
 	protected void initButtons() {
-		add(new VisibleBehaviour(() -> getModelObject().isMultiValue()));
+		add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isMultiValue()));
 		
 		
 		 AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
@@ -62,26 +67,74 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	        addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
 	        add(addButton);
 	        
+	        
+	        initExpandCollapseButton();
 	        //TODO: sorting
 	        //TODO add/remove
 	}
 	
 	private void addValue(AjaxRequestTarget target) {
-//		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
-//		ContainerWrapperImpl<C> containerWrapper = getModelObject();
-//		Task task = getPageBase().createSimpleTask("Creating new container");
-//		ContainerValueWrapper<C> newContainerValue = cwf.createContainerValueWrapper(containerWrapper,
-//				containerWrapper.getItem().createNewValue(), containerWrapper.getObjectStatus(), ValueStatus.ADDED,
-//				containerWrapper.getPath(), task);
-//		newContainerValue.setShowEmpty(true, false);
-//		getModelObject().addValue(newContainerValue);
-//		onButtonClick(target);
-	}
+		PrismContainerWrapper<C> parentWrapper = getModelObject();
+		WrapperContext ctx = new WrapperContext(null, null);
+		try {
+			getPageBase().createValueWrapper(parentWrapper, parentWrapper.getItem().createNewValue(), ValueStatus.ADDED, ctx);
+		} catch (SchemaException e) {
+			// TODO error handling
+		}
+		target.add(this.getParent());
+ 	}
 	
 	private boolean isAddButtonVisible() {
 		return getModelObject().isExpanded();
 	}
-	
-	
 
+	@Override
+	protected Component createTitle(IModel<String> label) {
+		AjaxButton labelComponent = new AjaxButton(ID_LABEL, label) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				onExpandClick(target);
+			}
+		};
+		labelComponent.setOutputMarkupId(true);
+		labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
+		return labelComponent;
+	}
+	
+	private void onExpandClick(AjaxRequestTarget target) {
+		
+		PrismContainerWrapper<C> wrapper = getModelObject();
+		wrapper.setExpanded(!wrapper.isExpanded());
+		target.add(getParent());
+//		onButtonClick(target);
+	}
+
+	
+	
+//	@Override
+	protected void initExpandCollapseButton() {
+//		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
+		
+		ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
+				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				onExpandClick(target);
+			}
+						
+			@Override
+			public boolean isOn() {
+				return PrismContainerHeaderPanel.this.getModelObject().isExpanded();
+			}
+        };
+        expandCollapseButton.setOutputMarkupId(true);
+        add(expandCollapseButton);
+//        expandCollapseFragment.add(expandCollapseButton);
+//        
+//        return expandCollapseFragment;
+	}
 }

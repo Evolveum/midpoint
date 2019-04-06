@@ -18,40 +18,40 @@ package com.evolveum.midpoint.web.model;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author katka
  *
  */
-public class PrismContainerWrapperModel<T extends Containerable, C extends Containerable>  implements IModel<PrismContainerWrapper<C>> {
+public class PrismContainerWrapperModel<C extends Containerable, T extends Containerable>  extends ItemWrapperModel<C, PrismContainerWrapper<T>> {
 
-	private IModel<PrismContainerWrapper<T>> parent;
-	private ItemName path;
+	private static final long serialVersionUID = 1L;
+
 	
-	
-	public PrismContainerWrapperModel(IModel<PrismContainerWrapper<T>> parent, ItemName path) {
-		this.parent = parent;
-		this.path = path;
+	public PrismContainerWrapperModel(IModel<? extends PrismContainerWrapper<C>> parent, ItemName path) {
+		super(parent, path);
 	}
 	
+	public PrismContainerWrapperModel(IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path) {
+		super(parent, path);
+	}
+	
+	public PrismContainerWrapperModel(IModel<PrismContainerValueWrapper<C>> parent, ItemName path, boolean fromContainerValue) {
+		super(parent, path, fromContainerValue);
+	}
+	
+	public PrismContainerWrapperModel(IModel<PrismContainerValueWrapper<C>> parent, ItemPath path, boolean fromContainerValue) {
+		super(parent, path, fromContainerValue);
+	}
+
 	@Override
-	public PrismContainerWrapper<C> getObject() {
-		PrismContainerWrapper<?> parentObject = parent.getObject();
-		return parentObject.findContainer(path);
+	public PrismContainerWrapper<T> getObject() {
+		return getItemWrapper(PrismContainerWrapper.class);
 	}
-
-	@Override
-	public void setObject(PrismContainerWrapper<C> object) {
-		// TODO Auto-generated method stub
-		IModel.super.setObject(object);
-	}
-	
-	
-	
-
-	
-	
+		
 	
 }

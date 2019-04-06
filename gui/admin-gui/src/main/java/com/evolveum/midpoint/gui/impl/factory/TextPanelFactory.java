@@ -47,7 +47,7 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> {
 		registry.addToRegistry(this);
 	}
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		QName type = wrapper.getTypeName();
 		return SchemaConstants.T_POLY_STRING_TYPE.equals(type) || DOMUtil.XSD_STRING.equals(type) || DOMUtil.XSD_DURATION.equals(type)
 				|| DOMUtil.XSD_ANYURI.equals(type) || DOMUtil.XSD_INT.equals(type);

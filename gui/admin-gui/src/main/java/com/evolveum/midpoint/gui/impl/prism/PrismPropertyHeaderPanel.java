@@ -15,7 +15,12 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -37,7 +42,15 @@ public class PrismPropertyHeaderPanel<T> extends ItemHeaderPanel<PrismPropertyVa
 	public PrismPropertyHeaderPanel(String id, IModel<PrismPropertyWrapper<T>> model) {
 		super(id, model);
 	}
-
+	
+	@Override
+	protected Component createTitle(IModel<String> label) {
+        Label displayName = new Label(ID_LABEL, label);
+        
+        return displayName;
+        
+	}
+	
 	@Override
 	protected void initButtons() {
 		// nothing to do

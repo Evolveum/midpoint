@@ -50,7 +50,7 @@ public class DatePanelFactory extends AbstractGuiComponentFactory<XMLGregorianCa
 		registry.addToRegistry(this);
 	}
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
 		return DOMUtil.XSD_DATETIME.equals(wrapper.getTypeName());
 	}
 

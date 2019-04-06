@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.gui.impl.prism;
+package com.evolveum.midpoint.gui.impl.factory;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.factory.ContainerWrapperFactoryImpl;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -36,21 +41,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
  * @author katka
  *
  */
-public class MetadataWrapperFactory extends ContainerWrapperFactoryImpl<MetadataType>{
+@Component
+public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<MetadataType>{
 
 	
 	@Autowired private GuiComponentRegistryImpl registry;
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.WrapperFactory#match(com.evolveum.midpoint.prism.ItemDefinition)
-	 */
+
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		return QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName());
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.WrapperFactory#register()
-	 */
+	@PostConstruct
 	@Override
 	public void register() {
 		registry.addToRegistry(this);
@@ -78,7 +80,7 @@ public class MetadataWrapperFactory extends ContainerWrapperFactoryImpl<Metadata
 	 * @see com.evolveum.midpoint.gui.impl.factory.ContainerWrapperFactoryImpl#createValueWrapper(com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper, com.evolveum.midpoint.prism.PrismContainerValue, com.evolveum.midpoint.web.component.prism.ValueStatus, com.evolveum.midpoint.gui.impl.factory.WrapperContext)
 	 */
 	@Override
-	public PrismValueWrapper<?> createValueWrapper(PrismContainerWrapper<MetadataType> parent,
+	public PrismContainerValueWrapper<MetadataType> createValueWrapper(PrismContainerWrapper<MetadataType> parent,
 			PrismContainerValue<MetadataType> value, ValueStatus status, WrapperContext context) throws SchemaException {
 		// TODO Auto-generated method stub
 		return super.createValueWrapper(parent, value, status, context);
@@ -90,7 +92,6 @@ public class MetadataWrapperFactory extends ContainerWrapperFactoryImpl<Metadata
 	@Override
 	public PrismContainerWrapper<MetadataType> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def,
 			WrapperContext context) throws SchemaException {
-		// TODO Auto-generated method stub
 		return super.createWrapper(parent, def, context);
 	}
 
@@ -101,8 +102,8 @@ public class MetadataWrapperFactory extends ContainerWrapperFactoryImpl<Metadata
 	@Override
 	protected PrismContainerWrapper<MetadataType> createWrapper(PrismContainerValueWrapper<?> parent,
 			PrismContainer<MetadataType> childContainer, ItemStatus status) {
-		// TODO Auto-generated method stub
-		return super.createWrapper(parent, childContainer, status);
+		registry.registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismPropertyPanel.class);
+		return new PrismContainerWrapperImpl<MetadataType>(parent, childContainer, status);
 	}
 	
 }

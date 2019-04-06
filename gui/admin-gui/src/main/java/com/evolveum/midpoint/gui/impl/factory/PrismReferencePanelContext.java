@@ -38,14 +38,14 @@ public class PrismReferencePanelContext<R extends Referencable> extends ItemPane
 	}
 
 	public ObjectFilter getFilter() {
-		return unwrapModel().getFilter();
+		return unwrapWrapperModel().getFilter();
 	}
 
 	public List<QName> getTargetTypes() {
-		return unwrapModel().getTargetTypes();
+		return unwrapWrapperModel().getTargetTypes();
 	}
 	
 	public QName getTargetTypeName() {
-		return unwrapModel().getTargetTypeName();
+		return unwrapWrapperModel().getTargetTypeName();
 	}
 }

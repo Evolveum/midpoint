@@ -263,14 +263,18 @@ public class AssignmentsUtil {
 
 		if (assignment.getPolicyRule() != null){
 			StringBuilder sbName = new StringBuilder("");
-			PrismContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainer(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
-			if(policyRuleWrapper != null) {
-				PrismPropertyWrapper<String> property = policyRuleWrapper.findProperty(PolicyRuleType.F_NAME);
-				if(property != null && !property.getValues().isEmpty()) {
-					for (PrismPropertyValueWrapper<String> value :property.getValues()) {
-						ItemRealValueModel<String> name = new ItemRealValueModel<String>(Model.of(value));
-						sbName.append(name.getObject()).append("\n");
-					}
+			PrismPropertyWrapper<String> property;
+			try {
+				property = assignmentValueWrapper.findProperty(ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME));
+			} catch (SchemaException e) {
+				LOGGER.error("Cannot find name property for policy rules.");
+				pageBase.getSession().error("Cannot find name for the policy rule");
+				return null;
+			}
+			if (property != null && !property.getValues().isEmpty()) {
+				for (PrismPropertyValueWrapper<String> value : property.getValues()) {
+					ItemRealValueModel<String> name = new ItemRealValueModel<String>(Model.of(value));
+					sbName.append(name.getObject()).append("\n");
 				}
 			}
 			if (StringUtils.isNotEmpty(sbName.toString())){

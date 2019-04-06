@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -209,7 +210,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
     
     @Override
-	protected Fragment getCustomSpecificContainers(String contentAreaId, PrismContainerValueWrapper<AssignmentType> modelObject) {
+	protected Fragment getCustomSpecificContainers(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
 		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
 		specificContainers.add(getConstructionAssociationPanel(modelObject));
 
@@ -232,9 +233,10 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     	return panel;
     }
     
-    private ConstructionAssociationPanel getConstructionAssociationPanel(PrismContainerValueWrapper<AssignmentType> modelObject) {
-    	PrismContainerWrapper<ConstructionType> constructionContainer = modelObject.findContainer(modelObject.getPath().append((AssignmentType.F_CONSTRUCTION)));
-        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, Model.of(constructionContainer));
+    private ConstructionAssociationPanel getConstructionAssociationPanel(IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+    	IModel<PrismContainerWrapper<ConstructionType>> constructionModel = new PrismContainerWrapperModel<AssignmentType, ConstructionType>(model, AssignmentType.F_CONSTRUCTION, true);
+//    	PrismContainerWrapper<ConstructionType> constructionContainer = modelObject.findContainer(modelObject.getPath().append((AssignmentType.F_CONSTRUCTION)));
+        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, constructionModel);
         constructionDetailsPanel.setOutputMarkupId(true);
         return constructionDetailsPanel;
     }

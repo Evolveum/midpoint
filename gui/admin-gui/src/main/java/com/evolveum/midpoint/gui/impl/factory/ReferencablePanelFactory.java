@@ -59,10 +59,10 @@ public class ReferencablePanelFactory<R extends Referencable> implements GuiComp
 	}
 
 	@Override
-	public boolean match(ItemWrapper<?, ?, ?, ?> wrapper) {
-		return wrapper.getDefinition() instanceof PrismReferenceDefinition;
+	public <IW extends ItemWrapper> boolean match(IW wrapper) {
+		return wrapper instanceof PrismReferenceDefinition;
 	}
-
+	
 	@Override
 	public Panel createPanel(PrismReferencePanelContext<R> panelCtx) {
 		ValueChoosePanel panel = new ValueChoosePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {

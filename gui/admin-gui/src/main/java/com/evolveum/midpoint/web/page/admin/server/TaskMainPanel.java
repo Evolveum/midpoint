@@ -154,7 +154,7 @@ public class TaskMainPanel extends Panel {
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskProgressTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+						return new TaskProgressTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
 					}
 					@Override
 					public boolean isVisible() {
@@ -176,7 +176,7 @@ public class TaskMainPanel extends Panel {
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskApprovalsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+						return new TaskApprovalsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
 					}
 					@Override
 					public boolean isVisible() {
@@ -209,7 +209,7 @@ public class TaskMainPanel extends Panel {
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.errors")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskErrorsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+						return new TaskErrorsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
 					}
 					@Override
 					public boolean isVisible() {

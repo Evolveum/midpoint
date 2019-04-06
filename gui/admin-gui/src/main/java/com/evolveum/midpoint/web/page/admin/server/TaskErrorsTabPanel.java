@@ -42,16 +42,24 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
+    
+    private IModel<TaskDto> taskDtoModel;
 
     public TaskErrorsTabPanel(String id, Form mainForm,
                               LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
-                              IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-        super(id, mainForm, taskWrapperModel, pageBase);
-        initLayout(taskDtoModel, pageBase);
+                              IModel<TaskDto> taskDtoModel) {
+        super(id, mainForm, taskWrapperModel);
+        this.taskDtoModel = taskDtoModel;
         setOutputMarkupId(true);
     }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
 
-    private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+    private void initLayout() {
         ObjectDataProvider<TaskErrorDto, ObjectType> provider = new ObjectDataProvider<TaskErrorDto, ObjectType>
                 (TaskErrorsTabPanel.this, ObjectType.class) {
             private static final long serialVersionUID = 1L;
@@ -69,7 +77,7 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 
             @Override
             public ObjectQuery getQuery() {
-                return createContentQuery(taskDtoModel.getObject().getOid(), pageBase);
+                return createContentQuery(taskDtoModel.getObject().getOid(), getPageBase());
             }
         };
         TablePanel resultTablePanel = new TablePanel<>(ID_TASK_ERRORS, provider, initColumns());

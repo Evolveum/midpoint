@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.admin.valuePolicy.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
@@ -15,14 +16,20 @@ import java.util.List;
 /**
  * Created by matus on 2/20/2018.
  */
-public class ValuePolicyBasicPanel extends AbstractObjectTabPanel {
+public class ValuePolicyBasicPanel extends AbstractObjectTabPanel<ValuePolicyType> {
 
     private static final String ID_VALUE_POLICY_BASIC_DETAIL = "valuePolicyBasic";
     private static final String ID_MAIN_FORM_BASIC = "mainFormBasic";
 
-    public ValuePolicyBasicPanel(String id, Form mainForm, LoadableModel objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel, pageBase);
-        initPanelLayout();
+    public ValuePolicyBasicPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<ValuePolicyType>> objectWrapperModel) {
+        super(id, mainForm, objectWrapperModel);
+       
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	 initPanelLayout();
     }
 
 

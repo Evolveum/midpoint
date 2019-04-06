@@ -27,8 +27,8 @@ public class ValuePolicyStringPoliciesPanel extends AbstractObjectTabPanel {
     public static final String ID_DETAILS = "details";
 
     protected boolean detailsVisible;
-    public ValuePolicyStringPoliciesPanel(String id, Form mainForm, LoadableModel objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel, pageBase);
+    public ValuePolicyStringPoliciesPanel(String id, Form mainForm, LoadableModel objectWrapperModel) {
+        super(id, mainForm, objectWrapperModel);
         initPanelLayout();
     }
 

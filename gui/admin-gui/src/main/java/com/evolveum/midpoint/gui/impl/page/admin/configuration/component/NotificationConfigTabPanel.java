@@ -24,21 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
-import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -52,12 +37,23 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
+import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -73,16 +69,16 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
@@ -141,8 +137,11 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
 	protected void initLayout() {
 		
-		IModel<PrismPropertyWrapper<MailConfigurationType>> mailConfig = Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_MAIL));
-		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig.getObject().getTypeName().getLocalPart() + ".details"));
+		PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig = new PrismPropertyWrapperModel<>(getModel(), NotificationConfigurationType.F_MAIL);
+//		IModel<PrismPropertyWrapper<MailConfigurationType>> mailConfig = Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_MAIL));
+		
+		
+		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig)); //mailConfig.getObject().getTypeName().getLocalPart() + ".details"));
 		
 		Form form = new Form<>("form");
 		
@@ -170,20 +169,20 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
         
-        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig = Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_FILE));
+        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig =  new PrismPropertyWrapperModel<>(getModel(), NotificationConfigurationType.F_FILE);
         
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
         add(files);
         
-        ListView<ValueWrapperOld<FileConfigurationType>> values = new ListView<ValueWrapperOld<FileConfigurationType>>("values",
+        ListView<PrismPropertyValueWrapper<FileConfigurationType>> values = new ListView<PrismPropertyValueWrapper<FileConfigurationType>>("values",
                 new PropertyModel<>(fileConfig, "values")) {
             	private static final long serialVersionUID = 1L;
 
                 @Override
-                protected void populateItem(final ListItem<ValueWrapperOld<FileConfigurationType>> item) {
+                protected void populateItem(final ListItem<PrismPropertyValueWrapper<FileConfigurationType>> item) {
                 	
-                	FileConfigurationType fileConfigType = item.getModelObject().getValue().getRealValue();
+                	FileConfigurationType fileConfigType = item.getModelObject().getRealValue();
                 	
                 	item.add(createHeader(ID_VALUE_HEADER, fileConfigType == null || fileConfigType.getName() == null || fileConfigType.getName().isEmpty() ? (FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details") : fileConfigType.getName()));
                 	
@@ -192,7 +191,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
                     	@Override
                     	public void onClick(AjaxRequestTarget target) {
-                    		((PrismPropertyValue<FileConfigurationType>)item.getModelObject().getValue()).setValue(null);
+                    		((PrismPropertyValue<FileConfigurationType>)item.getModelObject()).setValue(null);
                     		item.getParent().remove(item.getId());
                     		target.add(files);
                     	}
@@ -206,7 +205,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
 						@Override
 						protected void onUpdate(AjaxRequestTarget target) {
-							((FileConfigurationType)item.getModelObject().getValue().getRealValue()).setName(name.getModelObject());
+							((FileConfigurationType)item.getModelObject().getRealValue()).setName(name.getModelObject());
 						}
 					});
                 	item.add(name);
@@ -218,7 +217,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
 						@Override
 						protected void onUpdate(AjaxRequestTarget target) {
-							((FileConfigurationType)item.getModelObject().getValue().getRealValue()).setFile(file.getModelObject());
+							((FileConfigurationType)item.getModelObject().getRealValue()).setFile(file.getModelObject());
 						}
 					});
                 	item.add(file);
@@ -315,6 +314,20 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         return table;
 	}
 	
+	private <T> Panel createHeader(String id, IModel<PrismPropertyWrapper<T>> model) {
+//	    if (StringUtils.isEmpty(displayName)) {
+//	    	displayName = "displayName.not.set";
+//	    }
+	    
+	    PrismPropertyHeaderPanel<T> header = new PrismPropertyHeaderPanel<>(id, model);
+	    
+//	    StringResourceModel headerLabelModel = createStringResource(new PropertyModel<>(model, "displayName"));
+//	    Label header = new Label(id, headerLabelModel);
+	    header.add(AttributeAppender.prepend("class", "prism-title pull-left"));
+	    return header;
+	}
+	
+	@Deprecated
 	private Label createHeader(String id, String displayName) {
 	    if (StringUtils.isEmpty(displayName)) {
 	    	displayName = "displayName.not.set";
@@ -500,9 +513,10 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 			return;
 		}
 		
+		PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfigModel = new PrismPropertyWrapperModel<>(getModel(), NotificationConfigurationType.F_MAIL);
+		
 		PropertyModel<MailConfigurationType> mailConfigType =
-				new PropertyModel<MailConfigurationType>(Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_MAIL))
-						, "values[0].value.value");
+				new PropertyModel<MailConfigurationType>(mailConfigModel, "values[0].value.value");
 		List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
 		
 		toDelete.forEach(value -> {

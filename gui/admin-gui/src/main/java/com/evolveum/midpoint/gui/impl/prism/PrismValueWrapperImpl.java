@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
-import java.io.Serializable;
-
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -25,7 +23,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class PrismValueWrapperImpl<T, V extends PrismValue> implements PrismValueWrapper<T> {
+public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements PrismValueWrapper<T, V> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -36,21 +34,47 @@ public class PrismValueWrapperImpl<T, V extends PrismValue> implements PrismValu
 	
 	private ValueStatus status;
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper#getRealValue()
-	 */
+	
+	public PrismValueWrapperImpl(ItemWrapper<?, ?, ?, ?> parent, V value, ValueStatus status) {
+		this.parent = parent;
+		this.newValue = value;
+		this.oldValue = (V) value.clone();
+		this.status = status;
+	}
+	
 	@Override
 	public T getRealValue() {
 		return newValue.getRealValue();
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper#getValueStatus()
-	 */
+	
 	@Override
-	public ValueStatus getValueStatus() {
+	public V getNewValue() {
+		return newValue;
+	}
+	
+	@Override
+	public <IW extends ItemWrapper> IW getParent() {
+		return (IW) parent;
+	}
+	
+	@Override
+	public ValueStatus getStatus() {
 		return status;
 	}
+	
+	@Override
+	public void setStatus(ValueStatus status) {
+		this.status = status;
+	}
 
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Status: ").append(status).append("\n");
+		sb.append("New value: ").append(newValue.debugDump()).append("\n");
+		sb.append("Old value: ").append(oldValue.debugDump()).append("\n");
+		return sb.toString();
+	}
 	
 }

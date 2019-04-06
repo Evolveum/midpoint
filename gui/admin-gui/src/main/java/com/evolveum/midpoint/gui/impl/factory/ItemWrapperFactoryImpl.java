@@ -32,14 +32,18 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
  *
  */
-public abstract class ItemWrapperFacotryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item> implements ItemWrapperFactory<IW, PV> {
+public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item, VW extends PrismValueWrapper> implements ItemWrapperFactory<IW, VW, PV> {
 
+	private static final transient Trace LOGGER = TraceManager.getTrace(ItemWrapperFactoryImpl.class);
+	
 	@Autowired private GuiComponentRegistryImpl registry; 
 	@Autowired private PrismContext prismContext;
 	
@@ -57,29 +61,30 @@ public abstract class ItemWrapperFacotryImpl<IW extends ItemWrapper, PV extends 
 		IW itemWrapper = createWrapper(parent, childItem, status);
 		
 		
-		List<PrismValueWrapper<?>> valueWrappers  = createValuesWrapper(itemWrapper, childItem, context);
+		List<VW> valueWrappers  = createValuesWrapper(itemWrapper, childItem, context);
+		LOGGER.trace("valueWrappers {}", itemWrapper.getValues());
 		itemWrapper.getValues().addAll((Collection) valueWrappers);
 		
 		return itemWrapper;
 	}
 	
 	
-	protected <ID extends ItemDefinition<I>> List<PrismValueWrapper<?>> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
-		List<PrismValueWrapper<?>> pvWrappers = new ArrayList<>();
+	protected <ID extends ItemDefinition<I>> List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
+		List<VW> pvWrappers = new ArrayList<>();
 		
 		ID definition = (ID) item.getDefinition();
-		ItemWrapperFactory<IW, PV> factory = (ItemWrapperFactory<IW, PV>) registry.findWrapperFactory(definition);
+		ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(definition);
 		
 		if (item.isEmpty()) {
 			if (shoudCreateEmptyValue(item, context)) {
 				PV prismValue = createNewValue(item);
-				PrismValueWrapper<?> valueWrapper =  factory.createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
+				VW valueWrapper =  factory.createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
 				pvWrappers.add(valueWrapper);
 			}
 		}
 		
 		for (PV pcv : (List<PV>)item.getValues()) {
-			PrismValueWrapper<?> valueWrapper = factory.createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
+			VW valueWrapper = factory.createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
 			pvWrappers.add(valueWrapper);
 		}
 		
