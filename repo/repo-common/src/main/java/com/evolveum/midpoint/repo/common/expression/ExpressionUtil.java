@@ -376,14 +376,20 @@ public class ExpressionUtil {
 		if (parentDef == null) {
 			return null;
 		}
-		if (!(parentDef instanceof PrismPropertyDefinition)) {
-			return null;
+		if (parentDef instanceof PrismContainerDefinition) {
+			if (parentDef.isDynamic() && ((PrismContainerDefinition)parentDef).isEmpty()) {
+				// The case of dynamic schema for which there are no definitions
+				// E.g. assignment extension
+				// just default to single-value strings. Better than nothing. At least for now.
+				return parentDef.getPrismContext().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+			}
+		} else if ((parentDef instanceof PrismPropertyDefinition)) {
+			if (PrismUtil.isStructuredType(parentDef.getTypeName())) {
+				// All "subproperties" are hardcoded as singlevalue strings
+				return parentDef.getPrismContext().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+			}
 		}
-		if (!PrismUtil.isStructuredType(parentDef.getTypeName())) {
-			return null;
-		}
-		// All "subproperties" are hardcoded as singlevalue strings
-		return parentDef.getPrismContext().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+		return null;
 	}
 	
 	private static TypedValue normalizeValuesToDelete(TypedValue root) {

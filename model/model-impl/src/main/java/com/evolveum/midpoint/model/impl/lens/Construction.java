@@ -454,11 +454,36 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 				outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + getSource());
 
-		MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(
-				builder, attrName, outputDefinition, null, task, result);
+		MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping;
+		
+		try {
+		
+			evaluatedMapping = evaluateMapping(builder, attrName, outputDefinition, null, task, result);
+			
+		} catch (SchemaException e) {
+			throw new SchemaException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (ExpressionEvaluationException e) {
+			throw new ExpressionEvaluationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (ObjectNotFoundException e) {
+			throw new ObjectNotFoundException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (SecurityViolationException e) {
+			throw new SecurityViolationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (ConfigurationException e) {
+			throw new ConfigurationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (CommunicationException e) {
+			throw new CommunicationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		}
 
 		LOGGER.trace("Evaluated mapping for attribute " + attrName + ": " + evaluatedMapping);
 		return evaluatedMapping;
+	}
+
+	private String getAttributeEvaluationErrorMesssage(QName attrName, Exception e) {
+		return "Error evaluating mapping for attribute "+PrettyPrinter.prettyPrint(attrName)+" in "+getHumanReadableConstructionDescription()+": "+e.getMessage();
+	}
+
+	private String getHumanReadableConstructionDescription() {
+		return "construction for ("+resource+"/"+getKind()+"/"+getIntent()+") in "+getSource();
 	}
 
 	public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {

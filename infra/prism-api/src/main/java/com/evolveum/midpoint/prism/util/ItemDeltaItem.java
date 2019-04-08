@@ -206,7 +206,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 	}
 
-	public <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) {
+	public <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) throws SchemaException {
 		if (path.isEmpty()) {
 			return (ItemDeltaItem<IV,ID>) this;
 		}
