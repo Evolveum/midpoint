@@ -91,8 +91,13 @@ public class DataSourceFactory {
         config.setMinimumIdle(configuration.getMinPoolSize());
         config.setMaximumPoolSize(configuration.getMaxPoolSize());
 
-        config.setMaxLifetime(configuration.getMaxLifetime());
-        config.setIdleTimeout(configuration.getIdleTimeout());
+        if (configuration.getMaxLifetime() != null) {
+        	config.setMaxLifetime(configuration.getMaxLifetime());
+        } 
+        
+        if (configuration.getIdleTimeout() != null) {
+        	config.setIdleTimeout(configuration.getIdleTimeout());
+        }
 
         config.setIsolateInternalQueries(true);
 //        config.setAutoCommit(false);
