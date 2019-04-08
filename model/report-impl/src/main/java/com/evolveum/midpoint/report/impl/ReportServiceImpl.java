@@ -53,6 +53,7 @@ import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptE
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
@@ -361,9 +363,14 @@ public class ReportServiceImpl implements ReportService {
 	
 	public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
 					ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, SchemaException {
+		
 		ScriptExpressionEvaluatorType expressionType = new ScriptExpressionEvaluatorType();
 		expressionType.setCode(codeString);
 		context.setExpressionType(expressionType);
+		// Be careful about output definition here. We really do NOT want to set it.
+		// Not setting the definition means that we want raw value without any conversion.
+		// This is what we really want, because there may be exotic things such as JRTemplate going through those expressions
+		// We do not have any reasonable prism definitions for those.
 		
 		context.setFunctions(createFunctionLibraries());
 		context.setObjectResolver(objectResolver);

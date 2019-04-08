@@ -45,7 +45,7 @@ public class TestReportSafe extends TestReport {
 	/**
      * Reports with poisonous operations in the query. This should work with null profile.
      * But it should fail with safe profile.
-     * Field operations are safe.
+     * Field operations are safe in this report, just the query is poisonous.
      */
 	@Test
 	@Override
@@ -54,6 +54,15 @@ public class TestReportSafe extends TestReport {
 		testReportListUsersCsvFailure(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID);
 	}
 	
-	// TODO TODO TODO: override test114ReportUserListExpressionsPoisonousFieldCsv
-
+	/**
+	   * Reports with poisonous operations in the field expression. This should work with null profile.
+	   * But it should fail with safe profile.
+	   * Query expression is safe in this report, just fields are poisonous.
+	   */
+	  @Test
+	  public void test114ReportUserListExpressionsPoisonousFieldCsv() throws Exception {
+		  final String TEST_NAME = "test114ReportUserListExpressionsPoisonousFieldCsv";
+		  testReportListUsersCsvFailure(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID);
+	  }
+	
 }

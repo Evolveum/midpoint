@@ -18,19 +18,12 @@ package com.evolveum.midpoint.report.impl;
 import java.io.Serializable;
 import java.util.Map;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -71,36 +64,33 @@ public class JRMidpointEvaluator extends JREvaluator {
 	
 	
 	public JRMidpointEvaluator(Serializable compileData, String unitName) {
-		LOGGER.info("NEW1: {}, {}", compileData, unitName);
 		this.compileData = compileData;
 		this.unitName = unitName;
 	}
 	
 	public JRMidpointEvaluator(JasperReport jasperReprot, JRDataset dataset) {
-		LOGGER.info("NEW2: {}, {}", jasperReprot, dataset);
 		this.jasperReport = jasperReprot;
 		this.dataset = dataset;
 	}
 	
 	public JRMidpointEvaluator(JasperReport jasperReprot) {
-		LOGGER.info("NEW3: {}", jasperReprot);
 		this.jasperReport = jasperReprot;
 	}
 	
 	@Override
-	protected void customizedInit(Map<String, JRFillParameter> parametersMap, Map<String, JRFillField> fieldsMap,
+	public void customizedInit(Map<String, JRFillParameter> parametersMap, Map<String, JRFillField> fieldsMap,
 			Map<String, JRFillVariable> variablesMap) throws JRException {
-		LOGGER.info("cutomized init: ");
-		LOGGER.info("parametersMap : {}", parametersMap);
-		LOGGER.info("fieldsMap : {}", fieldsMap);
-		LOGGER.info("variablesMap : {}", variablesMap);
+		LOGGER.trace("customizedInit: ");
+		LOGGER.trace("  parametersMap : {}", parametersMap);
+		LOGGER.trace("  fieldsMap : {}", fieldsMap);
+		LOGGER.trace("  variablesMap : {}", variablesMap);
 		
 		this.parametersMap = parametersMap;
 		this.fieldsMap = fieldsMap;
 		this.variablesMap = variablesMap;
 		
 		PrismObject<ReportType> midPointReportObject = (PrismObject<ReportType>) parametersMap.get(ReportTypeUtil.PARAMETER_REPORT_OBJECT).getValue();
-		LOGGER.info("midPointReportObject : {}", midPointReportObject);
+		LOGGER.trace("midPointReportObject : {}", midPointReportObject);
 				
 		reportService = SpringApplicationContext.getBean(ReportService.class);
 		
@@ -136,13 +126,31 @@ public class JRMidpointEvaluator extends JREvaluator {
 
 	@Override
 	public Object evaluate(JRExpression expression) throws JRExpressionEvalException {
-		LOGGER.info("evaluate expression: {}", expression);
+		return evaluateExpression(expression, Mode.DEFAULT);
+	}
+	
+	@Override
+	public Object evaluateOld(JRExpression expression) throws JRExpressionEvalException {
+		return evaluateExpression(expression, Mode.OLD);
+	}
+	
+	@Override
+	public Object evaluateEstimated(JRExpression expression) throws JRExpressionEvalException {
+		return evaluateExpression(expression, Mode.ESTIMATED);
+	}
+	
+	private void logEvaluate(Mode mode, JRExpression expression) {
+		LOGGER.trace("JasperReport expression: evaluate({}): {} (type:{})", mode, expression, expression==null?null:expression.getType());
+	}
+	
+	private Object evaluateExpression(JRExpression expression, Mode mode) {
+		logEvaluate(mode, expression);
 		if (expression == null) {
 			return null;
 		}
 		JRExpressionChunk[] ch = expression.getChunks();
 		
-		VariablesMap parameters = new VariablesMap();
+		VariablesMap variables = new VariablesMap();
 		
 		String groovyCode = "";
 		
@@ -150,69 +158,141 @@ public class JRMidpointEvaluator extends JREvaluator {
 			if (chunk == null) {
 				break;
 			}
+//			LOGGER.trace("JR chunk: {}: {}", chunk.getType(), chunk.getText());
 			
 			groovyCode += chunk.getText();
-			switch (chunk.getType()){
+			switch (chunk.getType()) {
 				case JRExpressionChunk.TYPE_FIELD:
 					JRFillField field = fieldsMap.get(chunk.getText());
-					parameters.put(field.getName(), field.getValue(), field.getValueClass());
+					variables.put(field.getName(), getFieldValue(chunk.getText(), mode), field.getValueClass());
 					break;
 				case JRExpressionChunk.TYPE_PARAMETER:
 					JRFillParameter param = parametersMap.get(chunk.getText());
-					parameters.put(param.getName(), param.getValue(), param.getValueClass());
+					// Mode does not influence this one
+					variables.put(param.getName(), param.getValue(), param.getValueClass());
 					break;
 				case JRExpressionChunk.TYPE_VARIABLE:
 					JRFillVariable var = variablesMap.get(chunk.getText());
-					parameters.put(var.getName(), var.getValue(), var.getValueClass());
+					variables.put(var.getName(), var.getValue(), var.getValueClass());
 					break;
 				case JRExpressionChunk.TYPE_TEXT:
 					break;
-				default :
-					LOGGER.trace("nothing to do.");
+				default:
+					LOGGER.trace("nothing to do for chunk type {}", chunk.getType());
 						
 			}
 			
 		}
-		
-		LOGGER.info("### EVALUATE ###\nParameters:\n{}\nCode:\n  {}\n################", parameters.debugDump(1), groovyCode);
 		
 		if (reportService == null) {
 			throw new JRRuntimeException("No report service");
 		}
 		
 		try {
-			// TODO:
 			
-			Object evaluationResult = reportService.evaluate(getReport(), groovyCode, parameters, getTask(), getOperationResult());
+			Object evaluationResult = reportService.evaluate(getReport(), groovyCode, variables, getTask(), getOperationResult());
 			
-			LOGGER.info("### evaluation result: {}", evaluationResult);
-			
+			traceEvaluationSuccess(mode, variables, groovyCode, evaluationResult);
 			return evaluationResult;
 			
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-				| ConfigurationException | SecurityViolationException e) {
+		} catch (Throwable e) {
+			traceEvaluationFailure(mode, variables, groovyCode, e);
 			throw new JRRuntimeException(e.getMessage(), e);
 		}
 
 	}
+	
+	private void traceEvaluationSuccess(Mode mode, VariablesMap variables, String code, Object result) {
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
+		StringBuilder sb = traceEvaluationHead(mode, variables, code);
+		sb.append("Result: ").append(result).append("\n");
+		traceEvaluationTail(sb);
+	}
+	
+	private void traceEvaluationFailure(Mode mode, VariablesMap variables, String code, Throwable e) {
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
+		StringBuilder sb = traceEvaluationHead(mode, variables, code);
+		sb.append("Error: ").append(e).append("\n");
+		traceEvaluationTail(sb);
+	}
+
+	
+	private StringBuilder traceEvaluationHead(Mode mode, VariablesMap variables, String code) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("---[ JasperReport expression evaluation ]---\n");
+		sb.append("Report: ").append(getReport()).append("\n");
+		sb.append("Mode: ").append(mode).append("\n");
+		sb.append("Variables:\n");
+		sb.append(variables.debugDump(1)).append("\n");
+		sb.append("Code:\n");
+		sb.append(code).append("\n");
+		return sb;
+	}
+
+	
+	private void traceEvaluationTail(StringBuilder sb) {
+		sb.append("---------------------------------------------");
+		LOGGER.trace("\n{}", sb.toString());
+	}
+
+	private Object getFieldValue(String name, Mode mode) {
+		JRFillField field = fieldsMap.get(name);
+		if (field == null) {
+			return null;
+		}
+		switch (mode) {
+			case DEFAULT:
+			case ESTIMATED:
+				return field.getValue();
+			case OLD:
+				return field.getOldValue();
+			default:
+				throw new IllegalArgumentException("Wrong mode "+mode);
+		}
+	}
+	
+	private Object getVariableValue(String name, Mode mode) {
+		JRFillVariable var = variablesMap.get(name);
+		if (var == null) {
+			return null;
+		}
+		switch (mode) {
+			case DEFAULT:
+				return var.getValue();
+			case ESTIMATED:
+				return var.getEstimatedValue();
+			case OLD:
+				return var.getOldValue();
+			default:
+				throw new IllegalArgumentException("Wrong mode "+mode);
+		}
+	}
+	
+	enum Mode { DEFAULT, OLD, ESTIMATED };
+	
+	// NOT USED
 
 	@Override
 	protected Object evaluate(int id) throws Throwable {
-		LOGGER.info("evaluate: {}", id);
-		return null;
-		
+		// Not used. Not even invoked.
+		throw new UnsupportedOperationException("Boom! This code should not be reached");
 	}
 
 	@Override
 	protected Object evaluateOld(int id) throws Throwable {
-		LOGGER.info("evaluateOld: {}", id);
-		return null;
+		// Not used. Not even invoked.
+		throw new UnsupportedOperationException("Boom! This code should not be reached");
 	}
 
 	@Override
 	protected Object evaluateEstimated(int id) throws Throwable {
-		LOGGER.info("evaluateEstimated: {}", id);
-		return null;
+		// Not used. Not even invoked.
+		throw new UnsupportedOperationException("Boom! This code should not be reached");
 	}
+
 
 }

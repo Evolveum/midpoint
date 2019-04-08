@@ -112,22 +112,22 @@ public class TestReport extends AbstractReportIntegrationTest {
   /**
    * Reports with poisonous operations in the query. This should work with null profile.
    * But it should fail with safe profile.
-   * Field operations are safe.
+   * Field operations are safe in this report, just the query is poisonous.
    */
   @Test
   public void test112ReportUserListExpressionsPoisonousQueryCsv() throws Exception {
-	  final String TEST_NAME = "test110ReportUserListExpressionsCsv";
+	  final String TEST_NAME = "test112ReportUserListExpressionsPoisonousQueryCsv";
 	  testReportListUsersCsv(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID);
   }
 
   /**
    * Reports with poisonous operations in the field expression. This should work with null profile.
    * But it should fail with safe profile.
-   * Query expressions are safe.
+   * Query expression is safe in this report, just fields are poisonous.
    */
   @Test
   public void test114ReportUserListExpressionsPoisonousFieldCsv() throws Exception {
-	  final String TEST_NAME = "test110ReportUserListExpressionsCsv";
+	  final String TEST_NAME = "test114ReportUserListExpressionsPoisonousFieldCsv";
 	  testReportListUsersCsv(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID);
   }
   
