@@ -279,7 +279,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 				TreeStateSet<SelectableBean<OrgType>> items = (TreeStateSet) getModelObject();
 				boolean isInverse = getOrgTreeStateStorage() != null ? getOrgTreeStateStorage().isInverse() : items.isInverse();
-				if (isInverse) {
+				if (!isInverse) {
 					OrgTreePanel.this.setExpandedItems(items, getOrgTreeStateStorage());
 				}
 			}
