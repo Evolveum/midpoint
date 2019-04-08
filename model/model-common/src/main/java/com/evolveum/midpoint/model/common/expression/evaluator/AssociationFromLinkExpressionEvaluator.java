@@ -127,7 +127,7 @@ public class AssociationFromLinkExpressionEvaluator
 			try {
 				segment = assignmentPath.getSegment(assignmentPathIndex);
 			} catch (IndexOutOfBoundsException e) {
-				throw new ExpressionEvaluationException("Wrong assignment path index in "+desc+"; Index "+assignmentPathIndex+" cannot be applied to a path of legth "+assignmentPath.size(), e);
+				throw new ExpressionEvaluationException("Wrong assignment path index in "+desc+"; Index "+assignmentPathIndex+" cannot be applied to a path of length "+assignmentPath.size(), e);
 			}
 			
 			thisRole = (AbstractRoleType) segment.getSource();
