@@ -147,6 +147,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected static final Random RND = new Random();
 
+	private static final float FLOAT_EPSILON = 0.001f;
+
 	// Values used to check if something is unchanged or changed properly
 
 	protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
@@ -1754,6 +1756,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertBetween(String message, Long start, Long end,
 			Long actual) {
 		TestUtil.assertBetween(message, start, end, actual);
+	}
+	
+	protected void assertFloat(String message, Integer expectedIntPercentage, Float actualPercentage) {
+		assertFloat(message, expectedIntPercentage==null?null:new Float(expectedIntPercentage), actualPercentage);
+	}
+	
+	protected void assertFloat(String message, Float expectedPercentage, Float actualPercentage) {
+		if (expectedPercentage == null) {
+			if (actualPercentage == null) {
+				return;
+			} else {
+				fail(message + ", expected: " + expectedPercentage + ", but was "+actualPercentage);
+			}
+		}
+		if (actualPercentage > expectedPercentage + FLOAT_EPSILON || actualPercentage < expectedPercentage - FLOAT_EPSILON) {
+			fail(message + ", expected: " + expectedPercentage + ", but was "+actualPercentage);
+		}
 	}
 
 	protected Task createTask(String operationName) {

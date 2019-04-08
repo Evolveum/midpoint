@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOption
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
 /**
@@ -44,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurati
 public class CompiledObjectCollectionView implements DebugDumpable, Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	private final QName objectType;
+	private QName objectType;
 	private final String viewIdentifier;
 	
 	private List<GuiActionType> actions = new ArrayList<>();
@@ -56,6 +58,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	private Boolean disableSorting;
 	private SearchBoxConfigurationType searchBoxConfiguration;
 	private ObjectFilter filter;
+	private ObjectFilter domainFilter;
 	
 	// Only used to construct "default" view definition. May be not needed later on.
 	public CompiledObjectCollectionView() {
@@ -74,6 +77,17 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		return objectType;
 	}
 
+	public void setObjectType(QName objectType) {
+		this.objectType = objectType;
+	}
+
+	public <O extends ObjectType> Class<O> getTargetClass() {
+		if (objectType == null) {
+			return null;
+		}
+		return ObjectTypes.getObjectTypeClass(objectType);
+	}
+	
 	public String getViewIdentifier() {
 		return viewIdentifier;
 	}
@@ -151,6 +165,18 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		this.filter = filter;
 	}
 
+	public ObjectFilter getDomainFilter() {
+		return domainFilter;
+	}
+
+	public void setDomainFilter(ObjectFilter domainFilter) {
+		this.domainFilter = domainFilter;
+	}
+	
+	public boolean hasDomain() {
+		return domainFilter != null;
+	}
+
 	public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
 		if (!QNameUtil.match(objectType, expectedObjectType)) {
 			return false;
@@ -186,7 +212,8 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "distinct", distinct, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "disableSorting", disableSorting, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "searchBoxConfiguration", searchBoxConfiguration, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "filter", filter, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "filter", filter, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
 		return sb.toString();
 	}
 	
