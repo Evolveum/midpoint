@@ -192,6 +192,9 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 				if (ort instanceof PrismReferenceValue) {
 					PrismReferenceValue prv = (PrismReferenceValue) ort;
+					if (StringUtils.isEmpty(prv.getOid())){
+						return createStringResource("ValueChoosePanel.undefined").getString();
+					}
 					ObjectReferenceType objectReferenceType = new ObjectReferenceType();
 					objectReferenceType.setupReferenceValue((PrismReferenceValue) ort);
 					String targetObjectName = WebComponentUtil.getName(objectReferenceType,
@@ -201,6 +204,9 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 									: prv.getOid();
 				} else if (ort instanceof ObjectReferenceType) {
 					ObjectReferenceType prv = (ObjectReferenceType) ort;
+					if (StringUtils.isEmpty(prv.getOid())){
+						return createStringResource("ValueChoosePanel.undefined").getString();
+					}
 					String targetObjectName = WebComponentUtil.getName(prv,
 							ValueChoosePanel.this.getPageBase(), OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME);
 
