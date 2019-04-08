@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import javax.xml.namespace.QName;
-
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -31,29 +29,19 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.factory.RealValuable;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 
 /**
  * @author skublik
  */
 public abstract class AbstractItemWrapperColumn<C extends Containerable, VW extends PrismValueWrapper> extends AbstractColumn<PrismContainerValueWrapper<C>, String> implements IExportableColumn<PrismContainerValueWrapper<C>, String>{
 
+	private static final long serialVersionUID = 1L;
 	protected PageBase pageBase;
 	protected ItemPath itemName;
 	
