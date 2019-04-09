@@ -151,7 +151,12 @@ public class AssignmentCollector {
 				try {
 					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-					assignmentIdi.setDefinition(assignmentType.asPrismContainerValue().getDefinition());
+					PrismContainerDefinition definition = assignmentType.asPrismContainerValue().getDefinition();
+					if (definition == null) {
+						// TODO: optimize
+						definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+					}
+					assignmentIdi.setDefinition(definition);
 					assignmentIdi.recompute();
 					EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, assignmentHolder, assignmentHolder.toString(), virtual, task, result);
 					evaluatedAssignments.add(assignment);

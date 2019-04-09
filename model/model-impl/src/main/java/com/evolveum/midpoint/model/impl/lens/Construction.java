@@ -463,7 +463,9 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 		} catch (SchemaException e) {
 			throw new SchemaException(getAttributeEvaluationErrorMesssage(attrName, e), e);
 		} catch (ExpressionEvaluationException e) {
-			throw new ExpressionEvaluationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+			// No need to specially handle this here. It was already handled in the expression-processing
+			// code and it has proper description.
+			throw e;
 		} catch (ObjectNotFoundException e) {
 			throw new ObjectNotFoundException(getAttributeEvaluationErrorMesssage(attrName, e), e);
 		} catch (SecurityViolationException e) {
