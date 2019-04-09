@@ -15,9 +15,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.box;
 
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,27 +26,26 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.IPageFactory;
-import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -59,14 +57,13 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordItemType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditSearchType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetDataFieldTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetPresentationType;
@@ -74,11 +71,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourc
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IntegerStatType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -101,7 +98,9 @@ public abstract class InfoBoxPanel extends Panel{
 	private static final String DEFAULT_ICON = "fa fa-question";
 	
 	private static final String NUMBER_MESSAGE_UNKNOWN = "InfoBoxPanel.message.unknown";
-	private static final String TIMESTAMP_VALUE_NAME = "timestampValue";
+
+	public static final String VAR_PROPORTIONAL = "proportional";
+	private static final String VAR_POLICY_SITUATIONS = "policySituations";
 	
 	private static HashMap<String, Class<? extends WebPage>> linksRefCollections;
 	private static HashMap<QName, Class<? extends WebPage>> linksRefObjects;
@@ -130,6 +129,7 @@ public abstract class InfoBoxPanel extends Panel{
 	
 	private static PageBase pageBase;
 	private DisplayType display;
+	private DisplayType variationDisplay;
 
 	public InfoBoxPanel(String id, IModel<DashboardWidgetType> model, PageBase pageBase) {
 		super(id, model);
@@ -157,11 +157,12 @@ public abstract class InfoBoxPanel extends Panel{
 		Label number = new Label(ID_NUMBER, getNumberMessage()); //number message have to add before icon because is needed evaluate variation
 		infoBox.add(number);
 
+		DisplayType combinatedDisplay = combinateDisplay();
 		IModel<DisplayType> displayModel = new IModel<DisplayType>() {
 			
 			@Override
 			public DisplayType getObject() {
-				return InfoBoxPanel.this.display;
+				return combinatedDisplay;
 			}
 		};
 		
@@ -193,6 +194,71 @@ public abstract class InfoBoxPanel extends Panel{
         customInitLayout(infoBox);
 	}
 	
+	private DisplayType combinateDisplay() {
+		DisplayType combinatedDisplay = new DisplayType();
+		if (variationDisplay == null) {
+			return display;
+		}
+		if(StringUtils.isBlank(variationDisplay.getColor())) {
+			combinatedDisplay.setColor(display.getColor());
+		} else {
+			combinatedDisplay.setColor(variationDisplay.getColor());
+		}
+		if(StringUtils.isBlank(variationDisplay.getCssClass())) {
+			combinatedDisplay.setCssClass(display.getCssClass());
+		} else {
+			combinatedDisplay.setCssClass(variationDisplay.getCssClass());
+		}
+		if(StringUtils.isBlank(variationDisplay.getCssStyle())) {
+			combinatedDisplay.setCssStyle(display.getCssStyle());
+		} else {
+			combinatedDisplay.setCssStyle(variationDisplay.getCssStyle());
+		}
+		if(variationDisplay.getHelp() == null) {
+			combinatedDisplay.setHelp(display.getHelp());
+		} else {
+			combinatedDisplay.setHelp(variationDisplay.getHelp());
+		}
+		if(variationDisplay.getLabel() == null) {
+			combinatedDisplay.setLabel(display.getLabel());
+		} else {
+			combinatedDisplay.setLabel(variationDisplay.getLabel());
+		}
+		if(variationDisplay.getPluralLabel() == null) {
+			combinatedDisplay.setPluralLabel(display.getPluralLabel());
+		} else {
+			combinatedDisplay.setPluralLabel(variationDisplay.getPluralLabel());
+		}
+		if(variationDisplay.getTooltip() == null) {
+			combinatedDisplay.setTooltip(display.getTooltip());
+		} else {
+			combinatedDisplay.setTooltip(variationDisplay.getTooltip());
+		}
+		if(variationDisplay.getIcon() == null) {
+			combinatedDisplay.setIcon(display.getIcon());
+		} else if(display.getIcon() != null){
+			IconType icon = new IconType();
+			if(StringUtils.isBlank(variationDisplay.getIcon().getCssClass())) {
+				icon.setCssClass(display.getIcon().getCssClass());
+			} else {
+				icon.setCssClass(variationDisplay.getIcon().getCssClass());
+			}
+			if(StringUtils.isBlank(variationDisplay.getIcon().getColor())) {
+				icon.setColor(display.getIcon().getColor());
+			} else {
+				icon.setColor(variationDisplay.getIcon().getColor());
+			}
+			if(StringUtils.isBlank(variationDisplay.getIcon().getImageUrl())) {
+				icon.setImageUrl(display.getIcon().getImageUrl());
+			} else {
+				icon.setImageUrl(variationDisplay.getIcon().getImageUrl());
+			}
+			combinatedDisplay.setIcon(icon);
+		}
+		
+		return combinatedDisplay;
+	}
+
 	private DashboardWidgetSourceTypeType getSourceType(IModel<DashboardWidgetType> model) {
 		if(isSourceTypeOfDataNull(model)) {
 			return null;
@@ -247,37 +313,46 @@ public abstract class InfoBoxPanel extends Panel{
 		if(object == null) {
 			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
 		}
-		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object.asPrismObject());
-		return generateNumberMessage(dashboardWidgetPresentationType, variables);
+		return generateNumberMessage(dashboardWidgetPresentationType, createVariables(object.asPrismObject(), null, null));
 	}
 
 	private IModel<String> generateNumberMessageForAuditSearch(DashboardWidgetPresentationType dashboardWidgetPresentationType) {
-		AuditSearchType auditSearch = getAuditSearchType();
+		ObjectCollectionType collection = getObjectCollectionType();
+		if(collection == null) {
+			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
+		}
+		AuditSearchType auditSearch = collection.getAuditSearch();
 		if(auditSearch == null) {
-			LOGGER.error("AuditSearch of data is not defined");
+			LOGGER.error("AuditSearch of ObjectCollection is not found in widget " +
+					((IModel<DashboardWidgetType>)getDefaultModel()).getObject().getIdentifier());
 			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
 		}
 		if(auditSearch.getRecordQuery() == null) {
-			LOGGER.error("RecordQuery of auditSearch is not defined");
+			LOGGER.error("RecordQuery of auditSearch is not defined in widget " + 
+		((IModel<DashboardWidgetType>)getDefaultModel()).getObject().getIdentifier());
 			return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
 		}
 		
-		String query = getQueryForCount(addTimestampToQuery(auditSearch.getRecordQuery()));
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		String query = getQueryForCount(AuditEventRecordProvider.createQuery(collection,
+				parameters, false, getPageBase().getClock()));
+		LOGGER.debug("Parameters for select: " + parameters);
 		int value = (int) getPageBase().getAuditService().countObjects(
-				query, new HashMap<String, Object>());
+				query, parameters);
 		Integer domainValue = null;
 		if(auditSearch.getDomainQuery() == null) {
 			LOGGER.error("DomainQuery of auditSearch is not defined");
 		} else {
-			query = getQueryForCount(addTimestampToQuery(auditSearch.getDomainQuery()));
+			parameters = new HashMap<String, Object>();
+			query = getQueryForCount(AuditEventRecordProvider.createQuery(collection,
+					parameters, true, getPageBase().getClock()));
+			LOGGER.debug("Parameters for select: " + parameters);
 			domainValue = (int) getPageBase().getAuditService().countObjects(
-					query, new HashMap<String, Object>());
+					query, parameters);
 		}
+		LOGGER.debug("Value: {}, Domain value: {}", value, domainValue);
 		IntegerStatType statType = generateIntegerStat(value, domainValue);
-		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, statType);
-		return generateNumberMessage(dashboardWidgetPresentationType, variables);
+		return generateNumberMessage(dashboardWidgetPresentationType, createVariables(null, statType, null));
 	}
 	
 	private String getQueryForCount(String query) {
@@ -293,8 +368,6 @@ public abstract class InfoBoxPanel extends Panel{
 		if(valueCollection != null && valueCollection.getType() != null && valueCollection.getType().getLocalPart() != null) {
 			int value = getObjectCount(valueCollection, true);
 			
-			evaluateVariation(model.getObject(), valueCollection);
-			
 			int domainValue;
 			if( valueCollection.getDomain() != null && valueCollection.getDomain().getCollectionRef() != null) {
 				ObjectReferenceType ref = valueCollection.getDomain().getCollectionRef();
@@ -308,13 +381,49 @@ public abstract class InfoBoxPanel extends Panel{
 				domainValue = getObjectCount(valueCollection, false);
 			}
 			IntegerStatType statType = generateIntegerStat(value, domainValue);
-			ExpressionVariables variables = new ExpressionVariables();
-			variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, statType);
-			return generateNumberMessage(dashboardWidgetPresentationType, variables);
+			
+			Task task = getPageBase().createSimpleTask("Evaluate collection");
+			try {
+				CompiledObjectCollectionView compiledCollection = getPageBase().getModelInteractionService().compileObjectCollectionView(
+						valueCollection.asPrismObject(), null, task, task.getResult());
+				Collection<EvaluatedPolicyRule> evalPolicyRules = getPageBase().getModelInteractionService().evaluateCollectionPolicyRules(
+						valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
+				Collection<String> policySituations = new ArrayList<String>();
+				for(EvaluatedPolicyRule evalPolicyRule : evalPolicyRules) {
+					if(!evalPolicyRule.getAllTriggers().isEmpty()) {
+						policySituations.add(evalPolicyRule.getPolicySituation());
+					}
+				}
+				return generateNumberMessage(dashboardWidgetPresentationType, createVariables(null, statType, policySituations));
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+				return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
+			}
+			
 		}  else {
 			LOGGER.error("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
 		}
 		return getPageBase().createStringResource(NUMBER_MESSAGE_UNKNOWN);
+	}
+	
+	private ExpressionVariables createVariables(PrismObject<? extends ObjectType> object, IntegerStatType statType, Collection<String> policySituations) {
+		ExpressionVariables variables = new ExpressionVariables();
+		if(statType != null || policySituations != null) {
+			VariablesMap variablesMap = new VariablesMap();
+			if(statType != null ) {
+				variablesMap.put(ExpressionConstants.VAR_INPUT, statType, statType.getClass());
+				variablesMap.put(VAR_PROPORTIONAL, statType, statType.getClass());
+			}
+			if(policySituations != null) {
+				variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, EvaluatedPolicyRule.class);
+			}
+			variables.addVariableDefinitions(variablesMap );
+		}
+		if(object != null) {
+			variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
+		}
+		
+		return variables;
 	}
 	
 	private IntegerStatType generateIntegerStat(Integer value, Integer domainValue){
@@ -360,27 +469,32 @@ public abstract class InfoBoxPanel extends Panel{
 		if(numberMessagesParts.containsKey(DashboardWidgetDataFieldTypeType.UNIT)) {
 			sb.append(" ").append(numberMessagesParts.get(DashboardWidgetDataFieldTypeType.UNIT));
 		}
+		
+		try {
+			evaluateVariation(model.getObject(), variables);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		
 		return getStringModel(sb.toString());
 	}
 
-	private void evaluateVariation(DashboardWidgetType widget, ObjectCollectionType collection) {
-		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ObjectCollectionType.F_POLICY_SITUATION, collection.getPolicySituation());
+	private void evaluateVariation(DashboardWidgetType widget, ExpressionVariables variables) {
+		
 		if(widget.getPresentation() != null) {
 			if(widget.getPresentation().getVariation() != null) {
 				widget.getPresentation().getVariation().forEach(variation -> {
 					Task task = getPageBase().createSimpleTask("Evaluate variation");
 					PrismPropertyValue<Boolean> usingVariation;
 					try {
-						usingVariation = ExpressionUtil.evaluateCondition(variables, variation.getCondition(), getPageBase().getExpressionFactory(),
+						usingVariation = ExpressionUtil.evaluateCondition(variables, variation.getCondition(), null, getPageBase().getExpressionFactory(),
 								"Variation", task, task.getResult());
 				
 						if(usingVariation != null && usingVariation.getRealValue() != null
 								&& usingVariation.getRealValue().equals(Boolean.TRUE)) {
-							this.display = variation.getDisplay();
+							this.variationDisplay = variation.getDisplay();
 						}
-					} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-							| ConfigurationException | SecurityViolationException e) {
+					} catch (Exception e) {
 						LOGGER.error("Couldn't evaluate condition " + variation.toString(), e);
 					}
 				});
@@ -400,7 +514,7 @@ public abstract class InfoBoxPanel extends Panel{
 		if (searchFilter != null && usingFilter) {
 			try {
 				query.setFilter(getPageBase().getPrismContext().getQueryConverter().parseFilter(searchFilter, objectClass));
-			} catch (SchemaException e) {
+			} catch (Exception e) {
 				LOGGER.error("Filter couldn't parse in collection " + collection.toString(), e);
 			}
 		}
@@ -453,8 +567,6 @@ public abstract class InfoBoxPanel extends Panel{
 			if(collection != null && collection.getAuditSearch() != null && collection.getAuditSearch().getRecordQuery() != null) {
 				Class<? extends WebPage> pageType = getLinksRefCollections().get(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart());
 				AuditSearchDto searchDto = new AuditSearchDto();
-				String origQuery =collection.getAuditSearch().getRecordQuery();
-				collection.getAuditSearch().setRecordQuery(addTimestampToQuery(origQuery));
 				searchDto.setCollection(collection);
 				if(onClick){
 					getPageBase().getSessionStorage().getAuditLog().setSearchDto(searchDto);
@@ -480,17 +592,22 @@ public abstract class InfoBoxPanel extends Panel{
 	return null;
 	}
 	
-	private String addTimestampToQuery(String origQuery) {
-		String [] partsOfQuery = origQuery.split("where");
-		Date date = new Date(System.currentTimeMillis() - (24*3600000));
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-		String dateString = format.format(date);
-		String query = partsOfQuery[0] + " where " + TIMESTAMP_VALUE_NAME + " >= '" + dateString + "' ";
-		if(partsOfQuery.length > 1) {
-			query+= "and" +partsOfQuery[1]; 
-		}
-		return query;
-	}
+//	private String addTimestampToQueryForAuditSearch(String origQuery, AuditSearchType auditSearch) {
+//		String [] partsOfQuery = origQuery.split("where");
+//		Duration interval = auditSearch.getInterval();
+//		if(interval.getSign() == 1) {
+//			interval.negate();
+//		}
+//		Date date = new Date(clock.currentTimeMillis());
+//		interval.addTo(date);
+//		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+//		String dateString = format.format(date);
+//		String query = partsOfQuery[0] + " where " + TIMESTAMP_VALUE_NAME + " >= '" + dateString + "' ";
+//		if(partsOfQuery.length > 1) {
+//			query+= "and" +partsOfQuery[1]; 
+//		}
+//		return query;
+//	}
 	
 	private boolean isDataNull(IModel<DashboardWidgetType> model) {
 		if(model.getObject().getData() == null) {
@@ -549,16 +666,6 @@ public abstract class InfoBoxPanel extends Panel{
 		return collection;
 	}
 	
-	private AuditSearchType getAuditSearchType() {
-		ObjectCollectionType collection = getObjectCollectionType();
-		AuditSearchType auditSearch = collection.getAuditSearch();
-		if(auditSearch == null) {
-			LOGGER.error("AuditSearch of data is not found in widget " +
-		((IModel<DashboardWidgetType>)getDefaultModel()).getObject().getIdentifier());
-		}
-		return auditSearch;
-	}
-	
 	private ObjectType getObjectFromObjectRef() {
 		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
 		if(isDataNull(model)) {
@@ -584,7 +691,7 @@ public abstract class InfoBoxPanel extends Panel{
         	Collection<String> contentTypeList = null;
         	try {
         		contentTypeList = ExpressionUtil.evaluateStringExpression(variables, getPageBase().getPrismContext(),
-	        			expression, getPageBase().getExpressionFactory() , shortDes, task, result);
+	        			expression, null, getPageBase().getExpressionFactory(), shortDes, task, result);
         	} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
         			| ConfigurationException | SecurityViolationException e) {
         		LOGGER.error("Couldn't evaluate Expression " + expression.toString(), e);

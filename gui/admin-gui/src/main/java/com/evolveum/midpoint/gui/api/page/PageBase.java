@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.gui.api.page;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -296,6 +297,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
+    
+    @SpringBean(name = "clock")
+    private Clock clock;
 
     @SpringBean
     private SecurityContextManager securityContextManager;
@@ -2543,4 +2547,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public Locale getLocale() {
         return getSession().getLocale();
     }
+    
+    public Clock getClock() {
+		return clock;
+	}
 }

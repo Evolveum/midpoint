@@ -17,13 +17,18 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.xml.datatype.Duration;
+
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditSearchType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +36,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -45,6 +51,7 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by honchar.
@@ -69,7 +76,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	public static final String PARAMETER_TARGET_NAMES = "targetNames";
 	public static final String PARAMETER_TASK_IDENTIFIER = "taskIdentifier";
 
-	@Nullable private final IModel<String> auditEventQueryModel;
+	@Nullable private final IModel<ObjectCollectionType> objectCollectionModel;
 	@NotNull private final SerializableSupplier<Map<String, Object>> parametersSupplier;
 
 	private static final String AUDIT_RECORDS_QUERY_CORE = "from RAuditEventRecord as aer";
@@ -77,13 +84,13 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private static final String AUDIT_RECORDS_QUERY_REF_VALUES = " left outer join aer.referenceValues as rv";
 	private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) ";
 	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp desc";
-	private static final String AUDIT_RECORDS_ORDER_BY_FOR_QUERY = " order by timestamp desc";
 	private static final String SET_FIRST_RESULT_PARAMETER = "setFirstResult";
 	private static final String SET_MAX_RESULTS_PARAMETER = "setMaxResults";
+	private static final String TIMESTAMP_VALUE_NAME = "aer.timestamp";
 
-	public AuditEventRecordProvider(Component component, @Nullable IModel<String> auditEventQueryModel, @NotNull SerializableSupplier<Map<String, Object>> parametersSupplier) {
+	public AuditEventRecordProvider(Component component, @Nullable IModel<ObjectCollectionType> objectCollectionModel, @NotNull SerializableSupplier<Map<String, Object>> parametersSupplier) {
 		super(component);
-		this.auditEventQueryModel = auditEventQueryModel;
+		this.objectCollectionModel = objectCollectionModel;
 		this.parametersSupplier = parametersSupplier;
 	}
 
@@ -96,16 +103,18 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	protected int internalSize() {
 		String query;
-		Map<String, Object> parameters;
-		if(StringUtils.isNotBlank(getAuditEventQuery())) {
-			parameters = new HashMap<String, Object>();
-			query = generateFullQuery(getAuditEventQuery(), false, true);
+		String origQuery;
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		origQuery = createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
+		if(StringUtils.isNotBlank(origQuery)) {
+			query = generateFullQuery(origQuery, false, true);
 		} else {
 			parameters = parametersSupplier.get();
 			query = generateFullQuery(parameters, false, true);
 		}
 		try {
 			Task task = getPage().createSimpleTask("internalSize");
+			System.out.println("XXXXXXXXXx " + query);
 			return (int) getAuditService().countObjects(query, parameters, task, task.getResult());
 		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			// TODO: proper error handling (MID-3536)
@@ -115,10 +124,11 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	private List<AuditEventRecordType> listRecords(boolean ordered, long first, long count) {
 		String query;
-		Map<String, Object> parameters;
-		if(StringUtils.isNotBlank(getAuditEventQuery())) {
-			parameters = new HashMap<String, Object>();
-			query = generateFullQuery(getAuditEventQuery(), ordered, false);
+		String origQuery;
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		origQuery = createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
+		if(StringUtils.isNotBlank(origQuery)) {
+			query = generateFullQuery(origQuery, ordered, false);
 		} else {
 			parameters = parametersSupplier.get();
 			query = generateFullQuery(parameters, ordered, false);
@@ -144,14 +154,49 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		}
 		return auditRecordList;
 	}
+	
+	public static String createQuery(ObjectCollectionType collectionForQuery, Map<String, Object> parameters,
+			boolean forDomain, Clock clock) {
+		if(collectionForQuery == null) {
+			return null;
+		}
+		AuditSearchType auditSearch = collectionForQuery.getAuditSearch();
+		if(auditSearch != null || StringUtils.isNotBlank(auditSearch.getRecordQuery())) {
+			Duration interval = auditSearch.getInterval();
+			if(interval == null) {
+				return auditSearch.getRecordQuery();
+			}
+			String origQuery = auditSearch.getRecordQuery();
+			if(forDomain) {
+				origQuery = auditSearch.getDomainQuery();
+				if(origQuery == null) {
+					return null;
+				}
+			}
+			String [] partsOfQuery = origQuery.split("where");
+			if(interval.getSign() == 1) {
+				interval = interval.negate();
+			}
+			Date date = new Date(clock.currentTimeMillis());
+			interval.addTo(date);
+			String query = partsOfQuery[0] + "where " + TIMESTAMP_VALUE_NAME + " >= " + ":from" + " ";
+			parameters.put(PARAMETER_FROM, date);
+			if(partsOfQuery.length > 1) {
+				query+= "and" +partsOfQuery[1]; 
+			}
+			return query;
+		}
+		return null;
+	}
+
 
 	@SuppressWarnings("unused")
 	@Nullable
-	public String getAuditEventQuery() {
-		if(auditEventQueryModel == null) {
+	public ObjectCollectionType getCollectionForQuery() {
+		if(objectCollectionModel == null) {
 			return null;
 		}
-		return auditEventQueryModel.getObject();
+		return objectCollectionModel.getObject();
 	}
 
 	private String generateFullQuery(Map<String, Object> parameters, boolean ordered, boolean isCount) {
@@ -230,8 +275,10 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		} else {
 			parameters.remove(PARAMETER_VALUE_REF_TARGET_NAMES);
 		}
-		String query = getAuditEventQuery();
-		if (query == null) {
+		ObjectCollectionType collection = getCollectionForQuery();
+		String query = "";
+		if (collection == null || collection.getAuditSearch() == null
+				|| collection.getAuditSearch().getRecordQuery() == null) {
 			query = AUDIT_RECORDS_QUERY_CORE;
 			if (filteredOnChangedItem) {
 				query += AUDIT_RECORDS_QUERY_ITEMS_CHANGED;
@@ -242,6 +289,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			if (!conditions.isEmpty()) {
 				query += " where ";
 			}
+		} else {
+			query = collection.getAuditSearch().getRecordQuery();
 		}
 		if (isCount) {
 			query = AUDIT_RECORDS_QUERY_COUNT + query;
@@ -259,11 +308,11 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			query = AUDIT_RECORDS_QUERY_COUNT + query;
 		}
 		if (ordered) {
-			query += AUDIT_RECORDS_ORDER_BY_FOR_QUERY;
+			query += AUDIT_RECORDS_ORDER_BY;
 		}
 		return query;
 	}
-
+	
 	private boolean filteredOnValueRefTargetNames(Map<String, Object> parameters2) {
 		return valueRefTargetIsNotEmpty(parameters2.get(PARAMETER_VALUE_REF_TARGET_NAMES));
 	}

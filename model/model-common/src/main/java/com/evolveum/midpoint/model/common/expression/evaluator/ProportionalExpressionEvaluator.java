@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -63,7 +65,7 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
 
 		ProportionalStyleType style = proportionalEvaluatorType.getStyle();
 
-		IntegerStatType integerStatType = context.getVariables().get(ExpressionConstants.VAR_INPUT, IntegerStatType.class);
+		IntegerStatType integerStatType = context.getVariables().getValue(ExpressionConstants.VAR_INPUT, IntegerStatType.class);
 		if(integerStatType == null) {
 			throw new IllegalArgumentException("Proportional expression cannot by evaluated without input of type "
 	        		+ IntegerStatType.COMPLEX_TYPE);
@@ -84,6 +86,7 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
 		    		format = "%.1f";
 		    	}
 		    	numbermessage = String.format(format, percentage) + " %";
+		    	integerStatType.setPercentage(percentage);
 		    	break;
 			case VALUE_OF_DOMAIN:
 				validateInputNumbers(totalItems, actualItems, ProportionalStyleType.VALUE_OF_DOMAIN);
@@ -134,6 +137,11 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
 	@Override
 	public String shortDebugDump() {
 		return "const:"+proportionalEvaluatorType.getStyle();
+	}
+
+	@Override
+	public QName getElementName() {
+		return IntegerStatType.COMPLEX_TYPE;
 	}
 
 

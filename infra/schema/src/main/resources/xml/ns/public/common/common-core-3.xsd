@@ -16382,7 +16382,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<!-- TODO: interval -->
+			<xsd:element name="interval" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
 

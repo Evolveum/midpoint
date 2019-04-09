@@ -32,10 +32,12 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalExpressionEvaluatorType;
@@ -64,7 +66,8 @@ public class ProportionalExpressionEvaluatorFactory extends AbstractAutowiredExp
 	 */
 	@Override
 	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-																									D outputDefinition, ExpressionFactory factory, String contextDescription, Task task, OperationResult result)
+																									D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory factory, 
+																									String contextDescription, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
 
 		if (evaluatorElements.size() > 1) {
@@ -80,5 +83,4 @@ public class ProportionalExpressionEvaluatorFactory extends AbstractAutowiredExp
 
 		return new ProportionalExpressionEvaluator<>((ProportionalExpressionEvaluatorType) evaluatorElementObject, outputDefinition, prismContext);
 	}
-
 }
