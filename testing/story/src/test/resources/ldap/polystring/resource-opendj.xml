@@ -55,6 +55,7 @@
  			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
  			<icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes>
+ 			<icfcldap:languageTagAttributes>title</icfcldap:languageTagAttributes>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>
@@ -150,6 +151,60 @@
                 	<source>
 	                    <path>fullName</path>
                     </source>
+                </outbound>
+            </attribute>
+            
+            <attribute>
+                <ref>ri:title</ref>
+                <limitations>
+                	<!-- Poly-attributes only work with single-value attributes -->
+                	<maxOccurs>1</maxOccurs>
+                </limitations>
+                <!-- PolyString strict matching - to make sure that the langs in polystring get compared. -->
+                <matchingRule>mr:polyStringStrict</matchingRule>
+                <outbound>
+                	<source>
+                		<!-- Source is NOT a polystring here. It is a container. -->
+	                    <path>extension/titleMap</path>
+                    </source>
+                    <expression>
+                    	<script>
+                    		<relativityMode>absolute</relativityMode>
+                    		<code>
+                    			import com.evolveum.midpoint.prism.polystring.PolyString
+                    			import com.evolveum.midpoint.prism.path.ItemName
+                    			
+                    			log.info("MAP:titleMap: {}", titleMap)
+                    			
+                    			if (titleMap == null) {
+                    				return null
+                    			}
+                    			
+                    			assert titleMap instanceof com.evolveum.midpoint.prism.PrismContainer
+                    			
+                    			def poly
+                    			def lang = [:]
+                    			
+                    			titleMap.values.each {
+                    				log.info("MAP:titleMap:value: {}", it)
+                    				assert it instanceof com.evolveum.midpoint.prism.PrismContainerValue
+                    				def key = it.findProperty(new ItemName('key')).realValue
+                    				def value = it.findProperty(new ItemName('value')).realValue
+                    				log.info("MAP:titleMap: {} -> {}", key, value)
+                    				if (key == "en") {
+                    					poly = new PolyString(value)
+                    				}
+                    				lang.put(key, value)
+                    			}
+                    			
+                    			poly.setLang(lang)
+                    			
+                    			log.info("MAP:titleMap:poly: {}", poly.debugDump())
+                    			
+                    			return poly
+                    		</code>
+                    	</script>
+                    </expression>
                 </outbound>
             </attribute>
 
