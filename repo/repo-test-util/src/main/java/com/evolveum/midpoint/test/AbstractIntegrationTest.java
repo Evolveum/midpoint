@@ -1814,6 +1814,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.assertSuccess(message, result);
 	}
 	
+	protected void assertSuccess(String message, OperationResultType resultType) {
+		TestUtil.assertSuccess(message, resultType);
+	}
+	
 	protected void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
 		if (result.isUnknown()) {
 			result.computeStatus();
@@ -1838,6 +1842,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			result.computeStatus();
 		}
 		TestUtil.assertFailure(result);
+	}
+	
+	protected void assertFailure(String message, OperationResultType result) {
+		TestUtil.assertFailure(message, result);
 	}
 
 	protected void assertPartialError(OperationResult result) {
@@ -2539,4 +2547,5 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected ItemFactory itemFactory() {
 		return prismContext.itemFactory();
 	}
+	
 }

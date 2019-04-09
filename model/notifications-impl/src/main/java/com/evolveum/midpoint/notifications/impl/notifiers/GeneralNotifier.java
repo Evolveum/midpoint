@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -112,7 +113,7 @@ public class GeneralNotifier extends BaseHandler {
                     try {
                         for (String transportName : generalNotifierType.getTransport()) {
 
-                            variables.replaceVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
+                            variables.put(ExpressionConstants.VAR_TRANSPORT_NAME, transportName, String.class);
                             Transport transport = notificationManager.getTransport(transportName);
 
                             List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables,

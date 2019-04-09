@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -46,13 +47,13 @@ public class ExecutionContext {
     private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     private final StringBuilder consoleOutput = new StringBuilder();
     private final Map<String, PipelineData> globalVariables = new HashMap<>();      // will probably remain unused
-    private final Map<String, Object> initialVariables;                             // used e.g. when there are no data in a pipeline; these are frozen - i.e. made immutable if possible; to be cloned-on-use
+    private final VariablesMap initialVariables;                             // used e.g. when there are no data in a pipeline; these are frozen - i.e. made immutable if possible; to be cloned-on-use
     private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
     private final boolean recordProgressAndIterationStatistics;
 
     public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
             ScriptingExpressionEvaluator scriptingExpressionEvaluator,
-            boolean privileged, boolean recordProgressAndIterationStatistics, Map<String, Object> initialVariables) {
+            boolean privileged, boolean recordProgressAndIterationStatistics, VariablesMap initialVariables) {
         this.options = options;
         this.task = task;
         this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
@@ -85,7 +86,7 @@ public class ExecutionContext {
         globalVariables.put(name, value);
     }
 
-    public Map<String, Object> getInitialVariables() {
+    public VariablesMap getInitialVariables() {
         return initialVariables;
     }
 

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -513,7 +514,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		request.setType(clazz);
 		ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
 		ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),
-				getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
+				MiscSchemaUtil.getExpressionProfile(), getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
 		request.setQuery(queryWithExprEvaluated);
 
 		Collection<SelectorOptions<GetOperationOptions>> options = distinct ? createCollection(createDistinct()) : null;

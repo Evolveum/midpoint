@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,10 @@ import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -320,7 +322,7 @@ public class SimpleSmsTransport implements Transport {
         }
 
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression =
-		        expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+		        expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, task, result);
@@ -339,19 +341,19 @@ public class SimpleSmsTransport implements Transport {
 
     protected ExpressionVariables getDefaultVariables(String from, List<String> to, Message message) throws UnsupportedEncodingException {
     	ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(SchemaConstants.C_FROM, from);
-        variables.addVariableDefinition(SchemaConstants.C_ENCODED_FROM, URLEncoder.encode(from, "US-ASCII"));
-        variables.addVariableDefinition(SchemaConstants.C_TO, to.get(0));
-        variables.addVariableDefinition(SchemaConstants.C_TO_LIST, to);
+        variables.put(ExpressionConstants.VAR_FROM, from, String.class);
+        variables.put(ExpressionConstants.VAR_ENCODED_FROM, URLEncoder.encode(from, "US-ASCII"), String.class);
+        variables.put(ExpressionConstants.VAR_TO, to.get(0), String.class);
+        variables.put(ExpressionConstants.VAR_TO_LIST, to, List.class);
 	    List<String> encodedTo = new ArrayList<>();
 	    for (String s : to) {
 		    encodedTo.add(URLEncoder.encode(s, "US-ASCII"));
 	    }
-	    variables.addVariableDefinition(SchemaConstants.C_ENCODED_TO, encodedTo.get(0));
-	    variables.addVariableDefinition(SchemaConstants.C_ENCODED_TO_LIST, encodedTo);
-        variables.addVariableDefinition(SchemaConstants.C_MESSAGE_TEXT, message.getBody());
-        variables.addVariableDefinition(SchemaConstants.C_ENCODED_MESSAGE_TEXT, URLEncoder.encode(message.getBody(), "US-ASCII"));
-        variables.addVariableDefinition(SchemaConstants.C_MESSAGE, message);
+	    variables.put(ExpressionConstants.VAR_ENCODED_TO, encodedTo.get(0), String.class);
+	    variables.put(ExpressionConstants.VAR_ENCODED_TO_LIST, encodedTo, List.class);
+        variables.put(ExpressionConstants.VAR_MESSAGE_TEXT, message.getBody(), String.class);
+        variables.put(ExpressionConstants.VAR_ENCODED_MESSAGE_TEXT, URLEncoder.encode(message.getBody(), "US-ASCII"), String.class);
+        variables.put(ExpressionConstants.VAR_MESSAGE, message, Message.class);
         return variables;
     }
 

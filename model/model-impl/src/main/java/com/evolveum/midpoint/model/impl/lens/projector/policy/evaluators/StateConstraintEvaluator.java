@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
@@ -127,9 +127,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			}
 		}
 		if (constraint.getExecuteScript() != null) {
-			Map<String, Object> variables = new HashMap<>();
-			variables.put(VAR_OBJECT.getLocalPart(), object);
-			variables.put(VAR_RULE_EVALUATION_CONTEXT.getLocalPart(), ctx);
+			VariablesMap variables = new VariablesMap();
+			variables.put(VAR_OBJECT, object, object.getDefinition());
+			variables.put(VAR_RULE_EVALUATION_CONTEXT, ctx, PolicyRuleEvaluationContext.class);
 			ExecutionContext resultingContext;
 			try {
 				resultingContext = scriptingExpressionEvaluator.evaluateExpressionPrivileged(constraint.getExecuteScript(), variables, ctx.task, result);

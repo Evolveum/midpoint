@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,10 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
+
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -28,6 +32,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpressionEvaluatorType;
 
@@ -35,27 +40,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpre
  * @author semancik
  *
  */
-public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
+public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V, D, SequentialValueExpressionEvaluatorType> {
 
-	private SequentialValueExpressionEvaluatorType sequentialValueEvaluatorType;
-	private D outputDefinition;
-	private Protector protector;
 	RepositoryService repositoryService;
-	private PrismContext prismContext;
 
-	SequentialValueExpressionEvaluator(SequentialValueExpressionEvaluatorType sequentialValueEvaluatorType,
+	SequentialValueExpressionEvaluator(QName elementName, SequentialValueExpressionEvaluatorType sequentialValueEvaluatorType,
 			D outputDefinition, Protector protector, RepositoryService repositoryService, PrismContext prismContext) {
-		this.sequentialValueEvaluatorType = sequentialValueEvaluatorType;
-		this.outputDefinition = outputDefinition;
-		this.protector = protector;
+		super(elementName, sequentialValueEvaluatorType, outputDefinition, protector, prismContext);
 		this.repositoryService = repositoryService;
-		this.prismContext = prismContext;
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
-        long counter = getSequenceCounter(sequentialValueEvaluatorType.getSequenceRef().getOid(), repositoryService, context.getResult());
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+		checkEvaluatorProfile(context);
+		
+        long counter = getSequenceCounter(getExpressionEvaluatorType().getSequenceRef().getOid(), repositoryService, context.getResult());
 
 		Object value = ExpressionUtil.convertToOutputValue(counter, outputDefinition, protector);
 
@@ -89,7 +89,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 	 */
 	@Override
 	public String shortDebugDump() {
-		return "squentialValue: "+sequentialValueEvaluatorType.getSequenceRef().getOid();
+		return "squentialValue: "+getExpressionEvaluatorType().getSequenceRef().getOid();
 	}
 
 }

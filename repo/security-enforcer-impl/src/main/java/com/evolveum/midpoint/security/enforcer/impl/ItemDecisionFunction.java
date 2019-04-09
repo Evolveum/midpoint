@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
+import com.evolveum.midpoint.schema.AccessDecision;
 
 /**
  * @author semancik

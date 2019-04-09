@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -55,11 +57,16 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import net.sf.jasperreports.engine.JRValueParameter;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.WordUtils;
@@ -870,5 +877,13 @@ public class ReportUtils {
 		return property != null ? 
 					String.join(",", property)
 					: defaultValue;
+	}
+
+	public static Object dumpParams(Map<String, ? extends JRValueParameter> parametersMap, int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (Entry<String, ? extends JRValueParameter> entry : parametersMap.entrySet()) {
+			DebugUtil.debugDumpWithLabelToStringLn(sb, entry.getKey(), entry.getValue().getValue(), indent);
+		}
+		return sb.toString();
 	}
 }

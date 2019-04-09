@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017-2018 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -209,7 +208,8 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 				if (oldObject == null && delta == null && newObject == null) {
 					return new AuthorizationParameters<>(null, target, relation, orderConstraints);
 				} else {
-					ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(oldObject, delta, newObject);
+					// Non-null content, definition can be determined in ObjectDeltaObject constructor
+					ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(oldObject, delta, newObject, null);
 					odo.recomputeIfNeeded(false);
 					return new AuthorizationParameters<>(odo, target, relation, orderConstraints);
 				}
@@ -220,29 +220,32 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 		
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectAdd(PrismObject<O> object) {
 			// TODO: Do we need to create delta here?
-			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(null, null, object);
+			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(null, null, object, object.getDefinition());
 			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 		
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectDelete(PrismObject<O> object) {
 			// TODO: Do we need to create delta here?
-			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(object, null, null);
+			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(object, null, null, object.getDefinition());
 			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 		
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectDelta(PrismObject<O> object, ObjectDelta<O> delta) throws SchemaException {
 			ObjectDeltaObject<O> odo;
 			if (delta != null && delta.isAdd()) {
-				odo = new ObjectDeltaObject<>(null, delta, object);
+				odo = new ObjectDeltaObject<>(null, delta, object, object.getDefinition());
 			} else {
-				odo = new ObjectDeltaObject<>(object, delta, null);
+				odo = new ObjectDeltaObject<>(object, delta, null, object.getDefinition());
 				odo.recomputeIfNeeded(false);
 			}
 			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObject(PrismObject<O> object) {
-			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(object, null, object);
+			ObjectDeltaObject<O> odo = null;
+			if (object != null) {
+				odo = new ObjectDeltaObject<>(object, null, object, object.getDefinition());
+			}
 			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 		

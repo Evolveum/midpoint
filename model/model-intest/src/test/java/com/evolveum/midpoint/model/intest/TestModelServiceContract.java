@@ -891,10 +891,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      */
 	@Test
     public void test121ModifyUserAddAccountRef() throws Exception {
-        TestUtil.displayTestTitle(this, "test121ModifyUserAddAccountRef");
+		final String TEST_NAME = "test121ModifyUserAddAccountRef";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test121ModifyUserAddAccountRef");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -902,10 +903,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountJackOid);
 		userDelta.addModification(accountDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(userDelta, null, task, result);
 
 		// THEN
 		assertSuccess(result);
