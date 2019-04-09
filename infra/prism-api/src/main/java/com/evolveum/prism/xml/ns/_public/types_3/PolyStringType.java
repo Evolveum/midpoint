@@ -546,11 +546,12 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
         return null;
     }
 
+	// !!! Do NOT autogenerate this method without preserving custom changes !!!
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((any == null) ? 0 : any.hashCode());
+		result = prime * result + ((any == null || any.isEmpty()) ? 0 : any.hashCode());
 		result = prime * result + ((lang == null) ? 0 : lang.hashCode());
 		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
 		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
@@ -558,6 +559,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 		return result;
 	}
 
+	// !!! Do NOT autogenerate this method without preserving custom changes !!!
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -570,8 +572,8 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 			return false;
 		}
 		PolyStringType other = (PolyStringType) obj;
-		if (any == null) {
-			if (other.any != null) {
+		if (any == null || any.isEmpty()) {     // because any is instantiated on get (so null and empty should be considered equivalent)
+			if (other.any != null && !other.any.isEmpty()) {
 				return false;
 			}
 		} else if (!any.equals(other.any)) {
