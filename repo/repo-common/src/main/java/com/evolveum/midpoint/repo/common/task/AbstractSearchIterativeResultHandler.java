@@ -24,17 +24,13 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.common.refinery.RefinedConnectorSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -529,6 +525,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		if (threadsCount == null || threadsCount == 0) {
 			return;             // nothing to do
 		}
+
+		// remove subtasks that could have been created during processing of previous buckets
+		coordinatorTask.deleteLightweightAsynchronousSubtasks();
 
 		int queueSize = threadsCount*2;				// actually, size of threadsCount should be sufficient but it doesn't hurt if queue is larger
 		requestQueue = new ArrayBlockingQueue<>(queueSize);

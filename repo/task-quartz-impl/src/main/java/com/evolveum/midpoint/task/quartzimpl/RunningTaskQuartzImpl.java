@@ -51,10 +51,10 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	/**
 	 * Lightweight asynchronous subtasks.
 	 * Each task here is a LAT, i.e. transient and with assigned lightweight handler.
-	 * <p>
-	 * This must be concurrent, because interrupt() method uses it.
+	 * Access to this structure should be synchronized because of deleteLightweightAsynchronousSubtasks method.
+	 * (This means we could replace ConcurrentHashMap with plain HashMap but let's keep that just for certainty.)
 	 */
-	private Map<String, RunningTaskQuartzImpl> lightweightAsynchronousSubtasks = new ConcurrentHashMap<>();
+	private final Map<String, RunningTaskQuartzImpl> lightweightAsynchronousSubtasks = new ConcurrentHashMap<>();
 	private RunningTaskQuartzImpl parentForLightweightAsynchronousTask;            // EXPERIMENTAL
 
 	/**
@@ -118,7 +118,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 		RunningTaskQuartzImpl sub = taskManager.createRunningTask(createSubtask());
 		sub.setLightweightTaskHandler(handler);
 		assert sub.getTaskIdentifier() != null;
-		lightweightAsynchronousSubtasks.put(sub.getTaskIdentifier(), sub);
+		synchronized (lightweightAsynchronousSubtasks) {
+			lightweightAsynchronousSubtasks.put(sub.getTaskIdentifier(), sub);
+		}
 		sub.parentForLightweightAsynchronousTask = this;
 		return sub;
 	}
@@ -147,7 +149,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
 	@Override
 	public Collection<? extends RunningTaskQuartzImpl> getLightweightAsynchronousSubtasks() {
-		return Collections.unmodifiableList(new ArrayList<>(lightweightAsynchronousSubtasks.values()));
+		synchronized (lightweightAsynchronousSubtasks) {
+			return Collections.unmodifiableList(new ArrayList<>(lightweightAsynchronousSubtasks.values()));
+		}
 	}
 
 	@Override
@@ -160,6 +164,20 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 			}
 		}
 		return Collections.unmodifiableList(retval);
+	}
+
+	@Override
+	public void deleteLightweightAsynchronousSubtasks() {
+		synchronized (lightweightAsynchronousSubtasks) {
+			List<? extends RunningTask> livingSubtasks = lightweightAsynchronousSubtasks.values().stream()
+					.filter(t -> t.getExecutionStatus() == TaskExecutionStatus.RUNNABLE || t.getExecutionStatus() == TaskExecutionStatus.WAITING)
+					.collect(Collectors.toList());
+			if (!livingSubtasks.isEmpty()) {
+				LOGGER.error("Task {} has {} runnable or waiting lightweight subtasks: {}", this, livingSubtasks.size(), livingSubtasks);
+				throw new IllegalStateException("There are runnable or waiting subtasks in the parent task");
+			}
+			lightweightAsynchronousSubtasks.clear();
+		}
 	}
 
 	@Override
