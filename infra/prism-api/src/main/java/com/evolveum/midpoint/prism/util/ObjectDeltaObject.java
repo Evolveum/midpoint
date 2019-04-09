@@ -161,7 +161,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	}
 
 	@Override
-	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(@NotNull ItemPath path) {
+	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(@NotNull ItemPath path) throws SchemaException {
 		Item<IV,ID> subItemOld = null;
 		ItemPath subResidualPath = null;
 		if (oldObject != null) {
@@ -231,6 +231,19 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 		ID subDefinition = null;
 		if (definition != null) {
 			subDefinition = definition.findItemDefinition(path);
+		}
+		if (subDefinition == null) {
+			// This may be a bit redundant, because IDI constructor does similar logic.
+			// But we want to know the situation here, so we can provide better error message.
+			if (subItemNew != null && subItemNew.getDefinition() != null) {
+				subDefinition = subItemNew.getDefinition();
+			} else if (subItemOld != null && subItemOld.getDefinition() != null) {
+				subDefinition = subItemOld.getDefinition();
+			} else if (itemDelta != null && itemDelta.getDefinition() != null) {
+				subDefinition = itemDelta.getDefinition();
+			} else {
+				throw new SchemaException("Cannot find definition of a subitem "+path+" of "+this);
+			}
 		}
 		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, itemDelta, subItemNew, subDefinition);
 		subIdi.setSubItemDeltas(subSubItemDeltas);

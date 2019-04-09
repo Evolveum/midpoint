@@ -775,7 +775,7 @@ public class ModelImplUtils {
 		}
 	}
 
-	public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, ExpressionVariables expressionVariables) {
+	public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, ExpressionVariables expressionVariables, PrismContext prismContext) {
 		if (assignmentPathVariables != null) {
 			PrismContainerDefinition<AssignmentType> assignmentDef = assignmentPathVariables.getAssignmentDefinition();
 			expressionVariables.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment(), assignmentDef);
@@ -783,7 +783,8 @@ public class ModelImplUtils {
 			expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment(), assignmentDef);
 			expressionVariables.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
 			expressionVariables.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
-			expressionVariables.putObject(ExpressionConstants.VAR_IMMEDIATE_ROLE, (PrismObject) assignmentPathVariables.getImmediateRole(), AbstractRoleType.class);
+			PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
+			expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, (PrismObject) assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
 		} else {
 			// to avoid "no such variable" exceptions in boundary cases
 			// for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction

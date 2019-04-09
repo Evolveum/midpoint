@@ -269,7 +269,17 @@ public class ExpressionUtil {
 		
 		Object rootValue = root.getValue();
 		if (rootValue == null) {
-			return root;
+			// The result value is going to be null, but we still need a definition. Try to determine that from root definition.
+			if (root.getDefinition() == null) {
+				throw new IllegalArgumentException("No definition for path "+path+": "+root);
+			}
+			// Relative path is not empty here. Therefore the root must be a container.
+			ItemDefinition subitemDefinition = ((PrismContainerDefinition<?>)root.getDefinition()).findItemDefinition(relativePath);
+			if (subitemDefinition == null) {
+				// this must be something dynamic, e.g. assignment extension. Just assume string here. Not completely correct. But what can we do?
+				subitemDefinition = prismContext.definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+			}
+			return new TypedValue<>(null, subitemDefinition);
 		}
 		
 		if (rootValue instanceof Objectable) {
@@ -366,14 +376,20 @@ public class ExpressionUtil {
 		if (parentDef == null) {
 			return null;
 		}
-		if (!(parentDef instanceof PrismPropertyDefinition)) {
-			return null;
+		if (parentDef instanceof PrismContainerDefinition) {
+			if (parentDef.isDynamic() && ((PrismContainerDefinition)parentDef).isEmpty()) {
+				// The case of dynamic schema for which there are no definitions
+				// E.g. assignment extension
+				// just default to single-value strings. Better than nothing. At least for now.
+				return parentDef.getPrismContext().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+			}
+		} else if ((parentDef instanceof PrismPropertyDefinition)) {
+			if (PrismUtil.isStructuredType(parentDef.getTypeName())) {
+				// All "subproperties" are hardcoded as singlevalue strings
+				return parentDef.getPrismContext().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+			}
 		}
-		if (!PrismUtil.isStructuredType(parentDef.getTypeName())) {
-			return null;
-		}
-		// All "subproperties" are hardcoded as singlevalue strings
-		return parentDef.getPrismContext().definitionFactory().createPropertyDefinition(relativePath.lastName(), PrimitiveType.STRING.getQname());
+		return null;
 	}
 	
 	private static TypedValue normalizeValuesToDelete(TypedValue root) {

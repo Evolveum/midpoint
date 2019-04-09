@@ -37,10 +37,15 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.task.api.*;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
+import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.design.JRDesignExpression;
+import net.sf.jasperreports.engine.design.JRDesignParameter;
+import net.sf.jasperreports.engine.design.JRDesignReportTemplate;
+import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRRtfExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
@@ -161,7 +166,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
             ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", task, result);
             Map<String, Object> parameters = completeReport(parentReport, task, result);
 
-            JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
+            JasperReport jasperReport = loadJasperReport(parentReport);
             LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
 
             PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItem(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
@@ -348,7 +353,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         Map<String, Object> parameters = prepareReportParameters(reportType, task, subResult);
         reportParams.putAll(parameters);
 
-        JasperReport jasperReport = ReportTypeUtil.loadJasperReport(reportType);
+        JasperReport jasperReport = loadJasperReport(reportType);
         reportParams.put(subreportType.getName(), jasperReport);
 
         Map<String, Object> subReportParams = processSubreportParameters(reportType, task, subResult);
@@ -356,6 +361,57 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
         return reportParams;
     }
+    
+	private JasperReport loadJasperReport(ReportType reportType) throws SchemaException {
+
+		if (reportType.getTemplate() == null) {
+			throw new IllegalStateException("Could not create report. No jasper template defined.");
+		}
+		
+		LOGGER.trace("Loading Jasper report for {}", reportType);
+		try	 {
+	    	 	JasperDesign jasperDesign = ReportTypeUtil.loadJasperDesign(reportType.getTemplate());
+//	    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+	    	 	jasperDesign.setLanguage(ReportTypeUtil.REPORT_LANGUAGE);
+
+			 if (reportType.getTemplateStyle() != null){
+				JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + ReportTypeUtil.PARAMETER_TEMPLATE_STYLES + "}"));
+				jasperDesign.addTemplate(templateStyle);
+				
+				jasperDesign.addParameter(createParameter(ReportTypeUtil.PARAMETER_TEMPLATE_STYLES, JRTemplate.class));
+				
+			 }
+
+			 jasperDesign.addParameter(createParameter("finalQuery", Object.class));
+			 jasperDesign.addParameter(createParameter(ReportTypeUtil.PARAMETER_REPORT_OID, String.class));
+			 //TODO is this right place, we don't see e.g. task
+//			 jasperDesign.addParameter(createParameter(PARAMETER_TASK, Object.class));
+			 jasperDesign.addParameter(createParameter(ReportTypeUtil.PARAMETER_OPERATION_RESULT, OperationResult.class));
+			 
+			 //TODO maybe other paramteres? sunch as PARAMETER_REPORT_OBJECT PARAMETER_REPORT_SERVICE ???
+
+			 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+			 
+			 LOGGER.trace("Loaded Jasper report for {}: {}", reportType, jasperReport);
+			 
+			 return jasperReport;
+			 
+		 } catch (JRException ex) {
+			 LOGGER.error("Error loading Jasper report for {}: {}", reportType, ex.getMessage(), ex);
+			 throw new SchemaException(ex.getMessage(), ex.getCause());
+		 }
+	}
+	
+	private JRDesignParameter createParameter(String paramName, Class<?> valueClass) {
+		JRDesignParameter param = new JRDesignParameter();
+		param.setName(paramName);
+		param.setValueClass(valueClass);
+		param.setForPrompting(false);
+		param.setSystemDefined(true);
+		return param;
+		
+	}
+
 
     protected void recordProgress(Task task, long progress, OperationResult opResult) {
         try {

@@ -242,7 +242,10 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 		}
 
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObject(PrismObject<O> object) {
-			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(object, null, object, object.getDefinition());
+			ObjectDeltaObject<O> odo = null;
+			if (object != null) {
+				odo = new ObjectDeltaObject<>(object, null, object, object.getDefinition());
+			}
 			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 		

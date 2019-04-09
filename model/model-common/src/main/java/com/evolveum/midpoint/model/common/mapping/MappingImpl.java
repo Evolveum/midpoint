@@ -95,7 +95,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private final PrismContext prismContext;
 
 	private final ObjectDeltaObject<?> sourceContext;
-	private TypedValue<ObjectDeltaObject<?>> sourceContextValueAndDefinition; // cahced
+	private TypedValue<ObjectDeltaObject<?>> typedSourceContext; // cahced
 	private final Collection<Source<?,?>> sources;
 	private final Source<?,?> defaultSource;
 
@@ -230,14 +230,14 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return contextDescription;
 	}
 	
-	private TypedValue<ObjectDeltaObject<?>> getSourceContextValueAndDefinition() {
+	private TypedValue<ObjectDeltaObject<?>> getTypedSourceContext() {
 		if (sourceContext == null) {
 			return null;
 		}
-		if (sourceContextValueAndDefinition == null) {
-			sourceContextValueAndDefinition = new TypedValue<ObjectDeltaObject<?>>(sourceContext, sourceContext.getDefinition());
+		if (typedSourceContext == null) {
+			typedSourceContext = new TypedValue<ObjectDeltaObject<?>>(sourceContext, sourceContext.getDefinition());
 		}
-		return sourceContextValueAndDefinition;
+		return typedSourceContext;
 	}
 
 	public String getMappingContextDescription() {
@@ -852,7 +852,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
 
-		Object sourceObject = ExpressionUtil.resolvePathGetValue(path, variables, false, getSourceContextValueAndDefinition(), objectResolver, getPrismContext(), "reference time definition in "+getMappingContextDescription(), task, result);
+		Object sourceObject = ExpressionUtil.resolvePathGetValue(path, variables, false, getTypedSourceContext(), objectResolver, getPrismContext(), "reference time definition in "+getMappingContextDescription(), task, result);
 		if (sourceObject == null) {
 			return null;
 		}
@@ -909,7 +909,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		String variableName = sourceQName.getLocalPart();
 		ItemPath resolvePath = path;
-		TypedValue typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(path, variables, true, getSourceContextValueAndDefinition(), objectResolver, getPrismContext(), "source definition in "+getMappingContextDescription(), task, result);
+		TypedValue typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(path, variables, true, getTypedSourceContext(), objectResolver, getPrismContext(), "source definition in "+getMappingContextDescription(), task, result);
 		Object sourceObject = typedSourceObject.getValue();
 		Item<IV,ID> itemOld = null;
 		ItemDelta<IV,ID> delta = null;
@@ -1497,6 +1497,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		public Builder<V,D> sourceContext(ObjectDeltaObject<?> val) {
+			if (val.getDefinition() == null) {
+				throw new IllegalArgumentException("Attempt to set mapping source context without a definition");
+			}
 			sourceContext = val;
 			return this;
 		}

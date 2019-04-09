@@ -256,18 +256,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 				@Override
 				public boolean isEnabled() {
-					ValueWrapper wrapper = getModel().getObject();
-					ItemWrapper itemWrapper = wrapper.getItem();
-					if (wrapper.isReadonly()) {
-						return false;
-					}
-					// if (itemWrapper.getParent() == null) {
-					// return true; // TODO
-					// }
-					ContainerWrapper object = itemWrapper.getParent();
-					ItemDefinition def = itemWrapper.getItem().getDefinition();
-
-					return object == null || isAccessible(def, object.getStatus());
+					return isValueEditable();
 				}
 
 				@Override
@@ -280,6 +269,21 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				}
 			});
 		}
+	}
+
+	private boolean isValueEditable(){
+		ValueWrapper wrapper = getModel().getObject();
+		ItemWrapper itemWrapper = wrapper.getItem();
+		if (wrapper.isReadonly()) {
+			return false;
+		}
+		// if (itemWrapper.getParent() == null) {
+		// return true; // TODO
+		// }
+		ContainerWrapper object = itemWrapper.getParent();
+		ItemDefinition def = itemWrapper.getItem().getDefinition();
+
+		return object == null || isAccessible(def, object.getStatus());
 	}
 
 	private int countUsableValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
@@ -940,7 +944,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 				@Override
 				protected boolean isEditButtonEnabled() {
-					return PrismValuePanel.this.getModel().getObject().isEditEnabled();
+					return PrismValuePanel.this.getModel().getObject().isEditEnabled() && isValueEditable();
 				}
 
 				@Override

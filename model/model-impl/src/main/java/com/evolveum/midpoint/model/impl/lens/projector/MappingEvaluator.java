@@ -696,7 +696,7 @@ public class MappingEvaluator {
 				.rootNode(focusOdo)
 				.now(now);
 
-		mappingBuilder = LensUtil.addAssignmentPathVariables(mappingBuilder, assignmentPathVariables);
+		mappingBuilder = LensUtil.addAssignmentPathVariables(mappingBuilder, assignmentPathVariables, prismContext);
 
 		MappingImpl<V,D> mapping = mappingBuilder.build();
 

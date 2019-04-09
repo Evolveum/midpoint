@@ -91,6 +91,10 @@
 	    		<decision>allow</decision>
 	    	</package>
 	    	<class>
+	    		<name>java.lang.Integer</name>
+    			<decision>allow</decision>
+	    	</class>
+	    	<class>
 	    		<name>java.lang.String</name>
 	    			<description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
 	    			<decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
@@ -111,6 +115,18 @@
 	    				<name>execute</name>
 	    				<decision>deny</decision>
 	    			</method>
+	    	</class>
+	    	<class>
+	    		<name>java.util.Map</name>
+    			<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>java.util.HashMap</name>
+    			<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>java.util.Date</name>
+    			<decision>allow</decision>
 	    	</class>
 	    	<class>
 	    		<name>java.lang.System</name>

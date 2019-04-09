@@ -209,5 +209,18 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<!-- org extension -->
+
+    <xsd:complexType name="OrgTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:OrgType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+			<xsd:element ref="tns:sea"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>
