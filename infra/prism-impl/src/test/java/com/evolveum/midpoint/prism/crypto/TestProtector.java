@@ -79,13 +79,13 @@ public class TestProtector {
 		AssertJUnit.assertEquals(value, clear);
 
 		// WHEN
-		boolean compare1 = protector256.compare(pdt, pstEnc);
+		boolean compare1 = protector256.compareCleartext(pdt, pstEnc);
 
 		// THEN
 		assertTrue("compare1 failed", compare1);
 
 		// WHEN
-		boolean compare2 = protector256.compare(pstEnc, pdt);
+		boolean compare2 = protector256.compareCleartext(pstEnc, pdt);
 
 		// THEN
 		assertTrue("compare2 failed", compare2);
@@ -94,13 +94,13 @@ public class TestProtector {
 		wrongPst.setClearValue("nonono This is not it");
 
 		// WHEN
-		boolean compare5 = protector256.compare(pdt, wrongPst);
+		boolean compare5 = protector256.compareCleartext(pdt, wrongPst);
 
 		// THEN
 		assertFalse("compare5 unexpected success", compare5);
 
 		// WHEN
-		boolean compare6 = protector256.compare(wrongPst, pdt);
+		boolean compare6 = protector256.compareCleartext(wrongPst, pdt);
 
 		// THEN
 		assertFalse("compare6 unexpected success", compare6);
@@ -128,13 +128,13 @@ public class TestProtector {
 		checkPstClear.setClearValue(value);
 
 		// WHEN
-		boolean compare1 = protector256.compare(pst, checkPstClear);
+		boolean compare1 = protector256.compareCleartext(pst, checkPstClear);
 
 		// THEN
 		assertTrue("compare1 failed", compare1);
 
 		// WHEN
-		boolean compare2 = protector256.compare(checkPstClear, pst);
+		boolean compare2 = protector256.compareCleartext(checkPstClear, pst);
 
 		// THEN
 		assertTrue("compare2 failed", compare2);
@@ -144,13 +144,13 @@ public class TestProtector {
 		protector256.encrypt(checkPstEnc);
 
 		// WHEN
-		boolean compare3 = protector256.compare(pst, checkPstEnc);
+		boolean compare3 = protector256.compareCleartext(pst, checkPstEnc);
 
 		// THEN
 		assertTrue("compare3 failed", compare3);
 
 		// WHEN
-		boolean compare4 = protector256.compare(checkPstEnc, pst);
+		boolean compare4 = protector256.compareCleartext(checkPstEnc, pst);
 
 		// THEN
 		assertTrue("compare4 failed", compare4);
@@ -159,13 +159,13 @@ public class TestProtector {
 		wrongPst.setClearValue("nonono This is not it");
 
 		// WHEN
-		boolean compare5 = protector256.compare(pst, wrongPst);
+		boolean compare5 = protector256.compareCleartext(pst, wrongPst);
 
 		// THEN
 		assertFalse("compare5 unexpected success", compare5);
 
 		// WHEN
-		boolean compare6 = protector256.compare(wrongPst, pst);
+		boolean compare6 = protector256.compareCleartext(wrongPst, pst);
 
 		// THEN
 		assertFalse("compare6 unexpected success", compare6);
@@ -175,13 +175,13 @@ public class TestProtector {
 		protector256.encrypt(wrongPstEnc);
 
 		// WHEN
-		boolean compare7 = protector256.compare(pst, wrongPstEnc);
+		boolean compare7 = protector256.compareCleartext(pst, wrongPstEnc);
 
 		// THEN
 		assertFalse("compare7 unexpected success", compare7);
 
 		// WHEN
-		boolean compare8 = protector256.compare(wrongPstEnc, pst);
+		boolean compare8 = protector256.compareCleartext(wrongPstEnc, pst);
 
 		// THEN
 		assertFalse("compare8 unexpected success", compare8);
@@ -190,13 +190,13 @@ public class TestProtector {
 		pst.getHashedDataType().getDigestValue()[1] = 0x12;
 
 		// WHEN
-		boolean compare9 = protector256.compare(pst, checkPstClear);
+		boolean compare9 = protector256.compareCleartext(pst, checkPstClear);
 
 		// THEN
 		assertFalse("compare9 unexpected success", compare9);
 
 		// WHEN
-		boolean compare10 = protector256.compare(checkPstClear, pst);
+		boolean compare10 = protector256.compareCleartext(checkPstClear, pst);
 
 		// THEN
 		assertFalse("compare10 unexpected success", compare10);
@@ -216,25 +216,25 @@ public class TestProtector {
 		assertNull(pstEncHash.getClearValue());
 
 		// WHEN
-		boolean compare1e = protector256.compare(checkPstClear, pstEncHash);
+		boolean compare1e = protector256.compareCleartext(checkPstClear, pstEncHash);
 
 		// THEN
 		assertTrue("compare1e failed", compare1e);
 
 		// WHEN
-		boolean compare2e = protector256.compare(pstEncHash, checkPstClear);
+		boolean compare2e = protector256.compareCleartext(pstEncHash, checkPstClear);
 
 		// THEN
 		assertTrue("compare2e failed", compare2e);
 
 		// WHEN
-		boolean compare3e = protector256.compare(pstEncHash, checkPstEnc);
+		boolean compare3e = protector256.compareCleartext(pstEncHash, checkPstEnc);
 
 		// THEN
 		assertTrue("compare3e failed", compare3e);
 
 		// WHEN
-		boolean compare4e = protector256.compare(checkPstEnc, pstEncHash);
+		boolean compare4e = protector256.compareCleartext(checkPstEnc, pstEncHash);
 
 		// THEN
 		assertTrue("compare4e failed", compare4e);

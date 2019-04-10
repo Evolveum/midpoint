@@ -198,6 +198,14 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
 		return asserter;
 	}
 	
+	public <T> PrismPropertyAsserter<T,? extends PrismContainerValueAsserter<C,RA>> property(QName propertyName) {
+		PrismProperty<T> property = findProperty(propertyName);
+		assertNotNull("No property "+propertyName+" in "+desc(), property);
+		PrismPropertyAsserter<T,? extends PrismContainerValueAsserter<C,RA>> asserter = new PrismPropertyAsserter<>(property, this, propertyName.getLocalPart() + " in " + desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
 	// TODO
 
 	protected String desc() {

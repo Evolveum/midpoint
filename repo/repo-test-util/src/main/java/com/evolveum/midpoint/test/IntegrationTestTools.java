@@ -1087,7 +1087,7 @@ public class IntegrationTestTools {
 				ProtectedStringType expectedPs = new ProtectedStringType();
 				expectedPs.setClearValue(expectedClearValue);
 				assertTrue(message+": hash does not match, expected "+expectedClearValue+", but was "+actualValue,
-						protector.compare(actualValue, expectedPs));
+						protector.compareCleartext(actualValue, expectedPs));
 				assertFalse(message+": unexpected encrypted value: "+actualValue, actualValue.isEncrypted());
 				assertNull(message+": unexpected clear value: "+actualValue, actualValue.getClearValue());
 				break;

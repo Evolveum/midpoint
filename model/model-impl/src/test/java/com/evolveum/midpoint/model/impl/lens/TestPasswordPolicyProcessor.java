@@ -314,7 +314,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 		ProtectedStringType protectedStringType = new ProtectedStringType();
 		protectedStringType.setClearValue(password);
 		AssertJUnit.assertTrue("Password doesn't match",
-				protector.compare(protectedStringType, passwordAfterChange));
+				protector.compareCleartext(protectedStringType, passwordAfterChange));
 	}
 
 	private void initPasswordPolicy(String title, int historyLength, String passwordPolicyOid) throws Exception {

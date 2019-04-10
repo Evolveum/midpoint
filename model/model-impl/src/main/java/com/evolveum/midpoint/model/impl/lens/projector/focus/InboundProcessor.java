@@ -1011,7 +1011,7 @@ public class InboundProcessor {
     
     
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> ItemDelta<V, D> collectOutputDelta(
-    		ItemDefinition outputDefinition, ItemPath outputPath, PrismObject<F> focusNew,
+    		D outputDefinition, ItemPath outputPath, PrismObject<F> focusNew,
 		    DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples, boolean tolerant,
 		    boolean hasRange, boolean isDelete) throws SchemaException {
 		
@@ -1023,14 +1023,15 @@ public class InboundProcessor {
 		boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(outputPath);
 		
     	    	
-		Item shouldBeItem = outputDefinition.instantiate();
+		Item<V,D> shouldBeItem = outputDefinition.instantiate();
 		if (consolidatedTriples != null) {
 			
 			Collection<ItemValueWithOrigin<V, D>> shouldBeItemValues = consolidatedTriples.getNonNegativeValues();
 			for (ItemValueWithOrigin<V, D> itemWithOrigin : shouldBeItemValues) {
-				shouldBeItem.add(LensUtil.cloneAndApplyMetadata(itemWithOrigin.getItemValue(),
+				V clonedValue = LensUtil.cloneAndApplyMetadata(itemWithOrigin.getItemValue(),
 						isAssignment,
-						shouldBeItemValues));
+						shouldBeItemValues);
+				shouldBeItem.add(clonedValue, EquivalenceStrategy.REAL_VALUE);
 			}
 						
 			if (consolidatedTriples.hasPlusSet()) {
@@ -1404,7 +1405,7 @@ public class InboundProcessor {
 		    		ProtectedStringType resultValue = (ProtectedStringType) result.getRealValue();
 		    		ProtectedStringType targetPropertyNewValue = (ProtectedStringType) targetPropertyNew.getRealValue();
 		    		try {
-						if (protector.compare(resultValue, targetPropertyNewValue)) {
+						if (protector.compareCleartext(resultValue, targetPropertyNewValue)) {
 							delta = null;
 						} else {
 							delta = targetPropertyNew.diff(result);

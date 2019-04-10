@@ -679,7 +679,31 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		});
 
 		IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<TaskDto>(createTasksInlineMenu(false, null),
-				PageTasks.this);
+				PageTasks.this) {
+			
+			@Override
+			protected boolean isInlineMenuVisible(IModel<TaskDto> rowModel, boolean isHeader) {
+				if (rowModel == null) {
+					return isHeader;
+				}
+				TaskDto dto =  rowModel.getObject();
+				if (isHeader) {
+					return false;
+				}
+				
+				if (dto == null) {
+					return false;
+				}
+				
+				TaskWorkManagementType workManagement = dto.getTaskType().getWorkManagement();
+				if (workManagement == null) {
+					return false;
+				}
+				
+				return TaskKindType.COORDINATOR == workManagement.getTaskKind();
+					
+			}
+		};
 		columns.add(menuColumn);
 
 		return columns;
@@ -825,116 +849,123 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			}
 		});
 
-		if (!isHeader && dto != null) {
-			if (dto.getTaskType().getWorkManagement() != null
-					&& dto.getTaskType().getWorkManagement().getTaskKind() == TaskKindType.COORDINATOR) {
-				items.add(new InlineMenuItem(createStringResource("pageTasks.button.reconcileWorkers")) {
+		InlineMenuItem reconcileWorkers = new InlineMenuItem(createStringResource("pageTasks.button.reconcileWorkers")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<TaskDto>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction initAction() {
-						return new ColumnMenuAction<TaskDto>() {
-							private static final long serialVersionUID = 1L;
-
-							@Override
-							public void onClick(AjaxRequestTarget target) {
-								if (getRowModel() == null) {
-									throw new UnsupportedOperationException();
-								} else {
-									TaskDto rowDto = getRowModel().getObject();
-									reconcileWorkersConfirmedPerformed(target, rowDto);
-								}
-							}
-						};
+					public void onClick(AjaxRequestTarget target) {
+						if (getRowModel() == null) {
+							throw new UnsupportedOperationException();
+						} else {
+							TaskDto rowDto = getRowModel().getObject();
+							reconcileWorkersConfirmedPerformed(target, rowDto);
+						}
 					}
-
-					@Override
-					public IModel<String> getConfirmationMessageModel() {
-						String actionName = createStringResource("pageTasks.message.reconcileWorkersAction").getString();
-						return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-					}
-				});
-
-				items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendCoordinatorOnly")) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public InlineMenuItemAction initAction() {
-						return new ColumnMenuAction<TaskDto>() {
-							private static final long serialVersionUID = 1L;
-
-							@Override
-							public void onClick(AjaxRequestTarget target) {
-								if (getRowModel() == null) {
-									throw new UnsupportedOperationException();
-								} else {
-									TaskDto rowDto = getRowModel().getObject();
-									suspendCoordinatorOnly(target, rowDto);
-								}
-							}
-						};
-					}
-
-					@Override
-					public IModel<String> getConfirmationMessageModel() {
-						String actionName = createStringResource("pageTasks.message.suspendAction").getString();
-						return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-					}
-				});
-				items.add(new InlineMenuItem(createStringResource("pageTasks.button.resumeCoordinatorOnly")) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public InlineMenuItemAction initAction() {
-						return new ColumnMenuAction<TaskDto>() {
-							private static final long serialVersionUID = 1L;
-
-							@Override
-							public void onClick(AjaxRequestTarget target) {
-								if (getRowModel() == null) {
-									throw new UnsupportedOperationException();
-								} else {
-									TaskDto rowDto = getRowModel().getObject();
-									resumeCoordinatorOnly(target, rowDto);
-								}
-							}
-						};
-					}
-
-					@Override
-					public IModel<String> getConfirmationMessageModel() {
-						String actionName = createStringResource("pageTasks.message.resumeAction").getString();
-						return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-					}
-				});
-				items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkersAndWorkState")) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public InlineMenuItemAction initAction() {
-						return new ColumnMenuAction<TaskDto>() {
-							private static final long serialVersionUID = 1L;
-
-							@Override
-							public void onClick(AjaxRequestTarget target) {
-								if (getRowModel() == null) {
-									throw new UnsupportedOperationException();
-								} else {
-									TaskDto rowDto = getRowModel().getObject();
-									deleteWorkersAndWorkState(target, rowDto);
-								}
-							}
-						};
-					}
-
-					@Override
-					public IModel<String> getConfirmationMessageModel() {
-						String actionName = createStringResource("pageTasks.message.deleteWorkersAndWorkState").getString();
-						return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-					}
-				});
+				};
 			}
-		}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel() {
+				String actionName = createStringResource("pageTasks.message.reconcileWorkersAction").getString();
+				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		};
+		reconcileWorkers.setCheckVisibility(true);
+		
+		items.add(reconcileWorkers);
+
+		InlineMenuItem suspendCoordinatorOnly = new InlineMenuItem(createStringResource("pageTasks.button.suspendCoordinatorOnly")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<TaskDto>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						if (getRowModel() == null) {
+							throw new UnsupportedOperationException();
+						} else {
+							TaskDto rowDto = getRowModel().getObject();
+							suspendCoordinatorOnly(target, rowDto);
+						}
+					}
+				};
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel() {
+				String actionName = createStringResource("pageTasks.message.suspendAction").getString();
+				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		};
+		suspendCoordinatorOnly.setCheckVisibility(true);
+		items.add(suspendCoordinatorOnly);
+		
+		InlineMenuItem resumeCoordinatorOnly = new InlineMenuItem(createStringResource("pageTasks.button.resumeCoordinatorOnly")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<TaskDto>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						if (getRowModel() == null) {
+							throw new UnsupportedOperationException();
+						} else {
+							TaskDto rowDto = getRowModel().getObject();
+							resumeCoordinatorOnly(target, rowDto);
+						}
+					}
+				};
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel() {
+				String actionName = createStringResource("pageTasks.message.resumeAction").getString();
+				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		};
+		resumeCoordinatorOnly.setCheckVisibility(true);
+		items.add(resumeCoordinatorOnly);
+
+		InlineMenuItem deleteWorkStateAndWorkers = new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkersAndWorkState")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<TaskDto>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						if (getRowModel() == null) {
+							throw new UnsupportedOperationException();
+						} else {
+							TaskDto rowDto = getRowModel().getObject();
+							deleteWorkersAndWorkState(target, rowDto);
+						}
+					}
+				};
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel() {
+				String actionName = createStringResource("pageTasks.message.deleteWorkersAndWorkState").getString();
+				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		};
+		deleteWorkStateAndWorkers.setCheckVisibility(true);
+		items.add(deleteWorkStateAndWorkers);
+		
 		if (isHeader) {
 			items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks")) {
 				private static final long serialVersionUID = 1L;
@@ -1330,644 +1361,671 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
     private void scheduleTaskPerformed(AjaxRequestTarget target, TaskDto dto) {
         scheduleTasksPerformed(target, Arrays.asList(dto.getOid()));
-    }
+	}
 
-    private void scheduleTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
-        if (!isSomeTaskSelected(taskDtoList, target)) {
-            return;
-        }
+	private void scheduleTasksPerformed(AjaxRequestTarget target) {
+		List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
+		if (!isSomeTaskSelected(taskDtoList, target)) {
+			return;
+		}
 
-        scheduleTasksPerformed(target, TaskDto.getOids(taskDtoList));
-    }
-    //endregion
+		scheduleTasksPerformed(target, TaskDto.getOids(taskDtoList));
+	}
+	// endregion
 
-    //region Node-level actions
-    private void nodeDetailsPerformed(AjaxRequestTarget target, String oid) {
+	// region Node-level actions
+	private void nodeDetailsPerformed(AjaxRequestTarget target, String oid) {
 
-    }
+	}
 
-    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target, List<String> identifiers) {
-    	Task opTask = createSimpleTask(OPERATION_STOP_SCHEDULERS_AND_TASKS);
-        OperationResult result = opTask.getResult();
-        try {
-            boolean suspended = getTaskService().stopSchedulersAndTasks(identifiers, WAIT_FOR_TASK_STOP, opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                if (suspended) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.success").getString());
-                } else {
-                    result.recordWarning(createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.warning").getString());
-                }
-            }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
+	private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target, List<String> identifiers) {
+		Task opTask = createSimpleTask(OPERATION_STOP_SCHEDULERS_AND_TASKS);
+		OperationResult result = opTask.getResult();
+		try {
+			boolean suspended = getTaskService().stopSchedulersAndTasks(identifiers, WAIT_FOR_TASK_STOP, opTask, result);
+			result.computeStatus();
+			if (result.isSuccess()) {
+				if (suspended) {
+					result.recordStatus(OperationResultStatus.SUCCESS,
+							createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.success").getString());
+				} else {
+					result.recordWarning(
+							createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.warning").getString());
+				}
+			}
+		} catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException
+				| RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(
+					createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.fatalError").getString(), e);
+		}
+		showResult(result);
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
-    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target,  NodeDto dto) {
-        List<NodeDto> nodeDtoList = new ArrayList<>();
-        if (dto != null){
-            nodeDtoList.add(dto);
-        } else {
-            nodeDtoList.addAll(WebComponentUtil.getSelectedData(getNodeTable()));
-        }
-        if (!isSomeNodeSelected(nodeDtoList, target)) {
-            return;
-        }
+	private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target, NodeDto dto) {
+		List<NodeDto> nodeDtoList = new ArrayList<>();
+		if (dto != null) {
+			nodeDtoList.add(dto);
+		} else {
+			nodeDtoList.addAll(WebComponentUtil.getSelectedData(getNodeTable()));
+		}
+		if (!isSomeNodeSelected(nodeDtoList, target)) {
+			return;
+		}
 
-        stopSchedulersAndTasksPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
-    }
+		stopSchedulersAndTasksPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+	}
 
-    private void startSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
-    	Task opTask = createSimpleTask(OPERATION_START_SCHEDULERS);
-        OperationResult result = opTask.getResult();
-        try {
-            getTaskService().startSchedulers(identifiers, opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.startSchedulersPerformed.success").getString());
-            }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.startSchedulersPerformed.fatalError").getString(), e);
-        }
+	private void startSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
+		Task opTask = createSimpleTask(OPERATION_START_SCHEDULERS);
+		OperationResult result = opTask.getResult();
+		try {
+			getTaskService().startSchedulers(identifiers, opTask, result);
+			result.computeStatus();
+			if (result.isSuccess()) {
+				result.recordStatus(OperationResultStatus.SUCCESS,
+						createStringResource("pageTasks.message.startSchedulersPerformed.success").getString());
+			}
+		} catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException
+				| RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.startSchedulersPerformed.fatalError").getString(), e);
+		}
 
-        showResult(result);
+		showResult(result);
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
-    private void startSchedulersPerformed(AjaxRequestTarget target, NodeDto dto) {
-        startSchedulersPerformed(target, Collections.singletonList(dto.getNodeIdentifier()));
-    }
+	private void startSchedulersPerformed(AjaxRequestTarget target, NodeDto dto) {
+		startSchedulersPerformed(target, Collections.singletonList(dto.getNodeIdentifier()));
+	}
 
-    private void startSchedulersPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
-        if (!isSomeNodeSelected(nodeDtoList, target)) {
-            return;
-        }
+	private void startSchedulersPerformed(AjaxRequestTarget target) {
+		List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
+		if (!isSomeNodeSelected(nodeDtoList, target)) {
+			return;
+		}
 
-       startSchedulersPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
-    }
+		startSchedulersPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+	}
 
-    private void stopSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
-    	Task opTask = createSimpleTask(OPERATION_STOP_SCHEDULERS);
-        OperationResult result = opTask.getResult();
-        try {
-            getTaskService().stopSchedulers(identifiers, opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.stopSchedulersPerformed.success").getString());
-            }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.stopSchedulersPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
+	private void stopSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
+		Task opTask = createSimpleTask(OPERATION_STOP_SCHEDULERS);
+		OperationResult result = opTask.getResult();
+		try {
+			getTaskService().stopSchedulers(identifiers, opTask, result);
+			result.computeStatus();
+			if (result.isSuccess()) {
+				result.recordStatus(OperationResultStatus.SUCCESS,
+						createStringResource("pageTasks.message.stopSchedulersPerformed.success").getString());
+			}
+		} catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException
+				| RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.stopSchedulersPerformed.fatalError").getString(), e);
+		}
+		showResult(result);
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
-    private void stopSchedulersPerformed(AjaxRequestTarget target, NodeDto dto) {
-        stopSchedulersPerformed(target, Collections.singletonList(dto.getNodeIdentifier()));
-    }
+	private void stopSchedulersPerformed(AjaxRequestTarget target, NodeDto dto) {
+		stopSchedulersPerformed(target, Collections.singletonList(dto.getNodeIdentifier()));
+	}
 
-    private void stopSchedulersPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
-        if (!isSomeNodeSelected(nodeDtoList, target)) {
-            return;
-        }
+	private void stopSchedulersPerformed(AjaxRequestTarget target) {
+		List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
+		if (!isSomeNodeSelected(nodeDtoList, target)) {
+			return;
+		}
 
-        stopSchedulersPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
-    }
+		stopSchedulersPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+	}
 
-    private void deleteNodesPerformed(AjaxRequestTarget target, List<NodeDto> nodes) {
-        OperationResult result = new OperationResult(OPERATION_DELETE_NODES);
+	private void deleteNodesPerformed(AjaxRequestTarget target, List<NodeDto> nodes) {
+		OperationResult result = new OperationResult(OPERATION_DELETE_NODES);
 
-        Task task = createSimpleTask(OPERATION_DELETE_NODES);
+		Task task = createSimpleTask(OPERATION_DELETE_NODES);
 
-        for (NodeDto nodeDto : nodes) {
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-            deltas.add(getPrismContext().deltaFactory().object().createDeleteDelta(NodeType.class, nodeDto.getOid()
-            ));
-            try {
-                getModelService().executeChanges(deltas, null, task, result);
-            } catch (Exception e) {     // until java 7 we do it in this way
-                result.recordFatalError(createStringResource("pageTasks.message.deleteNodesPerformed.fatalError").getString() + nodeDto.getNodeIdentifier(), e);
-            }
-        }
+		for (NodeDto nodeDto : nodes) {
+			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+			deltas.add(getPrismContext().deltaFactory().object().createDeleteDelta(NodeType.class, nodeDto.getOid()));
+			try {
+				getModelService().executeChanges(deltas, null, task, result);
+			} catch (Exception e) { // until java 7 we do it in this way
+				result.recordFatalError(createStringResource("pageTasks.message.deleteNodesPerformed.fatalError").getString()
+						+ nodeDto.getNodeIdentifier(), e);
+			}
+		}
 
-        result.computeStatus();
-        if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.deleteNodesPerformed.success").getString());
-        }
-        showResult(result);
+		result.computeStatus();
+		if (result.isSuccess()) {
+			result.recordStatus(OperationResultStatus.SUCCESS,
+					createStringResource("pageTasks.message.deleteNodesPerformed.success").getString());
+		}
+		showResult(result);
 
-        NodeDtoProvider provider = (NodeDtoProvider) getNodeTable().getDataTable().getDataProvider();
-        provider.clearCache();
+		NodeDtoProvider provider = (NodeDtoProvider) getNodeTable().getDataTable().getDataProvider();
+		provider.clearCache();
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
-    private void deleteNodesPerformed(AjaxRequestTarget target, NodeDto dto) {
-        deleteNodesPerformed(target, Collections.singletonList(dto));
-    }
+	private void deleteNodesPerformed(AjaxRequestTarget target, NodeDto dto) {
+		deleteNodesPerformed(target, Collections.singletonList(dto));
+	}
 
-    private void deleteNodesPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
-        if (!isSomeNodeSelected(nodeDtoList, target)) {
-            return;
-        }
+	private void deleteNodesPerformed(AjaxRequestTarget target) {
+		List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
+		if (!isSomeNodeSelected(nodeDtoList, target)) {
+			return;
+		}
 
-        deleteNodesPerformed(target, nodeDtoList);
-    }
-    //endregion
+		deleteNodesPerformed(target, nodeDtoList);
+	}
+	// endregion
 
-    //region Diagnostics actions
-    private void deactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-    	Task opTask = createSimpleTask(OPERATION_DEACTIVATE_SERVICE_THREADS);
-        OperationResult result = opTask.getResult();
+	// region Diagnostics actions
+	private void deactivateServiceThreadsPerformed(AjaxRequestTarget target) {
+		Task opTask = createSimpleTask(OPERATION_DEACTIVATE_SERVICE_THREADS);
+		OperationResult result = opTask.getResult();
 
-        try {
-            boolean stopped = getTaskService().deactivateServiceThreads(WAIT_FOR_TASK_STOP, opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                if (stopped) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.success").getString());
-                } else {
-                    result.recordWarning(createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.warning").getString());
-                }
-            }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
+		try {
+			boolean stopped = getTaskService().deactivateServiceThreads(WAIT_FOR_TASK_STOP, opTask, result);
+			result.computeStatus();
+			if (result.isSuccess()) {
+				if (stopped) {
+					result.recordStatus(OperationResultStatus.SUCCESS,
+							createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.success").getString());
+				} else {
+					result.recordWarning(
+							createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.warning").getString());
+				}
+			}
+		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(
+					createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.fatalError").getString(), e);
+		}
+		showResult(result);
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
-    private void reactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-    	Task opTask = createSimpleTask(OPERATION_REACTIVATE_SERVICE_THREADS);
-        OperationResult result = opTask.getResult();
+	private void reactivateServiceThreadsPerformed(AjaxRequestTarget target) {
+		Task opTask = createSimpleTask(OPERATION_REACTIVATE_SERVICE_THREADS);
+		OperationResult result = opTask.getResult();
 
-        try {
-            getTaskService().reactivateServiceThreads(opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.success").getString());
-            }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
+		try {
+			getTaskService().reactivateServiceThreads(opTask, result);
+			result.computeStatus();
+			if (result.isSuccess()) {
+				result.recordStatus(OperationResultStatus.SUCCESS,
+						createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.success").getString());
+			}
+		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(
+					createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.fatalError").getString(), e);
+		}
+		showResult(result);
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
-    private void refreshTables(AjaxRequestTarget target) {
-        clearTablesCache();
-        target.add(getFeedbackPanel());
-        target.add((Component) getTaskTable());
-        target.add((Component) getNodeTable());
-    }
+	private void refreshTables(AjaxRequestTarget target) {
+		clearTablesCache();
+		target.add(getFeedbackPanel());
+		target.add((Component) getTaskTable());
+		target.add((Component) getNodeTable());
+	}
 
-    private void clearTablesCache(){
-        if (getTaskTable() != null && getTaskTable().getDataTable() != null){
-            WebComponentUtil.clearProviderCache(getTaskTable().getDataTable().getDataProvider());
-        }
-        if (getNodeTable() != null && getNodeTable().getDataTable() != null){
-            WebComponentUtil.clearProviderCache(getNodeTable().getDataTable().getDataProvider());
-        }
-    }
+	private void clearTablesCache() {
+		if (getTaskTable() != null && getTaskTable().getDataTable() != null) {
+			WebComponentUtil.clearProviderCache(getTaskTable().getDataTable().getDataProvider());
+		}
+		if (getNodeTable() != null && getNodeTable().getDataTable() != null) {
+			WebComponentUtil.clearProviderCache(getNodeTable().getDataTable().getDataProvider());
+		}
+	}
 
-    private void synchronizeTasksPerformed(AjaxRequestTarget target) {
-    	Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_TASKS);
-        OperationResult result = opTask.getResult();
+	private void synchronizeTasksPerformed(AjaxRequestTarget target) {
+		Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_TASKS);
+		OperationResult result = opTask.getResult();
 
-        try {
-            getTaskService().synchronizeTasks(opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
-                result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
-            }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
+		try {
+			getTaskService().synchronizeTasks(opTask, result);
+			result.computeStatus();
+			if (result.isSuccess()) { // brutal hack - the subresult's message
+										// contains statistics
+				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
+			}
+		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(),
+					e);
+		}
+		showResult(result);
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
 	private void synchronizeWorkflowRequestsPerformed(AjaxRequestTarget target) {
 		Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_WORKFLOW_REQUESTS);
-        OperationResult result = opTask.getResult();
+		OperationResult result = opTask.getResult();
 
 		try {
 			getTaskService().synchronizeWorkflowRequests(opTask, result);
 			result.computeStatusIfUnknown();
-			if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
+			if (result.isSuccess()) { // brutal hack - the subresult's message
+										// contains statistics
 				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
 			}
-		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-			result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(), e);
+		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(),
+					e);
 		}
 		showResult(result);
 
-		//refresh feedback and table
+		// refresh feedback and table
 		refreshTables(target);
 	}
-    //endregion
+	// endregion
 
-    private void refreshTasks(AjaxRequestTarget target) {
-//        searchModel = new LoadableModel<TasksSearchDto>(false) {
-//
-//            @Override
-//            protected TasksSearchDto load() {
-//                return loadTasksSearchDto();
-//            }
-//        };
+	private void refreshTasks(AjaxRequestTarget target) {
+		// searchModel = new LoadableModel<TasksSearchDto>(false) {
+		//
+		// @Override
+		// protected TasksSearchDto load() {
+		// return loadTasksSearchDto();
+		// }
+		// };
 
 		target.add(refreshPanel);
 
-        //refresh feedback and table
-        refreshTables(target);
+		// refresh feedback and table
+		refreshTables(target);
 
 		if (refreshModel.getObject().isEnabled()) {
 			refreshPanel.startRefreshing(this, target);
 		}
-    }
+	}
 
-    private void searchFilterPerformed(AjaxRequestTarget target) {
-        TasksSearchDto dto = searchModel.getObject();
+	private void searchFilterPerformed(AjaxRequestTarget target) {
+		TasksSearchDto dto = searchModel.getObject();
 
-//        ObjectQuery query = createTaskQuery(dto.getStatus(), dto.getCategory(), dto.isShowSubtasks());
-        ObjectQuery query = createTaskQuery();
+		// ObjectQuery query = createTaskQuery(dto.getStatus(),
+		// dto.getCategory(), dto.isShowSubtasks());
+		ObjectQuery query = createTaskQuery();
 
-        Table panel = getTaskTable();
-        DataTable table = panel.getDataTable();
-        TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
-        provider.setQuery(query);
-        table.setCurrentPage(0);
+		Table panel = getTaskTable();
+		DataTable table = panel.getDataTable();
+		TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
+		provider.setQuery(query);
+		table.setCurrentPage(0);
 
-        TasksStorage storage = getSessionStorage().getTasks();
-        storage.setTasksSearch(dto);
+		TasksStorage storage = getSessionStorage().getTasks();
+		storage.setTasksSearch(dto);
 
-        target.add(getFeedbackPanel());
-        target.add((Component) getTaskTable());
-    }
+		target.add(getFeedbackPanel());
+		target.add((Component) getTaskTable());
+	}
 
-    private ObjectQuery createTaskQuery() {
-        TasksSearchDto dto = searchModel.getObject();
-        TaskDtoExecutionStatusFilter status = dto.getStatus();
-        String category = dto.getCategory();
-        boolean showSubtasks = dto.isShowSubtasks();
+	private ObjectQuery createTaskQuery() {
+		TasksSearchDto dto = searchModel.getObject();
+		TaskDtoExecutionStatusFilter status = dto.getStatus();
+		String category = dto.getCategory();
+		boolean showSubtasks = dto.isShowSubtasks();
 
-        S_AtomicFilterEntry q = getPrismContext().queryFor(TaskType.class);
-        if (status != null) {
-            q = status.appendFilter(q);
-        }
-        if (category != null && !ALL_CATEGORIES.equals(category)) {
-            q = q.item(TaskType.F_CATEGORY).eq(category).and();
-        }
-        if (StringUtils.isNotBlank(searchText)) {
-            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-            String normalizedString = normalizer.normalize(searchText);
-            q = q.item(TaskType.F_NAME).containsPoly(normalizedString, normalizedString).matchingNorm().and();
-            searchText = "";        // ???
-        }
-        if (!Boolean.TRUE.equals(showSubtasks)) {
-            q = q.item(TaskType.F_PARENT).isNull().and();
-        }
-        return q.all().build();
-    }
+		S_AtomicFilterEntry q = getPrismContext().queryFor(TaskType.class);
+		if (status != null) {
+			q = status.appendFilter(q);
+		}
+		if (category != null && !ALL_CATEGORIES.equals(category)) {
+			q = q.item(TaskType.F_CATEGORY).eq(category).and();
+		}
+		if (StringUtils.isNotBlank(searchText)) {
+			PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+			String normalizedString = normalizer.normalize(searchText);
+			q = q.item(TaskType.F_NAME).containsPoly(normalizedString, normalizedString).matchingNorm().and();
+			searchText = ""; // ???
+		}
+		if (!Boolean.TRUE.equals(showSubtasks)) {
+			q = q.item(TaskType.F_PARENT).isNull().and();
+		}
+		return q.all().build();
+	}
 
-    private void clearSearchPerformed(AjaxRequestTarget target) {
-        TasksSearchDto tasksSearchDto = new TasksSearchDto();
-        tasksSearchDto.setCategory(ALL_CATEGORIES);
-        tasksSearchDto.setStatus(TaskDtoExecutionStatusFilter.ALL);
-        searchModel.setObject(tasksSearchDto);
+	private void clearSearchPerformed(AjaxRequestTarget target) {
+		TasksSearchDto tasksSearchDto = new TasksSearchDto();
+		tasksSearchDto.setCategory(ALL_CATEGORIES);
+		tasksSearchDto.setStatus(TaskDtoExecutionStatusFilter.ALL);
+		searchModel.setObject(tasksSearchDto);
 
-        Table panel = getTaskTable();
-        DataTable table = panel.getDataTable();
-        TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
-        provider.setQuery(null);
+		Table panel = getTaskTable();
+		DataTable table = panel.getDataTable();
+		TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
+		provider.setQuery(null);
 
-        TasksStorage storage = getSessionStorage().getTasks();
-        storage.setTasksSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getPaging());
+		TasksStorage storage = getSessionStorage().getTasks();
+		storage.setTasksSearch(searchModel.getObject());
+		panel.setCurrentPage(storage.getPaging());
 
-        target.add((Component) panel);
-    }
+		target.add((Component) panel);
+	}
 
-    private void deleteTaskConfirmedPerformed(AjaxRequestTarget target, TaskDto task) {
-        List<TaskDto> taskDtoList = new ArrayList<>();
-        if (task != null){
-            taskDtoList.add(task);
-        } else {
-            taskDtoList.addAll(WebComponentUtil.getSelectedData(getTaskTable()));
-        }
-        if (!isSomeTaskSelected(taskDtoList, target)) {
-            return;
-        }
+	private void deleteTaskConfirmedPerformed(AjaxRequestTarget target, TaskDto task) {
+		List<TaskDto> taskDtoList = new ArrayList<>();
+		if (task != null) {
+			taskDtoList.add(task);
+		} else {
+			taskDtoList.addAll(WebComponentUtil.getSelectedData(getTaskTable()));
+		}
+		if (!isSomeTaskSelected(taskDtoList, target)) {
+			return;
+		}
 
-        Task opTask = createSimpleTask(OPERATION_DELETE_TASKS);
-        OperationResult result = opTask.getResult();
-        try {
-            getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, opTask, result);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.success").getString());
-            }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.fatalError").getString(), e);
-        }
-        showResult(result);
+		Task opTask = createSimpleTask(OPERATION_DELETE_TASKS);
+		OperationResult result = opTask.getResult();
+		try {
+			getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, opTask, result);
+			result.computeStatus();
+			if (result.isSuccess()) {
+				result.recordStatus(OperationResultStatus.SUCCESS,
+						createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.success").getString());
+			}
+		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.fatalError").getString(),
+					e);
+		}
+		showResult(result);
 
-        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
-        provider.clearCache();
+		TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+		provider.clearCache();
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
-    private void reconcileWorkersConfirmedPerformed(AjaxRequestTarget target, @NotNull TaskDto task) {
-        Task opTask = createSimpleTask(OPERATION_RECONCILE_WORKERS);
-        OperationResult result = opTask.getResult();
-        try {
-            getTaskService().reconcileWorkers(task.getOid(), opTask, result);
-            result.computeStatus();
-            if (result.isSuccess() && result.getSubresults().size() == 1) {         // brutal hack: to show statistics
-            	result.setMessage(result.getSubresults().get(0).getMessage());
-            }
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.reconcileWorkersConfirmedPerformed.fatalError").getString(), e);
-        }
-	    showResult(result);
+	private void reconcileWorkersConfirmedPerformed(AjaxRequestTarget target, @NotNull TaskDto task) {
+		Task opTask = createSimpleTask(OPERATION_RECONCILE_WORKERS);
+		OperationResult result = opTask.getResult();
+		try {
+			getTaskService().reconcileWorkers(task.getOid(), opTask, result);
+			result.computeStatus();
+			if (result.isSuccess() && result.getSubresults().size() == 1) { // brutal
+																			// hack:
+																			// to
+																			// show
+																			// statistics
+				result.setMessage(result.getSubresults().get(0).getMessage());
+			}
+		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | SecurityViolationException
+				| ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(
+					createStringResource("pageTasks.message.reconcileWorkersConfirmedPerformed.fatalError").getString(), e);
+		}
+		showResult(result);
 
-        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
-        provider.clearCache();
+		TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+		provider.clearCache();
 
-        //refresh feedback and table
-        refreshTables(target);
-    }
+		// refresh feedback and table
+		refreshTables(target);
+	}
 
-    private void suspendCoordinatorOnly(AjaxRequestTarget target, @NotNull TaskDto task) {
-        Task opTask = createSimpleTask(OPERATION_SUSPEND_TASK);
-        OperationResult result = opTask.getResult();
-        try {
-            getTaskService().suspendTasks(Collections.singleton(task.getOid()), WAIT_FOR_TASK_STOP, opTask, result);
-	        // TODO check whether the suspension was complete
-            result.computeStatus();
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.suspendCoordinatorOnly.fatalError").getString(), e);
-        }
-	    showResult(result);
+	private void suspendCoordinatorOnly(AjaxRequestTarget target, @NotNull TaskDto task) {
+		Task opTask = createSimpleTask(OPERATION_SUSPEND_TASK);
+		OperationResult result = opTask.getResult();
+		try {
+			getTaskService().suspendTasks(Collections.singleton(task.getOid()), WAIT_FOR_TASK_STOP, opTask, result);
+			// TODO check whether the suspension was complete
+			result.computeStatus();
+		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.suspendCoordinatorOnly.fatalError").getString(), e);
+		}
+		showResult(result);
 
-        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
-        provider.clearCache();
-        refreshTables(target);
-    }
+		TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+		provider.clearCache();
+		refreshTables(target);
+	}
 
-    private void resumeCoordinatorOnly(AjaxRequestTarget target, @NotNull TaskDto task) {
-        Task opTask = createSimpleTask(OPERATION_RESUME_TASK);
-        OperationResult result = opTask.getResult();
-        try {
-            getTaskService().resumeTasks(Collections.singleton(task.getOid()), opTask, result);
-            result.computeStatus();
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.resumeCoordinatorOnly.fatalError").getString(), e);
-        }
-	    showResult(result);
+	private void resumeCoordinatorOnly(AjaxRequestTarget target, @NotNull TaskDto task) {
+		Task opTask = createSimpleTask(OPERATION_RESUME_TASK);
+		OperationResult result = opTask.getResult();
+		try {
+			getTaskService().resumeTasks(Collections.singleton(task.getOid()), opTask, result);
+			result.computeStatus();
+		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.resumeCoordinatorOnly.fatalError").getString(), e);
+		}
+		showResult(result);
 
-        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
-        provider.clearCache();
-        refreshTables(target);
-    }
+		TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+		provider.clearCache();
+		refreshTables(target);
+	}
 
-    private void deleteWorkersAndWorkState(AjaxRequestTarget target, @NotNull TaskDto task) {
-        Task opTask = createSimpleTask(OPERATION_DELETE_WORKERS_AND_WORK_STATE);
-        OperationResult result = opTask.getResult();
-        try {
-            getTaskService().deleteWorkersAndWorkState(task.getOid(), WAIT_FOR_TASK_STOP, opTask, result);
-            result.computeStatus();
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.deleteWorkersAndWorkState.fatalError").getString(), e);
-        }
-	    showResult(result);
+	private void deleteWorkersAndWorkState(AjaxRequestTarget target, @NotNull TaskDto task) {
+		Task opTask = createSimpleTask(OPERATION_DELETE_WORKERS_AND_WORK_STATE);
+		OperationResult result = opTask.getResult();
+		try {
+			getTaskService().deleteWorkersAndWorkState(task.getOid(), WAIT_FOR_TASK_STOP, opTask, result);
+			result.computeStatus();
+		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.deleteWorkersAndWorkState.fatalError").getString(),
+					e);
+		}
+		showResult(result);
 
-        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
-        provider.clearCache();
-        refreshTables(target);
-    }
+		TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+		provider.clearCache();
+		refreshTables(target);
+	}
 
-    private static class SearchFragment extends Fragment {
+	private static class SearchFragment extends Fragment {
 
-        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-                              IModel<TasksSearchDto> model) {
-            super(id, markupId, markupProvider, model);
+		public SearchFragment(String id, String markupId, MarkupContainer markupProvider, IModel<TasksSearchDto> model) {
+			super(id, markupId, markupProvider, model);
 
-            initLayout();
-        }
+			initLayout();
+		}
 
-        private void initLayout() {
-            final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
-            add(searchForm);
-            searchForm.setOutputMarkupId(true);
+		private void initLayout() {
+			final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
+			add(searchForm);
+			searchForm.setOutputMarkupId(true);
 
-            final IModel<TasksSearchDto> searchModel = (IModel) getDefaultModel();
+			final IModel<TasksSearchDto> searchModel = (IModel) getDefaultModel();
 
-            DropDownChoice listSelect = new DropDownChoice<>(ID_STATE,
-                    new PropertyModel<>(searchModel, TasksSearchDto.F_STATUS),
-                    new ReadOnlyEnumValuesModel<>(TaskDtoExecutionStatusFilter.class),
-                    new EnumChoiceRenderer<>(this));
-            listSelect.add(createFilterAjaxBehaviour());
-            listSelect.setOutputMarkupId(true);
-            listSelect.setNullValid(false);
-            if (listSelect.getModel().getObject() == null) {
-                listSelect.getModel().setObject(TaskDtoExecutionStatusFilter.ALL);
-            }
-            searchForm.add(listSelect);
+			DropDownChoice listSelect = new DropDownChoice<>(ID_STATE, new PropertyModel<>(searchModel, TasksSearchDto.F_STATUS),
+					new ReadOnlyEnumValuesModel<>(TaskDtoExecutionStatusFilter.class), new EnumChoiceRenderer<>(this));
+			listSelect.add(createFilterAjaxBehaviour());
+			listSelect.setOutputMarkupId(true);
+			listSelect.setNullValid(false);
+			if (listSelect.getModel().getObject() == null) {
+				listSelect.getModel().setObject(TaskDtoExecutionStatusFilter.ALL);
+			}
+			searchForm.add(listSelect);
 
-            DropDownChoice categorySelect = new DropDownChoice(ID_CATEGORY,
-                    new PropertyModel(searchModel, TasksSearchDto.F_CATEGORY),
-                    new IModel<List<String>>() {
+			DropDownChoice categorySelect = new DropDownChoice(ID_CATEGORY,
+					new PropertyModel(searchModel, TasksSearchDto.F_CATEGORY), new IModel<List<String>>() {
 
-                        @Override
-                        public List<String> getObject() {
-                            return createCategoryList();
-                        }
-                    },
-                    new StringChoiceRenderer.Prefixed("pageTasks.category.") {
+						@Override
+						public List<String> getObject() {
+							return createCategoryList();
+						}
+					}, new StringChoiceRenderer.Prefixed("pageTasks.category.") {
 
-                        @Override
-                        public String getDisplayValue(String object) {
-                            if (ALL_CATEGORIES.equals(object)) {
-                                object = "AllCategories";
-                            }
-                            return getPage().getString("pageTasks.category." + object);
-                        }
+						@Override
+						public String getDisplayValue(String object) {
+							if (ALL_CATEGORIES.equals(object)) {
+								object = "AllCategories";
+							}
+							return getPage().getString("pageTasks.category." + object);
+						}
 
-                  }
-            );
-            categorySelect.setOutputMarkupId(true);
-            categorySelect.setNullValid(false);
-            categorySelect.add(createFilterAjaxBehaviour());
-            if (categorySelect.getModel().getObject() == null) {
-                categorySelect.getModel().setObject(ALL_CATEGORIES);
-            }
-            searchForm.add(categorySelect);
+					});
+			categorySelect.setOutputMarkupId(true);
+			categorySelect.setNullValid(false);
+			categorySelect.add(createFilterAjaxBehaviour());
+			if (categorySelect.getModel().getObject() == null) {
+				categorySelect.getModel().setObject(ALL_CATEGORIES);
+			}
+			searchForm.add(categorySelect);
 
-            CheckBox showSubtasks = new CheckBox(ID_SHOW_SUBTASKS,
-                    new PropertyModel(searchModel, TasksSearchDto.F_SHOW_SUBTASKS));
-            showSubtasks.add(createFilterAjaxBehaviour());
-            searchForm.add(showSubtasks);
+			CheckBox showSubtasks = new CheckBox(ID_SHOW_SUBTASKS,
+					new PropertyModel(searchModel, TasksSearchDto.F_SHOW_SUBTASKS));
+			showSubtasks.add(createFilterAjaxBehaviour());
+			searchForm.add(showSubtasks);
 
-            AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+			AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 
-                @Override
-                protected void onSubmit(AjaxRequestTarget target) {
-                    PageTasks page = (PageTasks) getPage();
-                    page.clearSearchPerformed(target);
-                }
+				@Override
+				protected void onSubmit(AjaxRequestTarget target) {
+					PageTasks page = (PageTasks) getPage();
+					page.clearSearchPerformed(target);
+				}
 
-                @Override
-                protected void onError(AjaxRequestTarget target) {
-                    PageTasks page = (PageTasks) getPage();
-                    target.add(page.getFeedbackPanel());
-                }
-            };
-            searchForm.add(clearButton);
-        }
+				@Override
+				protected void onError(AjaxRequestTarget target) {
+					PageTasks page = (PageTasks) getPage();
+					target.add(page.getFeedbackPanel());
+				}
+			};
+			searchForm.add(clearButton);
+		}
 
-        private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
-            return new AjaxFormComponentUpdatingBehavior("change") {
+		private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
+			return new AjaxFormComponentUpdatingBehavior("change") {
 
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    PageTasks page = (PageTasks) getPage();
-                    page.searchFilterPerformed(target);
-                }
-            };
-        }
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					PageTasks page = (PageTasks) getPage();
+					page.searchFilterPerformed(target);
+				}
+			};
+		}
 
-        private List<String> createCategoryList() {
-            List<String> categories = new ArrayList<>();
-            categories.add(ALL_CATEGORIES);
+		private List<String> createCategoryList() {
+			List<String> categories = new ArrayList<>();
+			categories.add(ALL_CATEGORIES);
 
-            PageTasks page = (PageTasks) getPage();
-            List<String> list = page.getTaskService().getAllTaskCategories();
-            if (list != null) {
-                categories.addAll(list);
-                Collections.sort(categories);
-            }
+			PageTasks page = (PageTasks) getPage();
+			List<String> list = page.getTaskService().getAllTaskCategories();
+			if (list != null) {
+				categories.addAll(list);
+				Collections.sort(categories);
+			}
 
-            return categories;
-        }
-    }
+			return categories;
+		}
+	}
 
-    private void deleteAllClosedTasksConfirmedPerformed(AjaxRequestTarget target) {
-        OperationResult launchResult = new OperationResult(OPERATION_DELETE_ALL_CLOSED_TASKS);
-        Task task = createSimpleTask(OPERATION_DELETE_ALL_CLOSED_TASKS);
+	private void deleteAllClosedTasksConfirmedPerformed(AjaxRequestTarget target) {
+		OperationResult launchResult = new OperationResult(OPERATION_DELETE_ALL_CLOSED_TASKS);
+		Task task = createSimpleTask(OPERATION_DELETE_ALL_CLOSED_TASKS);
 
-        task.setHandlerUri(ModelPublicConstants.CLEANUP_TASK_HANDLER_URI);
-        task.setName("Closed tasks cleanup");
+		task.setHandlerUri(ModelPublicConstants.CLEANUP_TASK_HANDLER_URI);
+		task.setName("Closed tasks cleanup");
 
-        try {
-            CleanupPolicyType policy = new CleanupPolicyType();
-            policy.setMaxAge(XmlTypeConverter.createDuration(0));
+		try {
+			CleanupPolicyType policy = new CleanupPolicyType();
+			policy.setMaxAge(XmlTypeConverter.createDuration(0));
 
-            CleanupPoliciesType policies = new CleanupPoliciesType(getPrismContext());
-            policies.setClosedTasks(policy);
-            task.setExtensionContainerValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES, policies);
-        } catch (SchemaException e) {
-            LOGGER.error("Error dealing with schema (task {})", task, e);
-            launchResult.recordFatalError(createStringResource("pageTasks.message.deleteAllClosedTasksConfirmedPerformed.fatalError").getString(), e);
-            throw new IllegalStateException("Error dealing with schema", e);
-        }
+			CleanupPoliciesType policies = new CleanupPoliciesType(getPrismContext());
+			policies.setClosedTasks(policy);
+			task.setExtensionContainerValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES, policies);
+		} catch (SchemaException e) {
+			LOGGER.error("Error dealing with schema (task {})", task, e);
+			launchResult.recordFatalError(
+					createStringResource("pageTasks.message.deleteAllClosedTasksConfirmedPerformed.fatalError").getString(), e);
+			throw new IllegalStateException("Error dealing with schema", e);
+		}
 
-        getTaskManager().switchToBackground(task, launchResult);
+		getTaskManager().switchToBackground(task, launchResult);
 		launchResult.setBackgroundTaskOid(task.getOid());
 
-        showResult(launchResult);
-        target.add(getFeedbackPanel());
-    }
+		showResult(launchResult);
+		target.add(getFeedbackPanel());
+	}
 
-    private void addInlineMenuToTaskRow(TaskDto dto) {
-        addInlineMenuToTaskDto(dto);
+	private void addInlineMenuToTaskRow(TaskDto dto) {
+		addInlineMenuToTaskDto(dto);
 
-        List<TaskDto> list = new ArrayList<>();
-        if (dto.getSubtasks() != null) {
-            list.addAll(dto.getTransientSubtasks());
-        }
-        if (dto.getTransientSubtasks() != null) {
-            list.addAll(dto.getSubtasks());
-        }
+		List<TaskDto> list = new ArrayList<>();
+		if (dto.getSubtasks() != null) {
+			list.addAll(dto.getTransientSubtasks());
+		}
+		if (dto.getTransientSubtasks() != null) {
+			list.addAll(dto.getSubtasks());
+		}
 
-        for (TaskDto task : list) {
-            addInlineMenuToTaskDto(task);
-        }
-    }
+		for (TaskDto task : list) {
+			addInlineMenuToTaskDto(task);
+		}
+	}
 
-    private void addInlineMenuToTaskDto(final TaskDto dto) {
-        List<InlineMenuItem> items = dto.getMenuItems();
-        if (!items.isEmpty()) {
-            //menu was already added
-            return;
-        }
+	private void addInlineMenuToTaskDto(final TaskDto dto) {
+		List<InlineMenuItem> items = dto.getMenuItems();
+		if (!items.isEmpty()) {
+			// menu was already added
+			return;
+		}
 
-        items.addAll(createTasksInlineMenu(false, dto));
-    }
+		items.addAll(createTasksInlineMenu(false, dto));
+	}
 
-    private void addInlineMenuToNodeRow(final NodeDto dto) {
-        List<InlineMenuItem> items = dto.getMenuItems();
-        if (!items.isEmpty()) {
-            //menu already added
-            return;
-        }
+	private void addInlineMenuToNodeRow(final NodeDto dto) {
+		List<InlineMenuItem> items = dto.getMenuItems();
+		if (!items.isEmpty()) {
+			// menu already added
+			return;
+		}
 
-        items.addAll(createNodesInlineMenu());
-    }
+		items.addAll(createNodesInlineMenu());
+	}
 
-    private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction action, String actionName){
-        if (action.getRowModel() == null) {
-            return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject",
-                    actionName, WebComponentUtil.getSelectedData(getTaskTable()).size());
-        } else {
-            String objectName = ((TaskDto)(action.getRowModel().getObject())).getName();
-           return createStringResource("pageTasks.message.confirmationMessageForSingleTaskObject",
-                    actionName, objectName);
-        }
+	private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction action, String actionName) {
+		if (action.getRowModel() == null) {
+			return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName,
+					WebComponentUtil.getSelectedData(getTaskTable()).size());
+		} else {
+			String objectName = ((TaskDto) (action.getRowModel().getObject())).getName();
+			return createStringResource("pageTasks.message.confirmationMessageForSingleTaskObject", actionName, objectName);
+		}
 
-    }
+	}
 
-    private boolean isTaskShowConfirmationDialog(ColumnMenuAction action){
-        return action.getRowModel() != null ||
-                WebComponentUtil.getSelectedData(getTaskTable()).size() > 0;
-    }
+	private boolean isTaskShowConfirmationDialog(ColumnMenuAction action) {
+		return action.getRowModel() != null || WebComponentUtil.getSelectedData(getTaskTable()).size() > 0;
+	}
 
-    private IModel<String> getNodeConfirmationMessageModel(ColumnMenuAction action, String actionName){
-        if (action.getRowModel() == null) {
-            return createStringResource("pageTasks.message.confirmationMessageForMultipleNodeObject",
-                    actionName, WebComponentUtil.getSelectedData(getNodeTable()).size());
-        } else {
-            String objectName = ((NodeDto)(action.getRowModel().getObject())).getName();
-            return createStringResource("pageTasks.message.confirmationMessageForSingleNodeObject",
-                    actionName, objectName);
-        }
+	private IModel<String> getNodeConfirmationMessageModel(ColumnMenuAction action, String actionName) {
+		if (action.getRowModel() == null) {
+			return createStringResource("pageTasks.message.confirmationMessageForMultipleNodeObject", actionName,
+					WebComponentUtil.getSelectedData(getNodeTable()).size());
+		} else {
+			String objectName = ((NodeDto) (action.getRowModel().getObject())).getName();
+			return createStringResource("pageTasks.message.confirmationMessageForSingleNodeObject", actionName, objectName);
+		}
 
-    }
+	}
 
-    private boolean isNodeShowConfirmationDialog(ColumnMenuAction action){
-        return action.getRowModel() != null ||
-                WebComponentUtil.getSelectedData(getNodeTable()).size() > 0;
-    }
+	private boolean isNodeShowConfirmationDialog(ColumnMenuAction action) {
+		return action.getRowModel() != null || WebComponentUtil.getSelectedData(getNodeTable()).size() > 0;
+	}
 }
