@@ -1447,7 +1447,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				}
 				ProtectedStringType expectedPs = new ProtectedStringType();
 				expectedPs.setClearValue(expectedClearValue);
-				return protector.compare(actualValue, expectedPs);
+				return protector.compareCleartext(actualValue, expectedPs);
 
 			default:
 				throw new IllegalArgumentException("Unknown storage "+storageType);
