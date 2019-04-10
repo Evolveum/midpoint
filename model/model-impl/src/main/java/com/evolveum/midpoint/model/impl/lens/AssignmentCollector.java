@@ -29,7 +29,7 @@ import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincip
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
@@ -61,6 +61,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
@@ -81,6 +82,7 @@ public class AssignmentCollector {
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private ArchetypeManager archetypeManager;
 	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private PrismContext prismContext;
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
@@ -92,7 +94,7 @@ public class AssignmentCollector {
 	
 	public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> assignmentHolder, PrismObject<SystemConfigurationType> systemConfiguration, boolean loginMode, Task task, OperationResult result) throws SchemaException {
 		
-		LensContext<AH> lensContext = createAuthenticationLensContext(assignmentHolder, systemConfiguration);
+		LensContext<AH> lensContext = createAuthenticationLensContext(assignmentHolder, result);
 		
 		AH assignmentHolderType = assignmentHolder.asObjectable();
 		Collection<AssignmentType> forcedAssignments = null;
@@ -110,7 +112,7 @@ public class AssignmentCollector {
 			AssignmentEvaluator.Builder<AH> builder =
 					new AssignmentEvaluator.Builder<AH>()
 							.repository(repositoryService)
-							.focusOdo(new ObjectDeltaObject<>(assignmentHolder, null, assignmentHolder))
+							.focusOdo(new ObjectDeltaObject<>(assignmentHolder, null, assignmentHolder, assignmentHolder.getDefinition()))
 							.channel(null)
 							.objectResolver(objectResolver)
 							.systemObjectCache(systemObjectCache)
@@ -149,6 +151,12 @@ public class AssignmentCollector {
 				try {
 					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+					PrismContainerDefinition definition = assignmentType.asPrismContainerValue().getDefinition();
+					if (definition == null) {
+						// TODO: optimize
+						definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+					}
+					assignmentIdi.setDefinition(definition);
 					assignmentIdi.recompute();
 					EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, assignmentHolder, assignmentHolder.toString(), virtual, task, result);
 					evaluatedAssignments.add(assignment);
@@ -163,27 +171,25 @@ public class AssignmentCollector {
 		return evaluatedAssignments;
 	}
 
-	private <AH extends AssignmentHolderType> LensContext<AH> createAuthenticationLensContext(PrismObject<AH> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
+	private <AH extends AssignmentHolderType> LensContext<AH> createAuthenticationLensContext(PrismObject<AH> user, OperationResult result) throws SchemaException {
 		LensContext<AH> lensContext = new LensContextPlaceholder<>(user, prismContext);
-		if (systemConfiguration != null) {
-			ObjectPolicyConfigurationType policyConfigurationType = determineObjectPolicyConfiguration(user, systemConfiguration);
-			lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
-		}
+		ArchetypePolicyType policyConfigurationType = determineObjectPolicyConfiguration(user, result);
+		lensContext.getFocusContext().setArchetypePolicyType(policyConfigurationType);
 		return lensContext;
 	}
 
-	private <AH extends AssignmentHolderType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<AH> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
-		ObjectPolicyConfigurationType policyConfigurationType;
+	private <AH extends AssignmentHolderType> ArchetypePolicyType determineObjectPolicyConfiguration(PrismObject<AH> user, OperationResult result) throws SchemaException {
+		ArchetypePolicyType archetypePolicy;
 		try {
-			policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(user, systemConfiguration.asObjectable());
+			archetypePolicy = archetypeManager.determineArchetypePolicy(user, result);
 		} catch (ConfigurationException e) {
 			throw new SchemaException(e.getMessage(), e);
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
-					FocusTypeUtil.determineSubTypes(user), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+					FocusTypeUtil.determineSubTypes(user), archetypePolicy==null?null:archetypePolicy.asPrismContainerValue().debugDump(1));
 		}
 		
-		return policyConfigurationType;
+		return archetypePolicy;
 	}
 }

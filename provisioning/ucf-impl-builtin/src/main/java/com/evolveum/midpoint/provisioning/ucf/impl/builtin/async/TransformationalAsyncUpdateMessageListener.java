@@ -27,6 +27,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ChangeListener;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -60,7 +61,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 
 	private static final Trace LOGGER = TraceManager.getTrace(TransformationalAsyncUpdateMessageListener.class);
 
-	private static final QName VAR_MESSAGE = new QName("message");
+	private static final String VAR_MESSAGE = "message";
 
 	@NotNull private final ChangeListener changeListener;
 	@Nullable private final Authentication authentication;
@@ -83,8 +84,8 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 		try {
 			securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
-			Map<QName, Object> variables = new HashMap<>();
-			variables.put(VAR_MESSAGE, message);
+			VariablesMap variables = new VariablesMap();
+			variables.put(VAR_MESSAGE, message, AsyncUpdateMessageType.class);
 			List<UcfChangeType> changeBeans;
 			try {
 				ExpressionType transformExpression = connectorInstance.getTransformExpression();

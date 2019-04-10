@@ -34,6 +34,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import net.sf.ehcache.store.disk.ods.AATreeSet;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -274,6 +277,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			@NotNull PrismContext prismContext) {
 		this.source = source;
 		this.sourceDescription = sourceDescription;
+		if (assignmentIdi.getDefinition() == null) {
+			throw new IllegalArgumentException("Attept to set segment assignment IDI withough a definition");
+		}
 		this.assignmentIdi = assignmentIdi;
 		this.isAssignment = isAssignment;
 		this.evaluatedForOld = evaluatedForOld;
@@ -291,6 +297,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		try {
 			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
 			idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignment));
+			idi.setDefinition(assignment.asPrismContainerValue().getDefinition());
 			idi.recompute();
 			return idi;
 		} catch (SchemaException e) {

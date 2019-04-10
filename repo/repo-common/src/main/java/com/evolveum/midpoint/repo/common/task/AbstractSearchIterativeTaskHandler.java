@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -650,5 +651,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				logger.warn("Last work bucket finished with status other than SUCCESS in {}:\n{}", task, previousOpResult.debugDump());
 			}
 		}
+	}
+	
+	protected ExpressionProfile getExpressionProfile() {
+		// TODO Determine from task object archetype
+		return MiscSchemaUtil.getExpressionProfile();
 	}
 }

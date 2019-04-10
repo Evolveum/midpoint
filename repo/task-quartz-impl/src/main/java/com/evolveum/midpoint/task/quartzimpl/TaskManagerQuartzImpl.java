@@ -42,6 +42,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1234,8 +1235,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                 LOGGER.debug("Lightweight task handler shell starting execution; task = {}", task);
 
                 try {
-	                // Setup Spring Security context
-	                securityContextManager.setupPreAuthenticatedSecurityContext(task.getOwner());
+	                // Task owner is cloned because otherwise we get CME's when recomputing the owner user during login process
+	                securityContextManager.setupPreAuthenticatedSecurityContext(CloneUtil.clone(task.getOwner()));
                 } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set up task security context {}", e, task);
                     throw new SystemException(e.getMessage(), e);

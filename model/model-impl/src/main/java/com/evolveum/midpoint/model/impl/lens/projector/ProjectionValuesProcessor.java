@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -512,7 +512,7 @@ public class ProjectionValuesProcessor {
 			LensProjectionContext projectionContext) {
 		return ModelImplUtils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
 				projectionContext.getResourceShadowDiscriminator(), projectionContext.getResource().asPrismObject(),
-				context.getSystemConfiguration(), projectionContext);
+				context.getSystemConfiguration(), projectionContext, prismContext);
 	}
 
 	private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,

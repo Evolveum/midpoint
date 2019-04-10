@@ -112,6 +112,11 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	public void setCompileTimeClass(Class<C> compileTimeClass) {
 		this.compileTimeClass = compileTimeClass;
 	}
+	
+	@Override
+	public Class<C> getTypeClass() {
+		return compileTimeClass;
+	}
 
     protected String getSchemaNamespace() {
         return getName().getNamespaceURI();

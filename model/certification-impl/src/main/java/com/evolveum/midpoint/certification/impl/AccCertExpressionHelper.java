@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -74,7 +75,7 @@ public class AccCertExpressionHelper {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, xsdType);
 
-        Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+        Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResult = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
@@ -104,7 +105,7 @@ public class AccCertExpressionHelper {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismReferenceDefinition resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, ObjectReferenceType.COMPLEX_TYPE);
 
-        Expression<PrismReferenceValue,PrismReferenceDefinition> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+        Expression<PrismReferenceValue,PrismReferenceDefinition> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 		context.setAdditionalConvertor(ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE));
         PrismValueDeltaSetTriple<PrismReferenceValue> exprResult =

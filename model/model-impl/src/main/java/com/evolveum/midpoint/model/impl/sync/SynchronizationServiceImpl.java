@@ -1,6 +1,6 @@
 /*
 
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,7 +201,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		SynchronizationContext<F> syncCtx = new SynchronizationContext<>(applicableShadow, currentShadow, resource, sourceChanel, task, result);
+		SynchronizationContext<F> syncCtx = new SynchronizationContext<>(applicableShadow, currentShadow, resource, sourceChanel, prismContext, task, result);
 		syncCtx.setSystemConfiguration(configuration);
 		
 		SynchronizationType synchronization = resource.asObjectable().getSynchronization();
@@ -267,15 +267,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		ExpressionType classificationExpression = synchronizationSorterType.getExpression();
 		String desc = "synchronization divider type ";
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
-				syncCtx.getResource(), syncCtx.getSystemConfiguration(), null);
-		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, syncCtx.getChanel());
+				syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
+		variables.put(ExpressionConstants.VAR_CHANNEL, syncCtx.getChanel(), String.class);
 		try {
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 			//noinspection unchecked
 			PrismPropertyDefinition<ObjectSynchronizationDiscriminatorType> discriminatorDef = prismContext.getSchemaRegistry()
 					.findPropertyDefinitionByElementName(new QName(SchemaConstants.NS_C, "objectSynchronizationDiscriminator"));
 			PrismPropertyValue<ObjectSynchronizationDiscriminatorType> evaluateDiscriminator = ExpressionUtil.evaluateExpression(variables, discriminatorDef, 
-					classificationExpression, expressionFactory, desc, task, result);
+					classificationExpression, syncCtx.getExpressionProfile(), expressionFactory, desc, task, result);
 			if (evaluateDiscriminator == null) {
 				return null;
 			}

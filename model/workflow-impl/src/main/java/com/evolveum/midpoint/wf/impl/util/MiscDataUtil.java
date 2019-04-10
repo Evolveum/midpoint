@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
@@ -412,6 +413,16 @@ public class MiscDataUtil {
 
 	public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
 		return resolveObjectReference(ref, false, result);
+	}
+	
+	public TypedValue<PrismObject> resolveTypedObjectReference(ObjectReferenceType ref, OperationResult result) {
+		PrismObject resolvedObject = resolveObjectReference(ref, false, result);
+		if (resolvedObject == null) {
+			PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+			return new TypedValue<>(null, def);
+		} else {
+			return new TypedValue<>(resolvedObject);
+		}
 	}
 
 	public PrismObject resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {

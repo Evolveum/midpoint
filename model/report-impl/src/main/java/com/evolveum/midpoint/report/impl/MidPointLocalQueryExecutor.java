@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -44,6 +49,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 
@@ -52,6 +58,9 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 	private String script;
 	private Class type;
 	private ReportService reportService;
+	private PrismObject<ReportType> report;
+	private Task task;
+	private OperationResult operationResult;
 
 
 	public MidPointLocalQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
@@ -62,41 +71,58 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 	protected MidPointLocalQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
 			Map<String, ? extends JRValueParameter> parametersMap) {
 		super(jasperReportsContext, dataset, parametersMap);
+		
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Creating MidPointLocalQueryExecutor, params:\n{}", ReportUtils.dumpParams(parametersMap, 1));
+		}
 
 		//JRFillParameter fillparam = (JRFillParameter) parametersMap.get(JRParameter.REPORT_PARAMETERS_MAP);
 		//Map reportParams = (Map) fillparam.getValue();
-		reportService = (ReportService) parametersMap.get(ReportService.PARAMETER_REPORT_SERVICE).getValue();
+		reportService = getParameterValue(parametersMap, ReportService.PARAMETER_REPORT_SERVICE);
+		report = getParameterValue(parametersMap, ReportTypeUtil.PARAMETER_REPORT_OBJECT);
+		task = getParameterValue(parametersMap, ReportTypeUtil.PARAMETER_TASK);
+
+		// The PARAMETER_OPERATION_RESULT will not make it here. It is properly set in the task, but it won't arrive here.
+		// No idea why.
+//		operationResult = getParameterValue(parametersMap, ReportCreateTaskHandler.PARAMETER_OPERATION_RESULT);
+		operationResult = task.getResult(); // WORKAROUND
 
 		parseQuery();
 	}
-
-	@Override
-	protected <T> PrismPropertyValue<T> createPropertyValue(T realValue) {
-		return reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
+	
+	private <T> T getParameterValue(Map<String, ? extends JRValueParameter> parametersMap, String name) {
+		JRValueParameter jrValueParameter = parametersMap.get(name);
+		if (jrValueParameter == null) {
+			throw new IllegalArgumentException("No parameter '"+name+"' in JasperReport parameters");
+		}
+		return (T) jrValueParameter.getValue();
 	}
 
 	@Override
-	protected Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return reportService.parseQuery(query, expressionParameters);
+	protected <T> TypedValue<T> createTypedPropertyValue(T realValue, Class<T> valueClass) {
+		PrismPropertyValue<T> pval = reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
+		return new TypedValue<>(pval, valueClass);
+	}
+
+	@Override
+	protected Object getParsedQuery(String query, VariablesMap expressionParameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return reportService.parseQuery(report, query, expressionParameters, task, operationResult);
 	}
 
 	@Override
 	protected Collection<PrismObject<? extends ObjectType>> searchObjects(Object query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException{
-		return reportService.searchObjects((ObjectQuery) query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		return reportService.searchObjects((ObjectQuery) query, SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, operationResult);
 	}
 
 	@Override
-	protected Collection<PrismContainerValue<? extends Containerable>>
-	evaluateScript(String script,
-				   Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException,
-			SecurityViolationException, CommunicationException, ConfigurationException,
-			ExpressionEvaluationException {
-		return reportService.evaluateScript(script, getParameters());
+	protected Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script, VariablesMap parameters)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return reportService.evaluateScript(report, script, getParameters(), task, operationResult);
 	}
 
 	@Override
-	protected Collection<AuditEventRecord> searchAuditRecords(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return reportService.evaluateAuditScript(script, parameters);
+	protected Collection<AuditEventRecord> searchAuditRecords(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return reportService.evaluateAuditScript(report, script, parameters, task, operationResult);
 	}
 
 	@Override

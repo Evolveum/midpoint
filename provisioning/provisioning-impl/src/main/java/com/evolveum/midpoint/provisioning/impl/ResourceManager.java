@@ -664,7 +664,7 @@ public class ResourceManager {
 			}
 			ExpressionType expressionType = (ExpressionType) expressionWrapper.getExpression();
 
-			Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, propDef, shortDesc, task, result);
+			Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, propDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 			ExpressionVariables variables = new ExpressionVariables();
 			
 			// TODO: populate variables

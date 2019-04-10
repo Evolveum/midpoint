@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -60,12 +62,11 @@ public class AssociationTargetSearchExpressionEvaluator
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationTargetSearchExpressionEvaluator.class);
 
-	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
-			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, ObjectResolver objectResolver,
-			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
+	public AssociationTargetSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
+			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver,
+			ModelService modelService, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext,
-				securityContextManager, localizationService);
+		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService);
 	}
 
 	@Override
@@ -75,11 +76,13 @@ public class AssociationTargetSearchExpressionEvaluator
 
 	@Override
 	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
-		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
-		if (rAssocTargetDef == null) {
+		@SuppressWarnings("unchecked")
+		TypedValue<RefinedObjectClassDefinition> rAssocTargetDefTypedValue = params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+		if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
 			throw new ExpressionEvaluationException("No association target object class definition variable in "+
 					params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
 		}
+		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) rAssocTargetDefTypedValue.getValue();
 		ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), getPrismContext());
 		ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(rAssocTargetDef.getObjectClassDefinition().getTypeName(),
 				getPrismContext());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectLifecycleDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -504,32 +505,35 @@ public class ActivationProcessor {
 			// Source: legal
 	        ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSourceIdi = getLegalIdi(projCtx);
 	        Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSource
-	        	= new Source<>(legalSourceIdi, ExpressionConstants.VAR_LEGAL);
+	        	= new Source<>(legalSourceIdi, ExpressionConstants.VAR_LEGAL_QNAME);
 			builder.defaultSource(legalSource);
 
             // Source: assigned
             ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedIdi = getAssignedIdi(projCtx);
-            Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedSource = new Source<>(assignedIdi, ExpressionConstants.VAR_ASSIGNED);
+            Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedSource = new Source<>(assignedIdi, ExpressionConstants.VAR_ASSIGNED_QNAME);
 			builder.addSource(assignedSource);
 
             // Source: focusExists
 	        ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext());
 	        Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> focusExistsSource
-	        	= new Source<>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
+	        	= new Source<>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS_QNAME);
 			builder.addSource(focusExistsSource);
 
 			// Variable: focus
-			builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
+			builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDefinition());
 
-	        // Variable: user (for convenience, same as "focus")
-			builder.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
+	        // Variable: user (for convenience, same as "focus"), DEPRECATED
+			builder.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDefinition());
 
-			// Variable: shadow
-			builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject());
-			builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject());
+			// Variable: projection
+			// This may be tricky when creation of a new projection is considered. 
+			// In that case we do not have any projection object (account) yet, neigher new nor old. But we already have
+			// projection context. We have to pass projection definition explicitly here.
+			builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
+			builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
 
 			// Variable: resource
-			builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
+			builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), ResourceType.class);
 
 			builder.originType(OriginType.OUTBOUND);
 			builder.originObject(projCtx.getResource());
@@ -599,32 +603,32 @@ public class ActivationProcessor {
 			
 			        }
 
-			        Source<PrismPropertyValue<ActivationStatusType>,PrismPropertyDefinition<ActivationStatusType>> computedSource = new Source<>(computedIdi, ExpressionConstants.VAR_INPUT);
+			        Source<PrismPropertyValue<ActivationStatusType>,PrismPropertyDefinition<ActivationStatusType>> computedSource = new Source<>(computedIdi, ExpressionConstants.VAR_INPUT_QNAME);
 
 			        builder.defaultSource(computedSource);
 
-			        Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS);
+			        Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS_QNAME);
 					builder.addSource(source);
 
 		        } else {
-		        	Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_INPUT);
+		        	Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_INPUT_QNAME);
 					builder.defaultSource(source);
 		        }
 
 				// Source: legal
 		        ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalIdi = getLegalIdi(projCtx);
-		        Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSource = new Source<>(legalIdi, ExpressionConstants.VAR_LEGAL);
+		        Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSource = new Source<>(legalIdi, ExpressionConstants.VAR_LEGAL_QNAME);
 				builder.addSource(legalSource);
 
                 // Source: assigned
                 ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedIdi = getAssignedIdi(projCtx);
-                Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedSource = new Source<>(assignedIdi, ExpressionConstants.VAR_ASSIGNED);
+                Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedSource = new Source<>(assignedIdi, ExpressionConstants.VAR_ASSIGNED_QNAME);
 				builder.addSource(assignedSource);
 
                 // Source: focusExists
 		        ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext());
 		        Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> focusExistsSource
-		        	= new Source<>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
+		        	= new Source<>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS_QNAME);
 		        builder.addSource(focusExistsSource);
 
 				return builder;
@@ -657,7 +661,7 @@ public class ActivationProcessor {
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer =
 			builder -> {
 
-				builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx).getMap());
+				builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx));
 
 		        builder.originType(OriginType.OUTBOUND);
 				builder.originObject(projCtx.getResource());
@@ -800,7 +804,7 @@ public class ActivationProcessor {
 			propertyOld.setRealValue(old);
 			PropertyDelta<Boolean> delta = propertyOld.createDelta();
 			delta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(current));
-			return new ItemDeltaItem<>(propertyOld, delta, property);
+			return new ItemDeltaItem<>(propertyOld, delta, property, definition);
 		}
 	}
 
@@ -843,7 +847,7 @@ public class ActivationProcessor {
 			existsPropOld.setRealValue(existsOld);
 			PropertyDelta<Boolean> existsDelta = existsPropOld.createDelta();
 			existsDelta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(existsNew));
-			return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp);
+			return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp, existsDef);
 		}
 	}
 

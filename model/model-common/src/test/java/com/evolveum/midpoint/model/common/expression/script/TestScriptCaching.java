@@ -41,6 +41,7 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -152,9 +153,9 @@ public class TestScriptCaching {
 
     	ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition, desc);
 
-        ExpressionVariables variables = ExpressionVariables.create(
-				new QName(NS_WHATEVER, "foo"), "FOO",
-				new QName(NS_WHATEVER, "bar"), "BAR"
+        ExpressionVariables variables = ExpressionVariables.create(getPrismContext(),
+				"foo", "FOO", PrimitiveType.STRING,
+				"bar", "BAR", PrimitiveType.STRING
 		);
 
 		// WHEN

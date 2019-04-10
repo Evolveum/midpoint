@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,24 +166,25 @@ public class MappingTestEvaluator {
                 new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
 
         MappingImpl.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mappingBuilder = mappingFactory.createMappingBuilder(mappingType, testName);
+        mappingBuilder.prismContext(prismContext);
 
         // Source context: user
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userOld, userDelta, null);
+		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userOld, userDelta, null, prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class));
         userOdo.recompute();
-		mappingBuilder.setSourceContext(userOdo);
+		mappingBuilder.sourceContext(userOdo);
 
 		// Variable $user
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 
 		// Variable $account
 		PrismObject<ShadowType> account = getAccount();
-		ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<>(account, null, null);
+		ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<>(account, null, null, account.getDefinition());
 		accountOdo.recompute();
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
 
 		// Target context: user
 		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
-		mappingBuilder.setTargetContext(userDefinition);
+		mappingBuilder.targetContext(userDefinition);
 
 
 		ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
@@ -227,15 +228,15 @@ public class MappingTestEvaluator {
 		MappingImpl.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> builder = mappingFactory.createMappingBuilder(mappingType, testName);
 
 
-    	Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> defaultSource = new Source<>(null, delta, null, ExpressionConstants.VAR_INPUT);
+    	Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> defaultSource = new Source<>(null, delta, null, ExpressionConstants.VAR_INPUT_QNAME, delta.getDefinition());
     	defaultSource.recompute();
 		builder.setDefaultSource(defaultSource);
 		builder.setTargetContext(getUserDefinition());
-    	builder.addVariableDefinition(ExpressionConstants.VAR_USER, user);
-    	builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
-    	builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject());
-    	builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject());
-    	builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account.asPrismObject());
+    	builder.addVariableDefinition(ExpressionConstants.VAR_USER, user, UserType.class);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user, UserType.class);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject(), ShadowType.class);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject(), ShadowType.class);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account.asPrismObject(), ShadowType.class);
 
     	ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
 			ItemPath outputPath;

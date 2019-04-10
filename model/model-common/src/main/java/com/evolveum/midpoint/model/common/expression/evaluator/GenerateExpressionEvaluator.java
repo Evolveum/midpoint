@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.UUID;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -52,27 +55,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
  * @author semancik
  *
  */
-public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
-		implements ExpressionEvaluator<V, D> {
+public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V, D, GenerateExpressionEvaluatorType> {
 
 	public static final int DEFAULT_LENGTH = 8;
 
-	private GenerateExpressionEvaluatorType generateEvaluatorType;
-	private D outputDefinition;
-	private Protector protector;
-	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
 	private ValuePolicyProcessor valuePolicyGenerator;
 	private ValuePolicyType elementValuePolicy;
 
-	GenerateExpressionEvaluator(GenerateExpressionEvaluatorType generateEvaluatorType, D outputDefinition,
+	GenerateExpressionEvaluator(QName elementName, GenerateExpressionEvaluatorType generateEvaluatorType, D outputDefinition,
 			Protector protector, ObjectResolver objectResolver, ValuePolicyProcessor valuePolicyGenerator, PrismContext prismContext) {
-		this.generateEvaluatorType = generateEvaluatorType;
-		this.outputDefinition = outputDefinition;
-		this.protector = protector;
+		super(elementName, generateEvaluatorType, outputDefinition, protector, prismContext);
 		this.objectResolver = objectResolver;
 		this.valuePolicyGenerator = valuePolicyGenerator;
-		this.prismContext = prismContext;
 	}
 
 	private boolean isNotEmptyMinLength(ValuePolicyType policy) {
@@ -101,13 +96,14 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		checkEvaluatorProfile(context);
 
 		ValuePolicyType valuePolicyType = null;
 
 
-		ObjectReferenceType generateEvaluatorValuePolicyRef = generateEvaluatorType.getValuePolicyRef();
+		ObjectReferenceType generateEvaluatorValuePolicyRef = getExpressionEvaluatorType().getValuePolicyRef();
 		if (generateEvaluatorValuePolicyRef != null) {
-			if (generateEvaluatorType.getValuePolicyRef() != null) {
+			if (getExpressionEvaluatorType().getValuePolicyRef() != null) {
 	        	ValuePolicyType resolvedValuePolicyType = objectResolver.resolve(generateEvaluatorValuePolicyRef, ValuePolicyType.class,
 	        			null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), context.getResult());
 	        	valuePolicyType = resolvedValuePolicyType;
@@ -134,7 +130,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 		//
 		String stringValue = null;
-		GenerateExpressionEvaluatorModeType mode = generateEvaluatorType.getMode();
+		GenerateExpressionEvaluatorModeType mode = getExpressionEvaluatorType().getMode();
 		Item<V, D> output = outputDefinition.instantiate();
 		if (mode == null || mode == GenerateExpressionEvaluatorModeType.POLICY) {
 
@@ -190,11 +186,11 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		if (variables == null) {
 			return null;
 		}
-		PrismObject<O> object = variables.getObjectNew(ExpressionConstants.VAR_PROJECTION);
+		PrismObject<O> object = variables.getValueNew(ExpressionConstants.VAR_PROJECTION);
 		if (object != null) {
 			return (AbstractValuePolicyOriginResolver<O>) new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
 		}
-		object = variables.getObjectNew(ExpressionConstants.VAR_FOCUS);
+		object = variables.getValueNew(ExpressionConstants.VAR_FOCUS);
 		return (AbstractValuePolicyOriginResolver<O>) new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
 	}
 

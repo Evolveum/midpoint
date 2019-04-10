@@ -118,8 +118,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
 		display("jack", jack);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertAssignedRole(jack.asPrismObject(), ROLE_JUDGE_OID);
 		assertEquals("Wrong # of assignments", 1, jack.getAssignment().size());
@@ -143,8 +142,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
 		display("jack", jack);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertAssignedRole(jack.asPrismObject(), ROLE_PIRATE_OID);
 		assertEquals("Wrong # of assignments", 2, jack.getAssignment().size());
@@ -162,6 +160,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		TestCtx t = createContext(this, "test120RecomputeJack");
 
 		// GIVEN
+		dummyAuditService.clear();
 
 		// WHEN
 		t.displayWhen();
@@ -172,8 +171,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
 		display("jack", jack);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		// TODO test that assignment IDs are filled in correctly (currently they are not)
 		assertEquals("Wrong # of assignments", 2, jack.getAssignment().size());
@@ -208,8 +206,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		jack = getUser(USER_JACK_OID).asObjectable();
 		display("jack", jack);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertNotAssignedRole(jack.asPrismObject(), ROLE_PIRATE_OID);
 		assertEquals("Wrong # of assignments", 1, jack.getAssignment().size());
@@ -240,8 +237,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		UserType bob = getUser(userBobOid).asObjectable();
 		display("bob", bob);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertAssignedRole(bob.asPrismObject(), roleATest2aOid);
 		assertAssignedRole(bob.asPrismObject(), roleATest3aOid);
@@ -276,8 +272,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		UserType bob = getUser(userBobOid).asObjectable();
 		display("bob", bob);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertAssignedRole(bob.asPrismObject(), roleATest2aOid);
 		assertAssignedRole(bob.asPrismObject(), roleATest2bOid);
@@ -322,8 +317,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		alice = getUser(alice.getOid()).asObjectable();
 		display("alice", alice);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertAssignedRole(alice.asPrismObject(), roleATest2aOid);
 		assertAssignedRole(alice.asPrismObject(), roleATest2bOid);
@@ -360,8 +354,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		chuck = getUser(chuck.getOid()).asObjectable();
 		display("chuck", chuck);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertAssignedRole(chuck.asPrismObject(), roleATest2aOid);
 		assertAssignedRole(chuck.asPrismObject(), roleATest2bOid);
@@ -399,8 +392,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		dan = getUser(dan.getOid()).asObjectable();
 		display("dan", dan);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertAssignedRole(dan.asPrismObject(), roleATest2aOid);
 		assertAssignedRole(dan.asPrismObject(), roleATest2bOid);
@@ -433,8 +425,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		UserType eve = getUser(userEveOid).asObjectable();
 		display("alice", eve);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertAssignedRole(eve.asPrismObject(), roleATest2aOid);
 		assertAssignedRole(eve.asPrismObject(), roleATest2bOid);
@@ -465,8 +456,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		RoleType wrong = getRole(roleATestWrongOid).asObjectable();
 		display("role 'wrong'", wrong);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong.getPolicySituation());
 
@@ -492,8 +482,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		wrong2 = getRole(wrong2.getOid()).asObjectable();
 		display("role 'wrong-2'", wrong2);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong2.getPolicySituation());
 
@@ -522,8 +511,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayThen();
 		wrong3 = getRole(wrong3.getOid()).asObjectable();
 		display("role 'wrong-3'", wrong3);
-		t.result.computeStatus();
-		TestUtil.assertSuccess(t.result);
+		assertSuccess(t.result);
 
 		assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong3.getPolicySituation());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LifecycleUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -144,11 +145,12 @@ public class FocusLifecycleProcessor {
 		String desc = "condition for transition to state "+targetLifecycleState+" for "+context.getFocusContext().getHumanReadableName();
 		
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, context.getFocusContext().getObjectNew());
+		variables.put(ExpressionConstants.VAR_OBJECT, context.getFocusContext().getObjectNew(), context.getFocusContext().getObjectNew().getDefinition());
 		// TODO: more variables?
 		
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-				conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()) , desc, task, result);
+				conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()),
+				MiscSchemaUtil.getExpressionProfile(), desc, task, result);
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
 		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
@@ -2116,7 +2117,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType scriptExecutionCommand,
-		    @NotNull Map<String, Object> initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
+		    @NotNull VariablesMap initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
 		    @NotNull OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, result);

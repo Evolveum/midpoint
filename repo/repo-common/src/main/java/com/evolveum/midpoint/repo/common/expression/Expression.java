@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,15 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -33,6 +38,8 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -41,6 +48,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -65,6 +73,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
 	final private ExpressionType expressionType;
 	final private D outputDefinition;
+	final private ExpressionProfile expressionProfile;
 	final private PrismContext prismContext;
 	final private ObjectResolver objectResolver;
 	final private SecurityContextManager securityContextManager;
@@ -72,19 +81,20 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
-	public Expression(ExpressionType expressionType, D outputDefinition, ObjectResolver objectResolver, SecurityContextManager securityContextManager, PrismContext prismContext) {
+	public Expression(ExpressionType expressionType, D outputDefinition, ExpressionProfile expressionProfile, ObjectResolver objectResolver, SecurityContextManager securityContextManager, PrismContext prismContext) {
 		//Validate.notNull(outputDefinition, "null outputDefinition");
 		Validate.notNull(objectResolver, "null objectResolver");
 		Validate.notNull(prismContext, "null prismContext");
 		this.expressionType = expressionType;
 		this.outputDefinition = outputDefinition;
+		this.expressionProfile = expressionProfile;
 		this.objectResolver = objectResolver;
 		this.prismContext = prismContext;
 		this.securityContextManager = securityContextManager;
 	}
 
 	public void parse(ExpressionFactory factory, String contextDescription, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		if (expressionType == null) {
 			evaluators.add(createDefaultEvaluator(factory, contextDescription, task, result));
 			return;
@@ -104,7 +114,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
 	private ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory,
 													 String contextDescription, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		if (evaluatorElements.isEmpty()) {
 			throw new SchemaException("Empty evaluator list in "+contextDescription);
 		}
@@ -113,22 +123,26 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		if (evaluatorFactory == null) {
 			throw new SchemaException("Unknown expression evaluator element "+fistEvaluatorElement.getName()+" in "+contextDescription);
 		}
-		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, factory, contextDescription, task, result);
+		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, expressionProfile, factory, contextDescription, task, result);
 	}
 
 	private ExpressionEvaluator<V,D> createDefaultEvaluator(ExpressionFactory factory, String contextDescription,
-															Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+															Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		ExpressionEvaluatorFactory evaluatorFactory = factory.getDefaultEvaluatorFactory();
 		if (evaluatorFactory == null) {
 			throw new SystemException("Internal error: No default expression evaluator factory");
 		}
-		return evaluatorFactory.createEvaluator(null, outputDefinition, factory,  contextDescription, task, result);
+		return evaluatorFactory.createEvaluator(null, outputDefinition, expressionProfile, factory,  contextDescription, task, result);
 	}
 
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ExpressionVariables processedVariables = null;
+		
+		if (context.getExpressionProfile() == null) {
+			context.setExpressionProfile(expressionProfile);
+		}
 
 		try {
 
@@ -210,7 +224,10 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		for (ExpressionEvaluator<?,?> evaluator: evaluators) {
+			processEvaluatorProfile(contextWithProcessedVariables, evaluator);
+			
 			PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables);
+			
 			if (outputTriple != null) {
 				boolean allowEmptyRealValues = false;
 				if (expressionType != null) {
@@ -230,6 +247,25 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
 		return null;
 
+	}
+
+	private void processEvaluatorProfile(ExpressionEvaluationContext context, ExpressionEvaluator<?, ?> evaluator) throws SecurityViolationException {
+		ExpressionProfile expressionProfile = context.getExpressionProfile();
+		if (expressionProfile == null) {
+			context.setExpressionEvaluatorProfile(null);
+		} else {
+			ExpressionEvaluatorProfile evaluatorProfile = expressionProfile.getEvaluatorProfile(evaluator.getElementName());
+			if (evaluatorProfile == null) {
+				if (expressionProfile.getDecision() == AccessDecision.ALLOW) {
+					context.setExpressionEvaluatorProfile(null);
+				} else {
+					throw new SecurityViolationException("Access to expression evaluator "+evaluator.shortDebugDump()+
+							" not allowed (expression profile: "+expressionProfile.getIdentifier()+") in "+context.getContextDescription());
+				}
+			} else {
+				context.setExpressionEvaluatorProfile(evaluatorProfile);
+			}
+		}
 	}
 
 	private void traceSuccess(ExpressionEvaluationContext context, ExpressionVariables processedVariables, PrismValueDeltaSetTriple<V> outputTriple) {
@@ -296,6 +332,9 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			sb.append(processedVariables.debugDump(1));
 		}
 		sb.append("\nOutput definition: ").append(MiscUtil.toString(outputDefinition));
+		if (context.getExpressionProfile() != null) {
+			sb.append("\nExpression profile: ").append(context.getExpressionProfile().getIdentifier());
+		}
 		sb.append("\nEvaluators: ");
 		sb.append(shortDebugDump());
 	}
@@ -304,8 +343,9 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		sb.append("\n------------------------------------------------------");
 	}
 
-	private ExpressionVariables processInnerVariables(ExpressionVariables variables, String contextDescription,
-													  Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private ExpressionVariables processInnerVariables(
+			ExpressionVariables variables, String contextDescription, Task task, OperationResult result)
+					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (expressionType == null) {
 			// shortcut
 			return variables;
@@ -313,18 +353,18 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		ExpressionVariables newVariables = new ExpressionVariables();
 
 		// We need to add actor variable before we switch user identity (runAs)
-		ExpressionUtil.addActorVariable(newVariables, securityContextManager);
+		ExpressionUtil.addActorVariable(newVariables, securityContextManager, prismContext);
 		boolean actorDefined = newVariables.get(ExpressionConstants.VAR_ACTOR) != null;
 
-		for (Entry<QName,Object> entry: variables.entrySet()) {
+		for (Entry<String,TypedValue> entry: variables.entrySet()) {
 			if (ExpressionConstants.VAR_ACTOR.equals(entry.getKey()) && actorDefined) {
 				continue;			// avoid pointless warning about redefined value of actor
 			}
-			newVariables.addVariableDefinition(entry.getKey(), entry.getValue());
+			newVariables.put(entry.getKey(), entry.getValue());
 		}
 
 		for (ExpressionVariableDefinitionType variableDefType: expressionType.getVariable()) {
-			QName varName = variableDefType.getName();
+			String varName = variableDefType.getName().getLocalPart();
 			if (varName == null) {
 				throw new SchemaException("No variable name in expression in "+contextDescription);
 			}
@@ -332,23 +372,30 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
                 ObjectReferenceType ref = variableDefType.getObjectRef();
                 ref.setType(prismContext.getSchemaRegistry().qualifyTypeName(ref.getType()));
 				ObjectType varObject = objectResolver.resolve(ref, ObjectType.class, null, "variable "+varName+" in "+contextDescription, task, result);
-				newVariables.addVariableDefinition(varName, varObject);
+				newVariables.addVariableDefinition(varName, varObject, varObject.asPrismObject().getDefinition());
 			} else if (variableDefType.getValue() != null) {
 				// Only string is supported now
 				Object valueObject = variableDefType.getValue();
 				if (valueObject instanceof String) {
-					newVariables.addVariableDefinition(varName, valueObject);
+					MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+							new ItemName(SchemaConstants.NS_C, varName), PrimitiveType.STRING.getQname());
+					newVariables.addVariableDefinition(varName, valueObject, def);
 				} else if (valueObject instanceof Element) {
-					newVariables.addVariableDefinition(varName, ((Element)valueObject).getTextContent());
+					MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+							new ItemName(SchemaConstants.NS_C, varName), PrimitiveType.STRING.getQname());
+					newVariables.addVariableDefinition(varName, ((Element)valueObject).getTextContent(), def);
 				} else if (valueObject instanceof RawType) {
-					newVariables.addVariableDefinition(varName, ((RawType) valueObject).getParsedValue(null, varName));
+					ItemName varQName = new ItemName(SchemaConstants.NS_C, varName);
+					MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+							varQName, PrimitiveType.STRING.getQname());
+					newVariables.addVariableDefinition(varName, ((RawType) valueObject).getParsedValue(null, varQName), def);
 				} else {
 					throw new SchemaException("Unexpected type "+valueObject.getClass()+" in variable definition "+varName+" in "+contextDescription);
 				}
 			} else if (variableDefType.getPath() != null) {
 				ItemPath itemPath = variableDefType.getPath().getItemPath();
-				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, false, null, objectResolver, contextDescription, task, result);
-				newVariables.addVariableDefinition(varName, resolvedValue);
+				TypedValue resolvedValueAndDefinition = ExpressionUtil.resolvePathGetTypedValue(itemPath, variables, false, null, objectResolver, prismContext, contextDescription, task, result);
+				newVariables.put(varName, resolvedValueAndDefinition);
 			} else {
 				throw new SchemaException("No value for variable "+varName+" in "+contextDescription);
 			}

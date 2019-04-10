@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -67,15 +67,10 @@ public class SchemaTransformer {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaTransformer.class);
 
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private transient RepositoryService cacheRepositoryService;
-
-	@Autowired(required = true)
-	private SecurityEnforcer securityEnforcer;
-
-	@Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
+	@Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private ArchetypeManager archetypeManager;
 
 	@Autowired
 	private PrismContext prismContext;
@@ -507,15 +502,11 @@ public class SchemaTransformer {
 	}
 
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-    	if (systemConfiguration == null) {
+    	ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
+    	if (archetypePolicy == null) {
     		return null;
     	}
-    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
-    	if (objectPolicyConfiguration == null) {
-    		return null;
-    	}
-    	ObjectReferenceType objectTemplateRef = objectPolicyConfiguration.getObjectTemplateRef();
+    	ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
     	if (objectTemplateRef == null) {
     		return null;
     	}
@@ -528,7 +519,7 @@ public class SchemaTransformer {
     	if (systemConfiguration == null) {
     		return null;
     	}
-    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(objectClass, null, systemConfiguration.asObjectable());
+    	ObjectPolicyConfigurationType objectPolicyConfiguration = ArchetypeManager.determineObjectPolicyConfiguration(objectClass, null, systemConfiguration.asObjectable());
     	if (objectPolicyConfiguration == null) {
     		return null;
     	}
