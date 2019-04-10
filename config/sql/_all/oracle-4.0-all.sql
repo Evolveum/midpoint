@@ -869,8 +869,11 @@ CREATE INDEX iShadowNameOrig
   ON m_shadow (name_orig) INITRANS 30;
 CREATE INDEX iShadowNameNorm
   ON m_shadow (name_norm) INITRANS 30;
-ALTER TABLE m_shadow
-    ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
+CREATE UNIQUE INDEX iPrimaryIdentifierValueWithOC
+  ON m_shadow (
+               CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN primaryIdentifierValue END,
+               CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN objectClass END,
+               CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN resourceRef_targetOid END)
 CREATE INDEX iParent
   ON m_task (parent) INITRANS 30;
 CREATE INDEX iTaskWfProcessInstanceId

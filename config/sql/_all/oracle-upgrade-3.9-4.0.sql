@@ -17,7 +17,10 @@ ALTER TABLE m_generic_object
 
 ALTER TABLE m_shadow ADD primaryIdentifierValue VARCHAR2(255 CHAR);
 
-ALTER TABLE m_shadow
-    ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
+CREATE UNIQUE INDEX iPrimaryIdentifierValueWithOC
+    ON m_shadow (
+        CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN primaryIdentifierValue END,
+        CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN objectClass END,
+        CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN resourceRef_targetOid END)
 
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
