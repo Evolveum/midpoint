@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+         
+	<org oid="00000000-8888-6666-0000-100000000001">
+		<name>F0001</name>
+		<description>The office of the most respectful Governor.</description>
+		<displayName>Governor Office</displayName>
+		<identifier>0001</identifier>
+		<subtype>functional</subtype>
+		<costCenter>CC0</costCenter>
+		<locality>The Governor's Mansion</locality>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000002">
+		<name>F0002</name>
+		<description>Defending the scum since the ancient times.</description>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Ministry of Defense</displayName>
+		<identifier>0002</identifier>
+		<subtype>functional</subtype>
+		<locality>The towers, bastions and bars</locality>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000003">
+		<name>F0003</name>
+		<description>Offending. Anyone. Anywhere.</description>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Ministry of Offense</displayName>
+		<identifier>0003</identifier>
+		<subtype>functional</subtype>
+		<costCenter>CC666</costCenter>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000004">
+		<name>F0004</name>
+		<description>Why is the rum always gone?</description>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Ministry of Rum</displayName>
+		<identifier>0004</identifier>
+		<subtype>functional</subtype>
+		<costCenter>CCRUM</costCenter>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000005">
+		<name>F0005</name>
+		<description>Swashing, buckling and insulting. Hard.</description>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000003" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Swashbuckler Section</displayName>
+		<identifier>0005</identifier>
+		<subtype>functional</subtype>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000006">
+		<name>F0006</name>
+		<description>Hosting the worst scumm of the Caribbean.</description>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000003" type="OrgType"/>
+		</assignment>
+		<assignment id="2">
+			<targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Scumm Bar</displayName>
+		<identifier>0006</identifier>
+		<subtype>functional</subtype>
+		<locality>Mêlée Island</locality>
+	</org>
+         
+
+	<user oid="c0c010c0-d34d-b33f-f00d-111111111116"> 
+	    <name>guybrush</name>
+	    <assignment>
+	    	<targetRef oid="00000000-8888-6666-0000-100000000003" type="OrgType"/>
+	    </assignment>
+	    <fullName>Guybrush Threepwood</fullName>
+	    <givenName>Guybrush</givenName>
+	    <familyName>Threepwood</familyName>
+	    <locality>Melee Island</locality>
+	     <credentials> 
+	         <password> 
+	        	<value> 
+	 	            <clearValue>xM4rksTh3Sp0t</clearValue>
+	             </value>
+	         </password>
+	     </credentials>
+	</user>
+	
+	<user oid="c0c010c0-d34d-b33f-f00d-11111111111e">
+	    <name>elaine</name>
+	    <assignment>
+	    	<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+	    </assignment>
+	    <fullName>Elaine Marley</fullName>
+	    <givenName>Elaine</givenName>
+	    <familyName>Marley</familyName>
+	    <locality>Melee Island</locality>
+	    <credentials> 
+	         <password>
+	        	<value> 
+	 	            <clearValue>P1ranhaD0GZ</clearValue>
+	             </value>
+	         </password>
+	     </credentials>
+	</user>
+	
+	<user oid="c0c010c0-d34d-b33f-f00d-111111111122">
+	    <name>herman</name>
+	    <assignment>
+	    	<targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
+	    </assignment>
+	    <activation>
+			<validFrom>1700-05-30T11:00:00Z</validFrom>
+			<validTo>2233-03-23T18:30:00Z</validTo>
+		</activation>
+	    <fullName>Herman Toothrot</fullName>
+	    <givenName>Herman</givenName>
+	    <familyName>Toothrot</familyName>
+	    <locality>Monkey Island</locality>
+	    <credentials>
+	        <password>
+	        	<value>
+		            <t:clearValue>m0nk3y</t:clearValue>
+	            </value>
+	        </password>
+	    </credentials>
+	</user>
+	
+	<user oid="c0c010c0-d34d-b33f-f00d-111111111118">
+	    <name>largo</name>
+	    <assignment>
+	    	<targetRef oid="00000000-8888-6666-0000-100000000005" type="OrgType"/>
+	    </assignment>
+		<fullName>Largo LaGrande</fullName>
+	    <givenName>Largo</givenName>
+	    <familyName>LaGrande</familyName>
+		<activation>
+			<validFrom>1777-05-30T14:15:00Z</validFrom>
+			<validTo>2222-02-22T08:30:42Z</validTo>
+		</activation>
+		 <credentials>
+	        <password>
+	        	<value>
+		            <clearValue>dead123</clearValue>
+	            </value>
+	        </password>
+	    </credentials>
+	</user>
+	
+	<user oid="c0c010c0-d34d-b33f-f00d-11111111c008">
+	    <name>rapp</name>
+	    <assignment>
+	    	<targetRef oid="00000000-8888-6666-0000-100000000006" type="OrgType"/>
+	    </assignment>
+		<fullName>Rapp Scallion</fullName>
+	    <givenName>Rapp</givenName>
+	    <familyName>Scallion</familyName>
+	    <employeeNumber>D3ADB33F</employeeNumber>
+	</user>
+	
+	<user oid="c0c010c0-d34d-b33f-f00d-11c1c1c1c11c">
+	    <name>capsize</name>
+	    <assignment>
+	    	<targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
+	    </assignment>
+	    <activation>
+	    	<administrativeStatus>disabled</administrativeStatus>
+	    </activation>
+	    <fullName>Kate Capsize</fullName>
+	    <givenName>Kate</givenName>
+	    <familyName>Capsize</familyName>
+	    <honorificPrefix>Captain</honorificPrefix>
+	    <credentials>
+	        <password>
+	        	<value>
+		            <clearValue>noTrespaSSing</clearValue>
+	            </value>
+	        </password>
+	    </credentials>
+	</user>
+	
+</objects>

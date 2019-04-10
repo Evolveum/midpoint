@@ -174,7 +174,10 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
 	// TODO fix this!
 	Class getTypeClassIfKnown();
 
-	// todo suspicious, please investigate and document
+	/**
+	 * Returns a compile-time class that is used to represent items.
+	 * E.g. returns String, Integer, sublcasses of Objectable and Containerable and so on. 
+	 */
 	Class getTypeClass();
 	
 	/**

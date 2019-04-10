@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,10 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -322,8 +324,8 @@ public class PrimaryChangeAspectHelper {
         PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
 
         ExpressionVariables expressionVariables = new ExpressionVariables();
-        expressionVariables.addVariableDefinition(SchemaConstants.C_MODEL_CONTEXT, modelContext);
-        expressionVariables.addVariableDefinition(SchemaConstants.C_ITEM_TO_APPROVE, itemToApprove);
+        expressionVariables.put(ExpressionConstants.VAR_MODEL_CONTEXT, modelContext, ModelContext.class);
+        expressionVariables.put(ExpressionConstants.VAR_ITEM_TO_APPROVE, itemToApprove, itemToApprove.getClass());
         if (additionalVariables != null) {
             expressionVariables.addVariableDefinitions(additionalVariables);
         }
@@ -331,7 +333,7 @@ public class PrimaryChangeAspectHelper {
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple;
         try {
             Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
-                    expressionFactory.makeExpression(expressionType, resultDef,
+                    expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(),
                             "applicability condition expression", task, result);
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables,
                     "applicability condition expression", task, result);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.BaseEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -55,11 +56,9 @@ public class NotificationManagerImpl implements NotificationManager {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
-	@Autowired
-	private NotificationFunctions notificationFunctions;
-
-	@Autowired
-	private TaskManager taskManager;
+	@Autowired private PrismContext prismContext;
+	@Autowired private NotificationFunctions notificationFunctions;
+	@Autowired private TaskManager taskManager;
 
     private boolean disabled = false;               // for testing purposes (in order for model-intest to run more quickly)
 
@@ -110,6 +109,7 @@ public class NotificationManagerImpl implements NotificationManager {
 
 		if (event instanceof BaseEvent) {
 			((BaseEvent) event).setNotificationFunctions(notificationFunctions);
+			((BaseEvent) event).setPrismContext(prismContext);
 		}
 
 		LOGGER.trace("NotificationManager processing event:\n{}", event.debugDumpLazily(1));

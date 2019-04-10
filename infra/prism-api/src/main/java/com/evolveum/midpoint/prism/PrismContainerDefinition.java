@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,4 +62,7 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 
 	@Override
 	MutablePrismContainerDefinition<C> toMutable();
+	
+	@Override
+	Class<C> getTypeClass();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -96,7 +97,7 @@ public class PolicyRuleScriptExecutor {
 			Task task, OperationResult parentResult, ExecuteScriptType executeScriptBean) {
 		OperationResult result = parentResult.createSubresult(EXECUTE_SCRIPT_OPERATION);
 		try {
-			Map<String, Object> initialVariables = createInitialVariables(action, rule, context);
+			VariablesMap initialVariables = createInitialVariables(action, rule, context);
 			if (executeScriptBean.getInput() == null && context.getFocusContext() != null) {
 				PrismObject objectAny = ((LensFocusContext) context.getFocusContext()).getObjectAny();
 				if (objectAny != null) {
@@ -115,12 +116,12 @@ public class PolicyRuleScriptExecutor {
 		}
 	}
 
-	private Map<String, Object> createInitialVariables(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule,
+	private VariablesMap createInitialVariables(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule,
 			ModelContext<?> context) {
-		Map<String, Object> rv = new HashMap<>();
-		rv.put(ExpressionConstants.VAR_POLICY_ACTION.getLocalPart(), action);
-		rv.put(ExpressionConstants.VAR_POLICY_RULE.getLocalPart(), rule);
-		rv.put(ExpressionConstants.VAR_MODEL_CONTEXT.getLocalPart(), context);
+		VariablesMap rv = new VariablesMap();
+		rv.put(ExpressionConstants.VAR_POLICY_ACTION, action, ScriptExecutionPolicyActionType.class);
+		rv.put(ExpressionConstants.VAR_POLICY_RULE, rule, EvaluatedPolicyRule.class);
+		rv.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
 		return rv;
 	}
 }

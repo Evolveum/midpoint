@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -55,10 +55,12 @@ import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LifecycleUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -724,15 +726,17 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(lensContext, null, ctx.task, ctx.result));
 		try {
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(ctx.result);
-			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null, null, systemConfiguration.asObjectable());
-			variables.addVariableDefinition(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject());
+			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null, null, systemConfiguration.asObjectable(), prismContext);
+			variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), ObjectType.class);
 			AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 			if (assignmentPathVariables != null) {
-				ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
+				ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
 			}
 			variables.addVariableDefinitions(getAssignmentEvaluationVariables());
 			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, targetClass);
-			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", ctx.task, ctx.result);
+			// TODO: expression profile should be determined from the holding object archetype
+			ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, expressionProfile, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", ctx.task, ctx.result);
 			if (evaluatedFilter == null) {
 				throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+segment.source);
 			}
@@ -746,7 +750,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
 	private ExpressionVariables getAssignmentEvaluationVariables() {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_LOGIN_MODE, loginMode);
+		variables.put(ExpressionConstants.VAR_LOGIN_MODE, loginMode, Boolean.class);
 		// e.g. AssignmentEvaluator itself, model context, etc (when needed)
 		return variables;
 	}
@@ -773,7 +777,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
 		checkRelationWithTarget(segment, targetType, relation);
 
-		LifecycleStateModelType targetStateModel = ModelUtils.determineLifecycleModel(targetType.asPrismObject(), systemConfiguration);
+		LifecycleStateModelType targetStateModel = ArchetypeManager.determineLifecycleModel(targetType.asPrismObject(), systemConfiguration);
 		boolean isTargetValid = LensUtil.isFocusValid(targetType, now, activationComputer, targetStateModel);
 		if (!isTargetValid) {
 			isValid = false;
@@ -1305,12 +1309,12 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 				.originType(OriginType.ASSIGNMENTS)
 				.originObject(source)
 				.defaultTargetDefinition(prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
-				.addVariableDefinitions(getAssignmentEvaluationVariables().getMap())
+				.addVariableDefinitions(getAssignmentEvaluationVariables())
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source)
+				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
 				.rootNode(focusOdo);
-        builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
+        builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, prismContext);
 
 		MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 

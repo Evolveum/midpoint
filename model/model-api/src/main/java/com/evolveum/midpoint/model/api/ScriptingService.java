@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.Map;
 
 /**
  * Interface of the Model subsystem that provides scripting (bulk actions) operations.
@@ -88,7 +88,7 @@ public interface ScriptingService {
 			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType executeScriptCommand,
-			@NotNull Map<String, Object> initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
+			@NotNull VariablesMap initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
 			@NotNull OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 

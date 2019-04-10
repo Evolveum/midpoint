@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,24 +36,29 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * @author Radovan Semancik
  */
 public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 
-	private ItemPath path;
-	private ObjectResolver objectResolver;
-	private PrismContext prismContext;
-	private D outputDefinition;
-	private Protector protector;
+	private final QName elementName;
+	private final ItemPath path;
+	private final ObjectResolver objectResolver;
+	private final PrismContext prismContext;
+	private final D outputDefinition;
+	private final Protector protector;
+	
 
-    public PathExpressionEvaluator(ItemPath path, ObjectResolver objectResolver,
+    public PathExpressionEvaluator(QName elementName, ItemPath path, ObjectResolver objectResolver,
     		D outputDefinition, Protector protector, PrismContext prismContext) {
+    	this.elementName = elementName;
     	this.path = path;
 		this.objectResolver = objectResolver;
 		this.outputDefinition = outputDefinition;
@@ -61,12 +66,18 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 		this.protector = protector;
 	}
 
+    @Override
+	public QName getElementName() {
+		return elementName;
+	}
+    
     /* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+		ExpressionUtil.checkEvaluatorProfileSimple(this, context);
 
 		ItemDeltaItem<?,?> resolveContext = null;
 
@@ -79,21 +90,17 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 			resolveContext = source;
 		}
 
-        Map<QName, Object> variablesAndSources = ExpressionUtil.compileVariablesAndSources(context);
+        Map<String, TypedValue> variablesAndSources = ExpressionUtil.compileVariablesAndSources(context);
 
         ItemPath resolvePath = path;
         Object first = path.first();
         if (ItemPath.isVariable(first)) {
-			QName variableName = ItemPath.toVariableName(first);
-			Object variableValue;
-        	if (variablesAndSources.containsKey(variableName)) {
-        		variableValue = variablesAndSources.get(variableName);
-        	} else if (QNameUtil.matchAny(variableName, variablesAndSources.keySet())){
-				QName fullVariableName = QNameUtil.resolveNs(variableName, variablesAndSources.keySet());
-				variableValue = variablesAndSources.get(fullVariableName);
-			} else {
+			String variableName = ItemPath.toVariableName(first).getLocalPart();
+			TypedValue variableValueAndDefinition = variablesAndSources.get(variableName);
+			if (variableValueAndDefinition == null) {
 				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+ context.getContextDescription());
 			}
+			Object variableValue = variableValueAndDefinition.getValue();
 
         	if (variableValue == null) {
     			return null;
@@ -153,6 +160,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 	public String shortDebugDump() {
 		return "path: "+path;
 	}
+
+	
 
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -55,6 +56,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -289,18 +291,17 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
 		ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterType);
 
-		Map<QName, Object> params = new HashMap<>();
 		PrismPropertyValue<String> pval = null;
 		if (input != null) {
 			pval = prismContext.itemFactory().createPropertyValue(input);
 		}
-		params.put(ExpressionConstants.VAR_INPUT, pval);
 
-		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinitions(params);
+		ExpressionVariables variables = createVariables(
+				ExpressionConstants.VAR_INPUT, pval, PrimitiveType.STRING);
 
 		// WHEN
-		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext,
+		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, 
+				MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext,
 				"evaluating filter with null value not allowed", task, result);
 
 		// THEN

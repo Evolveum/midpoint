@@ -476,10 +476,15 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(
-			PrismContainerValue<AssignmentType> cval) throws SchemaException {
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(PrismContainerValue<AssignmentType> cval) throws SchemaException {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
 		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
+		PrismContainerDefinition<AssignmentType> definition = cval.getDefinition();
+		if (definition == null) {
+			// TODO: optimize
+			definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+		}
+		idi.setDefinition(definition);
 		idi.recompute();
 		return idi;
 	}
@@ -494,6 +499,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 						.add(cval.asContainerable().clone())
 						.asItemDelta();
 		idi.setDelta(itemDelta);
+		idi.setDefinition(cval.getDefinition());
 		idi.recompute();
 		return idi;
 	}
@@ -521,6 +527,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 						.delete(cval.asContainerable().clone())
 						.asItemDelta();
 		idi.setDelta(itemDelta);
+		idi.setDefinition(cval.getDefinition());
 		idi.recompute();
 		return idi;
 	}
@@ -531,6 +538,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
 		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
 		idi.setSubItemDeltas(subItemDeltas);
+		idi.setDefinition(cval.getDefinition());
 		idi.recompute();
 		return idi;
 	}

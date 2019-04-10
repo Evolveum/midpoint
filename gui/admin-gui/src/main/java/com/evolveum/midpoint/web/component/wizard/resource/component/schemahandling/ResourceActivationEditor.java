@@ -74,19 +74,19 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
     private static final String ID_T_VALID_T_IN = "validToInboundTooltip";
 
     //Default mapping inbound/outbound sources/targets
-    public static final String EXISTENCE_DEFAULT_SOURCE = "&" + ExpressionConstants.VAR_LEGAL.getLocalPart();
-    public static final String ADM_STATUS_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/administrativeStatus";
-    public static final String ADM_STATUS_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/administrativeStatus";
-    public static final String ADM_STATUS_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/administrativeStatus";
-    public static final String ADM_STATUS_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/administrativeStatus";
-    public static final String VALID_TO_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/validTo";
-    public static final String VALID_TO_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/validTo";
-    public static final String VALID_TO_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/validTo";
-    public static final String VALID_TO_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/validTo";
-    public static final String VALID_FROM_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/validFrom";
-    public static final String VALID_FROM_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/validFrom";
-    public static final String VALID_FROM_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION.getLocalPart() + "/activation/validFrom";
-    public static final String VALID_FROM_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS.getLocalPart() + "/activation/validFrom";
+    public static final String EXISTENCE_DEFAULT_SOURCE = "&" + ExpressionConstants.VAR_LEGAL;
+    public static final String ADM_STATUS_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS + "/activation/administrativeStatus";
+    public static final String ADM_STATUS_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION + "/activation/administrativeStatus";
+    public static final String ADM_STATUS_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION + "/activation/administrativeStatus";
+    public static final String ADM_STATUS_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS + "/activation/administrativeStatus";
+    public static final String VALID_TO_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS + "/activation/validTo";
+    public static final String VALID_TO_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION + "/activation/validTo";
+    public static final String VALID_TO_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION + "/activation/validTo";
+    public static final String VALID_TO_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS + "/activation/validTo";
+    public static final String VALID_FROM_OUT_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS + "/activation/validFrom";
+    public static final String VALID_FROM_OUT_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION + "/activation/validFrom";
+    public static final String VALID_FROM_IN_SOURCE_DEFAULT = "&" + ExpressionConstants.VAR_PROJECTION + "/activation/validFrom";
+    public static final String VALID_FROM_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS + "/activation/validFrom";
 
     private boolean isInitialized = false;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,6 +87,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
@@ -225,12 +226,12 @@ public class ObjectTemplateProcessor {
 		if (focusContext == null) {
 			return null;
 		}
-		ObjectPolicyConfigurationType policyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-		if (policyConfigurationType == null) {
+		ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+		if (archetypePolicy == null) {
 			LOGGER.trace("No default object template (no policy)");
 			return null;
 		}
-		ObjectReferenceType templateRef = policyConfigurationType.getObjectTemplateRef();
+		ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
 		if (templateRef == null) {
 			LOGGER.trace("No default object template (no templateRef)");
 			return null;
@@ -616,12 +617,13 @@ public class ObjectTemplateProcessor {
 
 	// must be Uniform because of the later use in outputTripleMap
 	private ItemPath stripFocusVariableSegment(ItemPath sourcePath) {
-		if (sourcePath.startsWithVariable()
-			&& QNameUtil.matchAny(sourcePath.firstToVariableNameOrNull(), MappingEvaluator.FOCUS_VARIABLE_NAMES)) {
-			return sourcePath.stripVariableSegment();
-		} else {
-			return sourcePath;
+		if (sourcePath.startsWithVariable()) {
+			QName variableQName = sourcePath.firstToVariableNameOrNull();
+			if (variableQName != null && MappingEvaluator.FOCUS_VARIABLE_NAMES.contains(variableQName.getLocalPart())) {
+				return sourcePath.stripVariableSegment();
+			}
 		}
+		return sourcePath;
 	}
 
 	private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType> XMLGregorianCalendar collectTripleFromMappings(

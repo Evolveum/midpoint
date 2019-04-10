@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -45,8 +46,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-
-import java.util.Collections;
 
 /**
  * @author lazyman
@@ -144,7 +143,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                     //noinspection ConstantConditions
                     ScriptExecutionResult executionResult =
                             parsed instanceof ExecuteScriptType ?
-                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, Collections.emptyMap(),
+                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, VariablesMap.emptyMap(),
                                             false, task, result) :
                                     getScriptingService().evaluateExpression((ScriptingExpressionType) parsed, task, result);
                     result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageBulkAction.message.startPerformed.success", executionResult.getDataOutput().size()).getString());

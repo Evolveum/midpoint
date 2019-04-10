@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,17 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -52,28 +56,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionR
  * @author Radovan Semancik
  */
 public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType>
-						implements ExpressionEvaluator<V,D> {
+						extends AbstractExpressionEvaluator<V, D, E> {
 
-	protected SecurityContextManager securityContextManager;
-    protected LocalizationService localizationService;
-	protected PrismContext prismContext;
-
-	private E expressionEvaluatorType;
+	protected final SecurityContextManager securityContextManager;
+    protected final LocalizationService localizationService;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
-    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType,
-		    SecurityContextManager securityContextManager, LocalizationService localizationService,
-		    PrismContext prismContext) {
-    	this.expressionEvaluatorType = expressionEvaluatorType;
+    protected AbstractValueTransformationExpressionEvaluator(QName elementName, E expressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext,
+		    SecurityContextManager securityContextManager, LocalizationService localizationService) {
+    	super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext);
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
-        this.prismContext = prismContext;
     }
-
-    public E getExpressionEvaluatorType() {
-		return expressionEvaluatorType;
-	}
 
 	public LocalizationService getLocalizationService() {
 		return localizationService;
@@ -85,10 +80,11 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		checkEvaluatorProfile(context);
 
         PrismValueDeltaSetTriple<V> outputTriple;
 
-        if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
+        if (getExpressionEvaluatorType().getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
 
         	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context,
         			context.getContextDescription(), context.getTask(), context.getResult());
@@ -96,7 +92,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         		LOGGER.trace("Evaluated absolute expression {}, output triple:\n{}", context.getContextDescription(), outputTriple==null?null:outputTriple.debugDump(1));
         	}
 
-        } else if (expressionEvaluatorType.getRelativityMode() == null || expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.RELATIVE) {
+        } else if (getExpressionEvaluatorType().getRelativityMode() == null || getExpressionEvaluatorType().getRelativityMode() == TransformExpressionRelativityModeType.RELATIVE) {
 
         	if (context.getSources() == null || context.getSources().isEmpty()) {
         		// Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
@@ -111,7 +107,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         	}
 
         } else {
-        	throw new IllegalArgumentException("Unknown relativity mode "+expressionEvaluatorType.getRelativityMode());
+        	throw new IllegalArgumentException("Unknown relativity mode "+getExpressionEvaluatorType().getRelativityMode());
         }
 
 
@@ -119,7 +115,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
     }
 
 	protected boolean isIncludeNullInputs() {
-		Boolean includeNullInputs = expressionEvaluatorType.isIncludeNullInputs();
+		Boolean includeNullInputs = getExpressionEvaluatorType().isIncludeNullInputs();
 		if (includeNullInputs == null) {
 			return true;
 		}
@@ -127,7 +123,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
 	protected boolean isRelative() {
-		return expressionEvaluatorType.getRelativityMode() != TransformExpressionRelativityModeType.ABSOLUTE;
+		return getExpressionEvaluatorType().getRelativityMode() != TransformExpressionRelativityModeType.ABSOLUTE;
 	}
 
 	private List<SourceTriple<?,?>> processSources(Collection<Source<?,?>> sources,
@@ -222,8 +218,11 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
 	private boolean hasDeltas(ExpressionVariables variables) {
-		for (Entry<QName,Object> entry: variables.entrySet()) {
-			Object value = entry.getValue();
+		for (Entry<String, TypedValue> entry: variables.entrySet()) {
+			if (entry.getValue() == null) {
+				continue;
+			}
+			Object value = entry.getValue().getValue();
 			if (value instanceof ObjectDeltaObject<?>) {
 				if (((ObjectDeltaObject<?>)value).getObjectDelta() != null && !((ObjectDeltaObject<?>)value).getObjectDelta().isEmpty()) {
 					return true;
@@ -252,7 +251,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			// Add sources to variables
 			for (Source<?,?> source: sources) {
 				LOGGER.trace("source: {}", source);
-				QName name = source.getName();
+				String name = source.getName().getLocalPart();
 				if (name == null) {
 					if (sources.size() == 1) {
 						name = ExpressionConstants.VAR_INPUT;
@@ -267,7 +266,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				} else {
 					value = getRealContent(source.getItemOld(), source.getResidualPath());
 				}
-				scriptVariables.addVariableDefinition(name, value);
+				scriptVariables.addVariableDefinition(name, value, source.getDefinition());
 			}
 		}
 
@@ -346,8 +345,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		final PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 
 		Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> conditionExpression;
-		if (expressionEvaluatorType.getCondition() != null) {
-			conditionExpression = ExpressionUtil.createCondition(expressionEvaluatorType.getCondition(),
+		if (getExpressionEvaluatorType().getCondition() != null) {
+			conditionExpression = ExpressionUtil.createCondition(getExpressionEvaluatorType().getCondition(), evaluationContext.getExpressionProfile(),
 					evaluationContext.getExpressionFactory(), "condition in " + contextDescription, task, result);
 		} else {
 			conditionExpression = null;
@@ -361,7 +360,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				// The case that all the sources are null. There is no point executing the expression.
 				return;
 			}
-			Map<QName, Object> sourceVariables = new HashMap<>();
+			ExpressionVariables scriptVariables = new ExpressionVariables();
 			Iterator<SourceTriple<PrismValue,?>> sourceTriplesIterator = (Iterator)sourceTriples.iterator();
 			boolean hasMinus = false;
 			boolean hasZero = false;
@@ -374,8 +373,13 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				// Therefore this strange construction will match the value with the source that it came from
 				// TODO: maybe refactor for readibility
 				SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
-				QName name = sourceTriple.getName();
-				sourceVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()));
+				String name = sourceTriple.getName().getLocalPart();
+				ItemDefinition definition = sourceTriple.getSource().getDefinition();
+				if (definition == null) {
+					LOGGER.error("Source '{}' without a definition; came from a source triple: {}", name, sourceTriple);
+					throw new IllegalArgumentException("Source '"+name+"' without a definition");
+				}
+				scriptVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()), definition);
 				// Note: a value may be both in plus and minus sets, e.g. in case that the value is replaced
 				// with the same value. We pretend that this is the same as ADD case.
 				// TODO: maybe we will need better handling in the future. Maybe we would need
@@ -423,8 +427,6 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				return;
 			}
 
-			ExpressionVariables scriptVariables = new ExpressionVariables();
-			scriptVariables.addVariableDefinitions(sourceVariables);
 			PlusMinusZero valueDestination;
 			boolean useNew = false;
 			if (hasPlus) {
@@ -462,30 +464,33 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 					scriptResults = Collections.emptyList();
 				}
 			} catch (ExpressionEvaluationException e) {
-				throw new TunnelException(
-						localizationService.translate(
-								new ExpressionEvaluationException(
-										e.getMessage() + "("+dumpSourceValues(sourceVariables)+") in "+contextDescription,
-										e,
-										ExceptionUtil.getUserFriendlyMessage(e))));
+				ExpressionEvaluationException exex = new ExpressionEvaluationException(
+						e.getMessage() + "("+scriptVariables.dumpSingleLine()+") in "+contextDescription,
+						e,
+						ExceptionUtil.getUserFriendlyMessage(e));
+				if (localizationService != null) {
+					localizationService.translate(exex);
+				}
+				throw new TunnelException(exex);
+						
 			} catch (ObjectNotFoundException e) {
 				throw new TunnelException(new ObjectNotFoundException(e.getMessage()+
-						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+						"("+scriptVariables.dumpSingleLine()+") in "+contextDescription,e));
 			} catch (SchemaException e) {
 				throw new TunnelException(new SchemaException(e.getMessage()+
-						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+						"("+scriptVariables.dumpSingleLine()+") in "+contextDescription,e));
 			} catch (RuntimeException e) {
 				throw new TunnelException(new RuntimeException(e.getMessage()+
-						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+						"("+scriptVariables.dumpSingleLine()+") in "+contextDescription,e));
 			} catch (CommunicationException e) {
 				throw new TunnelException(new CommunicationException(e.getMessage()+
-						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+						"("+scriptVariables.dumpSingleLine()+") in "+contextDescription,e));
 			} catch (ConfigurationException e) {
 				throw new TunnelException(new ConfigurationException(e.getMessage()+
-						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+						"("+scriptVariables.dumpSingleLine()+") in "+contextDescription,e));
 			} catch (SecurityViolationException e) {
 				throw new TunnelException(new SecurityViolationException(e.getMessage()+
-						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+						"("+scriptVariables.dumpSingleLine()+") in "+contextDescription,e));
 			}
 
 			if (LOGGER.isTraceEnabled()) {
@@ -559,17 +564,6 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				triple.addToZeroSet(plusVal);
 			}
 		}
-	}
-
-	private String dumpSourceValues(Map<QName, Object> variables) {
-		StringBuilder sb = new StringBuilder();
-		for (Entry<QName, Object> entry: variables.entrySet()) {
-			sb.append(PrettyPrinter.prettyPrint(entry.getKey()));
-			sb.append("=");
-			sb.append(PrettyPrinter.prettyPrint(entry.getValue()));
-			sb.append("; ");
-		}
-		return sb.toString();
 	}
 
 	/* (non-Javadoc)

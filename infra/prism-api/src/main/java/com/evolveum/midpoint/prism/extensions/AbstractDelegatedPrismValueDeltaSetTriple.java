@@ -308,23 +308,8 @@ public class AbstractDelegatedPrismValueDeltaSetTriple<V extends PrismValue> imp
 	}
 
 	@Override
-	public String debugDump() {
-		return inner.debugDump();
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		return inner.debugDump(indent);
-	}
-
-	@Override
-	public Object debugDumpLazily() {
-		return inner.debugDumpLazily();
-	}
-
-	@Override
-	public Object debugDumpLazily(int index) {
-		return inner.debugDumpLazily(index);
 	}
 
 	@Override
@@ -332,13 +317,4 @@ public class AbstractDelegatedPrismValueDeltaSetTriple<V extends PrismValue> imp
 		inner.shortDump(sb);
 	}
 
-	@Override
-	public String shortDump() {
-		return inner.shortDump();
-	}
-
-	@Override
-	public Object shortDumpLazily() {
-		return inner.shortDumpLazily();
-	}
 }

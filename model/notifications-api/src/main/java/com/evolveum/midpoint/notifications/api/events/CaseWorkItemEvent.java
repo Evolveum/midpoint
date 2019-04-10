@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -64,10 +66,10 @@ public class CaseWorkItemEvent extends CaseManagementEvent {
     }
 
 	@Override
-    public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
+    public void createExpressionVariables(VariablesMap variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
-        variables.put(SchemaConstants.C_ASSIGNEE, assignee.resolveObjectType(result, false));
-        variables.put(SchemaConstants.C_WORK_ITEM, workItem);
+        variables.put(ExpressionConstants.VAR_ASSIGNEE, resolveTypedObject(assignee, false, result));
+        variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, CaseWorkItemType.class);
     }
 
 	@Override

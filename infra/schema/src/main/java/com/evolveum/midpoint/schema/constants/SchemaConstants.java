@@ -87,9 +87,6 @@ public abstract class SchemaConstants {
 	public static final ItemName C_RESOURCE = new ItemName(NS_C, "resource");
 	public static final ItemName C_RESULT = new ItemName(NS_C, "result");
 	public static final ItemName C_USER = new ItemName(NS_C, "user");
-	public static final ItemName C_REQUESTER = new ItemName(NS_C, "requester");
-	public static final ItemName C_REQUESTEE = new ItemName(NS_C, "requestee");
-	public static final ItemName C_ASSIGNEE = new ItemName(NS_C, "assignee");
 	public static final ItemName C_OBJECT_TEMPLATE = new ItemName(NS_C, "objectTemplate");
 	public static final ItemName C_OBJECT_TEMPLATE_REF = new ItemName(NS_C, "objectTemplateRef");
 	public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
@@ -470,24 +467,6 @@ public abstract class SchemaConstants {
 
 	public static final ItemName S_PIPELINE_DATA = new ItemName(NS_SCRIPTING, "pipelineData");
 
-	public static final ItemName C_EVENT = new ItemName(NS_C, "event");
-	public static final ItemName C_EVENT_HANDLER = new ItemName(NS_C, "eventHandler");			// TODO: no such element in common-3 - is it OK?
-	public static final ItemName C_TEXT_FORMATTER = new ItemName(NS_C, "textFormatter");
-	public static final ItemName C_NOTIFICATION_FUNCTIONS = new ItemName(NS_C, "notificationFunctions");
-
-	public static final ItemName C_TRANSPORT_NAME = new ItemName(NS_C, "transportName");
-	public static final ItemName C_FROM = new ItemName(NS_C, "from");
-	public static final ItemName C_ENCODED_FROM = new ItemName(NS_C, "encodedFrom");
-	public static final ItemName C_TO = new ItemName(NS_C, "to");
-	public static final ItemName C_TO_LIST = new ItemName(NS_C, "toList");
-	public static final ItemName C_ENCODED_TO = new ItemName(NS_C, "encodedTo");
-	public static final ItemName C_ENCODED_TO_LIST = new ItemName(NS_C, "encodedToList");
-	public static final ItemName C_MESSAGE_TEXT = new ItemName(NS_C, "messageText");
-	public static final ItemName C_ENCODED_MESSAGE_TEXT = new ItemName(NS_C, "encodedMessageText");
-	public static final ItemName C_MESSAGE = new ItemName(NS_C, "message");
-	public static final ItemName C_WORK_ITEM = new ItemName(NS_C, "workItem");
-	public static final ItemName C_WF_PROCESS_INSTANCE = new ItemName(NS_C, "wfProcessInstance");
-
 	public static final ItemName APIT_ITEM_LIST = new ItemName(SchemaConstants.NS_API_TYPES, "itemList");
 	public static final ItemName C_ASSIGNMENT = new ItemName(SchemaConstants.NS_C, "assignment");
 
@@ -495,8 +474,6 @@ public abstract class SchemaConstants {
 
 	public static final ItemName FAULT_MESSAGE_ELEMENT_NAME = new ItemName(NS_FAULT, "fault");
 	public static final ItemName C_MODEL_CONTEXT = new ItemName(NS_C, "modelContext");
-	public static final ItemName C_ITEM_TO_APPROVE = new ItemName(NS_C, "itemToApprove");
-	public static final ItemName C_SHADOW_DISCRIMINATOR = new ItemName(NS_C, "shadowDiscriminator");
 
 	// Lifecycle
 
