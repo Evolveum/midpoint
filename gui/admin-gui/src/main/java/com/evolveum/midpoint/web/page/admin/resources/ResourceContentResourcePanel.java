@@ -102,12 +102,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 	}
 	
 	private ItemName getAttributeName(ResourceAttributeDefinition def) {
-		if (def.getNativeAttributeName() != null) {
-			return ItemName.fromQName(new QName(MidPointConstants.NS_RI, def.getNativeAttributeName()));
-		}
-		
 		return def.getName();
-		
 	}
 
 	@Override
