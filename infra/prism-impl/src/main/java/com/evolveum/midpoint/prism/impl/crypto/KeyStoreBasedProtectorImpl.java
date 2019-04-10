@@ -66,6 +66,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
@@ -573,7 +574,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     @Override
-    public boolean compare(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
+    public boolean compareCleartext(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
         if (a == b) {
             return true;
         }
@@ -600,16 +601,20 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             return compareHashed(hashedPs, clear.toCharArray());
 
         } else {
-            String aClear = decryptString(a);
-            String bClear = decryptString(b);
-            if (aClear == null && bClear == null) {
-                return true;
-            }
-            if (aClear == null || bClear == null) {
-                return false;
-            }
-            return aClear.equals(bClear);
+            return compareEncryptedCleartext(a, b);
         }
+    }
+    
+    private boolean compareEncryptedCleartext(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
+    	String aClear = decryptString(a);
+        String bClear = decryptString(b);
+        if (aClear == null && bClear == null) {
+            return true;
+        }
+        if (aClear == null || bClear == null) {
+            return false;
+        }
+        return aClear.equals(bClear);
     }
 
     private boolean compareHashed(ProtectedStringType hashedPs, char[] clearChars) throws SchemaException, EncryptionException {
@@ -657,8 +662,51 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
         return Arrays.equals(digestValue, hashBytes);
     }
-
+    
     @Override
+	public boolean areEquivalent(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
+    	if (a == b) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a.isHashed()) {
+        	if (b.isHashed()) {
+        		return areEquivalentHashed(a, b);
+        	} else {
+        		return false;
+        	}
+        }
+        if (a.isEncrypted()) {
+        	if (b.isEncrypted()) {
+        		return areEquivalentEncrypted(a, b);
+        	} else {
+        		return false;
+        	}
+        }
+        return Objects.equals(a.getClearValue(), a.getClearValue());
+	}
+
+	private boolean areEquivalentHashed(ProtectedStringType a, ProtectedStringType b) {
+		// We cannot compare two hashes in any other way.
+		return Objects.equals(a.getHashedDataType(), a.getHashedDataType());
+	}
+	
+	private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
+		EncryptedDataType ae = a.getEncryptedDataType();
+		EncryptedDataType be = b.getEncryptedDataType();
+		if (!Objects.equals(ae.getEncryptionMethod(), be.getEncryptionMethod())) {
+			return false;
+		}
+		if (!Objects.equals(ae.getKeyInfo(), be.getKeyInfo())) {
+			return false;
+		}
+		return compareEncryptedCleartext(a, b);
+	}
+
+
+	@Override
     public boolean isEncryptedByCurrentKey(@NotNull EncryptedDataType data) throws EncryptionException {
         String encryptedUsingKeyName = data.getKeyInfo().getKeyName();
         if (encryptedUsingKeyName == null) {

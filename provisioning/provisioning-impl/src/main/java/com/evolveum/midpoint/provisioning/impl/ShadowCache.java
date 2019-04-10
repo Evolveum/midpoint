@@ -3268,7 +3268,7 @@ public class ShadowCache {
 			expectedProtectedString = new ProtectedStringType();
 			expectedProtectedString.setClearValue((String) expectedValue);
 		}
-		if (protector.compare(repoProtectedString, expectedProtectedString)) {
+		if (protector.compareCleartext(repoProtectedString, expectedProtectedString)) {
 			return ItemComparisonResult.MATCH;
 		} else {
 			return ItemComparisonResult.MISMATCH;

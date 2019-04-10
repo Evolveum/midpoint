@@ -226,6 +226,9 @@ public class ConfigurationStep extends WizardStep {
 		tabs.clear();
 
 		tabs.addAll(createConfigurationTabs());
+		if (tabs.size() == 0){
+			return;
+		}
 		int i = tabbedPanel.getSelectedTab();
 		if (i < 0 || i > tabs.size()) {
 			i = 0;

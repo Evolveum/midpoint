@@ -496,7 +496,7 @@ public class ValuePolicyProcessor {
 				ProtectedStringType newPasswordPs = new ProtectedStringType();
 				newPasswordPs.setClearValue(newPassword);
 				try {
-					if (protector.compare(newPasswordPs, (ProtectedStringType)objectRealValue)) {
+					if (protector.compareCleartext(newPasswordPs, (ProtectedStringType)objectRealValue)) {
 						return true;
 					}
 				} catch (SchemaException | EncryptionException e) {

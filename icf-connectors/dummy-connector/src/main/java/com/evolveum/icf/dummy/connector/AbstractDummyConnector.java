@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -558,7 +559,11 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 
 	private void buildAttributes(ObjectClassInfoBuilder icfObjClassBuilder, DummyObjectClass dummyObjectClass) {
 		for (DummyAttributeDefinition dummyAttrDef : dummyObjectClass.getAttributeDefinitions()) {
-        	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), dummyAttrDef.getAttributeType());
+			Class<?> attributeClass = dummyAttrDef.getAttributeType();
+			if (dummyAttrDef.isSensitive()) {
+				attributeClass = GuardedString.class;
+			}
+        	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), attributeClass);
         	attrBuilder.setMultiValued(dummyAttrDef.isMulti());
         	attrBuilder.setRequired(dummyAttrDef.isRequired());
         	attrBuilder.setReturnedByDefault(dummyAttrDef.isReturnedByDefault());
@@ -1209,7 +1214,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 				}
 			}
 			// Return all attributes that are returned by default. We will filter them out later.
-			Set<Object> values = dummyObject.getAttributeValues(name, Object.class);
+			Set<Object> values = toConnIdAttributeValues(name, attrDef, dummyObject.getAttributeValues(name, Object.class));
 			if (configuration.isVaryLetterCase()) {
 				name = varyLetterCase(name);
 			}
@@ -1258,6 +1263,17 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 
 	   return builder;
    }
+
+	private Set<Object> toConnIdAttributeValues(String name, DummyAttributeDefinition attrDef, Set<Object> dummyAttributeValues) {
+		if (dummyAttributeValues == null || dummyAttributeValues.isEmpty()) {
+			return dummyAttributeValues;
+		}
+		if (attrDef.isSensitive()) {
+			return dummyAttributeValues.stream().map(val -> new GuardedString(((String)val).toCharArray())).collect(Collectors.toSet());
+		} else {
+			return dummyAttributeValues;
+		}
+	}
 
 	protected void addAdditionalCommonAttributes(ConnectorObjectBuilder builder, DummyObject dummyObject) {
 		String connectorInstanceNumberAttribute = getConfiguration().getConnectorInstanceNumberAttribute();
