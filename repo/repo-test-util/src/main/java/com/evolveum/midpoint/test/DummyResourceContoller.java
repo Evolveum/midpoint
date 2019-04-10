@@ -426,11 +426,12 @@ public class DummyResourceContoller extends AbstractResourceController {
 		dummyResource.addAccount(account);
 	}
 
-	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+	public DummyGroup addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
 		assertExtendedSchema();
 		DummyGroup group = new DummyGroup(name);
 		group.setEnabled(true);
 		dummyResource.addGroup(group);
+		return group;
 	}
 	
 	public void deleteAccount(String name) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException, InterruptedException {
