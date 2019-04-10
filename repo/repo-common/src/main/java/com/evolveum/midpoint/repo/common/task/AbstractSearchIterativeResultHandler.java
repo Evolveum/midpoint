@@ -350,8 +350,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			// The meat
 			cont = handleObject(object, workerTask, result);
 
-//			LOGGER.info("###Recon result: {}", result.getStatus());
-//			LOGGER.info("###Recon result dump: {}", result.debugDump());
 			
 			// We do not want to override the result set by handler. This is just a fallback case
 			if (result.isUnknown() || result.isInProgress()) {
@@ -462,7 +460,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
 		}
 		result.summarize();
-		LOGGER.info("stop on error return: {}", !isStopOnError(task, ex, result));
 		return !isStopOnError(task, ex, result);
 //		return !isStopOnError();
 	}

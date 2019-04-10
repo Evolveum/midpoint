@@ -60,7 +60,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 	private static final String ROLE_POLICY_RULE_CREATE_OID = "00000000-role-0000-0000-999111111112";
 	
 	private static final File ROLE_POLICY_RULE_CHANGE_ACTIVATION_FILE = new File(TEST_DIR, "role-policy-rule-change-activation.xml");
-	private static final String ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID = "00000000-role-0000-0000-999111111223";
+	protected static final String ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID = "00000000-role-0000-0000-999111111223";
 	
 	private static final File TASK_IMPORT_BASE_USERS_FILE = new File(TEST_DIR, "task-opendj-import-base-users.xml");
 	private static final String TASK_IMPORT_BASE_USERS_OID = "fa25e6dc-a858-11e7-8ebc-eb2b71ecce1d";
@@ -250,7 +250,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		
 		//WHEN
 		displayWhen(TEST_NAME);
-		OperationResult reconResult = waitForTaskNextRun(getTaskOid(), false, 20000, true);
+		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 20000);
 		assertFailure(reconResult);
 		
 		//THEN
@@ -258,7 +258,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
 		
 		assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
-		assertUsers(getNumberOfUsers() + getProcessedUsers()*2);
 		
 		assertSynchronizationStatisticsActivation(taskAfter);
 		
