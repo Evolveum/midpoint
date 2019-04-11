@@ -173,6 +173,7 @@ public class TestRoleMembers extends AbstractStoryTest {
 	        .assertRoleMemberhipRefs(0);
         
         ModelContext<UserType> previewContext = previewUser(USER_MANCOMB_OID);
+        
         assertUser(previewContext.getFocusContext().getObjectOld(), "preview user old")
         	.assertName(USER_MANCOMB_USERNAME)
         	.assertFullName(USER_MANCOMB_FULL_NAME)
@@ -191,7 +192,11 @@ public class TestRoleMembers extends AbstractStoryTest {
         ObjectDelta<UserType> emptyMancombDelta = deltaFor(UserType.class).asObjectDelta(userOid);
         ModelContext<UserType> previewContext = modelInteractionService.previewChanges(Collections.singleton(emptyMancombDelta), null, task, result);
         display("Preview context", previewContext);
-        assertSuccess(result);
+        result.computeStatus();
+        if (!result.isSuccess() && !result.isHandledError() && !result.isWarning()) {
+        	display("Unexpected preview result", result);
+        	fail("Unexpected preview result: "+result.getStatus());
+        }
         return previewContext;
 	}
 	
