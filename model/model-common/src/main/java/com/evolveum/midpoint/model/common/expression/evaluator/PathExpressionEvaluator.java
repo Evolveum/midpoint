@@ -42,12 +42,16 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author Radovan Semancik
  */
 public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 
+	private static final transient Trace LOGGER = TraceManager.getTrace(PathExpressionEvaluator.class);
+	
 	private final QName elementName;
 	private final ItemPath path;
 	private final ObjectResolver objectResolver;
@@ -81,6 +85,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 
 		ItemDeltaItem<?,?> resolveContext = null;
 
+		ItemPath resolvePath = path;
 		if (context.getSources() != null && context.getSources().size() == 1) {
 			Source<?,?> source = context.getSources().iterator().next();
 			if (path.isEmpty()) {
@@ -88,14 +93,17 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 				return outputTriple.clone();
 			}
 			resolveContext = source;
+			//FIXME quite a hack, but should work for now.
+			if (QNameUtil.match(path.firstName(), source.getName())) {
+				resolvePath = path.rest();
+			}
 		}
 
         Map<String, TypedValue> variablesAndSources = ExpressionUtil.compileVariablesAndSources(context);
 
-        ItemPath resolvePath = path;
         Object first = path.first();
         if (ItemPath.isVariable(first)) {
-			String variableName = ItemPath.toVariableName(first).getLocalPart();
+        	String variableName = ItemPath.toVariableName(first).getLocalPart();
 			TypedValue variableValueAndDefinition = variablesAndSources.get(variableName);
 			if (variableValueAndDefinition == null) {
 				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+ context.getContextDescription());
