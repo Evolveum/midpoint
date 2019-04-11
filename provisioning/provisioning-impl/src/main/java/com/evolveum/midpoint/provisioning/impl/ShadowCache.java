@@ -89,6 +89,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Shadow cache is a facade that covers all the operations with shadows. It
@@ -1278,26 +1279,40 @@ public class ShadowCache {
 
 	@Nullable
 	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+		LOGGER.trace("Refreshing {}", repoShadow);
+		ProvisioningContext ctx = ctxFactory.create(repoShadow, task, parentResult);
+		ctx.assertDefinition();
+		shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
+		
+		repoShadow = shadowManager.refreshProvisioningIndexes(ctx, repoShadow, task, parentResult);
+		
+		repoShadow = refreshShadowPendingOperations(ctx, repoShadow, task, parentResult);
+		
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		repoShadow = cleanUpDeadShadow(ctx, repoShadow, now, task, parentResult);
+		
+		return repoShadow;
+	}
+	
+	
+
+	private PrismObject<ShadowType> refreshShadowPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		ShadowType shadowType = repoShadow.asObjectable();
 		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
 		boolean isDead = ShadowUtil.isDead(shadowType);
 		if (!isDead && pendingOperations.isEmpty()) {
-			LOGGER.trace("Skipping refresh of {} because shadow is not dead and there are no pending operations", repoShadow);
+			LOGGER.trace("Skipping refresh of {} pending operations because shadow is not dead and there are no pending operations", repoShadow);
 			return repoShadow;
 		}
 		
-		LOGGER.trace("Refreshing {}, dead={}, {} pending operations", repoShadow, isDead, pendingOperations.size());
+		LOGGER.trace("Pending operations refresh of {}, dead={}, {} pending operations", repoShadow, isDead, pendingOperations.size());
 		
-		ProvisioningContext ctx = ctxFactory.create(repoShadow, task, parentResult);
 		ctx.assertDefinition();
 		List<PendingOperationType> sortedOperations = shadowCaretaker.sortPendingOperations(shadowType.getPendingOperation());
 		
 		repoShadow = refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, parentResult);
 		
 		repoShadow = refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, task, parentResult);
-		
-		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-		repoShadow = cleanUpDeadShadow(ctx, repoShadow, now, task, parentResult);
 		
 		return repoShadow;
 	}

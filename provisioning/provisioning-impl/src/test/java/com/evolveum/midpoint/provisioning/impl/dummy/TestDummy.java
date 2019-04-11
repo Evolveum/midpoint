@@ -3949,10 +3949,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 			.assertName(ACCOUNT_RELIC_USERNAME)
 			.assertPrimaryIdentifierValue(ACCOUNT_RELIC_USERNAME);
 
-		syncServiceMock.assertNotifySuccessOnly();
-
-//		checkConsistency();
-
 		assertSteadyResource();
 	}
 	
