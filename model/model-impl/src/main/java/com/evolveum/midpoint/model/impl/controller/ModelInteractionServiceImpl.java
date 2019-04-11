@@ -906,7 +906,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		ProtectedStringType currentPassword = userType.getCredentials().getPassword().getValue();
 		boolean cmp;
 		try {
-			cmp = protector.compare(password, currentPassword);
+			cmp = protector.compareCleartext(password, currentPassword);
 		} catch (EncryptionException e) {
 			result.recordFatalError(e);
 			throw new SystemException(e.getMessage(),e);

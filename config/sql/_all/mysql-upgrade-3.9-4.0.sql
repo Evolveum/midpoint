@@ -18,4 +18,9 @@ ALTER TABLE m_generic_object DROP FOREIGN KEY fk_generic_object;
 ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus(oid);
 
+ALTER TABLE m_shadow ADD COLUMN primaryIdentifierValue VARCHAR(255);
+
+ALTER TABLE m_shadow
+    ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';

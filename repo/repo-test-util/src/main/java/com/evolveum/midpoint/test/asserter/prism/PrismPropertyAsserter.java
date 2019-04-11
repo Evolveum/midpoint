@@ -43,38 +43,40 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author semancik
  *
  */
-public class PrismPropertyValueAsserter<T, RA> extends PrismValueAsserter<PrismPropertyValue<T>, RA> {
+public class PrismPropertyAsserter<T, RA> extends PrismItemAsserter<PrismProperty<T>, RA> {
 	
-	public PrismPropertyValueAsserter(PrismPropertyValue<T> prismValue) {
-		super(prismValue);
+	public PrismPropertyAsserter(PrismProperty<T> property) {
+		super(property);
 	}
 	
-	public PrismPropertyValueAsserter(PrismPropertyValue<T> prismValue, String detail) {
-		super(prismValue, detail);
+	public PrismPropertyAsserter(PrismProperty<T> property, String detail) {
+		super(property, detail);
 	}
 	
-	public PrismPropertyValueAsserter(PrismPropertyValue<T> prismValue, RA returnAsserter, String detail) {
-		super(prismValue, returnAsserter, detail);
+	public PrismPropertyAsserter(PrismProperty<T> property, RA returnAsserter, String detail) {
+		super(property, returnAsserter, detail);
 	}
 	
-	public PrismPropertyValueAsserter<T,RA> assertValue(T expectedValue) {
-		assertEquals("Wrong property value in "+desc(), expectedValue, getPrismValue().getValue());
+	@Override
+	public PrismPropertyAsserter<T,RA> assertSize(int expected) {
+		super.assertSize(expected);
 		return this;
 	}
 	
-	public ProtectedStringAsserter<PrismPropertyValueAsserter<T,RA>> protectedString() {
-		ProtectedStringAsserter<PrismPropertyValueAsserter<T,RA>> asserter = new ProtectedStringAsserter<PrismPropertyValueAsserter<T,RA>>((ProtectedStringType)getPrismValue().getValue(), this, desc());
+	public PrismPropertyValueAsserter<T,PrismPropertyAsserter<T,RA>> singleValue() {
+		assertSize(1);
+		PrismPropertyValue<T> pval = getItem().getValue();
+		PrismPropertyValueAsserter<T,PrismPropertyAsserter<T,RA>> asserter = new PrismPropertyValueAsserter<>(pval, this, "single value in "+desc());
 		copySetupTo(asserter);
 		return asserter;
 	}
-		
+	
 	// TODO
 
 	protected String desc() {

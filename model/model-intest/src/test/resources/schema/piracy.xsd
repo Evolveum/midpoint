@@ -20,7 +20,10 @@
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/samples/piracy"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
     <!-- user extension -->
 
@@ -96,6 +99,15 @@
             			<a:displayName>Binary identifier</a:displayName>
 						<a:displayOrder>890</a:displayOrder>
 				<!-- 		<a:indexed>true</a:indexed> we do not support binary indexing -->
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="locker" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>MID-5197</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:displayName>Locker</a:displayName>
+						<a:displayOrder>900</a:displayOrder>
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>

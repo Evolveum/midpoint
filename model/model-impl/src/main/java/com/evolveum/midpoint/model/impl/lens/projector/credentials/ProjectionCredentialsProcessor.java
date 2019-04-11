@@ -249,7 +249,7 @@ public class ProjectionCredentialsProcessor {
 							if (userPasswordDeltaOldValues != null && !userPasswordDeltaOldValues.isEmpty()) {
 								ProtectedStringType oldUserPassword = userPasswordDeltaOldValues.iterator().next().getRealValue();
 								try {
-									if (oldUserPassword.canGetCleartext() && protector.compare(oldUserPassword, oldProjectionPassword)) {
+									if (oldUserPassword.canGetCleartext() && protector.compareCleartext(oldUserPassword, oldProjectionPassword)) {
 										outputTriple.clearMinusSet();
 										outputTriple.addToMinusSet(prismContext.itemFactory().createPropertyValue(oldUserPassword));
 									}

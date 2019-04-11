@@ -950,8 +950,8 @@ public class ExpressionUtil {
 		// expressionHandler.evaluateExpression(currentShadow, valueExpression,
 		// shortDesc, result);
 	}
-
-	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
+	
+	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources, 
 			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -959,12 +959,20 @@ public class ExpressionUtil {
 		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 				shortDesc, task, parentResult);
 
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task, parentResult);
 		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context);
 
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
 		return getExpressionOutputValue(outputTriple, shortDesc);
+	}
+
+	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
+			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
+			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+		return evaluateExpression(null, variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc, task, parentResult);
 	}
 	
 	public static <V extends PrismValue> V getExpressionOutputValue(PrismValueDeltaSetTriple<V> outputTriple, String shortDesc) throws ExpressionEvaluationException {
@@ -1047,6 +1055,16 @@ public class ExpressionUtil {
 		}
 
 		return variablesAndSources;
+	}
+	
+	public static VariablesMap compileSources(Collection<Source<?, ?>> sources) {
+		VariablesMap sourcesMap = new VariablesMap();
+		if (sources != null) {
+			for (Source<?, ?> source : sources) {
+				sourcesMap.put(source.getName().getLocalPart(), source, source.getDefinition());
+			}
+		}
+		return sourcesMap;
 	}
 
 	public static boolean hasExplicitTarget(List<MappingType> mappingTypes) {

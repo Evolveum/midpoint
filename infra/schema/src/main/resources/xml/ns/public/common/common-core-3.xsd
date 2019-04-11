@@ -11158,6 +11158,17 @@
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="primaryIdentifierValue" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value of the primary (unique) identifier; converted to a string if it's of a different type.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>ShadowType.primaryIdentifierValue</a:displayName>
+								<a:since>4.0</a:since>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
