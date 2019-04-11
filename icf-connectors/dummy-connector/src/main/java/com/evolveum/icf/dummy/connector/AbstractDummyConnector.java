@@ -744,7 +744,14 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     	allObjects = sortObjects(allObjects, options);
     	int matchingObjects = 0;
     	int returnedObjects = 0;
+    	
     	// Brute force. Primitive, but efficient.
+    	
+    	// Strictly speaking, iteration over this collection should be synchronized to the map
+    	// that it came from (e.g. account map in the dummy resource). However, we do not really care.
+    	// Some non-deterministic search results should not harm much, midPoint should be able to recover.
+    	// And in fact, we might want some non-deterministic results to increase the chance of test failures
+    	// (especially parallel tests).
         for (T object : allObjects) {
         	ConnectorObject co = converter.convert(object, attributesToGet);
         	if (matches(query, co)) {
@@ -853,7 +860,11 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			recorder.accept(object);
 		}
 		co = filterOutAttributesToGet(co, object, attributesToGet, options.getReturnDefaultAttributes());
-		return handler.handle(co);
+		resource.searchHandlerSync();
+		log.info("HANDLE:START: {0}", object.getName());
+		boolean ret = handler.handle(co);
+		log.info("HANDLE:END: {0}", object.getName());
+		return ret;
 	}
 
 	private boolean isEqualsFilter(Filter icfFilter, String icfAttrname) {

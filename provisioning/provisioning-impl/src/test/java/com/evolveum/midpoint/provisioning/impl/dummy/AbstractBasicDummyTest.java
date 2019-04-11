@@ -180,9 +180,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
 
-		result.computeStatus();
-		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		// Check connector schema
 		IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
@@ -206,9 +204,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 				null, null, result);
 
 		// THEN
-		result.computeStatus();
-		display("searchObjects result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertFalse("No connector found", connectors.isEmpty());
 		for (PrismObject<ConnectorType> connPrism : connectors) {
@@ -1264,6 +1260,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		display("Will account repo", accountRepo);
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
+		
+		if (isIcfNameUidSame()) {
+			assertPrimaryIdentifierValue(accountRepo, getWillRepoIcfName());
+		} else {
+			assertPrimaryIdentifierValue(accountRepo, getIcfUid(accountRepo));
+		}
+		
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
 		assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, getWillRepoIcfName());
 		if (isIcfNameUidSame() && !isProposedShadow(accountRepo)) {
@@ -1273,6 +1276,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNumberOfAttributes(accountRepo, expectedNumberOfAttributes);
 
 		assertRepoCachingMetadata(accountRepo, start, end);
+	}
+
+	protected void assertPrimaryIdentifierValue(PrismObject<ShadowType> shadow, String expected) {
+		if (shadow.asObjectable().getLifecycleState() == null || shadow.asObjectable().getLifecycleState().equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
+			assertEquals("Wrong primaryIdentifierValue in "+shadow, expected, shadow.asObjectable().getPrimaryIdentifierValue());
+		}
 	}
 
 	private boolean isProposedShadow(PrismObject<ShadowType> shadow) {

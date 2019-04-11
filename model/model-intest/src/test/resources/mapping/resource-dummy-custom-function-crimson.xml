@@ -70,7 +70,7 @@
 						<script>
 							<code>
 								map = new HashMap();
-								map.put("name", name);
+								map.put("username", name);
 								name = myLib.execute("getName", map);
 								log.info("custom library name: " + name)
 								return name;

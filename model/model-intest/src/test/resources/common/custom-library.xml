@@ -26,12 +26,12 @@
     <function>
     	<name>getName</name>
     	<parameter>
-    		<name>name</name>
+    		<name>username</name>
     		<type>xsd:string</type>
     	</parameter>
     	<script>
     		 	<code>
-    		 	    return name.toUpperCase();
+    		 	    return username.toUpperCase();
     		 	</code>
     	</script>
     	<returnType>t:PolyStringType</returnType>
@@ -41,9 +41,14 @@
     	<name>getLocality</name>
     	<parameter>
     		<name>location</name>
-    		<type>xsd:string</type>
+    		<type>t:PolyStringType</type>
     	</parameter>
-    	<asIs/>
+    	<script>
+    		<code>
+    			log.info("##Location: " + location)
+    			return location;
+    		</code>
+    	</script>
     	<returnType>t:PolyStringType</returnType>
     </function>
     

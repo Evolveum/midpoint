@@ -517,7 +517,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME = "locker";
-
+    
     protected static final String INTENT_TEST = "test";
     protected static final String INTENT_DUMMY_GROUP = "group";
     protected static final String INTENT_DUMMY_PRIVILEGE = "privilege";
