@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.web.component.dialog.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -114,6 +115,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String OPERATION_LAXATIVE_DELETE = DOT_CLASS + "laxativeDelete";
 
 	private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
+	private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
 	private static final String OPERATION_DELETE_SHADOWS = DOT_CLASS + "deleteShadows";
 
 	private static final String ID_MAIN_FORM = "mainForm";
@@ -125,6 +127,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String ID_EXPORT_ALL = "exportAll";
 	private static final String ID_SEARCH_FORM = "searchForm";
 	private static final String ID_RESOURCE = "resource";
+	private static final String ID_OBJECT_CLASS = "objectClass";
 	private static final String ID_TABLE_HEADER = "tableHeader";
 	private static final String ID_SEARCH = "search";
 
@@ -135,6 +138,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	// confirmation dialog model
 	private IModel<DebugConfDialogDto> confDialogModel;
 	private IModel<List<ObjectViewDto>> resourcesModel;
+	private IModel<List<QName>> objectClassListModel;
 
 	public PageDebugList() {
 		searchModel = new LoadableModel<DebugSearchDto>(false) {
@@ -167,6 +171,21 @@ public class PageDebugList extends PageAdminConfiguration {
 			@Override
 			protected List<ObjectViewDto> load() {
 				return loadResources();
+			}
+		};
+		objectClassListModel = new LoadableModel<List<QName>>() {
+			@Override
+			protected List<QName> load() {
+				if (searchModel != null && searchModel.getObject() != null && searchModel.getObject().getResource() != null){
+					ObjectViewDto objectViewDto = searchModel.getObject().getResource();
+					OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE_OBJECT);
+					PrismObject<ResourceType> resource =  WebModelServiceUtils.loadObject(ResourceType.class, objectViewDto.getOid(), PageDebugList.this,
+							createSimpleTask(OPERATION_LOAD_RESOURCE_OBJECT), result);
+					if (resource != null){
+						return WebComponentUtil.loadResourceObjectClassValues(resource.asObjectable(), PageDebugList.this);
+					}
+				}
+				return new ArrayList<>();
 			}
 		};
 
@@ -238,7 +257,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			@Override
 			protected WebMarkupContainer createHeader(String headerId) {
 				return new SearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
-						resourcesModel);
+						resourcesModel, objectClassListModel);
 			}
 
 		};
@@ -565,9 +584,20 @@ public class PageDebugList extends PageAdminConfiguration {
 		List<ObjectFilter> filters = new ArrayList<>();
 		if (ObjectTypes.SHADOW.equals(dto.getType()) && dto.getResource() != null) {
 			String oid = dto.getResource().getOid();
-			ObjectFilter objectFilter = getPrismContext().queryFor(ShadowType.class)
-					.item(ShadowType.F_RESOURCE_REF).ref(oid)
-					.buildFilter();
+			QName objectClass = dto.getObjectClass();
+			ObjectFilter objectFilter;
+			if (objectClass != null){
+				objectFilter = getPrismContext().queryFor(ShadowType.class)
+						.item(ShadowType.F_RESOURCE_REF).ref(oid)
+						.and()
+						.item(ShadowType.F_OBJECT_CLASS)
+						.eq(objectClass)
+						.buildFilter();
+			} else {
+				objectFilter = getPrismContext().queryFor(ShadowType.class)
+						.item(ShadowType.F_RESOURCE_REF).ref(oid)
+						.buildFilter();
+			}
 			filters.add(objectFilter);
 		}
 
@@ -921,13 +951,13 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static class SearchFragment extends Fragment {
 
 		public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-				IModel<DebugSearchDto> model, IModel<List<ObjectViewDto>> resourcesModel) {
+				IModel<DebugSearchDto> model, IModel<List<ObjectViewDto>> resourcesModel, IModel<List<QName>> objectClassListModel) {
 			super(id, markupId, markupProvider, model);
 
-			initLayout(resourcesModel);
+			initLayout(resourcesModel, objectClassListModel);
 		}
 
-		private void initLayout(IModel<List<ObjectViewDto>> resourcesModel) {
+		private void initLayout(IModel<List<ObjectViewDto>> resourcesModel, IModel<List<QName>> objectClassListModel) {
 			final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
 			add(searchForm);
 			searchForm.setOutputMarkupId(true);
@@ -990,6 +1020,34 @@ public class PageDebugList extends PageAdminConfiguration {
 				}
 			});
 			searchForm.add(resource);
+
+			DropDownChoicePanel<QName> objectClass = new DropDownChoicePanel<QName>(ID_OBJECT_CLASS,
+					new PropertyModel(model, DebugSearchDto.F_OBJECT_CLASS), objectClassListModel,
+					new QNameIChoiceRenderer(""), true);
+			objectClass.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					// nothing to do, it's here just to update model
+				}
+			});
+			objectClass.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					PageDebugList page = (PageDebugList) getPage();
+					page.listObjectsPerformed(target);
+				}
+			});
+			objectClass.add(new VisibleEnableBehaviour() {
+
+				@Override
+				public boolean isVisible() {
+					DebugSearchDto dto = model.getObject();
+					return ObjectTypes.SHADOW.equals(dto.getType());
+				}
+			});
+			searchForm.add(objectClass);
 
 			AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<>(false)) {
 

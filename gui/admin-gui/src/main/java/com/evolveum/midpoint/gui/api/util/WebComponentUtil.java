@@ -47,6 +47,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -61,6 +62,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
@@ -3100,6 +3102,19 @@ public final class WebComponentUtil {
         duration = StringUtils.replaceOnce(duration, "day", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.day").getString());
 		
 		return duration;
+	}
+
+	public static List<QName> loadResourceObjectClassValues(ResourceType resource, PageBase pageBase){
+		try {
+			ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, pageBase.getPrismContext());
+			if (schema != null) {
+				return schema.getObjectClassList();
+			}
+		} catch (SchemaException|RuntimeException e){
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
+			pageBase.error("Couldn't load object class list from resource.");
+		}
+		return new ArrayList<>();
 	}
 
 	public static List<RefinedAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent){
