@@ -690,7 +690,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
 	private boolean areEquivalentHashed(ProtectedStringType a, ProtectedStringType b) {
 		// We cannot compare two hashes in any other way.
-		return Objects.equals(a.getHashedDataType(), a.getHashedDataType());
+		return Objects.equals(a.getHashedDataType(), b.getHashedDataType());
 	}
 	
 	private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
