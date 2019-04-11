@@ -530,7 +530,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
 		ValueSetDefinitionType rangetSetDefType = mappingType.getTarget().getSet();
-		ValueSetDefinition setDef = new ValueSetDefinition(rangetSetDefType, expressionProfile, name, "range of "+name+" in "+getMappingContextDescription(), task, result);
+		ValueSetDefinition<V,D> setDef = new ValueSetDefinition<>(rangetSetDefType, outputDefinition, expressionProfile, name, "range of "+name+" in "+getMappingContextDescription(), task, result);
 		setDef.init(expressionFactory);
 		setDef.setAdditionalVariables(variables);
 		for (V originalValue : originalTargetValues) {
@@ -943,7 +943,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		// apply domain
 		ValueSetDefinitionType domainSetType = sourceType.getSet();
 		if (domainSetType != null) {
-			ValueSetDefinition setDef = new ValueSetDefinition(domainSetType, expressionProfile, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
+			ValueSetDefinition<IV,D> setDef = new ValueSetDefinition<>(domainSetType, outputDefinition, expressionProfile, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
 			setDef.init(expressionFactory);
 			setDef.setAdditionalVariables(variables);
 			try {
