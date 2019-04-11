@@ -103,6 +103,7 @@ public class DummyResource implements DebugDumpable {
 	private Collection<String> forbiddenNames;
 	private int operationDelayOffset = 0;
 	private int operationDelayRange = 0;
+	private boolean syncSearchHandlerStart = false;
 
 	/**
 	 * There is a monster that loves to eat cookies.
@@ -181,6 +182,8 @@ public class DummyResource implements DebugDumpable {
 		writeOperationCount = 0;
 		operationDelayOffset = 0;
 		operationDelayRange = 0;
+		blockOperations = false;
+		syncSearchHandlerStart = false;
 		resetBreakMode();
 	}
 
@@ -376,6 +379,14 @@ public class DummyResource implements DebugDumpable {
 
 	public void setOperationDelayRange(int operationDelayRange) {
 		this.operationDelayRange = operationDelayRange;
+	}
+	
+	public boolean isSyncSearchHandlerStart() {
+		return syncSearchHandlerStart;
+	}
+
+	public void setSyncSearchHandlerStart(boolean syncSearchHandlerStart) {
+		this.syncSearchHandlerStart = syncSearchHandlerStart;
 	}
 
 	public boolean isMonsterization() {
@@ -953,11 +964,11 @@ public class DummyResource implements DebugDumpable {
 	private synchronized void checkBlockOperations() {
 		if (blockOperations) {
 			try {
-				LOGGER.info("Thread {} blocked", Thread.currentThread().getName());
+				LOGGER.info("Thread {} blocked (operation)", Thread.currentThread().getName());
 				this.wait();
-				LOGGER.info("Thread {} unblocked", Thread.currentThread().getName());
+				LOGGER.info("Thread {} unblocked (operation)", Thread.currentThread().getName());
 			} catch (InterruptedException e) {
-				LOGGER.debug("Wait interrupted", e);
+				LOGGER.debug("Wait interrupted (operation)", e);
 			}
 		}
 	}
@@ -968,8 +979,22 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	public synchronized void unblockAll() {
+		syncSearchHandlerStart = false;
+		blockOperations = false;
 		LOGGER.info("Unblocking all");
 		this.notifyAll();
+	}
+	
+	public synchronized void searchHandlerSync() {
+		if (syncSearchHandlerStart) {
+			try {
+				LOGGER.info("Thread {} blocked (search handler sync)", Thread.currentThread().getName());
+				this.wait();
+				LOGGER.info("Thread {} unblocked (search handler sync)", Thread.currentThread().getName());
+			} catch (InterruptedException e) {
+				LOGGER.debug("Wait interrupted (search handler sync)", e);
+			}
+		}
 	}
 
 	private void traceOperation(String opName, long counter) {

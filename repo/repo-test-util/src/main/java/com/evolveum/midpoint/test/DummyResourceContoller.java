@@ -473,6 +473,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public void reset() {
 		dummyResource.setBreakMode(BreakMode.NONE);
 		dummyResource.setBlockOperations(false);
+		dummyResource.setSyncSearchHandlerStart(false);
 		dummyResource.unblockAll();
 	}
 	
