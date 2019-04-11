@@ -37,6 +37,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -86,7 +87,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp desc";
 	private static final String SET_FIRST_RESULT_PARAMETER = "setFirstResult";
 	private static final String SET_MAX_RESULTS_PARAMETER = "setMaxResults";
-	private static final String TIMESTAMP_VALUE_NAME = "aer.timestamp";
+//	private static final String TIMESTAMP_VALUE_NAME = "aer.timestamp";
 
 	public AuditEventRecordProvider(Component component, @Nullable IModel<ObjectCollectionType> objectCollectionModel, @NotNull SerializableSupplier<Map<String, Object>> parametersSupplier) {
 		super(component);
@@ -105,7 +106,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		String query;
 		String origQuery;
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		origQuery = createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
+		origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
 		if(StringUtils.isNotBlank(origQuery)) {
 			query = generateFullQuery(origQuery, false, true);
 		} else {
@@ -114,7 +115,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		}
 		try {
 			Task task = getPage().createSimpleTask("internalSize");
-			System.out.println("XXXXXXXXXx " + query);
 			return (int) getAuditService().countObjects(query, parameters, task, task.getResult());
 		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			// TODO: proper error handling (MID-3536)
@@ -126,7 +126,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		String query;
 		String origQuery;
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		origQuery = createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
+		origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
 		if(StringUtils.isNotBlank(origQuery)) {
 			query = generateFullQuery(origQuery, ordered, false);
 		} else {
@@ -155,39 +155,39 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		return auditRecordList;
 	}
 	
-	public static String createQuery(ObjectCollectionType collectionForQuery, Map<String, Object> parameters,
-			boolean forDomain, Clock clock) {
-		if(collectionForQuery == null) {
-			return null;
-		}
-		AuditSearchType auditSearch = collectionForQuery.getAuditSearch();
-		if(auditSearch != null || StringUtils.isNotBlank(auditSearch.getRecordQuery())) {
-			Duration interval = auditSearch.getInterval();
-			if(interval == null) {
-				return auditSearch.getRecordQuery();
-			}
-			String origQuery = auditSearch.getRecordQuery();
-			if(forDomain) {
-				origQuery = auditSearch.getDomainQuery();
-				if(origQuery == null) {
-					return null;
-				}
-			}
-			String [] partsOfQuery = origQuery.split("where");
-			if(interval.getSign() == 1) {
-				interval = interval.negate();
-			}
-			Date date = new Date(clock.currentTimeMillis());
-			interval.addTo(date);
-			String query = partsOfQuery[0] + "where " + TIMESTAMP_VALUE_NAME + " >= " + ":from" + " ";
-			parameters.put(PARAMETER_FROM, date);
-			if(partsOfQuery.length > 1) {
-				query+= "and" +partsOfQuery[1]; 
-			}
-			return query;
-		}
-		return null;
-	}
+//	public static String createQuery(ObjectCollectionType collectionForQuery, Map<String, Object> parameters,
+//			boolean forDomain, Clock clock) {
+//		if(collectionForQuery == null) {
+//			return null;
+//		}
+//		AuditSearchType auditSearch = collectionForQuery.getAuditSearch();
+//		if(auditSearch != null || StringUtils.isNotBlank(auditSearch.getRecordQuery())) {
+//			Duration interval = auditSearch.getInterval();
+//			if(interval == null) {
+//				return auditSearch.getRecordQuery();
+//			}
+//			String origQuery = auditSearch.getRecordQuery();
+//			if(forDomain) {
+//				origQuery = auditSearch.getDomainQuery();
+//				if(origQuery == null) {
+//					return null;
+//				}
+//			}
+//			String [] partsOfQuery = origQuery.split("where");
+//			if(interval.getSign() == 1) {
+//				interval = interval.negate();
+//			}
+//			Date date = new Date(clock.currentTimeMillis());
+//			interval.addTo(date);
+//			String query = partsOfQuery[0] + "where " + TIMESTAMP_VALUE_NAME + " >= " + ":from" + " ";
+//			parameters.put(PARAMETER_FROM, date);
+//			if(partsOfQuery.length > 1) {
+//				query+= "and" +partsOfQuery[1]; 
+//			}
+//			return query;
+//		}
+//		return null;
+//	}
 
 
 	@SuppressWarnings("unused")

@@ -18,59 +18,90 @@ package com.evolveum.midpoint.report.impl;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
-import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 
-import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.DashboardWidget;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordItemType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetPresentationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourceTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.fasterxml.jackson.databind.deser.ValueInstantiator.Gettable;
+
+import j2html.TagCreator;
+import j2html.tags.ContainerTag;
 
 /**
  * @author skublik
@@ -79,331 +110,520 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @Component
 public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
-    public static final String REPORT_HTML_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/html/create/handler-3";
-    private static final Trace LOGGER = TraceManager.getTrace(ReportHTMLCreateTaskHandler.class);
+	public static final String REPORT_HTML_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/html/create/handler-3";
+	private static final Trace LOGGER = TraceManager.getTrace(ReportHTMLCreateTaskHandler.class);
 
-    private static String START_THEAD = "<!--THEAD-->";
-    private static String START_TBODY = "<!--TBODY-->";
-    private static final String REPORT_ADMIN_DASHBOARD_SUBTYPE = "admin-dashboard-report";
-    private static final String REPORT_HTML_TEMPLATE_FILE_NAME = "admin-dashboard-report-template.html";
-    
+	private static final String REPORT_CSS_STYLE_FILE_NAME = "dashboard-report-style.css";
+	private static final String LABEL_COLUMN = "Label";
+	private static final String NUMBER_COLUMN = "Number";
+	private static final String STATUS_COLUMN = "Status";
+	private static final String TIME_COLUMN = "Time";
+	private static final String INITIATOR_COLUMN = "Initiator";
+	private static final String EVENT_STAGE_COLUMN = "Event stage";
+	private static final String EVENT_TYPE_COLUMN = "Event type";
+	private static final String TARGET_COLUMN = "Target";
+	private static final String TARGET_OWNER_COLUMN = "Target owner";
+	private static final String CHANNEL_COLUMN = "Channel";
+	private static final String OUTCOME_COLUMN = "Outcome";
+	private static final String NAME_COLUMN = "Name";
+	private static final String CONNECTOR_TYPE_COLUMN = "Connector type";
+	private static final String VERSION_COLUMN = "Version";
+	private static final String GIVEN_NAME_COLUMN = "Given name";
+	private static final String FAMILY_NAME_COLUMN = "Family name";
+	private static final String FULL_NAME_COLUMN = "Full name";
+	private static final String EMAIL_COLUMN = "Email";
+	private static final String ACCOUNTS_COLUMN = "Accounts";
+	private static final String DISPLAY_NAME_COLUMN = "Display name";
+	private static final String DESCRIPTION_COLUMN = "Description";
+	private static final String IDENTIFIER_COLUMN = "Identifier";
+	private static final String CATEGORY_COLUMN = "Category";
+	private static final String OBJECT_REFERENCE_COLUMN = "Object reference";
+	private static final String EXECUTION_COLUMN = "Execution";
+	private static final String EXECUTING_AT_COLUMN = "Executing at";
+	private static final String PROGRES_COLUMN = "Progress";
+	private static final String CURRENT_RUN_TIME_COLUMN = "Current run time";
+	private static final String SCHEDULED_TO_START_AGAIN_COLUMN = "Scheduled to start again";
+	private static final QName CUSTOM = new QName("custom");
 
-    @Autowired private TaskManager taskManager;
-    @Autowired private AuditService auditService;
-    @Autowired private ModelService modelService;
-    @Autowired private PrismContext prismContext;
-    @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
+	@Autowired
+	private ExpressionFactory expressionFactory;
+	@Autowired
+	private Clock clock;
+	@Autowired
+	private ModelInteractionService modelInteractionService;
+	@Autowired
+	private TaskManager taskManager;
+	@Autowired
+	private AuditService auditService;
+	@Autowired
+	private ModelService modelService;
+	@Autowired
+	private PrismContext prismContext;
+	@Autowired
+	@Qualifier("modelObjectResolver")
+	private ObjectResolver objectResolver;
 
-    @PostConstruct
-    private void initialize() {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registering with taskManager as a handler for " + REPORT_HTML_CREATE_TASK_URI);
-        }
-        taskManager.registerHandler(REPORT_HTML_CREATE_TASK_URI, this);
-    }
+	private static LinkedHashMap<Class<? extends ObjectType>, LinkedHashMap<String, ItemPath>> columnDef;
+	private static Set<String> headsOfWidget;
+	private static Set<String> headsOfAuditEventRecords;
 
-    @Override
-    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-        // TODO Auto-generated method stub
-        OperationResult parentResult = task.getResult();
-        OperationResult result = parentResult.createSubresult(ReportHTMLCreateTaskHandler.class.getSimpleName() + ".run");
+	static {
+		columnDef = new LinkedHashMap<Class<? extends ObjectType>, LinkedHashMap<String, ItemPath>>() {
+			private static final long serialVersionUID = 1L;
+			{
+				put(ResourceType.class, new LinkedHashMap<String, ItemPath>() {
+					private static final long serialVersionUID = 1L;
+					{
+						put(NAME_COLUMN, ResourceType.F_NAME);
+						put(CONNECTOR_TYPE_COLUMN,
+								ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE));
+						put(VERSION_COLUMN,
+								ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION));
+					}
+				});
 
-        TaskRunResult runResult = new TaskRunResult();
-        runResult.setOperationResult(result);
+				put(UserType.class, new LinkedHashMap<String, ItemPath>() {
+					private static final long serialVersionUID = 1L;
+					{
+						put(NAME_COLUMN, UserType.F_NAME);
+						put(GIVEN_NAME_COLUMN, UserType.F_GIVEN_NAME);
+						put(FAMILY_NAME_COLUMN, UserType.F_FAMILY_NAME);
+						put(FULL_NAME_COLUMN, UserType.F_FULL_NAME);
+						put(EMAIL_COLUMN, UserType.F_EMAIL_ADDRESS);
+						put(ACCOUNTS_COLUMN, ItemPath.create(AbstractRoleType.F_LINK_REF, CUSTOM));
+					}
+				});
 
-        super.recordProgress(task, 0, result);
-        try {
-            ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", task, result);
-            
-            if(!parentReport.getSubtype().contains(REPORT_ADMIN_DASHBOARD_SUBTYPE)) {
-            	parentReport.setExport(ExportType.HTML);
-            	return super.run(task);
-            }
-            
-            String template = "";
-            ClassLoader classLoader = getClass().getClassLoader();
-            InputStream in = classLoader.getResourceAsStream(REPORT_HTML_TEMPLATE_FILE_NAME);
-    		byte[] data = IOUtils.toByteArray(in);
-    		template = new String(data, Charset.defaultCharset());
-            
-    		
-    		String[] parts = template.split(START_THEAD);
-    		StringBuilder body = new StringBuilder(parts[0]);
-    		Task opTask = taskManager.createTaskInstance();
-    		body.append(createTHead());
-    		parts = parts[1].split(START_TBODY);
-    		body.append(parts[0]);
-    		body.append(createTBody(opTask));
-    		body.append(parts[1]);
-    		
-            String reportFilePath = getDestinationFileName(parentReport);
-            FileUtils.writeByteArrayToFile(new File(reportFilePath), body.toString().getBytes());
-            super.saveReportOutputType(reportFilePath, parentReport, task, result);
-            LOGGER.trace("create report output type : {}", reportFilePath);
+				put(AbstractRoleType.class, new LinkedHashMap<String, ItemPath>() {
+					private static final long serialVersionUID = 1L;
+					{
+						put(NAME_COLUMN, AbstractRoleType.F_NAME);
+						put(DISPLAY_NAME_COLUMN, AbstractRoleType.F_DISPLAY_NAME);
+						put(DESCRIPTION_COLUMN, AbstractRoleType.F_DESCRIPTION);
+						put(IDENTIFIER_COLUMN, AbstractRoleType.F_IDENTIFIER);
+						put(ACCOUNTS_COLUMN, ItemPath.create(AbstractRoleType.F_LINK_REF, CUSTOM));
+					}
+				});
 
-            if (parentReport.getPostReportScript() != null) {
-                super.processPostReportScript(parentReport, reportFilePath, task, result);
-            }
-            result.computeStatus();
-
-        } catch (Exception ex) {
-            LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
-            result.recordFatalError(ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-        }
-
-        // This "run" is finished. But the task goes on ...
-        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        LOGGER.trace("CreateReportTaskHandler.run stopping");
-        return runResult;
-    }
-    
-    private String createTHead() {
-    	List<HTMLElement> childElements = new ArrayList<HTMLElement>();
-		for(String value : getHead()) {
-			HTMLElement div = new HTMLElement("div").addChildElement(new HTMLElement("span").setClasses("sortableLabel").setText(value));
-			childElements.add(new HTMLElement("th").addChildElement(div));
-		}
-		return new HTMLElement("tr").setChildElements(childElements).toHTMLFormat();
-	}
-    
-    private String createTBody(Task task) {
-    	StringBuilder sb = new StringBuilder();
-    	List<String> heads = getHead();
-		for(Map<String, HTMLElement> value : getBody(task, task.getResult())) {
-			List<HTMLElement> childElementsOfTr = new ArrayList<HTMLElement>();
-			for(String head: heads) {
-				HTMLElement div = value.get(head);
-				childElementsOfTr.add(new HTMLElement("td").addChildElement(div).setStyle("width: 10%;"));
+				put(TaskType.class, new LinkedHashMap<String, ItemPath>() {
+					private static final long serialVersionUID = 1L;
+					{
+						put(NAME_COLUMN, TaskType.F_NAME);
+						put(CATEGORY_COLUMN, TaskType.F_CATEGORY);
+						put(OBJECT_REFERENCE_COLUMN, TaskType.F_OBJECT_REF);
+						put(EXECUTION_COLUMN, TaskType.F_EXECUTION_STATUS);
+						put(EXECUTING_AT_COLUMN, TaskType.F_NODE_AS_OBSERVED);
+						put(PROGRES_COLUMN, TaskType.F_PROGRESS);
+						put(CURRENT_RUN_TIME_COLUMN, ItemPath.create(CUSTOM));
+//						put(SCHEDULED_TO_START_AGAIN_COLUMN, ItemPath.create(CUSTOM));
+						put(STATUS_COLUMN, TaskType.F_RESULT_STATUS);
+					}
+				});
 			}
-			sb.append(new HTMLElement("tr").setChildElements(childElementsOfTr).toHTMLFormat());
-		}
-		return sb.toString();
+
+		};
+
+		headsOfWidget = new LinkedHashSet<String>() {
+			{
+				add(LABEL_COLUMN);
+				add(NUMBER_COLUMN);
+				add(STATUS_COLUMN);
+			}
+		};
+
+		headsOfAuditEventRecords = new LinkedHashSet<String>() {
+			{
+				add(TIME_COLUMN);
+				add(INITIATOR_COLUMN);
+				add(EVENT_STAGE_COLUMN);
+				add(EVENT_TYPE_COLUMN);
+				add(TARGET_COLUMN);
+				add(TARGET_OWNER_COLUMN);
+				add(CHANNEL_COLUMN);
+				add(OUTCOME_COLUMN);
+			}
+		};
 	}
 
-	private List<String> getHead(){
-    	List<String> heads = new ArrayList<>();
-    	heads.add("Label");
-    	heads.add("Number");
-    	heads.add("Status");
-    	
-    	return heads;
-    }
-    
-    private List<Map<String, HTMLElement>> getBody(Task task, OperationResult parentResult){
-    	List<Map<String, HTMLElement>> body = new ArrayList<>();
-    	Map<String, HTMLElement> resources = new HashMap<String, HTMLElement>();
-    	
-    	resources.put("Label", new HTMLElement("div").setText("Resources"));
-    	String number = getNumber(ResourceType.class,
-    			Arrays.asList(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
-    			AvailabilityStatusType.UP, false, task, parentResult);
-    	resources.put("Number", new HTMLElement("div").setText(number + " up"));
-    	HTMLElement element = new HTMLElement("div").setStyle("width: 100%; height: 20px;");
-    	setStatusColor(number, element);
-    	resources.put("Status", element);
-    	body.add(resources);
-    	
-    	Map<String, HTMLElement> tasks = new HashMap<String, HTMLElement>();
-    	tasks.put("Label", new HTMLElement("div").setText("Tasks"));
-    	number = getNumber(TaskType.class,
-    			Arrays.asList(TaskType.F_EXECUTION_STATUS),
-    			TaskExecutionStatusType.RUNNABLE, false, task, parentResult);
-    	tasks.put("Number", new HTMLElement("div").setText(number + " active"));
-    	element = new HTMLElement("div").setStyle("width: 100%; height: 20px;");
-    	setStatusColor(number, element);
-    	tasks.put("Status", element);
-    	body.add(tasks);
-    	
-    	Map<String, HTMLElement> modifications = new HashMap<String, HTMLElement>();
-    	modifications.put("Label", new HTMLElement("div").setText("Modifications"));
-    	int total = listModificationsRecords(false).size();
-    	int active = listModificationsRecords(true).size();
-    	number = formatPercentage(total, active) + " %";
-    	modifications.put("Number", new HTMLElement("div").setText(number + " success"));
-    	element = new HTMLElement("div").setStyle("width: 100%; height: 20px;");
-    	setStatusColor(total, active, false, element);
-    	modifications.put("Status", element);
-    	body.add(modifications);
-    	
-    	Map<String, HTMLElement> errors = new HashMap<String, HTMLElement>();
-    	errors.put("Label", new HTMLElement("div").setText("Errors"));
-    	total = listAllOperationsRecords().size();
-    	active = listErrorsRecords().size();
-    	number = formatPercentage(total, active) + " %";
-    	errors.put("Number", new HTMLElement("div").setText(number + " failed"));
-    	element = new HTMLElement("div").setStyle("width: 100%; height: 20px;");
-    	setStatusColor(total, active, true, element);
-    	errors.put("Status", element);
-    	body.add(errors);
-    	
-    	return body;
-    }
-    
-    private void setStatusColor(int totalCount, int activeCount, boolean zeroIsGood, HTMLElement element) {
-		if((zeroIsGood && activeCount == 0) || (totalCount == activeCount)) {
-			element.setClasses("object-access-bg");
-			return;
-		} 
-		element.setClasses("object-failed-bg");
+	@Override
+	protected void initialize() {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Registering with taskManager as a handler for " + REPORT_HTML_CREATE_TASK_URI);
+		}
+		taskManager.registerHandler(REPORT_HTML_CREATE_TASK_URI, this);
 	}
-    
-    private void setStatusColor(String number, HTMLElement element) {
-    	String[] parts = number.split("/");
-    	setStatusColor(Integer.valueOf(parts[1]), Integer.valueOf(parts[0]), false, element);
-	}
-    
-    private String getNumber(Class type, List<QName> items, Object eqObject, boolean isPercentage, Task task, OperationResult parentResult){
-    	
-    	Integer total = 0;
-    	Integer active = 0;
-    	try {
-    		total = modelService.countObjects(type, null, null, task, parentResult);
-    		ObjectQuery query = prismContext.queryFor(type)
-				.item((QName[])items.toArray()).eq(eqObject)
-				.build();
-    		if(total == null) {
-    			total = 0;
-    		}
-		
-			active = modelService.countObjects(type, query, null, task, parentResult);
-			if(active == null) {
-				active = 0;
-    		}
-		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException
-				| CommunicationException | ExpressionEvaluationException e) {
-			return "ERROR: "+e.getMessage();
-		}
-    	
-    	if(isPercentage) {
-    		return formatPercentage(total, active) + " %";
-    	}
-    	
-    	return active + "/" + total;
-    }
-    
-    private String formatPercentage(int totalItems, int actualItems) {
-    	float percentage = (totalItems==0 ? 0 : actualItems*100.0f/totalItems);
-    	String format = "%.0f";
-    	
-    	if(percentage < 100.0f && percentage % 10 != 0 && ((percentage % 10) % 1) != 0) {
-    		format = "%.1f";
-    	}
-    	return String.format(format, percentage);
-    }
-    
-    private List<AuditEventRecordType> listModificationsRecords(boolean isSuccess){
-    	Map<String, Object> parameters = new HashedMap<String, Object>();
-		List<String> conditions = new ArrayList<>();
-		conditions.add("aer.eventType = :auditEventType");
-		parameters.put("auditEventType", AuditEventTypeType.MODIFY_OBJECT);
-		
-		if(isSuccess){
-			conditions.add("aer.outcome = :outcome");
-			parameters.put("outcome", OperationResultStatusType.SUCCESS);
-		}
-		
-		return listAuditRecords(parameters, conditions);
-    }
-    
-    private List<AuditEventRecordType> listErrorsRecords(){
-    	Map<String, Object> parameters = new HashedMap<String, Object>();
-		List<String> conditions = new ArrayList<>();
-		conditions.add("aer.outcome = :outcome");
-		parameters.put("outcome", OperationResultStatusType.FATAL_ERROR);
-		
-		return listAuditRecords(parameters, conditions);
-    }
-    
-    private List<AuditEventRecordType> listAllOperationsRecords(){
-    	Map<String, Object> parameters = new HashedMap<String, Object>();
-		List<String> conditions = new ArrayList<>();
-		return listAuditRecords(parameters, conditions);
-    }
-    
-    private List<AuditEventRecordType> listAuditRecords(Map<String, Object> parameters, List<String> conditions) {
-		
-		Date date = new Date(System.currentTimeMillis() - (24*3600000));
-		conditions.add("aer.timestamp >= :from");
-		parameters.put("from", XmlTypeConverter.createXMLGregorianCalendar(date));
-		conditions.add("aer.eventStage = :auditStageType");
-		parameters.put("auditStageType", AuditEventStageType.EXECUTION);
-		
-		String query = "from RAuditEventRecord as aer";
-		if (!conditions.isEmpty()) {
-			query += " where ";
-		}
-		
-		query += conditions.stream().collect(Collectors.joining(" and "));
-		query += " order by aer.timestamp desc";
 
+	@Override
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+		OperationResult parentResult = task.getResult();
+		OperationResult result = parentResult
+				.createSubresult(ReportHTMLCreateTaskHandler.class.getSimpleName() + ".run");
 
-        List<AuditEventRecord> auditRecords;
-		auditRecords = auditService.listRecords(query, parameters);
-		
-		if (auditRecords == null) {
-			auditRecords = new ArrayList<>();
+		TaskRunResult runResult = new TaskRunResult();
+		runResult.setOperationResult(result);
+
+		super.recordProgress(task, 0, result);
+		try {
+			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null,
+					"resolving report", task, result);
+
+			if (parentReport.getReportEngine() == null) {
+				throw new IllegalArgumentException("Report Object doesn't have ReportEngine attribute");
+			}
+			if (parentReport.getReportEngine().equals(ReportEngineSelectionType.JASPER)) {
+				parentReport.setExport(ExportType.HTML);
+				return super.run(task, partition);
+
+			} else if (parentReport.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
+
+				if (parentReport.getDashboard() != null && parentReport.getDashboard().getDashboardRef() != null) {
+					ObjectReferenceType ref = parentReport.getDashboard().getDashboardRef();
+					Class<ObjectType> type = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
+					Task taskSearchDashboard = taskManager.createTaskInstance("Search dashboard");
+					DashboardType dashboard = (DashboardType) modelService
+							.getObject(type, ref.getOid(), null, taskSearchDashboard, taskSearchDashboard.getResult())
+							.asObjectable();
+					String style = "";
+					ClassLoader classLoader = getClass().getClassLoader();
+					InputStream in = classLoader.getResourceAsStream(REPORT_CSS_STYLE_FILE_NAME);
+					byte[] data = IOUtils.toByteArray(in);
+					style = new String(data, Charset.defaultCharset());
+
+					String reportFilePath = getDestinationFileName(parentReport);
+					FileUtils.writeByteArrayToFile(new File(reportFilePath), getBody(dashboard, style).getBytes());
+					super.saveReportOutputType(reportFilePath, parentReport, task, result);
+					LOGGER.trace("create report output type : {}", reportFilePath);
+
+					if (parentReport.getPostReportScript() != null) {
+						super.processPostReportScript(parentReport, reportFilePath, task, result);
+					}
+					result.computeStatus();
+				} else {
+					LOGGER.error("Dashboard or DashboardRef is null");
+					throw new IllegalArgumentException("Dashboard or DashboardRef is null");
+				}
+
+			}
+		} catch (Exception ex) {
+			LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
+			result.recordFatalError(ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			return runResult;
 		}
-		List<AuditEventRecordType> auditRecordList = new ArrayList<>();
-		for (AuditEventRecord record : auditRecords){
-			auditRecordList.add(record.createAuditEventRecordType());
-		}
-		return auditRecordList;
+
+		// This "run" is finished. But the task goes on ...
+		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+		LOGGER.trace("CreateReportTaskHandler.run stopping");
+		return runResult;
 	}
-    
-    private class HTMLElement {
-    	
-    	private String tag;
-    	private List<HTMLElement> childElements = new ArrayList<HTMLElement>();
-    	private String text = "";
-    	private String style = "";
-    	private String classes = "";
-    	
-    	public HTMLElement(String tag) {
-    		this.tag = tag;
+
+	private String getBody(DashboardType dashboard, String cssStyle) {
+		StringBuilder body = new StringBuilder();
+		body.append("<div> <style> ").append(cssStyle).append(" </style>");
+
+		ContainerTag widgetTable = createTable();
+		widgetTable.with(createTHead(getHeadsOfWidget()));
+
+		ContainerTag widgetTBody = TagCreator.tbody();
+		List<ContainerTag> tableboxesFromWidgets = new ArrayList<ContainerTag>();
+		for (DashboardWidgetType widget : dashboard.getWidget()) {
+			DashboardWidget widgetData = DashboardUtils.createWidgetData(widget, modelService, taskManager,
+					expressionFactory, auditService, clock, modelInteractionService);
+			widgetTBody.with(createTBodyRow(widgetData));
+			ContainerTag tableBox = createTableBoxForWidget(widgetData);
+			if (tableBox != null) {
+				tableboxesFromWidgets.add(tableBox);
+			}
 		}
-    	
-    	public HTMLElement setText(String text) {
-			this.text = StringEscapeUtils.unescapeHtml4(text);
-			return this;
+		widgetTable.with(widgetTBody);
+
+		body.append(createTableBox(widgetTable, "Widgets").render());
+		appendSpace(body);
+		tableboxesFromWidgets.forEach(table -> {
+			body.append(table.render());
+			appendSpace(body);
+		});
+		body.append("</div");
+
+		return body.toString();
+	}
+
+	private void appendSpace(StringBuilder body) {
+		body.append("<br>");
+	}
+
+	private ContainerTag createTableBoxForWidget(DashboardWidget widgetData) {
+		DashboardWidgetType widget = widgetData.getWidget();
+		if (widget == null) {
+			throw new IllegalArgumentException("Widget in DashboardWidget is null");
 		}
-    	
-    	public HTMLElement setStyle(String style) {
-			this.style = StringEscapeUtils.unescapeHtml4(style);
-			return this;
+		DashboardWidgetSourceTypeType sourceType = DashboardUtils.getSourceType(widget);
+		DashboardWidgetPresentationType presentation = widget.getPresentation();
+		switch (sourceType) {
+		case OBJECT_COLLECTION:
+			if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+				ObjectCollectionType collection = DashboardUtils.getObjectCollectionType(widget, taskManager,
+						prismContext, modelService);
+				List<PrismObject<ObjectType>> values = DashboardUtils.searchObjectFromCollection(collection, true,
+						prismContext, taskManager, modelService);
+				if (values == null || values.isEmpty()) {
+					return null;
+				}
+				Class<ObjectType> type = (Class<ObjectType>) prismContext.getSchemaRegistry()
+						.getCompileTimeClassForObjectType(collection.getType());
+				HashMap<String, ItemPath> columns = getColumnsForType(type);
+				if (columns == null) {
+					LOGGER.error("Couldn't create table for objects with class {}", type.getName());
+				}
+				ContainerTag table = createTable();
+				table.with(createTHead(columns.keySet()));
+				ContainerTag tBody = TagCreator.tbody();
+				values.forEach(value -> {
+					ContainerTag tr = TagCreator.tr();
+					columns.keySet().forEach(column -> {
+						tr.with(TagCreator
+								.th(TagCreator.div(getRealValueAsString(column, value, columns.get(column)))));
+					});
+					tBody.with(tr);
+				});
+				table.with(tBody);
+				return createTableBox(table, widgetData.getLabel());
+			}
+			break;
+		case AUDIT_SEARCH:
+			if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+				Map<String, Object> parameters = new HashMap<String, Object>();
+
+				ObjectCollectionType collection = DashboardUtils.getObjectCollectionType(widget, taskManager,
+						prismContext, modelService);
+				String query = DashboardUtils
+						.getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, clock));
+				List<AuditEventRecord> records = auditService.listRecords(query, parameters);
+				if (records == null || records.isEmpty()) {
+					return null;
+				}
+
+				List<AuditEventRecordType> auditRecordList = new ArrayList<>();
+				for (AuditEventRecord record : records) {
+					auditRecordList.add(record.createAuditEventRecordType());
+				}
+
+				ContainerTag table = createTable();
+				table.with(createTHead(getHeadsOfAuditEventRecords()));
+				ContainerTag tBody = TagCreator.tbody();
+				auditRecordList.forEach(record -> {
+					ContainerTag tr = TagCreator.tr();
+					getHeadsOfAuditEventRecords().forEach(column -> {
+						tr.with(TagCreator.th(TagCreator.div(getColumnForAuditEventRecord(column, record))));
+					});
+					tBody.with(tr);
+				});
+				table.with(tBody);
+				return createTableBox(table, widgetData.getLabel());
+			}
+			break;
 		}
-    	
-    	public HTMLElement setClasses(String classes) {
-			this.classes = StringEscapeUtils.unescapeHtml4(classes);
-			return this;
+		return null;
+	}
+
+	private String getColumnForAuditEventRecord(String column, AuditEventRecordType record) {
+		switch (column) {
+		case TIME_COLUMN:
+			SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss", Locale.US);
+			return dateFormat.format(record.getTimestamp().toGregorianCalendar().getTime());
+		case INITIATOR_COLUMN:
+			ObjectReferenceType initiatorRef = record.getInitiatorRef();
+			return getObjectNameFromRef(initiatorRef);
+		case EVENT_STAGE_COLUMN:
+			return record.getEventStage() == null ? "" : record.getEventStage().toString();
+		case EVENT_TYPE_COLUMN:
+			return record.getEventType() == null ? "" : record.getEventType().toString();
+		case TARGET_COLUMN:
+			ObjectReferenceType targetRef = record.getTargetRef();
+			return getObjectNameFromRef(targetRef);
+		case TARGET_OWNER_COLUMN:
+			ObjectReferenceType targetOwnerRef = record.getTargetOwnerRef();
+			return getObjectNameFromRef(targetOwnerRef);
+		case CHANNEL_COLUMN:
+
+			return record.getChannel() == null ? "" : QNameUtil.uriToQName(record.getChannel()).getLocalPart();
+		case OUTCOME_COLUMN:
+			if (record.getOutcome() == null) {
+				return "";
+			}
+			return record.getOutcome().toString();
 		}
-    	
-    	public HTMLElement setChildElements(List<HTMLElement> childElements) {
-			this.childElements = childElements;
-			return this;
+		return "";
+
+	}
+
+	private String getObjectNameFromRef(Referencable ref) {
+		if (ref == null) {
+			return "";
 		}
-    	
-    	public HTMLElement addChildElement(HTMLElement childElement) {
-			this.childElements.add(childElement);
-			return this;
+		if (ref.getTargetName() != null && ref.getTargetName().getOrig() != null) {
+			return ref.getTargetName().getOrig();
 		}
-    	
-    	public String toHTMLFormat() {
-    		StringBuilder sb = new StringBuilder("<" + tag + " style=\"" + style + "\" class=\"" + classes + "\">" + text);
-    		
-    		for(HTMLElement element : childElements) {
-    			sb.append(element.toHTMLFormat());
-    		}
-    		
-    		sb.append("</" + tag + ">");
-    		return sb.toString();
-    	}
-    }
-    
-    @Override
-    protected ExportType getExport(ReportType report) {
-    	return ExportType.HTML;
-    }
-    
+		PrismObject object = getObjectFromReference(ref);
+
+		if (object == null) {
+			return ref.getOid();
+		}
+
+		if (object.getName() == null || object.getName().getOrig() == null) {
+			return "";
+		}
+		return object.getName().getOrig();
+	}
+
+	private String getRealValueAsString(String nameOfColumn, PrismObject<ObjectType> object, ItemPath itemPath) {
+		Iterator<QName> iterator = (Iterator<QName>) itemPath.getSegments().iterator();
+		Item valueObject = object;
+
+		while (iterator.hasNext()) {
+			QName name = iterator.next();
+			if (QNameUtil.match(name, CUSTOM)) {
+				return getCustomValueForColumn(valueObject, nameOfColumn);
+			}
+			valueObject = (Item) valueObject.find(ItemPath.create(name));
+			if (valueObject instanceof PrismProperty && iterator.hasNext()) {
+				throw new IllegalArgumentException("Found object is PrismProperty, but ItemPath isn't empty");
+			}
+			if (valueObject instanceof PrismContainer && !iterator.hasNext()) {
+				throw new IllegalArgumentException("Found object is PrismContainer, but ItemPath is empty");
+			}
+			if (valueObject instanceof PrismReference) {
+				Referencable ref = ((PrismReference) valueObject).getRealValue();
+				if (!iterator.hasNext()) {
+					return getObjectNameFromRef(ref);
+				}
+
+				valueObject = getObjectFromReference(ref);
+			}
+			if (valueObject == null) {
+				if(nameOfColumn.equals(ACCOUNTS_COLUMN)) {
+					return "0";
+				}
+				return "";
+			}
+		}
+		return ((PrismProperty) valueObject).getRealValue().toString();
+	}
+
+	private String getCustomValueForColumn(Item valueObject, String nameOfColumn) {
+		switch (nameOfColumn) {
+		case ACCOUNTS_COLUMN:
+			if(!(valueObject instanceof PrismObject)){
+				return "";
+			}
+			return String.valueOf(((PrismObject)valueObject).getRealValues().size());
+		case CURRENT_RUN_TIME_COLUMN:
+			if(!(valueObject instanceof PrismObject)
+					&& !(((PrismObject)valueObject).getRealValue() instanceof TaskType)){
+				return "";
+			}
+			TaskType task = (TaskType)((PrismObject)valueObject).getRealValue();
+			XMLGregorianCalendar timestapm = task.getCompletionTimestamp();
+			if(timestapm != null && task.getExecutionStatus().equals(TaskExecutionStatusType.CLOSED)) {
+				SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss", Locale.US);
+				return "closed at " + dateFormat.format(task.getCompletionTimestamp().toGregorianCalendar().getTime());
+			}
+			return "";
+		case SCHEDULED_TO_START_AGAIN_COLUMN:
+			return "";
+		}
+		return "";
+	}
+
+	private PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
+		Task task = taskManager.createTaskInstance("Get object");
+		Class<ObjectType> type = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
+
+		if (ref.asReferenceValue().getObject() != null) {
+			return ref.asReferenceValue().getObject();
+		}
+		
+		PrismObject<ObjectType> object = null;
+		try {
+			object = modelService.getObject(type, ref.getOid(), null, task, task.getResult());
+		} catch (Exception e) {
+			LOGGER.error("Couldn't get object from objectRef " + ref, e);
+		}
+		return object;
+	}
+
+	private ContainerTag createTable() {
+		return TagCreator.table().withClasses("table", "table-striped", "table-hover", "table-bordered");
+	}
+
+	private ContainerTag createTableBox(ContainerTag table, String nameOfTable) {
+		ContainerTag div = TagCreator.div().withClasses("box-body", "no-padding").with(TagCreator.h1(nameOfTable))
+				.with(table);
+		return TagCreator.div().withClasses("box", "boxed-table").with(div);
+	}
+
+	private ContainerTag createTHead(Set<String> set) {
+		return TagCreator.thead(TagCreator.tr(TagCreator.each(set,
+				header -> TagCreator.th(TagCreator.div(TagCreator.span(header).withClass("sortableLabel"))))));
+	}
+
+	private ContainerTag createTBodyRow(DashboardWidget data) {
+		return TagCreator.tr(TagCreator.each(getHeadsOfWidget(), header -> getContainerTagForWidgetHeader(header, data)
+
+		));
+
+	}
+
+	private ContainerTag getContainerTagForWidgetHeader(String header, DashboardWidget data) {
+		if (header.equals(LABEL_COLUMN)) {
+			ContainerTag div = TagCreator.div(data.getLabel());
+			return TagCreator.th().with(div);
+		}
+		if (header.equals(NUMBER_COLUMN)) {
+			ContainerTag div = TagCreator.div(data.getNumberMessage());
+			return TagCreator.th().with(div);
+		}
+		if (header.equals(STATUS_COLUMN)) {
+			ContainerTag div = TagCreator.div().withStyle("width: 100%; height: 20px; ");
+			ContainerTag th = TagCreator.th();
+			addStatusColor(th, data.getDisplay());
+			th.with(div);
+			return th;
+		}
+		return TagCreator.th();
+	}
+
+	private void addStatusColor(ContainerTag div, DisplayType display) {
+		if (display != null && StringUtils.isNoneBlank(display.getColor())) {
+			div.withStyle("background-color: " + display.getColor() + "; !important;");
+		}
+
+	}
+
+	private Set<String> getHeadsOfWidget() {
+		return headsOfWidget;
+	}
+
+	private static Set<String> getHeadsOfAuditEventRecords() {
+		return headsOfAuditEventRecords;
+	}
+
+	private static LinkedHashMap<Class<? extends ObjectType>, LinkedHashMap<String, ItemPath>> getColumnDef() {
+		return columnDef;
+	}
+	
+	private static LinkedHashMap<String, ItemPath> getColumnsForType(Class<? extends ObjectType> type ) {
+		if(type.equals(RoleType.class)
+				|| type.equals(OrgType.class)
+				|| type.equals(ServiceType.class)) {
+			return getColumnDef().get(AbstractRoleType.class);
+		}
+		return getColumnDef().get(type);
+	}
+
+	@Override
+	protected ExportType getExport(ReportType report) {
+		return ExportType.HTML;
+	}
+
 }

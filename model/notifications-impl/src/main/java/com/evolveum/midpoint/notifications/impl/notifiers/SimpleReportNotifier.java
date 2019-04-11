@@ -135,8 +135,7 @@ public class SimpleReportNotifier extends GeneralNotifier {
 			byte[] encoded = Files.readAllBytes(Paths.get(reportOutput.asObjectable().getFilePath()));
 			body = new String(encoded, Charset.defaultCharset());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			getLogger().error("Couldn't create body from ReportOutput with oid " + outputOid, e);
 		}
 		  return body;
     }
@@ -145,5 +144,9 @@ public class SimpleReportNotifier extends GeneralNotifier {
     protected Trace getLogger() {
         return LOGGER;
     }
+    
+    protected String getContentType() {
+    	return "text/html";
+    };
 
 }

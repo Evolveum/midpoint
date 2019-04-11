@@ -143,7 +143,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
 
     @PostConstruct
-    private void initialize() {
+    protected void initialize() {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Registering with taskManager as a handler for " + REPORT_CREATE_TASK_URI);
         }
