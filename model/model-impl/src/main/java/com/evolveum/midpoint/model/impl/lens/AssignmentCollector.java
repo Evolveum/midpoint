@@ -149,15 +149,13 @@ public class AssignmentCollector {
 			RepositoryCache.enter();
 			for (AssignmentType assignmentType: assignments) {
 				try {
-					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
 					PrismContainerDefinition definition = assignmentType.asPrismContainerValue().getDefinition();
 					if (definition == null) {
 						// TODO: optimize
 						definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
 					}
-					assignmentIdi.setDefinition(definition);
-					assignmentIdi.recompute();
+					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = 
+							new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(assignmentType), definition);
 					EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, assignmentHolder, assignmentHolder.toString(), virtual, task, result);
 					evaluatedAssignments.add(assignment);
 				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {

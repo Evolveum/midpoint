@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -161,7 +162,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	}
 
 	@Override
-	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(@NotNull ItemPath path) throws SchemaException {
+	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(@NotNull ItemPath path, @Nullable  DefinitionResolver<PrismObjectDefinition<O>,ID> additionalDefinitionResolver) throws SchemaException {
 		Item<IV,ID> subItemOld = null;
 		ItemPath subResidualPath = null;
 		if (oldObject != null) {
@@ -241,7 +242,11 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 				subDefinition = subItemOld.getDefinition();
 			} else if (itemDelta != null && itemDelta.getDefinition() != null) {
 				subDefinition = itemDelta.getDefinition();
-			} else {
+			}
+			if (subDefinition == null && additionalDefinitionResolver != null) {
+				subDefinition = additionalDefinitionResolver.resolve(definition, path);
+			}
+			if (subDefinition == null) {
 				throw new SchemaException("Cannot find definition of a subitem "+path+" of "+this);
 			}
 		}
