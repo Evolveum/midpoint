@@ -3466,4 +3466,17 @@ public final class WebComponentUtil {
         }).collect(Collectors.toList());
         return sortedList;
     }
+
+    public static String getMidpointCustomSystemName(PageBase pageBase, String defaultSystemNameKey){
+    	OperationResult result = new OperationResult(pageBase.getClass().getSimpleName() + ".loadDeploymentInformation");
+    	try {
+			SystemConfigurationType systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
+			DeploymentInformationType deploymentInfo = systemConfig != null ? systemConfig.getDeploymentInformation() : null;
+			return StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ? deploymentInfo.getSystemName() : pageBase.getString(defaultSystemNameKey);
+		} catch (ObjectNotFoundException | SchemaException e){
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", e);
+			result.recordFatalError("Couldn't load deployment information.", e);
+		}
+		return pageBase.getString(defaultSystemNameKey);
+	}
 }
