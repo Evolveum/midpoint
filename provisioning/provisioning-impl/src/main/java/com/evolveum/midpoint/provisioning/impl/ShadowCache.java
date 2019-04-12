@@ -2021,26 +2021,29 @@ public class ShadowCache {
 			// between our check and our create attempt. In that case try to re-check for shadow existence
 			// once more.
 			
+			OperationResult originalRepoAddSubresult = parentResult.getLastSubresult();
+			
 			LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow", resourceShadow);
 			PrismObject<ShadowType> conflictingShadow = shadowManager.lookupLiveShadowInRepository(ctx, resourceShadow, parentResult);
+			
 			if (conflictingShadow == null) {
 				// This is really strange. The shadow should not have disappeared in the meantime, dead shadow would remain instead.
 				// Maybe we have broken "indexes"? (e.g. primaryIdentifierValue column)
 				
 				// Do some "research" and log the results, so we have good data to diagnose this situation.
+				String determinedPrimaryIdentifierValue = shadowManager.determinePrimaryIdentifierValue(ctx, resourceShadow);
+				PrismObject<ShadowType> potentialConflictingShadow = shadowManager.lookupShadowByPrimaryIdentifierValue(ctx, determinedPrimaryIdentifierValue, parentResult);
+
 				LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked shadow uniqueness: {}", e.getMessage(), e);
 				LOGGER.debug("REPO CONFLICT: resource shadow\n{}", resourceShadow.debugDump(1));
-				
-				String determinedPrimaryIdentifierValue = shadowManager.determinePrimaryIdentifierValue(ctx, resourceShadow);
 				LOGGER.debug("REPO CONFLICT: resource shadow: determined primaryIdentifierValue: {}", determinedPrimaryIdentifierValue);
-				
-				PrismObject<ShadowType> potentialConflictingShadow = shadowManager.lookupShadowByPrimaryIdentifierValue(ctx, determinedPrimaryIdentifierValue, parentResult);
 				LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}", potentialConflictingShadow==null?null:potentialConflictingShadow.debugDump(1));
 				
 				throw new SystemException(
 						"Unexpected repository behavior: object already exists error even after we double-checked shadow uniqueness: " + e.getMessage(), e);
 			}
 			
+			originalRepoAddSubresult.muteError();
 			return conflictingShadow;
 		}
 
