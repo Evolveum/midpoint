@@ -56,13 +56,13 @@ public class SmallInfoBoxPanel extends InfoBoxPanel{
 		Label moreInfoBoxLabel = new Label(ID_MORE_INFO_BOX_LABEL, getPageBase().createStringResource("PageDashboard.infobox.moreInfo"));
     	moreInfoBox.add(moreInfoBoxLabel);
     	
-        if (getLinkRef(false) != null) {
+        if (existLinkRef()) {
         	moreInfoBox.add(new AjaxEventBehavior("click") {
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onEvent(AjaxRequestTarget target) {
-					WebPage page = getLinkRef(true);
+					WebPage page = getLinkRef();
 					getPageBase().navigateToNext(page);
 				}
 			});

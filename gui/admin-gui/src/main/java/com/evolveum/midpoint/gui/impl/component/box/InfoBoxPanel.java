@@ -61,12 +61,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordItemType;
@@ -135,6 +140,11 @@ public abstract class InfoBoxPanel extends Panel{
 
 			{
 	            put(TaskType.COMPLEX_TYPE, PageTaskEdit.class);
+	            put(UserType.COMPLEX_TYPE, PageUser.class);
+	            put(RoleType.COMPLEX_TYPE, PageRole.class);
+	            put(OrgType.COMPLEX_TYPE, PageOrgUnit.class);
+	            put(ServiceType.COMPLEX_TYPE, PageService.class);
+	            put(ResourceType.COMPLEX_TYPE, PageResource.class);
 	        }
 	    };
 	}
@@ -581,7 +591,7 @@ public abstract class InfoBoxPanel extends Panel{
 		return pageBase;
 	}
 	
-	protected WebPage getLinkRef(boolean onClick) {
+	protected WebPage getLinkRef() {
 		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
 		DashboardWidgetSourceTypeType sourceType = getSourceType(model);
 		switch (sourceType) {
@@ -606,9 +616,7 @@ public abstract class InfoBoxPanel extends Panel{
 				}
 				AuditSearchDto searchDto = new AuditSearchDto();
 				searchDto.setCollection(collection);
-				if(onClick){
-					getPageBase().getSessionStorage().getAuditLog().setSearchDto(searchDto);
-				}
+				getPageBase().getSessionStorage().getAuditLog().setSearchDto(searchDto);
 				return getPageBase().createWebPage(pageType, null);
 			}  else {
 				LOGGER.error("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
@@ -625,12 +633,39 @@ public abstract class InfoBoxPanel extends Panel{
 				return null;
 			}
 			PageParameters parameters = new PageParameters();
-			if(onClick){
-				parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
-			}
+			parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
 			return getPageBase().createWebPage(pageType, parameters);
-	}
+		}
 	return null;
+	}
+	
+	protected boolean existLinkRef() {
+		IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
+		DashboardWidgetSourceTypeType sourceType = getSourceType(model);
+		switch (sourceType) {
+		case OBJECT_COLLECTION:
+			ObjectCollectionType collection = getObjectCollectionType();
+			if(collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
+				return getLinksRefCollections().containsKey(collection.getType().getLocalPart());
+			}  else {
+				return false;
+			}
+		case AUDIT_SEARCH:
+			collection = getObjectCollectionType();
+			if(collection != null && collection.getAuditSearch() != null && collection.getAuditSearch().getRecordQuery() != null) {
+				return getLinksRefCollections().containsKey(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart());
+			}  else {
+				return false;
+			}
+		case OBJECT:
+			ObjectType object = getObjectFromObjectRef();
+			if(object == null) {
+				return false;
+			}
+			QName typeName = WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass());
+			return getLinksRefObjects().containsKey(typeName);
+		}
+	return false;
 	}
 	
 //	private String addTimestampToQueryForAuditSearch(String origQuery, AuditSearchType auditSearch) {
