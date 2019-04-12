@@ -53,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -911,8 +912,27 @@ public class ResourceObjectConverter {
 		if (rad.getReadReplaceMode() != null) {
 			return rad.getReadReplaceMode();
 		}
-		// READ+REPLACE mode is if addRemoveAttributeCapability is NOT present
-		return objectClassDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class, ctx.getResource()) == null;
+		// READ+REPLACE mode is if addRemoveAttributeCapability is NOT present. Try to determine from the capabilities. We may still need to force it.
+		
+		UpdateCapabilityType updateCapabilityType = objectClassDefinition.getEffectiveCapability(UpdateCapabilityType.class, ctx.getResource());
+		if (updateCapabilityType == null) {
+			// Strange. We are going to update, but we cannot update? Anyway, let it go, it should throw an error on a more appropriate place.
+			return false;
+		}
+		if (BooleanUtils.isTrue(updateCapabilityType.isDelta())) {
+			return false;
+		}
+		boolean readReplace;
+		if (updateCapabilityType.isAddRemoveAttributeValues() == null) {
+			// Deprecated. Legacy.
+			readReplace = objectClassDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class, ctx.getResource()) == null;
+		} else {
+			readReplace = !updateCapabilityType.isAddRemoveAttributeValues();
+		}
+		if (readReplace) {
+			LOGGER.trace("Read+replace mode is forced because {} does not support addRemoveAttributeValues", ctx.getResource());
+		}
+		return readReplace;
 	}
 
 	private RefinedAttributeDefinition getRefinedAttributeDefinitionIfApplicable(Operation operation, RefinedObjectClassDefinition objectClassDefinition) {
