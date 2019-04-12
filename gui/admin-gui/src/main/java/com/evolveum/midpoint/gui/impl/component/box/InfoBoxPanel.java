@@ -175,9 +175,16 @@ public abstract class InfoBoxPanel extends Panel{
 
 			@Override
 			public DashboardWidget getObject() {
-				DashboardWidget ret = getPageBase().getDashboardService().createWidgetData(model.getObject(), task, result);
-				setDisplay(ret.getDisplay());
-				return ret;
+				Task task = getPageBase().createSimpleTask("Get DashboardWidget");
+				try {
+					DashboardWidget ret = getPageBase().getDashboardService().createWidgetData(model.getObject(), task, task.getResult());
+					setDisplay(ret.getDisplay());
+					return ret;
+				} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException
+						| ExpressionEvaluationException | ObjectNotFoundException e) {
+					LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
+				}
+				return null;
 			}
 		};
 		

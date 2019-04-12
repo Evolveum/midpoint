@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -75,12 +76,12 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * @author skublik
  */
-@Component
+@Component("dashboardService")
 public class DashboardServiceImpl implements DashboardService {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(DashboardServiceImpl.class);
 
-	public static final String VAR_PROPORTIONAL = "proportional";
+	private static final String VAR_PROPORTIONAL = "proportional";
 	private static final String VAR_POLICY_SITUATIONS = "policySituations";
 	
 	@Autowired private TaskManager taskManager;
@@ -264,29 +265,31 @@ public class DashboardServiceImpl implements DashboardService {
 		ObjectCollectionType valueCollection = getObjectCollectionType(widget, task, result);
 		if(valueCollection != null && valueCollection.getType() != null && 
 				valueCollection.getType().getLocalPart() != null) {
-			int value = getObjectCount(valueCollection, true, task, result);
-			
-			int domainValue;
-			if( valueCollection.getDomain() != null && valueCollection.getDomain().getCollectionRef() != null) {
-//				ObjectCollectionType domainCollection = (ObjectCollectionType) getObjectCollectionType(widget,
-//						taskManager, prismContext, modelService);
-				ObjectReferenceType ref = valueCollection.getDomain().getCollectionRef();
-				ObjectCollectionType domainCollection = objectResolver.resolve(ref, ObjectCollectionType.class, null, "resolving collection for "+widget, task, result);
-				if(domainCollection == null) {
-					return null;
-				}
-//				ObjectCollectionType domainCollection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref, 
-//						getPageBase(), task, task.getResult()).getRealValue();
-				domainValue = getObjectCount(domainCollection, true, task, result);
-			} else {
-				LOGGER.error("Domain or collectionRef in domain is null in collection " + valueCollection.toString());
-				LOGGER.trace("Using filter for all object based on type");
-				domainValue = getObjectCount(valueCollection, false, task, result);
-			}
-			IntegerStatType statType = generateIntegerStat(value, domainValue);
 			
 			CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
 					valueCollection.asPrismObject(), null, task, task.getResult());
+			CollectionStats collStats = modelInteractionService.determineCollectionStats(compiledCollection, task, result);
+			
+			int value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
+			Integer domainValue = collStats.getDomainCount();
+//			if( valueCollection.getDomain() != null && valueCollection.getDomain().getCollectionRef() != null) {
+////				ObjectCollectionType domainCollection = (ObjectCollectionType) getObjectCollectionType(widget,
+////						taskManager, prismContext, modelService);
+//				ObjectReferenceType ref = valueCollection.getDomain().getCollectionRef();
+//				ObjectCollectionType domainCollection = objectResolver.resolve(ref, ObjectCollectionType.class, null, "resolving collection for "+widget, task, result);
+//				if(domainCollection == null) {
+//					return null;
+//				}
+//				ObjectCollectionType domainCollection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref, 
+//						getPageBase(), task, task.getResult()).getRealValue();
+//				domainValue = getObjectCount(domainCollection, true, task, result);
+//			} else {
+//				LOGGER.error("Domain or collectionRef in domain is null in collection " + valueCollection.toString());
+//				LOGGER.trace("Using filter for all object based on type");
+//				domainValue = getObjectCount(valueCollection, false, task, result);
+//			}
+			IntegerStatType statType = generateIntegerStat(value, domainValue);
+			
 			Collection<EvaluatedPolicyRule> evalPolicyRules = modelInteractionService.evaluateCollectionPolicyRules(
 					valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
 			Collection<String> policySituations = new ArrayList<String>();
@@ -406,14 +409,14 @@ public class DashboardServiceImpl implements DashboardService {
 		}
 	}
 
-	private int getObjectCount(ObjectCollectionType collection, boolean usingFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		List<PrismObject<ObjectType>> values = searchObjectFromCollection(collection, usingFilter, task, result);
-		if(values != null) {
-			LOGGER.debug("Return count: {}", values.size());
-			return values.size();
-		}
-		return 0; 
-	}
+//	private int getObjectCount(ObjectCollectionType collection, boolean usingFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+//		List<PrismObject<ObjectType>> values = searchObjectFromCollection(collection, usingFilter, task, result);
+//		if(values != null) {
+//			LOGGER.debug("Return count: {}", values.size());
+//			return values.size();
+//		}
+//		return 0; 
+//	}
 	
 	@Override
 	public List<PrismObject<ObjectType>> searchObjectFromCollection(ObjectCollectionType collection, boolean usingFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -431,32 +434,6 @@ public class DashboardServiceImpl implements DashboardService {
 		List<PrismObject<ObjectType>> values;
 		values = modelService.searchObjects(type, query, null, task, task.getResult());
 		return values;
-	}
-	
-	private boolean isCollectionOfDataNull(DashboardWidgetType widget) {
-		if(isDataNull(widget)) {
-			return true;
-		}
-		if(widget.getData().getCollection() == null) {
-			LOGGER.error("Collection of data is not found in widget " + widget.getIdentifier());
-			return true;
-		}
-		return false;
-	}
-	
-	private boolean isCollectionRefOfCollectionNull(DashboardWidgetType widget) {
-		if (isDataNull(widget)) {
-			return true;
-		}
-		if (isCollectionOfDataNull(widget)) {
-			return true;
-		}
-		ObjectReferenceType ref = widget.getData().getCollection().getCollectionRef();
-		if (ref == null) {
-			LOGGER.error("CollectionRef of collection is not found in widget " + widget.getIdentifier());
-			return true;
-		}
-		return false;
 	}
 	
 	@Override
@@ -483,21 +460,6 @@ public class DashboardServiceImpl implements DashboardService {
 			LOGGER.error("Object from ObjectRef " + ref + " is null in widget " + widget.getIdentifier());
 		}
 		return object;
-	}
-	
-	public ObjectType getObjectTypeFromObjectRefX(ObjectReferenceType ref) {
-		Task task = taskManager.createTaskInstance("Get object");
-		Class<ObjectType> type = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
-		PrismObject<ObjectType> object;
-		
-		try {
-			object = modelService.getObject(type,
-					ref.getOid(), null, task, task.getResult());
-			return object.asObjectable();
-		} catch (Exception e) {
-			LOGGER.error("Couldn't get object from objectRef " + ref, e);
-		}
-		return null;
 	}
 	
 	private String getStringExpressionMessage(ExpressionVariables variables,

@@ -38,7 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public interface DashboardService {
 	
 	// TODO: check the use of those, do we need them as public in the interface? Move to implementation? Or utils?
-	public static final String VAR_PROPORTIONAL = "proportional";	
 	public static final String PARAMETER_FROM = "from";
 
 	DashboardWidget createWidgetData(DashboardWidgetType widget, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException;

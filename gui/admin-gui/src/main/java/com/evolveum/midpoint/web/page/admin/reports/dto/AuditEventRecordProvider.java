@@ -156,41 +156,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		return auditRecordList;
 	}
 	
-//	public static String createQuery(ObjectCollectionType collectionForQuery, Map<String, Object> parameters,
-//			boolean forDomain, Clock clock) {
-//		if(collectionForQuery == null) {
-//			return null;
-//		}
-//		AuditSearchType auditSearch = collectionForQuery.getAuditSearch();
-//		if(auditSearch != null || StringUtils.isNotBlank(auditSearch.getRecordQuery())) {
-//			Duration interval = auditSearch.getInterval();
-//			if(interval == null) {
-//				return auditSearch.getRecordQuery();
-//			}
-//			String origQuery = auditSearch.getRecordQuery();
-//			if(forDomain) {
-//				origQuery = auditSearch.getDomainQuery();
-//				if(origQuery == null) {
-//					return null;
-//				}
-//			}
-//			String [] partsOfQuery = origQuery.split("where");
-//			if(interval.getSign() == 1) {
-//				interval = interval.negate();
-//			}
-//			Date date = new Date(clock.currentTimeMillis());
-//			interval.addTo(date);
-//			String query = partsOfQuery[0] + "where " + TIMESTAMP_VALUE_NAME + " >= " + ":from" + " ";
-//			parameters.put(PARAMETER_FROM, date);
-//			if(partsOfQuery.length > 1) {
-//				query+= "and" +partsOfQuery[1]; 
-//			}
-//			return query;
-//		}
-//		return null;
-//	}
-
-
 	@SuppressWarnings("unused")
 	@Nullable
 	public ObjectCollectionType getCollectionForQuery() {

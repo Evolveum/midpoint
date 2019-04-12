@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.api.util;
 
+import static com.evolveum.midpoint.model.api.util.DashboardUtils.isDataNull;
+
 import java.util.Date;
 import java.util.Map;
 
@@ -49,7 +51,7 @@ public class DashboardUtils {
 
 	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp desc";
 	private static final String TIMESTAMP_VALUE_NAME = "aer.timestamp";
-	public static final String PARAMETER_FROM = "from";
+	private static final String PARAMETER_FROM = "from";
 	
 	public static DashboardWidgetSourceTypeType getSourceType(DashboardWidgetType widget) {
 		if(isSourceTypeOfDataNull(widget)) {
@@ -72,6 +74,32 @@ public class DashboardUtils {
 	public static boolean isDataNull(DashboardWidgetType widget) {
 		if(widget.getData() == null) {
 			LOGGER.error("Data is not found in widget " + widget.getIdentifier());
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isCollectionOfDataNull(DashboardWidgetType widget) {
+		if(isDataNull(widget)) {
+			return true;
+		}
+		if(widget.getData().getCollection() == null) {
+			LOGGER.error("Collection of data is not found in widget " + widget.getIdentifier());
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isCollectionRefOfCollectionNull(DashboardWidgetType widget) {
+		if (isDataNull(widget)) {
+			return true;
+		}
+		if (isCollectionOfDataNull(widget)) {
+			return true;
+		}
+		ObjectReferenceType ref = widget.getData().getCollection().getCollectionRef();
+		if (ref == null) {
+			LOGGER.error("CollectionRef of collection is not found in widget " + widget.getIdentifier());
 			return true;
 		}
 		return false;
@@ -99,24 +127,6 @@ public class DashboardUtils {
 		query = query + AUDIT_RECORDS_ORDER_BY;
 		LOGGER.debug("Query for select: " + query);
 		return query;
-	}
-	
-	// TODO: This is quite a common things, isn't it? Maybe it should rather go to PageBase?
-	// Ot maybe somehow user ObjectResolver?
-	public static ObjectType getObjectTypeFromObjectRef(ObjectReferenceType ref, TaskManager taskManager, 
-			PrismContext prismContext, ModelService modelService) {
-		Task task = taskManager.createTaskInstance("Get object");
-		Class<ObjectType> type = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
-		PrismObject<ObjectType> object;
-		
-		try {
-			object = modelService.getObject(type,
-					ref.getOid(), null, task, task.getResult());
-			return object.asObjectable();
-		} catch (Exception e) {
-			LOGGER.error("Couldn't get object from objectRef " + ref, e);
-		}
-		return null;
 	}
 	
 	public static String createQuery(ObjectCollectionType collectionForQuery, Map<String, Object> parameters,

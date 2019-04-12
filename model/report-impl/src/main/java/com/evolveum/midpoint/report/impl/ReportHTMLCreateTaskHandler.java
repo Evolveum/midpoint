@@ -341,7 +341,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 			body.append(table.render());
 			appendSpace(body);
 		});
-		body.append("</div");
+		body.append("</div>");
 
 		return body.toString();
 	}
