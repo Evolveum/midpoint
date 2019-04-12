@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.*;
@@ -258,6 +259,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
+    
+    @SpringBean(name = "dashboardService")
+    private DashboardService dashboardService;
 
     @SpringBean(name = "modelController")
     private TaskService taskService;
@@ -584,6 +588,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @Override
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+    
+    @Override
+    public DashboardService getDashboardService() {
+        return dashboardService;
     }
 
     protected ModelDiagnosticService getModelDiagnosticService() {

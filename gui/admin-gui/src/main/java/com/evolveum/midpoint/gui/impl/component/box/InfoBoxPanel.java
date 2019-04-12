@@ -37,10 +37,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.DashboardWidget;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.util.DashboardUtils;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -175,9 +175,7 @@ public abstract class InfoBoxPanel extends Panel{
 
 			@Override
 			public DashboardWidget getObject() {
-				DashboardWidget ret = DashboardUtils.createWidgetData(model.getObject(), getPageBase().getModelService(),
-						getPageBase().getTaskManager(), getPageBase().getExpressionFactory(), getPageBase().getAuditService(),
-						getPageBase().getClock(), getPageBase().getModelInteractionService());
+				DashboardWidget ret = getPageBase().getDashboardService().createWidgetData(model.getObject(), task, result);
 				setDisplay(ret.getDisplay());
 				return ret;
 			}
