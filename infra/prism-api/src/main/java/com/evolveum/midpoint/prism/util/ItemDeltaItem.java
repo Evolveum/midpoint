@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import static com.evolveum.midpoint.prism.path.ItemPath.*;
 
@@ -39,6 +41,8 @@ import static com.evolveum.midpoint.prism.path.ItemPath.*;
  * @author Radovan Semancik
  */
 public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
+	
+	private static final transient Trace LOGGER = TraceManager.getTrace(ItemDeltaItem.class);
 
 	private Item<V,D> itemOld;
 	private ItemDelta<V,D> delta;
@@ -245,6 +249,9 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		if (definition != null) {
 			if (definition instanceof PrismContainerDefinition<?>) {
 				subDefinition = ((PrismContainerDefinition<?>)definition).findItemDefinition(path);
+				if (subDefinition == null) {
+					throw new SchemaException("No definition for item "+path+" in "+this);
+				}
 			} else {
 				throw new IllegalArgumentException("Attempt to resolve definition on non-container " + definition);
 			}

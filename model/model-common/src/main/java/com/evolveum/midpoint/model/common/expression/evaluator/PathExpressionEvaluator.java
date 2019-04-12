@@ -133,7 +133,11 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 
        while (!resolvePath.isEmpty()) {
     	    if (resolveContext.isContainer()) {
-        		resolveContext = resolveContext.findIdi(resolvePath.firstAsPath());
+    	    	try {
+    	    		resolveContext = resolveContext.findIdi(resolvePath.firstAsPath());
+    	    	} catch (IllegalArgumentException e) {
+    	    		throw new IllegalArgumentException(e.getMessage()+"; resolving path "+resolvePath.firstAsPath()+" on "+resolveContext, e);
+    	    	}
         		resolvePath = resolvePath.rest();
         		if (resolveContext == null) {
         			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+ context.getContextDescription());

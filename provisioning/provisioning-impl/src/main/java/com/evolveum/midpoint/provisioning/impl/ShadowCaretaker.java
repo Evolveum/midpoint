@@ -309,6 +309,7 @@ public class ShadowCaretaker {
 			if (pendingDelta.isDelete()) {
 				resultShadowType.setDead(true);
 				resultShadowType.setExists(false);
+				resultShadowType.setPrimaryIdentifierValue(null);
 			}
 		}
 		// TODO: check schema, remove non-readable attributes, activation, password, etc.

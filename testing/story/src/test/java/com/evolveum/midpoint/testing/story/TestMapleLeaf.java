@@ -481,8 +481,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 	}
 	
 	@Test
-	public void test201setUndefinedAdministrativeStatus() throws Exception {
-		final String TEST_NAME = "test201setUndefinedAdministrativeStatus";
+	public void test201SetUndefinedAdministrativeStatus() throws Exception {
+		final String TEST_NAME = "test201SetUndefinedAdministrativeStatus";
 		displayTestTitle(TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -264,9 +265,7 @@ public class SchemaTransformer {
 	
 			AuthorizationDecisionType assignmentDecision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
 			if (!AuthorizationDecisionType.ALLOW.equals(assignmentDecision)) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", object);
-				}
+				LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", object);
 				result.recordWarning("Logged in user isn't authorized to read (or get) assignment item of the object: " + object);
 				context.setEvaluatedAssignmentTriple(null);
 			}
@@ -381,25 +380,31 @@ public class SchemaTransformer {
 						// This means allow to all subitems unless otherwise denied.
 						subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
 					}
-					boolean itemWasEmpty = item.isEmpty();		// to prevent removal of originally empty items
 					List<? extends PrismContainerValue<?>> values = ((PrismContainer<?>)item).getValues();
 					Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
 					while (vi.hasNext()) {
 						PrismContainerValue<?> cval = vi.next();
 						List<Item<?,?>> subitems = cval.getItems();
-						if (subitems != null && !subitems.isEmpty()) {	// second condition is to prevent removal of originally empty values
-							applySecurityConstraints(subitems, securityConstraints, subDefaultReadDecision, itemAddDecision, itemModifyDecision, phase);
-							if (subitems.isEmpty()) {
-								vi.remove();
-							}
+						if (subitems != null) {
+							applySecurityConstraints(subitems, securityConstraints, subDefaultReadDecision, itemAddDecision,
+									itemModifyDecision, phase);
+						}
+						if ((subitems == null || subitems.isEmpty()) && itemReadDecision == null) {
+							// We have removed all the content, if there was any. So, in the default case, there's nothing that
+							// we are interested in inside this PCV. Therefore let's just remove it.
+							// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
+							vi.remove();
 						}
 					}
-					if (!itemWasEmpty && item.isEmpty()) {
+					if (item.hasNoValues() && itemReadDecision == null) {
+						// We have removed all the content, if there was any. So, in the default case, there's nothing that
+						// we are interested in inside this item. Therefore let's just remove it.
+						// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
 						iterator.remove();
 					}
 				}
 			} else {
-				if (itemReadDecision == AuthorizationDecisionType.DENY || (itemReadDecision == null && defaultReadDecision == null)) {
+				if (itemReadDecision == AuthorizationDecisionType.DENY || itemReadDecision == null) {
 					iterator.remove();
 				}
 			}
@@ -490,6 +495,7 @@ public class SchemaTransformer {
 		}
 	}
 
+	@Contract("_, _, _, !null, _ -> !null")
     public AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath nameOnlyItemPath, String[] actionUrls,
 			AuthorizationDecisionType defaultDecision, AuthorizationPhaseType phase) {
     	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(nameOnlyItemPath, actionUrls, phase);

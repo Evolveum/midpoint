@@ -3809,18 +3809,21 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		// WHEN
 		try {
+
+			// WHEN
+			displayWhen(TEST_NAME);
+
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
+			
 			AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
+			displayThen(TEST_NAME);
 			display("Expected exception", e);
 		}
 
-		result.computeStatus();
-		display("deleteObject result (expected failure)", result);
-		TestUtil.assertFailure(result);
+		assertFailure(result);
 
 		syncServiceMock.assertNotifyFailureOnly();
 
@@ -3916,6 +3919,39 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertSteadyResource();
 	}
 
+	/**
+	 * Make sure that refresh of the shadow adds missing primaryIdentifierValue
+	 * to the shadow.
+	 * This is a test for migration from previous midPoint versions that haven't
+	 * had primaryIdentifierValue.
+	 */
+	@Test
+	public void test520MigrationPrimaryIdentifierValueRefresh() throws Exception {
+		final String TEST_NAME = "test520MigrationPrimaryIdentifierValueRefresh";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		PrismObject<ShadowType> shadowBefore = PrismTestUtil.parseObject(ACCOUNT_RELIC_FILE);
+		repositoryService.addObject(shadowBefore, null, result);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		provisioningService.refreshShadow(shadowBefore, null, task, result);
+
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertRepoShadow(ACCOUNT_RELIC_OID)
+			.assertName(ACCOUNT_RELIC_USERNAME)
+			.assertPrimaryIdentifierValue(ACCOUNT_RELIC_USERNAME);
+
+		assertSteadyResource();
+	}
+	
 	/**
 	 * Test for proper handling of "already exists" exception. We try to add a shadow.
 	 * It fails, because there is unknown conflicting object on the resource. But a new

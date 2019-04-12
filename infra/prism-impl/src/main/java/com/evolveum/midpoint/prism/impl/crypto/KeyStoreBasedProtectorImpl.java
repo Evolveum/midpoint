@@ -690,7 +690,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
 	private boolean areEquivalentHashed(ProtectedStringType a, ProtectedStringType b) {
 		// We cannot compare two hashes in any other way.
-		return Objects.equals(a.getHashedDataType(), a.getHashedDataType());
+		return Objects.equals(a.getHashedDataType(), b.getHashedDataType());
 	}
 	
 	private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
@@ -702,7 +702,25 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 		if (!Objects.equals(ae.getKeyInfo(), be.getKeyInfo())) {
 			return false;
 		}
-		return compareEncryptedCleartext(a, b);
+		
+		if (Objects.equals(ae.getCipherData(), be.getCipherData())) {
+			return true;
+		}
+		
+		try {
+			
+			return compareEncryptedCleartext(a, b);
+			
+		} catch (EncryptionException e) {
+			// We cannot decrypt one of the values. Therefore we do not really know whether they are
+			// the same or different. Re-throwing the exception here would stop all action. And,
+			// strictly speaking, that would be the right thing to do. But as this method is used
+			// in a low-level prism code, re-throwing this exception may stop all operations that
+			// could lead to fixing the error. Therefore just log the error, but otherwise pretend
+			// that the values are not equivalent. That is still OK with the interface contract.
+			LOGGER.warn("Cannot decrypt a value for comparison: "+e.getMessage(), e);
+			return false;
+		}
 	}
 
 
