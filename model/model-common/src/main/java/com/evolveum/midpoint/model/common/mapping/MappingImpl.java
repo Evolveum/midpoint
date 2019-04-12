@@ -939,11 +939,13 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				throw new IllegalStateException("Unknown resolve result "+sourceObject);
 			}
 		}
+		
+		ID sourceDefinition = (ID)typedSourceObject.getDefinition();
 
 		// apply domain
 		ValueSetDefinitionType domainSetType = sourceType.getSet();
 		if (domainSetType != null) {
-			ValueSetDefinition<IV,D> setDef = new ValueSetDefinition<>(domainSetType, outputDefinition, expressionProfile, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
+			ValueSetDefinition<IV,ID> setDef = new ValueSetDefinition<>(domainSetType, sourceDefinition, expressionProfile, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
 			setDef.init(expressionFactory);
 			setDef.setAdditionalVariables(variables);
 			try {
@@ -983,7 +985,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			}
 		}
 
-		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, sourceQName, (ID)typedSourceObject.getDefinition());
+		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, sourceQName, sourceDefinition);
 		source.setResidualPath(residualPath);
 		source.setResolvePath(resolvePath);
 		source.setSubItemDeltas(subItemDeltas);
