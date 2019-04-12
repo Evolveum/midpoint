@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,8 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.DashboardWidget;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -71,6 +72,12 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordItemType;
@@ -145,23 +152,15 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 	private static final String SCHEDULED_TO_START_AGAIN_COLUMN = "Scheduled to start again";
 	private static final QName CUSTOM = new QName("custom");
 
-	@Autowired
-	private ExpressionFactory expressionFactory;
-	@Autowired
-	private Clock clock;
-	@Autowired
-	private ModelInteractionService modelInteractionService;
-	@Autowired
-	private TaskManager taskManager;
-	@Autowired
-	private AuditService auditService;
-	@Autowired
-	private ModelService modelService;
-	@Autowired
-	private PrismContext prismContext;
-	@Autowired
-	@Qualifier("modelObjectResolver")
-	private ObjectResolver objectResolver;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private Clock clock;
+	@Autowired private ModelInteractionService modelInteractionService;
+	@Autowired private TaskManager taskManager;
+	@Autowired private AuditService auditService;
+	@Autowired private ModelService modelService;
+	@Autowired private PrismContext prismContext;
+	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
+	@Autowired private DashboardService dashboardService;
 
 	private static LinkedHashMap<Class<? extends ObjectType>, LinkedHashMap<String, ItemPath>> columnDef;
 	private static Set<String> headsOfWidget;
@@ -290,7 +289,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 					style = new String(data, Charset.defaultCharset());
 
 					String reportFilePath = getDestinationFileName(parentReport);
-					FileUtils.writeByteArrayToFile(new File(reportFilePath), getBody(dashboard, style).getBytes());
+					FileUtils.writeByteArrayToFile(new File(reportFilePath), getBody(dashboard, style, task, result).getBytes());
 					super.saveReportOutputType(reportFilePath, parentReport, task, result);
 					LOGGER.trace("create report output type : {}", reportFilePath);
 
@@ -317,7 +316,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		return runResult;
 	}
 
-	private String getBody(DashboardType dashboard, String cssStyle) {
+	private String getBody(DashboardType dashboard, String cssStyle, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
 		StringBuilder body = new StringBuilder();
 		body.append("<div> <style> ").append(cssStyle).append(" </style>");
 
@@ -327,10 +326,9 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		ContainerTag widgetTBody = TagCreator.tbody();
 		List<ContainerTag> tableboxesFromWidgets = new ArrayList<ContainerTag>();
 		for (DashboardWidgetType widget : dashboard.getWidget()) {
-			DashboardWidget widgetData = DashboardUtils.createWidgetData(widget, modelService, taskManager,
-					expressionFactory, auditService, clock, modelInteractionService);
+			DashboardWidget widgetData = dashboardService.createWidgetData(widget, task, result);
 			widgetTBody.with(createTBodyRow(widgetData));
-			ContainerTag tableBox = createTableBoxForWidget(widgetData);
+			ContainerTag tableBox = createTableBoxForWidget(widgetData, task, result);
 			if (tableBox != null) {
 				tableboxesFromWidgets.add(tableBox);
 			}
@@ -352,7 +350,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		body.append("<br>");
 	}
 
-	private ContainerTag createTableBoxForWidget(DashboardWidget widgetData) {
+	private ContainerTag createTableBoxForWidget(DashboardWidget widgetData, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		DashboardWidgetType widget = widgetData.getWidget();
 		if (widget == null) {
 			throw new IllegalArgumentException("Widget in DashboardWidget is null");
@@ -362,10 +360,8 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		switch (sourceType) {
 		case OBJECT_COLLECTION:
 			if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
-				ObjectCollectionType collection = DashboardUtils.getObjectCollectionType(widget, taskManager,
-						prismContext, modelService);
-				List<PrismObject<ObjectType>> values = DashboardUtils.searchObjectFromCollection(collection, true,
-						prismContext, taskManager, modelService);
+				ObjectCollectionType collection = dashboardService.getObjectCollectionType(widget, task, result);
+				List<PrismObject<ObjectType>> values = dashboardService.searchObjectFromCollection(collection, true, task, result);
 				if (values == null || values.isEmpty()) {
 					return null;
 				}
@@ -394,8 +390,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 			if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
 				Map<String, Object> parameters = new HashMap<String, Object>();
 
-				ObjectCollectionType collection = DashboardUtils.getObjectCollectionType(widget, taskManager,
-						prismContext, modelService);
+				ObjectCollectionType collection = dashboardService.getObjectCollectionType(widget, task, result);
 				String query = DashboardUtils
 						.getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, clock));
 				List<AuditEventRecord> records = auditService.listRecords(query, parameters);
