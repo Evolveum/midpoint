@@ -71,6 +71,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -346,6 +347,14 @@ public class ConnIdUtil {
 
     private static Exception lookForKnownCause(Throwable ex,
 			Throwable originalException, OperationResult parentResult) {
+    	
+    	if (ex.getClass().getPackage().equals(SchemaException.class.getPackage())) {
+			// Common midPoint exceptions, pass through
+    		// Those may get here from the inner calls of handle() methods from the connector. 
+    		parentResult.recordFatalError(ex.getMessage(), ex);
+			return (Exception)ex;
+		}
+    	
 		if (ex instanceof FileNotFoundException) {
             //fix MID-2711 consider FileNotFoundException as CommunicationException
 			Exception newEx = new com.evolveum.midpoint.util.exception.CommunicationException(createMessageFromAllExceptions(null, ex));

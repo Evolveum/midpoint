@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.delta.builder;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
 import java.util.Collection;
 
@@ -34,14 +35,25 @@ public interface S_ValuesEntry {
     S_MaybeDelete addRealValues(Collection<?> realValues);
     S_MaybeDelete add(PrismValue... values);
     S_MaybeDelete add(Collection<? extends PrismValue> values);
+    
     S_ItemEntry delete(Object... realValues);
     S_ItemEntry deleteRealValues(Collection<?> realValues);
     S_ItemEntry delete(PrismValue... values);
     S_ItemEntry delete(Collection<? extends PrismValue> values);
+    
     S_ItemEntry replace(Object... realValues);
     S_ItemEntry replaceRealValues(Collection<?> realValues);
     S_ItemEntry replace(PrismValue... values);
     S_ItemEntry replace(Collection<? extends PrismValue> values);
+    
+    /**
+     * Create proper modification type based on parameter. Plus means add, minus delete, zero means replace.
+     */
+    S_ItemEntry mod(PlusMinusZero plusMinusZero, Object... realValues);
+    S_ItemEntry modRealValues(PlusMinusZero plusMinusZero, Collection<?> realValues);
+    S_ItemEntry mod(PlusMinusZero plusMinusZero, Collection<? extends PrismValue> values);
+    S_ItemEntry mod(PlusMinusZero plusMinusZero, PrismValue... values);
+    
     S_ValuesEntry old(Object... realValues);
     S_ValuesEntry oldRealValues(Collection<?> realValues);
     <T> S_ValuesEntry oldRealValue(T realValue);

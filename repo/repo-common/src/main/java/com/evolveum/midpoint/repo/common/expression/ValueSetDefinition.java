@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
+import org.apache.commons.lang3.Validate;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -53,6 +55,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 	public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, D itemDefinition, ExpressionProfile expressionProfile, String additionalVariableName, String shortDesc, Task task, OperationResult result) {
 		super();
 		this.setDefinitionType = setDefinitionType;
+		Validate.notNull(itemDefinition, "No item definition for value set in %s", shortDesc);
 		this.itemDefinition = itemDefinition;
 		this.expressionProfile = expressionProfile;
 		this.additionalVariableName = additionalVariableName;

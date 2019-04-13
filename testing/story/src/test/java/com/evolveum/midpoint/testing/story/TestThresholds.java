@@ -64,6 +64,8 @@ public abstract class TestThresholds extends AbstractStoryTest {
 	
 	private static final File TASK_IMPORT_BASE_USERS_FILE = new File(TEST_DIR, "task-opendj-import-base-users.xml");
 	private static final String TASK_IMPORT_BASE_USERS_OID = "fa25e6dc-a858-11e7-8ebc-eb2b71ecce1d";
+
+	private static final int TASK_IMPORT_TIMEOUT = 60000;
 	
 
 	private PrismObject<ResourceType> resourceOpenDj;
@@ -181,7 +183,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		assertUsers(getNumberOfUsers());
 		//WHEN
 		displayWhen(TEST_NAME);
-		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 30000);
+		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
 		assertFailure(reconResult);
 		
 		//THEN
@@ -207,7 +209,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		assertUsers(getNumberOfUsers()+getProcessedUsers());
 		//WHEN
 		displayWhen(TEST_NAME);
-		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 30000);
+		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
 		assertFailure(reconResult);
 		
 		//THEN

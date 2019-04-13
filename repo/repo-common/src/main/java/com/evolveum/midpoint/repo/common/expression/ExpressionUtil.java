@@ -73,6 +73,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.UndefinedFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.util.DefinitionResolver;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -349,7 +350,19 @@ public class ExpressionUtil {
 	
 	private static  <T,O extends ObjectType> TypedValue<T> determineTypedValueOdo(PrismContext prismContext, String name, TypedValue<O> root, ItemPath relativePath) throws SchemaException {
 		ObjectDeltaObject<O> rootOdo = (ObjectDeltaObject<O>) root.getValue();
-		ItemDeltaItem<PrismValue, ItemDefinition> subValue = rootOdo.findIdi(relativePath);
+		DefinitionResolver<PrismObjectDefinition<O>, ItemDefinition> resolver = (rootDef,path) -> {
+			// We are called just before failure. Therefore all normal ways of resolving of definition did not work.
+			ItemDefinition parentDef = rootDef.findItemDefinition(path.allExceptLast());
+			if (parentDef != null && parentDef.isDynamic()) {
+				// This is the case of dynamic schema extensions, such as assignment extension.
+    			// Those may not have a definition. In that case just assume strings.
+    			// In fact, this is a HACK. All such schemas should have a definition.
+    			// Otherwise there may be problems with parameter types for caching compiles scripts and so on.
+    			return prismContext.definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+			}
+			return null;
+		};
+		ItemDeltaItem<PrismValue, ItemDefinition> subValue = rootOdo.findIdi(relativePath, resolver);
 		PrismObjectDefinition<O> rootDefinition = root.getDefinition();
 		if (rootDefinition == null) {
 			rootDefinition = rootOdo.getDefinition();

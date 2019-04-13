@@ -86,7 +86,7 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
 	private static final String ACCOUNT_KRAKEN_LDAP_UID = "kraken";
 	private static final String ACCOUNT_KRAKEN_LDAP_CN = "Kraken Krakenoff";
 
-	private static final int THREAD_COUNT_TOLERANCE = 5;
+	private static final int THREAD_COUNT_TOLERANCE = 10;
 	private static final int THREAD_COUNT_TOLERANCE_BIG = 20;
 
 	private static final int SYNC_ADD_ATTEMPTS = 30;

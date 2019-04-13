@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabil
  * - no paging
  * - no count simulation using sequential search
  * - no runAs
+ * - legacy AddRemoveAttributeValuesCapabilityType
  * Let's test that we are able to do all the operations without NPEs and other side effects.
  *
  * @author Radovan Semancik

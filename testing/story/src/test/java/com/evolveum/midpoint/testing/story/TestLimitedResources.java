@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 
 /**
  * Test for resources with limited capabilities.
@@ -92,10 +93,10 @@ public class TestLimitedResources extends AbstractStoryTest {
 		assertSuccess(result);
 		
 		List<Object> configuredCapabilities = resourceNoAAD.asObjectable().getCapabilities().getConfigured().getAny();
-		AddRemoveAttributeValuesCapabilityType capARAV = CapabilityUtil.getCapability(configuredCapabilities,
-				AddRemoveAttributeValuesCapabilityType.class);
-		assertNotNull("No configured AddRemoveAttributeValuesCapabilityType", capARAV);
-		assertTrue("Configured AddRemoveAttributeValuesCapabilityType is not disabled", Boolean.FALSE.equals(capARAV.isEnabled()));
+		UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(configuredCapabilities,
+				UpdateCapabilityType.class);
+		assertNotNull("No configured UpdateCapabilityType", capUpdate);
+		assertTrue("Configured addRemoveAttributeValues is not disabled", Boolean.FALSE.equals(capUpdate.isAddRemoveAttributeValues()));
 	}
 	
 	@Test

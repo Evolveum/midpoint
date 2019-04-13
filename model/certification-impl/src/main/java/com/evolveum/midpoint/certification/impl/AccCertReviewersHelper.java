@@ -93,7 +93,8 @@ public class AccCertReviewersHelper {
         }
         for (ExpressionType reviewerExpression : reviewerSpec.getReviewerExpression()) {
 			ExpressionVariables variables = new ExpressionVariables();
-			variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, _case, _case.asPrismContainerValue().getDefinition());
+			// The _case does NOT have definition here. Can we have it?
+			variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, _case, AccessCertificationCaseType.class);
 			variables.putObject(ExpressionConstants.VAR_CAMPAIGN, campaign, AccessCertificationCampaignType.class);
 			variables.put(ExpressionConstants.VAR_REVIEWER_SPECIFICATION, reviewerSpec, AccessCertificationReviewerSpecificationType.class);
 			List<ObjectReferenceType> refList = expressionHelper

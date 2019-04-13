@@ -188,6 +188,8 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 					@SuppressWarnings("unchecked")
 					ObjectDelta<ShadowType> markAsDead = deltaFor(ShadowType.class)
 							.item(ShadowType.F_DEAD).replace(Boolean.TRUE)
+							.item(ShadowType.F_EXISTS).replace(Boolean.FALSE)
+							.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
 							.asObjectDelta(shadowBefore.getOid());
 					executeChanges(markAsDead, ModelExecuteOptions.createRaw(), task, result);
 				}
