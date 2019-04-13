@@ -3472,11 +3472,11 @@ public final class WebComponentUtil {
     	try {
 			SystemConfigurationType systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
 			DeploymentInformationType deploymentInfo = systemConfig != null ? systemConfig.getDeploymentInformation() : null;
-			return StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ? deploymentInfo.getSystemName() : pageBase.getString(defaultSystemNameKey);
+			return deploymentInfo != null && StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ? deploymentInfo.getSystemName() : pageBase.createStringResource(defaultSystemNameKey).getString();
 		} catch (ObjectNotFoundException | SchemaException e){
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", e);
 			result.recordFatalError("Couldn't load deployment information.", e);
 		}
-		return pageBase.getString(defaultSystemNameKey);
+		return pageBase.createStringResource(defaultSystemNameKey).getString();
 	}
 }

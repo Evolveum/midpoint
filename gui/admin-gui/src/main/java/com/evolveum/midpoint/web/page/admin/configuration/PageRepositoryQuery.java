@@ -101,6 +101,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String OPERATION_EXECUTE_QUERY = DOT_CLASS + "executeQuery";
 
     private static final String ID_MAIN_FORM = "mainForm";
+	private static final String ID_REPOSITORY_QUERY_LABEL = "repositoryQueryLabel";
 	private static final String ID_MIDPOINT_QUERY_BUTTON_BAR = "midPointQueryButtonBar";
     private static final String ID_EXECUTE_MIDPOINT = "executeMidPoint";
     private static final String ID_COMPILE_MIDPOINT = "compileMidPoint";
@@ -170,6 +171,11 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
+
+        Label repositoryQueryLabel = new Label(ID_REPOSITORY_QUERY_LABEL, createStringResource("PageRepositoryQuery.midPoint",
+				WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "MidPoint")));
+        repositoryQueryLabel.setOutputMarkupId(true);
+        mainForm.add(repositoryQueryLabel);
 
 //		List<QName> objectTypeList = WebComponentUtil.createObjectTypeList();
 //		Collections.sort(objectTypeList, new Comparator<QName>() {

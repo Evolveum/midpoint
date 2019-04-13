@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -193,8 +194,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
 		
 		WebMarkupContainer staticRegistrationForm = createMarkupContainer(ID_STATIC_FORM, null);
 		
-		addMultilineLable(ID_WELCOME, "PageSelfRegistration.welcome.message", staticRegistrationForm);
-		addMultilineLable(ID_ADDITIONAL_TEXT, "PageSelfRegistration.additional.message", staticRegistrationForm);
+		addMultilineLable(ID_WELCOME, createStringResource("PageSelfRegistration.welcome.message"), staticRegistrationForm);
+		addMultilineLable(ID_ADDITIONAL_TEXT, createStringResource("PageSelfRegistration.additional.message",
+				WebComponentUtil.getMidpointCustomSystemName(PageSelfRegistration.this, "MidPoint")), staticRegistrationForm);
 		
 		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK,
 				new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
@@ -239,8 +241,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
 		return staticRegistrationForm;
 	}
 	
-	private void addMultilineLable(String id, String messageKey, WebMarkupContainer mainForm) {
-		MultiLineLabel welcome = new MultiLineLabel(id, createStringResource(messageKey));
+	private void addMultilineLable(String id, StringResourceModel messageModel, WebMarkupContainer mainForm) {
+		MultiLineLabel welcome = new MultiLineLabel(id, messageModel);
 		welcome.setOutputMarkupId(true);
 //		welcome.add(new VisibleEnableBehaviour() {
 //			private static final long serialVersionUID = 1L;
