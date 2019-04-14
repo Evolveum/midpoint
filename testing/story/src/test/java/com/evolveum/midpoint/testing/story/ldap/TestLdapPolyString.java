@@ -20,6 +20,8 @@ package com.evolveum.midpoint.testing.story.ldap;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -29,7 +31,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,6 +47,8 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.TestTrafo;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -81,6 +91,37 @@ public class TestLdapPolyString extends AbstractLdapTest {
 			"cz", "Kapitán Džek Sperou",
 			"sk", "Kapitán Džek Sperou"
 		};
+
+	private static final String TITLE_CAPTAIN = "captain";
+	private static final String[] TITLE_EN_SK_RU = {
+			"en", "captain",
+			"sk", "kapitán",
+			"ru", "капитан"
+		};
+	private static final String[] TITLE_HR = {
+			"hr", "kapetan"
+		};
+	private static final String[] TITLE_EN_SK_RU_HR = {
+			"en", "captain",
+			"sk", "kapitán",
+			"ru", "капитан",
+			"hr", "kapetan"
+		};
+	private static final String[] TITLE_RU = {
+			"ru", "капитан"
+		};
+	private static final String[] TITLE_EN_SK_HR = {
+			"en", "captain",
+			"sk", "kapitán",
+			"hr", "kapetan"
+		};
+
+	private static final String NS_LDAP = "http://midpoint.evolveum.com/xml/ns/story/ldap/ext";
+	protected static final ItemName TITLE_MAP_QNAME = new ItemName(NS_LDAP, "titleMap");
+	protected static final ItemName TITLE_MAP_KEY_QNAME = new ItemName(NS_LDAP, "key");
+	protected static final ItemName TITLE_MAP_VALUE_QNAME = new ItemName(NS_LDAP, "value");
+	private static final ItemPath PATH_EXTENSION_TITLE_MAP = ItemPath.create(ObjectType.F_EXTENSION, TITLE_MAP_QNAME);
+
 
 	private PrismObject<ResourceType> resourceOpenDj;
 
@@ -147,6 +188,7 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		display("Jack LDAP entry", accountEntry);
 		assertCn(accountEntry, USER_JACK_FULL_NAME);
 		assertDescription(accountEntry, USER_JACK_FULL_NAME /* no langs here (yet) */);
+		assertTitle(accountEntry, null /* no langs here (yet) */);
 	}
 	
 	@Test
@@ -243,6 +285,7 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		display("Jack LDAP entry", accountEntry);
 		assertCn(accountEntry, USER_JACK_FULL_NAME);
 		assertDescription(accountEntry, USER_JACK_FULL_NAME, JACK_FULL_NAME_LANG_EN_SK);
+		assertTitle(accountEntry, null /* no langs here (yet) */);
 	}
 	
 	/**
@@ -280,6 +323,7 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		display("Jack LDAP entry", accountEntry);
 		assertCn(accountEntry, USER_JACK_FULL_NAME);
 		assertDescription(accountEntry, USER_JACK_FULL_NAME, JACK_FULL_NAME_LANG_EN_SK_RU_HR);
+		assertTitle(accountEntry, null /* no langs here (yet) */);
 	}
 	
 	/**
@@ -317,6 +361,7 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		display("Jack LDAP entry", accountEntry);
 		assertCn(accountEntry, USER_JACK_FULL_NAME);
 		assertDescription(accountEntry, USER_JACK_FULL_NAME, JACK_FULL_NAME_LANG_CZ_HR);
+		assertTitle(accountEntry, null /* no langs here (yet) */);
 	}
 	
 	/**
@@ -354,6 +399,7 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		display("Jack LDAP entry", accountEntry);
 		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
 		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN, JACK_FULL_NAME_LANG_CAPTAIN_EN_CZ_SK);
+		assertTitle(accountEntry, null /* no langs here (yet) */);
 	}
 	
 	/**
@@ -389,8 +435,303 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		display("Jack LDAP entry", accountEntry);
 		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
 		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN /* no langs */);
+		assertTitle(accountEntry, null /* no langs here (yet) */);
 	}
 	
+	@Test
+    public void test119UnassignAccountOpenDjLang() throws Exception {
+		final String TEST_NAME = "test119UnassignAccountOpenDjLang";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		assertUserAfter(USER_JACK_OID)
+			.links()
+				.assertNone();
+		
+		assertNoShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertNull("Unexpected LDAP entry for jack", accountEntry);
+	}
+	
+	/**
+	 * Things are getting even more interesting here. We set up Jack's title map
+	 * (in the extension), so it can be source of confu...errr..fun later on.
+	 * No provisioning yet. Just to make sure midPoint core works.
+	 */
+	@Test
+    public void test120ModifyJackTitleMap() throws Exception {
+		final String TEST_NAME = "test120ModifyJackTitleMap";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_EN_SK_RU);
+        
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+        	.item(PATH_EXTENSION_TITLE_MAP)
+        		.replace(cvals)
+    		.asObjectDelta(USER_JACK_OID);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+        	.extension()
+        		.container(TITLE_MAP_QNAME)
+        			.assertSize(TITLE_EN_SK_RU.length/2)
+        			.end()
+        		.end()
+			.links()
+				.assertNone();
+	}
+	
+	/**
+	 * Assign LDAP account to jack.
+	 * There is titleMap in extension that is mapped to LDAP title attribute.
+	 * There should be a nice polystring in LDAP title.
+	 * MID-5264
+	 */
+	@Test
+    public void test130AssignAccountOpenDjTitleMap() throws Exception {
+		final String TEST_NAME = "test130AssignAccountOpenDjTitleMap";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		accountJackOid = assertUserAfter(USER_JACK_OID)
+			.fullName()
+        		.assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
+        		.assertNoLangs()
+        		.end()
+    		.extension()
+        		.container(TITLE_MAP_QNAME)
+        			.assertSize(TITLE_EN_SK_RU.length/2)
+        			.end()
+        		.end()
+			.singleLink()
+				.getOid();
+		
+		assertModelShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN /* no langs */);
+		assertTitle(accountEntry, TITLE_CAPTAIN, TITLE_EN_SK_RU);
+	}
+	
+	/**
+	 * Add some container values.
+	 * MID-5264
+	 */
+	@Test
+    public void test132AssignAccountOpenDjTitleMapAdd() throws Exception {
+		final String TEST_NAME = "test132AssignAccountOpenDjTitleMapAdd";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_HR);
+        
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+        	.item(PATH_EXTENSION_TITLE_MAP)
+        		.add(cvals)
+    		.asObjectDelta(USER_JACK_OID);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		accountJackOid = assertUserAfter(USER_JACK_OID)
+			.fullName()
+        		.assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
+        		.assertNoLangs()
+        		.end()
+    		.extension()
+        		.container(TITLE_MAP_QNAME)
+        			.assertSize(TITLE_EN_SK_RU_HR.length/2)
+        			.end()
+        		.end()
+			.singleLink()
+				.getOid();
+		
+		assertModelShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN /* no langs */);
+		assertTitle(accountEntry, TITLE_CAPTAIN, TITLE_EN_SK_RU_HR);
+	}
+	
+	/**
+	 * Delete some container values.
+	 * MID-5264
+	 */
+	@Test
+    public void test134AssignAccountOpenDjTitleMapDelete() throws Exception {
+		final String TEST_NAME = "test134AssignAccountOpenDjTitleMapDelete";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_RU);
+        
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+        	.item(PATH_EXTENSION_TITLE_MAP)
+        		.delete(cvals)
+    		.asObjectDelta(USER_JACK_OID);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		accountJackOid = assertUserAfter(USER_JACK_OID)
+			.fullName()
+        		.assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
+        		.assertNoLangs()
+        		.end()
+    		.extension()
+        		.container(TITLE_MAP_QNAME)
+        			.assertSize(TITLE_EN_SK_HR.length/2)
+        			.end()
+        		.end()
+			.singleLink()
+				.getOid();
+		
+		assertModelShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN /* no langs */);
+		assertTitle(accountEntry, TITLE_CAPTAIN, TITLE_EN_SK_HR);
+	}
+	
+	/**
+	 * Add some container values.
+	 * MID-5264
+	 */
+	@Test
+    public void test138AssignAccountOpenDjTitleMapReplace() throws Exception {
+		final String TEST_NAME = "test138AssignAccountOpenDjTitleMapReplace";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_EN_SK_RU);
+        
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+        	.item(PATH_EXTENSION_TITLE_MAP)
+        		.replace(cvals)
+    		.asObjectDelta(USER_JACK_OID);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		accountJackOid = assertUserAfter(USER_JACK_OID)
+			.fullName()
+        		.assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
+        		.assertNoLangs()
+        		.end()
+    		.extension()
+        		.container(TITLE_MAP_QNAME)
+        			.assertSize(TITLE_EN_SK_RU.length/2)
+        			.end()
+        		.end()
+			.singleLink()
+				.getOid();
+		
+		assertModelShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN /* no langs */);
+		assertTitle(accountEntry, TITLE_CAPTAIN, TITLE_EN_SK_RU);
+	}
+	
+	@Test
+    public void test139UnassignAccountOpenDjTitleMap() throws Exception {
+		final String TEST_NAME = "test139UnassignAccountOpenDjTitleMap";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		assertUserAfter(USER_JACK_OID)
+			.links()
+				.assertNone();
+		
+		assertNoShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertNull("Unexpected LDAP entry for jack", accountEntry);
+	}
+	
+	private List<PrismContainerValue<?>> createTitleMapValues(String... params) throws SchemaException {
+		List<PrismContainerValue<?>> cvals = new ArrayList<>();
+		for(int i = 0; i < params.length; i+=2) {
+			PrismContainerValue<?> cval = prismContext.itemFactory().createContainerValue();
+			
+			PrismProperty<String> keyProp = prismContext.itemFactory().createProperty(TITLE_MAP_KEY_QNAME);
+			keyProp.setRealValue(params[i]);
+			cval.add(keyProp);
+			
+			PrismProperty<String> valueProp = prismContext.itemFactory().createProperty(TITLE_MAP_VALUE_QNAME);
+			valueProp.setRealValue(params[i+1]);
+			cval.add(valueProp);
+			
+			cvals.add(cval);
+		}
+		return cvals;
+	}
+
 	private Entry getLdapEntryByUid(String uid) throws DirectoryException {
 		return openDJController.searchSingle("uid="+uid);
 	}
@@ -401,6 +742,10 @@ public class TestLdapPolyString extends AbstractLdapTest {
 
 	private void assertDescription(Entry entry, String expectedOrigValue, String... params) {
 		OpenDJController.assertAttributeLang(entry, "description", expectedOrigValue, params);
+	}
+	
+	private void assertTitle(Entry entry, String expectedOrigValue, String... params) {
+		OpenDJController.assertAttributeLang(entry, "title", expectedOrigValue, params);
 	}
 
 

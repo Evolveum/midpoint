@@ -906,7 +906,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		ProtectedStringType currentPassword = userType.getCredentials().getPassword().getValue();
 		boolean cmp;
 		try {
-			cmp = protector.compare(password, currentPassword);
+			cmp = protector.compareCleartext(password, currentPassword);
 		} catch (EncryptionException e) {
 			result.recordFatalError(e);
 			throw new SystemException(e.getMessage(),e);
@@ -1621,9 +1621,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				continue;
 			}
 			try {
-				ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-				assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-				assignmentIdi.recompute();
+				ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = 
+						new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
 				// TODO some special mode for verification of the validity - we don't need complete calculation here!
 				EvaluatedAssignment<UserType> assignment = assignmentEvaluator
 						.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, potentialDeputy.asObjectable(),

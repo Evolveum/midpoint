@@ -16,21 +16,29 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,32 +55,50 @@ public class ExtensionSchemaRestService {
 
     private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
 
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private PrismContext prismContext;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityHelper securityHelper;
+
+    public static final String CLASS_DOT = ExtensionSchemaRestService.class.getName() + ".";
+    private static final String OPERATION_LIST_SCHEMAS = CLASS_DOT +  "listSchemas";
+    private static final String OPERATION_GET_SCHEMA = CLASS_DOT +  "getSchema";
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public Response listSchemas() {
-        SchemaRegistry registry = prismContext.getSchemaRegistry();
-        Collection<SchemaDescription> descriptions = registry.getSchemaDescriptions();
+    public Response listSchemas(@Context MessageContext mc) {
 
-        List<String> names = new ArrayList<>();
+        Task task = RestServiceUtil.initRequest(mc);
+        OperationResult result = task.getResult().createSubresult(OPERATION_LIST_SCHEMAS);
 
-        for (SchemaDescription description : descriptions) {
-            String name = computeName(MIDPOINT_HOME, description);
-            if (name == null) {
-                continue;
+        Response response;
+        try {
+            securityEnforcer.authorize(ModelAuthorizationAction.GET_EXTENSION_SCHEMA.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result);
+
+            SchemaRegistry registry = prismContext.getSchemaRegistry();
+            Collection<SchemaDescription> descriptions = registry.getSchemaDescriptions();
+
+            List<String> names = new ArrayList<>();
+
+            for (SchemaDescription description : descriptions) {
+                String name = computeName(description);
+                if (name != null) {
+                    names.add(name);
+                }
             }
 
-            names.add(name);
+            String output = StringUtils.join(names, "\n");
+            response = Response.ok(output).build();
+        } catch (Exception ex) {
+            // we avoid RestServiceUtil.handleException because we cannot serialize OperationResultType into text/plain
+            LoggingUtils.logUnexpectedException(LOGGER, "Got exception while servicing REST request: {}", ex, result.getOperation());
+            response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();              // TODO handle this somehow better
         }
 
-        String result = StringUtils.join(names, "\n");
-
-        return Response.ok(result).build();
+        RestServiceUtil.finishRequest(task, securityHelper);
+        return response;
     }
 
-    private String computeName(String midpointHome, SchemaDescription description) {
+    private String computeName(SchemaDescription description) {
         String path = description.getPath();
         if (path == null) {
             return null;
@@ -83,11 +109,9 @@ public class ExtensionSchemaRestService {
             return null;
         }
 
-        File home = new File(midpointHome, "/schema");
+        File home = new File(ExtensionSchemaRestService.MIDPOINT_HOME, "/schema");
         java.nio.file.Path homePath = home.toPath();
-
         java.nio.file.Path filePath = file.toPath();
-
         java.nio.file.Path relative = homePath.relativize(filePath);
 
         return relative.toString();
@@ -96,44 +120,47 @@ public class ExtensionSchemaRestService {
     @GET
     @Path("/{name}")
     @Produces({MediaType.TEXT_XML, MediaType.TEXT_PLAIN})
-    public Response getSchema(@PathParam("name") String name) {
-        if (name == null) {
-            return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE)
-                    .entity("Name not defined").build();
-        }
+    public Response getSchema(@PathParam("name") String name, @Context MessageContext mc) {
 
-        if (!name.toLowerCase().endsWith(".xsd") && name.length() > 4) {
-            return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE)
-                    .entity("Name must be an xsd schema (.xsd extension expected)").build();
-        }
+        Task task = RestServiceUtil.initRequest(mc);
+        OperationResult result = task.getResult().createSubresult(OPERATION_GET_SCHEMA);
 
-        SchemaRegistry registry = prismContext.getSchemaRegistry();
-        Collection<SchemaDescription> descriptions = registry.getSchemaDescriptions();
-
-        SchemaDescription description = null;
-        for (SchemaDescription desc : descriptions) {
-            String descName = computeName(MIDPOINT_HOME, desc);
-            if (descName == null || !descName.equals(name)) {
-                continue;
-            }
-
-            description = desc;
-            break;
-        }
-
-        if (description == null) {
-            return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN_TYPE)
-                    .entity("Unknown name").build();
-        }
-
+        Response response;
         try {
-            String xsd = FileUtils.readFileToString(new File(description.getPath()));
+            securityEnforcer.authorize(ModelAuthorizationAction.GET_EXTENSION_SCHEMA.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result);
 
-            return Response.ok(xsd).build();
-        } catch (IOException ex) {
-            LOGGER.error("Couldn't load schema file for " + name, ex);
+            if (name == null) {
+                response = Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE)
+                        .entity("Name not defined").build();
+            } else if (!name.toLowerCase().endsWith(".xsd") && name.length() > 4) {
+                response = Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE)
+                        .entity("Name must be an xsd schema (.xsd extension expected)").build();
+            } else {
+                SchemaRegistry registry = prismContext.getSchemaRegistry();
+                Collection<SchemaDescription> descriptions = registry.getSchemaDescriptions();
 
-            return Response.serverError().type(MediaType.TEXT_PLAIN_TYPE).entity(ex.getMessage()).build();
+                SchemaDescription description = null;
+                for (SchemaDescription desc : descriptions) {
+                    String descName = computeName(desc);
+                    if (descName != null && descName.equals(name)) {
+                        description = desc;
+                        break;
+                    }
+                }
+
+                if (description != null) {
+                    response = Response.ok(new File(description.getPath())).build();
+                } else {
+                    response = Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN_TYPE)
+                            .entity("Unknown name").build();
+                }
+            }
+        } catch (Exception ex) {
+            result.computeStatus();
+            response = RestServiceUtil.handleException(result, ex);
         }
+
+        RestServiceUtil.finishRequest(task, securityHelper);
+        return response;
     }
 }

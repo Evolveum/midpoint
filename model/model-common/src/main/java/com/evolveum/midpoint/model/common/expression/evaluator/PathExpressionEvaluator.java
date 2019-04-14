@@ -21,6 +21,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -30,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.DefinitionResolver;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -42,12 +45,16 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author Radovan Semancik
  */
 public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 
+	private static final transient Trace LOGGER = TraceManager.getTrace(PathExpressionEvaluator.class);
+	
 	private final QName elementName;
 	private final ItemPath path;
 	private final ObjectResolver objectResolver;
@@ -81,6 +88,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 
 		ItemDeltaItem<?,?> resolveContext = null;
 
+		ItemPath resolvePath = path;
 		if (context.getSources() != null && context.getSources().size() == 1) {
 			Source<?,?> source = context.getSources().iterator().next();
 			if (path.isEmpty()) {
@@ -88,14 +96,17 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 				return outputTriple.clone();
 			}
 			resolveContext = source;
+			//FIXME quite a hack, but should work for now.
+			if (QNameUtil.match(path.firstName(), source.getName())) {
+				resolvePath = path.rest();
+			}
 		}
 
         Map<String, TypedValue> variablesAndSources = ExpressionUtil.compileVariablesAndSources(context);
 
-        ItemPath resolvePath = path;
         Object first = path.first();
         if (ItemPath.isVariable(first)) {
-			String variableName = ItemPath.toVariableName(first).getLocalPart();
+        	String variableName = ItemPath.toVariableName(first).getLocalPart();
 			TypedValue variableValueAndDefinition = variablesAndSources.get(variableName);
 			if (variableValueAndDefinition == null) {
 				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+ context.getContextDescription());
@@ -124,23 +135,45 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         }
 
        while (!resolvePath.isEmpty()) {
-    	    if (resolveContext.isContainer()) {
-        		resolveContext = resolveContext.findIdi(resolvePath.firstAsPath());
+
+    	   if (resolveContext.isContainer()) {
+    	    	DefinitionResolver defResolver = (parentDef, path) -> {
+       	    		if (parentDef != null && parentDef.isDynamic()) {
+    	    			// This is the case of dynamic schema extensions, such as assignment extension.
+    	    			// Those may not have a definition. In that case just assume strings.
+    	    			// In fact, this is a HACK. All such schemas should have a definition.
+    	    			// Otherwise there may be problems with parameter types for caching compiles scripts and so on.
+    	    			return prismContext.definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+       	    		} else {
+       	    			return null;
+       	    		}
+    	    	};
+    	    	
+    	    	try {
+    	    		resolveContext = resolveContext.findIdi(resolvePath.firstAsPath(), defResolver);
+    	    	} catch (IllegalArgumentException e) {
+    	    		throw new IllegalArgumentException(e.getMessage()+"; resolving path "+resolvePath.firstAsPath()+" on "+resolveContext, e);
+    	    	}
+    	    	
         		resolvePath = resolvePath.rest();
         		if (resolveContext == null) {
         			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+ context.getContextDescription());
         		}
+        		
         	} else if (resolveContext.isStructuredProperty()) {
         		// The output path does not really matter. The delta will be converted to triple anyway
                 // But the path cannot be null, oherwise the code will die
         		resolveContext = resolveContext.resolveStructuredProperty(resolvePath, (PrismPropertyDefinition) outputDefinition,
                         ItemPath.EMPTY_PATH, prismContext);
         		break;
+        		
         	} else if (resolveContext.isNull()){
         		break;
+        		
         	} else {
         		throw new ExpressionEvaluationException("Cannot resolve path "+resolvePath+" on "+resolveContext+" in "+ context.getContextDescription());
         	}
+    	   
         }
 
         PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple((Item<V,D>)resolveContext.getItemOld(),

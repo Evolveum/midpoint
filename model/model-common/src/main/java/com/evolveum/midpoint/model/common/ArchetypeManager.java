@@ -105,7 +105,11 @@ public class ArchetypeManager {
 		if (object == null) {
 			return null;
 		}
-		return determineObjectPolicyConfiguration(object, systemObjectCache.getSystemConfiguration(result).asObjectable());
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		if (systemConfiguration == null) {
+			return null;
+		}
+		return determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
 	}
 	
 	public <O extends ObjectType> ExpressionProfile determineExpressionProfile(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {

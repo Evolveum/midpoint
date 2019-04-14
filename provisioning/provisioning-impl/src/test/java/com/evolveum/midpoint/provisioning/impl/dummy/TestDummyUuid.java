@@ -44,7 +44,7 @@ public class TestDummyUuid extends TestDummy {
 	}
 
 	@Override
-	protected boolean isNameUnique(){
+	protected boolean isNameUnique() {
 		return false;
 	}
 

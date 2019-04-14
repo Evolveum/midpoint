@@ -18,16 +18,24 @@ package com.evolveum.midpoint.model.intest.mapping;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,33 +64,64 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
 
-    protected static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILENAME = TEST_DIR + "/task-dumy-tea-green-livesync.xml";
+    protected static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
     protected static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
-
-    protected PrismObject<ResourceType> resourceDummyTeaGreen;
-    protected DummyResourceContoller dummyResourceCtlTeaGreen;
-    protected DummyResource dummyResourceTeaGreen;
+    
+	private static final String LOCKER_BIG_SECRET = "BIG secret";
+	
+	private ProtectedStringType mancombLocker;
 
     @Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        dummyResourceCtlTeaGreen = DummyResourceContoller.create(RESOURCE_DUMMY_TEA_GREEN_NAME, null);
-        dummyResourceCtlTeaGreen.extendSchemaPirate();
-        dummyResourceTeaGreen = dummyResourceCtlTeaGreen.getDummyResource();
-        dummyResourceTeaGreen.setSyncStyle(DummySyncStyle.SMART);
-        resourceDummyTeaGreen = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_TEA_GREEN_FILE, RESOURCE_DUMMY_TEA_GREEN_OID, initTask, initResult);
-        dummyResourceCtlTeaGreen.setResource(resourceDummyTeaGreen);
+		initDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME, RESOURCE_DUMMY_TEA_GREEN_FILE, RESOURCE_DUMMY_TEA_GREEN_OID,
+				controller -> {
+					controller.extendSchemaPirate();
+					controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+							DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, String.class, false, false)
+						.setSensitive(true);
+					controller.setSyncStyle(DummySyncStyle.SMART);
+				},
+				initTask, initResult);		
 	}
 
+    @Test
+    public void test010SanitySchema() throws Exception {
+        final String TEST_NAME = "test010SanitySchema";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+
+        /// WHEN
+        displayWhen(TEST_NAME);
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_TEA_GREEN_OID, task);
+
+        // THEN
+        displayThen(TEST_NAME);
+        TestUtil.assertSuccess(testResult);
+
+        ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN_NAME);
+        ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+		display("Parsed resource schema (tea-green)", returnedSchema);
+		ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
+				.assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
+						DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 1); // MID-5197
+		
+		ResourceAttributeDefinition<ProtectedStringType> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
+		assertNotNull("No locker attribute definition", lockerDef);
+		assertEquals("Wrong locker attribute definition type", ProtectedStringType.COMPLEX_TYPE, lockerDef.getTypeName());
+    }
+    
     @Test
     public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyTeaGreen";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         /// WHEN
@@ -101,7 +140,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // Preconditions
@@ -111,31 +150,39 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.setEnabled(true);
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
+        account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, LOCKER_BIG_SECRET); // MID-5197
 
         /// WHEN
         displayWhen(TEST_NAME);
 
-        dummyResourceTeaGreen.addAccount(account);
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).addAccount(account);
 
         waitForSyncTaskNextRun();
 
         // THEN
         displayThen(TEST_NAME);
 
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyTeaGreen);
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
         assertNotNull("No mancomb account shadow", accountMancomb);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_TEA_GREEN_OID,
                 accountMancomb.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
-        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        display("User mancomb", userMancomb);
-        assertNotNull("User mancomb was not created", userMancomb);
-        assertLinks(userMancomb, 1);
-        assertAdministrativeStatusEnabled(userMancomb);
-
-        assertLinked(userMancomb, accountMancomb);
+        mancombLocker = assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
+        	.links()
+        		.single()
+        			.assertOid(accountMancomb.getOid())
+        			.end()
+        		.end()
+    		.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+    		.extension()
+    			.property(PIRACY_LOCKER)
+    				.singleValue()
+    					.protectedString()
+    						.assertIsEncrypted()
+    						.assertCompareCleartext(LOCKER_BIG_SECRET)
+    						.getProtectedString();
 
 //        assertUsers(6);
 
@@ -143,13 +190,16 @@ public class TestMappingInbound extends AbstractMappingTest {
         notificationManager.setDisabled(true);
     }
 
+    /**
+     * MID-5197
+     */
     @Test
     public void test150UserReconcile() throws Exception {
         final String TEST_NAME = "test150UserReconcile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -167,20 +217,31 @@ public class TestMappingInbound extends AbstractMappingTest {
         // THEN
         displayThen(TEST_NAME);
 
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyTeaGreen);
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_TEA_GREEN_NAME));
         display("Account mancomb", accountMancomb);
         assertNotNull("No mancomb account shadow", accountMancomb);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_TEA_GREEN_OID,
                 accountMancomb.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
-        userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        display("User mancomb", userMancomb);
-
-        assertLinks(userMancomb, 1);
-        assertAdministrativeStatusEnabled(userMancomb);
-
-        assertLinked(userMancomb, accountMancomb);
+        assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
+	    	.links()
+	    		.single()
+	    			.assertOid(accountMancomb.getOid())
+	    			.end()
+	    		.end()
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.extension()
+				.property(PIRACY_LOCKER)
+					.singleValue()
+						.protectedString()
+							.assertIsEncrypted()
+							.assertCompareCleartext(LOCKER_BIG_SECRET)
+							// Make sure that this is exactly the same content of protected string
+							// including all the randomized things (IV). If it is the same,
+							// there is a good chance we haven't had any phantom changes
+							// MID-5197
+							.assertEquals(mancombLocker);
 
 //        assertUsers(6);
 
@@ -197,14 +258,14 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         /// WHEN
         displayWhen(TEST_NAME);
-        dummyResourceTeaGreen.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-        display("Dummy (tea green) resource", dummyResourceTeaGreen.debugDump());
+        display("Dummy (tea green) resource", getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).debugDump());
 
         // Make sure we have steady state
         waitForSyncTaskNextRun();
@@ -230,7 +291,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
 
     protected void importSyncTask() throws FileNotFoundException {
-        importObjectFromFile(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILENAME);
+        importObjectFromFile(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE);
     }
 
     protected void waitForSyncTaskStart() throws Exception {

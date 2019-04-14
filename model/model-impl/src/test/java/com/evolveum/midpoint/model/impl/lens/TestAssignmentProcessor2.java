@@ -541,10 +541,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.loginMode(true)
 				.build();
 
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(jackGuybrushAssignment));
-		assignmentIdi.setDefinition(jackGuybrushAssignment.asPrismContainerValue().getDefinition());
-		assignmentIdi.recompute();
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = 
+				new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(jackGuybrushAssignment),
+							jackGuybrushAssignment.asPrismContainerValue().getDefinition());
 
 		// WHEN
 		displayWhen(TEST_NAME);

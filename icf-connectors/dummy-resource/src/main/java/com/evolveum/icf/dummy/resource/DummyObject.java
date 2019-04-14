@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ public abstract class DummyObject implements DebugDumpable {
 		checkModifyBreak();
 		delayOperation();
 		this.enabled = enabled;
-		recordModify();
+		recordModify("_ENABLED", null, null, Arrays.asList(enabled));
 	}
 
 	public Date getValidFrom() {
@@ -104,7 +104,7 @@ public abstract class DummyObject implements DebugDumpable {
 		checkModifyBreak();
 		delayOperation();
 		this.validFrom = validFrom;
-		recordModify();
+		recordModify("_VALID_FROM", null, null, Arrays.asList(validFrom));
 	}
 
 	public Date getValidTo() {
@@ -115,7 +115,7 @@ public abstract class DummyObject implements DebugDumpable {
 		checkModifyBreak();
 		delayOperation();
 		this.validTo = validTo;
-		recordModify();
+		recordModify("_VALID_TO", null, null, Arrays.asList(validTo));
 	}
 
 	public String getLastModifier() {
@@ -176,7 +176,7 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 		currentValues.addAll(values);
 		checkSchema(name, values, "replace");
-		recordModify();
+		recordModify(name, null, null, values);
 	}
 
 	public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
@@ -195,7 +195,7 @@ public abstract class DummyObject implements DebugDumpable {
 		if (valuesList.isEmpty()) {
 			attributes.remove(name);
 		}
-		recordModify();
+		recordModify(name, null, null, Arrays.asList(values));
 	}
 
 	public void addAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
@@ -215,7 +215,7 @@ public abstract class DummyObject implements DebugDumpable {
 		for(T valueToAdd: valuesToAdd) {
 			addAttributeValue(name, currentValues, valueToAdd);
 		}
-		recordModify();
+		recordModify(name, valuesToAdd, null, null);
 	}
 
 	public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
@@ -229,7 +229,7 @@ public abstract class DummyObject implements DebugDumpable {
 		for (Object valueToAdd: valuesToAdd) {
 			addAttributeValue(name, currentValues, valueToAdd);
 		}
-		recordModify();
+		recordModify(name, Arrays.asList(valuesToAdd), null, null);
 	}
 
 	private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
@@ -314,7 +314,7 @@ public abstract class DummyObject implements DebugDumpable {
 
 		}
 
-		recordModify();
+		recordModify(name, null, values, null);
 	}
 
 	public Set<String> getAuxiliaryObjectClassNames() {
@@ -397,9 +397,9 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 	}
 
-	private void recordModify() {
+	private <T> void recordModify(String attributeName, Collection<T> valuesAdded, Collection<T> valuesDeleted, Collection<T> valuesReplaced) {
 		if (resource != null) {
-			resource.recordModify(this);
+			resource.recordModify(this, attributeName, valuesAdded, valuesDeleted, valuesReplaced);
 		}
 	}
 

@@ -47,6 +47,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -61,6 +62,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
@@ -3102,6 +3104,19 @@ public final class WebComponentUtil {
 		return duration;
 	}
 
+	public static List<QName> loadResourceObjectClassValues(ResourceType resource, PageBase pageBase){
+		try {
+			ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, pageBase.getPrismContext());
+			if (schema != null) {
+				return schema.getObjectClassList();
+			}
+		} catch (SchemaException|RuntimeException e){
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
+			pageBase.error("Couldn't load object class list from resource.");
+		}
+		return new ArrayList<>();
+	}
+
 	public static List<RefinedAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent){
 		List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
 
@@ -3451,4 +3466,17 @@ public final class WebComponentUtil {
         }).collect(Collectors.toList());
         return sortedList;
     }
+
+    public static String getMidpointCustomSystemName(PageBase pageBase, String defaultSystemNameKey){
+    	OperationResult result = new OperationResult(pageBase.getClass().getSimpleName() + ".loadDeploymentInformation");
+    	try {
+			SystemConfigurationType systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
+			DeploymentInformationType deploymentInfo = systemConfig != null ? systemConfig.getDeploymentInformation() : null;
+			return deploymentInfo != null && StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ? deploymentInfo.getSystemName() : pageBase.createStringResource(defaultSystemNameKey).getString();
+		} catch (ObjectNotFoundException | SchemaException e){
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", e);
+			result.recordFatalError("Couldn't load deployment information.", e);
+		}
+		return pageBase.createStringResource(defaultSystemNameKey).getString();
+	}
 }

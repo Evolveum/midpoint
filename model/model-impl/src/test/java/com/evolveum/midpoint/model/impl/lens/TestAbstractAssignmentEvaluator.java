@@ -956,10 +956,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	}
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> createAssignmentIdi(AssignmentType assignmentType) throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-		assignmentIdi.setDefinition(getAssignmentDefinition());
-		assignmentIdi.recompute();
-		return assignmentIdi;
+		return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(assignmentType), getAssignmentDefinition());
 	}
 }

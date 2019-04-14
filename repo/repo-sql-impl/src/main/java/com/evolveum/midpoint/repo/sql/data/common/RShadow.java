@@ -49,7 +49,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "m_shadow", indexes = {
         @javax.persistence.Index(name = "iShadowNameOrig", columnList = "name_orig"),
-        @javax.persistence.Index(name = "iShadowNameNorm", columnList = "name_norm")})
+        @javax.persistence.Index(name = "iShadowNameNorm", columnList = "name_norm"),
+        @javax.persistence.Index(name = "iPrimaryIdentifierValueWithOC", columnList = "primaryIdentifierValue,objectClass,resourceRef_targetOid", unique = true) })
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
 		indexes = {
 				@Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
@@ -71,6 +72,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
     private RPolyString nameCopy;
 
     private String objectClass;
+    private String primaryIdentifierValue;
+
     //operation result
     private ROperationResultStatus status;
     //end of operation result
@@ -102,6 +105,11 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
     @Column(length = RUtil.COLUMN_LENGTH_QNAME)
     public String getObjectClass() {
         return objectClass;
+    }
+
+    @Column
+    public String getPrimaryIdentifierValue() {
+        return primaryIdentifierValue;
     }
 
     @Embedded
@@ -192,6 +200,10 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         this.objectClass = objectClass;
     }
 
+    public void setPrimaryIdentifierValue(String primaryIdentifierValue) {
+        this.primaryIdentifierValue = primaryIdentifierValue;
+    }
+
     public void setIntent(String intent) {
         this.intent = intent;
     }
@@ -225,17 +237,17 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
 
         RShadow that = (RShadow) o;
 
-        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
-        if (attemptNumber != null ? !attemptNumber.equals(that.attemptNumber) : that.attemptNumber != null)
+        if (!Objects.equals(nameCopy, that.nameCopy)) return false;
+        if (!Objects.equals(attemptNumber, that.attemptNumber))
             return false;
         if (failedOperationType != that.failedOperationType) return false;
-        if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
-        if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
-        if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
-        if (synchronizationSituation != null ? !synchronizationSituation.equals(that.synchronizationSituation) : that.synchronizationSituation != null)
-            return false;
-        if (kind != null ? !kind.equals(that.kind) : that.kind != null) return false;
-        if (exists != null ? !exists.equals(that.exists) : that.exists != null) return false;
+        if (!Objects.equals(objectClass, that.objectClass)) return false;
+        if (!Objects.equals(primaryIdentifierValue, that.primaryIdentifierValue)) return false;
+        if (!Objects.equals(resourceRef, that.resourceRef)) return false;
+        if (!Objects.equals(intent, that.intent)) return false;
+        if (!Objects.equals(synchronizationSituation, that.synchronizationSituation)) return false;
+        if (!Objects.equals(kind, that.kind)) return false;
+        if (!Objects.equals(exists, that.exists)) return false;
         if (status != that.status) return false;
         if (!Objects.equals(pendingOperationCount, that.pendingOperationCount)) return false;
 
@@ -247,6 +259,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         int result1 = super.hashCode();
         result1 = 31 * result1 + (nameCopy != null ? nameCopy.hashCode() : 0);
         result1 = 31 * result1 + (objectClass != null ? objectClass.hashCode() : 0);
+        result1 = 31 * result1 + (primaryIdentifierValue != null ? primaryIdentifierValue.hashCode() : 0);
         result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
         result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
         result1 = 31 * result1 + (intent != null ? intent.hashCode() : 0);
@@ -266,6 +279,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectClass(RUtil.qnameToString(jaxb.getObjectClass()));
+        repo.setPrimaryIdentifierValue(jaxb.getPrimaryIdentifierValue());
         repo.setIntent(jaxb.getIntent());
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
         repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());

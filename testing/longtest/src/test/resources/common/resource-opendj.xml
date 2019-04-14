@@ -296,10 +296,7 @@
 					<q:equal>
 						<q:path>employeeNumber</q:path>
 						<expression>
-							<path>
-								declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
-                            	$account/attributes/ri:employeeNumber
-                            </path>
+							<path>$projection/attributes/ri:employeeNumber</path>
 						</expression>
 					</q:equal>
 					<q:not>

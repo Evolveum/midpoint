@@ -265,9 +265,9 @@
 			<enabled>true</enabled>
 			<correlation>
 				<q:equal>
-					<q:path>c:name</q:path>
+					<q:path>name</q:path>
 					<expression>
-						<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";$account/attributes/ri:uid</path>
+						<path>$projection/attributes/uid</path>
 					</expression>
 				</q:equal>
 			</correlation>
@@ -300,9 +300,9 @@
 			<enabled>true</enabled>
 			<correlation>
 				<q:equal>
-					<q:path>c:name</q:path>
+					<q:path>name</q:path>
 					<expression>
-						<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";$shadow/attributes/ri:ou</path>
+						<path>$projection/attributes/ou</path>
 					</expression>
 				</q:equal>
 			</correlation>

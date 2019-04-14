@@ -5049,6 +5049,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
 	}
 
+	protected List<AuditEventRecord> getAuditRecords(int maxRecords, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Map<String,Object> params = new HashMap<>();
+		params.put("setMaxResults", maxRecords);
+		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
+	}
+
 	protected List<AuditEventRecord> getObjectAuditRecords(String oid) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Task task = createTask("getObjectAuditRecords");
 		OperationResult result = task.getResult();

@@ -736,6 +736,10 @@ public class OpenDJController extends AbstractResourceController {
 	public static void assertAttributeLang(Entry entry, String attributeName, String expectedOrigValue, String... params) {
 		List<Attribute> attrs = entry.getAttribute(attributeName.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
+			if (expectedOrigValue == null && params.length == 0) {
+				// everything is as it should be
+				return;
+			}
 			AssertJUnit.fail("Attribute "+attributeName+" does not have any value");
 		}
 		Map<String,String> expectedLangs = MiscUtil.paramsToMap(params);

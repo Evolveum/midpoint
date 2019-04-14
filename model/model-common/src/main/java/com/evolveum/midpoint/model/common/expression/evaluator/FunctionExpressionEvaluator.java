@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -35,9 +37,12 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -131,27 +136,31 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		ExpressionFactory factory = context.getExpressionFactory();
 		
 		// TODO: expression profile should be determined from the function library archetype
-		Expression<V, D> expression;
+		Expression<V, D> functionExpression;
 		try {
-			expression = factory.makeExpression(functionToExecute, outputDefinition, MiscSchemaUtil.getExpressionProfile(), "function execution", task, functionExpressionResult);
+			functionExpression = factory.makeExpression(functionToExecute, outputDefinition, MiscSchemaUtil.getExpressionProfile(), "function execution", task, functionExpressionResult);
 			functionExpressionResult.recordSuccess();
 		} catch (SchemaException | ObjectNotFoundException e) {
 			functionExpressionResult.recordFatalError("Cannot make expression for " + functionToExecute + ". Reason: " + e.getMessage(), e);
 			throw e;
 		}
-		
-		ExpressionVariables originVariables = context.getVariables();
-		
+
 		ExpressionEvaluationContext functionContext = context.shallowClone();
 		ExpressionVariables functionVariables = new ExpressionVariables();
 		
 		for (ExpressionParameterType param : getExpressionEvaluatorType().getParameter()) {
-			ExpressionType valueExpression = param.getExpression();
+			ExpressionType valueExpressionType = param.getExpression();
 			OperationResult variableResult = result.createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveVariable");
+			Expression<V, D> valueExpression = null;
 			try {
-				variableResult.addArbitraryObjectAsParam("valueExpression", valueExpression);
+				variableResult.addArbitraryObjectAsParam("valueExpression", valueExpressionType);
 				D variableOutputDefinition = determineVariableOutputDefinition(functionToExecute, param.getName(), context);
-				ExpressionUtil.evaluateExpression(originVariables, variableOutputDefinition, valueExpression, expressionProfile, context.getExpressionFactory(), "resolve variable", task, variableResult);
+				
+				valueExpression = factory.makeExpression(valueExpressionType, variableOutputDefinition, MiscSchemaUtil.getExpressionProfile(), "parameters execution", task, variableResult);
+				functionExpressionResult.recordSuccess();
+				PrismValueDeltaSetTriple<V> evaluatedValue = valueExpression.evaluate(context);
+				V value = ExpressionUtil.getExpressionOutputValue(evaluatedValue, " evaluated value for paramter");
+				functionVariables.addVariableDefinition(param.getName(), value, variableOutputDefinition);
 				variableResult.recordSuccess();
 			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
 					| ConfigurationException | SecurityViolationException e) {
@@ -160,9 +169,10 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 			}
 		}
 		
+		
 		functionContext.setVariables(functionVariables);
 		
-		return expression.evaluate(context);
+		return functionExpression.evaluate(functionContext);
 	}
 
 	private ExpressionType determineFunctionToExecute(List<ExpressionType> filteredExpressions) {

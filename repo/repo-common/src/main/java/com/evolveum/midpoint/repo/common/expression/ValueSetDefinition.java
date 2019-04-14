@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
+import org.apache.commons.lang3.Validate;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -38,9 +40,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionTy
  * @author semancik
  *
  */
-public class ValueSetDefinition {
+public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition> {
 
 	private final ValueSetDefinitionType setDefinitionType;
+	private final D itemDefinition;
 	private final ExpressionProfile expressionProfile;
 	private final String shortDesc;
 	private final Task task;
@@ -49,9 +52,11 @@ public class ValueSetDefinition {
 	private ExpressionVariables additionalVariables;
 	private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
 
-	public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, ExpressionProfile expressionProfile, String additionalVariableName, String shortDesc, Task task, OperationResult result) {
+	public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, D itemDefinition, ExpressionProfile expressionProfile, String additionalVariableName, String shortDesc, Task task, OperationResult result) {
 		super();
 		this.setDefinitionType = setDefinitionType;
+		Validate.notNull(itemDefinition, "No item definition for value set in %s", shortDesc);
+		this.itemDefinition = itemDefinition;
 		this.expressionProfile = expressionProfile;
 		this.additionalVariableName = additionalVariableName;
 		this.shortDesc = shortDesc;
@@ -68,14 +73,14 @@ public class ValueSetDefinition {
 		this.additionalVariables = additionalVariables;
 	}
 
-	public <IV extends PrismValue> boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return evalCondition(pval);
 	}
 
 	/**
 	 * Same as contains, but wraps exceptions in TunnelException.
 	 */
-	public <IV extends PrismValue> boolean containsTunnel(IV pval) {
+	public boolean containsTunnel(IV pval) {
 		try {
 			return contains(pval);
 		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
@@ -86,10 +91,9 @@ public class ValueSetDefinition {
 	private <IV extends PrismValue> boolean evalCondition(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
 		Object value = pval.getRealValue();
-		ItemDefinition definition = pval.getParent().getDefinition();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, definition);
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, itemDefinition);
 		if (additionalVariableName != null) {
-			variables.addVariableDefinition(additionalVariableName, value, definition);
+			variables.addVariableDefinition(additionalVariableName, value, itemDefinition);
 		}
 		if (additionalVariables != null) {
 			variables.addVariableDefinitions(additionalVariables, variables.keySet());

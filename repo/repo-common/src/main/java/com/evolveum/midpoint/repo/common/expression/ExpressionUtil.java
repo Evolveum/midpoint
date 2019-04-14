@@ -73,6 +73,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.UndefinedFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.util.DefinitionResolver;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -349,7 +350,19 @@ public class ExpressionUtil {
 	
 	private static  <T,O extends ObjectType> TypedValue<T> determineTypedValueOdo(PrismContext prismContext, String name, TypedValue<O> root, ItemPath relativePath) throws SchemaException {
 		ObjectDeltaObject<O> rootOdo = (ObjectDeltaObject<O>) root.getValue();
-		ItemDeltaItem<PrismValue, ItemDefinition> subValue = rootOdo.findIdi(relativePath);
+		DefinitionResolver<PrismObjectDefinition<O>, ItemDefinition> resolver = (rootDef,path) -> {
+			// We are called just before failure. Therefore all normal ways of resolving of definition did not work.
+			ItemDefinition parentDef = rootDef.findItemDefinition(path.allExceptLast());
+			if (parentDef != null && parentDef.isDynamic()) {
+				// This is the case of dynamic schema extensions, such as assignment extension.
+    			// Those may not have a definition. In that case just assume strings.
+    			// In fact, this is a HACK. All such schemas should have a definition.
+    			// Otherwise there may be problems with parameter types for caching compiles scripts and so on.
+    			return prismContext.definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+			}
+			return null;
+		};
+		ItemDeltaItem<PrismValue, ItemDefinition> subValue = rootOdo.findIdi(relativePath, resolver);
 		PrismObjectDefinition<O> rootDefinition = root.getDefinition();
 		if (rootDefinition == null) {
 			rootDefinition = rootOdo.getDefinition();
@@ -437,13 +450,13 @@ public class ExpressionUtil {
 	}
 
 	// TODO what about collections of values?
-	public static <T> TypedValue<T> convertVariableValue(TypedValue<T> originalValueAndDefinition, String variableName, ObjectResolver objectResolver,
+	public static <T> TypedValue<T> convertVariableValue(TypedValue<T> originalTypedValue, String variableName, ObjectResolver objectResolver,
 			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		Object valueToConvert = originalValueAndDefinition.getValue();
+		Object valueToConvert = originalTypedValue.getValue();
 		if (valueToConvert == null) {
-			return originalValueAndDefinition;
+			return originalTypedValue;
 		}
-		TypedValue<T> convertedValueAndDefinition = new TypedValue<T>(valueToConvert, (ItemDefinition)originalValueAndDefinition.getDefinition());
+		TypedValue<T> convertedTypeValue = originalTypedValue.createTransformed(valueToConvert);
 		if (valueToConvert instanceof PrismValue) {
 			((PrismValue) valueToConvert).setPrismContext(prismContext);			// TODO - or revive? Or make sure prismContext is set here?
 		} else if (valueToConvert instanceof Item) {
@@ -451,29 +464,36 @@ public class ExpressionUtil {
 		}
 		if (valueToConvert instanceof ObjectReferenceType) {
 			try {
-				convertedValueAndDefinition = (TypedValue<T>) resolveReference((TypedValue<ObjectReferenceType>) originalValueAndDefinition, objectResolver, variableName,
+				convertedTypeValue = (TypedValue<T>) resolveReference((TypedValue<ObjectReferenceType>) originalTypedValue, objectResolver, variableName,
 						contextDescription, task, result);
-				valueToConvert = convertedValueAndDefinition.getValue();
+				valueToConvert = convertedTypeValue.getValue();
 			} catch (SchemaException e) {
 				throw new ExpressionSyntaxException("Schema error during variable "+variableName+" resolution in "+contextDescription+": "+e.getMessage(), e);
 			}
 		}
 		if (valueToConvert instanceof PrismObject<?>) {
-			convertedValueAndDefinition.setValue(((PrismObject<?>)valueToConvert).asObjectable());
-			return convertedValueAndDefinition;
+			convertedTypeValue.setValue(((PrismObject<?>)valueToConvert).asObjectable());
+			return convertedTypeValue;
 		}
 		if (valueToConvert instanceof PrismContainerValue<?>) {
-			convertedValueAndDefinition.setValue(((PrismContainerValue<?>)valueToConvert).asContainerable());
-			return convertedValueAndDefinition;
+			PrismContainerValue<?> cval = ((PrismContainerValue<?>)valueToConvert);
+			Class<?> containerCompileTimeClass = cval.getCompileTimeClass();
+			if (containerCompileTimeClass == null) {
+				// Dynamic schema. We do not have anything to convert to. Leave it as PrismContainerValue
+				convertedTypeValue.setValue(valueToConvert);
+			} else {
+				convertedTypeValue.setValue(cval.asContainerable());
+			}
+			return convertedTypeValue;
 		}
 		if (valueToConvert instanceof PrismPropertyValue<?>) {
-			convertedValueAndDefinition.setValue(((PrismPropertyValue<?>)valueToConvert).getValue());
-			return convertedValueAndDefinition;
+			convertedTypeValue.setValue(((PrismPropertyValue<?>)valueToConvert).getValue());
+			return convertedTypeValue;
 		}
 		if (valueToConvert instanceof PrismReferenceValue) {
 			if (((PrismReferenceValue) valueToConvert).getDefinition() != null) {
-				convertedValueAndDefinition.setValue(((PrismReferenceValue) valueToConvert).asReferencable());
-				return convertedValueAndDefinition;
+				convertedTypeValue.setValue(((PrismReferenceValue) valueToConvert).asReferencable());
+				return convertedTypeValue;
 			}
 		}
 		if (valueToConvert instanceof PrismProperty<?>) {
@@ -508,26 +528,36 @@ public class ExpressionUtil {
 		if (valueToConvert instanceof PrismContainer<?>) {
 			PrismContainer<?> container = (PrismContainer<?>)valueToConvert;
 			PrismContainerDefinition<?> def = container.getDefinition();
-			if (def != null) {
-				if (def.isSingleValue()) {
-					return new TypedValue(container.getRealValue(), def);
+			Class<?> containerCompileTimeClass = container.getCompileTimeClass();
+			if (containerCompileTimeClass == null) {
+				// Dynamic schema. We do not have anything to convert to. Leave it as PrismContainer
+				if (def != null) {
+					return new TypedValue(container, def);
 				} else {
-					return new TypedValue(container.getRealValues(), def);
-
+					return new TypedValue(container, PrismContainer.class);
 				}
 			} else {
-				PrismContainerValue<?> cval = container.getValue();
-				if (cval != null) {
-					Containerable containerable = cval.asContainerable();
-					if (containerable != null) {
-						return new TypedValue(container.getRealValues(), containerable.getClass());
+				if (def != null) {
+					if (def.isSingleValue()) {
+						return new TypedValue(container.getRealValue(), def);
+					} else {
+						return new TypedValue(container.getRealValues(), def);
+	
 					}
+				} else {
+					PrismContainerValue<?> cval = container.getValue();
+					if (cval != null) {
+						Containerable containerable = cval.asContainerable();
+						if (containerable != null) {
+							return new TypedValue(container.getRealValues(), containerable.getClass());
+						}
+					}
+					return new TypedValue(container.getRealValues(), Object.class);
 				}
-				return new TypedValue(container.getRealValues(), Object.class);
 			}
 		}
 
-		return convertedValueAndDefinition;
+		return convertedTypeValue;
 	}
 
 	private static TypedValue<PrismObject<?>> resolveReference(TypedValue<ObjectReferenceType> refAndDef, ObjectResolver objectResolver,
@@ -933,8 +963,8 @@ public class ExpressionUtil {
 		// expressionHandler.evaluateExpression(currentShadow, valueExpression,
 		// shortDesc, result);
 	}
-
-	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
+	
+	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources, 
 			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -942,12 +972,20 @@ public class ExpressionUtil {
 		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 				shortDesc, task, parentResult);
 
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task, parentResult);
 		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context);
 
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
 		return getExpressionOutputValue(outputTriple, shortDesc);
+	}
+
+	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
+			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
+			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+		return evaluateExpression(null, variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc, task, parentResult);
 	}
 	
 	public static <V extends PrismValue> V getExpressionOutputValue(PrismValueDeltaSetTriple<V> outputTriple, String shortDesc) throws ExpressionEvaluationException {
@@ -1030,6 +1068,16 @@ public class ExpressionUtil {
 		}
 
 		return variablesAndSources;
+	}
+	
+	public static VariablesMap compileSources(Collection<Source<?, ?>> sources) {
+		VariablesMap sourcesMap = new VariablesMap();
+		if (sources != null) {
+			for (Source<?, ?> source : sources) {
+				sourcesMap.put(source.getName().getLocalPart(), source, source.getDefinition());
+			}
+		}
+		return sourcesMap;
 	}
 
 	public static boolean hasExplicitTarget(List<MappingType> mappingTypes) {

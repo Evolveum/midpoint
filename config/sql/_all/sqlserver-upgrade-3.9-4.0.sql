@@ -15,4 +15,10 @@ ALTER TABLE m_generic_object DROP CONSTRAINT fk_generic_object;
 ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
 
+ALTER TABLE m_acc_cert_campaign ADD primaryIdentifierValue NVARCHAR(255) COLLATE database_default;
+
+CREATE UNIQUE NONCLUSTERED INDEX iPrimaryIdentifierValueWithOC
+  ON m_shadow(primaryIdentifierValue, objectClass, resourceRef_targetOid)
+  WHERE primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL;
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
@@ -66,6 +67,12 @@ public class PrismPropertyValueAsserter<T, RA> extends PrismValueAsserter<PrismP
 	public PrismPropertyValueAsserter<T,RA> assertValue(T expectedValue) {
 		assertEquals("Wrong property value in "+desc(), expectedValue, getPrismValue().getValue());
 		return this;
+	}
+	
+	public ProtectedStringAsserter<PrismPropertyValueAsserter<T,RA>> protectedString() {
+		ProtectedStringAsserter<PrismPropertyValueAsserter<T,RA>> asserter = new ProtectedStringAsserter<PrismPropertyValueAsserter<T,RA>>((ProtectedStringType)getPrismValue().getValue(), this, desc());
+		copySetupTo(asserter);
+		return asserter;
 	}
 		
 	// TODO

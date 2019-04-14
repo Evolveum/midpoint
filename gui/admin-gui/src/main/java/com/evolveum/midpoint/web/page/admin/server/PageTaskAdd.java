@@ -399,15 +399,7 @@ public class PageTaskAdd extends PageAdminTasks {
         if(resourcesDto != null){
             PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
                     resourcesDto.getOid(), PageTaskAdd.this, task, result);
-
-            try {
-                ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, getPrismContext());
-                model.getObject().setObjectClassList(schema.getObjectClassList());
-            } catch (Exception e){
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
-                error("Couldn't load object class list from resource.");
-            }
-
+            model.getObject().setObjectClassList(WebComponentUtil.loadResourceObjectClassValues(resource.asObjectable(), PageTaskAdd.this));
         }
     }
 

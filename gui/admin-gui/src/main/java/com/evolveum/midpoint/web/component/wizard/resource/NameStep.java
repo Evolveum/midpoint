@@ -217,7 +217,7 @@ public class NameStep extends WizardStep {
                     @Override
                     public String getIdValue(PrismObject<ConnectorType> object, int index) {
                 		if (index < 0){
-                			List<PrismObject<ConnectorType>> connectors = relevantConnectorsModel.getObject();
+                			List<PrismObject<ConnectorType>> connectors = (List<PrismObject<ConnectorType>> ) getConnectorDropDown().getInput().getChoices();
                 			for (PrismObject<ConnectorType> connector : connectors){
                 				if (connector.getOid().equals(selectedConnectorModel.getObject().getOid())){
                 					return Integer.toString(connectors.indexOf(connector));

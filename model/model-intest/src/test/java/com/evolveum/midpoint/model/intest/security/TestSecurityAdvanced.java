@@ -15,11 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertEquals;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -29,6 +24,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -61,27 +57,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -154,6 +131,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	protected static final File ROLE_READ_ORG_EXEC_FILE = new File(TEST_DIR, "role-read-org-exec.xml");
 	protected static final String ROLE_READ_ORG_EXEC_OID = "1ac39d34-e675-11e8-a1ec-37748272d526";
 
+	protected static final File ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE = new File(TEST_DIR, "role-read-resource-operational-state.xml");
+	protected static final String ROLE_READ_RESOURCE_OPERATIONAL_STATE_OID = "18f17721-63e1-42cf-abaf-8a50a04e639f";
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -180,11 +159,12 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_WRONG_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_ORG_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE, initResult);
 
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 18;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 19;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -3268,6 +3248,62 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertGlobalStateUntouched();
 	}
 	
+	/**
+	 * Checks whether resource operationalState authorization works.
+	 *
+	 * MID-5168, MID-3749
+	 */
+	@Test
+    public void test350AutzJackResourceRead() throws Exception {
+		final String TEST_NAME = "test350AutzJackResourceRead";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+
+		assignRole(USER_JACK_OID, ROLE_READ_RESOURCE_OPERATIONAL_STATE_OID);
+
+		login(USER_JACK_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		PrismObject<ResourceType> resource = getObject(ResourceType.class, RESOURCE_DUMMY_VAULT_OID);
+
+		// THEN
+		display("resource", resource);
+		assertNull("schemaHandling is present although it should not be", resource.asObjectable().getSchemaHandling());
+		assertEquals("Wrong # of items in resource read", 1, resource.getItems(Item.class).size());
+	}
+
+	/**
+	 * Just to be sure we do not throw away empty PC/PCVs when not necessary.
+	 *
+	 * MID-5168, MID-3749
+	 */
+	@Test
+    public void test360AutzAdminResourceRead() throws Exception {
+		final String TEST_NAME = "test350AutzAdminResourceRead";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		login(USER_ADMINISTRATOR_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		PrismObject<ResourceType> resource = getObject(ResourceType.class, RESOURCE_DUMMY_VAULT_OID);
+
+		// THEN
+		display("resource", resource);
+		ResourceObjectTypeDefinitionType accountSchemaHandling = resource.asObjectable()
+				.getSchemaHandling()
+				.getObjectType().stream().filter(def -> def.getKind() == ShadowKindType.ACCOUNT).findFirst()
+				.orElseThrow(() -> new AssertionError("no account definition"));
+		assertNotNull(accountSchemaHandling.getActivation());
+		assertNotNull(accountSchemaHandling.getActivation().getAdministrativeStatus());
+		List<MappingType> outbounds = accountSchemaHandling.getActivation().getAdministrativeStatus().getOutbound();
+		assertEquals("Wrong # of admin status outbounds", 1, outbounds.size());
+	}
+
 	private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {
 		return queryFor(ObjectType.class)
 				.isChildOf(orgOid)

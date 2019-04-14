@@ -27,6 +27,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -46,6 +48,7 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
  * @author honchar
  * @author Viliam Repan (lazyman)
  * <p>
+ * 
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
@@ -88,6 +91,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             if (rowModel != null && menuItem.getAction() != null && menuItem.getAction() instanceof ColumnMenuAction){
                 ((ColumnMenuAction) menuItem.getAction()).setRowModel(rowModel);
             }
+            
+            if (menuItem.isCheckVisibility() && !isInlineMenuVisible(rowModel, isHeaderPanel)) {
+            	continue;
+            }
+            
             filteredMenuItems.add(menuItem);
         }
         if (rowModel != null && rowModel.getObject() instanceof InlineMenuable &&
@@ -126,6 +134,10 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 return btn;
             }
         };
+    }
+    
+    protected boolean isInlineMenuVisible(IModel<T> rowModel, boolean isHeader) {
+    	return true;
     }
 
     protected boolean isButtonMenuItemEnabled(IModel<T> rowModel){
@@ -233,6 +245,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             if (!isHeaderPanel && !(item.getAction() instanceof HeaderMenuAction)){
                 return true;
             }
+           
         }
         return false;
     }
