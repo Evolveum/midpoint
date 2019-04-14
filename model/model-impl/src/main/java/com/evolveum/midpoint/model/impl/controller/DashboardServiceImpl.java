@@ -272,22 +272,6 @@ public class DashboardServiceImpl implements DashboardService {
 			
 			int value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
 			Integer domainValue = collStats.getDomainCount();
-//			if( valueCollection.getDomain() != null && valueCollection.getDomain().getCollectionRef() != null) {
-////				ObjectCollectionType domainCollection = (ObjectCollectionType) getObjectCollectionType(widget,
-////						taskManager, prismContext, modelService);
-//				ObjectReferenceType ref = valueCollection.getDomain().getCollectionRef();
-//				ObjectCollectionType domainCollection = objectResolver.resolve(ref, ObjectCollectionType.class, null, "resolving collection for "+widget, task, result);
-//				if(domainCollection == null) {
-//					return null;
-//				}
-//				ObjectCollectionType domainCollection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref, 
-//						getPageBase(), task, task.getResult()).getRealValue();
-//				domainValue = getObjectCount(domainCollection, true, task, result);
-//			} else {
-//				LOGGER.error("Domain or collectionRef in domain is null in collection " + valueCollection.toString());
-//				LOGGER.trace("Using filter for all object based on type");
-//				domainValue = getObjectCount(valueCollection, false, task, result);
-//			}
 			IntegerStatType statType = generateIntegerStat(value, domainValue);
 			
 			Collection<EvaluatedPolicyRule> evalPolicyRules = modelInteractionService.evaluateCollectionPolicyRules(
@@ -409,15 +393,6 @@ public class DashboardServiceImpl implements DashboardService {
 		}
 	}
 
-//	private int getObjectCount(ObjectCollectionType collection, boolean usingFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-//		List<PrismObject<ObjectType>> values = searchObjectFromCollection(collection, usingFilter, task, result);
-//		if(values != null) {
-//			LOGGER.debug("Return count: {}", values.size());
-//			return values.size();
-//		}
-//		return 0; 
-//	}
-	
 	@Override
 	public List<PrismObject<ObjectType>> searchObjectFromCollection(ObjectCollectionType collection, boolean usingFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Class<ObjectType> type = (Class<ObjectType>) prismContext.getSchemaRegistry()
