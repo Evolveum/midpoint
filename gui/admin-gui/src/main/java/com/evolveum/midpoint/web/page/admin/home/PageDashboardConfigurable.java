@@ -81,6 +81,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 /**
  * @author skublik
@@ -105,13 +106,8 @@ public class PageDashboardConfigurable extends PageDashboard {
 	
 	private IModel<DashboardType> dashboardModel;
 
-	public static final String PARAM_DASHBOARD_OID = "oid";
 	private static final String ID_WIDGETS = "widgets";
 	private static final String ID_WIDGET = "widget";
-//    private static final String ID_INFO_BOX_ERRORS = "smallInfoBoxErrors";
-//    private static final String ID_INFO_BOX_MODIFICATIONS = "smallInfoBoxModifications";
-//    private static final String ID_INFO_BOX_RESOURCES = "smallInfoBoxResources";
-//    private static final String ID_INFO_BOX_TASKS = "smallInfoBoxTasks";
 
     @Override
     protected void onInitialize(){
@@ -142,7 +138,7 @@ public class PageDashboardConfigurable extends PageDashboard {
 
 			@Override
 			public DashboardType getObject() {
-				StringValue dashboardOid = getPageParameters().get(PARAM_DASHBOARD_OID);
+				StringValue dashboardOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
                 if (dashboardOid == null || StringUtils.isEmpty(dashboardOid.toString())) {
                     getSession().error(getString("PageDashboardConfigurable.message.oidNotDefined"));
                     throw new RestartResponseException(PageDashboardInfo.class);
@@ -168,128 +164,5 @@ public class PageDashboardConfigurable extends PageDashboard {
             			PageDashboardConfigurable.this));
             }
         });
-
-//    	Task task = createSimpleTask("PageDashboard.infobox");
-//    	OperationResult result = task.getResult();
-//        
-//    	add(createResourceInfoBoxPanel(result, task));
-//    	add(createTaskInfoBoxPanel(result, task));
-//    	add(createModificationsInfoBoxPanel());
-//    	add(createErrorsInfoBoxPanel());
-
 	}
-    
-//	@Override
-//	protected <O extends ObjectType> void customizationObjectInfoBoxType(InfoBoxType infoBoxType, Class<O> type,
-//			List<QName> items, Object eqObject, String bgColor, String icon, String keyPrefix, Integer totalCount,
-//			Integer activeCount, OperationResult result, Task task) {
-//		
-//		if(totalCount == null || activeCount == null) {
-//			infoBoxType.setNumber("ERROR: Not found data.");
-//			return;
-//		}
-//		setBoxBackgroundColor(totalCount, activeCount, false, infoBoxType);
-//		infoBoxType.setNumber(activeCount + "/"+ totalCount + " " + getString("PageDashboard.infobox.tasks.number"));
-//	}
-//	
-//	private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
-//		return new SmallInfoBoxPanel(ID_INFO_BOX_RESOURCES, getObjectInfoBoxTypeModel(ResourceType.class,
-//    			Arrays.asList(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
-//    			AvailabilityStatusType.UP, "object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
-//    			"PageDashboard.infobox.resources", result, task), PageResources.class, this);
-//	}
-//	
-//    private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
-//		return new SmallInfoBoxPanel(ID_INFO_BOX_TASKS, getObjectInfoBoxTypeModel(TaskType.class,
-//    			Arrays.asList(TaskType.F_EXECUTION_STATUS), TaskExecutionStatusType.RUNNABLE, "object-task-bg",
-//    			GuiStyleConstants.CLASS_OBJECT_TASK_ICON, "PageDashboard.infobox.tasks", result, task),
-//				PageTasks.class, this);
-//	}
-//    
-//    @Override
-//    protected void customizationPercentageInfoBoxTypeModel(InfoBoxType infoBoxType, String bgColor, String icon,
-//    		String keyPrefix, int totalItems, int actualItems, boolean zeroIsGood) {
-//    	setBoxBackgroundColor(totalItems, actualItems, zeroIsGood, infoBoxType);
-//    }
-//    
-//    private Component createModificationsInfoBoxPanel() {
-//    	int totalItems = listModificationsRecords(false).size();
-//    	int actualItems = listModificationsRecords(true).size();
-//    	IModel<InfoBoxType> model = getPercentageInfoBoxTypeModel("", "fa fa-cog",
-//    			"PageDashboard.infobox.modifications", totalItems, actualItems, false);
-//    	
-//		return new SmallInfoBoxPanel(ID_INFO_BOX_MODIFICATIONS, model, PageAuditLogViewer.class, this){
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			protected void setParametersBeforeClickOnMoreInfo() {
-//				AuditSearchDto searchDto = new AuditSearchDto();
-//				Date date = new Date(System.currentTimeMillis() - (24*3600000));
-//				searchDto.setFrom(XmlTypeConverter.createXMLGregorianCalendar(date));
-//				searchDto.setEventType(AuditEventTypeType.MODIFY_OBJECT);
-//				searchDto.setEventStage(AuditEventStageType.EXECUTION);
-//				searchDto.setOutcome(OperationResultStatusType.SUCCESS);
-//				getSessionStorage().getAuditLog().setSearchDto(searchDto);
-//			}
-//		};
-//	}
-//    
-//    private Component createErrorsInfoBoxPanel() {
-//    	int totalItems = listAllOperationsRecords().size();
-//    	int actualItems = listErrorsRecords().size();
-//    	
-//    	IModel<InfoBoxType> model = getPercentageInfoBoxTypeModel("", "fa fa-ban",
-//    			"PageDashboard.infobox.errors", totalItems, actualItems, true);
-//		
-//		return new SmallInfoBoxPanel(ID_INFO_BOX_ERRORS, model, PageAuditLogViewer.class, this) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			protected void setParametersBeforeClickOnMoreInfo() {
-//				AuditSearchDto searchDto = new AuditSearchDto();
-//				Date date = new Date(System.currentTimeMillis() - (24*3600000));
-//				searchDto.setFrom(XmlTypeConverter.createXMLGregorianCalendar(date));
-//				searchDto.setEventStage(AuditEventStageType.EXECUTION);
-//				searchDto.setOutcome(OperationResultStatusType.FATAL_ERROR);
-//				getSessionStorage().getAuditLog().setSearchDto(searchDto);
-//			}
-//		};
-//	}
-//    
-//    private List<AuditEventRecordType> listModificationsRecords(boolean isSuccess){
-//    	Map<String, Object> parameters = new HashedMap<String, Object>();
-//		List<String> conditions = new ArrayList<>();
-//		conditions.add("aer.eventType = :auditEventType");
-//		parameters.put("auditEventType", AuditEventTypeType.MODIFY_OBJECT);
-//		
-//		if(isSuccess){
-//			conditions.add("aer.outcome = :outcome");
-//			parameters.put("outcome", OperationResultStatusType.SUCCESS);
-//		}
-//		
-//		return listAuditRecords(parameters, conditions);
-//    }
-//    
-//    private List<AuditEventRecordType> listErrorsRecords(){
-//    	Map<String, Object> parameters = new HashedMap<String, Object>();
-//		List<String> conditions = new ArrayList<>();
-//		conditions.add("aer.outcome = :outcome");
-//		parameters.put("outcome", OperationResultStatusType.FATAL_ERROR);
-//		
-//		return listAuditRecords(parameters, conditions);
-//    }
-//    
-//    private List<AuditEventRecordType> listAllOperationsRecords(){
-//    	Map<String, Object> parameters = new HashedMap<String, Object>();
-//		List<String> conditions = new ArrayList<>();
-//		return listAuditRecords(parameters, conditions);
-//    }
-//    
-//    private void setBoxBackgroundColor(int totalCount, int activeCount, boolean zeroIsGood, InfoBoxType infoBoxType) {
-//		if((zeroIsGood && activeCount == 0) || (totalCount == activeCount)) {
-//			infoBoxType.setBoxBackgroundColor("object-access-bg");
-//			return;
-//		} 
-//		infoBoxType.setBoxBackgroundColor("object-failed-bg");
-//	}
 }

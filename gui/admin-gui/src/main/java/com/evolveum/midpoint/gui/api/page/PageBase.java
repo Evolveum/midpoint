@@ -106,8 +106,6 @@ import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboardAdmin;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.reports.*;
@@ -133,6 +131,7 @@ import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -1971,7 +1970,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				createStringResource("PageAdmin.menu.dashboard"), null);
 
 		addMenuItem(item, "PageAdmin.menu.dashboard.info", PageDashboardInfo.class);
-		addMenuItem(item, "PageAdmin.menu.dashboard.admin", PageDashboardAdmin.class);
 		
 		OperationResult result = new OperationResult("Search Dashboard");
 		List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, this);
@@ -1988,7 +1986,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					label = createStringResource(dashboard.getName());
 				}
 				PageParameters pageParameters = new PageParameters();
-				pageParameters.add(PageDashboardConfigurable.PARAM_DASHBOARD_OID, dashboard.getOid());
+				pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
 				MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
 	        	item.getItems().add(menu);
 			});
