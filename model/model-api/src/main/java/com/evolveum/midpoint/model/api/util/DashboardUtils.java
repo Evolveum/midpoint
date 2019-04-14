@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.api.util;
 
-import static com.evolveum.midpoint.model.api.util.DashboardUtils.isDataNull;
-
 import java.util.Date;
 import java.util.Map;
 
@@ -25,11 +23,6 @@ import javax.xml.datatype.Duration;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourc
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author skublik
@@ -135,7 +127,7 @@ public class DashboardUtils {
 			return null;
 		}
 		AuditSearchType auditSearch = collectionForQuery.getAuditSearch();
-		if(auditSearch != null || StringUtils.isNotBlank(auditSearch.getRecordQuery())) {
+		if(auditSearch != null && StringUtils.isNotBlank(auditSearch.getRecordQuery())) {
 			Duration interval = auditSearch.getInterval();
 			if(interval == null) {
 				return auditSearch.getRecordQuery();

@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -139,11 +140,13 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 	private static final String PROGRES_COLUMN = "Progress";
 	private static final String CURRENT_RUN_TIME_COLUMN = "Current run time";
 	private static final String SCHEDULED_TO_START_AGAIN_COLUMN = "Scheduled to start again";
+	
+	private static final String REPORT_GENERATED_ON = "Report generated on: ";
+	private static final String NUMBER_OF_RECORDS = "Number of records: ";
+	
 	private static final QName CUSTOM = new QName("custom");
 
-	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private Clock clock;
-	@Autowired private ModelInteractionService modelInteractionService;
 	@Autowired private TaskManager taskManager;
 	@Autowired private AuditService auditService;
 	@Autowired private ModelService modelService;
@@ -314,6 +317,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
 		ContainerTag widgetTBody = TagCreator.tbody();
 		List<ContainerTag> tableboxesFromWidgets = new ArrayList<ContainerTag>();
+		long startMillis = clock.currentTimeMillis();
 		for (DashboardWidgetType widget : dashboard.getWidget()) {
 			DashboardWidget widgetData = dashboardService.createWidgetData(widget, task, result);
 			widgetTBody.with(createTBodyRow(widgetData));
@@ -324,7 +328,8 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		}
 		widgetTable.with(widgetTBody);
 
-		body.append(createTableBox(widgetTable, "Widgets").render());
+		body.append(createTableBox(widgetTable, "Widgets", dashboard.getWidget().size(),
+				convertMillisToString(startMillis)).render());
 		appendSpace(body);
 		tableboxesFromWidgets.forEach(table -> {
 			body.append(table.render());
@@ -333,6 +338,11 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		body.append("</div>");
 
 		return body.toString();
+	}
+
+	private String convertMillisToString(long millis) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss", Locale.US);
+		return dateFormat.format(millis);
 	}
 
 	private void appendSpace(StringBuilder body) {
@@ -350,6 +360,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		case OBJECT_COLLECTION:
 			if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
 				ObjectCollectionType collection = dashboardService.getObjectCollectionType(widget, task, result);
+				long startMillis = clock.currentTimeMillis();
 				List<PrismObject<ObjectType>> values = dashboardService.searchObjectFromCollection(collection, true, task, result);
 				if (values == null || values.isEmpty()) {
 					return null;
@@ -372,7 +383,8 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 					tBody.with(tr);
 				});
 				table.with(tBody);
-				return createTableBox(table, widgetData.getLabel());
+				return createTableBox(table, widgetData.getLabel(), values.size(),
+						convertMillisToString(startMillis));
 			}
 			break;
 		case AUDIT_SEARCH:
@@ -380,6 +392,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 				Map<String, Object> parameters = new HashMap<String, Object>();
 
 				ObjectCollectionType collection = dashboardService.getObjectCollectionType(widget, task, result);
+				long startMillis = clock.currentTimeMillis();
 				String query = DashboardUtils
 						.getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, clock));
 				List<AuditEventRecord> records = auditService.listRecords(query, parameters);
@@ -403,7 +416,8 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 					tBody.with(tr);
 				});
 				table.with(tBody);
-				return createTableBox(table, widgetData.getLabel());
+				return createTableBox(table, widgetData.getLabel(), auditRecordList.size(),
+						convertMillisToString(startMillis));
 			}
 			break;
 		}
@@ -540,9 +554,11 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		return TagCreator.table().withClasses("table", "table-striped", "table-hover", "table-bordered");
 	}
 
-	private ContainerTag createTableBox(ContainerTag table, String nameOfTable) {
+	private ContainerTag createTableBox(ContainerTag table, String nameOfTable, int countOfTableRecords,
+			String createdTime) {
 		ContainerTag div = TagCreator.div().withClasses("box-body", "no-padding").with(TagCreator.h1(nameOfTable))
-				.with(table);
+				.with(TagCreator.p(REPORT_GENERATED_ON + createdTime))
+				.with(TagCreator.p(NUMBER_OF_RECORDS + countOfTableRecords)).with(table);
 		return TagCreator.div().withClasses("box", "boxed-table").with(div);
 	}
 
