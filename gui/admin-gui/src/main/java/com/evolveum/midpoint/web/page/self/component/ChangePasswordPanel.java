@@ -75,18 +75,25 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
     private LoadableModel<MyPasswordsDto> model;
     private boolean midpointAccountSelected = true;
+    private boolean oldPasswordVisible = false;
 
     public ChangePasswordPanel(String id, boolean oldPasswordVisible) {
         super(id);
-        initLayout(oldPasswordVisible);
+        this.oldPasswordVisible = oldPasswordVisible;
     }
 
     public ChangePasswordPanel(String id, boolean oldPasswordVisible, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto) {
         super(id, model);
-        initLayout(oldPasswordVisible);
+        this.oldPasswordVisible = oldPasswordVisible;
     }
 
-    private void initLayout(final boolean oldPasswordVisible) {
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
         model = (LoadableModel<MyPasswordsDto>) getModel();
 
         Label oldPasswordLabel = new Label(ID_OLD_PASSWORD_LABEL, createStringResource("PageSelfCredentials.oldPasswordLabel"));
@@ -267,7 +274,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     }
 
     private void showHelpPerformed(AjaxRequestTarget target){
-        getPageBase().showMainPopup(new HelpInfoPanel(getPageBase().getMainPopupBodyId(), "ChangePasswordPanel.helpInfo") {
+        getPageBase().showMainPopup(new HelpInfoPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource("ChangePasswordPanel.helpInfo",
+                        WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name"))) {
             @Override
             protected void closePerformed(AjaxRequestTarget target) {
                 getPageBase().hideMainPopup(target);
