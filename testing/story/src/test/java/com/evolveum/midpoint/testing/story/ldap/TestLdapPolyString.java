@@ -717,6 +717,11 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		assertNull("Unexpected LDAP entry for jack", accountEntry);
 	}
 	
+	/**
+	 * WORK IN PROGRESS
+	 * MID-5275
+	 */
+	@Test(enabled=false)
     public void test150JackMultivalueDescriptionGet() throws Exception {
 		final String TEST_NAME = "test150JackMultivalueDescriptionGet";
         displayTestTitle(TEST_NAME);
