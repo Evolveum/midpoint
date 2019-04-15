@@ -219,8 +219,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 	Protector protector;
 	PrismContext prismContext;
-	private ConnIdNameMapper connIdNameMapper;
-	private ConnIdConvertor connIdConvertor;
+
+	private final ConnIdNameMapper connIdNameMapper;
+	private final ConnIdConvertor connIdConvertor;
+	
+	private List<QName> generateObjectClasses = null;
 
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
@@ -279,7 +282,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void configure(PrismContainerValue<?> configurationOriginal, OperationResult parentResult)
+	public synchronized void configure(PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
@@ -289,6 +292,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		try {
+			this.generateObjectClasses = generateObjectClasses;
 			// Get default configuration for the connector. This is important,
 			// as it contains types of connector configuration properties.
 
@@ -457,10 +461,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		if (resourceSchema == null || capabilities == null) {
 			try {
-				boolean supportsSchema = processOperationCapabilities(result);
-				if (supportsSchema) {
-					retrieveResourceSchema(null, result);
-				}
+				retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+				
+				this.legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
+				setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
+				this.capabilities = parsedCapabilitiesAndSchema.getCapabilities();
 			} catch (CommunicationException ex) {
 				// This is in fact fatal. There is not schema. Not even the pre-cached one.
 				// The connector will not be able to work.
@@ -479,19 +484,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public synchronized ResourceSchema fetchResourceSchema(OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchResourceSchema");
 		result.addContext("connector", connectorType);
 
 		try {
-			boolean supportsSchema = processOperationCapabilities(result);
-			if (!supportsSchema) {
-				result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Connector does not support schema");
-				LOGGER.trace("Connector instance {} does not support schema, skipping", this);
-				return null;
+			
+			if (parsedCapabilitiesAndSchema == null) {
+				retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 			}
 			retrieveResourceSchema(generateObjectClasses, result);
 		} catch (CommunicationException ex) {
@@ -523,23 +526,18 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.addContext("connector", connectorType);
 
 		try {
-			boolean supportsSchema = processOperationCapabilities(result);
-			if (supportsSchema) {
-				LOGGER.trace("Connector instance {} does not support schema, skipping", this);
-				// we need to get schema to figure out all the capabilities
-				retrieveResourceSchema(null, result);
-			} else {
-				addBasicReadCapability();
-			}
-		} catch (CommunicationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (GenericFrameworkException ex) {
-			result.recordFatalError(ex);
-			throw ex;
+			// Always refresh capabilities and schema here, even if we have already parsed that before.
+			// This method is used in "test connection". We want to force fresh fetch here
+			// TODO: later: clean up this mess. Make fresh fetch somehow explicit?
+			retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+			
+			legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
+			setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
+			capabilities = parsedCapabilitiesAndSchema.getCapabilities();
+						
+		} catch (Throwable e) {
+			result.recordFatalError(e);
+			throw e;
 		}
 
 		result.recordSuccess();

@@ -98,13 +98,13 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		display("Configuration container", configContainer);
 
 		// WHEN
-		cc.configure(configContainer, result);
+		cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
 
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
-		resourceSchema = cc.fetchResourceSchema(null, result);
+		resourceSchema = cc.fetchResourceSchema(result);
 		assertNotNull("No resource schema", resourceSchema);
 	}
 

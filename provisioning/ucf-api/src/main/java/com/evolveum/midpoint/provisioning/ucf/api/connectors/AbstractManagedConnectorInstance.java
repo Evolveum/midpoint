@@ -17,6 +17,7 @@ package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -113,7 +114,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 	}
 
 	@Override
-	public void configure(PrismContainerValue<?> configuration, OperationResult parentResult)
+	public void configure(PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException,
 			ConfigurationException {
 
