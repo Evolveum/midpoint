@@ -90,7 +90,7 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
 	private static final transient Trace LOGGER = TraceManager.getTrace(DeleteNotUpdatedShadowTaskHandler.class);
 
 	public DeleteNotUpdatedShadowTaskHandler() {
-        super("DeleteNotUpdatedShadow", OperationConstants.RECONCILIATION);
+        super("DeleteNotUpdatedShadow", OperationConstants.DELETE_NOT_UPDATED_SHADOWS);
 		setLogFinishInfo(true);
 		setPreserveStatistics(false);
     }
