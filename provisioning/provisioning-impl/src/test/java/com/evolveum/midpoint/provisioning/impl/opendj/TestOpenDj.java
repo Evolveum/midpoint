@@ -43,6 +43,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.*;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +110,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaGenerationConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -215,7 +218,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		LOGGER.info("STOP:  ProvisioningServiceImplOpenDJTest");
 		LOGGER.info("------------------------------------------------------------------------------");
 	}
-
+	
 	/**
 	 * This should be the very first test that works with the resource.
 	 *
@@ -265,6 +268,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceTypeRepoAfter.toString(), prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 
+		Collection<ObjectClassComplexTypeDefinition> objectClasses = parsedSchema.getObjectClassDefinitions();
+		List<QName> objectClassesToGenerate = ResourceTypeUtil.getSchemaGenerationConstraints(resourceTypeRepoAfter);
+		if (CollectionUtils.isNotEmpty(objectClassesToGenerate)) {
+			assertEquals("Unexpected object classes in generate schema", objectClassesToGenerate.size(), objectClasses.size());
+		}
+		
 		ObjectClassComplexTypeDefinition inetOrgPersonDefinition = parsedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
 				new QName(SchemaConstants.NS_ICF_SCHEMA,"password")));
