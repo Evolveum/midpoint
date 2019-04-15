@@ -83,6 +83,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public abstract class AbstractLdapTest extends AbstractStoryTest {
 
 	public static final File LDAP_TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
+	
+	protected static final String LDAP_ATTRIBUTE_DESCRIPTION = "description";
+	protected static final String LDAP_ATTRIBUTE_CN = "cn";
 
 	protected void dumpLdap() throws DirectoryException {
 		display("LDAP server tree", openDJController.dumpTree());
