@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.web.component.dialog.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -114,6 +116,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String OPERATION_LAXATIVE_DELETE = DOT_CLASS + "laxativeDelete";
 
 	private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
+	private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
 	private static final String OPERATION_DELETE_SHADOWS = DOT_CLASS + "deleteShadows";
 
 	private static final String ID_MAIN_FORM = "mainForm";
@@ -125,6 +128,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String ID_EXPORT_ALL = "exportAll";
 	private static final String ID_SEARCH_FORM = "searchForm";
 	private static final String ID_RESOURCE = "resource";
+	private static final String ID_OBJECT_CLASS = "objectClass";
 	private static final String ID_TABLE_HEADER = "tableHeader";
 	private static final String ID_SEARCH = "search";
 
@@ -135,9 +139,11 @@ public class PageDebugList extends PageAdminConfiguration {
 	// confirmation dialog model
 	private IModel<DebugConfDialogDto> confDialogModel;
 	private IModel<List<ObjectViewDto>> resourcesModel;
+	private IModel<List<QName>> objectClassListModel;
 
 	public PageDebugList() {
 		searchModel = new LoadableModel<DebugSearchDto>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected DebugSearchDto load() {
@@ -155,6 +161,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		};
 
 		confDialogModel = new LoadableModel<DebugConfDialogDto>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected DebugConfDialogDto load() {
@@ -163,10 +170,28 @@ public class PageDebugList extends PageAdminConfiguration {
 		};
 
 		resourcesModel = new LoadableModel<List<ObjectViewDto>>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<ObjectViewDto> load() {
 				return loadResources();
+			}
+		};
+		objectClassListModel = new LoadableModel<List<QName>>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected List<QName> load() {
+				if (searchModel != null && searchModel.getObject() != null && searchModel.getObject().getResource() != null){
+					ObjectViewDto objectViewDto = searchModel.getObject().getResource();
+					OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE_OBJECT);
+					PrismObject<ResourceType> resource =  WebModelServiceUtils.loadObject(ResourceType.class, objectViewDto.getOid(), PageDebugList.this,
+							createSimpleTask(OPERATION_LOAD_RESOURCE_OBJECT), result);
+					if (resource != null){
+						return WebComponentUtil.loadResourceObjectClassValues(resource.asObjectable(), PageDebugList.this);
+					}
+				}
+				return new ArrayList<>();
 			}
 		};
 
@@ -200,6 +225,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		DebugSearchDto dto = searchModel.getObject();
 		Class type = dto.getType().getClassDefinition();
 		RepositoryObjectDataProvider provider = new RepositoryObjectDataProvider(this, type) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
@@ -234,11 +260,12 @@ public class PageDebugList extends PageAdminConfiguration {
 		BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, initColumns(provider.getType()),
 				UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL,
 				(int) getItemsPerPage(UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected WebMarkupContainer createHeader(String headerId) {
 				return new SearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
-						resourcesModel);
+						resourcesModel, objectClassListModel);
 			}
 
 		};
@@ -258,6 +285,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		column = new LinkColumn<DebugObjectItem>(createStringResource("pageDebugList.name"),
 				DebugObjectItem.F_NAME, DebugObjectItem.F_NAME) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId,
@@ -265,6 +293,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
 				TwoValueLinkPanel panel = new TwoValueLinkPanel(componentId,
 						new IModel<String>() {
+							private static final long serialVersionUID = 1L;
+
 							@Override
 							public String getObject() {
 								DebugObjectItem object = rowModel.getObject();
@@ -315,6 +345,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		column = new AbstractColumn<DebugObjectItem, String>(new Model(), null) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getCssClass() {
@@ -325,6 +356,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId,
 					IModel<DebugObjectItem> rowModel) {
 				cellItem.add(new DebugButtonPanel<DebugObjectItem>(componentId, rowModel) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void deletePerformed(AjaxRequestTarget target, IModel<DebugObjectItem> model) {
@@ -342,6 +374,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		columns.add(column);
 
 		column = new InlineMenuHeaderColumn<InlineMenuable>(initInlineMenu()) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<InlineMenuable>> cellItem, String componentId,
@@ -456,7 +489,6 @@ public class PageDebugList extends PageAdminConfiguration {
 				return new HeaderMenuAction(PageDebugList.this) {
 					private static final long serialVersionUID = 1L;
 
-
 					@Override
 					public void onSubmit(AjaxRequestTarget target) {
 						deleteAllType(target);
@@ -495,7 +527,6 @@ public class PageDebugList extends PageAdminConfiguration {
 			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageDebugList.this) {
 					private static final long serialVersionUID = 1L;
-
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target) {
@@ -565,9 +596,20 @@ public class PageDebugList extends PageAdminConfiguration {
 		List<ObjectFilter> filters = new ArrayList<>();
 		if (ObjectTypes.SHADOW.equals(dto.getType()) && dto.getResource() != null) {
 			String oid = dto.getResource().getOid();
-			ObjectFilter objectFilter = getPrismContext().queryFor(ShadowType.class)
-					.item(ShadowType.F_RESOURCE_REF).ref(oid)
-					.buildFilter();
+			QName objectClass = dto.getObjectClass();
+			ObjectFilter objectFilter;
+			if (objectClass != null){
+				objectFilter = getPrismContext().queryFor(ShadowType.class)
+						.item(ShadowType.F_RESOURCE_REF).ref(oid)
+						.and()
+						.item(ShadowType.F_OBJECT_CLASS)
+						.eq(objectClass)
+						.buildFilter();
+			} else {
+				objectFilter = getPrismContext().queryFor(ShadowType.class)
+						.item(ShadowType.F_RESOURCE_REF).ref(oid)
+						.buildFilter();
+			}
 			filters.add(objectFilter);
 		}
 
@@ -598,6 +640,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 	private IModel<String> createDeleteConfirmString() {
 		return new IModel<String>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
@@ -758,7 +801,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
 	private void deleteAllIdentities(AjaxRequestTarget target) {
         DeleteAllPanel dialog = new DeleteAllPanel(getMainPopupBodyId()){
-            @Override
+			private static final long serialVersionUID = 1L;
+			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
 				hideMainPopup(target);
 				deleteAllIdentitiesConfirmed(target, getModel().getObject());
@@ -921,13 +965,13 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static class SearchFragment extends Fragment {
 
 		public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-				IModel<DebugSearchDto> model, IModel<List<ObjectViewDto>> resourcesModel) {
+				IModel<DebugSearchDto> model, IModel<List<ObjectViewDto>> resourcesModel, IModel<List<QName>> objectClassListModel) {
 			super(id, markupId, markupProvider, model);
 
-			initLayout(resourcesModel);
+			initLayout(resourcesModel, objectClassListModel);
 		}
 
-		private void initLayout(IModel<List<ObjectViewDto>> resourcesModel) {
+		private void initLayout(IModel<List<ObjectViewDto>> resourcesModel, IModel<List<QName>> objectClassListModel) {
 			final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
 			add(searchForm);
 			searchForm.setOutputMarkupId(true);
@@ -954,6 +998,7 @@ public class PageDebugList extends PageAdminConfiguration {
 //			choice.getBaseFormComponent().add(getDropDownStyleAppender());
 			choiceContainer.add(choice);
 			choice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
@@ -967,6 +1012,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					createResourceRenderer(), true);
 //			resource.getBaseFormComponent().add(getDropDownStyleAppender());
 			resource.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
@@ -974,14 +1020,18 @@ public class PageDebugList extends PageAdminConfiguration {
 				}
 			});
 			resource.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
+					DebugSearchDto searchDto = model.getObject();
+					searchDto.setObjectClass(null);
 					PageDebugList page = (PageDebugList) getPage();
 					page.listObjectsPerformed(target);
 				}
 			});
 			resource.add(new VisibleEnableBehaviour() {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public boolean isVisible() {
@@ -991,7 +1041,47 @@ public class PageDebugList extends PageAdminConfiguration {
 			});
 			searchForm.add(resource);
 
+			DropDownChoicePanel<QName> objectClass = new DropDownChoicePanel<QName>(ID_OBJECT_CLASS,
+					new PropertyModel(model, DebugSearchDto.F_OBJECT_CLASS), objectClassListModel,
+					new QNameIChoiceRenderer(""), true);
+			objectClass.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					// nothing to do, it's here just to update model
+				}
+			});
+			objectClass.getBaseFormComponent().add(AttributeAppender.append("title",
+					createStringResourceStatic(objectClass, "pageDebugList.objectClass")));
+			objectClass.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					PageDebugList page = (PageDebugList) getPage();
+					page.listObjectsPerformed(target);
+				}
+			});
+			objectClass.add(new VisibleEnableBehaviour() {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isVisible() {
+					DebugSearchDto dto = model.getObject();
+					return ObjectTypes.SHADOW.equals(dto.getType());
+				}
+
+				@Override
+				public boolean isEnabled(){
+					DebugSearchDto dto = model.getObject();
+					return dto.getResource() != null && StringUtils.isNotEmpty(dto.getResource().getOid());
+				}
+			});
+			searchForm.add(objectClass);
+
 			AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<>(false)) {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
@@ -1001,6 +1091,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			SearchPanel search = new SearchPanel(ID_SEARCH,
                 new PropertyModel<>(model, DebugSearchDto.F_SEARCH)) {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
@@ -1017,6 +1108,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
 			return new LoadableModel<List<ObjectTypes>>(false) {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected List<ObjectTypes> load() {
@@ -1032,6 +1124,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		private IChoiceRenderer<ObjectViewDto> createResourceRenderer() {
 			return new ChoiceableChoiceRenderer<ObjectViewDto>() {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public Object getDisplayValue(ObjectViewDto object) {

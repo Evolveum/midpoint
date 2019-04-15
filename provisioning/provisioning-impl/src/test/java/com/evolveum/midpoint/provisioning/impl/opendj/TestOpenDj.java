@@ -195,7 +195,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		                          "objectclass: organizationalUnit\n"+
 		                          "ou: specialgroups\n");
 		
-		DebugUtil.setDetailedDebugDump(true);
+		// This is useful when debugging polystring issues, but too much noise otherwise
+//		DebugUtil.setDetailedDebugDump(true);
 	}
 
 	@BeforeClass
@@ -2584,7 +2585,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
 		assertSuccess(result);
 		display("Account shadow after", shadow);
 

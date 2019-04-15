@@ -27,6 +27,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,10 +51,14 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyDelta;
+import com.evolveum.icf.dummy.resource.DummyDeltaType;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -3691,6 +3697,149 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertSteadyResource();
 	}
 	
+	protected final String WILL_GOSSIP_AVAST = "Aye! Avast!";
+	protected final String WILL_GOSSIP_BLOOD_OF_A_PIRATE = "Blood of a pirate";
+	protected final String WILL_GOSSIP_EUNUCH = "Eunuch!";
+	
+	/**
+	 * Gossip is a multivalue attribute. Make sure that replace operations work
+	 * as expected also for multivalue.
+	 */
+	@Test
+	public void test340ModifyWillReplaceGossipBloodAvast() throws Exception {
+		final String TEST_NAME = "test340ModifyWillReplaceGossipBloodAvast";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		// This turns on recording of the operations
+		dummyResourceCtl.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.clearDeltas();
+
+		List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.ZERO, WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST);
+		assertWillDummyGossipRecord(PlusMinusZero.ZERO, WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST);
+
+		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Gossip is a multivalue attribute. Make sure that replace operations work
+	 * as expected also for multivalue.
+	 */
+	@Test
+	public void test342ModifyWillAddGossipEunuch() throws Exception {
+		final String TEST_NAME = "test342ModifyWillAddGossipEunuch";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		// This turns on recording of the operations
+		dummyResourceCtl.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.clearDeltas();
+
+		List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.PLUS, WILL_GOSSIP_EUNUCH);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST, WILL_GOSSIP_EUNUCH);
+		assertWillDummyGossipRecord(PlusMinusZero.PLUS, WILL_GOSSIP_EUNUCH);
+
+		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Gossip is a multivalue attribute. Make sure that replace operations work
+	 * as expected also for multivalue.
+	 */
+	@Test
+	public void test344ModifyWillDeleteGossipAvast() throws Exception {
+		final String TEST_NAME = "test344ModifyWillDeleteGossipAvast";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		// This turns on recording of the operations
+		dummyResourceCtl.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.clearDeltas();
+
+		List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.MINUS, WILL_GOSSIP_AVAST);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_EUNUCH);
+		assertWillDummyGossipRecord(PlusMinusZero.MINUS, WILL_GOSSIP_AVAST);
+
+		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
+	}
+	
+	protected List<ItemDelta<?, ?>> getGossipDelta(PlusMinusZero plusMinusZero, String... values) throws SchemaException {
+		List<ItemDelta<?, ?>> mods = prismContext.deltaFor(ShadowType.class)
+				.property(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME), null)
+					.mod(plusMinusZero, values)
+				.asItemDeltas();
+		display("Modifications", mods);
+		return mods;
+	}
+	
+	protected void assertAccountWillGossip(String... values) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		display("Account will", getDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid));
+		assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, values);
+	}
+	
+	private void assertWillDummyGossipRecord(PlusMinusZero plusminus, String... expectedValues) {
+		display("Dummy resource deltas", dummyResource.dumpDeltas());
+		List<DummyDelta> dummyDeltas = dummyResource.getDeltas();
+		assertFalse("Empty dummy resource deltas", dummyDeltas.isEmpty());
+		assertEquals("Too many dummy resource deltas", 1, dummyDeltas.size());
+		DummyDelta dummyDelta = dummyDeltas.get(0);
+		assertEquals("Wrong dummy resource delta object name", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyDelta.getObjectName());
+		assertEquals("Wrong dummy resource delta type", DummyDeltaType.MODIFY, dummyDelta.getType());
+		assertEquals("Wrong dummy resource delta attribute", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, dummyDelta.getAttributeName());
+		Collection<String> valuesToConsider = null;
+		switch (plusminus) {
+			case PLUS:
+				valuesToConsider = (Collection)dummyDelta.getValuesAdded();
+				break;
+			case MINUS:
+				valuesToConsider = (Collection)dummyDelta.getValuesDeleted();
+				break;
+			case ZERO:
+				valuesToConsider = (Collection)dummyDelta.getValuesReplaced();
+				break;
+		}
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong values for "+plusminus+" in dummy resource delta", valuesToConsider, expectedValues);
+	}
+
+	
 	protected String getLastModifierName(String expected) {
 		return transformNameToResource(expected);
 	}
@@ -3809,18 +3958,21 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		// WHEN
 		try {
+
+			// WHEN
+			displayWhen(TEST_NAME);
+
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
+			
 			AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
+			displayThen(TEST_NAME);
 			display("Expected exception", e);
 		}
 
-		result.computeStatus();
-		display("deleteObject result (expected failure)", result);
-		TestUtil.assertFailure(result);
+		assertFailure(result);
 
 		syncServiceMock.assertNotifyFailureOnly();
 
@@ -3917,6 +4069,39 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
 	/**
+	 * Make sure that refresh of the shadow adds missing primaryIdentifierValue
+	 * to the shadow.
+	 * This is a test for migration from previous midPoint versions that haven't
+	 * had primaryIdentifierValue.
+	 */
+	@Test
+	public void test520MigrationPrimaryIdentifierValueRefresh() throws Exception {
+		final String TEST_NAME = "test520MigrationPrimaryIdentifierValueRefresh";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		PrismObject<ShadowType> shadowBefore = PrismTestUtil.parseObject(ACCOUNT_RELIC_FILE);
+		repositoryService.addObject(shadowBefore, null, result);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		provisioningService.refreshShadow(shadowBefore, null, task, result);
+
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertRepoShadow(ACCOUNT_RELIC_OID)
+			.assertName(ACCOUNT_RELIC_USERNAME)
+			.assertPrimaryIdentifierValue(ACCOUNT_RELIC_USERNAME);
+
+		assertSteadyResource();
+	}
+	
+	/**
 	 * Test for proper handling of "already exists" exception. We try to add a shadow.
 	 * It fails, because there is unknown conflicting object on the resource. But a new
 	 * shadow for the conflicting object should be created in the repository.
@@ -3975,6 +4160,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncTokenTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.clearDeltas();
 		syncServiceMock.reset();
 
 		OperationResult result = new OperationResult(TestDummy.class.getName()

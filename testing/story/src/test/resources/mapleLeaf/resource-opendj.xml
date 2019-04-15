@@ -254,8 +254,7 @@
                <q:matching>polyStringNorm</q:matching>
                <q:path>name</q:path>
                <expression>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">$shadow/attributes/ri:uid</c:path>
+                  <path>$projection/attributes/uid</path>
                </expression>
             </q:equal>
          </correlation>

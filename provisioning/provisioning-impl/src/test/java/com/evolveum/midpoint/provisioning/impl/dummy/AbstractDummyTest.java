@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -104,6 +105,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
 	protected static final File ACCOUNT_DAEMON_FILE = new File(TEST_DIR, "account-daemon.xml");
+	
+	protected static final String ACCOUNT_RELIC_USERNAME = "relic";
+	protected static final String ACCOUNT_RELIC_OID = "3689fda4-5c4c-11e9-b144-43a245ea74a9";
+	protected static final File ACCOUNT_RELIC_FILE = new File(TEST_DIR, "account-relic.xml");
 
 	protected static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
 

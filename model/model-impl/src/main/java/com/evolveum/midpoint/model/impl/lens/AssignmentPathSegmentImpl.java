@@ -295,11 +295,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	private static ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdi(
 			AssignmentType assignment) {
 		try {
-			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-			idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignment));
-			idi.setDefinition(assignment.asPrismContainerValue().getDefinition());
-			idi.recompute();
-			return idi;
+			return  new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(assignment), assignment.asPrismContainerValue().getDefinition());
 		} catch (SchemaException e) {
 			// should not really occur!
 			throw new SystemException("Couldn't create assignment IDI: " + e.getMessage(), e);

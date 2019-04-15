@@ -689,7 +689,7 @@ public class TestUtil {
 	}
 	
 	public static void randomDelay(Integer range) {
-		if (range == null) {
+		if (range == null || range == 0) {
 			return;
 		}
 		try {

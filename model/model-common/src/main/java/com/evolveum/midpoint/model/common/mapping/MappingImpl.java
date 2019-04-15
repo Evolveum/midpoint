@@ -530,7 +530,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
 		ValueSetDefinitionType rangetSetDefType = mappingType.getTarget().getSet();
-		ValueSetDefinition setDef = new ValueSetDefinition(rangetSetDefType, expressionProfile, name, "range of "+name+" in "+getMappingContextDescription(), task, result);
+		ValueSetDefinition<V,D> setDef = new ValueSetDefinition<>(rangetSetDefType, outputDefinition, expressionProfile, name, "range of "+name+" in "+getMappingContextDescription(), task, result);
 		setDef.init(expressionFactory);
 		setDef.setAdditionalVariables(variables);
 		for (V originalValue : originalTargetValues) {
@@ -939,11 +939,13 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				throw new IllegalStateException("Unknown resolve result "+sourceObject);
 			}
 		}
+		
+		ID sourceDefinition = (ID)typedSourceObject.getDefinition();
 
 		// apply domain
 		ValueSetDefinitionType domainSetType = sourceType.getSet();
 		if (domainSetType != null) {
-			ValueSetDefinition setDef = new ValueSetDefinition(domainSetType, expressionProfile, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
+			ValueSetDefinition<IV,ID> setDef = new ValueSetDefinition<>(domainSetType, sourceDefinition, expressionProfile, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
 			setDef.init(expressionFactory);
 			setDef.setAdditionalVariables(variables);
 			try {
@@ -983,7 +985,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			}
 		}
 
-		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, sourceQName, (ID)typedSourceObject.getDefinition());
+		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, sourceQName, sourceDefinition);
 		source.setResidualPath(residualPath);
 		source.setResolvePath(resolvePath);
 		source.setSubItemDeltas(subItemDeltas);

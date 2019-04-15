@@ -107,6 +107,7 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
@@ -276,6 +277,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected ModelService modelService;
 	@Autowired protected ModelInteractionService modelInteractionService;
 	@Autowired protected ModelDiagnosticService modelDiagnosticService;
+	@Autowired protected DashboardService dashboardService;
 	@Autowired protected ModelAuditService modelAuditService;
 	@Autowired protected ModelPortType modelWeb;
 	@Autowired protected RepositoryService repositoryService;
@@ -5044,6 +5046,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
+		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
+	}
+
+	protected List<AuditEventRecord> getAuditRecords(int maxRecords, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Map<String,Object> params = new HashMap<>();
+		params.put("setMaxResults", maxRecords);
 		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
 	}
 

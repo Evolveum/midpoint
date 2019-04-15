@@ -58,5 +58,6 @@ public class OperationConstants {
 	public static final String PROVISIONING_PROPAGATION = "com.evolveum.midpoint.provisioning.propagation";
 
 	public static final String OPERATION_SEARCH_RESULT = "com.evolveum.midpoint.schema.result.searchResult";
-
+	
+	public static final String DELETE_NOT_UPDATED_SHADOWS = PREFIX + ".delNotUpdatedShadows";
 }

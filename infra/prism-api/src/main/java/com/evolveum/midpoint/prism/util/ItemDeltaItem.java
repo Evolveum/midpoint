@@ -20,12 +20,18 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import static com.evolveum.midpoint.prism.path.ItemPath.*;
 
@@ -39,6 +45,8 @@ import static com.evolveum.midpoint.prism.path.ItemPath.*;
  * @author Radovan Semancik
  */
 public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
+	
+	private static final transient Trace LOGGER = TraceManager.getTrace(ItemDeltaItem.class);
 
 	private Item<V,D> itemOld;
 	private ItemDelta<V,D> delta;
@@ -56,8 +64,9 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	// The deltas in sub-items. E.g. if this object represents "ContainerDeltaContainer"
 	// this property contains property deltas that may exist inside the container.
 	Collection<? extends ItemDelta<?,?>> subItemDeltas;
-
-	public ItemDeltaItem() { }
+	
+	// For clone and ObjectDeltaObject
+	protected ItemDeltaItem() { }
 
 	public ItemDeltaItem(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, D definition) {
 		super();
@@ -101,6 +110,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		this.delta = idi.getDelta();
 		validate(delta);
 		this.definition = idi.getDefinition();
+		Validate.notNull(this.definition, "No definition in source IDI, cannot create IDI");
 	}
 
 	public ItemDeltaItem(Item<V,D> item) {
@@ -110,6 +120,17 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		validate(itemOld, "item");
 		this.delta = null;
 		this.definition = item.getDefinition();
+		Validate.notNull(this.definition, "No definition in item, cannot create IDI");
+	}
+	
+	public ItemDeltaItem(Item<V,D> item, D definition) {
+		super();
+		this.itemOld = item;
+		this.itemNew = item;
+		validate(itemOld, "item");
+		this.delta = null;
+		this.definition = definition;
+		Validate.notNull(this.definition, "No definition in item, cannot create IDI");
 	}
 
 	public Item<V,D> getItemOld() {
@@ -182,13 +203,15 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		return null;
 	}
 
+	@NotNull
 	public D getDefinition() {
 		return definition;
 	}
 	
-	public void setDefinition(D definition) {
-		this.definition = definition;
-	}
+//	public void setDefinition(@NotNull D definition) {
+//		Validate.notNull(definition, "Attempt to set null IDI definition");
+//		this.definition = definition;
+//	}
 
 	public void recompute() throws SchemaException {
 		if (delta != null) {
@@ -206,10 +229,15 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 	}
 
-	public <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) throws SchemaException {
+	public <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(@NotNull ItemPath path) throws SchemaException {
+		return findIdi(path, null);
+	}
+	
+	public <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(@NotNull ItemPath path, @Nullable DefinitionResolver<D,ID> additionalDefinitionResolver) throws SchemaException {
 		if (path.isEmpty()) {
 			return (ItemDeltaItem<IV,ID>) this;
 		}
+		
 		Item<IV,ID> subItemOld = null;
 		ItemPath subResidualPath = null;
 		ItemPath newResolvePath = resolvePath.append(path);
@@ -220,6 +248,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 				subResidualPath = partialItemOld.getResidualPath();
 			}
 		}
+		
 		Item<IV,ID> subItemNew = null;
 		if (itemNew != null) {
 			PartiallyResolvedItem<IV,ID> partialItemNew = itemNew.findPartial(path);
@@ -230,6 +259,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 				}
 			}
 		}
+		
 		ItemDelta<IV,ID> subDelta= null;
 		if (delta != null) {
 			if (delta instanceof ContainerDelta<?>) {
@@ -241,14 +271,29 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 				}
 			}
 		}
+
 		ID subDefinition = null;
-		if (definition != null) {
-			if (definition instanceof PrismContainerDefinition<?>) {
-				subDefinition = ((PrismContainerDefinition<?>)definition).findItemDefinition(path);
-			} else {
-				throw new IllegalArgumentException("Attempt to resolve definition on non-container " + definition);
-			}
+		if (definition instanceof PrismContainerDefinition<?>) {
+			subDefinition = ((PrismContainerDefinition<?>)definition).findItemDefinition(path);
+		} else {
+			throw new IllegalArgumentException("Attempt to resolve definition on non-container " + definition + " in " +this);
 		}
+		if (subDefinition == null && subItemNew != null) {
+			subDefinition = subItemNew.getDefinition();
+		}
+		if (subDefinition == null && subDelta != null) {
+			subDefinition = subDelta.getDefinition();
+		}
+		if (subDefinition == null && subItemOld != null) {
+			subDefinition = subItemOld.getDefinition();
+		}
+		if (subDefinition == null && additionalDefinitionResolver != null) {
+			subDefinition = additionalDefinitionResolver.resolve(definition, path);
+		}
+		if (subDefinition == null) {
+			throw new SchemaException("No definition for item "+path+" in "+this);
+		}
+
 		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, subDelta, subItemNew, subDefinition);
 		subIdi.setResidualPath(subResidualPath);
 		subIdi.resolvePath = newResolvePath;

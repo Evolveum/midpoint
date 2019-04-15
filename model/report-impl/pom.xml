@@ -47,7 +47,6 @@
 		<url>https://fisheye.evolveum.com/browse/midPoint</url>
 	</scm>
 	<dependencies>
-	
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-api</artifactId>
@@ -199,6 +198,14 @@
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
+		</dependency>
+		
+		<!-- Dependency for dashboard reports-->
+		
+		<dependency>
+    		<groupId>com.j2html</groupId>
+    		<artifactId>j2html</artifactId>
+    		<version>1.4.0</version>
 		</dependency>
 
 		<dependency>

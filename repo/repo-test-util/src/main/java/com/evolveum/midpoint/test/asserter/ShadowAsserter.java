@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,6 +126,16 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 		return this;
 	}
 	
+	public ShadowAsserter<RA> assertPrimaryIdentifierValue(String expected) {
+		assertEquals("Wrong primaryIdentifierValue in "+desc(), expected, getObject().asObjectable().getPrimaryIdentifierValue());
+		return this;
+	}
+	
+	public ShadowAsserter<RA> assertNoPrimaryIdentifierValue() {
+		assertNull("Unexpected primaryIdentifierValue in "+desc(), getObject().asObjectable().getPrimaryIdentifierValue());
+		return this;
+	}
+	
 	public ShadowAsserter<RA> assertIteration(Integer expected) {
 		assertEquals("Wrong iteration in "+desc(), expected, getObject().asObjectable().getIteration());
 		return this;
@@ -190,6 +200,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 	
 	public ShadowAsserter<RA> assertIsDead(Boolean expected) {
 		assertEquals("Wrong isDead in "+desc(), expected, getObject().asObjectable().isDead());
+		assertNoPrimaryIdentifierValue();
 		return this;
 	}
 	

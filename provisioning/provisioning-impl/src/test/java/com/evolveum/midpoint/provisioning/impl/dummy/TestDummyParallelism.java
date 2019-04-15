@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.test.annotation.DirtiesContext;
@@ -34,17 +34,26 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
@@ -89,6 +98,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-parallelism");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+	
+	protected static final String GROUP_SCUM_NAME = "scum";
 
 	private static final long WAIT_TIMEOUT = 60000L;
 
@@ -101,6 +112,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 	private String accountMorganOid;
 	private String accountElizabethOid;
 	private String accountWallyOid;
+
+	private String groupScumOid;
 
 	protected int getConcurrentTestNumberOfThreads() {
 		return 5;
@@ -214,6 +227,10 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		assertSteadyResource();
 	}
 
+	/**
+	 * Maybe some chance of reproducing MID-5237. But not much,
+	 * as the dummy resource is uniqueness arbiter here.
+	 */
 	@Test
 	public void test200ParallelCreate() throws Exception {
 		final String TEST_NAME = "test200ParallelCreate";
@@ -227,6 +244,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
+		
+		accountMorganOid = null;
 
 		ParallelTestThread[] threads = multithread(TEST_NAME,
 				(i) -> {
@@ -236,14 +255,22 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 					ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
 
 					try {
-						accountMorganOid = provisioningService.addObject(account.asPrismObject(), null, null, localTask, localResult);
+						String thisAccountMorganOid = provisioningService.addObject(account.asPrismObject(), null, null, localTask, localResult);
 						successCounter.click();
+						
+						synchronized (dummyResource) {
+							if (accountMorganOid == null) {
+								accountMorganOid = thisAccountMorganOid;
+							} else {
+								assertEquals("Whoops! Create shadow OID mismatch", accountMorganOid, thisAccountMorganOid);
+							}
+						}
 					} catch (ObjectAlreadyExistsException e) {
 						// this is expected ... sometimes
 						LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
 					}
 
-				}, getConcurrentTestNumberOfThreads(), getConcurrentTestFastRandomStartDelayRange());
+				}, 15, getConcurrentTestFastRandomStartDelayRange());
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -255,6 +282,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		display("Shadow after", shadowAfter);
 
 		assertDummyResourceWriteOperationCountIncrement(null, 1);
+		
+		checkUniqueness(shadowAfter);
 
 		assertSteadyResource();
 	}
@@ -630,6 +659,99 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
 		assertSteadyResource();
 	}
+	
+	/**
+	 * Search for group that we do not have any shadow for yet.
+	 * Do that in several threads at once. The group will be "discovered"
+	 * by the threads at the same time, each thread trying to create shadow.
+	 * There is a chance that the shadows get duplicated.
+	 * 
+	 * MID-5237
+	 */
+	@Test
+	public void test230ParallelGroupSearch() throws Exception {
+		final String TEST_NAME = "test230ParallelGroupSearch";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		DummyGroup groupScum = new DummyGroup(GROUP_SCUM_NAME);
+		dummyResource.addGroup(groupScum);
+		
+		final Counter successCounter = new Counter();
+		rememberDummyResourceWriteOperationCount(null);
+		
+		groupScumOid = null;
+		dummyResource.setOperationDelayOffset(0);
+		dummyResource.setOperationDelayRange(0);
+		dummyResource.setSyncSearchHandlerStart(true);
+
+		ParallelTestThread[] threads = multithread(TEST_NAME,
+				(i) -> {
+					Task localTask = createTask(TEST_NAME + ".local");
+					OperationResult localResult = localTask.getResult();
+
+					ObjectQuery query = createGroupNameQuery(GROUP_SCUM_NAME);
+					
+					SearchResultList<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+					assertEquals("Unexpected number of shadows found: "+foundObjects, 1, foundObjects.size());
+					successCounter.click();
+					
+					PrismObject<ShadowType> groupShadow = foundObjects.get(0);
+					
+					synchronized (dummyResource) {
+						if (groupScumOid == null) {
+							groupScumOid = groupShadow.getOid();
+						} else {
+							assertEquals("Whoops! Create shadow OID mismatch", groupScumOid, groupShadow.getOid());
+						}
+					}
+
+				}, 10, null); // No need to user more than 10 threads, we are going to max out connector pool anyway.
+		
+		// Give some time for all the threads to start
+		// The threads should be blocked just before search handler invocation
+		Thread.sleep(100);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		
+		// Unblock the handlers. And here we go!
+		dummyResource.unblockAll();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		waitForThreads(threads, WAIT_TIMEOUT);
+
+		dummyResource.setSyncSearchHandlerStart(false);
+		successCounter.assertCount("Wrong number of successful operations", 10);
+
+		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, groupScumOid, null, task, result);
+		display("Shadow after", shadowAfter);
+
+		checkUniqueness(shadowAfter);
+
+		assertSteadyResource();
+	}
+
+	private ObjectQuery createGroupNameQuery(String groupName) throws SchemaException {
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
+				RESOURCE_DUMMY_OID, 
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECTCLAS_GROUP_LOCAL_NAME),
+				prismContext);
+		
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(OBJECTCLAS_GROUP_LOCAL_NAME);
+		ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+		ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(groupName)
+				.buildFilter();
+		
+		query.setFilter(ObjectQueryUtil.filterAnd(query.getFilter(), nameFilter, prismContext));
+		return query;
+	}
 
 	/**
 	 * Several threads reading from resource. Couple other threads try to get into the way
@@ -646,9 +768,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		dummyResource.assertConnections(1);
-		assertDummyConnectorInstances(1);
+		// Previous test will max out the connector pool
+		dummyResource.assertConnections(10);
+		assertDummyConnectorInstances(10);
 		
+		dummyResource.setOperationDelayOffset(0);
 		dummyResource.setOperationDelayRange(0);
 		
 		PrismObject<ShadowType> accountBefore = parseObject(ACCOUNT_WALLY_FILE);

@@ -226,11 +226,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(createCap));
 
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
+		updateCap.setAddRemoveAttributeValues(true);
 		setManual(updateCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
-		
-		AddRemoveAttributeValuesCapabilityType addRemoveAttributeValuesCap = new AddRemoveAttributeValuesCapabilityType();
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemoveAttributeValuesCap));
 		
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
 		setManual(deleteCap);

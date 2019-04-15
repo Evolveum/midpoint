@@ -341,9 +341,17 @@ public class ConnIdCapabilitiesAndSchemaParser {
 		if (connIdSupportedOperations.contains(UpdateDeltaApiOp.class)) {
 			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
 			capUpdate.setDelta(true);
+			// This is the default for all resources.
+			// (Currently there is no way how to obtain it from the connector.)
+			// It can be disabled manually.
+			capUpdate.setAddRemoveAttributeValues(true);
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
 		} else if (connIdSupportedOperations.contains(UpdateApiOp.class)) {
 			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
+			// This is the default for all resources.
+			// (Currently there is no way how to obtain it from the connector.)
+			// It can be disabled manually.
+			capUpdate.setAddRemoveAttributeValues(true);
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
 		}
 
@@ -370,11 +378,6 @@ public class ConnIdCapabilitiesAndSchemaParser {
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createScript(capScript));
 		}
 		
-		// This is the default for all resources.
-		// (Currently there is no way how to obtain it from the connector.)
-		// It can be disabled manually.
-		AddRemoveAttributeValuesCapabilityType addRemove = new AddRemoveAttributeValuesCapabilityType();
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemove));
 	}
 	
 	private void addBasicReadCapability() {

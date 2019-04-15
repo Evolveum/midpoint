@@ -2501,6 +2501,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         List<ItemDelta<?, ?>> deadModifications = deltaFor(ShadowType.class)
             	.item(ShadowType.F_DEAD).replace(true)
             	.item(ShadowType.F_EXISTS).replace(false)
+            	.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
             	.asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, oid, deadModifications, result);
         assertSuccess(result);
