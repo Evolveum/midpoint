@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.report.impl.ReportCreateTaskHandler;
+import com.evolveum.midpoint.report.impl.ReportJasperCreateTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -75,7 +75,7 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	protected final static File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
 
 	@Autowired protected ReportManager reportManager;
-	@Autowired protected ReportCreateTaskHandler reportTaskHandler;
+	@Autowired protected ReportJasperCreateTaskHandler reportTaskHandler;
 	
 	protected PrismObject<UserType> userAdministrator;
 

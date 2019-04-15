@@ -164,6 +164,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	PrismContext prismContext;
 	private final ConnIdNameMapper connIdNameMapper;
 	private final ConnIdConvertor connIdConvertor;
+	
+	private List<QName> generateObjectClasses = null;
 
 	/**
 	 * Builder and holder object for parsed ConnId schema and capabilities. By using
@@ -231,7 +233,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public synchronized void configure(PrismContainerValue<?> configurationOriginal, OperationResult parentResult)
+	public synchronized void configure(PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
@@ -241,6 +243,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		try {
+			this.generateObjectClasses = generateObjectClasses;
 			// Get default configuration for the connector. This is important,
 			// as it contains types of connector configuration properties.
 
@@ -399,7 +402,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (resourceSchema == null || capabilities == null) {
 			try {
 				
-				retrieveAndParseResourceCapabilitiesAndSchema(null, result);
+				retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 				
 				this.legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
 				setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
@@ -437,7 +440,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public synchronized ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException,
+	public synchronized ResourceSchema fetchResourceSchema(OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
@@ -447,7 +450,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		try {
 			
 			if (parsedCapabilitiesAndSchema == null) {
-				retrieveAndParseResourceCapabilitiesAndSchema(null, result);
+				retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 			}
 			
 			legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
@@ -480,7 +483,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			// Always refresh capabilities and schema here, even if we have already parsed that before.
 			// This method is used in "test connection". We want to force fresh fetch here
 			// TODO: later: clean up this mess. Make fresh fetch somehow explicit?
-			retrieveAndParseResourceCapabilitiesAndSchema(null, result);
+			retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 			
 			legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
 			setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());

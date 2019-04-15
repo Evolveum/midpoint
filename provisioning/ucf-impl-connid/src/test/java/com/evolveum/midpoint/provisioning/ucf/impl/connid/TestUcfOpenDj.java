@@ -166,11 +166,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 				"description of OpenDJ connector instance");
 
 		OperationResult result = new OperationResult("initUcf");
-		cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), result);
+		cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
 		cc.initialize(null, null, false, result);
 		// TODO: assert something
 
-		resourceSchema = cc.fetchResourceSchema(null, result);
+		resourceSchema = cc.fetchResourceSchema(result);
 		display("Resource schema", resourceSchema);
 
 		AssertJUnit.assertNotNull(resourceSchema);
@@ -497,7 +497,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
 				ResourceTypeUtil.getResourceNamespace(badResourceType), "bad resource", "bad resource description");
-		badConnector.configure(badResourceType.getConnectorConfiguration().asPrismContainerValue(), result);
+		badConnector.configure(badResourceType.getConnectorConfiguration().asPrismContainerValue(), null, result);
 
 		// WHEN
 

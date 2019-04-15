@@ -130,12 +130,12 @@ public class MemberOperationsHelper {
 	
 	public static <R extends AbstractRoleType> void deleteMembersPerformed(PageBase pageBase, QueryScope scope,
 			ObjectQuery query, QName type, AjaxRequestTarget target) {
-		recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "Delete", DELETE_OPERATION);
+		recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "delete", DELETE_OPERATION);
 	}
 	
 	public static <R extends AbstractRoleType> void recomputeMembersPerformed(PageBase pageBase, QueryScope scope,
 			ObjectQuery query, AjaxRequestTarget target) {
-		recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "Recompute", RECOMPUTE_OPERATION);
+		recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "recompute", RECOMPUTE_OPERATION);
 	}
 	
 	private static <R extends AbstractRoleType> void recomputeOrDeleteMembersPerformed(PageBase pageBase, QueryScope scope,

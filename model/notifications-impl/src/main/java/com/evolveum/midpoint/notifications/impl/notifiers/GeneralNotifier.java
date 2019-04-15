@@ -150,6 +150,8 @@ public class GeneralNotifier extends BaseHandler {
                                     message.setContentType(contentType);
                                 } else if (generalNotifierType.getContentType() != null) {
                                     message.setContentType(generalNotifierType.getContentType());
+                                } else if (getContentType() != null) {
+                                	message.setContentType(getContentType());
                                 }
                                 message.setSubject(subject);
 
@@ -183,6 +185,10 @@ public class GeneralNotifier extends BaseHandler {
         result.computeStatusIfUnknown();
         return true;            // not-applicable notifiers do not stop processing of other notifiers
     }
+
+    protected String getContentType() {
+		return null;
+	}
 
 	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         return true;

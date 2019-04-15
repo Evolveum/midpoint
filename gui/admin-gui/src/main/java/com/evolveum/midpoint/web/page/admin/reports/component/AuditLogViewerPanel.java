@@ -81,11 +81,13 @@ import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.fasterxml.jackson.databind.type.CollectionType;
 
 /**
  * Created by honchar.
@@ -111,6 +113,12 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final String ID_CHANGED_ITEM = "changedItem";
     private static final String ID_VALUE_REF_TARGET_NAMES_FIELD = "valueRefTargetNamesField";
 	private static final String ID_VALUE_REF_TARGET_NAMES = "valueRefTargetNames";
+	private static final String ID_USED_QUERY = "usedQueryField";
+	private static final String ID_USED_QUERY_LABEL = "usedQueryLabel";
+	private static final String ID_USED_QUERY_LABEL_KEY = "PageAuditLogViewer.usedQueryLabel";
+	private static final String ID_USED_INTERVAL = "usedIntervalField";
+	private static final String ID_USED_INTERVAL_LABEL = "usedIntervalLabel";
+	private static final String ID_USED_INTERVAL_LABEL_KEY = "PageAuditLogViewer.usedIntervalLabel";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -123,6 +131,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             + ".resolveReferenceName()";
 
     private static final int DEFAULT_PAGE_SIZE = 10;
+
     private boolean isHistory = false;
     
 	public <F extends ObjectType> AuditLogViewerPanel(String id, IModel<AuditSearchDto> model, boolean isHistory) {
@@ -189,6 +198,28 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         hostIdentifier.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         hostIdentifier.setOutputMarkupId(true);
         parametersPanel.add(hostIdentifier);
+        
+        Label usedQueryLabel = new Label(ID_USED_QUERY_LABEL, getString(ID_USED_QUERY_LABEL_KEY));
+        usedQueryLabel.add(getVisibleBehaviourForUsedQueryComponent());
+        parametersPanel.add(usedQueryLabel);
+        
+        TextPanel<String> usedQuery = new TextPanel<>(ID_USED_QUERY, new PropertyModel<>(getModel(),
+                AuditSearchDto.F_COLLECTION + ".auditSearch.recordQuery"));
+        usedQuery.getBaseFormComponent().add(getVisibleBehaviourForUsedQueryComponent());
+        usedQuery.setOutputMarkupId(true);
+        usedQuery.setEnabled(false);
+        parametersPanel.add(usedQuery);
+        
+        Label usedIntervalLabel = new Label(ID_USED_INTERVAL_LABEL, getString(ID_USED_INTERVAL_LABEL_KEY));
+        usedIntervalLabel.add(getVisibleBehaviourForUsedQueryComponent());
+        parametersPanel.add(usedIntervalLabel);
+        
+        TextPanel<String> usedInterval = new TextPanel<>(ID_USED_INTERVAL, new PropertyModel<>(getModel(),
+                AuditSearchDto.F_COLLECTION + ".auditSearch.interval"));
+        usedInterval.getBaseFormComponent().add(getVisibleBehaviourForUsedQueryComponent());
+        usedInterval.setOutputMarkupId(true);
+        usedInterval.setEnabled(false);
+        parametersPanel.add(usedInterval);
 
         DropDownChoicePanel<AuditEventTypeType> eventType = new DropDownChoicePanel<>(
             ID_EVENT_TYPE, new PropertyModel<>(
@@ -356,6 +387,24 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
 
     }
+    
+    private VisibleEnableBehaviour getVisibleBehaviourForUsedQueryComponent() {
+    	return new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public boolean isVisible() {
+				IModel<AuditSearchDto> model = getModel();
+				if(model == null || model.getObject() == null
+						|| model.getObject().getCollection() == null
+						|| model.getObject().getCollection().getAuditSearch() == null
+						|| model.getObject().getCollection().getAuditSearch().getRecordQuery() == null) {
+					return false;
+				}
+				return true;
+			}
+    	};
+    }
 
 	// Serializable as it becomes part of panel which is serialized
     private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer =
@@ -366,7 +415,22 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private Function<ObjectType, String> stringTransformer =
     		(Function<ObjectType, String> & Serializable) (ObjectType o) ->
         		o.getName().getOrig();
+        		
 
+    private IModel<ObjectCollectionType> getCollectionFroAuditEventModel() {
+    	return new IModel<ObjectCollectionType>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public ObjectCollectionType getObject() {
+				AuditSearchDto search = AuditLogViewerPanel.this.getModelObject();
+		    	ObjectCollectionType collection = search.getCollection();
+				return collection;
+			}
+    		
+    	};
+    }
+        		
     private Map<String, Object> getAuditEventProviderParameters() {
         Map<String, Object> parameters = new HashMap<>();
 
@@ -418,7 +482,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     }
 
     private void initAuditLogViewerTable(Form mainForm) {
-        AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this, null,
+        AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this, getCollectionFroAuditEventModel(),
                 this::getAuditEventProviderParameters) {
             private static final long serialVersionUID = 1L;
 
