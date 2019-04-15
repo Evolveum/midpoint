@@ -604,7 +604,7 @@ public class TestRefinedSchema {
         		LayerType.SCHEMA, LayerType.PRESENTATION);
 
         assertAttributeDef(rAccountAttrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "entryUUID"),
-        		DOMUtil.XSD_STRING, 0, 1, null, 100,
+        		DOMUtil.XSD_STRING, 0, 1, "entryUUID", 100,
         		false, false,
         		false, true, false, // Access: create, read, update
         		LayerType.SCHEMA, LayerType.PRESENTATION);
@@ -622,7 +622,7 @@ public class TestRefinedSchema {
         		LayerType.SCHEMA, LayerType.PRESENTATION);
 
         assertAttributeDef(rAccountAttrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "employeeNumber"),
-        		DOMUtil.XSD_STRING, 0, 1, null, 140,
+        		DOMUtil.XSD_STRING, 0, 1, "employeeNumber", 140,
         		false, false,
         		true, true, true, // Access: create, read, update
         		LayerType.SCHEMA, LayerType.PRESENTATION);

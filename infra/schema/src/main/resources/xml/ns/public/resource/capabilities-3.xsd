@@ -448,6 +448,24 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="addRemoveAttributeValues" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									If set to true then resource supports update operation that can add
+									and remove individual attribute values.
+								</p>
+								<p>
+									This is an replacement for deprecated AddRemoveAttributeValuesCapabilityType.
+									If no value is provided for this element, then the presence or non-presence
+									of AddRemoveAttributeValuesCapabilityType determines its value. 
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -619,9 +637,11 @@
 
 				BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
 				
-				TODO: This should really be an option of the Update capability, not a capability on its own.
-				TODO: also unify with delta update capability.
+				DEPRECATED: Use addRemoveAttributeValues element of Update capability instead.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<a:deprecated>true</a:deprecated>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:CapabilityType">

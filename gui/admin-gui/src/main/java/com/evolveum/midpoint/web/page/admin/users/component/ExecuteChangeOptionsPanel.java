@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -60,7 +61,6 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         this.showReconcile = showReconcile;
         this.showReconcileAffected = showReconcileAffected;
         showKeepDisplayingResults = getWebApplicationConfiguration().isProgressReportingEnabled();
-        initLayout();
     }
 
     public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
@@ -69,6 +69,11 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         this.showReconcile = showReconcile;
         this.showReconcileAffected = showReconcileAffected;
         this.showKeepDisplayingResults = showKeepDisplayingResults;
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initLayout();
     }
 
@@ -105,7 +110,8 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     }
 
     private void createContainer(String containerId, IModel<Boolean> checkboxModel, String labelKey, String helpKey, boolean show) {
-    	CheckBoxPanel panel = new CheckBoxPanel(containerId, checkboxModel, null, createStringResource(labelKey), createStringResource(helpKey));
+    	CheckBoxPanel panel = new CheckBoxPanel(containerId, checkboxModel, null, createStringResource(labelKey),
+                createStringResource(helpKey, WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midPoint")));
     	panel.setVisible(show);
         add(panel);
     }

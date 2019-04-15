@@ -815,11 +815,15 @@ public class DummyResource implements DebugDumpable {
 		renameObject(DummyOrg.class, orgs, id, oldName, newName);
 	}
 
-	void recordModify(DummyObject dObject) {
+	<T> void recordModify(DummyObject dObject, String attributeName, Collection<T> valuesAdded, Collection<T> valuesDeleted, Collection<T> valuesReplaced) {
 		recordWriteOperation("modify");
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
 			DummyDelta delta = new DummyDelta(syncToken, dObject.getClass(), dObject.getId(), dObject.getName(), DummyDeltaType.MODIFY);
+			delta.setAttributeName(attributeName);
+			delta.setValuesAdded((Collection<Object>) valuesAdded);
+			delta.setValuesDeleted((Collection<Object>) valuesDeleted);
+			delta.setValuesReplaced((Collection<Object>) valuesReplaced);
 			deltas.add(delta);
 		}
 	}
@@ -914,6 +918,24 @@ public class DummyResource implements DebugDumpable {
 			}
 		}
 		return result;
+	}
+	
+	public List<DummyDelta> getDeltas() {
+		return deltas;
+	}
+
+	public void clearDeltas() {
+		deltas.clear();
+	}
+	
+	public String dumpDeltas() {
+		StringBuilder sb = new StringBuilder("Dummy resource ");
+		sb.append(instanceName).append(" deltas:");
+		for (DummyDelta delta: deltas) {
+			sb.append("\n  ");
+			delta.dump(sb);
+		}
+		return sb.toString();
 	}
 
 	void breakIt(BreakMode breakMode, String operation) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {

@@ -24361,6 +24361,16 @@
                     </xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="systemName" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Custom name for midPoint identity management system.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DeploymentInformationType.systemName</a:displayName>
+                    </xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 

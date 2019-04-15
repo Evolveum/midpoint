@@ -114,6 +114,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -625,6 +626,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
 		assertUpdateCapability(capUpdate);
 		
+		AddRemoveAttributeValuesCapabilityType capAddRemove = CapabilityUtil.getCapability(nativeCapabilitiesList, AddRemoveAttributeValuesCapabilityType.class);
+		assertAddRemoveAttributeValuesCapability(capAddRemove);
+		
 		RunAsCapabilityType capRunAs = CapabilityUtil.getCapability(nativeCapabilitiesList, RunAsCapabilityType.class);
 		assertRunAsCapability(capRunAs);
 		
@@ -664,12 +668,18 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		dummyResource.assertConnections(1);
 		assertDummyConnectorInstances(1);
 	}
-	
+
 	protected void assertUpdateCapability(UpdateCapabilityType capUpdate) {
 		assertNotNull("native update capability not present", capUpdate);
 		assertNull("native update capability is manual", capUpdate.isManual());
-		assertNotNull("native update capability is null", capUpdate.isDelta());
+		assertNotNull("delta in native update capability is null", capUpdate.isDelta());
 		assertTrue("native update capability is NOT delta", capUpdate.isDelta());
+		assertNotNull("addRemoveAttributeValues in native update capability is null", capUpdate.isAddRemoveAttributeValues());
+		assertTrue("native update capability is NOT addRemoveAttributeValues", capUpdate.isAddRemoveAttributeValues());
+	}
+	
+	protected void assertAddRemoveAttributeValuesCapability(AddRemoveAttributeValuesCapabilityType capAddRemove) {
+		assertNull("Unexpected native AddRemoveAttributeValues capability", capAddRemove);
 	}
 	
 	protected void assertRunAsCapability(RunAsCapabilityType capRunAs) {
