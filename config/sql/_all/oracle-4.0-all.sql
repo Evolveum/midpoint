@@ -292,6 +292,12 @@ CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR2(36 CHAR) NOT NULL,
   targetSystemType VARCHAR2(255 CHAR)
 ) INITRANS 30;
+CREATE TABLE m_dashboard (
+  name_norm VARCHAR2(255 CHAR),
+  name_orig VARCHAR2(255 CHAR),
+  oid       VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
+) INITRANS 30;
 CREATE TABLE m_ext_item (
   id       NUMBER(10, 0) GENERATED AS IDENTITY,
   kind     NUMBER(10, 0),
@@ -933,6 +939,10 @@ CREATE INDEX iGenericObjectNameOrig
   ON m_generic_object (name_orig) INITRANS 30;
 ALTER TABLE m_generic_object
   ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig
+  ON m_dashboard (name_orig) INITRANS 30;
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iLookupTableNameOrig
   ON m_lookup_table (name_orig) INITRANS 30;
 ALTER TABLE m_lookup_table
@@ -1143,6 +1153,8 @@ ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table_row
