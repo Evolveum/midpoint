@@ -272,9 +272,9 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 		return asserter;
 	}
 	
-	public PrismPropertyAsserter attribute(String attrName) {
-		
-	}
+//	public PrismPropertyAsserter attribute(String attrName) {
+//		WORK IN PROGRESS
+//	}
 
 	public ShadowAsserter<RA> assertNoLegacyConsistency() {
 		PrismAsserts.assertNoItem(getObject(), ShadowType.F_RESULT);
