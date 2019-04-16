@@ -4,9 +4,23 @@ CREATE TABLE m_archetype (
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_dashboard (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
 
 CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
+
+CREATE INDEX iDashboardNameOrig
+  ON m_dashboard (name_orig);
+ALTER TABLE m_lookup_table
+  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
+
+ALTER TABLE IF EXISTS m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 
 ALTER TABLE IF EXISTS m_archetype
   ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role;
