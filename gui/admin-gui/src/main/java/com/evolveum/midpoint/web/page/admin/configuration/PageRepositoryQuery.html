@@ -35,7 +35,7 @@
                         <label for="querySample" class="small"><wicket:message key="PageRepositoryQuery.chooseSample"/></label>
                         <div id="querySample" wicket:id="querySample"/>
                     </div>
-                    <p class="small" style="margin-top: 5px"><wicket:message key="PageRepositoryQuery.queryVsFilterNote"/></p>
+                    <p class="small" style="margin-top: 5px"><div wicket:id="queryVsFilterNote"/></p>
                     <div class="main-button-bar" wicket:id="midPointQueryButtonBar">
                         <a class="btn btn-primary" wicket:id="executeMidPoint"/>
                         <a class="btn btn-default" wicket:id="compileMidPoint"/>
@@ -46,7 +46,7 @@
                     <h3><wicket:message key="PageRepositoryQuery.hibernateQuery"/></h3>
                     <textarea wicket:id="editorHibernate"></textarea>
                     <h4><wicket:message key="PageRepositoryQuery.hibernateParameters"/></h4>
-                    <p class="small" wicket:id="hibernateParametersNote"><wicket:message key="PageRepositoryQuery.hibernateParametersNote"/></p>
+                    <p class="small" wicket:id="hibernateParametersNote" />
                     <textarea wicket:id="hibernateParameters"></textarea>
                     <div class="form-group" style="margin-top: 15px">
                         <a class="btn btn-primary" wicket:id="executeHibernate"/>

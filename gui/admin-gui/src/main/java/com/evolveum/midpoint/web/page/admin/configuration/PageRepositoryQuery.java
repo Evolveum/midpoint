@@ -102,6 +102,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
     private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_REPOSITORY_QUERY_LABEL = "repositoryQueryLabel";
+	private static final String ID_QUERY_VS_FILTER_NOTE = "queryVsFilterNote";
 	private static final String ID_MIDPOINT_QUERY_BUTTON_BAR = "midPointQueryButtonBar";
     private static final String ID_EXECUTE_MIDPOINT = "executeMidPoint";
     private static final String ID_COMPILE_MIDPOINT = "compileMidPoint";
@@ -220,9 +221,15 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		hibernateParameters.setMode(null);
 		mainForm.add(hibernateParameters);
 
-		WebMarkupContainer hibernateParametersNote = new WebMarkupContainer(ID_HIBERNATE_PARAMETERS_NOTE);
+		Label hibernateParametersNote = new Label(ID_HIBERNATE_PARAMETERS_NOTE, createStringResource("PageRepositoryQuery.hibernateParametersNote",
+				WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
 		hibernateParametersNote.setVisible(isAdmin);
 		mainForm.add(hibernateParametersNote);
+
+		Label queryVsFilterNote = new Label(ID_QUERY_VS_FILTER_NOTE, createStringResource("PageRepositoryQuery.queryVsFilterNote",
+				WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
+		queryVsFilterNote.setOutputMarkupId(true);
+		mainForm.add(queryVsFilterNote);
 
 		WebMarkupContainer midPointQueryButtonBar = new WebMarkupContainer(ID_MIDPOINT_QUERY_BUTTON_BAR);
 		midPointQueryButtonBar.setOutputMarkupId(true);

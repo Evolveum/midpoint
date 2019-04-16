@@ -68,7 +68,17 @@ public class PrismContainerAsserter<C extends Containerable, RA> extends PrismIt
 		return this;
 	}
 	
-	// TODO
+	@Override
+	public PrismItemAsserter<PrismContainer<C>, RA> assertComplete() {
+		super.assertComplete();
+		return this;
+	}
+
+	@Override
+	public PrismItemAsserter<PrismContainer<C>, RA> assertIncomplete() {
+		super.assertIncomplete();
+		return this;
+	}
 
 	protected String desc() {
 		return getDetails();

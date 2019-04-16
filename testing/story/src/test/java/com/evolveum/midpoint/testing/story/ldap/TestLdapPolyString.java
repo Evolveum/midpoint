@@ -18,6 +18,8 @@ package com.evolveum.midpoint.testing.story.ldap;
 
 
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,7 +33,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -121,6 +123,8 @@ public class TestLdapPolyString extends AbstractLdapTest {
 	protected static final ItemName TITLE_MAP_KEY_QNAME = new ItemName(NS_LDAP, "key");
 	protected static final ItemName TITLE_MAP_VALUE_QNAME = new ItemName(NS_LDAP, "value");
 	private static final ItemPath PATH_EXTENSION_TITLE_MAP = ItemPath.create(ObjectType.F_EXTENSION, TITLE_MAP_QNAME);
+
+	private static final String USER_JACK_BLAHBLAH = "BlahBlahBlah!";
 
 
 	private PrismObject<ResourceType> resourceOpenDj;
@@ -714,6 +718,105 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		assertNull("Unexpected LDAP entry for jack", accountEntry);
 	}
 	
+	/**
+	 * Mostly just preparation for next tests. Just make sure there is
+	 * (pretty ordinary) LDAP account for jack.
+	 */
+	@Test
+    public void test150AssignAccountOpenDj() throws Exception {
+		final String TEST_NAME = "test150AssignAccountOpenDj";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		accountJackOid = assertUserAfter(USER_JACK_OID)
+			.fullName()
+        		.assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
+        		.assertNoLangs()
+        		.end()
+    		.extension()
+        		.container(TITLE_MAP_QNAME)
+        			.assertSize(TITLE_EN_SK_RU.length/2)
+        			.end()
+        		.end()
+			.singleLink()
+				.getOid();
+		
+		assertModelShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN /* no langs */);
+		assertTitle(accountEntry, TITLE_CAPTAIN, TITLE_EN_SK_RU);
+	}
+	
+	/**
+	 * Attribute description has two values in LDAP. This is all wrong, because
+	 * description is a polystring attribute and we do not support multivalue there.
+	 * But if connector dies on reading this, there is no way how midPoint can figure
+	 * out what is going on and no way how to fix it. Therefore there is a special mode
+	 * to allow reduction of multivalues to singlevalue.
+	 * MID-5275
+	 */
+	@Test
+    public void test152JackMultivalueDescriptionGet() throws Exception {
+		final String TEST_NAME = "test152JackMultivalueDescriptionGet";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // Let's ruing Jack's description in LDAP.
+        
+        Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+        assertNotNull("No jack account?", accountEntry);
+        openDJController.modifyAdd(accountEntry.getDN().toString(), LDAP_ATTRIBUTE_DESCRIPTION, USER_JACK_BLAHBLAH);
+        
+        accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+        display("Ruined LDAP entry", accountEntry);
+        
+        // precondition
+        OpenDJController.assertAttribute(accountEntry, LDAP_ATTRIBUTE_DESCRIPTION, 
+        		USER_JACK_FULL_NAME_CAPTAIN, USER_JACK_BLAHBLAH);
+        
+        String accountJackOid = assertUserBefore(USER_JACK_OID)
+        	.singleLink()
+        		.getOid();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PolyString descriptioShadowAttribute = assertShadow(shadow, "Jack's shadow after read")
+        	.attributes()
+        		.attribute(LDAP_ATTRIBUTE_DESCRIPTION)
+        			.assertIncomplete()
+        			.singleValue()
+        				.getPrismValue().getRealValue();
+        
+        assertTrue("Unexpected value of description attribute from shadow: "+descriptioShadowAttribute,
+        		USER_JACK_FULL_NAME_CAPTAIN.equals(descriptioShadowAttribute.getOrig()) || USER_JACK_BLAHBLAH.equals(descriptioShadowAttribute.getOrig()));
+
+        accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+        display("Ruined LDAP entry after", accountEntry);
+        OpenDJController.assertAttribute(accountEntry, LDAP_ATTRIBUTE_DESCRIPTION,
+        		USER_JACK_FULL_NAME_CAPTAIN, USER_JACK_BLAHBLAH);
+
+	}
+
+	
 	private List<PrismContainerValue<?>> createTitleMapValues(String... params) throws SchemaException {
 		List<PrismContainerValue<?>> cvals = new ArrayList<>();
 		for(int i = 0; i < params.length; i+=2) {
@@ -732,16 +835,17 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		return cvals;
 	}
 
+		
 	private Entry getLdapEntryByUid(String uid) throws DirectoryException {
 		return openDJController.searchSingle("uid="+uid);
 	}
 
 	private void assertCn(Entry entry, String expectedValue) {
-		OpenDJController.assertAttribute(entry, "cn", expectedValue);
+		OpenDJController.assertAttribute(entry, LDAP_ATTRIBUTE_CN, expectedValue);
 	}
 
 	private void assertDescription(Entry entry, String expectedOrigValue, String... params) {
-		OpenDJController.assertAttributeLang(entry, "description", expectedOrigValue, params);
+		OpenDJController.assertAttributeLang(entry, LDAP_ATTRIBUTE_DESCRIPTION, expectedOrigValue, params);
 	}
 	
 	private void assertTitle(Entry entry, String expectedOrigValue, String... params) {

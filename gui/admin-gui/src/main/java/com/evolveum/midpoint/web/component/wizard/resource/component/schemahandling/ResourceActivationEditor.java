@@ -28,8 +28,8 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -37,8 +37,7 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-
-import java.util.List;
+import org.apache.wicket.model.StringResourceModel;
 
 /**
  *  @author shood
@@ -89,10 +88,17 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
     public static final String VALID_FROM_IN_TARGET_DEFAULT = "&" + ExpressionConstants.VAR_FOCUS + "/activation/validFrom";
 
     private boolean isInitialized = false;
+    private NonEmptyModel<Boolean> readOnlyModel;
 
     public ResourceActivationEditor(String id, IModel<ResourceActivationDefinitionType> model, NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
-		initLayout(readOnlyModel);
+        this.readOnlyModel = readOnlyModel;
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
     }
 
     @Override
@@ -209,7 +215,7 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         }
     }
 
-    protected void initLayout(NonEmptyModel<Boolean> readOnlyModel) {
+    protected void initLayout() {
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_EXISTENCE.getLocalPart(), ID_EXISTENCE_FS,
                 ID_EXISTENCE_OUT, ID_EXISTENCE_IN, readOnlyModel);
 
@@ -227,11 +233,13 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         add(exFetchTooltip);
 
         Label exOutTooltip = new Label(ID_T_EX_OUT);
+        exOutTooltip.add(AttributeAppender.append("title", getSystemNameDependentTooltipModel("SchemaHandlingStep.activation.tooltip.outbound")));
         exOutTooltip.add(new InfoTooltipBehavior());
         add(exOutTooltip);
 
         Label exInTooltip = new Label(ID_T_EX_IN);
         exInTooltip.add(new InfoTooltipBehavior());
+        exInTooltip.add(AttributeAppender.append("title", getSystemNameDependentTooltipModel("SchemaHandlingStep.activation.tooltip.inbound")));
         add(exInTooltip);
 
         Label admFetchTooltip = new Label(ID_T_ADM_FETCH);
@@ -239,11 +247,13 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         add(admFetchTooltip);
 
         Label admOutTooltip = new Label(ID_T_ADM_OUT);
+        admOutTooltip.add(AttributeAppender.append("title", getSystemNameDependentTooltipModel("SchemaHandlingStep.activation.tooltip.outbound")));
         admOutTooltip.add(new InfoTooltipBehavior());
         add(admOutTooltip);
 
         Label admInTooltip = new Label(ID_T_ADM_IN);
         admInTooltip.add(new InfoTooltipBehavior());
+        admInTooltip.add(AttributeAppender.append("title", getSystemNameDependentTooltipModel("SchemaHandlingStep.activation.tooltip.inbound")));
         add(admInTooltip);
 
         Label validFromFetchTooltip = new Label(ID_T_VALID_F_FETCH);
@@ -251,10 +261,12 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         add(validFromFetchTooltip);
 
         Label validFromOutTooltip = new Label(ID_T_VALID_F_OUT);
+        validFromOutTooltip.add(AttributeAppender.append("title", getSystemNameDependentTooltipModel("SchemaHandlingStep.activation.tooltip.outbound")));
         validFromOutTooltip.add(new InfoTooltipBehavior());
         add(validFromOutTooltip);
 
         Label validFromInTooltip = new Label(ID_T_VALID_F_IN);
+        validFromInTooltip.add(AttributeAppender.append("title", getSystemNameDependentTooltipModel("SchemaHandlingStep.activation.tooltip.inbound")));
         validFromInTooltip.add(new InfoTooltipBehavior());
         add(validFromInTooltip);
 
@@ -263,10 +275,12 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         add(validToFetchTooltip);
 
         Label validToOutTooltip = new Label(ID_T_VALID_T_OUT);
+        validToOutTooltip.add(AttributeAppender.append("title", getSystemNameDependentTooltipModel("SchemaHandlingStep.activation.tooltip.outbound")));
         validToOutTooltip.add(new InfoTooltipBehavior());
         add(validToOutTooltip);
 
         Label validToInTooltip = new Label(ID_T_VALID_T_IN);
+        validToInTooltip.add(AttributeAppender.append("title", getSystemNameDependentTooltipModel("SchemaHandlingStep.activation.tooltip.inbound")));
         validToInTooltip.add(new InfoTooltipBehavior());
         add(validToInTooltip);
 
@@ -355,5 +369,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_MAPPING);
         window.updateModel(target, mapping, isInbound);
         window.show(target);
+    }
+
+    private StringResourceModel getSystemNameDependentTooltipModel(String key){
+        return createStringResource(key,
+                WebComponentUtil.getMidpointCustomSystemName(getPageBase(),
+                        createStringResource("midpoint.default.system.name").getString()));
     }
 }
