@@ -69,6 +69,18 @@ public class PrismPropertyAsserter<T, RA> extends PrismItemAsserter<PrismPropert
 		return this;
 	}
 	
+	@Override
+	public PrismPropertyAsserter<T,RA> assertComplete() {
+		super.assertComplete();
+		return this;
+	}
+	
+	@Override
+	public PrismPropertyAsserter<T,RA> assertIncomplete() {
+		super.assertIncomplete();
+		return this;
+	}
+	
 	public PrismPropertyValueAsserter<T,PrismPropertyAsserter<T,RA>> singleValue() {
 		assertSize(1);
 		PrismPropertyValue<T> pval = getItem().getValue();

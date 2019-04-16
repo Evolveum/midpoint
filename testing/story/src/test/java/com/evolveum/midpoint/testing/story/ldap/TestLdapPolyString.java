@@ -18,6 +18,8 @@ package com.evolveum.midpoint.testing.story.ldap;
 
 
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,7 +33,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -718,12 +719,57 @@ public class TestLdapPolyString extends AbstractLdapTest {
 	}
 	
 	/**
-	 * WORK IN PROGRESS
+	 * Mostly just preparation for next tests. Just make sure there is
+	 * (pretty ordinary) LDAP account for jack.
+	 */
+	@Test
+    public void test150AssignAccountOpenDj() throws Exception {
+		final String TEST_NAME = "test150AssignAccountOpenDj";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+		accountJackOid = assertUserAfter(USER_JACK_OID)
+			.fullName()
+        		.assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
+        		.assertNoLangs()
+        		.end()
+    		.extension()
+        		.container(TITLE_MAP_QNAME)
+        			.assertSize(TITLE_EN_SK_RU.length/2)
+        			.end()
+        		.end()
+			.singleLink()
+				.getOid();
+		
+		assertModelShadow(accountJackOid);
+		
+		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+		display("Jack LDAP entry", accountEntry);
+		assertCn(accountEntry, USER_JACK_FULL_NAME_CAPTAIN);
+		assertDescription(accountEntry, USER_JACK_FULL_NAME_CAPTAIN /* no langs */);
+		assertTitle(accountEntry, TITLE_CAPTAIN, TITLE_EN_SK_RU);
+	}
+	
+	/**
+	 * Attribute description has two values in LDAP. This is all wrong, because
+	 * description is a polystring attribute and we do not support multivalue there.
+	 * But if connector dies on reading this, there is no way how midPoint can figure
+	 * out what is going on and no way how to fix it. Therefore there is a special mode
+	 * to allow reduction of multivalues to singlevalue.
 	 * MID-5275
 	 */
-	@Test(enabled=false)
-    public void test150JackMultivalueDescriptionGet() throws Exception {
-		final String TEST_NAME = "test150JackMultivalueDescriptionGet";
+	@Test
+    public void test152JackMultivalueDescriptionGet() throws Exception {
+		final String TEST_NAME = "test152JackMultivalueDescriptionGet";
         displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -731,6 +777,7 @@ public class TestLdapPolyString extends AbstractLdapTest {
         // Let's ruing Jack's description in LDAP.
         
         Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
+        assertNotNull("No jack account?", accountEntry);
         openDJController.modifyAdd(accountEntry.getDN().toString(), LDAP_ATTRIBUTE_DESCRIPTION, USER_JACK_BLAHBLAH);
         
         accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
@@ -752,10 +799,15 @@ public class TestLdapPolyString extends AbstractLdapTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertShadow(shadow, "Jack's shadow after read")
-        	.attributes();
-//        		.attribute(LDAP_ATTRIBUTE_DESCRIPTION)
-        	// TODO: assert description attribute
+        PolyString descriptioShadowAttribute = assertShadow(shadow, "Jack's shadow after read")
+        	.attributes()
+        		.attribute(LDAP_ATTRIBUTE_DESCRIPTION)
+        			.assertIncomplete()
+        			.singleValue()
+        				.getPrismValue().getRealValue();
+        
+        assertTrue("Unexpected value of description attribute from shadow: "+descriptioShadowAttribute,
+        		USER_JACK_FULL_NAME_CAPTAIN.equals(descriptioShadowAttribute.getOrig()) || USER_JACK_BLAHBLAH.equals(descriptioShadowAttribute.getOrig()));
 
         accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
         display("Ruined LDAP entry after", accountEntry);
