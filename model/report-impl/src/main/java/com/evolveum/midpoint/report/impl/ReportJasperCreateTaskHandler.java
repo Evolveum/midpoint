@@ -117,10 +117,10 @@ import net.sf.jasperreports.governors.MaxPagesGovernor;
 import net.sf.jasperreports.governors.TimeoutGovernor;
 
 @Component
-public class ReportCreateTaskHandler implements TaskHandler {
+public class ReportJasperCreateTaskHandler implements TaskHandler {
 
-    public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-3";
-    private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
+    public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/jasper/create/handler-3";
+    private static final Trace LOGGER = TraceManager.getTrace(ReportJasperCreateTaskHandler.class);
 
     // TODO: is this a good place for those constants?
 //    public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
@@ -143,7 +143,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
 
     @PostConstruct
-    private void initialize() {
+    protected void initialize() {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Registering with taskManager as a handler for " + REPORT_CREATE_TASK_URI);
         }
@@ -153,7 +153,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         OperationResult parentResult = task.getResult();
-        OperationResult result = parentResult.createSubresult(ReportCreateTaskHandler.class.getSimpleName() + ".run");
+        OperationResult result = parentResult.createSubresult(ReportJasperCreateTaskHandler.class.getSimpleName() + ".run");
 
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(result);
@@ -413,7 +413,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 	}
 
 
-    private void recordProgress(Task task, long progress, OperationResult opResult) {
+    protected void recordProgress(Task task, long progress, OperationResult opResult) {
         try {
             task.setProgressImmediate(progress, opResult);
         } catch (ObjectNotFoundException e) {             // these exceptions are of so little probability and harmless, so we just log them and do not report higher
@@ -425,7 +425,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
     private String generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException {
         String destinationFileName = getDestinationFileName(reportType);
-        switch (reportType.getExport()) {
+        switch (getExport(reportType)) {
             case PDF:
                 JasperExportManager.exportReportToPdfFile(jasperPrint, destinationFileName);
                 break;
@@ -512,7 +512,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         return formatDate.format(createDate);
     }
 
-    private static String getDestinationFileName(ReportType reportType) {
+    protected String getDestinationFileName(ReportType reportType) {
         File exportFolder = new File(EXPORT_DIR);
         if (!exportFolder.exists() || !exportFolder.isDirectory()) {
             exportFolder.mkdir();
@@ -520,18 +520,18 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
         String output = EXPORT_DIR + reportType.getName().getOrig() + " " + getDateTime();
 
-        if (reportType.getExport() == ExportType.XML_EMBED) {
+        if (getExport(reportType) == ExportType.XML_EMBED) {
             return output + "_embed.xml";
         }
 
-        return output + "." + reportType.getExport().value();
+        return output + "." + getExport(reportType).value();
 
     }
 
-    private void saveReportOutputType(String filePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception {
+    protected void saveReportOutputType(String filePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception {
 
         String fileName = FilenameUtils.getBaseName(filePath);
-        String reportOutputName = fileName + " - " + reportType.getExport().value();
+        String reportOutputName = fileName + " - " + getExport(reportType).value();
 
         ReportOutputType reportOutputType = new ReportOutputType();
         prismContext.adopt(reportOutputType);
@@ -539,8 +539,8 @@ public class ReportCreateTaskHandler implements TaskHandler {
         reportOutputType.setFilePath(filePath);
         reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
         reportOutputType.setName(new PolyStringType(reportOutputName));
-        reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getExport().value());
-        reportOutputType.setExportType(reportType.getExport());
+        reportOutputType.setDescription(reportType.getDescription() + " - " + getExport(reportType).value());
+        reportOutputType.setExportType(getExport(reportType));
 
 
         SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, prismContext
@@ -563,7 +563,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
         objectDelta = DeltaFactory.Object.createAddDelta((PrismObject<ReportOutputType>) reportOutputType.asPrismObject());
         deltas.add(objectDelta);
-        subResult = parentResult.createSubresult(ReportCreateTaskHandler.class.getName() + "createRepourtOutput");
+        subResult = parentResult.createSubresult(ReportJasperCreateTaskHandler.class.getName() + "createRepourtOutput");
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = modelService.executeChanges(deltas, null, task, subResult);
         String reportOutputOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportOutputType.asPrismObject());
@@ -576,7 +576,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         subResult.computeStatus();
     }
 
-    private void processPostReportScript(ReportType parentReport, String reportOutputFilePath, Task task, OperationResult parentResult ) {
+    protected void processPostReportScript(ReportType parentReport, String reportOutputFilePath, Task task, OperationResult parentResult ) {
     	CommandLineScriptType scriptType = parentReport.getPostReportScript();
         if (scriptType == null) {
         	LOGGER.debug("No post report script found in {}, skipping", parentReport);
@@ -597,6 +597,11 @@ public class ReportCreateTaskHandler implements TaskHandler {
             // LoggingUtils.logExceptionAsWarning(LOGGER,"And unexpected exception occurred during post report script execution",e, task);
         }
     }
+    
+    protected ExportType getExport(ReportType report) {
+    	return report.getExport();
+    }
+    
 
     @Override
     public Long heartbeat(Task task) {

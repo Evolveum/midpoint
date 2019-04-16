@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -271,7 +272,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 		copySetupTo(asserter);
 		return asserter;
 	}
-
+	
 	public ShadowAsserter<RA> assertNoLegacyConsistency() {
 		PrismAsserts.assertNoItem(getObject(), ShadowType.F_RESULT);
 		PrismAsserts.assertNoItem(getObject(), ShadowType.F_ATTEMPT_NUMBER);

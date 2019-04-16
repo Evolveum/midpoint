@@ -3468,15 +3468,13 @@ public final class WebComponentUtil {
     }
 
     public static String getMidpointCustomSystemName(PageBase pageBase, String defaultSystemNameKey){
-    	OperationResult result = new OperationResult(pageBase.getClass().getSimpleName() + ".loadDeploymentInformation");
-    	try {
-			SystemConfigurationType systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
-			DeploymentInformationType deploymentInfo = systemConfig != null ? systemConfig.getDeploymentInformation() : null;
-			return deploymentInfo != null && StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ? deploymentInfo.getSystemName() : pageBase.createStringResource(defaultSystemNameKey).getString();
-		} catch (ObjectNotFoundException | SchemaException e){
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", e);
-			result.recordFatalError("Couldn't load deployment information.", e);
+		DeploymentInformationType deploymentInfo = MidPointApplication.get().getDeploymentInfo();
+		String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
+		if (!isSubscriptionIdCorrect(subscriptionId) ||
+				SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
+			return pageBase.createStringResource(defaultSystemNameKey).getString();
 		}
-		return pageBase.createStringResource(defaultSystemNameKey).getString();
+		return deploymentInfo != null && StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ?
+				deploymentInfo.getSystemName() : pageBase.createStringResource(defaultSystemNameKey).getString();
 	}
 }

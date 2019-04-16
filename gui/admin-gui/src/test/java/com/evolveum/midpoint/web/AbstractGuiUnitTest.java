@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -53,6 +54,11 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
 			@Override
 			public ModelInteractionService getModelInteractionService() {
+				return null;
+			}
+			
+			@Override
+			public DashboardService getDashboardService() {
 				return null;
 			}
 
@@ -101,6 +107,8 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 			public Locale getLocale() {
 				return Locale.US;
 			}
+
+			
 		};
 	}
     

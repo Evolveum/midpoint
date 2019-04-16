@@ -112,6 +112,23 @@ public class CacheCounterManager implements CounterManager {
 		}
 	}
 	
+	@Override
+	public void resetCounters(String taskOid) {
+		Set<CounterKey> keys = countersMap.keySet();
+		
+		Set<CounterKey> counersToReset = new HashSet<>();
+		for (CounterKey key : keys) {
+			if (taskOid.equals(key.oid)) {
+				counersToReset.add(key);
+			}
+		}
+				
+		for (CounterKey counerToReset : counersToReset) {
+			CounterSepcification spec = countersMap.get(counerToReset);
+			spec.setCount(0);
+		}
+	}
+	
 	private CounterSepcification initCleanCounter(CounterKey key, TaskType task, PolicyRuleType policyRule) {
 		CounterSepcification counterSpec = new CounterSepcification(task, key.policyRuleId, policyRule);
 		counterSpec.setCounterStart(clock.currentTimeMillis());

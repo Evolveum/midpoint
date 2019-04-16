@@ -575,6 +575,8 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(assignmentPolicyRefTooltip);
 
         Label iterationTooltip = new Label(ID_T_ITERATION);
+        iterationTooltip.add(AttributeAppender.append("title", createStringResource("SchemaHandlingStep.tooltip.iteration",
+                WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name"))));
         iterationTooltip.add(new InfoTooltipBehavior());
         editor.add(iterationTooltip);
 

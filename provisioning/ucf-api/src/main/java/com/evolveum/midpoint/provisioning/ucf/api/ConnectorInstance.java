@@ -80,9 +80,10 @@ public interface ConnectorInstance {
 	 * Operations cannot be interrupted or refused due to missing configuration.
 	 *
 	 * @param configuration new connector configuration (prism container value)
+	 * @param generateObjectClasses the list of the object classes which should be generated in schema
 	 * @throws ConfigurationException
 	 */
-	void configure(PrismContainerValue<?> configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	void configure(PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
 	ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 
@@ -155,7 +156,7 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
      * @throws ConfigurationException
 	 */
-	ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult)
+	ResourceSchema fetchResourceSchema(OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
 	/**

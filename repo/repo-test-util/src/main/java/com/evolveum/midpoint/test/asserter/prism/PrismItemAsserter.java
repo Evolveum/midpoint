@@ -58,6 +58,16 @@ public abstract class PrismItemAsserter<I extends Item, RA> extends AbstractAsse
 		return this;
 	}
 	
+	public PrismItemAsserter<I,RA> assertComplete() {
+		assertFalse("Expected complete item, but it was incomplete "+desc(), item.isIncomplete());
+		return this;
+	}
+
+	public PrismItemAsserter<I,RA> assertIncomplete() {
+		assertTrue("Expected incomplete item, but it was complete "+desc(), item.isIncomplete());
+		return this;
+	}
+
 	// TODO
 
 	protected String desc() {

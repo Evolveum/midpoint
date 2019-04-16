@@ -313,7 +313,8 @@ public class PageTaskAdd extends PageAdminTasks {
 
             @Override
             protected Iterator<String> getChoices(String input) {
-                return prepareObjectClassChoiceList(input);
+            	Iterator<String> ret = prepareObjectClassChoiceList(input);
+                return ret;
             }
         };
         objectClass.add(new VisibleEnableBehaviour(){
@@ -368,7 +369,14 @@ public class PageTaskAdd extends PageAdminTasks {
         List<String> choices = new ArrayList<>();
 
         if(model.getObject().getResource() == null){
-            return choices.iterator();
+        	List<TaskAddResourcesDto> resources = createResourceList();
+        	if(resources.isEmpty()) {
+        		return choices.iterator();
+        	} else {
+        		List<TaskAddResourcesDto> sortedResources = WebComponentUtil.sortDropDownChoices(Model.ofList(resources), new ChoiceableChoiceRenderer<>());
+        		model.getObject().setResource(sortedResources.get(0));
+        		loadResource();
+        	}
         }
 
         if(Strings.isEmpty(input)){

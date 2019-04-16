@@ -99,6 +99,7 @@ public class AggregatedEventHandler extends BaseHandler {
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleCampaignStageNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleReviewerNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleTaskNotifier(), notificationManager, task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleReportNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimplePolicyRuleNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getTimeValidityNotifier(), notificationManager, task, result);
 
