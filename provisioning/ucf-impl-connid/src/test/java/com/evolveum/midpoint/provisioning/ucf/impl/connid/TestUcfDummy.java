@@ -246,7 +246,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
-		cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
+		//ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
+		cc.configure(configContainer, null, result);
 
 		// WHEN
 		resourceSchema = cc.fetchResourceSchema(result);
