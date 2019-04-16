@@ -245,7 +245,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
-		cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
+		//ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
+		cc.configure(configContainer, null, result);
 
 		// WHEN
 		resourceSchema = cc.fetchResourceSchema(result);
@@ -295,9 +296,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		// THEN
 		display("Generated resource schema", resourceSchema);
-		assertEquals("Unexpected number of definitions", 4, resourceSchema.getDefinitions().size());
+		assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
 
-		assertEquals("Unexpected number of object class definitions", 4, resourceSchema.getObjectClassDefinitions().size());
+		assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
 
 		display("RESOURCE SCHEMA DEFINITION" + resourceSchema.getDefinitions().iterator().next().getTypeName());
 	}

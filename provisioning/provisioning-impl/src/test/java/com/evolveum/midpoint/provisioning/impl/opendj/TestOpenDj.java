@@ -44,7 +44,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.*;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -271,7 +270,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		Collection<ObjectClassComplexTypeDefinition> objectClasses = parsedSchema.getObjectClassDefinitions();
 		List<QName> objectClassesToGenerate = ResourceTypeUtil.getSchemaGenerationConstraints(resourceTypeRepoAfter);
-		if (CollectionUtils.isNotEmpty(objectClassesToGenerate)) {
+		if (objectClassesToGenerate != null && !objectClasses.isEmpty()) {
 			assertEquals("Unexpected object classes in generate schema", objectClassesToGenerate.size(), objectClasses.size());
 		}
 		
