@@ -16,7 +16,7 @@ CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 
 CREATE INDEX iDashboardNameOrig
   ON m_dashboard (name_orig);
-ALTER TABLE m_lookup_table
+ALTER TABLE m_dashboard
   ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 
 ALTER TABLE IF EXISTS m_dashboard

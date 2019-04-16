@@ -948,7 +948,7 @@ ALTER TABLE IF EXISTS m_node
   ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
 CREATE INDEX iDashboardNameOrig
   ON m_dashboard (name_orig);
-ALTER TABLE m_lookup_table
+ALTER TABLE m_dashboard
   ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iObjectCollectionNameOrig
   ON m_object_collection (name_orig);
