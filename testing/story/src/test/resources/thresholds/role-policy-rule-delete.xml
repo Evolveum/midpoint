@@ -25,11 +25,8 @@
             	</modification>
             </policyConstraints>
             <policyThreshold>
-<!--             	<timeInterval> -->
-<!--             		<interval>PT1H</interval> -->
-<!--             	</timeInterval> -->
             	<lowWaterMark>
-            		<count>1</count>
+            		<count>6</count>
             	</lowWaterMark>
             </policyThreshold>
             <policyActions>
