@@ -465,7 +465,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 5);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);

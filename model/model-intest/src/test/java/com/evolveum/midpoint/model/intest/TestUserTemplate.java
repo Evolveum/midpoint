@@ -1059,12 +1059,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(0);             // operation is idempotent
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
-        ObjectDeltaOperation<?> objectDeltaOperation = dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class);
-        assertEquals("unexpected number of modifications in audited delta", 7, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + modifyTimestamp, modifyChannel, modifierRef
     }
 
     @Test

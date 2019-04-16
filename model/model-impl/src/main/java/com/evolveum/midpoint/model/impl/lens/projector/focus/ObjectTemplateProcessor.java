@@ -75,7 +75,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -95,7 +94,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocalAutoassignSpeci
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
@@ -422,12 +420,12 @@ public class ObjectTemplateProcessor {
 					PropertyDelta propertyDelta = ((PropertyDelta) itemDelta);
 					QName matchingRuleName = templateItemDefinition != null ? templateItemDefinition.getMatchingRule() : null;
 					MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
-					if (propertyDelta.isRedundant(targetObject, matchingRule)) {
+					if (propertyDelta.isRedundant(targetObject, matchingRule, false)) {
 						LOGGER.trace("Computed property delta is redundant => skipping it. Delta = \n{}", propertyDelta.debugDump());
 						continue;
 					}
 				} else {
-					if (itemDelta.isRedundant(targetObject)) {
+					if (itemDelta.isRedundant(targetObject, false)) {
 						LOGGER.trace("Computed item delta is redundant => skipping it. Delta = \n{}", itemDelta.debugDump());
 						continue;
 					}

@@ -131,7 +131,8 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 	ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy);
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications);
+	Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+			boolean assumeMissingItems);
 
 	ObjectDelta<O> createDelta(ChangeType changeType);
 
