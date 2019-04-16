@@ -480,6 +480,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final File TASK_MOCK_JACK_FILE = new File(COMMON_DIR, "task-mock-jack.xml");
 	protected static final String TASK_MOCK_JACK_OID = "10000000-0000-0000-5656-565674633311";
+	
+	protected static final String TASK_DELETE_NOT_UPDATED_SHADOWS = COMMON_DIR + "/task-delete-not-updated-shadows.xml";
+	protected static final String TASK_DELETE_NOT_UPDATED_SHADOWS_OID = "5b2ba49f-6d4f-4618-afdf-4d138117e40a";
 
 	public static final File LOOKUP_LANGUAGES_FILE = new File(COMMON_DIR, "lookup-languages.xml");
 	public static final String LOOKUP_LANGUAGES_OID = "70000000-0000-0000-1111-000000000001";
@@ -506,13 +509,15 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final ItemName PIRACY_RISK_VECTOR_RISK = new ItemName(NS_PIRACY, "risk");
 	protected static final ItemName PIRACY_RISK_VECTOR_VALUE = new ItemName(NS_PIRACY, "value");
 	protected static final ItemName RELATION_PIRACY_CAPTAIN = new ItemName(NS_PIRACY, "captain");
+	protected static final ItemName PIRACY_LOCKER = new ItemName(NS_PIRACY, "locker");
 
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = ItemPath
 		    .create(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
-
+    protected static final String DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME = "locker";
+    
     protected static final String INTENT_TEST = "test";
     protected static final String INTENT_DUMMY_GROUP = "group";
     protected static final String INTENT_DUMMY_PRIVILEGE = "privilege";

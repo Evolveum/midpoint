@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,9 @@ public class PolyStringStrictMatchingRule implements MatchingRule<PolyString> {
 		if (a == null || b == null) {
 			return false;
 		}
-		return MiscUtil.equals(a.getOrig(), b.getOrig()) && MiscUtil.equals(a.getNorm(), b.getNorm());
+		// Delegate to PolyString.equals(). This does it well. As we want to compare
+		// all aspects of polystring here: orig, norm, translations, langs
+		return a.equals(b);
 	}
 
 	/* (non-Javadoc)

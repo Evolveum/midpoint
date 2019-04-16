@@ -39,36 +39,19 @@ import org.identityconnectors.framework.api.APIConfiguration;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
-import org.identityconnectors.framework.api.operations.APIOperation;
-import org.identityconnectors.framework.api.operations.CreateApiOp;
-import org.identityconnectors.framework.api.operations.DeleteApiOp;
-import org.identityconnectors.framework.api.operations.GetApiOp;
-import org.identityconnectors.framework.api.operations.SchemaApiOp;
-import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
-import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
-import org.identityconnectors.framework.api.operations.SearchApiOp;
-import org.identityconnectors.framework.api.operations.SyncApiOp;
-import org.identityconnectors.framework.api.operations.TestApiOp;
-import org.identityconnectors.framework.api.operations.UpdateApiOp;
-import org.identityconnectors.framework.api.operations.UpdateDeltaApiOp;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
-import org.identityconnectors.framework.common.objects.AttributeInfo;
-import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
-import org.identityconnectors.framework.common.objects.OperationOptionInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.PredefinedAttributes;
 import org.identityconnectors.framework.common.objects.QualifiedUid;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
-import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.SortKey;
@@ -124,7 +107,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -142,29 +124,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AuxiliaryObjectClassesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -198,6 +164,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	PrismContext prismContext;
 	private final ConnIdNameMapper connIdNameMapper;
 	private final ConnIdConvertor connIdConvertor;
+	
+	private List<QName> generateObjectClasses = null;
 
 	/**
 	 * Builder and holder object for parsed ConnId schema and capabilities. By using
@@ -265,7 +233,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public synchronized void configure(PrismContainerValue<?> configurationOriginal, OperationResult parentResult)
+	public synchronized void configure(PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
@@ -275,6 +243,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		try {
+			this.generateObjectClasses = generateObjectClasses;
 			// Get default configuration for the connector. This is important,
 			// as it contains types of connector configuration properties.
 
@@ -416,8 +385,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
@@ -426,18 +395,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		validateConnectorFacade(parentResult);
 
-		setResourceSchema(resourceSchema);
+		updateSchema(resourceSchema);
 		this.capabilities = capabilities;
 		this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
-
-		if (resourceSchema != null && legacySchema == null) {
-			legacySchema = detectLegacySchema(resourceSchema);
-		}
 
 		if (resourceSchema == null || capabilities == null) {
 			try {
 				
-				retrieveAndParseResourceCapabilitiesAndSchema(null, result);
+				retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 				
 				this.legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
 				setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
@@ -459,7 +424,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		result.recordSuccess();
 	}
-	
+
+	public void updateSchema(ResourceSchema resourceSchema) {
+		setResourceSchema(resourceSchema);
+
+		if (resourceSchema != null && legacySchema == null) {
+			legacySchema = detectLegacySchema(resourceSchema);
+		}
+	}
+
 	private boolean detectLegacySchema(ResourceSchema resourceSchema) {
 		ComplexTypeDefinition accountObjectClass = resourceSchema.findComplexTypeDefinition(
 				new QName(resourceSchemaNamespace, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
@@ -467,8 +440,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public synchronized ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public synchronized ResourceSchema fetchResourceSchema(OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchResourceSchema");
@@ -477,7 +450,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		try {
 			
 			if (parsedCapabilitiesAndSchema == null) {
-				retrieveAndParseResourceCapabilitiesAndSchema(null, result);
+				retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 			}
 			
 			legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
@@ -498,8 +471,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public synchronized Collection<Object> fetchCapabilities(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public synchronized Collection<Object> fetchCapabilities(OperationResult parentResult) 
+		throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName() + ".fetchCapabilities");
@@ -510,7 +483,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			// Always refresh capabilities and schema here, even if we have already parsed that before.
 			// This method is used in "test connection". We want to force fresh fetch here
 			// TODO: later: clean up this mess. Make fresh fetch somehow explicit?
-			retrieveAndParseResourceCapabilitiesAndSchema(null, result);
+			retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 			
 			legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
 			setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
@@ -527,7 +500,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 
-	private void retrieveAndParseResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException {
+	private void retrieveAndParseResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
 		
 		ConnIdCapabilitiesAndSchemaParser parser = new ConnIdCapabilitiesAndSchemaParser();
 		parser.setConnectorHumanReadableName(getHumanReadableName());
@@ -1873,8 +1846,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		ResultsHandler connIdHandler = new ResultsHandler() {
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
-				// Convert ConnId-specific connector object to a generic
-				// ResourceObject
+				// Convert ConnId-specific connector object to a generic ResourceObject
 				recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
                 int count = countHolder.getValue();
                 countHolder.setValue(count+1);

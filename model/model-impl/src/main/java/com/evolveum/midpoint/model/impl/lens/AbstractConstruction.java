@@ -98,6 +98,9 @@ public abstract class AbstractConstruction<F extends AssignmentHolderType, T ext
 	}
 
 	public void setFocusOdo(ObjectDeltaObject<F> focusOdo) {
+		if (focusOdo.getDefinition() == null) {
+			throw new IllegalArgumentException("No definition in focus ODO "+focusOdo);
+		}
 		this.focusOdo = focusOdo;
 	}
 

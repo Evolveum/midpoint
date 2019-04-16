@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,7 +195,7 @@ public class ProjectionCredentialsProcessor {
 		MappingInitializer<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> initializer =
 			(builder) -> {
 				builder.defaultTargetDefinition(projPasswordPropertyDefinition);
-				builder.defaultSource(new Source<>(userPasswordIdi, ExpressionConstants.VAR_INPUT));
+				builder.defaultSource(new Source<>(userPasswordIdi, ExpressionConstants.VAR_INPUT_QNAME));
 				builder.valuePolicyResolver(stringPolicyResolver);
 				return builder;
 			};
@@ -249,7 +249,7 @@ public class ProjectionCredentialsProcessor {
 							if (userPasswordDeltaOldValues != null && !userPasswordDeltaOldValues.isEmpty()) {
 								ProtectedStringType oldUserPassword = userPasswordDeltaOldValues.iterator().next().getRealValue();
 								try {
-									if (oldUserPassword.canGetCleartext() && protector.compare(oldUserPassword, oldProjectionPassword)) {
+									if (oldUserPassword.canGetCleartext() && protector.compareCleartext(oldUserPassword, oldProjectionPassword)) {
 										outputTriple.clearMinusSet();
 										outputTriple.addToMinusSet(prismContext.itemFactory().createPropertyValue(oldUserPassword));
 									}

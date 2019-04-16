@@ -23,19 +23,19 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-6">
-                    <h3><wicket:message key="PageRepositoryQuery.midPoint"/></h3>
+                    <h3><div wicket:id="repositoryQueryLabel"/></h3>
                     <div class="form-group" style="margin-bottom: 5px; width:100%">
                         <label for="objectType" class="col-xs-3"><wicket:message key="PageRepositoryQuery.objectType"/></label>
-                        <select id="objectType" wicket:id="objectType" class="input-sm form-control"></select>
+                        <div id="objectType" wicket:id="objectType"></div>
                     </div>
                     <div class="form-group" wicket:id="distinct" style="margin-bottom: 15px; width:100%"/>
                     <br/> <!-- couldn't put this into form-group, so leaving it standalone -->
                     <textarea wicket:id="editorMidPoint" style="margin-bottom: 10px"></textarea>
                     <div class="form-group" style="margin-top: 10px">
                         <label for="querySample" class="small"><wicket:message key="PageRepositoryQuery.chooseSample"/></label>
-                        <select id="querySample" class="input-sm form-control" wicket:id="querySample"/>
+                        <div id="querySample" wicket:id="querySample"/>
                     </div>
-                    <p class="small" style="margin-top: 5px"><wicket:message key="PageRepositoryQuery.queryVsFilterNote"/></p>
+                    <p class="small" style="margin-top: 5px"><div wicket:id="queryVsFilterNote"/></p>
                     <div class="main-button-bar" wicket:id="midPointQueryButtonBar">
                         <a class="btn btn-primary" wicket:id="executeMidPoint"/>
                         <a class="btn btn-default" wicket:id="compileMidPoint"/>
@@ -46,7 +46,7 @@
                     <h3><wicket:message key="PageRepositoryQuery.hibernateQuery"/></h3>
                     <textarea wicket:id="editorHibernate"></textarea>
                     <h4><wicket:message key="PageRepositoryQuery.hibernateParameters"/></h4>
-                    <p class="small" wicket:id="hibernateParametersNote"><wicket:message key="PageRepositoryQuery.hibernateParametersNote"/></p>
+                    <p class="small" wicket:id="hibernateParametersNote" />
                     <textarea wicket:id="hibernateParameters"></textarea>
                     <div class="form-group" style="margin-top: 15px">
                         <a class="btn btn-primary" wicket:id="executeHibernate"/>

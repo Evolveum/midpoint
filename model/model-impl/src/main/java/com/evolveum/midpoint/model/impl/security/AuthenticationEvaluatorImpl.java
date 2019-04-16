@@ -360,7 +360,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		ProtectedStringType entered = new ProtectedStringType();
 		entered.setClearValue(enteredPassword);
 		try {
-			return protector.compare(entered, protectedString);
+			return protector.compareCleartext(entered, protectedString);
 		} catch (SchemaException | EncryptionException e) {
 			// This is a serious error. It is not business as usual (e.g. wrong password or missing authorization).
 			// This is either bug or serious misconfiguration (e.g. missing decryption key in keystore).

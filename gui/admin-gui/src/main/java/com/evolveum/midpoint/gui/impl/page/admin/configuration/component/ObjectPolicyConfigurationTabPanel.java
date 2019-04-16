@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -232,8 +233,8 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				return Model.of(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
 		});
 		

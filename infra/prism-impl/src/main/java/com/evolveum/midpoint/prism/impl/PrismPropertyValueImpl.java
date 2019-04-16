@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -434,15 +436,29 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 			}
         } else {
 
-			if (thisRealValue instanceof Element &&
-					otherRealValue instanceof Element) {
+			if (thisRealValue instanceof Element && otherRealValue instanceof Element) {
 				return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, strategy.isLiteralDomComparison());
 			}
 
-			if (thisRealValue instanceof SchemaDefinitionType &&
-					otherRealValue instanceof SchemaDefinitionType) {
+			if (thisRealValue instanceof SchemaDefinitionType && otherRealValue instanceof SchemaDefinitionType) {
 				SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
 				return thisSchema.equals(otherRealValue, strategy.isLiteralDomComparison());
+			}
+			
+			if (thisRealValue instanceof ProtectedStringType && otherRealValue instanceof ProtectedStringType) {
+				PrismContext prismContext = getPrismContext();
+				if (prismContext == null || prismContext.getDefaultProtector() == null) {
+					// Slightly dangerous, may get wrong results. See javadoc of ProtectedDataType.equals()
+					// But what else can we do?
+					return thisRealValue.equals(otherRealValue);
+				} else {
+					try {
+						return prismContext.getDefaultProtector().areEquivalent((ProtectedStringType)thisRealValue, (ProtectedStringType)otherRealValue);
+					} catch (SchemaException | EncryptionException e) {
+						// Not absolutely correct. But adding those throws clauses to all equals(...) signature will wreak havoc.
+						throw new SystemException("Error comparing protected string values: "+e.getMessage(), e);
+					}
+				}
 			}
 
 	        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {

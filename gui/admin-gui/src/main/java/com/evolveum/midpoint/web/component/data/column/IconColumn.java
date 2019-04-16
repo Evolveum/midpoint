@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -27,7 +28,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author lazyman
  */
-public class IconColumn<T> extends AbstractColumn<T, String> implements IExportableColumn<T, String> {
+public abstract class IconColumn<T> extends AbstractColumn<T, String> implements IExportableColumn<T, String> {
     private static final long serialVersionUID = 1L;
 
     public IconColumn(IModel<String> displayModel) {
@@ -46,16 +47,10 @@ public class IconColumn<T> extends AbstractColumn<T, String> implements IExporta
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
-        cellItem.add(new ImagePanel(componentId, createIconModel(rowModel), createTitleModel(rowModel)));
+        cellItem.add(new ImagePanel(componentId, getIconDisplayType(rowModel)));
     }
 
-    protected IModel<String> createTitleModel(final IModel<T> rowModel) {
-        return null;
-    }
-
-    protected IModel<String> createIconModel(final IModel<T> rowModel) {
-        throw new UnsupportedOperationException("Not implemented, please implement in your column.");
-    }
+    protected abstract DisplayType getIconDisplayType(final IModel<T> rowModel);
 
     @Override
     public IModel<String> getDataModel(IModel<T> rowModel) {

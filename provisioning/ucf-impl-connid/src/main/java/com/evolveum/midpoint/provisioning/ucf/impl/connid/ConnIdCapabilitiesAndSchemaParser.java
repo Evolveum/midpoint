@@ -18,10 +18,13 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.identityconnectors.common.security.GuardedByteArray;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.operations.APIOperation;
 import org.identityconnectors.framework.api.operations.CreateApiOp;
@@ -49,6 +52,7 @@ import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -63,6 +67,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -87,6 +92,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Class that can parse ConnId capabilities and schema into midPoint format.
@@ -183,7 +191,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 		this.legacySchema = legacySchema;
 	}
 
-	public void retrieveResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException {
+	public void retrieveResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
 		
 		fetchSupportedOperations(parentResult);
 		
@@ -333,9 +341,17 @@ public class ConnIdCapabilitiesAndSchemaParser {
 		if (connIdSupportedOperations.contains(UpdateDeltaApiOp.class)) {
 			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
 			capUpdate.setDelta(true);
+			// This is the default for all resources.
+			// (Currently there is no way how to obtain it from the connector.)
+			// It can be disabled manually.
+			capUpdate.setAddRemoveAttributeValues(true);
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
 		} else if (connIdSupportedOperations.contains(UpdateApiOp.class)) {
 			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
+			// This is the default for all resources.
+			// (Currently there is no way how to obtain it from the connector.)
+			// It can be disabled manually.
+			capUpdate.setAddRemoveAttributeValues(true);
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
 		}
 
@@ -362,11 +378,6 @@ public class ConnIdCapabilitiesAndSchemaParser {
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createScript(capScript));
 		}
 		
-		// This is the default for all resources.
-		// (Currently there is no way how to obtain it from the connector.)
-		// It can be disabled manually.
-		AddRemoveAttributeValuesCapabilityType addRemove = new AddRemoveAttributeValuesCapabilityType();
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemove));
 	}
 	
 	private void addBasicReadCapability() {
@@ -379,7 +390,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 		}
 	}
 	
-	private void parseResourceSchema(org.identityconnectors.framework.common.objects.Schema connIdSchema, List<QName> generateObjectClasses) {
+	private void parseResourceSchema(org.identityconnectors.framework.common.objects.Schema connIdSchema, List<QName> generateObjectClasses) throws SchemaException {
 
 		AttributeInfo passwordAttributeInfo = null;
 		AttributeInfo enableAttributeInfo = null;
@@ -478,7 +489,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 				}
 
 				QName attrXsdName = connIdNameMapper.convertAttributeNameToQName(processedAttributeName, ocDef);
-				QName attrXsdType = ConnIdUtil.icfTypeToXsdType(attributeInfo.getType(), false);
+				QName attrXsdType = connIdTypeToXsdType(attributeInfo, false);
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("  attr conversion ConnId: {}({}) -> XSD: {}({})",
@@ -778,6 +789,58 @@ public class ConnIdCapabilitiesAndSchemaParser {
 			RunAsCapabilityType capRunAs = new RunAsCapabilityType();
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRunAs(capRunAs));
 		}
+	}
+	
+	public static QName connIdTypeToXsdType(AttributeInfo attrInfo, boolean isConfidential) throws SchemaException {
+		if (Map.class.isAssignableFrom(attrInfo.getType())) {
+			// ConnId type is "Map". We need more precise definition on midPoint side.
+			String subtype = attrInfo.getSubtype();
+			if (subtype == null) {
+				throw new SchemaException("Attribute "+attrInfo.getName()+" defined as Map, but there is no subtype");
+			}
+			if (SchemaConstants.ICF_SUBTYPES_POLYSTRING_URI.equals(subtype)) {
+					return PolyStringType.COMPLEX_TYPE;
+			} else {
+				throw new SchemaException("Attribute "+attrInfo.getName()+" defined as Map, but there is unsupported subtype '"+subtype+"'");
+			}
+		}
+		return connIdTypeToXsdType(attrInfo.getType(), isConfidential);
+	}
+	
+	public static QName connIdTypeToXsdType(Class<?> type, boolean isConfidential) {
+		// For arrays we are only interested in the component type
+		if (isMultivaluedType(type)) {
+			type = type.getComponentType();
+		}
+		QName propXsdType = null;
+		if (GuardedString.class.equals(type) ||
+				(String.class.equals(type) && isConfidential)) {
+			// GuardedString is a special case. It is a ICF-specific
+			// type
+			// implementing Potemkin-like security. Use a temporary
+			// "nonsense" type for now, so this will fail in tests and
+			// will be fixed later
+//			propXsdType = SchemaConstants.T_PROTECTED_STRING_TYPE;
+			propXsdType = ProtectedStringType.COMPLEX_TYPE;
+		} else if (GuardedByteArray.class.equals(type) ||
+				(Byte.class.equals(type) && isConfidential)) {
+			// GuardedString is a special case. It is a ICF-specific
+			// type
+			// implementing Potemkin-like security. Use a temporary
+			// "nonsense" type for now, so this will fail in tests and
+			// will be fixed later
+//			propXsdType = SchemaConstants.T_PROTECTED_BYTE_ARRAY_TYPE;
+			propXsdType = ProtectedByteArrayType.COMPLEX_TYPE;
+		} else {
+			propXsdType = XsdTypeMapper.toXsdType(type);
+		}
+		return propXsdType;
+	}
+	
+	public static boolean isMultivaluedType(Class<?> type) {
+		// We consider arrays to be multi-valued
+		// ... unless it is byte[] or char[]
+		return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
 	}
 
 }

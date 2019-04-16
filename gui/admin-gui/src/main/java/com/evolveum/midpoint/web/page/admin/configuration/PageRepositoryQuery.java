@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -99,6 +101,8 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String OPERATION_EXECUTE_QUERY = DOT_CLASS + "executeQuery";
 
     private static final String ID_MAIN_FORM = "mainForm";
+	private static final String ID_REPOSITORY_QUERY_LABEL = "repositoryQueryLabel";
+	private static final String ID_QUERY_VS_FILTER_NOTE = "queryVsFilterNote";
 	private static final String ID_MIDPOINT_QUERY_BUTTON_BAR = "midPointQueryButtonBar";
     private static final String ID_EXECUTE_MIDPOINT = "executeMidPoint";
     private static final String ID_COMPILE_MIDPOINT = "compileMidPoint";
@@ -169,20 +173,25 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-		List<QName> objectTypeList = WebComponentUtil.createObjectTypeList();
-		Collections.sort(objectTypeList, new Comparator<QName>() {
-			@Override
-			public int compare(QName o1, QName o2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(o1.getLocalPart(), o2.getLocalPart());
-			}
-		});
-		DropDownChoice<QName> objectTypeChoice = new DropDownChoice<>(ID_OBJECT_TYPE,
+        Label repositoryQueryLabel = new Label(ID_REPOSITORY_QUERY_LABEL, createStringResource("PageRepositoryQuery.midPoint",
+				WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "MidPoint")));
+        repositoryQueryLabel.setOutputMarkupId(true);
+        mainForm.add(repositoryQueryLabel);
+
+//		List<QName> objectTypeList = WebComponentUtil.createObjectTypeList();
+//		Collections.sort(objectTypeList, new Comparator<QName>() {
+//			@Override
+//			public int compare(QName o1, QName o2) {
+//				return String.CASE_INSENSITIVE_ORDER.compare(o1.getLocalPart(), o2.getLocalPart());
+//			}
+//		});
+		DropDownChoicePanel<QName> objectTypeChoice = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
             new PropertyModel<>(model, RepoQueryDto.F_OBJECT_TYPE),
-				new ListModel<>(objectTypeList),
+				new ListModel<>(WebComponentUtil.createObjectTypeList()),
 				new QNameChoiceRenderer());
 		objectTypeChoice.setOutputMarkupId(true);
-		objectTypeChoice.setNullValid(true);
-		objectTypeChoice.add(new OnChangeAjaxBehavior() {
+		objectTypeChoice.getBaseFormComponent().setNullValid(true);
+		objectTypeChoice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(get(ID_MAIN_FORM).get(ID_MIDPOINT_QUERY_BUTTON_BAR));
@@ -212,9 +221,15 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		hibernateParameters.setMode(null);
 		mainForm.add(hibernateParameters);
 
-		WebMarkupContainer hibernateParametersNote = new WebMarkupContainer(ID_HIBERNATE_PARAMETERS_NOTE);
+		Label hibernateParametersNote = new Label(ID_HIBERNATE_PARAMETERS_NOTE, createStringResource("PageRepositoryQuery.hibernateParametersNote",
+				WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
 		hibernateParametersNote.setVisible(isAdmin);
 		mainForm.add(hibernateParametersNote);
+
+		Label queryVsFilterNote = new Label(ID_QUERY_VS_FILTER_NOTE, createStringResource("PageRepositoryQuery.queryVsFilterNote",
+				WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
+		queryVsFilterNote.setOutputMarkupId(true);
+		mainForm.add(queryVsFilterNote);
 
 		WebMarkupContainer midPointQueryButtonBar = new WebMarkupContainer(ID_MIDPOINT_QUERY_BUTTON_BAR);
 		midPointQueryButtonBar.setOutputMarkupId(true);
@@ -264,20 +279,14 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		});
 		midPointQueryButtonBar.add(useInObjectList);
 
-		final DropDownChoice<String> sampleChoice = new DropDownChoice<>(ID_QUERY_SAMPLE,
-				Model.of(""),
-				new IModel<List<String>>() {
-					@Override
-					public List<String> getObject() {
-						return SAMPLES;
-					}
-				},
-				new StringResourceChoiceRenderer("PageRepositoryQuery.sample"));
-		sampleChoice.setNullValid(true);
-		sampleChoice.add(new OnChangeAjaxBehavior() {
+		final DropDownChoicePanel<String> sampleChoice = new DropDownChoicePanel<String>(ID_QUERY_SAMPLE,
+				Model.of(""), Model.ofList(SAMPLES),
+				new StringResourceChoiceRenderer("PageRepositoryQuery.sample"), true);
+		sampleChoice.getBaseFormComponent().setNullValid(true);
+		sampleChoice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				String sampleName = sampleChoice.getModelObject();
+				String sampleName = sampleChoice.getModel().getObject();
 				if (StringUtils.isEmpty(sampleName)) {
 					return;
 				}
@@ -518,7 +527,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		request.setType(clazz);
 		ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
 		ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),
-				getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
+				MiscSchemaUtil.getExpressionProfile(), getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
 		request.setQuery(queryWithExprEvaluated);
 
 		Collection<SelectorOptions<GetOperationOptions>> options = distinct ? createCollection(createDistinct()) : null;

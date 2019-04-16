@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil.Channel;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -53,6 +54,7 @@ public class AuditSearchDto implements Serializable {
 	public static final String F_OUTCOME = "outcome";
 	public static final String F_CHANGED_ITEM = "changedItem";
 	public static final String F_VALUE_REF_TARGET_NAME = "valueRefTargetNames";
+	public static final String F_COLLECTION = "collection";
 
 	private XMLGregorianCalendar from;
 	private XMLGregorianCalendar to;
@@ -67,6 +69,7 @@ public class AuditSearchDto implements Serializable {
 	private OperationResultStatusType outcome;
 	private ItemPathDto changedItem;
 	private List<ObjectType> valueRefTargetNames;
+	private ObjectCollectionType collection;
 
 	public AuditSearchDto() {
 	}
@@ -177,5 +180,13 @@ public class AuditSearchDto implements Serializable {
 
 	public void setTargetNamesObjects(List<ObjectType> targetNamesObjects) {
 		this.targetNamesObjects = targetNamesObjects;
+	}
+	
+	public ObjectCollectionType getCollection() {
+		return collection;
+	}
+	
+	public void setCollection(ObjectCollectionType collection) {
+		this.collection = collection;
 	}
 }

@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -355,16 +356,9 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                                     private static final long serialVersionUID = 1L;
 
                                     @Override
-                                    protected IModel<String> createIconModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                                        return new IModel<String>() {
-
-                                            private static final long serialVersionUID = 1L;
-
-                                            @Override
-                                            public String getObject() {
-                                                return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue()));
-                                            }
-                                        };
+                                    protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                                        return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+                                                AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue())));
                                     }
 
                                 });

@@ -43,6 +43,7 @@ import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyOrg;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
@@ -125,6 +126,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String OBJECTCLASS_ORG_LOCAL_PART = "CustomorgObjectClass";
 
 	public static final String DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME = "posixAccount";
+	
+	public static final int PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS = 19;
 
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
@@ -321,15 +324,24 @@ public class DummyResourceContoller extends AbstractResourceController {
 		}
 	}
 
-	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema) {
-		assertDummyResourceSchemaSanityExtended(resourceSchema, resource.asObjectable(), true);
+	/**
+	 * @return default account definition
+	 */
+	public ObjectClassComplexTypeDefinition assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema) {
+		return assertDummyResourceSchemaSanityExtended(resourceSchema, resource.asObjectable(), true);
 	}
 
-	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
-		assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, 19);
+	/**
+	 * @return default account definition
+	 */
+	public ObjectClassComplexTypeDefinition assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
+		return assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS);
 	}
 
-	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder, int numberOfAccountDefinitions) {
+	/**
+	 * @return default account definition
+	 */
+	public ObjectClassComplexTypeDefinition assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder, int numberOfAccountDefinitions) {
 		assertDummyResourceSchemaSanity(resourceSchema, resourceType, checkDisplayOrder);
 
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -353,6 +365,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNull("Non-null intent in account definition", accountDef.getIntent());
 		assertFalse("Account definition is deprecated", accountDef.isDeprecated());
 		assertFalse("Account definition is auxiliary", accountDef.isAuxiliary());
+		
+		return accountDef;
 	}
 
 	public void assertRefinedSchemaSanity(RefinedResourceSchema refinedSchema) {
@@ -433,11 +447,12 @@ public class DummyResourceContoller extends AbstractResourceController {
 		dummyResource.addAccount(account);
 	}
 
-	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+	public DummyGroup addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
 		assertExtendedSchema();
 		DummyGroup group = new DummyGroup(name);
 		group.setEnabled(true);
 		dummyResource.addGroup(group);
+		return group;
 	}
 	
 	public void deleteAccount(String name) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException, InterruptedException {
@@ -458,6 +473,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public void reset() {
 		dummyResource.setBreakMode(BreakMode.NONE);
 		dummyResource.setBlockOperations(false);
+		dummyResource.setSyncSearchHandlerStart(false);
 		dummyResource.unblockAll();
 	}
 	
@@ -490,5 +506,9 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	private DummyGroupAsserter<Void> assertGroup(DummyGroup group) {
 		return new DummyGroupAsserter<>(group, getName());
+	}
+
+	public void setSyncStyle(DummySyncStyle syncStyle) {
+		dummyResource.setSyncStyle(syncStyle);
 	}
 }

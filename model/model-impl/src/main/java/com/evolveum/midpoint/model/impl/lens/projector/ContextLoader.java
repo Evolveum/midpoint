@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -90,6 +90,7 @@ public class ContextLoader {
     private transient RepositoryService cacheRepositoryService;
 
 	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private ArchetypeManager archetypeManager;
 	@Autowired private ProvisioningService provisioningService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private SecurityHelper securityHelper;
@@ -424,14 +425,13 @@ public class ContextLoader {
 
         if (context.getFocusContext() != null) {
         	PrismObject<F> object = context.getFocusContext().getObjectAny();
-            if (context.getFocusContext().getObjectPolicyConfigurationType() == null) {
-				ObjectPolicyConfigurationType policyConfigurationType =
-                        ModelUtils.determineObjectPolicyConfiguration(object, systemConfigurationType);
+            if (context.getFocusContext().getArchetypePolicyType() == null) {
+				ArchetypePolicyType policyConfigurationType = archetypeManager.determineArchetypePolicy(object, result);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
 							FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
 				}
-                context.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
+                context.getFocusContext().setArchetypePolicyType(policyConfigurationType);
             }
         }
 
@@ -458,12 +458,12 @@ public class ContextLoader {
 		if (focusContext == null) {
 			return null;
 		}
-		ObjectPolicyConfigurationType policyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-		if (policyConfigurationType == null) {
+		ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+		if (archetypePolicy == null) {
 			LOGGER.trace("No default object template (no policy)");
 			return null;
 		}
-		ObjectReferenceType templateRef = policyConfigurationType.getObjectTemplateRef();
+		ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
 		if (templateRef == null) {
 			LOGGER.trace("No default object template (no templateRef)");
 			return null;

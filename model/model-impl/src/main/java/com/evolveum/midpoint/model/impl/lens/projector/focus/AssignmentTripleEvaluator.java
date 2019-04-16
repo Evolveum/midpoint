@@ -476,24 +476,24 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(
-			PrismContainerValue<AssignmentType> cval) throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
-		idi.recompute();
-		return idi;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(PrismContainerValue<AssignmentType> cval) throws SchemaException {
+		PrismContainerDefinition<AssignmentType> definition = cval.getDefinition();
+		if (definition == null) {
+			// TODO: optimize
+			definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+		}
+		return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), definition);
 	}
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
 			PrismContainerValue<AssignmentType> cval) throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-		idi.setItemOld(null);
 		@SuppressWarnings({"unchecked", "raw"})
 		ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta = (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
 				getDeltaItemFragment(cval)
 						.add(cval.asContainerable().clone())
 						.asItemDelta();
-		idi.setDelta(itemDelta);
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>(
+				null, itemDelta, null, cval.getDefinition());
 		idi.recompute();
 		return idi;
 	}
@@ -513,14 +513,14 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiDelete(
 			PrismContainerValue<AssignmentType> cval) throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
 		@SuppressWarnings({"unchecked", "raw"})
 		ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta = (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
 				getDeltaItemFragment(cval)
 						.delete(cval.asContainerable().clone())
 						.asItemDelta();
-		idi.setDelta(itemDelta);
+
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>(
+				LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), itemDelta, null, cval.getDefinition());
 		idi.recompute();
 		return idi;
 	}
@@ -528,8 +528,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiInternalChange(
 			PrismContainerValue<AssignmentType> cval, Collection<? extends ItemDelta<?, ?>> subItemDeltas)
 			throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = 
+				new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), cval.getDefinition());
 		idi.setSubItemDeltas(subItemDeltas);
 		idi.recompute();
 		return idi;

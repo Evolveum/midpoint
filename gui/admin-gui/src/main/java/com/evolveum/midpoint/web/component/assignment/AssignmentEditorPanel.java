@@ -1139,7 +1139,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				&& !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
 			List<UserType> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
 			if (targetUserList == null || targetUserList.size() == 0){
-				operationObject = pageBase.loadUserSelf();
+				operationObject = pageBase.getPrincipalUser().asPrismObject();
 			} else {
 				operationObject = targetUserList.get(0).asPrismObject();
 			}

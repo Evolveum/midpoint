@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,14 +31,17 @@
             <class name="com.evolveum.midpoint.testing.story.TestUnixTolerantAux"/>
             <class name="com.evolveum.midpoint.testing.story.uuid.TestUuidClient"/>
             <class name="com.evolveum.midpoint.testing.story.uuid.TestUuidExtension"/>
-            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapFlat"/>
-            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapNested"/>
-            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapHierarchical"/>
-            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapDeeplyHierarchical"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapVirtualGroup"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapDependency"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapSyncMassive"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapPolyString"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapFlat"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapNested"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapHierarchical"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapDeeplyHierarchical"/>
             <class name="com.evolveum.midpoint.testing.story.TestRetirement"/>
             <class name="com.evolveum.midpoint.testing.story.TestNullAttribute"/>
             <class name="com.evolveum.midpoint.testing.story.TestMachineIntelligence"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapDependency"/>
             <class name="com.evolveum.midpoint.testing.story.TestEntertainment"/>
             <class name="com.evolveum.midpoint.testing.story.TestStrings"/>
             <class name="com.evolveum.midpoint.testing.story.TestDependencyRename"/>
@@ -46,7 +49,6 @@
             <class name="com.evolveum.midpoint.testing.story.notorious.TestNotoriousRole"/>
             <class name="com.evolveum.midpoint.testing.story.notorious.TestNotoriousOrg"/>
             <class name="com.evolveum.midpoint.testing.story.TestDelivery"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapVirtualGroup"/>
             <class name="com.evolveum.midpoint.testing.story.TestMapleLeaf"/>
             <class name="com.evolveum.midpoint.testing.story.TestNormalizers"/>
             <class name="com.evolveum.midpoint.testing.story.TestOperationPerf"/>
@@ -62,7 +64,6 @@
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsReconFull"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncSimulate"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncFull"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapSyncMassive"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestPrivacy"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestRoleMembers"/>
         </classes>

@@ -137,7 +137,7 @@ public class RepositoryCache implements RepositoryService {
 
 	@PostConstruct
 	public void initialize() {
-		Integer cacheMaxTTL = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION)
+		int cacheMaxTTL = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION)
 				.getInt(PROPERTY_CACHE_MAX_TTL,0);
 		if (cacheMaxTTL < 0) {
 			cacheMaxTTL = 0;

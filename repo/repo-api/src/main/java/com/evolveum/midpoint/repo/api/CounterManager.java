@@ -31,4 +31,5 @@ public interface CounterManager {
 	void cleanupCounters(String taskOid);
 	Collection<CounterSepcification> listCounters();
 	void removeCounter(CounterSepcification counterSpecification);
+	void resetCounters(String taskOid);
 }

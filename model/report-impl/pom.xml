@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@
 		<url>https://fisheye.evolveum.com/browse/midPoint</url>
 	</scm>
 	<dependencies>
-	
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-api</artifactId>
@@ -134,6 +133,10 @@
 			<artifactId>commons-lang</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
@@ -195,6 +198,14 @@
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
 			<artifactId>javax.ws.rs-api</artifactId>
+		</dependency>
+		
+		<!-- Dependency for dashboard reports-->
+		
+		<dependency>
+    		<groupId>com.j2html</groupId>
+    		<artifactId>j2html</artifactId>
+    		<version>1.4.0</version>
 		</dependency>
 
 		<dependency>

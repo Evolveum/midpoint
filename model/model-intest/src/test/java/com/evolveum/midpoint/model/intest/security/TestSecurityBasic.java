@@ -2800,7 +2800,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 					assertSuperuserAccess(NUMBER_OF_ALL_USERS + 1);
 
 				} catch (Exception e) {
-					new RuntimeException(e.getMessage(), e);
+					throw new RuntimeException(e.getMessage(), e);
 				}
 
 				return null;
@@ -2831,7 +2831,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 					assertSuperuserAccess(NUMBER_OF_ALL_USERS + 1);
 
 				} catch (Exception e) {
-					new RuntimeException(e.getMessage(), e);
+					throw new RuntimeException(e.getMessage(), e);
 				}
 
 				return null;

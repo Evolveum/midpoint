@@ -54,6 +54,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -246,6 +247,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			@Override
 			public ModelInteractionService getModelInteractionService() {
 				return modelInteractionService;
+			}
+			
+			@Override
+			public DashboardService getDashboardService() {
+				return dashboardService;
 			}
 
 			@Override

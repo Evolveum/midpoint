@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,22 +391,27 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	private <AH extends AssignmentHolderType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object) {
 		ExpressionVariables var = new ExpressionVariables();
-		var.addVariableDefinition(ExpressionConstants.VAR_USER, object);
-		var.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
-		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
+		var.put(ExpressionConstants.VAR_USER, object, object.getDefinition());
+		var.put(ExpressionConstants.VAR_FOCUS, object, object.getDefinition());
+		var.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
 		if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
 			AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget());
-			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment);
-			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE));
+			var.put(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget(), actx.evaluatedAssignment.getTarget().getDefinition());
+			var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
+			AssignmentType assignment = actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE);
+			var.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, assignment.asPrismContainerValue().getDefinition());
 		} else if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, null);
-			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
-			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
+			PrismObjectDefinition<ObjectType> targetDef = rctx.lensContext.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+			var.put(ExpressionConstants.VAR_TARGET, null, targetDef);
+			var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);
+			PrismContainerDefinition<AssignmentType> assignmentDef = rctx.lensContext.getPrismContext().getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
+					.findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+			var.put(ExpressionConstants.VAR_ASSIGNMENT, null, assignmentDef);
 		} else if (rctx != null) {
 			throw new AssertionError(rctx);
 		}
-		var.addVariableDefinition(VAR_RULE_EVALUATION_CONTEXT, rctx);
+		var.put(VAR_RULE_EVALUATION_CONTEXT, rctx, PolicyRuleEvaluationContext.class);
 		return var;
 	}
 

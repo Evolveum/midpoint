@@ -226,11 +226,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(createCap));
 
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
+		updateCap.setAddRemoveAttributeValues(true);
 		setManual(updateCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
-		
-		AddRemoveAttributeValuesCapabilityType addRemoveAttributeValuesCap = new AddRemoveAttributeValuesCapabilityType();
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemoveAttributeValuesCap));
 		
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
 		setManual(deleteCap);
@@ -295,7 +293,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	}
 
 	@Override
-	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult)
+	public ResourceSchema fetchResourceSchema(OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
 		// Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
 		InternalMonitor.recordConnectorOperation("schema");

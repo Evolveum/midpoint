@@ -114,6 +114,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -180,9 +181,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
 
-		result.computeStatus();
-		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		// Check connector schema
 		IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
@@ -206,9 +205,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 				null, null, result);
 
 		// THEN
-		result.computeStatus();
-		display("searchObjects result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertFalse("No connector found", connectors.isEmpty());
 		for (PrismObject<ConnectorType> connPrism : connectors) {
@@ -629,6 +626,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
 		assertUpdateCapability(capUpdate);
 		
+		AddRemoveAttributeValuesCapabilityType capAddRemove = CapabilityUtil.getCapability(nativeCapabilitiesList, AddRemoveAttributeValuesCapabilityType.class);
+		assertAddRemoveAttributeValuesCapability(capAddRemove);
+		
 		RunAsCapabilityType capRunAs = CapabilityUtil.getCapability(nativeCapabilitiesList, RunAsCapabilityType.class);
 		assertRunAsCapability(capRunAs);
 		
@@ -668,12 +668,18 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		dummyResource.assertConnections(1);
 		assertDummyConnectorInstances(1);
 	}
-	
+
 	protected void assertUpdateCapability(UpdateCapabilityType capUpdate) {
 		assertNotNull("native update capability not present", capUpdate);
 		assertNull("native update capability is manual", capUpdate.isManual());
-		assertNotNull("native update capability is null", capUpdate.isDelta());
+		assertNotNull("delta in native update capability is null", capUpdate.isDelta());
 		assertTrue("native update capability is NOT delta", capUpdate.isDelta());
+		assertNotNull("addRemoveAttributeValues in native update capability is null", capUpdate.isAddRemoveAttributeValues());
+		assertTrue("native update capability is NOT addRemoveAttributeValues", capUpdate.isAddRemoveAttributeValues());
+	}
+	
+	protected void assertAddRemoveAttributeValuesCapability(AddRemoveAttributeValuesCapabilityType capAddRemove) {
+		assertNull("Unexpected native AddRemoveAttributeValues capability", capAddRemove);
 	}
 	
 	protected void assertRunAsCapability(RunAsCapabilityType capRunAs) {
@@ -1264,6 +1270,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		display("Will account repo", accountRepo);
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
+		
+		if (isIcfNameUidSame()) {
+			assertPrimaryIdentifierValue(accountRepo, getWillRepoIcfName());
+		} else {
+			assertPrimaryIdentifierValue(accountRepo, getIcfUid(accountRepo));
+		}
+		
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
 		assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, getWillRepoIcfName());
 		if (isIcfNameUidSame() && !isProposedShadow(accountRepo)) {
@@ -1273,6 +1286,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNumberOfAttributes(accountRepo, expectedNumberOfAttributes);
 
 		assertRepoCachingMetadata(accountRepo, start, end);
+	}
+
+	protected void assertPrimaryIdentifierValue(PrismObject<ShadowType> shadow, String expected) {
+		if (shadow.asObjectable().getLifecycleState() == null || shadow.asObjectable().getLifecycleState().equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
+			assertEquals("Wrong primaryIdentifierValue in "+shadow, expected, shadow.asObjectable().getPrimaryIdentifierValue());
+		}
 	}
 
 	private boolean isProposedShadow(PrismObject<ShadowType> shadow) {

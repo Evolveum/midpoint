@@ -35,6 +35,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -115,7 +116,7 @@ public class PopulatorUtil {
 
 		String expressionDesc = "expression in populate expression in " + contextDescription;
 		ExpressionFactory expressionFactory = params.getExpressionFactory();
-		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition,
+		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, params.getExpressionProfile(),
 				expressionDesc, task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables,
 				expressionDesc, task, result);

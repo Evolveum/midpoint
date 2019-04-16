@@ -52,7 +52,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
 
 	private boolean filterProtectedObjects = true;
-	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<>();
+	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<>();     // use synchronized access only!
 	private List<ResourceOperationListener> operationListeners = new ArrayList<>();
 	private List<ResourceEventListener> eventListeners = new ArrayList<>();
 
@@ -80,7 +80,14 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		} else {
 			changeListeners.add(listener);
 		}
+	}
 
+	private synchronized List<ResourceObjectChangeListener> getChangeListenersSnapshot() {
+		if (changeListeners != null) {
+			return new ArrayList<>(changeListeners);
+		} else {
+			return new ArrayList<>();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -137,13 +144,18 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 		if (InternalsConfig.consistencyChecks) change.checkConsistence();
 
-		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
-			for (ResourceObjectChangeListener listener : new ArrayList<>(changeListeners)) {		// sometimes there is registration/deregistration from within
+		// sometimes there is registration/deregistration from within
+		List<ResourceObjectChangeListener> changeListenersSnapshot = getChangeListenersSnapshot();
+		if (!changeListenersSnapshot.isEmpty()) {
+			for (ResourceObjectChangeListener listener : changeListenersSnapshot) {
 				try {
+					if (listener == null) {
+						throw new IllegalStateException("Change listener is null");
+					}
 					listener.notifyChange(change, task, parentResult);
 				} catch (RuntimeException e) {
-					LOGGER.error("Exception {} thrown by object change listener {}: {}", e.getClass(), listener.getName(),
-							e.getMessage(), e);
+					LOGGER.error("Exception {} thrown by object change listener {}: {}", e.getClass(),
+							listener != null ? listener.getName() : "(null)", e.getMessage(), e);
 					parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyChange")
 							.recordWarning("Change listener has thrown unexpected exception", e);
                     throw e;

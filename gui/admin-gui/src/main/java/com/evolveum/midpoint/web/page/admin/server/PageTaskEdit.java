@@ -276,7 +276,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			}
 		} else {
 			// hard version
-			target.add(getSummaryPanel());
 			target.add(mainPanel.getTabPanel());
 		}
 		target.add(getSummaryPanel());

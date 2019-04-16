@@ -32,9 +32,5 @@
             <s:name>role</s:name>
             <c:value xsi:type="xsd:string">12345678-d34d-b33f-f00d-555555556666</c:value>
         </s:parameter>
-        <s:parameter>
-            <s:name>relation</s:name>
-            <c:value xsi:type="xsd:anyURI">default</c:value>
-        </s:parameter>
     </s:action>
 </s:search>

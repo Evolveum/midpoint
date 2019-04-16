@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -266,15 +266,15 @@ public class LensUtil {
 		if (iterationOld == null) {
 			return accCtx.getIteration();
 		}
-		PrismPropertyDefinition<Integer> propDef = accCtx.getPrismContext().definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION,
+		PrismPropertyDefinition<Integer> propDef = accCtx.getPrismContext().definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME,
 				DOMUtil.XSD_INT);
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
-		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION);
+		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_QNAME);
 		propDelta.setRealValuesToReplace(accCtx.getIteration());
 		PrismProperty<Integer> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIteration());
-		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
+		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew, propDef);
 		return idi;
 	}
 
@@ -288,14 +288,14 @@ public class LensUtil {
 			return accCtx.getIterationToken();
 		}
 		PrismPropertyDefinition<String> propDef = accCtx.getPrismContext().definitionFactory().createPropertyDefinition(
-				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING);
+				ExpressionConstants.VAR_ITERATION_TOKEN_QNAME, DOMUtil.XSD_STRING);
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
-		PropertyDelta<String> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_TOKEN);
+		PropertyDelta<String> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME);
 		propDelta.setRealValuesToReplace(accCtx.getIterationToken());
 		PrismProperty<String> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIterationToken());
-		ItemDeltaItem<PrismPropertyValue<String>,PrismPropertyDefinition<String>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
+		ItemDeltaItem<PrismPropertyValue<String>,PrismPropertyDefinition<String>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew, propDef);
 		return idi;
 	}
 
@@ -468,18 +468,18 @@ public class LensUtil {
 			return formatIterationTokenDefault(iteration);
 		}
 	    PrismContext prismContext = context.getPrismContext();
-	    PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN,
+	    PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
 				DOMUtil.XSD_STRING);
-		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
+		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 
 		Collection<Source<?,?>> sources = new ArrayList<>();
-		MutablePrismPropertyDefinition<Integer> inputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION,
+		MutablePrismPropertyDefinition<Integer> inputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME,
 				DOMUtil.XSD_INT);
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
 		input.addRealValue(iteration);
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(input);
-		Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION);
+		Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION_QNAME);
 		sources.add(iterationSource);
 
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables,
@@ -527,10 +527,11 @@ public class LensUtil {
 			return true;
 		}
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-				expressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()) , desc, task, result);
+				expressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()), MiscSchemaUtil.getExpressionProfile(),
+				desc, task, result);
 
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
+		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
 
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
 		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
@@ -710,10 +711,10 @@ public class LensUtil {
 	    }
 	}
 
-	public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
+	public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
-		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
-		return builder.addVariableDefinitions(expressionVariables.getMap());
+		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables, prismContext);
+		return builder.addVariableDefinitions(expressionVariables);
     }
 
     public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription,
@@ -726,20 +727,20 @@ public class LensUtil {
 				if (namePolyType == null) {
 					throw new SchemaException("Focus "+focusObjectNew+" does not have a name after "+activityDescription);
 				}
-				ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-				checkObjectPolicy(focusContext, objectPolicyConfigurationType);
+				ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+				checkArchetypePolicy(focusContext, archetypePolicy);
 			}
 		}
 	}
 
-	private static <F extends ObjectType> void checkObjectPolicy(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException, PolicyViolationException {
-		if (objectPolicyConfigurationType == null) {
+	private static <F extends ObjectType> void checkArchetypePolicy(LensFocusContext<F> focusContext, ArchetypePolicyType archetypePolicy) throws SchemaException, PolicyViolationException {
+		if (archetypePolicy == null) {
 			return;
 		}
 		PrismObject<F> focusObjectNew = focusContext.getObjectNew();
 		ObjectDelta<F> focusDelta = focusContext.getDelta();
 
-		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+		for (PropertyConstraintType propertyConstraintType: archetypePolicy.getPropertyConstraint()) {
 			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
 			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
 				if (focusDelta != null) {
@@ -774,7 +775,7 @@ public class LensUtil {
 		}
 
 		// Deprecated
-		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+		if (BooleanUtils.isTrue(archetypePolicy.isOidNameBoundMode())) {
 			if (focusDelta != null) {
 				if (focusDelta.isAdd()) {
 					PolyStringType namePolyType = focusObjectNew.asObjectable().getName();
@@ -1032,7 +1033,7 @@ public class LensUtil {
 		PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(
 				new QName(SchemaConstants.NS_C, "result"), typeName);
 		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
-				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
+				expressionFactory.makeExpression(expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
 		ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
 		eeContext.setAdditionalConvertor(additionalConvertor);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
@@ -1096,8 +1097,8 @@ public class LensUtil {
 		}
 	}
 	
-	public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType, PrismContext prismContext) throws SchemaException, ConfigurationException {
-		if (objectPolicyConfigurationType == null) {
+	public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismContext prismContext) throws SchemaException, ConfigurationException {
+		if (archetypePolicy == null) {
 			return;
 		}
 
@@ -1107,10 +1108,10 @@ public class LensUtil {
 			return;
 		}
 
-		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+		for (PropertyConstraintType propertyConstraintType: archetypePolicy.getPropertyConstraint()) {
 			if (propertyConstraintType.getPath() == null) {
-				LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", objectPolicyConfigurationType);
-				throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + objectPolicyConfigurationType + " defined in system configuration.");
+				LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", archetypePolicy);
+				throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + archetypePolicy + " defined in system configuration.");
 			}
 			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
 			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
@@ -1141,7 +1142,7 @@ public class LensUtil {
 		}
 
 		// Deprecated
-		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+		if (BooleanUtils.isTrue(archetypePolicy.isOidNameBoundMode())) {
 			// Generate the name now - unless it is already present
 			PolyStringType focusNewName = focusNew.asObjectable().getName();
 			if (focusNewName == null) {

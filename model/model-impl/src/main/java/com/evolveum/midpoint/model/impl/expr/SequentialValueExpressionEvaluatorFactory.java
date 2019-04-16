@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpre
  */
 @Component
 public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createSequentialValue(new SequentialValueExpressionEvaluatorType()).getName();
 
 	@Autowired private Protector protector;
 	@Autowired private PrismContext prismContext;
@@ -51,15 +54,19 @@ public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowired
 
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createSequentialValue(new SequentialValueExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
 	 */
 	@Override
-	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-																									D outputDefinition, ExpressionFactory factory, String contextDescription, Task task, OperationResult result)
+	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
+			Collection<JAXBElement<?>> evaluatorElements,
+			D outputDefinition, 
+			ExpressionProfile expressionProfile,
+			ExpressionFactory factory, 
+			String contextDescription, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
 
 		if (evaluatorElements.size() > 1) {
@@ -81,7 +88,7 @@ public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowired
         	throw new SchemaException("Missing sequence reference in sequentialValue expression evaluator in "+contextDescription);
         }
 
-		return new SequentialValueExpressionEvaluator<>(seqEvaluatorType, outputDefinition, protector, repositoryService, prismContext);
+		return new SequentialValueExpressionEvaluator<>(ELEMENT_NAME, seqEvaluatorType, outputDefinition, protector, repositoryService, prismContext);
 	}
 
 }

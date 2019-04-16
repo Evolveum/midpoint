@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.gui.api.page;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.*;
@@ -66,6 +68,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -111,8 +114,7 @@ import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboardAdmin;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.admin.resources.*;
@@ -137,6 +139,7 @@ import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -267,6 +270,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
+    
+    @SpringBean(name = "dashboardService")
+    private DashboardService dashboardService;
 
     @SpringBean(name = "modelController")
     private TaskService taskService;
@@ -306,6 +312,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
+    
+    @SpringBean(name = "clock")
+    private Clock clock;
 
     @SpringBean
     private SecurityContextManager securityContextManager;
@@ -591,6 +600,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @Override
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+    
+    @Override
+    public DashboardService getDashboardService() {
+        return dashboardService;
     }
 
     protected ModelDiagnosticService getModelDiagnosticService() {
@@ -1389,13 +1403,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             ExpressionFactory factory = getExpressionFactory();
             PrismPropertyDefinition<OperationResultType> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE);
-            Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression = factory.makeExpression(expressionType, outputDefinition, contextDesc, task, topResult);
+            Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression = factory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, topResult);
 
             ExpressionVariables variables = new ExpressionVariables();
 
             OperationResultType resultType = result.createOperationResultType();
 
-            variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, resultType);
+            variables.put(ExpressionConstants.VAR_INPUT, resultType, OperationResultType.class);
 
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, topResult);
             PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple = expression.evaluate(context);
@@ -1998,7 +2012,27 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				createStringResource("PageAdmin.menu.dashboard"), null);
 
 		addMenuItem(item, "PageAdmin.menu.dashboard.info", PageDashboardInfo.class);
-		addMenuItem(item, "PageAdmin.menu.dashboard.admin", PageDashboardAdmin.class);
+		
+		OperationResult result = new OperationResult("Search Dashboard");
+		List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, this);
+		if(dashboards != null) {
+			dashboards.forEach(prismObject -> {
+				Validate.notNull(prismObject, "PrismObject<Dashboard> is null");
+				DashboardType dashboard = prismObject.getRealValue();
+				Validate.notNull(dashboard, "Dashboard object is null");
+				
+				StringResourceModel label = null;
+				if(dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
+					label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
+				} else {
+					label = createStringResource(dashboard.getName());
+				}
+				PageParameters pageParameters = new PageParameters();
+				pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
+				MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
+	        	item.getItems().add(menu);
+			});
+		}
 
 		return item;
 	}
@@ -2352,15 +2386,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void navigateToNext(Class<? extends WebPage> pageType, PageParameters params) {
-        IPageFactory pFactory = Session.get().getPageFactory();
+    	WebPage page = createWebPage(pageType, params);
+        navigateToNext(page);
+    }
+    
+    public WebPage createWebPage(Class<? extends WebPage> pageType, PageParameters params) {
+    	IPageFactory pFactory = Session.get().getPageFactory();
         WebPage page;
         if (params == null) {
             page = pFactory.newPage(pageType);
         } else {
             page = pFactory.newPage(pageType, params);
         }
-
-        navigateToNext(page);
+        return page;
     }
 
     public void navigateToNext(WebPage page) {
@@ -2591,4 +2629,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			throw new SystemException("Cannot instantiate " + panelClass);
 		}
     }
+
+    public Clock getClock() {
+		return clock;
+	}
+
 }

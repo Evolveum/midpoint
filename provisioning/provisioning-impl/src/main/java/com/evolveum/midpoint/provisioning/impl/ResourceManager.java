@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
@@ -477,6 +478,7 @@ public class ResourceManager {
 				InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 				
 				ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
+				List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource());
 				retrievedCapabilities = connector.fetchCapabilities(result);
 	
 			} catch (GenericFrameworkException e) {
@@ -664,7 +666,7 @@ public class ResourceManager {
 			}
 			ExpressionType expressionType = (ExpressionType) expressionWrapper.getExpression();
 
-			Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, propDef, shortDesc, task, result);
+			Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, propDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 			ExpressionVariables variables = new ExpressionVariables();
 			
 			// TODO: populate variables
@@ -696,8 +698,8 @@ public class ResourceManager {
 		InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
 		List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
 		ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
-		LOGGER.trace("Trying to get schema from {}", connectorSpec);
-		ResourceSchema resourceSchema = connectorInstance.fetchResourceSchema(generateObjectClasses, parentResult);
+		LOGGER.trace("Trying to get schema from {}, objectClasses to generate: {}", connectorSpec, generateObjectClasses);
+		ResourceSchema resourceSchema = connectorInstance.fetchResourceSchema(parentResult);
 		if (ResourceTypeUtil.isValidateSchema(resource.asObjectable())) {
 			ResourceTypeUtil.validateSchema(resourceSchema, resource);
 		}
@@ -819,11 +821,31 @@ public class ResourceManager {
 
 		schemaResult.recordSuccess();
 
+		try {
+			updateResourceSchema(allConnectorSpecs, parentResult, resource);
+		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
+			parentResult.recordFatalError("Couldn't update resource schema: " + e.getMessage(), e);
+			return;
+		}
+
 		// TODO: connector sanity (e.g. refined schema, at least one account type, identifiers
 		// in schema, etc.)
 
 	}
-	
+
+	private void updateResourceSchema(List<ConnectorSpec> allConnectorSpecs, OperationResult parentResult,
+			PrismObject<ResourceType> resource)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+		if (resourceSchema != null) {
+			for (ConnectorSpec connectorSpec : allConnectorSpecs) {
+				ConnectorInstance instance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
+				instance.updateSchema(resourceSchema);
+			}
+		}
+	}
+
 	public void testConnectionConnector(ConnectorSpec connectorSpec, Map<String,Collection<Object>> capabilityMap, Task task, OperationResult parentResult) {
 
 		// === test INITIALIZATION ===
@@ -878,7 +900,7 @@ public class ResourceManager {
 			
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 			
-			connector.configure(connectorConfiguration, configResult);
+			connector.configure(connectorConfiguration, ResourceTypeUtil.getSchemaGenerationConstraints(resource), configResult);
 		
 			// We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
 			// cannot be detected by the connector and therefore are provided in the resource
@@ -893,7 +915,8 @@ public class ResourceManager {
 			//
 			ResourceSchema previousResourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
 			Collection<Object> previousCapabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
-			connector.initialize(previousResourceSchema, previousCapabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
+			connector.initialize(previousResourceSchema, previousCapabilities, 
+					ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
 			
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
@@ -952,7 +975,7 @@ public class ResourceManager {
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
 		try {
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
-			
+			List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource());
 			Collection<Object> retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
 			
 			capabilityMap.put(connectorSpec.getConnectorName(), retrievedCapabilities);
@@ -968,6 +991,10 @@ public class ResourceManager {
 		} catch (ConfigurationException e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			capabilitiesResult.recordFatalError("Configuration error", e);
+			return;
+		} catch (SchemaException e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			capabilitiesResult.recordFatalError("Schema error", e);
 			return;
 		} catch (RuntimeException | Error e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);

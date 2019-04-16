@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -60,6 +62,7 @@ import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationS
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
 import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -170,7 +173,7 @@ public class WorkStateManager {
 			return getWorkBucketMultiNode(ctx, freeBucketWaitTime, result);
 		}
 	}
-
+	
 	private WorkBucketType findSelfAllocatedBucket(Context ctx) {
 		TaskWorkStateType workState = ctx.workerTask.getWorkState();
 		if (workState == null || workState.getBucket().isEmpty()) {
@@ -503,6 +506,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(bucket, WorkBucketStateType.COMPLETE);
 		repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(), modifications, null, result);
 		((InternalTaskInterface) ctx.workerTask).applyModificationsTransient(modifications);
+		((InternalTaskInterface) ctx.workerTask).applyDeltasImmediate(modifications, result);
 		compressCompletedBuckets(ctx.workerTask, result);
 	}
 

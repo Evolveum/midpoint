@@ -115,6 +115,9 @@ public enum ObjectTypes {
     
     ARCHETYPE(ArchetypeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ARCHETYPE, ArchetypeType.class, ObjectManager.MODEL,
             "archetypes"),
+    
+    DASHBOARD(DashboardType.COMPLEX_TYPE, SchemaConstantsGenerated.C_DASHBOARD, DashboardType.class, ObjectManager.MODEL,
+            "dashboard"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
@@ -252,10 +255,10 @@ public enum ObjectTypes {
     }
 
     @NotNull
-    public static Class<? extends ObjectType> getObjectTypeClass(QName typeName) {
+    public static <O extends ObjectType> Class<O> getObjectTypeClass(QName typeName) {
         for (ObjectTypes type : values()) {
             if (QNameUtil.match(type.getTypeQName(), typeName)) {
-                return type.getClassDefinition();
+                return (Class<O>) type.getClassDefinition();
             }
         }
         throw new IllegalArgumentException("Unsupported object type " + typeName);

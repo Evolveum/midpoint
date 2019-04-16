@@ -46,7 +46,10 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
@@ -131,6 +134,7 @@ public class ShadowManager {
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired private Protector protector;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowManager.class);
@@ -151,6 +155,9 @@ public class ShadowManager {
 		
 	}
 	
+	
+
+	
 	/**
 	 * Locates the appropriate Shadow in repository that corresponds to the
 	 * provided resource object.
@@ -163,10 +170,13 @@ public class ShadowManager {
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
 		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, resourceShadow, prismContext, parentResult);
-		LOGGER.trace("Searching for shadow using filter:\n{}", DebugUtil.debugDumpLazily(query));
+		LOGGER.trace("Searching for shadow by primary identifier (attributes) using filter:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
-		 List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-		 MiscSchemaUtil.reduceSearchResult(foundShadows);
+		// Explicitly avoid all caches. We want to avoid shadow duplication.
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(0L));
+		
+		List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, options, parentResult);
+		MiscSchemaUtil.reduceSearchResult(foundShadows);
 
 		LOGGER.trace("lookupShadow found {} objects", foundShadows.size());
 		
@@ -191,6 +201,41 @@ public class ShadowManager {
 		checkConsistency(liveShadow);
 
 		return liveShadow;
+	}
+	
+	public PrismObject<ShadowType> lookupShadowByPrimaryIdentifierValue(ProvisioningContext ctx, String primaryIdentifierValue,
+			OperationResult parentResult) throws SchemaException {
+
+		ObjectQuery query;
+		try {
+			
+			query = prismContext.queryFor(ShadowType.class)
+					.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).eq(primaryIdentifierValue)
+					.and().item(ShadowType.F_OBJECT_CLASS).eq(ctx.getObjectClassDefinition().getTypeName())
+					.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
+					.build();
+			
+		} catch (ExpressionEvaluationException | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
+			// Should not happen at this stage. And we do not want to pollute throws clauses all the way up.
+			throw new SystemException(e.getMessage(), e);
+		}
+		LOGGER.trace("Searching for shadow by primaryIdentifierValue using filter:\n{}", DebugUtil.debugDumpLazily(query, 1));
+
+		// Explicitly avoid all caches. We want to avoid shadow duplication.
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(0L));
+		List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, options, parentResult);
+		MiscSchemaUtil.reduceSearchResult(foundShadows);
+		
+		if (foundShadows.isEmpty()) {
+			return null;
+		}
+		if (foundShadows.size() > 1) {
+			// This cannot happen, there is an unique constraint on primaryIdentifierValue
+			LOGGER.error("Impossible just happened, found {} shadows for primaryIdentifierValue {}: {}", foundShadows.size(), primaryIdentifierValue);
+			throw new SystemException("Impossible just happened, found "+foundShadows.size()+" shadows for primaryIdentifierValue "+primaryIdentifierValue);
+		}
+
+		return foundShadows.get(0);
 	}
 	
 	public PrismObject<ShadowType> eliminateDeadShadows(List<PrismObject<ShadowType>> shadows, OperationResult result) {
@@ -680,7 +725,7 @@ public class ShadowManager {
 	public PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Adding new shadow from resource object: {}", resourceShadow.debugDump());
+			LOGGER.trace("Adding new shadow from resource object:\n{}", resourceShadow.debugDump(1));
 		}
 		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceShadow);
 		ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
@@ -688,7 +733,7 @@ public class ShadowManager {
 		repoShadow.setOid(oid);
 		LOGGER.debug("Added new shadow (from resource object): {}", repoShadow);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDump());
+			LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDump(1));
 		}
 		return repoShadow;
 	}
@@ -888,13 +933,23 @@ public class ShadowManager {
 		return shadowModifications;
 	}
 	
-	public void addDeadShadowDeltas(PrismObject<ShadowType> repoShadow, AsynchronousOperationResult asyncResult, List<ItemDelta> shadowModifications) {
+	public void addDeadShadowDeltas(PrismObject<ShadowType> repoShadow, AsynchronousOperationResult asyncResult, List<ItemDelta> shadowModifications) throws SchemaException {
 		LOGGER.trace("Marking shadow {} as dead", repoShadow);
 		if (ShadowUtil.isExists(repoShadow.asObjectable())) {
 			shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
 		}
 		if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
-			shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_DEAD, Boolean.TRUE));
+			shadowModifications.add(
+				prismContext.deltaFor(ShadowType.class)
+					.item(ShadowType.F_DEAD).replace(true)
+				.asItemDelta());
+		}
+		if (repoShadow.asObjectable().getPrimaryIdentifierValue() != null) {
+			// We need to free the identifier for further use by live shadows that may come later
+			shadowModifications.add(
+					prismContext.deltaFor(ShadowType.class)
+						.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
+					.asItemDelta());
 		}
 	}
 	
@@ -937,10 +992,12 @@ public class ShadowManager {
 		if (delta.isAdd()) {
 			// This means we have failed add operation here. We tried to add object,
 			// but we have failed. Which means that this shadow is now dead.
-			shadowChanges.add(
+			shadowChanges.addAll(
 				prismContext.deltaFor(ShadowType.class)
 					.item(ShadowType.F_DEAD).replace(true)
-				.asItemDelta()
+					// We need to free the identifier for further use by live shadows that may come later
+					.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
+				.asItemDeltas()
 			);
 		}
 		
@@ -1326,8 +1383,9 @@ public class ShadowManager {
 		
 		PrismObject<ShadowType> repoShadow = shadow.clone();
 		ShadowType repoShadowType = repoShadow.asObjectable();
-		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
-				.getAttributesContainer(repoShadow);
+		
+		ResourceAttributeContainer repoAttributesContainer = ShadowUtil.getAttributesContainer(repoShadow);
+		repoShadowType.setPrimaryIdentifierValue(determinePrimaryIdentifierValue(ctx, shadow));
 
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 		if (cachingStrategy == CachingStategyType.NONE) {
@@ -1418,6 +1476,102 @@ public class ShadowManager {
 		
 		normalizeAttributes(repoShadow, ctx.getObjectClassDefinition());
 
+		return repoShadow;
+	}
+	
+	public String determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException {
+		if (ShadowUtil.isDead(shadow)) {
+			return null;
+		}
+		Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+		// Let's make this simple. We support single-attribute, single-value, string-only primary identifiers anyway
+		if (primaryIdentifiers.isEmpty()) {
+			// No primary identifiers. This can happen in sme cases, e.g. for proposed shadows.
+			// Therefore we should be tolerating this.
+			return null;
+		}
+		if (primaryIdentifiers.size() > 1) {
+			throw new SchemaException("Too many primary identifiers in "+shadow+", this is not supported yet");
+		}
+		ResourceAttribute<String> primaryIdentifier = (ResourceAttribute<String>) primaryIdentifiers.iterator().next();
+		RefinedAttributeDefinition<String> rDef;
+		try {
+			rDef = ctx.getObjectClassDefinition().findAttributeDefinition(primaryIdentifier.getElementName());
+		} catch (ConfigurationException | ObjectNotFoundException | CommunicationException
+				| ExpressionEvaluationException e) {
+			// Should not happen at this stage. And we do not want to pollute throws clauses all the way up.
+			throw new SystemException(e.getMessage(), e);
+		}
+		Collection<String> normalizedPrimaryIdentifierValues = getNormalizedAttributeValues(primaryIdentifier, rDef);
+		if (normalizedPrimaryIdentifierValues.isEmpty()) {
+			throw new SchemaException("No primary identifier values in "+shadow);
+		}
+		if (normalizedPrimaryIdentifierValues.size() > 1) {
+			throw new SchemaException("Too many primary identifier values in "+shadow+", this is not supported yet");
+		}
+		String primaryIdentifierValue = normalizedPrimaryIdentifierValues.iterator().next();
+//		LOGGER.info("III: --->>{}<<--- {}", primaryIdentifierValue, shadow);
+		return primaryIdentifierValue;
+	}
+	
+	public PrismObject<ShadowType> refreshProvisioningIndexes(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		ShadowType shadowType = repoShadow.asObjectable();
+		String currentPrimaryIdentifierValue = shadowType.getPrimaryIdentifierValue();
+		
+		String expectedPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, repoShadow);
+		
+		if (Objects.equals(currentPrimaryIdentifierValue,expectedPrimaryIdentifierValue)) {
+			// Everything is all right
+			return repoShadow;
+		}
+		List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(ShadowType.class)
+			.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace(expectedPrimaryIdentifierValue)
+			.asItemDeltas();
+		
+		LOGGER.trace("Correcting primaryIdentifierValue for {}: {} -> {}", repoShadow, currentPrimaryIdentifierValue, expectedPrimaryIdentifierValue);
+		try {
+		
+			repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, parentResult);
+		
+		} catch (ObjectAlreadyExistsException e) {
+			// Boom! We have some kind of inconsistency here. There is not much we can do to fix it. But let's try to find offending object.
+			LOGGER.error("Error updating primaryIdentifierValue for "+repoShadow+" to value "+expectedPrimaryIdentifierValue+": "+e.getMessage(), e);
+			
+			PrismObject<ShadowType> potentialConflictingShadow = lookupShadowByPrimaryIdentifierValue(ctx, expectedPrimaryIdentifierValue, parentResult);
+			LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}", potentialConflictingShadow==null?null:potentialConflictingShadow.debugDump(1));
+			String conflictingShadowPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, potentialConflictingShadow);
+			
+			if (Objects.equals(conflictingShadowPrimaryIdentifierValue, potentialConflictingShadow.asObjectable().getPrimaryIdentifierValue())) {
+				// Whoohoo, the conflicting shadow has good identifier. And it is the same as ours. We really have two conflicting shadows here.
+				LOGGER.info("REPO CONFLICT: Found conflicting shadows that both claim the values of primaryIdentifierValue={}\nShadow with existing value:\n{}\nShadow that should have the same value:\n{}", 
+						expectedPrimaryIdentifierValue, potentialConflictingShadow, repoShadow);
+				throw new SystemException("Duplicate shadow conflict with "+potentialConflictingShadow);
+			}
+			
+			// The other shadow has wrong primaryIdentifierValue. Therefore let's reset it.
+			// Even though we do know the correct value of primaryIdentifierValue, do NOT try to set it here. It may conflict with
+			// another shadow and the we will end up in an endless loop of conflicts all the way down to hell. Resetting it to null
+			// is safe. And as that shadow has a wrong value, it obviously haven't been refreshed yet. It's turn will come later.
+			LOGGER.debug("Resetting primaryIdentifierValue in conflicting shadow {}", repoShadow);
+			List<ItemDelta<?, ?>> resetModifications = prismContext.deltaFor(ShadowType.class)
+					.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
+					.asItemDeltas();
+			try {
+				repositoryService.modifyObject(ShadowType.class, potentialConflictingShadow.getOid(), modifications, parentResult);
+			} catch (ObjectAlreadyExistsException ee) {
+				throw new SystemException("Attempt to reset primaryIdentifierValue on "+potentialConflictingShadow+" failed: "+ee.getMessage(), ee);
+			}
+			
+			// Now we should be free to set up correct identifier. Finally.
+			try {
+				repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, parentResult);
+			} catch (ObjectAlreadyExistsException ee) {
+				// Oh no! Not again!
+				throw new SystemException("Despite all our best efforts, attempt to refresh primaryIdentifierValue on "+repoShadow+" failed: "+ee.getMessage(), ee);
+			}
+		}
+		shadowType.setPrimaryIdentifierValue(expectedPrimaryIdentifierValue);
 		return repoShadow;
 	}
 	
@@ -1668,6 +1822,16 @@ public class ShadowManager {
 					repoShadowChanges.add(attrDelta);
 				}
 			}
+		}
+		
+		String newPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceShadow);
+		String existingPrimaryIdentifierValue = repoShadow.asObjectable().getPrimaryIdentifierValue();
+		if (!Objects.equals(existingPrimaryIdentifierValue, newPrimaryIdentifierValue)) {
+			repoShadowChanges.add(
+				prismContext.deltaFor(ShadowType.class)
+					.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace(newPrimaryIdentifierValue)
+					.asItemDelta()
+				);
 		}
 
 		// TODO: reflect activation updates on cached shadow
@@ -1941,6 +2105,8 @@ public class ShadowManager {
 		List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
 			.item(ShadowType.F_DEAD).replace(true)
 			.item(ShadowType.F_EXISTS).replace(false)
+			// We need to free the identifier for further use by live shadows that may come later
+			.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
 		.asItemDeltas();
 		LOGGER.trace("Marking shadow {} as tombstone", repoShadow);
 		try {

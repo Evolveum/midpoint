@@ -17,10 +17,13 @@
 package com.evolveum.midpoint.test.util;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -686,7 +689,7 @@ public class TestUtil {
 	}
 	
 	public static void randomDelay(Integer range) {
-		if (range == null) {
+		if (range == null || range == 0) {
 			return;
 		}
 		try {
@@ -707,5 +710,9 @@ public class TestUtil {
 				throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
 			}
 		}
+	}
+
+	public static ItemDefinition createPrimitivePropertyDefinition(PrismContext prismContext, String name, PrimitiveType pType) {
+		return prismContext.definitionFactory().createPropertyDefinition(new ItemName(SchemaConstants.NS_C, name), pType.getQname());
 	}
 }

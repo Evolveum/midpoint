@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -117,7 +118,7 @@ public class ColumnUtils {
 		return new IconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
 
 			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId, IModel<SelectableBean<O>> rowModel) {
+			protected DisplayType getIconDisplayType(IModel<SelectableBean<O>> rowModel){
 				DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(rowModel.getObject().getValue(), pageBase);
 				if (displayType != null){
 					String disabledStyle = "";
@@ -129,20 +130,10 @@ public class ColumnUtils {
 							displayType.getIcon().setColor("");
 						}
 					}
-					cellItem.add(new ImagePanel(componentId, displayType));
 				} else {
-					super.populateItem(cellItem, componentId, rowModel);
+					displayType = WebComponentUtil.createDisplayType(getIconColumnValue(rowModel), "", getIconColumnTitle(rowModel));
 				}
-			}
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<O>> rowModel) {
-				return Model.of(getIconColumnValue(rowModel));
-			}
-
-			@Override
-			protected IModel<String> createTitleModel(final IModel<SelectableBean<O>> rowModel) {
-				return Model.of(getIconColumnTitle(rowModel));
+				return displayType;
 			}
 
 			@Override

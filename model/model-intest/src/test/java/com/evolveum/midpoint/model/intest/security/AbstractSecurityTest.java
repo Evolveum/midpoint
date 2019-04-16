@@ -1001,7 +1001,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected void assertAuditReadAllow() throws Exception {
 		assertAllow("auditHistory", (task,result) -> {
-			List<AuditEventRecord> auditRecords = getAllAuditRecords(task, result);
+			List<AuditEventRecord> auditRecords = getAuditRecords(10, task, result);
 			assertTrue("No audit records", auditRecords != null && !auditRecords.isEmpty());
 		});
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -102,8 +103,8 @@ public class TestCommandLine extends AbstractIntegrationTest {
 		
         CommandLineScriptType scriptType = getScript(REPORT_REDIR_ECHO_FILE);
         
-        ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(VAR_HELLOTEXT, "Hello World");
+        ExpressionVariables variables = ExpressionVariables.create(prismContext,
+        	VAR_HELLOTEXT, "Hello World", PrimitiveType.STRING);
         
 		// WHEN
 		displayWhen(TEST_NAME);

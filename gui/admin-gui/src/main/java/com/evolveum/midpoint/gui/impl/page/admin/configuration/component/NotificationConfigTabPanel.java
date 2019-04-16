@@ -24,6 +24,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
+import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -81,12 +93,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 
 /**
@@ -355,8 +361,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<MailServerConfiguration> rowModel) {
-				return Model.of(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+			protected DisplayType getIconDisplayType(IModel<MailServerConfiguration> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
 
 		});

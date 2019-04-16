@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -38,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author Radovan Semancik
  */
-public class TestMappingComplex {
+public class TestMappingComplex extends AbstractModelCommonTest {
 
 	private static final String MAPPING_COMPLEX_FILENAME = "mapping-complex-captain.xml";
 
@@ -53,7 +54,7 @@ public class TestMappingComplex {
     @Test
     public void testModifyObjectSetAdditionalName() throws Exception {
     	final String TEST_NAME = "testModifyObjectSetAdditionalName";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -81,7 +82,7 @@ public class TestMappingComplex {
     @Test
     public void testModifyObjectSetAdditionalNameFalse() throws Exception {
     	final String TEST_NAME = "testModifyObjectSetAdditionalNameFalse";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -112,7 +113,7 @@ public class TestMappingComplex {
     @Test
     public void testModifyObjectUnrelated() throws Exception {
     	final String TEST_NAME = "testModifyObjectUnrelated";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -139,7 +140,7 @@ public class TestMappingComplex {
     @Test
     public void testModifyObjectUnrelatedFalse() throws Exception {
     	final String TEST_NAME = "testModifyObjectUnrelatedFalse";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -166,7 +167,7 @@ public class TestMappingComplex {
     @Test
     public void testAddObjectUnrelatedFalse() throws Exception {
     	final String TEST_NAME = "testAddObjectUnrelatedFalse";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	PrismObject<UserType> user = evaluator.getUserOld();
@@ -191,7 +192,7 @@ public class TestMappingComplex {
     @Test
     public void testAddObjectUnrelatedEmptyFalse() throws Exception {
     	final String TEST_NAME = "testAddObjectUnrelatedEmptyFalse";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	PrismObject<UserType> user = evaluator.getUserOld();
@@ -211,5 +212,4 @@ public class TestMappingComplex {
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
     }
-
 }

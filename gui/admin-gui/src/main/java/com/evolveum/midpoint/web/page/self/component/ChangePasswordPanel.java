@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.page.self.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -72,18 +75,25 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
     private LoadableModel<MyPasswordsDto> model;
     private boolean midpointAccountSelected = true;
+    private boolean oldPasswordVisible = false;
 
     public ChangePasswordPanel(String id, boolean oldPasswordVisible) {
         super(id);
-        initLayout(oldPasswordVisible);
+        this.oldPasswordVisible = oldPasswordVisible;
     }
 
     public ChangePasswordPanel(String id, boolean oldPasswordVisible, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto) {
         super(id, model);
-        initLayout(oldPasswordVisible);
+        this.oldPasswordVisible = oldPasswordVisible;
     }
 
-    private void initLayout(final boolean oldPasswordVisible) {
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
         model = (LoadableModel<MyPasswordsDto>) getModel();
 
         Label oldPasswordLabel = new Label(ID_OLD_PASSWORD_LABEL, createStringResource("PageSelfCredentials.oldPasswordLabel"));
@@ -157,27 +167,21 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         	private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createIconModel(final IModel<PasswordAccountDto> rowModel) {
-                return new IModel<String>() {
-                	private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        PasswordAccountDto item = rowModel.getObject();
-                        if (item.getCssClass() == null || item.getCssClass().trim().equals("")) {
-                            if (item.isMidpoint()) {
-                                item.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
-                            } else if (!item.isPasswordCapabilityEnabled()){
-                            	item.setCssClass(NO_CAPABILITY_ICON_CSS);
-                            } else if (item.isPasswordOutbound()) {
-                                item.setCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
-                            } else {
-                                item.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
-                            }
-                        }
-                        return item.getCssClass();
+            protected DisplayType getIconDisplayType(IModel<PasswordAccountDto> rowModel) {
+                PasswordAccountDto item = rowModel.getObject();
+                if (item.getCssClass() == null || item.getCssClass().trim().equals("")) {
+                    if (item.isMidpoint()) {
+                        item.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
+                    } else if (!item.isPasswordCapabilityEnabled()){
+                        item.setCssClass(NO_CAPABILITY_ICON_CSS);
+                    } else if (item.isPasswordOutbound()) {
+                        item.setCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
+                    } else {
+                        item.setCssClass(DESELECTED_ACCOUNT_ICON_CSS);
                     }
-                };
+                }
+                return WebComponentUtil.createDisplayType(item.getCssClass());
+
             }
 
             @Override
@@ -204,7 +208,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                                            } else if (passwordAccountDto.getCssClass().equals(DESELECTED_ACCOUNT_ICON_CSS)) {
                                                passwordAccountDto.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
                                            }
-                                           target.add(imagePanel);
+                                           target.add(imagePanel.findParent(SelectableDataTable.class));
                                        } else {
                                            midpointAccountSelected = !midpointAccountSelected;
                                            if (passwordAccountDto.getCssClass().equals(SELECTED_ACCOUNT_ICON_CSS)) {
@@ -274,7 +278,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     }
 
     private void showHelpPerformed(AjaxRequestTarget target){
-        getPageBase().showMainPopup(new HelpInfoPanel(getPageBase().getMainPopupBodyId(), "ChangePasswordPanel.helpInfo") {
+        getPageBase().showMainPopup(new HelpInfoPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource("ChangePasswordPanel.helpInfo",
+                        WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name"))) {
             @Override
             protected void closePerformed(AjaxRequestTarget target) {
                 getPageBase().hideMainPopup(target);

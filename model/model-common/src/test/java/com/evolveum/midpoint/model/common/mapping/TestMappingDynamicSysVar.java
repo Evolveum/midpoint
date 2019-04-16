@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -52,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author Radovan Semancik
  */
-public class TestMappingDynamicSysVar {
+public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
 	private static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 	private static final String PATTERN_NUMERIC = "^\\d+$";
@@ -78,7 +79,7 @@ public class TestMappingDynamicSysVar {
     public void testScriptSystemVariablesConditionAddObjectTrue(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectTrue";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
@@ -107,7 +108,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testScriptSystemVariablesConditionModifyObjectTrueGroovyUnrelated() throws Exception {
     	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectTrueGroovyUnrelated";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -141,7 +142,7 @@ public class TestMappingDynamicSysVar {
     public void testScriptSystemVariablesConditionAddObjectFalse(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalse";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
@@ -175,7 +176,7 @@ public class TestMappingDynamicSysVar {
     public void testScriptSystemVariablesConditionAddObjectFalseNoVal(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalseNoVal";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	PrismObject<UserType> user = evaluator.getUserOld();
     	PrismProperty<String> employeeTypeProperty = user.findProperty(UserType.F_EMPLOYEE_TYPE);
@@ -209,7 +210,7 @@ public class TestMappingDynamicSysVar {
     public void testScriptSystemVariablesConditionAddObjectFalseNoProperty(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalseNoProperty";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
 
     	PrismObject<UserType> user = evaluator.getUserOld();
@@ -239,7 +240,7 @@ public class TestMappingDynamicSysVar {
     public void testScriptSystemVariablesConditionTrueToTrue(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToTrue";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
 			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -273,7 +274,7 @@ public class TestMappingDynamicSysVar {
     public void testScriptSystemVariablesConditionFalseToFalse(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionFalseToFalse";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
 			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -301,7 +302,7 @@ public class TestMappingDynamicSysVar {
     public void testScriptSystemVariablesConditionFalseToTrue(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionFalseToTrue";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
 			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -331,7 +332,7 @@ public class TestMappingDynamicSysVar {
     public void testScriptSystemVariablesConditionTrueToFalse(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToFalse";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
 			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -382,7 +383,7 @@ public class TestMappingDynamicSysVar {
     }
 
     public void testScriptSystemVariablesConditionEmptyTrue(final String TEST_NAME, String filename) throws Exception {
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -423,7 +424,7 @@ public class TestMappingDynamicSysVar {
     }
 
     public void testScriptSystemVariablesConditionEmptyFalseToTrue(final String TEST_NAME, String filename) throws Exception {
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -475,7 +476,7 @@ public class TestMappingDynamicSysVar {
     }
 
     public void testScriptSystemVariablesConditionEmptyFalse(final String TEST_NAME, String filename) throws Exception {
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -514,7 +515,7 @@ public class TestMappingDynamicSysVar {
     }
 
     public void testScriptSystemVariablesConditionEmptyTrueToFalse(final String TEST_NAME, String filename) throws Exception {
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -544,7 +545,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testNpeFalseToTrue() throws Exception {
     	final String TEST_NAME = "testNpeFalseToTrue";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -570,7 +571,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testNpeTrueToFalse() throws Exception {
     	final String TEST_NAME = "testNpeTrueToFalse";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -600,7 +601,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testPathEnum() throws Exception {
     	final String TEST_NAME = "testPathEnum";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
 
     	// GIVEN
     	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
@@ -644,7 +645,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeNumberPolyString() throws Exception {
     	final String TEST_NAME = "testEmployeeNumberPolyString";
-    	System.out.println("===[ "+TEST_NAME+"]===");
+    	displayTestTitle(TEST_NAME);
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-employee-number.xml",

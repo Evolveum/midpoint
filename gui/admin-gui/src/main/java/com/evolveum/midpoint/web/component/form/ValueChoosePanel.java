@@ -20,7 +20,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -60,6 +62,8 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ValueChoosePanel.class);
+	private static final String DOT_CLASS = ValueChoosePanel.class.getName() + ".";
+	protected static final String OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME = DOT_CLASS + "loadReferenceObjectDisplayName";
 
 	private static final String ID_TEXT_WRAPPER = "textWrapper";
 	private static final String ID_TEXT = "text";
@@ -200,6 +204,40 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 //					return ((ObjectViewDto) ort).getName();
 //				}
 //				return ort != null ? ort.toString() : null;
+//=======
+//				T ort = (T) model.getObject();
+//				if (ort == null){
+//					return createStringResource("ValueChoosePanel.undefined").getString();
+//				}
+//
+//				if (ort instanceof PrismReferenceValue) {
+//					PrismReferenceValue prv = (PrismReferenceValue) ort;
+//					if (StringUtils.isEmpty(prv.getOid())){
+//						return createStringResource("ValueChoosePanel.undefined").getString();
+//					}
+//					ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+//					objectReferenceType.setupReferenceValue((PrismReferenceValue) ort);
+//					String targetObjectName = WebComponentUtil.getName(objectReferenceType,
+//							ValueChoosePanel.this.getPageBase(), OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME);
+//					return StringUtils.isNotEmpty(targetObjectName)
+//									? (targetObjectName + (prv.getTargetType() != null ? ": " + prv.getTargetType().getLocalPart() : ""))
+//									: prv.getOid();
+//				} else if (ort instanceof ObjectReferenceType) {
+//					ObjectReferenceType prv = (ObjectReferenceType) ort;
+//					if (StringUtils.isEmpty(prv.getOid())){
+//						return createStringResource("ValueChoosePanel.undefined").getString();
+//					}
+//					String targetObjectName = WebComponentUtil.getName(prv,
+//							ValueChoosePanel.this.getPageBase(), OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME);
+//
+//					return StringUtils.isNotEmpty(targetObjectName) ?
+//							(targetObjectName + (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
+//							: prv.getOid();
+//				} else if (ort instanceof ObjectViewDto) {
+//					return ((ObjectViewDto) ort).getName();
+//				}
+//				return ort != null ? ort.toString() : null;
+//>>>>>>> origin/master
 
 			}
 		};

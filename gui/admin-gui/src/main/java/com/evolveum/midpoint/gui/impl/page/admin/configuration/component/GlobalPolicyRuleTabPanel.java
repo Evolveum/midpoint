@@ -24,6 +24,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -82,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
 
 /**
  * @author skublik
@@ -247,8 +249,14 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 		LinkPrismPropertyColumn<GlobalPolicyRuleType, String> linkColumn = new LinkPrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, getPageBase()) {
 			
 			@Override
+
 			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
+			}
+
+			protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+
 			}
 		};
 		columns.add(linkColumn);

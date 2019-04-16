@@ -80,9 +80,10 @@ public interface ConnectorInstance {
 	 * Operations cannot be interrupted or refused due to missing configuration.
 	 *
 	 * @param configuration new connector configuration (prism container value)
+	 * @param generateObjectClasses the list of the object classes which should be generated in schema
 	 * @throws ConfigurationException
 	 */
-	void configure(PrismContainerValue<?> configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	void configure(PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
 	ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 
@@ -114,7 +115,12 @@ public interface ConnectorInstance {
 	 * @throws ConfigurationException
 	 */
 	void initialize(ResourceSchema previousResourceSchema, Collection<Object> previousCapabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, ConfigurationException;
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
+
+	/**
+	 * Updates stored resource schema and capabilities.
+	 */
+	void updateSchema(ResourceSchema resourceSchema);
 
 	/**
 	 * Retrieves native connector capabilities.
@@ -131,8 +137,8 @@ public interface ConnectorInstance {
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException
 	 */
-	Collection<Object> fetchCapabilities(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException;
+	Collection<Object> fetchCapabilities(OperationResult parentResult) 
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
 	 * Retrieves the schema from the resource.
@@ -150,7 +156,8 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
      * @throws ConfigurationException
 	 */
-	ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
+	ResourceSchema fetchResourceSchema(OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
 	/**
 	 * Retrieves a specific object from the resource.

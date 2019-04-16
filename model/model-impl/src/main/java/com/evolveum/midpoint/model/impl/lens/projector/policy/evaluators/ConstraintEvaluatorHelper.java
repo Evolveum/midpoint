@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
@@ -52,9 +53,9 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInfo
 @Component
 public class ConstraintEvaluatorHelper {
 
-	public static final QName VAR_EVALUATOR_HELPER = new QName(SchemaConstants.NS_C, "evaluatorHelper");
-	public static final QName VAR_CONSTRAINT_ELEMENT = new QName(SchemaConstants.NS_C, "constraintElement");
-	public static final QName VAR_CONSTRAINT = new QName(SchemaConstants.NS_C, "constraint");
+	public static final String VAR_EVALUATOR_HELPER = "evaluatorHelper";
+	public static final String VAR_CONSTRAINT_ELEMENT = "constraintElement";
+	public static final String VAR_CONSTRAINT = "constraint";
 
 	@Autowired private PrismContext prismContext;
 	@Autowired protected ExpressionFactory expressionFactory;
@@ -64,27 +65,34 @@ public class ConstraintEvaluatorHelper {
 			JAXBElement<? extends AbstractPolicyConstraintType> constraintElement) {
 		ExpressionVariables var = new ExpressionVariables();
 		PrismObject<AH> object = rctx.getObject();
-		var.addVariableDefinition(ExpressionConstants.VAR_USER, object);
-		var.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
-		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
-		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, LocalizationUtil.createLocalizableMessageType(createDisplayInformation(object, false)));
+		var.put(ExpressionConstants.VAR_USER, object, object.getDefinition());
+		var.put(ExpressionConstants.VAR_FOCUS, object, object.getDefinition());
+		var.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
+		var.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, 
+				LocalizationUtil.createLocalizableMessageType(createDisplayInformation(object, false)), LocalizableMessageType.class);
 		if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
 			AssignmentPolicyRuleEvaluationContext actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
 			PrismObject target = actx.evaluatedAssignment.getTarget();
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, target);
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, LocalizationUtil.createLocalizableMessageType(createDisplayInformation(target, false)));
-			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment);
-			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE));
+			var.put(ExpressionConstants.VAR_TARGET, target, target.getDefinition());
+			var.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION,
+					LocalizationUtil.createLocalizableMessageType(createDisplayInformation(target, false)), LocalizableMessageType.class);
+			var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
+			AssignmentType assignmentType = actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE);
+			var.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentType, assignmentType.asPrismContainerValue().getDefinition());
 		} else {
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, null);
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null);
-			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
-			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
+			PrismObjectDefinition<ObjectType> targetDef = rctx.lensContext.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+			var.put(ExpressionConstants.VAR_TARGET, null, targetDef);
+			var.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null, LocalizableMessageType.class);
+			var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);
+			PrismContainerDefinition<AssignmentType> assignmentDef = rctx.lensContext.getPrismContext().getSchemaRegistry()
+					.findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
+						.findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+			var.put(ExpressionConstants.VAR_ASSIGNMENT, null, assignmentDef);
 		}
-		var.addVariableDefinition(VAR_RULE_EVALUATION_CONTEXT, rctx);
-		var.addVariableDefinition(VAR_EVALUATOR_HELPER, this);
-		var.addVariableDefinition(VAR_CONSTRAINT, constraintElement != null ? constraintElement.getValue() : null);
-		var.addVariableDefinition(VAR_CONSTRAINT_ELEMENT, constraintElement);
+		var.put(VAR_RULE_EVALUATION_CONTEXT, rctx, PolicyRuleEvaluationContext.class);
+		var.put(VAR_EVALUATOR_HELPER, this, ConstraintEvaluatorHelper.class);
+		var.put(VAR_CONSTRAINT, constraintElement != null ? constraintElement.getValue() : null, AbstractPolicyConstraintType.class);
+		var.put(VAR_CONSTRAINT_ELEMENT, constraintElement, JAXBElement.class);
 		return var;
 	}
 

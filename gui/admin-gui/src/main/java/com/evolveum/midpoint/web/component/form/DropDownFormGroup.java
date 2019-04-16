@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -53,27 +54,27 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
             IModel<String> label, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
-    	this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
+    	this(id, value, choices, renderer, label, Model.of(), false, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
     
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
                              IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required, false);
+        this(id, value, choices, renderer, label, Model.of(), false, labelCssClass, textCssClass, required, false);
     }
     
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
             IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required) {
-    	this(id, value, choices, renderer, label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required, false);
+    	this(id, value, choices, renderer, label, Model.of(tooltipKey), isTooltipInModal, labelCssClass, textCssClass, required, false);
     }
     
-    public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, String tooltipKey,
+    public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, IModel<String> tooltipModel,
     		boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
-        initLayout(choices, renderer, label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
+        initLayout(choices, renderer, label, tooltipModel, isTooltipInModal, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
 
-    private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final String tooltipKey,
+    private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final IModel<String> tooltipModel,
                             boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
                             boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
@@ -92,15 +93,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         labelContainer.add(l);
 
 		Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-		tooltipLabel.add(new AttributeAppender("data-original-title", new IModel<String>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				return getString(tooltipKey);
-			}
-		}));
+		tooltipLabel.add(new AttributeAppender("data-original-title", tooltipModel));
 		tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
 		tooltipLabel.add(new VisibleEnableBehaviour() {
 
@@ -108,7 +101,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
 			@Override
 			public boolean isVisible() {
-				return tooltipKey != null;
+				return tooltipModel != null && StringUtils.isNotEmpty(tooltipModel.getObject());
 			}
 		});
 		tooltipLabel.setOutputMarkupId(true);
@@ -172,7 +165,13 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
 			@Override
             protected String getNullValidDisplayValue() {
-                return getString("DropDownChoicePanel.empty");
+                return DropDownFormGroup.this.getNullValidDisplayValue();
+            }
+
+            @Override
+            public IModel<? extends List<? extends T>> getChoicesModel() {
+                IModel<? extends List<? extends T>> choices = super.getChoicesModel();
+                return Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer));
             }
         };
         choice.setNullValid(!required);
@@ -182,5 +181,9 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
     public DropDownChoice<T> getInput() {
         return (DropDownChoice<T>) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_SELECT_WRAPPER, ID_SELECT));
+    }
+
+    protected String getNullValidDisplayValue(){
+        return getString("DropDownChoicePanel.empty");
     }
 }

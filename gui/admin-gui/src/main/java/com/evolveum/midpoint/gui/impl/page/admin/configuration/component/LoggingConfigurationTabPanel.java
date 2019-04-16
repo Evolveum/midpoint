@@ -23,6 +23,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -342,17 +344,11 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-				return new IModel<String>() {
+			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
-					}
-				};
 			}
+
 		});
 		
 		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, getPageBase(), false));
@@ -495,16 +491,8 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-				return new IModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
-					}
-				};
+			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
 		});
 		

@@ -42,9 +42,6 @@ import org.apache.wicket.model.Model;
 public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	private static final long serialVersionUID = -5077637168906420769L;
 
-	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
-	private static final String ID_TAG_ORG = "summaryTagOrg";
-
 	public UserSummaryPanel(String id, IModel<UserType> model, ModelServiceLocator serviceLocator) {
 		super(id, UserType.class, model, serviceLocator);
 	}

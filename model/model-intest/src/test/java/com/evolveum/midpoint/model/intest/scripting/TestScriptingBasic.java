@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -59,7 +60,6 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createDuration;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.fromNow;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.testng.AssertJUnit.*;
@@ -96,6 +96,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File UNASSIGN_FROM_WILL_FILE = new File(TEST_DIR, "unassign-from-will.xml");
     private static final File UNASSIGN_FROM_WILL_2_FILE = new File(TEST_DIR, "unassign-from-will-2.xml");
     private static final File UNASSIGN_FROM_WILL_3_FILE = new File(TEST_DIR, "unassign-from-will-3.xml");
+    private static final File ASSIGN_TO_WILL_FILE = new File(TEST_DIR, "assign-to-will.xml");
     private static final File PURGE_DUMMY_BLACK_SCHEMA_FILE = new File(TEST_DIR, "purge-dummy-black-schema.xml");
     private static final File TEST_DUMMY_RESOURCE_FILE = new File(TEST_DIR, "test-dummy-resource.xml");
     private static final File NOTIFICATION_ABOUT_JACK_FILE = new File(TEST_DIR, "notification-about-jack.xml");
@@ -182,7 +183,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(ECHO_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -258,9 +259,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		Task task = createTask(DOT_CLASS + TEST_NAME);
 		OperationResult result = task.getResult();
 	    ExecuteScriptType executeScript = prismContext.parserFor(SEARCH_FOR_USERS_WITH_EXPRESSIONS_FILE).parseRealValue();
-	    Map<String, Object> variables = new HashMap<>();
-	    variables.put("value1", "administrator");
-	    variables.put("value2", "jack");
+	    VariablesMap variables = new VariablesMap();
+	    variables.put("value1", "administrator", String.class);
+	    variables.put("value2", "jack", String.class);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, variables, false, task, result);
@@ -608,8 +609,31 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     }
     
     @Test
-    public void test390UnassignFromWill() throws Exception {
-    	final String TEST_NAME = "test390UnassignFromJack";
+    public void test390AssignToWill() throws Exception {
+    	final String TEST_NAME = "test390AssignToWill";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+        PrismProperty<ScriptingExpressionType> expression = parseAnyData(ASSIGN_TO_WILL_FILE);
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), task, result);
+
+        // THEN
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> will = getUser(USER_WILL_OID);
+        display("will after assignments creation", will);
+        MidPointAsserts.assertAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
+    }
+    
+    @Test
+    public void test391UnassignFromWill() throws Exception {
+    	final String TEST_NAME = "test391UnassignFromJack";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -633,8 +657,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     }
     
     @Test
-    public void test391UnassignFromWill() throws Exception {
-    	final String TEST_NAME = "test391UnassignFromJack";
+    public void test392UnassignFromWill2() throws Exception {
+    	final String TEST_NAME = "test392UnassignFromWill2";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -658,8 +682,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     }
     
     @Test
-    public void test392UnassignFromWill() throws Exception {
-    	final String TEST_NAME = "test392UnassignFromJack";
+    public void test393UnassignFromWill3() throws Exception {
+    	final String TEST_NAME = "test393UnassignFromWill3";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -681,7 +705,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         MidPointAsserts.assertNotAssigned(will, "12345678-d34d-b33f-f00d-555555556666", RoleType.COMPLEX_TYPE, RelationTypes.MANAGER.getRelation());
         MidPointAsserts.assertNotAssignedResource(will, "10000000-0000-0000-0000-000000000004");
     }
-
+    
     @Test
     public void test400PurgeSchema() throws Exception {
     	final String TEST_NAME = "test400PurgeSchema";
@@ -972,7 +996,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_2_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
         dumpOutput(output, result);
@@ -998,7 +1022,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_3_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
         dumpOutput(output, result);
@@ -1100,7 +1124,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 				.addRealValues("group1", "group2", "group3");
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -1125,7 +1149,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType exec = prismContext.parserFor(START_TASKS_FROM_TEMPLATE_FILE).parseRealValue();
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -1203,7 +1227,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType exec = prismContext.parserFor(RESUME_SUSPENDED_TASKS_FILE).parseRealValue();
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), false, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, VariablesMap.emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);

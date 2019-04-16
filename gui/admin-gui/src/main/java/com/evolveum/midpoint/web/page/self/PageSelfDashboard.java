@@ -202,8 +202,8 @@ public class PageSelfDashboard extends PageSelf {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected boolean isFooterVisible(long providerSize, int pageSize){
-                                return providerSize > pageSize;
+                            protected boolean hideFooterIfSinglePage(){
+                                return true;
                             }
                         };
                     }
@@ -250,8 +250,8 @@ public class PageSelfDashboard extends PageSelf {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected boolean isFooterVisible(long providerSize, int pageSize){
-                                return providerSize > pageSize;
+                            protected boolean hideFooterIfSinglePage(){
+                                return true;
                             }
                         };
                     }
