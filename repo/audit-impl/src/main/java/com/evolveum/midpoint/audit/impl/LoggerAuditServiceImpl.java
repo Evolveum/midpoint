@@ -83,6 +83,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 				", et=" + record.getEventType() +
 				", es=" + record.getEventStage() +
 				", sid=" + record.getSessionIdentifier() +
+				", rid=" + record.getRequestIdentifier() +
 				", tid=" + record.getTaskIdentifier() +
 				", toid=" + record.getTaskOID() +
 				", hid=" + record.getHostIdentifier() +
