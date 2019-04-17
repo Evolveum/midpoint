@@ -238,6 +238,7 @@ CREATE TABLE m_audit_event (
   targetOwnerOid    NVARCHAR(36) COLLATE database_default,
   targetOwnerType   INT,
   targetType        INT,
+  requestIdentifier NVARCHAR(255) COLLATE database_default,
   taskIdentifier    NVARCHAR(255) COLLATE database_default,
   taskOID           NVARCHAR(255) COLLATE database_default,
   timestampValue    DATETIME2,

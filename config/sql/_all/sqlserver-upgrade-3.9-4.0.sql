@@ -35,4 +35,6 @@ CREATE UNIQUE NONCLUSTERED INDEX iPrimaryIdentifierValueWithOC
   ON m_shadow(primaryIdentifierValue, objectClass, resourceRef_targetOid)
   WHERE primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL;
 
+ALTER TABLE m_audit_event ADD requestIdentifier NVARCHAR(255) COLLATE database_default;
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';

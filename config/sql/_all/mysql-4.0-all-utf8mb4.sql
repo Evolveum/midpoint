@@ -288,6 +288,7 @@ CREATE TABLE m_audit_event (
   targetOwnerOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
   targetOwnerType   INTEGER,
   targetType        INTEGER,
+  requestIdentifier VARCHAR(255),
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255) CHARSET utf8 COLLATE utf8_bin ,
   timestampValue    DATETIME(6),

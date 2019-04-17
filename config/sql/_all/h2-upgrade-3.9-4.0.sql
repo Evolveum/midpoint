@@ -34,4 +34,6 @@ ALTER TABLE m_shadow ADD COLUMN primaryIdentifierValue VARCHAR(255);
 ALTER TABLE m_shadow
     ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
 
+ALTER TABLE m_audit_event ADD COLUMN requestIdentifier VARCHAR(255);
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
