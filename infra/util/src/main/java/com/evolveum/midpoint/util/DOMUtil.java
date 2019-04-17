@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,6 +169,13 @@ public class DOMUtil {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
+			// XXE
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			factory.setXIncludeAware(false);
+			factory.setExpandEntityReferences(false);
 			loader = factory.newDocumentBuilder();
 		} catch (ParserConfigurationException ex) {
 			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
@@ -209,6 +216,13 @@ public class DOMUtil {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         try {
+            // XXE
+    		factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+    		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+    		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+    		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+    		factory.setXIncludeAware(false);
+    		factory.setExpandEntityReferences(false);
             return factory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
             throw new IllegalStateException("Error creating document builder " + e.getMessage(), e);
@@ -232,6 +246,13 @@ public class DOMUtil {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
+			// XXE
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			factory.setXIncludeAware(false);
+			factory.setExpandEntityReferences(false);
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(file);
 		} catch (SAXException | IOException | ParserConfigurationException ex) {
@@ -249,6 +270,13 @@ public class DOMUtil {
 			factory.setFeature("http://xml.org/sax/features/validation", false);
 			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
 			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			// XXE
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			factory.setXIncludeAware(false);
+			factory.setExpandEntityReferences(false);
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(inputStream);
 		} catch (SAXException | ParserConfigurationException ex) {
