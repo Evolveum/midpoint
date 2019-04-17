@@ -24,7 +24,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0-SNAPSHOT</version>
+        <version>4.0-M3</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
     <organization>
@@ -51,14 +51,14 @@
    		<dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.0-M3</version>
             <type>war</type>
             <classifier>executable</classifier>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>ninja</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.0-M3</version>
         </dependency>
         <dependency><!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.0-M3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -78,7 +78,7 @@
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.midpoint.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
-                <version>4.0-SNAPSHOT</version>
+                <version>4.0-M3</version>
                 <executions>
                     <execution>
                         <id>schemadist-prism</id>
