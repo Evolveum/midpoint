@@ -2744,6 +2744,21 @@ public final class WebComponentUtil {
 					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
 		}
 	}
+
+	public static DisplayType getNewObjectDisplayTypeFromCollectionView(CompiledObjectCollectionView view, PageBase pageBase){
+		DisplayType displayType = view != null ? view.getDisplay() : null;
+		if (displayType == null){
+			displayType = WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
+		}
+		if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())){
+			StringBuilder sb = new StringBuilder();
+			sb.append(pageBase.createStringResource("MainObjectListPanel.newObject").getString());
+			sb.append(" ");
+			sb.append(displayType.getLabel().getOrig().toLowerCase());
+			displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb.toString()));
+		}
+		return view != null ? view.getDisplay() : null;
+	}
 	
 	public static List<ItemPath> getShadowItemsToShow() {
 		return Arrays.asList(

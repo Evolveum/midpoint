@@ -117,7 +117,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             @Override
             protected DisplayType getNewObjectButtonStandardDisplayType(){
                 if (isCollectionViewPage()){
-                    return getCollectionViewDisplayType(getCollectionViewObject());
+                    return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(getCollectionViewObject(), PageAdminObjectList.this);
                 } else {
                     return super.getNewObjectButtonStandardDisplayType();
                 }
@@ -125,7 +125,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
             @Override
             protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView collectionView){
-                return getCollectionViewDisplayType(collectionView);
+                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, PageAdminObjectList.this);
             }
 
             @Override
@@ -247,20 +247,5 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     private boolean isCollectionViewPage(){
         StringValue collectionNameParam = getCollectionNameParameterValue();
         return collectionNameParam != null && !collectionNameParam.isEmpty() && !collectionNameParam.toString().equals("null");
-    }
-
-    private DisplayType getCollectionViewDisplayType(CompiledObjectCollectionView view){
-        DisplayType displayType = view != null ? view.getDisplay() : null;
-        if (displayType == null){
-            displayType = WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
-        }
-        if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())){
-            StringBuilder sb = new StringBuilder();
-            sb.append(createStringResource("MainObjectListPanel.newObject").getString());
-            sb.append(" ");
-            sb.append(displayType.getLabel().getOrig().toLowerCase());
-            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb.toString()));
-        }
-       return view != null ? view.getDisplay() : null;
     }
 }

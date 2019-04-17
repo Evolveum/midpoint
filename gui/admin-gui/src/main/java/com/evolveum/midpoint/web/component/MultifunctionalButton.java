@@ -95,11 +95,7 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
                     additionalButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
                 }
 
-                CompositedIconBuilder additionalButtonBuilder = new CompositedIconBuilder();
-                additionalButtonBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                        .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-                    .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
-
+                CompositedIconBuilder additionalButtonBuilder = getAdditionalIconBuilder(additionalButtonObject, additionalButtonDisplayType);
                 AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(), additionalButtonBuilder.build(),
                         Model.of(WebComponentUtil.getDisplayTypeTitle(additionalButtonDisplayType))) {
 
@@ -149,6 +145,14 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
      * @return
      */
     protected abstract DisplayType getDefaultObjectButtonDisplayType();
+
+    protected CompositedIconBuilder getAdditionalIconBuilder(S additionalButtonObject, DisplayType additionalButtonDisplayType){
+        CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
+                .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
+        return builder;
+    }
 
     private DisplayType validateDisplayType(DisplayType displayType){
         if (displayType == null){
