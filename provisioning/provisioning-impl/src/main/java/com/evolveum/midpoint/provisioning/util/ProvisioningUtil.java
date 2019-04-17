@@ -289,7 +289,7 @@ public class ProvisioningUtil {
 			matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
 		}
 		LOGGER.trace("Narrowing attr def={}, matchingRule={} ({})", propertyDef, matchingRule, matchingRuleQName);
-		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
+		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule, true);   // MID-5280
 		if (LOGGER.isTraceEnabled() && (filteredDelta == null || !filteredDelta.equals(propertyDelta))) {
 			LOGGER.trace("Narrowed delta: {}", filteredDelta==null?null:filteredDelta.debugDump());
 		}
@@ -351,7 +351,7 @@ public class ProvisioningUtil {
 		opResult.recordWarning(message, ex);
 	}
 
-	public static boolean shouldStoreAtributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName,
+	public static boolean shouldStoreAttributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName,
 			CachingStategyType cachingStrategy) throws ConfigurationException {
 		if (cachingStrategy == null || cachingStrategy == CachingStategyType.NONE) {
 			if (objectClassDefinition.isPrimaryIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {

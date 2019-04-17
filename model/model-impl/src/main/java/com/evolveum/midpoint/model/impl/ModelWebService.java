@@ -170,7 +170,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		auditLogin(task);
 		OperationResult operationResult = task.getResult();
 		try {
-			PrismObject<UserType> user = model.findShadowOwner(accountOid, task, operationResult);
+			PrismObject<UserType> user = modelService.findShadowOwner(accountOid, task, operationResult);
 			handleOperationResult(operationResult, result);
 			if (user != null) {
 				userHolder.value = user.asObjectable();
@@ -191,7 +191,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		Task task = createTaskInstance(TEST_RESOURCE);
 		auditLogin(task);
 		try {
-			OperationResult testResult = model.testResource(resourceOid, task);
+			OperationResult testResult = modelService.testResource(resourceOid, task);
 			return handleOperationResult(testResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
@@ -403,7 +403,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		OperationResult operationResult = task.getResult();
 
 		try {
-			model.importFromResource(resourceOid, objectClass, task, operationResult);
+			modelService.importFromResource(resourceOid, objectClass, task, operationResult);
 			operationResult.computeStatus();
 			return handleTaskResult(task);
 		} catch (Exception ex) {
@@ -426,12 +426,14 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		OperationResult parentResult = task.getResult();
 
 		try {
-			model.notifyChange(changeDescription, parentResult, task);
-			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error | PolicyViolationException | PreconditionViolationException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			}
+			modelService.notifyChange(changeDescription, task, parentResult);
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
+				SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException |
+				RuntimeException | Error | PolicyViolationException ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+			auditLogout(task);
+			throwFault(ex, parentResult);
+		}
 
 
 		LOGGER.info("notify change ended.");

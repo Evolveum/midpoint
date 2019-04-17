@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -207,13 +208,12 @@ public class PageCertCampaigns extends PageAdminCertification {
 			//noinspection unchecked
 			final IModel<CertCampaignsSearchDto> searchModel = (IModel<CertCampaignsSearchDto>) getDefaultModel();
 
-			DropDownChoice<CertCampaignStateFilter> listSelect = new DropDownChoice<>(ID_SEARCH_STATE,
+			DropDownChoicePanel<CertCampaignStateFilter> listSelect = new DropDownChoicePanel<>(ID_SEARCH_STATE,
 					new PropertyModel<>(searchModel, CertCampaignsSearchDto.F_STATE_FILTER),
 					new ReadOnlyEnumValuesModel<>(CertCampaignStateFilter.class),
 					new EnumChoiceRenderer<>(this));
-			listSelect.add(createFilterAjaxBehaviour());
+			listSelect.getBaseFormComponent().add(createFilterAjaxBehaviour());
 			listSelect.setOutputMarkupId(true);
-			listSelect.setNullValid(false);
 			searchForm.add(listSelect);
 
 			AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {

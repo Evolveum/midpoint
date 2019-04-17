@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -56,7 +56,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
 
-	transient private ObjectPolicyConfigurationType objectPolicyConfigurationType;
+	transient private ArchetypePolicyType archetypePolicyType;
 
 	// extracted from the template(s)
 	// this is not to be serialized into XML, but let's not mark it as transient
@@ -74,19 +74,19 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return getLensContext().getProjectionWave();
 	}
 
-	public ObjectPolicyConfigurationType getObjectPolicyConfigurationType() {
-		return objectPolicyConfigurationType;
+	public ArchetypePolicyType getArchetypePolicyType() {
+		return archetypePolicyType;
 	}
 	
-	public void setObjectPolicyConfigurationType(ObjectPolicyConfigurationType objectPolicyConfigurationType) {
-		this.objectPolicyConfigurationType = objectPolicyConfigurationType;
+	public void setArchetypePolicyType(ArchetypePolicyType objectPolicyConfigurationType) {
+		this.archetypePolicyType = objectPolicyConfigurationType;
 	}
 	
 	public LifecycleStateModelType getLifecycleModel() {
-		if (objectPolicyConfigurationType == null) {
+		if (archetypePolicyType == null) {
 			return null;
 		}
-		return objectPolicyConfigurationType.getLifecycleStateModel();
+		return archetypePolicyType.getLifecycleStateModel();
 	}
 
 	@Override
@@ -161,7 +161,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	@Override
 	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
-		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew());
+		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew(), getObjectDefinition());
 	}
 
 	@Override
@@ -192,7 +192,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDelta.swallow(propDelta);
 	}
 
-    public void swallowToSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
+	// TODO is this method ever needed?
+    @SuppressWarnings("unused")
+    public void swallowToWave0SecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
       	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
       	if (secondaryDelta == null) {
             secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
@@ -203,6 +205,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
       	}
 
         secondaryDelta.swallow(propDelta);
+	}
+
+	@Override
+	public void swallowToSecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
+		swallowToProjectionWaveSecondaryDelta(itemDelta);
 	}
 
 	public boolean alreadyHasDelta(ItemDelta<?,?> itemDelta) {
@@ -306,13 +313,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 			return;
 		}
 		PrismObject<O> object = getObjectAny();
-		ObjectPolicyConfigurationType policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
-		if (policyConfigurationType != getObjectPolicyConfigurationType()) {
+		ObjectPolicyConfigurationType policyConfigurationType = ArchetypeManager.determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
+		if (policyConfigurationType != getArchetypePolicyType()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Changed policy configuration because of changed subtypes {}:\n{}", 
 						FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
 			}
-			setObjectPolicyConfigurationType(policyConfigurationType);
+			setArchetypePolicyType(policyConfigurationType);
 		}
 	}
 

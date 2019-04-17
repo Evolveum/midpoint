@@ -133,7 +133,9 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
             new PropertyModel<>(model, SynchronizationActionTypeDto.F_HANDLER_URI),
                 WebComponentUtil.createReadonlyModelFromEnum(SynchronizationActionTypeDto.HandlerUriActions.class),
             new EnumChoiceRenderer<>(this), createStringResource("SynchronizationActionEditorDialog.label.handlerUri"),
-                "SynchronizationStep.action.tooltip.handlerUri", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false){
+                createStringResource("SynchronizationStep.action.tooltip.handlerUri",
+                        WebComponentUtil.getMidpointCustomSystemName((PageResourceWizard)getPage(), "midpoint.default.system.name")),
+                true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false){
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<SynchronizationActionTypeDto.HandlerUriActions>> choices,
@@ -148,7 +150,10 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
 
         DropDownFormGroup<BeforeAfterType> order = new DropDownFormGroup<BeforeAfterType>(ID_ORDER, new PropertyModel<>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".order"),
                 WebComponentUtil.createReadonlyModelFromEnum(BeforeAfterType.class), new EnumChoiceRenderer<>(this),
-                createStringResource("SynchronizationActionEditorDialog.label.order"), "SynchronizationStep.action.tooltip.order", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false){
+                createStringResource("SynchronizationActionEditorDialog.label.order"),
+                createStringResource("SynchronizationStep.action.tooltip.order",
+                        WebComponentUtil.getMidpointCustomSystemName((PageResourceWizard)getPage(), "midpoint.default.system.name")),
+                true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false){
 
             @Override
             protected DropDownChoice createDropDown(String id, IModel<List<BeforeAfterType>> choices, IChoiceRenderer<BeforeAfterType> renderer, boolean required){

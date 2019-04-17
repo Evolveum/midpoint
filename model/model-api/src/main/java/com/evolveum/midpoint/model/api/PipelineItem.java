@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author mederly
@@ -34,14 +33,14 @@ public class PipelineItem implements DebugDumpable, Serializable {
 	@NotNull private PrismValue value;
 	@NotNull private OperationResult result;
 	// variables here are to be cloned-on-use (if they are not immutable)
-	@NotNull private final Map<String,Object> variables = new HashMap<>();
+	@NotNull private final VariablesMap variables = new VariablesMap();
 
 	public PipelineItem(@NotNull PrismValue value, @NotNull OperationResult result) {
 		this.value = value;
 		this.result = result;
 	}
 
-	public PipelineItem(@NotNull PrismValue value, @NotNull OperationResult result, @NotNull Map<String, Object> variables) {
+	public PipelineItem(@NotNull PrismValue value, @NotNull OperationResult result, @NotNull VariablesMap variables) {
 		this.value = value;
 		this.result = result;
 		this.variables.putAll(variables);
@@ -66,7 +65,7 @@ public class PipelineItem implements DebugDumpable, Serializable {
 	}
 
 	@NotNull
-	public Map<String, Object> getVariables() {
+	public VariablesMap getVariables() {
 		return variables;
 	}
 

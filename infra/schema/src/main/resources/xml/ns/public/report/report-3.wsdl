@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -51,6 +51,13 @@
      
         <xsd:complexType name="ProcessReportType">
           <xsd:sequence>
+          	<xsd:element name="reportOid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        OID of an report to process
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="query" type="xsd:string"/>
             <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
             <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" minOccurs="0"/>
@@ -79,7 +86,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    
+                    <xsd:element name="reportOid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of an report to process
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="script" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -124,7 +137,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    
+                    <xsd:element name="reportOid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of an report to process
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="script" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -206,6 +225,14 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Name of the jasper report parameter
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                        
+                    <xsd:element name="parameterType" type="xsd:QName">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of the parameter, as XSD primitive type or midPoint static type.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

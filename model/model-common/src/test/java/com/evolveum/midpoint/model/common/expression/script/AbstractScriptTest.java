@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,11 +45,16 @@ import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -71,14 +76,19 @@ import com.evolveum.midpoint.common.LocalizationTestUtil;
 public abstract class AbstractScriptTest {
 
 	protected static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
-    protected static final String NS_X = "http://example.com/xxx";
-    protected static final String NS_Y = "http://example.com/yyy";
 	protected static File BASE_TEST_DIR = new File("src/test/resources/expression");
     protected static File OBJECTS_DIR = new File("src/test/resources/objects");
     protected static final String USER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    
+    public static final String VAR_POISON = "poison";
+    protected static final String RESULT_POISON_OK = "ALIVE";
+    protected static final String POISON_DRINK_ERROR_MESSAGE = "ALIVE";
+    
+    protected static final String RESULT_STRING_EXEC = "Hello world";
 
     public static final Trace LOGGER = TraceManager.getTrace(AbstractScriptTest.class);
 
+    protected PrismContext prismContext;
     protected ScriptExpressionFactory scriptExpressionfactory;
     protected ScriptEvaluator evaluator;
     protected LocalizationService localizationService;
@@ -91,7 +101,7 @@ public abstract class AbstractScriptTest {
 
     @BeforeClass
     public void setupFactory() {
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    	prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
     	Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
     	Clock clock = new Clock();
@@ -127,11 +137,43 @@ public abstract class AbstractScriptTest {
 		evaluateAndAssertStringScalarExpresssion(
 				"expression-string-variables.xml",
 				"testExpressionStringVariables",
-				ExpressionVariables.create(
-						new QName(NS_X, "foo"), "FOO",
-						new QName(NS_Y, "bar"), "BAR"
+				createVariables(
+						"foo", "FOO", PrimitiveType.STRING,
+						"bar", "BAR", PrimitiveType.STRING
 				),
 				"FOOBAR");
+    }
+	
+	/**
+	 * Make sure that the script engine can work well in parallel and that
+	 * individual script runs do not influence each other.
+	 */
+	@Test
+    public void testExpressionStringVariablesParallel() throws Exception {
+		final String TEST_NAME = "testExpressionStringVariablesParallel";
+		
+		// WHEN
+		
+		ParallelTestThread[] threads = TestUtil.multithread(TEST_NAME,
+				(threadIndex) -> {
+					
+					String foo = "FOO"+threadIndex;
+					String bar = "BAR"+threadIndex;
+					
+					evaluateAndAssertStringScalarExpresssion(
+							"expression-string-variables.xml",
+							"testExpressionStringVariablesParallel-"+threadIndex,
+							createVariables(
+									"foo", foo, PrimitiveType.STRING,
+									"bar", bar, PrimitiveType.STRING
+							),
+							foo + bar);
+					
+				}, 30, 3);
+		
+		// THEN
+		TestUtil.waitForThreads(threads, 60000L);
+		
     }
 
 
@@ -140,10 +182,12 @@ public abstract class AbstractScriptTest {
     	evaluateAndAssertStringScalarExpresssion(
     			"expression-objectref-variables.xml",
     			"testExpressionObjectRefVariables",
-    			ExpressionVariables.create(
-						new QName(NS_X, "foo"), "Captain",
-						new QName(NS_Y, "jack"),
-							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
+    			createVariables(
+						"foo", "Captain", String.class,
+						"jack",
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+							// We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+							prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
 				),
     			"Captain emp1234");
     }
@@ -153,10 +197,12 @@ public abstract class AbstractScriptTest {
     	evaluateAndAssertStringScalarExpresssion(
     			"expression-objectref-variables-polystring.xml",
     			"testExpressionObjectRefVariablesPolyString",
-    			ExpressionVariables.create(
-						new QName(NS_X, "foo"), "Captain",
-						new QName(NS_Y, "jack"),
-							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
+    			createVariables(
+						"foo", "Captain", PrimitiveType.STRING,
+						"jack",
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+							// We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+							prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
 				),
     			"Captain Jack Sparrow");
     }
@@ -205,8 +251,11 @@ public abstract class AbstractScriptTest {
     // TODO: user + no property value
 
 	private ExpressionVariables createUserScriptVariables() {
-		return ExpressionVariables.create(SchemaConstants.C_USER,
-    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE));
+		return createVariables(
+				ExpressionConstants.VAR_USER,
+	    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+	    			// We want 'user' variable to contain user object, not the reference. We want the reference resolved.
+	    			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class));
 	}
 
 	// TODO: shadow + attributes
@@ -220,8 +269,10 @@ public abstract class AbstractScriptTest {
     	evaluateAndAssertStringScalarExpresssion(
 				"expression-root-node.xml",
     			"testRootNode",
-    			ExpressionVariables.create(null,
-    	    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)),
+    			createVariables(
+    					null, // root node
+	    	    			MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+	    	    			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)),
     	    	"Black Pearl");
     }
 
@@ -230,9 +281,11 @@ public abstract class AbstractScriptTest {
 		evaluateAndAssertStringListExpresssion(
 				"expression-list.xml",
     			"testExpressionList",
-    			ExpressionVariables.create(
-						new QName(NS_Y, "jack"),
-							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE)
+    			createVariables(
+						"jack",
+							MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+							// We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
+							prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
 				),
     			"Leaders", "Followers");
     }
@@ -269,11 +322,32 @@ public abstract class AbstractScriptTest {
 	}
 	
 	private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
-		ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
+		String language = expressionType.getLanguage();
+		ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(language), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
 		expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
+		ScriptExpressionProfile scriptExpressionProfile = getScriptExpressionProfile(language);
+		expression.setScriptExpressionProfile(scriptExpressionProfile);
+		expression.setExpressionProfile(getExpressionProfile(scriptExpressionProfile));
 		return expression;
+	}
+
+	protected ExpressionProfile getExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+		if (scriptExpressionProfile == null) {
+			return null;
+		}
+		ExpressionProfile expressionProfile = new ExpressionProfile(this.getClass().getSimpleName());
+		expressionProfile.setDecision(AccessDecision.DENY);
+		ExpressionEvaluatorProfile evaluatorProfile = new ExpressionEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+		expressionProfile.add(evaluatorProfile);
+		evaluatorProfile.setDecision(AccessDecision.DENY);
+		evaluatorProfile.add(scriptExpressionProfile);
+		return expressionProfile;
+	}
+	
+	protected ScriptExpressionProfile getScriptExpressionProfile(String language) {
+		return null;
 	}
 
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
@@ -306,6 +380,16 @@ public abstract class AbstractScriptTest {
 		PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
 		assertNotNull("Expression "+testName+" resulted in null value (expected '"+expectedValue+"')", expressionResult);
 		assertEquals("Expression "+testName+" resulted in wrong value", expectedValue, expressionResult.getValue());
+	}
+	
+	protected void evaluateAndAssertStringScalarExpresssionRestricted(String fileName, String testName, ExpressionVariables variables) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		try {
+			List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
+			AssertJUnit.fail("Expression "+testName+": unexpected success, result value: "+ expressionResultList);
+		} catch (SecurityViolationException e) {
+			System.out.println("Expected exception: " + e);
+			LOGGER.debug("Expected exception", e);
+		}
 	}
 
 	private void evaluateAndAssertStringListExpresssion(String fileName, String testName, ExpressionVariables variables, String... expectedValues) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -340,6 +424,10 @@ public abstract class AbstractScriptTest {
 	private void displayTestTitle(String testName) {
 		System.out.println("===[ "+evaluator.getLanguageName()+": "+testName+" ]===========================");
 		LOGGER.info("===[ "+evaluator.getLanguageName()+": "+testName+" ]===========================");
+	}
+	
+	protected ExpressionVariables createVariables(Object... params) {
+		return ExpressionVariables.create(prismContext, params);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,9 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -128,11 +130,11 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 		try {
 
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable());
+			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable(), prismContext);
 
 			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
 			ObjectFilter evaluatedFilter = ExpressionUtil
-					.evaluateFilterExpressions(origFilter, variables, mappingFactory.getExpressionFactory(), prismContext, " evaluating approverRef filter expression ", task, result);
+					.evaluateFilterExpressions(origFilter, variables, MiscSchemaUtil.getExpressionProfile(), mappingFactory.getExpressionFactory(), prismContext, " evaluating approverRef filter expression ", task, result);
 
 			if (evaluatedFilter == null) {
 				throw new SchemaException("Filter could not be evaluated in approverRef in "+sourceDescription+"; original filter = "+origFilter);

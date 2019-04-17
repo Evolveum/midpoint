@@ -1,403 +1,47 @@
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="137edf3a-104e-49b4-9dcb-14db1062c8f3" version="9">
-    <name>openstackv38</name>
-    <metadata>
-        <modifyTimestamp>2019-01-15T00:33:06.733+01:00</modifyTimestamp>
-        <modifierRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
-        <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
-    </metadata>
-    <operationExecution id="1">
-        <timestamp>2019-01-15T00:32:49.865+01:00</timestamp>
-        <operation>
-            <objectDelta>
-                <t:changeType>modify</t:changeType>
-                <t:objectType>c:ResourceType</t:objectType>
-            </objectDelta>
-            <executionResult>
-                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-                <status>success</status>
-                <token>1000000000000000151</token>
-            </executionResult>
-            <objectName>openstackv38</objectName>
-        </operation>
-        <status>success</status>
-        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
-        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-    </operationExecution>
-    <operationExecution id="2">
-        <timestamp>2019-01-15T00:33:07.456+01:00</timestamp>
-        <operation>
-            <objectDelta>
-                <t:changeType>modify</t:changeType>
-                <t:objectType>c:ResourceType</t:objectType>
-            </objectDelta>
-            <executionResult>
-                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-                <status>success</status>
-                <token>1000000000000000227</token>
-            </executionResult>
-            <objectName>openstackv38</objectName>
-        </operation>
-        <status>success</status>
-        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
-        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-    </operationExecution>
-    <operationalState>
-        <lastAvailabilityStatus>up</lastAvailabilityStatus>
-    </operationalState>
-    <connectorRef oid="2de6486d-5710-4ed7-8d70-f0a4530eab0d" relation="org:default" type="c:ConnectorType"/>
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="137edf3a-104e-49b4-9dcb-14db1062c8f3">
+    <name>Openstack Keystone </name>
+  
+   <connectorRef type="ConnectorType">
+	    <filter>
+			<q:and>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>com.evolveum.polygon.connector.openstackkeystone.rest.OpenStackConnector</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties xmlns:gen233="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-openStack-Keystone/com.evolveum.polygon.connector.openstackkeystone.rest.OpenStackConnector">
             <gen233:endpoint>endpoint</gen233:endpoint>
             <gen233:userId>userId</gen233:userId>
-            <gen233:secret>Secret</gen233:secret>
+            <gen233:password>
+				<t:clearValue>password </t:clearValue>
+			</gen233:password>
             <gen233:projectName>projectName</gen233:projectName>
             <gen233:domainName>domainName</gen233:domainName>
         </icfc:configurationProperties>
     </connectorConfiguration>
-    <schema>
-        <cachingMetadata>
-            <retrievalTimestamp>2019-01-15T00:32:54.532+01:00</retrievalTimestamp>
-            <serialNumber>63a283fc71c19257-c22a5b2a4f05423d</serialNumber>
-        </cachingMetadata>
-        <definition>
-            <xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-                <xsd:complexType name="CustomRoleObjectClass">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <ra:resourceObject/>
-                            <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:nativeObjectClass>Role</ra:nativeObjectClass>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:sequence>
-                        <xsd:element minOccurs="0" name="domain_id" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>120</a:displayOrder>
-                                    <ra:frameworkAttributeName>domain_id</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="links" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>130</a:displayOrder>
-                                    <a:access>read</a:access>
-                                    <ra:frameworkAttributeName>links</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element ref="icfs:name">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId Name</a:displayName>
-                                    <a:displayOrder>110</a:displayOrder>
-                                    <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" ref="icfs:uid">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId UID</a:displayName>
-                                    <a:displayOrder>100</a:displayOrder>
-                                    <a:access>read</a:access>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-                <xsd:complexType name="GroupObjectClass">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <ra:resourceObject/>
-                            <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:sequence>
-                        <xsd:element minOccurs="0" name="description" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>120</a:displayOrder>
-                                    <ra:frameworkAttributeName>description</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" name="domain_id" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>130</a:displayOrder>
-                                    <ra:frameworkAttributeName>domain_id</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="links" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>140</a:displayOrder>
-                                    <a:access>read</a:access>
-                                    <ra:frameworkAttributeName>links</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="group_members" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>150</a:displayOrder>
-                                    <ra:frameworkAttributeName>group_members</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element ref="icfs:name">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId Name</a:displayName>
-                                    <a:displayOrder>110</a:displayOrder>
-                                    <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" ref="icfs:uid">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId UID</a:displayName>
-                                    <a:displayOrder>100</a:displayOrder>
-                                    <a:access>read</a:access>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-                <xsd:complexType name="CustomProjectObjectClass">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <ra:resourceObject/>
-                            <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:nativeObjectClass>Project</ra:nativeObjectClass>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:sequence>
-                        <xsd:element minOccurs="0" name="description" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>120</a:displayOrder>
-                                    <ra:frameworkAttributeName>description</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" name="domain_id" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>130</a:displayOrder>
-                                    <ra:frameworkAttributeName>domain_id</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="links" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>140</a:displayOrder>
-                                    <a:access>read</a:access>
-                                    <ra:frameworkAttributeName>links</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element ref="icfs:name">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId Name</a:displayName>
-                                    <a:displayOrder>110</a:displayOrder>
-                                    <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" name="parent_id" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>150</a:displayOrder>
-                                    <a:access>create</a:access>
-                                    <a:access>read</a:access>
-                                    <ra:frameworkAttributeName>parent_id</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" ref="icfs:uid">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId UID</a:displayName>
-                                    <a:displayOrder>100</a:displayOrder>
-                                    <a:access>read</a:access>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-                <xsd:complexType name="CustomDomainObjectClass">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <ra:resourceObject/>
-                            <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:nativeObjectClass>Domain</ra:nativeObjectClass>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:sequence>
-                        <xsd:element minOccurs="0" name="description" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>120</a:displayOrder>
-                                    <ra:frameworkAttributeName>description</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element ref="icfs:name">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId Name</a:displayName>
-                                    <a:displayOrder>110</a:displayOrder>
-                                    <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" ref="icfs:uid">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId UID</a:displayName>
-                                    <a:displayOrder>100</a:displayOrder>
-                                    <a:access>read</a:access>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-                <xsd:complexType name="AccountObjectClass">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <ra:resourceObject/>
-                            <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-                            <ra:kind>account</ra:kind>
-                            <ra:default>true</ra:default>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:sequence>
-                        <xsd:element minOccurs="0" name="description" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>120</a:displayOrder>
-                                    <ra:frameworkAttributeName>description</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" name="domain_id" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>130</a:displayOrder>
-                                    <ra:frameworkAttributeName>domain_id</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="links" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>140</a:displayOrder>
-                                    <a:access>read</a:access>
-                                    <ra:frameworkAttributeName>links</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element ref="icfs:name">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId Name</a:displayName>
-                                    <a:displayOrder>110</a:displayOrder>
-                                    <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="userroles" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>150</a:displayOrder>
-                                    <ra:frameworkAttributeName>userroles</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="usergroups" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>160</a:displayOrder>
-                                    <ra:frameworkAttributeName>usergroups</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" name="default_project_id" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>170</a:displayOrder>
-                                    <ra:frameworkAttributeName>default_project_id</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" name="email" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>180</a:displayOrder>
-                                    <ra:frameworkAttributeName>email</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" ref="icfs:uid">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId UID</a:displayName>
-                                    <a:displayOrder>100</a:displayOrder>
-                                    <a:access>read</a:access>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:schema>
-        </definition>
-    </schema>
+           
     <schemaHandling>
-        <objectType id="11">
+        <objectType>
             <kind>entitlement</kind>
             <intent>Group</intent>
             <default>false</default>
             <objectClass>ri:GroupObjectClass</objectClass>
-            <attribute id="13">
+            <attribute>
                 <c:ref>icfs:name</c:ref>
                 <outbound>
                     <source>
                         <c:path>$focus/name</c:path>
                     </source>
                 </outbound>
-                <inbound id="14">
+                <inbound>
                     <target>
                         <c:path>$focus/name</c:path>
                     </target>
                 </inbound>
-                <inbound id="15">
+                <inbound>
                     <expression>
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
@@ -409,7 +53,7 @@
                         <c:path>$focus/subtype</c:path>
                     </target>
                 </inbound>
-                <inbound id="16">
+                <inbound>
                     <expression>
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
@@ -422,26 +66,73 @@
                     </target>
                 </inbound>
             </attribute>
+			<attribute>
+                <c:ref>ri:description</c:ref>
+                <tolerant>true</tolerant>
+                <exclusiveStrong>false</exclusiveStrong>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$focus/description</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$focus/description</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+		    <association>
+                <c:ref>ri:group_in_roles</c:ref>
+                <displayName>Roles for group</displayName>
+                <kind>entitlement</kind>
+                <intent>Role</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:grouproles</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <c:ref>ri:group_in_projects</c:ref>
+                <displayName>Projects for group</displayName>
+                <kind>entitlement</kind>
+                <intent>Project</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:groupprojects</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <c:ref>ri:users_in_group</c:ref>
+                <displayName>Group members</displayName>
+                <kind>account</kind>
+                <intent>default</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:group_members</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
         </objectType>
-        <objectType id="19">
+        <objectType>
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
-            <attribute id="20">
+            <attribute>
                 <c:ref>icfs:name</c:ref>
                 <outbound>
                     <source>
                         <c:path>$user/name</c:path>
                     </source>
                 </outbound>
-                <inbound id="23">
+                <inbound>
                     <target>
                         <c:path>$user/name</c:path>
                     </target>
                 </inbound>
             </attribute>
-            <attribute id="21">
+            <attribute>
                 <c:ref>ri:email</c:ref>
                 <tolerant>true</tolerant>
                 <exclusiveStrong>false</exclusiveStrong>
@@ -451,28 +142,57 @@
                         <c:path>$user/emailAddress</c:path>
                     </source>
                 </outbound>
-                <inbound id="24">
+                <inbound>
                     <strength>weak</strength>
                     <target>
                         <c:path>$user/emailAddress</c:path>
                     </target>
                 </inbound>
             </attribute>
-            <attribute id="22">
-                <c:ref>ri:description</c:ref>
+            <attribute>
+				<c:ref>ri:description</c:ref>
+                <tolerant>true</tolerant>
+                <exclusiveStrong>false</exclusiveStrong>
                 <outbound>
-                    <expression>
-                        <value>Created by IDM</value>
-                    </expression>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/description</c:path>
+                    </source>
                 </outbound>
+                <inbound id="65">
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$user/description</c:path>
+                    </target>
+                </inbound>
             </attribute>
-            <association id="48">
+            <association>
                 <c:ref>ri:user_in_groups</c:ref>
                 <displayName>User in groups</displayName>
                 <kind>entitlement</kind>
                 <intent>Group</intent>
                 <direction>subjectToObject</direction>
                 <associationAttribute>ri:usergroups</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <c:ref>ri:user_in_roles</c:ref>
+                <displayName>Roles for user</displayName>
+                <kind>entitlement</kind>
+                <intent>Role</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:userroles</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <c:ref>ri:user_in_projects</c:ref>
+                <displayName>Projects for user</displayName>
+                <kind>entitlement</kind>
+                <intent>Project</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:userprojects</associationAttribute>
                 <valueAttribute>icfs:uid</valueAttribute>
                 <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
@@ -485,6 +205,25 @@
                     </q:equal>
                 </filter>
             </protected>
+			<activation>
+                <administrativeStatus>
+                    <outbound id="57">
+                        <strength>strong</strength>
+                        <expression>
+                            <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
             <credentials>
                 <password xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourcePasswordDefinitionType">
                     <outbound>
@@ -495,24 +234,24 @@
                 </password>
             </credentials>
         </objectType>
-        <objectType id="29">
+	    <objectType>
             <kind>entitlement</kind>
             <intent>Project</intent>
             <default>false</default>
             <objectClass>ri:CustomProjectObjectClass</objectClass>
-            <attribute id="30">
+            <attribute>
                 <c:ref>icfs:name</c:ref>
                 <outbound>
                     <source>
                         <c:path>$focus/name</c:path>
                     </source>
                 </outbound>
-                <inbound id="31">
+                <inbound>
                     <target>
                         <c:path>$focus/name</c:path>
                     </target>
                 </inbound>
-                <inbound id="32">
+                <inbound>
                     <expression>
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
@@ -521,37 +260,54 @@
                         </script>
                     </expression>
                     <target>
-                        <c:path>$focus/orgType</c:path>
+                        <c:path>$focus/subtype</c:path>
                     </target>
                 </inbound>
             </attribute>
-            <attribute id="46">
+            <attribute>
                 <c:ref>icfs:uid</c:ref>
-                <inbound id="47">
+                <inbound>
                     <target>
-                        <c:path>identifier</c:path>
+                        <c:path>$focus/identifier</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+			<attribute>
+                <c:ref>ri:description</c:ref>
+                <tolerant>true</tolerant>
+                <exclusiveStrong>false</exclusiveStrong>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$focus/description</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$focus/description</c:path>
                     </target>
                 </inbound>
             </attribute>
         </objectType>
-        <objectType id="34">
+        <objectType>
             <kind>entitlement</kind>
             <intent>Role</intent>
             <default>false</default>
             <objectClass>ri:CustomRoleObjectClass</objectClass>
-            <attribute id="35">
+            <attribute>
                 <c:ref>icfs:name</c:ref>
                 <outbound>
                     <source>
                         <c:path>$focus/name</c:path>
                     </source>
                 </outbound>
-                <inbound id="36">
+                <inbound>
                     <target>
                         <c:path>$focus/name</c:path>
                     </target>
                 </inbound>
-                <inbound id="37">
+                <inbound>
                     <expression>
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
@@ -564,33 +320,33 @@
                     </target>
                 </inbound>
             </attribute>
-            <attribute id="44">
+            <attribute>
                 <c:ref>icfs:uid</c:ref>
-                <inbound id="45">
+                <inbound>
                     <target>
                         <c:path>identifier</c:path>
                     </target>
                 </inbound>
             </attribute>
         </objectType>
-        <objectType id="39">
+        <objectType>
             <kind>entitlement</kind>
             <intent>Domain</intent>
             <default>false</default>
             <objectClass>ri:CustomDomainObjectClass</objectClass>
-            <attribute id="40">
+            <attribute>
                 <c:ref>icfs:name</c:ref>
                 <outbound>
                     <source>
                         <c:path>$focus/name</c:path>
                     </source>
                 </outbound>
-                <inbound id="41">
+                <inbound>
                     <target>
                         <c:path>$focus/name</c:path>
                     </target>
                 </inbound>
-                <inbound id="42">
+                <inbound>
                     <expression>
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
@@ -599,10 +355,10 @@
                         </script>
                     </expression>
                     <target>
-                        <c:path>$focus/orgType</c:path>
+                        <c:path>$focus/subtype</c:path>
                     </target>
                 </inbound>
-                <inbound id="43">
+                <inbound>
                     <expression>
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
@@ -615,38 +371,26 @@
                     </target>
                 </inbound>
             </attribute>
+			<attribute>
+                <c:ref>ri:description</c:ref>
+                <tolerant>true</tolerant>
+                <exclusiveStrong>false</exclusiveStrong>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$focus/description</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$focus/description</c:path>
+                    </target>
+                </inbound>
+            </attribute>
         </objectType>
-    </schemaHandling>
-    <capabilities>
-        <cachingMetadata>
-            <retrievalTimestamp>2019-01-15T00:32:54.515+01:00</retrievalTimestamp>
-            <serialNumber>916d3c6041bff150-fb41ad86d8014e3d</serialNumber>
-        </cachingMetadata>
-        <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:CapabilityCollectionType">
-            <cap:schema/>
-            <cap:testConnection/>
-            <cap:create/>
-            <cap:update/>
-            <cap:delete/>
-            <cap:script>
-                <cap:host>
-                    <cap:type>connector</cap:type>
-                </cap:host>
-            </cap:script>
-            <cap:addRemoveAttributeValues/>
-            <cap:activation>
-                <cap:status/>
-            </cap:activation>
-            <cap:credentials>
-                <cap:password>
-                    <cap:returnedByDefault>false</cap:returnedByDefault>
-                </cap:password>
-            </cap:credentials>
-            <cap:read>
-                <cap:returnDefaultAttributesOption>false</cap:returnDefaultAttributesOption>
-            </cap:read>
-        </native>
-    </capabilities>
+    </schemaHandling>    
+	
     <synchronization>
         <objectSynchronization>
             <name>Users sync</name>
@@ -687,7 +431,7 @@
                 <situation>unmatched</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteShadow</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
                 </action>
             </reaction>
         </objectSynchronization>
@@ -750,6 +494,7 @@
                     </expression>
                 </q:equal>
             </correlation>
+			<objectTemplateRef oid="99cc8d77-dedc-4444-a081-b006821a9c79"/>
             <reconcile>false</reconcile>
             <reaction>
                 <situation>linked</situation>

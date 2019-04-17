@@ -25,7 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Unit tests for Util class
@@ -56,7 +56,7 @@ public class UtilsTest {
             FileChannel fc = stream.getChannel();
             MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
 
-            badStr = Charset.forName("UTF-8").decode(bb).toString();
+            badStr = StandardCharsets.UTF_8.decode(bb).toString();
         }
         finally {
             stream.close();

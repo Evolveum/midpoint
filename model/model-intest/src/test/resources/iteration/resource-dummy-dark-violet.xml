@@ -93,7 +93,7 @@
 	<synchronization>
 		<objectSynchronization>
 			<enabled>true</enabled>
-			<objectTemplateRef oid="10000000-0000-0000-0000-0000000d0002"/>
+			<objectTemplateRef oid="10000000-0000-0000-0000-0000000d0002"/> <!-- Iteration User Template -->
 			<reaction>
 	            <situation>linked</situation>
 	            <synchronize>true</synchronize>

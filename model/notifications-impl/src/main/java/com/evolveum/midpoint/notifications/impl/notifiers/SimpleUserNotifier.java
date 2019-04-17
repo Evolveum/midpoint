@@ -46,7 +46,11 @@ public class SimpleUserNotifier extends SimpleFocalObjectNotifier {
         if (!super.quickCheckApplicability(event, generalNotifierType, result)) {
             return false;
         }
-        return ((ModelEvent) event).getFocusContext().isOfType(UserType.class);
+        if (!((ModelEvent) event).getFocusContext().isOfType(UserType.class)) {
+            LOGGER.trace("Focus context type is not of UserType; skipping the notification");
+            return false;
+        }
+        return true;
     }
 
     @Override

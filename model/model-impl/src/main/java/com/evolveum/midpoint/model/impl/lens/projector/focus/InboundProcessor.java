@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -92,9 +93,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingAndDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -122,6 +125,8 @@ public class InboundProcessor {
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private Protector protector;
     @Autowired private ProvisioningService provisioningService;
+    
+	private PrismContainerDefinition<ResourceObjectAssociationType> associationContainerDefinition;
     
 //    private Map<ItemDefinition, List<Mapping<?,?>>> mappingsToTarget;
 
@@ -378,7 +383,7 @@ public class InboundProcessor {
                 if (projCurrent != null) {
                 	oldAccountProperty = projCurrent.findProperty(accountAttributePath);
                 }
-                collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, oldAccountProperty, attributeAPrioriDelta, focus, null, mappingsToTarget, task, result);
+                collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, oldAccountProperty, attributeAPrioriDelta, (D)attrDef, focus, null, mappingsToTarget, task, result);
 
             } else if (projCurrent != null) {
 
@@ -389,7 +394,7 @@ public class InboundProcessor {
 
                 PrismProperty<?> oldAccountProperty = projCurrent.findProperty(accountAttributePath);
                 LOGGER.trace("Processing inbound from account sync absolute state (currentAccount): {}", oldAccountProperty);
-                collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, oldAccountProperty, null,
+                collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, (Item<V,D>)oldAccountProperty, null, (D)attrDef,
                 		focus, null, mappingsToTarget, task, result);
             }
         }
@@ -397,7 +402,7 @@ public class InboundProcessor {
         return true;
 	}
 	
-	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> boolean processAssociationInbound(QName accountAttributeName,
+	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> boolean processAssociationInbound(QName associationQName,
 			ObjectDelta<ShadowType> aPrioriProjectionDelta, final LensProjectionContext projContext,
             RefinedObjectClassDefinition projectionDefinition, final LensContext<F> context,
             XMLGregorianCalendar now, Map<ItemDefinition, List<MappingImpl<?,?>>> mappingsToTarget,
@@ -406,40 +411,40 @@ public class InboundProcessor {
 		PrismObject<ShadowType> projCurrent = projContext.getObjectCurrent();
         PrismObject<ShadowType> projNew = projContext.getObjectNew();
 
-        final ItemDelta<V, D> attributeAPrioriDelta;
+        final ItemDelta<V, D> associationAPrioriDelta;
         if (aPrioriProjectionDelta != null) {
-            attributeAPrioriDelta = aPrioriProjectionDelta.findItemDelta(ShadowType.F_ASSOCIATION);
-            if (attributeAPrioriDelta == null && !projContext.isFullShadow() && !LensUtil.hasDependentContext(context, projContext)) {
+            associationAPrioriDelta = aPrioriProjectionDelta.findItemDelta(ShadowType.F_ASSOCIATION);
+            if (associationAPrioriDelta == null && !projContext.isFullShadow() && !LensUtil.hasDependentContext(context, projContext)) {
 				LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
-						accountAttributeName, projContext.getResourceShadowDiscriminator());
+						associationQName, projContext.getResourceShadowDiscriminator());
 				return true;
             }
         } else {
-        	attributeAPrioriDelta = null;
+        	associationAPrioriDelta = null;
 		}
 
-        RefinedAssociationDefinition associationDef = projectionDefinition.findAssociationDefinition(accountAttributeName);
+        RefinedAssociationDefinition associationRefinedDef = projectionDefinition.findAssociationDefinition(associationQName);
 
         //TODO:
-        if (associationDef.isIgnored(LayerType.MODEL)) {
+        if (associationRefinedDef.isIgnored(LayerType.MODEL)) {
         	LOGGER.trace("Skipping inbound for association {} in {} because the association is ignored",
-            		PrettyPrinter.prettyPrint(accountAttributeName), projContext.getResourceShadowDiscriminator());
+            		PrettyPrinter.prettyPrint(associationQName), projContext.getResourceShadowDiscriminator());
         	return true;
         }
 
-        List<MappingType> inboundMappingTypes = associationDef.getInboundMappingTypes();
+        List<MappingType> inboundMappingTypes = associationRefinedDef.getInboundMappingTypes();
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", PrettyPrinter.prettyPrint(accountAttributeName),
+			LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", PrettyPrinter.prettyPrint(associationQName),
 					projContext.getResourceShadowDiscriminator(), inboundMappingTypes.size());
 		}
 
-    	PropertyLimitations limitations = associationDef.getLimitations(LayerType.MODEL);
+    	PropertyLimitations limitations = associationRefinedDef.getLimitations(LayerType.MODEL);
     	if (limitations != null) {
     		PropertyAccessType access = limitations.getAccess();
     		if (access != null) {
     			if (access.isRead() == null || !access.isRead()) {
     				LOGGER.warn("Inbound mapping for non-readable association {} in {}, skipping",
-    						accountAttributeName, projContext.getHumanReadableName());
+    						associationQName, projContext.getHumanReadableName());
     				return true;
     			}
     		}
@@ -448,6 +453,8 @@ public class InboundProcessor {
         if (inboundMappingTypes.isEmpty()) {
         	return true;
         }
+        
+        PrismContainerDefinition<ResourceObjectAssociationType> associationContainerDef = getAssociationContainerDefinition();
         
         for (MappingType inboundMappingType : inboundMappingTypes) {
 
@@ -471,9 +478,9 @@ public class InboundProcessor {
 				}
 			}
 
-			if (attributeAPrioriDelta == null && !projContext.isFullShadow() && !LensUtil.hasDependentContext(context, projContext)) {
+			if (associationAPrioriDelta == null && !projContext.isFullShadow() && !LensUtil.hasDependentContext(context, projContext)) {
 				LOGGER.trace("Skipping association inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
-						accountAttributeName, projContext.getResourceShadowDiscriminator());
+						associationQName, projContext.getResourceShadowDiscriminator());
 				continue;
 			}
 
@@ -485,8 +492,8 @@ public class InboundProcessor {
         	}
 
             ItemDelta focusItemDelta = null;
-            if (attributeAPrioriDelta != null) {
-                LOGGER.trace("Processing association inbound from a priori delta: {}", attributeAPrioriDelta);
+            if (associationAPrioriDelta != null) {
+                LOGGER.trace("Processing association inbound from a priori delta: {}", associationAPrioriDelta);
                 
                 PrismContainer<ShadowAssociationType> oldShadowAssociation = projCurrent.findContainer(ShadowType.F_ASSOCIATION);
                 
@@ -494,20 +501,20 @@ public class InboundProcessor {
                 if (oldShadowAssociation != null) {
                 	filteredAssociations = oldShadowAssociation.getDefinition().instantiate();
                     Collection<PrismContainerValue<ShadowAssociationType>> filteredAssociationValues = oldShadowAssociation.getValues().stream()
-                    		.filter(rVal -> accountAttributeName.equals(rVal.asContainerable().getName()))
+                    		.filter(rVal -> associationQName.equals(rVal.asContainerable().getName()))
                     		.map(val -> val.clone())
                     		.collect(Collectors.toCollection(ArrayList::new));
                     prismContext.adopt(filteredAssociations);
                     filteredAssociations.addAll(filteredAssociationValues);
                 }
                 
-                resolveEntitlementsIfNeeded((ContainerDelta<ShadowAssociationType>) attributeAPrioriDelta, filteredAssociations, projContext, task, result);
+                resolveEntitlementsIfNeeded((ContainerDelta<ShadowAssociationType>) associationAPrioriDelta, filteredAssociations, projContext, task, result);
                 
              
                 VariableProducer<PrismContainerValue<ShadowAssociationType>> entitlementVariable = 
                 		(value, variables) -> resolveEntitlement(value, projContext, variables); 
-                collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, (Item) oldShadowAssociation,
-						attributeAPrioriDelta, focus, (VariableProducer) entitlementVariable, mappingsToTarget, task, result);
+                collectMappingsForTargets(context, projContext, inboundMappingType, associationQName, (Item) oldShadowAssociation,
+						associationAPrioriDelta, (D)associationContainerDef, focus, (VariableProducer) entitlementVariable, mappingsToTarget, task, result);
 
             } else if (projCurrent != null) {
 
@@ -526,20 +533,22 @@ public class InboundProcessor {
                 
                 PrismContainer<ShadowAssociationType> filteredAssociations = oldShadowAssociation.getDefinition().instantiate();
                 Collection<PrismContainerValue<ShadowAssociationType>> filteredAssociationValues = oldShadowAssociation.getValues().stream()
-                		.filter(rVal -> accountAttributeName.equals(rVal.asContainerable().getName()))
+                		.filter(rVal -> associationQName.equals(rVal.asContainerable().getName()))
                 		.map(val -> val.clone())
                 		.collect(Collectors.toCollection(ArrayList::new));
-                prismContext.adopt(filteredAssociations);
                 filteredAssociations.addAll(filteredAssociationValues);
-                
-                resolveEntitlementsIfNeeded((ContainerDelta<ShadowAssociationType>) attributeAPrioriDelta, filteredAssociations, projContext, task, result);
+                // Make sure all the modified/cloned associations have proper definition
+	            filteredAssociations.applyDefinition(oldShadowAssociation.getDefinition(), false);
+	            
+                resolveEntitlementsIfNeeded((ContainerDelta<ShadowAssociationType>) associationAPrioriDelta, filteredAssociations, projContext, task, result);
                 
                 VariableProducer<PrismContainerValue<ShadowAssociationType>> entitlementVariable = 
-                		(value, variables) -> resolveEntitlement(value, projContext, variables);;
+                		(value, variables) -> resolveEntitlement(value, projContext, variables);
+
                 		
                 LOGGER.trace("Processing association inbound from account sync absolute state (currentAccount): {}", filteredAssociations);
-				collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, filteredAssociations,
-						null, focus, entitlementVariable, mappingsToTarget, task, result);
+				collectMappingsForTargets(context, projContext, inboundMappingType, associationQName, (Item<V,D>)filteredAssociations,
+						null, (D)associationContainerDef, focus, (VariableProducer<V>)entitlementVariable, mappingsToTarget, task, result);
                 
             }
         }
@@ -551,11 +560,7 @@ public class InboundProcessor {
 		LOGGER.trace("Producing value {} ", value);
 		PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
 		LOGGER.trace("Resolved entitlement {}", entitlement);
-		if (variables.containsKey(ExpressionConstants.VAR_ENTITLEMENT)) {
-			variables.replaceVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
-		} else {
-			variables.addVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
-		}
+		variables.put(ExpressionConstants.VAR_ENTITLEMENT, entitlement, entitlement.getDefinition());
 	}
 
 	private <F extends FocusType> void processAuxiliaryObjectClassInbound(
@@ -606,6 +611,8 @@ public class InboundProcessor {
     	} else {
     		focus = context.getFocusContext().getObjectNew();
     	}
+    	
+    	PrismPropertyDefinition<QName> auxiliaryObjectClassPropertyDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class).findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 
         for (MappingType inboundMappingType : inboundMappingTypes) {
 
@@ -613,7 +620,7 @@ public class InboundProcessor {
 
             PrismProperty<QName> oldAccountProperty = projCurrent.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
             LOGGER.trace("Processing inbound from account sync absolute state (currentAccount): {}", oldAccountProperty);
-            collectMappingsForTargets(context, projContext, inboundMappingType, ShadowType.F_AUXILIARY_OBJECT_CLASS, oldAccountProperty, null, focus, null, mappingsToTarget, task, result);
+            collectMappingsForTargets(context, projContext, inboundMappingType, ShadowType.F_AUXILIARY_OBJECT_CLASS, oldAccountProperty, null, auxiliaryObjectClassPropertyDefinition, focus, null, mappingsToTarget, task, result);
         }
 	}
 
@@ -713,10 +720,14 @@ public class InboundProcessor {
         return false;
     }
 	
+	/**
+	 * Note: in this case "attribute" may also be an association
+	 */
 	private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> void collectMappingsForTargets(final LensContext<F> context,
     		LensProjectionContext projectionCtx, MappingType inboundMappingType,
-    		QName accountAttributeName, Item<V,D> oldAccountProperty,
+    		QName accountAttributeQName, Item<V,D> oldAccountProperty,
     		ItemDelta<V,D> attributeAPrioriDelta,
+    		D attributeDefinition,
             PrismObject<F> focusNew, 
             VariableProducer<V> variableProducer, Map<ItemDefinition, List<MappingImpl<?,?>>> mappingsToTarget,
             Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
@@ -727,24 +738,30 @@ public class InboundProcessor {
 
     	ResourceType resource = projectionCtx.getResource();
     	MappingImpl.Builder<V,D> builder = mappingFactory.createMappingBuilder(inboundMappingType,
-    			"inbound expression for "+accountAttributeName+" in "+resource);
+    			"inbound expression for "+accountAttributeQName+" in "+resource);
 
     	if (!builder.isApplicableToChannel(context.getChannel())) {
     		return;
     	}
     	
-    	PrismObject<ShadowType> accountNew = projectionCtx.getObjectNew();
+    	PrismObject<ShadowType> shadowNew = projectionCtx.getObjectNew();
+    	PrismObjectDefinition<ShadowType> shadowNewDef;
+    	if (shadowNew == null) {
+    		shadowNewDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+    	} else {
+    		shadowNewDef = shadowNew.getDefinition();
+    	}
     	ExpressionVariables variables = new ExpressionVariables();
-    	variables.addVariableDefinition(ExpressionConstants.VAR_USER, focusNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
-    	variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
-    	variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
+    	variables.put(ExpressionConstants.VAR_USER, focusNew, focusNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_FOCUS, focusNew, focusNew.getDefinition());
+    	variables.put(ExpressionConstants.VAR_ACCOUNT, shadowNew, shadowNewDef);
+    	variables.put(ExpressionConstants.VAR_SHADOW, shadowNew, shadowNewDef);
+    	variables.put(ExpressionConstants.VAR_PROJECTION, shadowNew, shadowNewDef);
+    	variables.put(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition());
+    	variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
+    	variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
     	    	
-    	Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT);
+    	Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, (D)attributeDefinition);
     	defaultSource.recompute();
 		builder = builder.defaultSource(defaultSource)
 				.targetContext(LensUtil.getFocusDefinition(context))
@@ -755,7 +772,8 @@ public class InboundProcessor {
 				.originObject(resource);
 		
 		if (!context.getFocusContext().isDelete()){
-				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), focusNew, variables, mappingFactory.getObjectResolver() , "resolving range",
+				TypedValue<PrismObject<F>> targetContext = new TypedValue<>(focusNew);
+				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), targetContext, variables, mappingFactory.getObjectResolver() , "resolving range",
 						prismContext, task, result);
 				builder.originalTargetValues(originalValues);
 		}
@@ -993,7 +1011,7 @@ public class InboundProcessor {
     
     
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> ItemDelta<V, D> collectOutputDelta(
-    		ItemDefinition outputDefinition, ItemPath outputPath, PrismObject<F> focusNew,
+    		D outputDefinition, ItemPath outputPath, PrismObject<F> focusNew,
 		    DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples, boolean tolerant,
 		    boolean hasRange, boolean isDelete) throws SchemaException {
 		
@@ -1005,14 +1023,15 @@ public class InboundProcessor {
 		boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(outputPath);
 		
     	    	
-		Item shouldBeItem = outputDefinition.instantiate();
+		Item<V,D> shouldBeItem = outputDefinition.instantiate();
 		if (consolidatedTriples != null) {
 			
 			Collection<ItemValueWithOrigin<V, D>> shouldBeItemValues = consolidatedTriples.getNonNegativeValues();
 			for (ItemValueWithOrigin<V, D> itemWithOrigin : shouldBeItemValues) {
-				shouldBeItem.add(LensUtil.cloneAndApplyMetadata(itemWithOrigin.getItemValue(),
+				V clonedValue = LensUtil.cloneAndApplyMetadata(itemWithOrigin.getItemValue(),
 						isAssignment,
-						shouldBeItemValues));
+						shouldBeItemValues);
+				shouldBeItem.add(clonedValue, EquivalenceStrategy.REAL_VALUE);
 			}
 						
 			if (consolidatedTriples.hasPlusSet()) {
@@ -1337,17 +1356,19 @@ public class InboundProcessor {
 				if (specialAttributeDelta == null){
 					specialAttributeDelta = sourceIdi.getDelta();
 				}
-				Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(sourceIdi.getItemOld(), specialAttributeDelta,
-						sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
+				Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(
+						sourceIdi.getItemOld(), specialAttributeDelta, sourceIdi.getItemOld(),
+						ExpressionConstants.VAR_INPUT_QNAME, 
+						(PrismPropertyDefinition<?>)sourceIdi.getDefinition());
 				builder = builder.defaultSource(source)
-						.addVariableDefinition(ExpressionConstants.VAR_USER, newUser)
-						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
+						.addVariableDefinition(ExpressionConstants.VAR_USER, newUser, UserType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser, FocusType.class);
 
 				PrismObject<ShadowType> accountNew = projContext.getObjectNew();
-				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew)
-						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource())
+				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew, ShadowType.class)
+						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
 						.valuePolicyResolver(createStringPolicyResolver(context, task, opResult))
 						.originType(OriginType.INBOUND)
 						.originObject(projContext.getResource());
@@ -1384,7 +1405,7 @@ public class InboundProcessor {
 		    		ProtectedStringType resultValue = (ProtectedStringType) result.getRealValue();
 		    		ProtectedStringType targetPropertyNewValue = (ProtectedStringType) targetPropertyNew.getRealValue();
 		    		try {
-						if (protector.compare(resultValue, targetPropertyNewValue)) {
+						if (protector.compareCleartext(resultValue, targetPropertyNewValue)) {
 							delta = null;
 						} else {
 							delta = targetPropertyNew.diff(result);
@@ -1427,6 +1448,14 @@ public class InboundProcessor {
 //                inboundMappingTypes, "inbound mapping for " + sourcePath + " in " + accContext.getResource(), now, initializer, targetPropertyNew, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
 
     }
+    
+	private PrismContainerDefinition<ResourceObjectAssociationType> getAssociationContainerDefinition() {
+		if (associationContainerDefinition == null) {
+			associationContainerDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class).findContainerDefinition(ShadowType.F_ASSOCIATION);
+		}
+		return associationContainerDefinition;
+	}
+
 
 //    private Collection<Mapping> getMappingApplicableToChannel(
 //			Collection<MappingType> inboundMappingTypes, String description, String channelUri) {

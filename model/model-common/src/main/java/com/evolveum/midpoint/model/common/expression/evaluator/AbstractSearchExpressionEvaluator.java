@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -84,41 +85,22 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluator.class);
 
-	private PrismContext prismContext;
-	private D outputDefinition;
-	private Protector protector;
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
 
-	protected AbstractSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
-			D outputDefinition, Protector protector, ObjectResolver objectResolver,
-			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
-			LocalizationService localizationService) {
-		super(expressionEvaluatorType, securityContextManager, localizationService, prismContext);
-		this.outputDefinition = outputDefinition;
-		this.prismContext = prismContext;
-		this.protector = protector;
+	protected AbstractSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
+			D outputDefinition, Protector protector, PrismContext prismContext,
+			ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager, LocalizationService localizationService) {
+		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, securityContextManager, localizationService);
 		this.objectResolver = objectResolver;
 		this.modelService = modelService;
 	}
 
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
-
-	public ItemDefinition getOutputDefinition() {
-		return outputDefinition;
-	}
-
-	public Protector getProtector() {
-		return protector;
-	}
-
-	public ObjectResolver getObjectResolver() {
+	protected ObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
 
-	public ModelService getModelService() {
+	protected ModelService getModelService() {
 		return modelService;
 	}
 
@@ -177,7 +159,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("XML query converted to: {}", query.debugDump());
 			}
-			query = ExpressionUtil.evaluateQueryExpressions(query, variables, context.getExpressionFactory(),
+			query = ExpressionUtil.evaluateQueryExpressions(query, variables, context.getExpressionProfile(), context.getExpressionFactory(),
 					prismContext, context.getContextDescription(), task, result);
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("Expression in query evaluated to: {}", query.debugDump());

@@ -27,17 +27,14 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -55,6 +52,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
  	
 	private static final File LDIF_CREATE_BASE_USERS_FILE = new File(TEST_DIR, "users-base.ldif");
 	private static final File LDIF_CREATE_USERS_FILE = new File(TEST_DIR, "users.ldif");
+	private static final File LDIF_CREATE_USERS_NEXT_FILE = new File(TEST_DIR, "users-next.ldif");
 	private static final File LDIF_CHANGE_ACTIVATION_FILE = new File(TEST_DIR, "users-activation.ldif");
 	
 	
@@ -62,10 +60,12 @@ public abstract class TestThresholds extends AbstractStoryTest {
 	private static final String ROLE_POLICY_RULE_CREATE_OID = "00000000-role-0000-0000-999111111112";
 	
 	private static final File ROLE_POLICY_RULE_CHANGE_ACTIVATION_FILE = new File(TEST_DIR, "role-policy-rule-change-activation.xml");
-	private static final String ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID = "00000000-role-0000-0000-999111111223";
+	protected static final String ROLE_POLICY_RULE_CHANGE_ACTIVATION_OID = "00000000-role-0000-0000-999111111223";
 	
 	private static final File TASK_IMPORT_BASE_USERS_FILE = new File(TEST_DIR, "task-opendj-import-base-users.xml");
 	private static final String TASK_IMPORT_BASE_USERS_OID = "fa25e6dc-a858-11e7-8ebc-eb2b71ecce1d";
+
+	private static final int TASK_IMPORT_TIMEOUT = 60000;
 	
 
 	private PrismObject<ResourceType> resourceOpenDj;
@@ -88,15 +88,9 @@ public abstract class TestThresholds extends AbstractStoryTest {
 	protected abstract File getTaskFile();
 	protected abstract String getTaskOid();
 	protected abstract int getProcessedUsers();
-	protected abstract void assertSynchronizationStatisticsAfterImport(Task syncInfo) throws Exception;
-	
-	
-	protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 5);
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), getDefaultUsers());
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
-	}
+	protected abstract void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception;
+	protected abstract void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception;
+	protected abstract void assertSynchronizationStatisticsActivation(Task taskAfter);
 	
 	
 	@Override
@@ -181,11 +175,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 	    OperationResult result = task.getResult();
-//		executeChanges(DeltaBuilder.deltaFor(TaskType.class, prismContext)
-//		.item(TaskType.F_EXECUTION_STATUS)
-//			.replace(TaskExecutionStatusType.RUNNABLE)
-//			.asObjectDelta(getTaskOid()), null, task, result);
-		
 		
 		openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_FILE);
 		 
@@ -194,7 +183,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		assertUsers(getNumberOfUsers());
 		//WHEN
 		displayWhen(TEST_NAME);
-		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 20000);
+		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
 		assertFailure(reconResult);
 		
 		//THEN
@@ -203,6 +192,32 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		
 		Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
 		assertSynchronizationStatisticsAfterImport(taskAfter);
+		
+	}
+	@Test
+	public void test111importAccountsAgain() throws Exception {
+		final String TEST_NAME = "test111importAccountsAgain";
+		displayTestTitle(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+	    OperationResult result = task.getResult();
+		
+		openDJController.addEntriesFromLdifFile(LDIF_CREATE_USERS_NEXT_FILE);
+		 
+		
+		
+		assertUsers(getNumberOfUsers()+getProcessedUsers());
+		//WHEN
+		displayWhen(TEST_NAME);
+		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, TASK_IMPORT_TIMEOUT);
+		assertFailure(reconResult);
+		
+		//THEN
+		assertUsers(getProcessedUsers()*2 + getNumberOfUsers());
+		assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
+		
+		Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
+		assertSynchronizationStatisticsAfterSecondImport(taskAfter);
 		
 	}
 	
@@ -237,7 +252,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		
 		//WHEN
 		displayWhen(TEST_NAME);
-		OperationResult reconResult = waitForTaskNextRun(getTaskOid(), false, 20000, true);
+		OperationResult reconResult = waitForTaskResume(getTaskOid(), false, 20000);
 		assertFailure(reconResult);
 		
 		//THEN
@@ -245,7 +260,6 @@ public abstract class TestThresholds extends AbstractStoryTest {
 		Task taskAfter = taskManager.getTaskWithResult(getTaskOid(), result);
 		
 		assertTaskExecutionStatus(getTaskOid(), TaskExecutionStatus.SUSPENDED);
-		assertUsers(getNumberOfUsers() + getProcessedUsers());
 		
 		assertSynchronizationStatisticsActivation(taskAfter);
 		

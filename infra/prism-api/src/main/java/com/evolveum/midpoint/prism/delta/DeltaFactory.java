@@ -47,6 +47,10 @@ public interface DeltaFactory {
 		<O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
 				QName propertyName, T... realValues);
 
+		// single-argument method just to avoid "unchecked" warnings
+		<O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
+				QName propertyName, PrismPropertyValue<T> pValue);
+
 		@SuppressWarnings("unchecked")
 		<O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
 				QName propertyName, PrismPropertyValue<T>... pValues);

@@ -48,10 +48,6 @@ import java.util.List;
 public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private static final long serialVersionUID = -5077637168906420769L;
 
-	private static final String ID_TAG_EXECUTION_STATUS = "summaryTagExecutionStatus";
-	private static final String ID_TAG_RESULT = "summaryTagResult";
-	private static final String ID_TAG_WF_OUTCOME = "wfOutcomeTag";
-	private static final String ID_TAG_EMPTY = "emptyTag";
 	private static final String ID_TAG_REFRESH = "refreshTag";
 
 	private PageTaskEdit parentPage;
@@ -82,29 +78,45 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	protected List<SummaryTag<TaskType>> getSummaryTagComponentList(){
 		List<SummaryTag<TaskType>> summaryTagList = new ArrayList<>();
 		SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void initialize(TaskType taskType) {
-				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
-				String icon = getIconForExecutionStatus(status);
-				setIconCssClass(icon);
-				if (status != null) {
-					setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString());
-				}
+				setIconCssClass(getTaskExecutionIcon(taskType));
+				setLabel(getTaskExecutionLabel(taskType));
 				// TODO setColor
+			}
+
+			@Override
+			public String getIconCssClass() {
+				return getTaskExecutionIcon(parentPage.getTaskDto().getTaskType());
+			}
+
+			@Override
+			public String getLabel() {
+				return getTaskExecutionLabel(parentPage.getTaskDto().getTaskType());
 			}
 		};
 		summaryTagList.add(tagExecutionStatus);
 
 		SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void initialize(TaskType taskType) {
-				OperationResultStatusType resultStatus = taskType.getResultStatus();
-				String icon = OperationResultStatusPresentationProperties.parseOperationalResultStatus(resultStatus).getIcon();
-				setIconCssClass(icon);
-				if (resultStatus != null) {
-					setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString());
-				}
+				setIconCssClass(getTaskResultIcon(taskType));
+				setLabel(getTaskResultLabel(taskType));
 				// TODO setColor
+			}
+
+			@Override
+			public String getIconCssClass() {
+				return getTaskResultIcon(parentPage.getTaskDto().getTaskType());
+			}
+
+			@Override
+			public String getLabel() {
+				return getTaskResultLabel(parentPage.getTaskDto().getTaskType());
 			}
 		};
 		summaryTagList.add(tagResult);
@@ -215,7 +227,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				if (taskDto.isWorkflow()) {
 					return getString("TaskSummaryPanel.requestedBy", taskDto.getRequestedBy());
 				} else {
-					TaskType taskType = getModelObject();
+					TaskType taskType = parentPage.getTaskDto().getTaskType();
+
 					String rv;
 					if (taskType.getExpectedTotal() != null) {
 						rv = createStringResource("TaskSummaryPanel.progressWithTotalKnown", taskType.getProgress(), taskType.getExpectedTotal())
@@ -246,7 +259,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				if (parentPage.getTaskDto().isWorkflow()) {
 					return getString("TaskSummaryPanel.requestedOn", getRequestedOn());
 				} else {
-					TaskType taskType = getModelObject();
+					TaskType taskType = parentPage.getTaskDto().getTaskType();
 					if (taskType.getOperationStats() != null && taskType.getOperationStats().getIterativeTaskInformation() != null &&
 							taskType.getOperationStats().getIterativeTaskInformation().getLastSuccessObjectName() != null) {
 						return createStringResource("TaskSummaryPanel.lastProcessed",
@@ -273,7 +286,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 					}
 				}
 
-				TaskType taskType = getModel().getObject();
+				TaskType taskType = parentPage.getTaskDto().getTaskType();
 				if (taskType == null) {
 					return null;
 				}
@@ -300,5 +313,31 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	public AutoRefreshPanel getRefreshPanel() {
 		return (AutoRefreshPanel) getSummaryBoxPanel().get(ID_TAG_REFRESH);
+	}
+
+	private String getTaskExecutionLabel(TaskType task){
+		TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+		if (status != null){
+			return PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString();
+		}
+		return "";
+	}
+
+	private String getTaskExecutionIcon(TaskType task){
+		TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+		return getIconForExecutionStatus(status);
+	}
+
+	private String getTaskResultLabel(TaskType task){
+		OperationResultStatusType resultStatus = task.getResultStatus();
+		if (resultStatus != null){
+			return PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString();
+		}
+		return "";
+	}
+
+	private String getTaskResultIcon(TaskType task){
+		OperationResultStatusType resultStatus = task.getResultStatus();
+		return OperationResultStatusPresentationProperties.parseOperationalResultStatus(resultStatus).getIcon();
 	}
 }

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrap
 import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -80,12 +81,6 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 
 /**
@@ -338,8 +333,8 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<MailServerConfiguration> rowModel) {
-				return Model.of(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+			protected DisplayType getIconDisplayType(IModel<MailServerConfiguration> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
 
 		});

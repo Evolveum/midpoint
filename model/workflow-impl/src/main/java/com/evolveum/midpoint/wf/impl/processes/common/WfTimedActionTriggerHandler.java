@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -229,7 +230,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		rv.addAll(CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef()));
 		if (!delegateAction.getApproverExpression().isEmpty()) {
 			ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, aCase.getWorkflowContext(), getChannel(opTask), result);
-			variables.addVariableDefinition(SchemaConstants.C_WORK_ITEM, workItem);
+			variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, WorkItemType.class);
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", opTask, result));
 		}

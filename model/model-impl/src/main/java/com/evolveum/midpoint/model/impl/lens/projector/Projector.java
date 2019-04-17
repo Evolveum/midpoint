@@ -19,38 +19,26 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.P
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.model.api.ProgressInformation;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -67,6 +55,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 
 /**
  * Projector recomputes the context. It takes the context with a few basic data as input. It uses all the policies
@@ -99,9 +90,7 @@ public class Projector {
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic medic;
 
-    @Autowired private CounterManager counterManager;
-    
-	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 
 	/**
 	 * Runs one projection wave, starting at current execution wave.

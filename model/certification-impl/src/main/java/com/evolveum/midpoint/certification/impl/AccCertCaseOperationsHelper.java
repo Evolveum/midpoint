@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -323,9 +323,9 @@ public class AccCertCaseOperationsHelper {
 		List<ObjectReferenceType> rv = CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef());
 		if (!delegateAction.getApproverExpression().isEmpty()) {
 			ExpressionVariables variables = new ExpressionVariables();
-			variables.addVariableDefinition(ExpressionConstants.VAR_WORK_ITEM, workItem);
-			variables.addVariableDefinition(ExpressionConstants.VAR_CERTIFICATION_CASE, aCase);
-			variables.addVariableDefinition(ExpressionConstants.VAR_CAMPAIGN, campaign);
+			variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, AccessCertificationWorkItemType.class);
+			variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, aCase, aCase.asPrismContainerValue().getDefinition());
+			variables.putObject(ExpressionConstants.VAR_CAMPAIGN, campaign, AccessCertificationCampaignType.class);
 			for (ExpressionType expression : delegateAction.getApproverExpression()) {
 				rv.addAll(expressionHelper.evaluateRefExpressionChecked(expression, variables, "computing delegates", task, result));
 			}

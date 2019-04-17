@@ -15,17 +15,21 @@
  */
 package com.evolveum.midpoint.model.common;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileCompiler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfiles;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationExpressionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +67,8 @@ public class SystemObjectCache {
 
 	private PrismObject<SystemConfigurationType> systemConfiguration;
 	private Long systemConfigurationCheckTimestamp;
+	
+	private ExpressionProfiles expressionProfiles;
 
 	private long getSystemConfigurationExpirationMillis() {
 		return 1000;
@@ -112,6 +118,7 @@ public class SystemObjectCache {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
 		systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 				options, result);
+		expressionProfiles = null;
 		systemConfigurationCheckTimestamp = System.currentTimeMillis();
 		if (systemConfiguration != null && systemConfiguration.getVersion() == null) {
 			LOGGER.warn("Retrieved system configuration with null version");
@@ -120,6 +127,7 @@ public class SystemObjectCache {
 
 	public synchronized void invalidateCaches() {
 		systemConfiguration = null;
+		expressionProfiles = null;
 	}
 
 	public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -130,5 +138,32 @@ public class SystemObjectCache {
 	public SearchResultList<PrismObject<ArchetypeType>> getAllArchetypes(OperationResult result) throws SchemaException {
 		// TODO: make this efficient (use cache)
 		return cacheRepositoryService.searchObjects(ArchetypeType.class, null, null, result);
+	}
+	
+	public ExpressionProfile getExpressionProfile(String identifier, OperationResult result) throws SchemaException {
+		if (identifier == null) {
+			return null;
+		}
+		if (expressionProfiles == null) {
+			compileExpressionProfiles(result);
+		}
+		return expressionProfiles.getProfile(identifier);
+	}
+
+	private void compileExpressionProfiles(OperationResult result) throws SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+		if (systemConfiguration == null) {
+			// This should only happen in tests - if ever. Empty expression profiles are just fine.
+			expressionProfiles = new ExpressionProfiles();
+			return;
+		}
+		SystemConfigurationExpressionsType expressions = systemConfiguration.asObjectable().getExpressions();
+		if (expressions == null) {
+			// Mark that there is no need to recompile. There are no profiles.
+			expressionProfiles = new ExpressionProfiles();
+			return;
+		}
+		ExpressionProfileCompiler compiler = new ExpressionProfileCompiler();
+		expressionProfiles = compiler.compile(expressions);
 	}
 }

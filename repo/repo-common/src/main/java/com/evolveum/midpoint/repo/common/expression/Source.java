@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 
 	private QName name;
 
-	public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name) {
-		super(itemOld, delta, itemNew);
+	public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name, D definition) {
+		super(itemOld, delta, itemNew, definition);
 		this.name = name;
 	}
 
@@ -53,7 +53,7 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 	public void setName(QName name) {
 		this.name = name;
 	}
-
+	
 	public Item<V,D> getEmptyItem() throws SchemaException {
 		ItemDefinition definition = getDefinition();
 		if (definition == null) {
@@ -85,11 +85,9 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("Source ").append(PrettyPrinter.prettyPrint(name));
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "old", getItemOld(), indent +1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "delta", getDelta(), indent +1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "new", getItemNew(), indent +1);
+		DebugUtil.debugDumpWithLabelLn(sb, "old", getItemOld(), indent +1);
+		DebugUtil.debugDumpWithLabelLn(sb, "delta", getDelta(), indent +1);
+		DebugUtil.debugDumpWithLabelLn(sb, "new", getItemNew(), indent +1);
 		return sb.toString();
 	}
 

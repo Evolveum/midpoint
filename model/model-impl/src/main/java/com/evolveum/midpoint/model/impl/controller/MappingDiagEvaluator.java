@@ -142,6 +142,6 @@ public class MappingDiagEvaluator {
 		} else {
 			delta = null;
 		}
-		return new ObjectDeltaObject(oldObject, delta, null);
+		return new ObjectDeltaObject(oldObject, delta, null, oldObject.getDefinition());
 	}
 }

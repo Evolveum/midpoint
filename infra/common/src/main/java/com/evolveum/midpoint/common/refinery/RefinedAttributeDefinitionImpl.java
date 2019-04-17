@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -203,6 +204,9 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @Override
     public String getDisplayName() {
+        if (displayName == null && attributeDefinition != null && StringUtils.isNotEmpty(attributeDefinition.getNativeAttributeName())){
+            return attributeDefinition.getNativeAttributeName();
+        }
         return displayName;
     }
 

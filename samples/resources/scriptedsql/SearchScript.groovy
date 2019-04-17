@@ -27,6 +27,12 @@ log.info("Entering " + operation + " Script")
 
 def sql = new Sql(connection)
 
+// todo use handler to result  connector objects
+
+return new SearchResult()   // update search result values if needed
+
+// todo fix sample
+/*
 switch (objectClass) {
     case ObjectClass.ACCOUNT:
         handleAccount(sql)
@@ -155,4 +161,5 @@ static String buildWhereClause(Filter filter, Map sqlParams, String uidColumn, S
 
     return where
 }
+*/
 

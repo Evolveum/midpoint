@@ -241,6 +241,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-FAILURE", 0); // This should be called, but it is not implemented now
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 
@@ -890,10 +891,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      */
 	@Test
     public void test121ModifyUserAddAccountRef() throws Exception {
-        TestUtil.displayTestTitle(this, "test121ModifyUserAddAccountRef");
+		final String TEST_NAME = "test121ModifyUserAddAccountRef";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test121ModifyUserAddAccountRef");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -901,10 +903,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountJackOid);
 		userDelta.addModification(accountDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(userDelta, null, task, result);
 
 		// THEN
 		assertSuccess(result);
@@ -1347,8 +1348,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(0);         // no deltas, as the operation is idempotent
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
@@ -1360,7 +1360,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);           // op is idempotent
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertSteadyResources();
@@ -1658,6 +1658,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
 
         // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
@@ -1740,6 +1741,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 
@@ -3332,6 +3334,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionSuccess();
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 

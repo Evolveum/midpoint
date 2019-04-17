@@ -243,11 +243,12 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
     }
 
     @Override
-	public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object) {
-		return (PropertyDelta<T>) super.narrow(object);
+	public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems) {
+		return (PropertyDelta<T>) super.narrow(object, assumeMissingItems);
 	}
 
-    public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule) {
+    public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule,
+		    boolean assumeMissingItems) {
 		Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
 			if (o1.equals(o2, EquivalenceStrategy.IGNORE_METADATA, matchingRule)) {
 				return 0;
@@ -255,10 +256,11 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
 				return 1;
 			}
 		};
-		return (PropertyDelta<T>) super.narrow(object, comparator);
+		return (PropertyDelta<T>) super.narrow(object, comparator, assumeMissingItems);
 	}
 
-	public boolean isRedundant(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule) {
+	public boolean isRedundant(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule,
+			boolean assumeMissingItems) {
 		Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
 			if (o1.equals(o2, EquivalenceStrategy.IGNORE_METADATA, matchingRule)) {
 				return 0;
@@ -266,7 +268,7 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
 				return 1;
 			}
 		};
-		return super.isRedundant(object, comparator);
+		return super.isRedundant(object, comparator, assumeMissingItems);
 	}
 
 	public static <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, PrismObjectDefinition<O> objectDefinition) {

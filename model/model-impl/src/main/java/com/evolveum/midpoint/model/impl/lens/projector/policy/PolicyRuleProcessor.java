@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -617,7 +617,7 @@ public class PolicyRuleProcessor {
 
 		MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder = mappingFactory
 				.createMappingBuilder();
-		ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus);
+		ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition());
 		builder = builder.mappingType(condition)
 				.contextDescription("condition in global policy rule " + globalPolicyRule.getName())
 				.sourceContext(focusOdo)
@@ -625,9 +625,9 @@ public class PolicyRuleProcessor {
 						prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null)
-				.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment)
-				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignmentType() : null)
+				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null, EvaluatedAssignment.class)
+				.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class)
+				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignmentType() : null, AssignmentType.class)
 				.rootNode(focusOdo);
 
 		MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();

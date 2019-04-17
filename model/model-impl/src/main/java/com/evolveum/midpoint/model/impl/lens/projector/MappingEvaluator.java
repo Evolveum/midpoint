@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Evolveum
+ * Copyright (c) 2013-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +36,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensElementContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -50,6 +45,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -89,8 +85,12 @@ public class MappingEvaluator {
     @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
+    
+    public PrismContext getPrismContext() {
+		return prismContext;
+	}
 
-    public static final List<QName> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
+	public static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
 	public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
 			MappingImpl<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -146,7 +146,7 @@ public class MappingEvaluator {
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer =
 			builder -> {
 
-				builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx).getMap());
+				builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx));
 
 		        builder.originType(OriginType.OUTBOUND);
 				builder.originObject(projCtx.getResource());
@@ -448,13 +448,10 @@ public class MappingEvaluator {
 		                valuesToReplace = outputTriple.getPlusSet();
 		            }
 
-		            if (LOGGER.isTraceEnabled()) {
-		            	LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, valuesToReplace={}",
-		            			new Object[]{mappingDesc, hasFullTargetObject,
-		            					mappingOutputStruct.isStrongMappingWasUsed(), valuesToReplace});
-		            }
+					LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, valuesToReplace={}",
+					            mappingDesc, hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(), valuesToReplace);
 
-		        	if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
+		        	if (!valuesToReplace.isEmpty()) {
 
 		                // if what we want to set is the same as is already in the shadow, we skip that
 		                // (we insist on having full shadow, to be sure we work with current data)
@@ -486,7 +483,7 @@ public class MappingEvaluator {
 		        }
 
 		        LOGGER.trace("{} adding new delta for {}: {}", mappingDesc, targetContext, targetItemDelta);
-		        targetContext.swallowToSecondaryDelta(targetItemDelta);
+				targetContext.swallowToSecondaryDelta(targetItemDelta);
 			}
 
 		}
@@ -534,7 +531,7 @@ public class MappingEvaluator {
     private <V extends PrismValue, D extends ItemDefinition> void applyEstematedOldValueInReplaceCase(ItemDelta<V, D> targetItemDelta,
 			PrismValueDeltaSetTriple<V> outputTriple) {
 		Collection<V> nonPositiveValues = outputTriple.getNonPositiveValues();
-		if (nonPositiveValues == null || nonPositiveValues.isEmpty()) {
+		if (nonPositiveValues.isEmpty()) {
 			return;
 		}
 		targetItemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(nonPositiveValues));
@@ -549,9 +546,7 @@ public class MappingEvaluator {
 			// this means: no value produced
 			return true;
 		}
-		if (mappingOutputTriple.getMinusSet() != null &&
-				(mappingOutputTriple.getZeroSet() == null || mappingOutputTriple.getZeroSet().isEmpty()) &&
-				(mappingOutputTriple.getPlusSet() == null || mappingOutputTriple.getPlusSet().isEmpty())) {
+		if (mappingOutputTriple.getZeroSet().isEmpty() && mappingOutputTriple.getPlusSet().isEmpty()) {
 			// Minus deltas are always meaningful, even with hashing (see below)
 			// This may be used e.g. to remove existing password.
 			return true;
@@ -670,13 +665,14 @@ public class MappingEvaluator {
 		};
 
 		ExpressionVariables variables = new ExpressionVariables();
-		FOCUS_VARIABLE_NAMES.forEach(name -> variables.addVariableDefinition(name, focusOdo));
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
+		FOCUS_VARIABLE_NAMES.forEach(name -> variables.addVariableDefinition(name, focusOdo, focusOdo.getDefinition()));
+		variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
+		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
+		variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, SystemConfigurationType.class);
+		variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
 
-		Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
+		TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(defaultTargetObject);
+		Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingType.getTarget(), defaultTargetContext, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
 
 		MappingImpl.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
 				.sourceContext(focusOdo)
@@ -690,7 +686,7 @@ public class MappingEvaluator {
 				.rootNode(focusOdo)
 				.now(now);
 
-		mappingBuilder = LensUtil.addAssignmentPathVariables(mappingBuilder, assignmentPathVariables);
+		mappingBuilder = LensUtil.addAssignmentPathVariables(mappingBuilder, assignmentPathVariables, prismContext);
 
 		MappingImpl<V,D> mapping = mappingBuilder.build();
 

@@ -349,16 +349,9 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                                     private static final long serialVersionUID = 1L;
 
                                     @Override
-                                    protected IModel<String> createIconModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                                        return new IModel<String>() {
-
-                                            private static final long serialVersionUID = 1L;
-
-                                            @Override
-                                            public String getObject() {
-                                                return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable()));
-                                            }
-                                        };
+                                    protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                                        return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+                                                AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable())));
                                     }
 
                                 });

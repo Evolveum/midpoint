@@ -49,11 +49,4 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     private ObjectTabStorage getInducementsTabStorage(){
         return getParentPage().getSessionStorage().getInducementsTabStorage();
     }
-
-    @Override
-    protected boolean showAllAssignmentsVisible(){
-        return false;
-    }
-
-
 }

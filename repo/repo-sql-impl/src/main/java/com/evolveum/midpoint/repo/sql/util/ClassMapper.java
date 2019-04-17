@@ -77,6 +77,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.FUNCTION_LIBRARY, RObjectType.FUNCTION_LIBRARY);
         types.put(ObjectTypes.OBJECT_COLLECTION, RObjectType.OBJECT_COLLECTION);
         types.put(ObjectTypes.ARCHETYPE, RObjectType.ARCHETYPE);
+        types.put(ObjectTypes.DASHBOARD, RObjectType.DASHBOARD);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {

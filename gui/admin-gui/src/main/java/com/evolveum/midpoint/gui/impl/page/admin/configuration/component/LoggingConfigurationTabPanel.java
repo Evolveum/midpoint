@@ -23,6 +23,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -78,13 +80,6 @@ import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * @author skublik
@@ -321,19 +316,11 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 		columns.add(new IconColumn<ContainerValueWrapper<ClassLoggerConfigurationType>>(Model.of("")) {
 
 			private static final long serialVersionUID = 1L;
-
 			@Override
-			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-				return new IModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
-					}
-				};
+			protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
+
 		});
 		
 		columns.add(new EditableLinkPropertyWrapperColumn<ClassLoggerConfigurationType>(createStringResource("LoggingConfigurationTabPanel.loggers.package"), ClassLoggerConfigurationType.F_PACKAGE, getPageBase()) {
@@ -519,16 +506,8 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-				return new IModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
-					}
-				};
+			protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
+				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
 		});
 		

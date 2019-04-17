@@ -79,6 +79,7 @@ DETERMINISTIC
     DELETE FROM m_ext_item;
     DELETE FROM m_object_subtype;
     DELETE FROM m_object_collection;
+    DELETE FROM m_dashboard;
     DELETE FROM m_object;
 
     RETURN run;

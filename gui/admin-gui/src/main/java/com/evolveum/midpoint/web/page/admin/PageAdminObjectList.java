@@ -165,7 +165,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             @Override
             protected String getStorageKey() {
                 StringValue collectionName = getCollectionNameParameterValue();
-                String key = !isCollectionViewPage() ?
+                String key = isCollectionViewPage() ?
                         SessionStorage.KEY_OBJECT_LIST + "." + collectionName : SessionStorage.KEY_OBJECT_LIST + "." + getType().getSimpleName();
                 return key;
             }
@@ -246,7 +246,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     private boolean isCollectionViewPage(){
         StringValue collectionNameParam = getCollectionNameParameterValue();
-        return collectionNameParam != null && !collectionNameParam.isEmpty();
+        return collectionNameParam != null && !collectionNameParam.isEmpty() && !collectionNameParam.toString().equals("null");
     }
 
     private DisplayType getCollectionViewDisplayType(CompiledObjectCollectionView view){

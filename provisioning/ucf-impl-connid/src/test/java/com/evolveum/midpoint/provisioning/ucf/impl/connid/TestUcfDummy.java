@@ -201,7 +201,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		display("Configuration container", configContainer);
 
 		// WHEN
-		cc.configure(configContainer, result);
+		cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
 
 		// THEN
 		result.computeStatus();
@@ -245,10 +245,11 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
-		cc.configure(configContainer, result);
+		//ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
+		cc.configure(configContainer, null, result);
 
 		// WHEN
-		resourceSchema = cc.fetchResourceSchema(null, result);
+		resourceSchema = cc.fetchResourceSchema(result);
 
 		// THEN
 		display("Generated resource schema", resourceSchema);
@@ -283,13 +284,15 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
-		cc.configure(configContainer, result);
-
 		List<QName> objectClassesToGenerate = new ArrayList<>();
 		QName accountObjectClass = new QName(resource.asObjectable().getNamespace(), "AccountObjectClass");
 		objectClassesToGenerate.add(accountObjectClass);
+		
+		cc.configure(configContainer, objectClassesToGenerate, result);
+
+		
 		// WHEN
-		resourceSchema = cc.fetchResourceSchema(objectClassesToGenerate, result);
+		resourceSchema = cc.fetchResourceSchema(result);
 
 		// THEN
 		display("Generated resource schema", resourceSchema);

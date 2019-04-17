@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
-import java.io.File;
+import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
@@ -25,10 +26,6 @@ import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
-import javax.activation.FileTypeMap;
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
-import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.PostConstruct;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -38,18 +35,14 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
 import org.apache.commons.lang.StringUtils;
-import org.bouncycastle.asn1.dvcs.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.util.MimeTypeUtils;
 
-import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
@@ -71,8 +64,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
-import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
 
 /**
  * @author mederly

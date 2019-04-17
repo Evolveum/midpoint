@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -375,14 +376,14 @@ public class MiscSchemaUtil {
 		if (results == null || results.isEmpty()) {
 			return;
 		}
-		Map<String,PrismObject<O>> map = new HashMap<>();
+		Set<String> oidsSeen = new HashSet<>();
 		Iterator<PrismObject<O>> iterator = results.iterator();
 		while (iterator.hasNext()) {
 			PrismObject<O> prismObject = iterator.next();
-			if (map.containsKey(prismObject.getOid())) {
+			if (oidsSeen.contains(prismObject.getOid())) {
 				iterator.remove();
 			} else {
-				map.put(prismObject.getOid(), prismObject);
+				oidsSeen.add(prismObject.getOid());
 			}
 		}
 	}
@@ -488,5 +489,35 @@ public class MiscSchemaUtil {
 		Class<? extends ObjectType> requiredTypeClass = ObjectTypes.getObjectTypeFromTypeQName(requiredTypeQName).getClassDefinition();
 		return requiredTypeClass.isAssignableFrom(providedTypeClass);
 	}
+	
+	/**
+	 * This is NOT A REAL METHOD. It just returns null. It is here to mark all the places
+	 * where proper handling of expression profiles should be later added. 
+	 */
+	public static ExpressionProfile getExpressionProfile() {
+		return null;
+	}
 
+	public static void mergeDisplay(DisplayType viewDisplay, DisplayType archetypeDisplay) {
+		if (viewDisplay.getLabel() == null) {
+			viewDisplay.setLabel(archetypeDisplay.getLabel());
+		}
+		if (viewDisplay.getPluralLabel() == null) {
+			viewDisplay.setPluralLabel(archetypeDisplay.getPluralLabel());
+		}
+		IconType archetypeIcon = archetypeDisplay.getIcon();
+		if (archetypeIcon != null) {
+			IconType viewIcon = viewDisplay.getIcon();
+			if (viewIcon == null) {
+				viewIcon = new IconType();
+				viewDisplay.setIcon(viewIcon);
+			}
+			if (viewIcon.getCssClass() == null) {
+				viewIcon.setCssClass(archetypeIcon.getCssClass());
+			}
+			if (viewIcon.getColor() == null) {
+				viewIcon.setColor(archetypeIcon.getColor());
+			}
+		}
+	}
 }

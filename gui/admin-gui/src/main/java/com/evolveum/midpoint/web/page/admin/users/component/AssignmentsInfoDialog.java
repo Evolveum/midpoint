@@ -33,9 +33,7 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -54,6 +52,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.wicket.AttributeModifier;
 
 /**
  * Abstract superclass for dialogs that display a list of assignments.
@@ -135,10 +134,10 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
 
         columns.add(new IconColumn<AssignmentInfoDto>(createStringResource("")) {
             @Override
-            protected IModel<String> createIconModel(IModel<AssignmentInfoDto> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<AssignmentInfoDto> rowModel) {
                 ObjectTypeGuiDescriptor guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(rowModel.getObject().getTargetClass());
                 String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-                return Model.of(icon);
+                return WebComponentUtil.createDisplayType(icon);
             }
         });
 
@@ -155,6 +154,10 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
                                     createStringResource("AssignmentPreviewDialog.type.indirect").getString();
                         }
                     }));
+                    ObjectType assignmentParent = rowModel.getObject().getAssignmentParent();
+                    if (assignmentParent != null) {
+                        cellItem.add(AttributeModifier.replace("title", createStringResource("AssignmentPreviewDialog.tooltip.indirect.parent").getString() + ": " + assignmentParent.getName()));
+                    }
                 }
             });
         }

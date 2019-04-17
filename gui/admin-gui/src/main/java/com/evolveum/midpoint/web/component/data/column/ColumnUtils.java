@@ -15,19 +15,18 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -41,12 +40,11 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class ColumnUtils {
 
@@ -120,7 +118,7 @@ public class ColumnUtils {
 		return new IconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
 
 			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId, IModel<SelectableBean<O>> rowModel) {
+			protected DisplayType getIconDisplayType(IModel<SelectableBean<O>> rowModel){
 				DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(rowModel.getObject().getValue(), pageBase);
 				if (displayType != null){
 					String disabledStyle = "";
@@ -132,20 +130,10 @@ public class ColumnUtils {
 							displayType.getIcon().setColor("");
 						}
 					}
-					cellItem.add(new ImagePanel(componentId, displayType));
 				} else {
-					super.populateItem(cellItem, componentId, rowModel);
+					displayType = WebComponentUtil.createDisplayType(getIconColumnValue(rowModel), "", getIconColumnTitle(rowModel));
 				}
-			}
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<O>> rowModel) {
-				return Model.of(getIconColumnValue(rowModel));
-			}
-
-			@Override
-			protected IModel<String> createTitleModel(final IModel<SelectableBean<O>> rowModel) {
-				return Model.of(getIconColumnTitle(rowModel));
+				return displayType;
 			}
 
 			@Override
@@ -156,15 +144,15 @@ public class ColumnUtils {
 
 	}
 
-	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel){
-		T object = rowModel.getObject().getValue();
-		if (object == null){
+	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel) {
+		if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
 			return "";
 		}
-		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
-		if (object == null && !ShadowType.class.equals(type)){
-			return null;
-		} else if (type.equals(ObjectType.class)){
+
+		T object = rowModel.getObject().getValue();
+
+		Class<T> type = (Class<T>) object.getClass();
+		if (type.equals(ObjectType.class)) {
 			return WebComponentUtil.createDefaultIcon(object.asPrismObject());
 		} else if (type.equals(UserType.class)) {
 			return WebComponentUtil.createUserIcon(object.asPrismContainer());
@@ -173,7 +161,7 @@ public class ColumnUtils {
 		} else if (OrgType.class.equals(type)) {
 			return WebComponentUtil.createOrgIcon(object.asPrismContainer());
 		} else if (ServiceType.class.equals(type)) {
-			return WebComponentUtil.createServiceIcon(object.asPrismContainer()) ;
+			return WebComponentUtil.createServiceIcon(object.asPrismContainer());
 		} else if (ShadowType.class.equals(type)) {
 			if (object == null) {
 				return WebComponentUtil.createErrorIcon(rowModel.getObject().getResult());
@@ -186,11 +174,9 @@ public class ColumnUtils {
 			return WebComponentUtil.createResourceIcon(object.asPrismContainer());
 		} else if (type.equals(AccessCertificationDefinitionType.class)) {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
-		} else {
-			return "";
-//			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
 
+		return "";
 	}
 
 	private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBean<T>> rowModel){
@@ -208,6 +194,14 @@ public class ColumnUtils {
 	}
 
 	private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
+		if (rowModel == null || rowModel.getObject() == null){
+			return null;
+		}
+		if (rowModel.getObject().getResult() != null && rowModel.getObject().getResult().isFatalError()){
+			OperationResult result = rowModel.getObject().getResult();
+			return result.getUserFriendlyMessage() != null ?
+					result.getUserFriendlyMessage().getFallbackMessage() : result.getMessage();
+		}
 		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
 		T object = rowModel.getObject().getValue();
 		if (object == null && !ShadowType.class.equals(type)){
@@ -342,7 +336,7 @@ public class ColumnUtils {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
 
-		columns.addAll((Collection)getDefaultAbstractRoleColumns(RoleType.COMPLEX_TYPE));
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
 
 		return columns;
 	}
@@ -350,7 +344,7 @@ public class ColumnUtils {
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-		columns.addAll((Collection)getDefaultAbstractRoleColumns(ServiceType.COMPLEX_TYPE));
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
 
 		return columns;
 	}
@@ -358,12 +352,12 @@ public class ColumnUtils {
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-		columns.addAll((Collection)getDefaultAbstractRoleColumns(OrgType.COMPLEX_TYPE));
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
 
 		return columns;
 	}
 
-	private static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(QName type) {
+	public static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(boolean showAccounts) {
 
 		String sortByDisplayName = null;
 		String sortByIdentifer = null;
@@ -381,28 +375,30 @@ public class ColumnUtils {
 
 		);
 		List<IColumn<SelectableBean<T>, String>> columns = createColumns(columnsDefs);
-		
-		IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
-				createStringResource("pageUsers.accounts")) {
 
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
-					String componentId, IModel<SelectableBean<T>> model) {
-				cellItem.add(new Label(componentId,
-						model.getObject().getValue() != null ?
-								model.getObject().getValue().getLinkRef().size() : null));
-			}
+		if (showAccounts) {
+			IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
+					createStringResource("pageUsers.accounts")) {
 
-			@Override
-			public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
-				return Model.of(rowModel.getObject().getValue() != null ?
-						Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
-			}
+				@Override
+				public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
+										 String componentId, IModel<SelectableBean<T>> model) {
+					cellItem.add(new Label(componentId,
+							model.getObject().getValue() != null ?
+									model.getObject().getValue().getLinkRef().size() : null));
+				}
+
+				@Override
+				public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
+					return Model.of(rowModel.getObject().getValue() != null ?
+							Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
+				}
 
 
-		};
+			};
 
-		columns.add(column);
+			columns.add(column);
+		}
 		return columns;
 
 	}

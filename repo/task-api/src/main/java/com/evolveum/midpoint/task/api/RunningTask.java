@@ -98,5 +98,5 @@ public interface RunningTask extends Task {
 
 	void incrementProgressAndStoreStatsIfNeeded();
 
-
+	void deleteLightweightAsynchronousSubtasks();
 }

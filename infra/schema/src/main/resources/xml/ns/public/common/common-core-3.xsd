@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-certification-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-notifications-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-asynchronous-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
@@ -9659,6 +9660,85 @@
     </xsd:complexType>
 	<xsd:element name="function" type="tns:FunctionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 	
+	<xsd:complexType name="ProportionalExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+				Expression gets IntegerStatType as an input, IntegerStatType is derived from audit search.
+				But this is all experimental. Later it will probably get entire AuditSearchType object.
+                This expression evaluator may autodetect that input is a ObjectCollectionType and find IntegerStatType inside. 
+            </xsd:documentation>
+            <xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="style" type="tns:ProportionalStyleType" minOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				TODO
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:element name="proportional" type="tns:ProportionalExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	
+	<xsd:simpleType name="ProportionalStyleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+	 	<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="percentage">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERCENTAGE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        For example 42%.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="value-only">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE_ONLY"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        For example 42.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="value-slash-domain">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE_SLASH_DOMAIN"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        For example 42/100.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+			<xsd:enumeration value="value-of-domain">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE_OF_DOMAIN"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        For example 42 of 100.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+	
 	<xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10743,6 +10823,48 @@
     
     <xsd:element name="resourceObjectShadowChangeDescription" type="tns:ResourceObjectShadowChangeDescriptionType"/>
 
+    <xsd:complexType name="UcfChangeType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	Description of the change in the external resource at the UCF level i.e. corresponding to Change object.
+            </xsd:documentation>
+        </xsd:annotation>
+        	<xsd:sequence>
+				<xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Object class. Should be provided.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="identifiers" type="tns:ShadowAttributesType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Identifiers of the object being changed. Should be provided if not present in object or object delta.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Delta describing the changes made to the shadow. E.g. if the change in the resource was
+							to add new account, delta will contain ADD modification with the object specified.
+							It may be null. If the object delta is null, the current object has to be specified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="object" type="tns:ShadowType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Current state of the object. Either it or the delta has to be specified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="ucfChange" type="tns:UcfChangeType"/>
+
     <xsd:complexType name="ConnectorType">
         <xsd:annotation>
             <xsd:documentation>
@@ -11096,7 +11218,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
      				</xsd:element>
-                    <xsd:element name="objectClass" type="xsd:QName">
+                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The reference to a type definition for this object. The reference should point
@@ -11105,10 +11227,24 @@
                                 The attributes contained in the "attributes" element below are expected to
                                 comply with the type definition specified in this element (with addition of
                                 auxiliary object class definitions).
+
+								Formally, minOccurs is 0 here but unless a reasonable default is provided, the value
+								must be present.
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>ShadowType.objectClass</a:displayName>
 		                    	<a:emphasized>true</a:emphasized>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="primaryIdentifierValue" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value of the primary (unique) identifier; converted to a string if it's of a different type.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>ShadowType.primaryIdentifierValue</a:displayName>
+								<a:since>4.0</a:since>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -14258,8 +14394,33 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="expressionProfile" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies a profile for expression execution. 
+							The profile mostly specifies restrictions for execution of expressions
+							and scripts. This applies to expressions in archetyped objects.
+							Please note that no expression execution restriction means that all evaluators
+							and scripting langages are allowed and there are no restrictions for evaluation
+							of expressions.
+						</p>
+						<p>
+							Implementation note: implementation of those restriction in midPoint 4.0 is very
+							limited. There is no guarantee that this will work for archetypes at all.
+							The only supported option in 4.0 is application of the restricitons to reports
+							(ReportType) and only if it is configured in global system configuration.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>ArchetypePolicyType.expressionProfile</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
 	    
     <xsd:complexType name="LookupTableType">
         <xsd:annotation>
@@ -15238,12 +15399,27 @@
                         </xsd:annotation>
                     </xsd:element>
                     
+                    <xsd:element name="expressions" type="tns:SystemConfigurationExpressionsType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies profile for expression evaluations, execution, restrictions, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+								<a:displayName>SystemConfigurationType.expressions</a:displayName>
+                            	<a:since>4.0</a:since>
+                            	<a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
                     <!-- TODO(maybe): objectCollectionRef -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
+
+
 
 	<xsd:complexType name="FullTextSearchConfigurationType">
 		<xsd:annotation>
@@ -15313,6 +15489,462 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	<xsd:complexType name="SystemConfigurationExpressionsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies profile for expression evaluations, execution, restrictions, etc.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>SystemConfigurationExpressionsType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="expressionProfile" type="tns:ExpressionProfileType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            TODO
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>SystemConfigurationExpressionsType.expressionProfile</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="permissionProfile" type="tns:ExpressionPermissionProfileType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            TODO
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>SystemConfigurationExpressionsType.permissionProfile</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ExpressionProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions for execution of expressions and scripts.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="identifier" type="xsd:string" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Profile identifier. Usually short string, essentialy a simple profile name.
+			            Custom profiles should consider using URIs instead of simple names to avoid
+			            conflicts with built-in profiles that may be provided in later versions.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionProfileType.identifier</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Default decision for the profile. I.e. decision of those evaluators that are not explicitly enumerated.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="evaluator" type="tns:ExpressionEvaluatorProfileType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Detailed specification of expression evaluator profile.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionProfileType.evaluator</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ExpressionEvaluatorProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions for execution of specific expression evaluators.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Evaluator type. This should correspond to the name of evaluator element.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionEvaluatorProfileType.type</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionEvaluatorProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Default decision for the evaluator. I.e. decision of those aspects of the evaluator use
+			            (e.g. script languages) that are not explicitly enumerated.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionEvaluatorProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="script" type="tns:ScriptExpressionProfileType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Detailed specification for script expressions.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionEvaluatorProfileType.script</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: restrict runAs option -->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ScriptExpressionProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions for execution of script expressions.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="language" type="xsd:anyURI" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Language of the expression.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+						<a:displayName>ScriptExpressionProfileType.language</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ScriptExpressionProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Default decision for the scripting language. I.e. decision whether the language can
+			            be used at all.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ScriptExpressionProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="typeChecking" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Switch controlling whether strict type checking is enabled.
+			            There is no global default for this. Each language may default to
+			            a different value. Some languages may not support this switch at all.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ScriptExpressionProfileType.typeChecking</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="permissionProfile" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Identifier of a permission profile that should be applied to this
+			            script language. If no profile is specified, then no profile will be
+			            applied and all language features will be allowed.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ScriptExpressionProfileType.permissionProfile</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ExpressionPermissionProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions and permissions for various evaluators, especially for
+				scripting expressions.
+				The permission profile configuration is a separate container with its own identifier
+				as it is expected that the same setting will be applied to many evaluators and/or
+				scripting languages. And the definition of a profile can be quite long and extensive.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="identifier" type="xsd:string" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Profile identifier. Usually short string, essentialy a simple profile name.
+			            Custom profiles should consider using URIs instead of simple names to avoid
+			            conflicts with built-in profiles that may be provided in later versions.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionProfileType.identifier</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Default decision for the profile. I.e. decision of those aspects of the profile
+			            (e.g. classes, permissions) that are not explicitly enumerated.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="package" type="tns:ExpressionPermissionPackageProfileType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Detailed specification for access to a class.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionProfileType.class</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="class" type="tns:ExpressionPermissionClassProfileType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Detailed specification for access to a class.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionProfileType.class</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: later: sandboxing, allowed operations -->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ExpressionPermissionPackageProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions and permissions for a package.
+				For now package definitions MUST NOT OVERLAP. Therefore there must not be
+				a definiton of a superpackage and subpackage at the same time.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Full name of the class (including package).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionPackageProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionPackageProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Default decision for the profile. I.e. decision of those aspects of the profile
+			            (e.g. classes, permissions) that are not explicitly enumerated.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionPackageProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: classes within a package? -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ExpressionPermissionClassProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions and permissions for a specific class.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Full name of the class (including package).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionClassProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionClassProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Default decision for the profile. I.e. decision of those aspects of the profile
+			            (e.g. classes, permissions) that are not explicitly enumerated.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionClassProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="method" type="tns:ExpressionPermissionMethodProfileType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Detailed specification for access to a method.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionClassProfileType.method</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ExpressionPermissionMethodProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies restrictions and permissions for a specific method.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Name of the method.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionClassProfileType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description (comment).
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>"ExpressionPermissionMethodProfileType".name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Default decision for the profile. I.e. decision of those aspects of the profile
+			            (e.g. classes, permissions) that are not explicitly enumerated.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ExpressionPermissionClassProfileType.decision</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: later: parameter specification -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	
+	
 	<xsd:complexType name="FunctionLibraryType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -15358,6 +15990,26 @@
 					        </xsd:documentation>
 					    </xsd:annotation>
 		            </xsd:element>
+           	      	<xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
+		  				<xsd:annotation>
+		  					<xsd:documentation>
+		  						Specification of an explicit or implicit object collection that will be used as data source for the view.
+		  						
+		  						EXTREMELY ABSOLUTELY GIGANTICALLY ENORMOUSLY MEGA GIGA TERA SUPER HYPER EXPERIMENTAL
+		  						
+		  						This is almost certain to change in the future. It does not even belong here well
+		  						as this is supposed to be *object* collection and not audit collection. But for now it solves a
+		  						couple of problems in dashboards and report functionality, which is also experimental.
+		  						Therefore this is a good temporary choice.
+		  						However, if you ever rely on this element the karma will get you, eventually.
+		  						If that happens, don't come to us crying. You have been warned.
+		  					</xsd:documentation>
+		  					<xsd:appinfo>
+								<a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
+								<a:experimental>true</a:experimental>
+		  					</xsd:appinfo>
+		  				</xsd:annotation>
+		  			</xsd:element>				            
 		            <xsd:element name="baseCollection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
 					    <xsd:annotation>
 					        <xsd:documentation>
@@ -15740,7 +16392,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<!-- TODO: interval -->
+			<xsd:element name="interval" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
 
@@ -16232,18 +16890,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-	      	<xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
-  				<xsd:annotation>
-  					<xsd:documentation>
-  						Specification of an explicit or implicit object collection that will be used as data source for the view.
-  						EXTREMELY EXPERIMENTAL. This is almost certain to change in the future.
-  					</xsd:documentation>
-  					<xsd:appinfo>
-						<a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
-						<a:experimental>true</a:experimental>
-  					</xsd:appinfo>
-  				</xsd:annotation>
-  			</xsd:element>
       	</xsd:sequence>	
     </xsd:complexType>
     
@@ -18613,6 +19259,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="TRANSITION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="collectionStats">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COLLECTION_STATS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -23152,7 +23805,7 @@
                         <!-- This may be part of ObjectType later. -->
                     </xsd:element>
                     <!-- TODO: layout -->
-                    <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0">
+                    <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
@@ -23792,6 +24445,16 @@
                     </xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="systemName" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Custom name for midPoint identity management system.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DeploymentInformationType.systemName</a:displayName>
+                    </xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -24233,3 +24896,4 @@
 	</xsd:simpleType>
 
 </xsd:schema>
+

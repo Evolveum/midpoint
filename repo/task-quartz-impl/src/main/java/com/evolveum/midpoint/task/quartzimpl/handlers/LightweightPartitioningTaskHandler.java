@@ -16,26 +16,44 @@
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.repo.api.CounterManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskConstants;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
+import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 
 /**
  * @author katka
@@ -48,10 +66,10 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 	
 	private static final String HANDLER_URI = TaskConstants.LIGHTWEIGTH_PARTITIONING_TASK_HANDLER_URI;
 	
-	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 	@Autowired private HandlerExecutor handlerExecutor;
-//	@Autowired private TaskManager taskManager;
+	@Autowired private CounterManager counterManager;
+	@Autowired private PrismContext prismContext;
 
 	
 	@PostConstruct
@@ -66,6 +84,9 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 		runResult.setProgress(task.getProgress());
 		runResult.setOperationResult(opResult);
 		
+		if (taskPartition != null && taskPartition.getWorkManagement() != null) {
+			throw new UnsupportedOperationException("Work management not supoorted in partitions for lightweigth partitioning task");
+		}
 		
 		TaskPartitionsDefinitionType partitionsDefinition = task.getWorkManagement().getPartitions();
 		List<TaskPartitionDefinitionType> partitions = partitionsDefinition.getPartition();
@@ -93,10 +114,13 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 				};
 				
 		partitions.sort(comparator);
-		for (TaskPartitionDefinitionType partition : partitions) {
+		
+		Iterator<TaskPartitionDefinitionType> partitionsIterator = partitions.iterator();
+		while(partitionsIterator.hasNext()) {
+			TaskPartitionDefinitionType partition = partitionsIterator.next();
 			TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
+			LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
 			TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
-//			TaskRunResult subHandlerResult = handler.run(task, partition);
 			OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
 			opResult.addSubresult(subHandlerOpResult);
 			runResult = subHandlerResult;
@@ -109,19 +133,67 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 			if (subHandlerOpResult.isError()) {
 				break;
 			}
+			
+			try {
+				LOGGER.trace("Cleaning up work state in task {}, workState: {}", task, task.getWorkState());
+				cleanupWorkState(task, runResult.getOperationResult());
+			} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+				LOGGER.error("Unexpected error during cleaning work state: " + e.getMessage(), e);
+				throw new IllegalStateException(e);
+			}
+			
+			if (partitionsIterator.hasNext()) {
+				counterManager.resetCounters(task.getOid());
+			}
+			
 		}
+		
+//		for (TaskPartitionDefinitionType partition : partitions) {
+//			TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
+//			LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
+//			TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
+//			OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
+//			opResult.addSubresult(subHandlerOpResult);
+//			runResult = subHandlerResult;
+//			runResult.setProgress(task.getProgress());
+//
+//			if (!canContinue(task, subHandlerResult)) {
+//				break;
+//			}
+//			
+//			if (subHandlerOpResult.isError()) {
+//				break;
+//			}
+//			
+//			try {
+//				LOGGER.trace("Cleaning up work state in task {}, workState: {}", task, task.getWorkState());
+//				cleanupWorkState(task, runResult.getOperationResult());
+//			} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+//				LOGGER.error("Unexpected error during cleaning work state: " + e.getMessage(), e);
+//				throw new IllegalStateException(e);
+//			}
+//		}
 		
 		runResult.setProgress(runResult.getProgress() + 1);
 		opResult.computeStatusIfUnknown();
+		counterManager.cleanupCounters(task.getOid());
 			
 		return runResult;
+	}
+	
+	public void cleanupWorkState(RunningTask runningTask, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		ContainerDelta<TaskWorkStateType> containerDelta = (ContainerDelta<TaskWorkStateType>) prismContext
+				.deltaFor(TaskType.class).item(TaskType.F_WORK_STATE).replace().asItemDelta();
+		((InternalTaskInterface) runningTask).applyDeltasImmediate(MiscUtil.createCollection(containerDelta), parentResult);
+
 	}
 	
 	private boolean canContinue(RunningTask task, TaskRunResult runResult) {
 		if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResultStatus.INTERRUPTED) {
             // first, if a task was interrupted, we do not want to change its status
             LOGGER.trace("Task was interrupted, exiting the execution cycle. Task = {}", task);
-            return true;
+            return false;
         } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
             LOGGER.trace("Task encountered temporary error, continuing with the execution cycle. Task = {}", task);
             return false;
@@ -129,7 +201,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
             // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
             // this is implemented by pushHandler and by Quartz
             LOGGER.trace("Task returned RESTART_REQUESTED state, exiting the execution cycle. Task = {}", task);
-            return true;
+            return false;
         } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
             LOGGER.info("Task encountered permanent error, suspending the task. Task = {}", task);
             return false;
@@ -159,14 +231,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
 
 	@Override
 	public String getCategoryName(Task task) {
-		// TODO Auto-generated method stub
-		return null;
+		return TaskCategory.UTIL;
 	}
 	
-	
-//		private void processErrorCriticality(Task task, TaskPartitionDefinitionType partitionDefinition, Throwable ex, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
-//			CriticalityType criticality = ExceptionUtil.getCriticality(partitionDefinition.getErrorCriticality(), ex, CriticalityType.PARTIAL);
-//			RepoCommonUtils.processErrorCriticality(task.getTaskType(), criticality, ex, result);
-//			
-//		}
 }

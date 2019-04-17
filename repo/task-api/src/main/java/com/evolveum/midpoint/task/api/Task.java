@@ -538,7 +538,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * Returns specified single-valued property real value from the extension
-     * @param propertyName
      * @return null if extension or property does not exist.
      */
     <T> T getExtensionPropertyRealValue(ItemName propertyName);

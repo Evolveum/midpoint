@@ -37,6 +37,8 @@ public interface SecurityContextManager {
 		
 	boolean isAuthenticated();
 
+	Authentication getAuthentication();
+
 	/**
 	 * Returns principal representing the currently logged-in user.
 	 * Assumes that the user is logged-in. Otherwise an exception is thrown.

@@ -84,9 +84,6 @@ public abstract class SchemaConstants {
 	public static final ItemName C_RESOURCE = new ItemName(NS_C, "resource");
 	public static final ItemName C_RESULT = new ItemName(NS_C, "result");
 	public static final ItemName C_USER = new ItemName(NS_C, "user");
-	public static final ItemName C_REQUESTER = new ItemName(NS_C, "requester");
-	public static final ItemName C_REQUESTEE = new ItemName(NS_C, "requestee");
-	public static final ItemName C_ASSIGNEE = new ItemName(NS_C, "assignee");
 	public static final ItemName C_OBJECT_TEMPLATE = new ItemName(NS_C, "objectTemplate");
 	public static final ItemName C_OBJECT_TEMPLATE_REF = new ItemName(NS_C, "objectTemplateRef");
 	public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
@@ -247,6 +244,8 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
 	public static final String CHANGE_CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_LIVE_SYNC);
+	public static final QName CHANGE_CHANNEL_ASYNC_UPDATE = new QName(NS_PROVISIONING_CHANNEL, "asyncUpdate");
+	public static final String CHANGE_CHANNEL_ASYNC_UPDATE_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_ASYNC_UPDATE);
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
 	public static final String CHANGE_CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECON);
 	public static final QName CHANGE_CHANNEL_RECOMPUTE = new QName(NS_PROVISIONING_CHANNEL, "recompute");
@@ -254,6 +253,8 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
 	public static final String CHANGE_CHANNEL_DISCOVERY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DISCOVERY);
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
+	public static final QName CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS = new QName(NS_PROVISIONING_CHANNEL, "delNotUpdatedShadows");
+	public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
 	public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
@@ -420,6 +421,9 @@ public abstract class SchemaConstants {
 	// be inverted, eventually (MID-356)
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
 	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
+	public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";
+	public static final QName ICF_SUBTYPES_POLYSTRING_QNAME = new QName(NS_ICF_SUBTYPES, "PolyString");
+	public static final String ICF_SUBTYPES_POLYSTRING_URI = QNameUtil.qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
 	public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
 			"configurationProperties");
 	public static final ItemName ICF_TIMEOUTS = new ItemName(NS_ICF_CONFIGURATION, "timeouts");
@@ -438,6 +442,8 @@ public abstract class SchemaConstants {
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
 	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
+	public static final ItemName RI_ACCOUNT_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+	public static final ItemName RI_GROUP_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, GROUP_OBJECT_CLASS_LOCAL_NAME);
 
 	public static final String UCF_FRAMEWORK_URI_BUILTIN = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1";
 
@@ -458,24 +464,6 @@ public abstract class SchemaConstants {
 
 	public static final ItemName S_PIPELINE_DATA = new ItemName(NS_SCRIPTING, "pipelineData");
 
-	public static final ItemName C_EVENT = new ItemName(NS_C, "event");
-	public static final ItemName C_EVENT_HANDLER = new ItemName(NS_C, "eventHandler");			// TODO: no such element in common-3 - is it OK?
-	public static final ItemName C_TEXT_FORMATTER = new ItemName(NS_C, "textFormatter");
-	public static final ItemName C_NOTIFICATION_FUNCTIONS = new ItemName(NS_C, "notificationFunctions");
-
-	public static final ItemName C_TRANSPORT_NAME = new ItemName(NS_C, "transportName");
-	public static final ItemName C_FROM = new ItemName(NS_C, "from");
-	public static final ItemName C_ENCODED_FROM = new ItemName(NS_C, "encodedFrom");
-	public static final ItemName C_TO = new ItemName(NS_C, "to");
-	public static final ItemName C_TO_LIST = new ItemName(NS_C, "toList");
-	public static final ItemName C_ENCODED_TO = new ItemName(NS_C, "encodedTo");
-	public static final ItemName C_ENCODED_TO_LIST = new ItemName(NS_C, "encodedToList");
-	public static final ItemName C_MESSAGE_TEXT = new ItemName(NS_C, "messageText");
-	public static final ItemName C_ENCODED_MESSAGE_TEXT = new ItemName(NS_C, "encodedMessageText");
-	public static final ItemName C_MESSAGE = new ItemName(NS_C, "message");
-	public static final ItemName C_WORK_ITEM = new ItemName(NS_C, "workItem");
-	public static final ItemName C_WF_PROCESS_INSTANCE = new ItemName(NS_C, "wfProcessInstance");
-
 	public static final ItemName APIT_ITEM_LIST = new ItemName(SchemaConstants.NS_API_TYPES, "itemList");
 	public static final ItemName C_ASSIGNMENT = new ItemName(SchemaConstants.NS_C, "assignment");
 
@@ -483,8 +471,6 @@ public abstract class SchemaConstants {
 
 	public static final ItemName FAULT_MESSAGE_ELEMENT_NAME = new ItemName(NS_FAULT, "fault");
 	public static final ItemName C_MODEL_CONTEXT = new ItemName(NS_C, "modelContext");
-	public static final ItemName C_ITEM_TO_APPROVE = new ItemName(NS_C, "itemToApprove");
-	public static final ItemName C_SHADOW_DISCRIMINATOR = new ItemName(NS_C, "shadowDiscriminator");
 
 	// Lifecycle
 

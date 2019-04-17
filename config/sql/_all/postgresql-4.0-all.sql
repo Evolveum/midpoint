@@ -292,6 +292,12 @@ CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR(36) NOT NULL,
   targetSystemType VARCHAR(255)
 );
+CREATE TABLE m_dashboard (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
 CREATE TABLE m_ext_item (
   id       SERIAL NOT NULL,
   kind     INT4,
@@ -438,6 +444,7 @@ CREATE TABLE m_shadow (
   name_orig                    VARCHAR(255),
   objectClass                  VARCHAR(157),
   pendingOperationCount        INT4,
+  primaryIdentifierValue       VARCHAR(255),
   resourceRef_relation         VARCHAR(157),
   resourceRef_targetOid        VARCHAR(36),
   resourceRef_type             INT4,
@@ -868,6 +875,8 @@ CREATE INDEX iShadowNameOrig
   ON m_shadow (name_orig);
 CREATE INDEX iShadowNameNorm
   ON m_shadow (name_norm);
+ALTER TABLE IF EXISTS m_shadow
+    ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
 CREATE INDEX iParent
   ON m_task (parent);
 CREATE INDEX iTaskWfProcessInstanceId
@@ -937,6 +946,10 @@ CREATE INDEX iNodeNameOrig
   ON m_node (name_orig);
 ALTER TABLE IF EXISTS m_node
   ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig
+  ON m_dashboard (name_orig);
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iObjectCollectionNameOrig
   ON m_object_collection (name_orig);
 ALTER TABLE IF EXISTS m_object_collection
@@ -1017,32 +1030,37 @@ ALTER TABLE IF EXISTS m_assignment
   ADD CONSTRAINT fk_assignment_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_assignment_ext_boolean
   ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_boolean
-  ADD CONSTRAINT fk_a_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_assignment_ext_date
   ADD CONSTRAINT fk_a_ext_date_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_date
-  ADD CONSTRAINT fk_a_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_assignment_ext_long
   ADD CONSTRAINT fk_a_ext_long_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_long
-  ADD CONSTRAINT fk_a_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_assignment_ext_poly
   ADD CONSTRAINT fk_a_ext_poly_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_poly
-  ADD CONSTRAINT fk_a_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_assignment_ext_reference
   ADD CONSTRAINT fk_a_ext_reference_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_reference
-  ADD CONSTRAINT fk_a_ext_boolean_reference FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_assignment_ext_string
   ADD CONSTRAINT fk_a_ext_string_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE IF EXISTS m_assignment_ext_string
-  ADD CONSTRAINT fk_a_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_assignment_policy_situation
   ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_oid, assignment_id) REFERENCES m_assignment;
 ALTER TABLE IF EXISTS m_assignment_reference
   ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
+
+-- These are created manually
+ALTER TABLE IF EXISTS m_assignment_ext_boolean
+  ADD CONSTRAINT fk_a_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE IF EXISTS m_assignment_ext_date
+  ADD CONSTRAINT fk_a_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE IF EXISTS m_assignment_ext_long
+  ADD CONSTRAINT fk_a_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE IF EXISTS m_assignment_ext_poly
+  ADD CONSTRAINT fk_a_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE IF EXISTS m_assignment_ext_reference
+  ADD CONSTRAINT fk_a_ext_reference_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE IF EXISTS m_assignment_ext_string
+  ADD CONSTRAINT fk_a_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+
+ALTER TABLE IF EXISTS m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_audit_delta
   ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE IF EXISTS m_audit_item
@@ -1063,28 +1081,31 @@ ALTER TABLE IF EXISTS m_focus_policy_situation
   ADD CONSTRAINT fk_focus_policy_situation FOREIGN KEY (focus_oid) REFERENCES m_focus;
 ALTER TABLE IF EXISTS m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE IF EXISTS m_object_ext_date
+  ADD CONSTRAINT fk_o_ext_date_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE IF EXISTS m_object_ext_long
+  ADD CONSTRAINT fk_object_ext_long FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE IF EXISTS m_object_ext_poly
+  ADD CONSTRAINT fk_o_ext_poly_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE IF EXISTS m_object_ext_reference
+  ADD CONSTRAINT fk_o_ext_reference_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE IF EXISTS m_object_ext_string
+  ADD CONSTRAINT fk_object_ext_string FOREIGN KEY (owner_oid) REFERENCES m_object;
+
+-- These are created manually
 ALTER TABLE IF EXISTS m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_object_ext_date
-  ADD CONSTRAINT fk_o_ext_date_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_date
   ADD CONSTRAINT fk_o_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_object_ext_long
-  ADD CONSTRAINT fk_object_ext_long FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_object_ext_long
   ADD CONSTRAINT fk_o_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_object_ext_poly
-  ADD CONSTRAINT fk_o_ext_poly_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_poly
   ADD CONSTRAINT fk_o_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE IF EXISTS m_object_ext_reference
-  ADD CONSTRAINT fk_o_ext_reference_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_object_ext_reference
   ADD CONSTRAINT fk_o_ext_reference_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE IF EXISTS m_object_ext_string
-  ADD CONSTRAINT fk_object_ext_string FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_object_ext_string
   ADD CONSTRAINT fk_o_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+
 ALTER TABLE IF EXISTS m_object_subtype
   ADD CONSTRAINT fk_object_subtype FOREIGN KEY (object_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_object_text_info

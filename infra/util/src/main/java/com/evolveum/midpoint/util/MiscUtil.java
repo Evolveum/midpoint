@@ -763,4 +763,11 @@ public class MiscUtil {
 		return dump.toString();
 	}
 
+	public static <K,V> Map<K, V> paramsToMap(Object[] params) {
+		Map<K, V> map = new HashMap<>();
+		for (int i=0; i < params.length; i+=2) {
+			map.put((K)params[i], (V)params[i+1]);
+		}
+		return map;
+	}
 }

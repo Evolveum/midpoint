@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -89,7 +90,7 @@ public class ExpressionEvaluationHelper {
 		if (multiValued) {
 			resultDef.setMaxOccurs(-1);
 		}
-		Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, contextDescription, task, result);
+		Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task, result);
 		context.setAdditionalConvertor(additionalConvertor);
 		PrismValueDeltaSetTriple<?> exprResultTriple = ModelExpressionThreadLocalHolder

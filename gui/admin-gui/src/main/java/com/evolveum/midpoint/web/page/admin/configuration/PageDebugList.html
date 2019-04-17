@@ -38,13 +38,23 @@
         <form class="form-inline pull-right search-form" wicket:id="searchForm">
             <div class="form-group" style="float: left; padding-right: 5px;" wicket:id="choiceContainer">
                 <label class="sr-only"><wicket:message key="pageDebugList.objectType"/></label>
-                <select class="form-control input-sm" wicket:id="choice"/>
+                <div wicket:id="choice"/>
             </div>
 
             <wicket:enclosure child="resource">
-                <div class="form-group" style="float: left; padding-right: 5px;">
-                    <label class="sr-only"><wicket:message key="pageDebugList.resource"/></label>
-                    <select class="form-control input-sm" wicket:id="resource"/>
+                <div style="float: left; padding-right: 5px;">
+                    <div class="form-group">
+                        <label class="sr-only">
+                            <wicket:message key="pageDebugList.resource"/>
+                        </label>
+                        <div wicket:id="resource"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only">
+                            <wicket:message key="pageDebugList.objectClass"/>
+                        </label>
+                        <div wicket:id="objectClass"/>
+                    </div>
                 </div>
             </wicket:enclosure>
 

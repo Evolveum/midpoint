@@ -97,6 +97,16 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="lang" type="tns:PolyStringLangType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Polystring values for individual languages.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -130,6 +140,13 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Value of the string to be used in case that the key is not found in the localization catalogs.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallbackTranslation" type="tns:PolyStringTranslationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Translation to be used in case that the key is not found in the localization catalogs.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -169,6 +186,24 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="PolyStringLangType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Polystring values for individual languages. This element contains subelements,
+                each subelement represents single language.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+			<xsd:any namespace="##any" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+				<xsd:annotation>
+				    <xsd:appinfo>
+				        <jaxb:dom/>
+				    </xsd:appinfo>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+    </xsd:complexType>
 	
 	<xsd:complexType name="ProtectedStringType" mixed="true">
 		<xsd:annotation>

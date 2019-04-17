@@ -88,7 +88,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	AUDIT_MANAGE("auditManage", "Audit Manage", "AUDIT_MANAGE_HELP"),
 	
 	RAW_OPERATION("rawOperation", "Raw operation", "RAW_OPERATION_HELP"),
-	PARTIAL_EXECUTION("partialExecution", "Partial execution", "PARTIAL_EXECUTION_HELP");
+	PARTIAL_EXECUTION("partialExecution", "Partial execution", "PARTIAL_EXECUTION_HELP"),
+	GET_EXTENSION_SCHEMA("getExtensionSchema", "Get extension schema", "GET_EXTENSION_SCHEMA_HELP");
 	
 	public static final String[] AUTZ_ACTIONS_URLS_SEARCH = new String[] { READ.getUrl(),  SEARCH.getUrl() };
 	public static final String[] AUTZ_ACTIONS_URLS_GET = new String[] { READ.getUrl(),  GET.getUrl() };

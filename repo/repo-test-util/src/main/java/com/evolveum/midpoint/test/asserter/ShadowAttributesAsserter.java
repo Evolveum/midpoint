@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -96,6 +97,14 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 		}
 		return this;
 	}
+	
+	// TODO: change to ShadowAttributeAsserter later
+		public <T> PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> attribute(String attrName) {
+			PrismProperty<T> attribute = findAttribute(attrName);
+			PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> asserter = new PrismPropertyAsserter<>(attribute, this, "attribute "+attrName+" in "+desc());
+			copySetupTo(asserter);
+			return asserter;
+		}
 	
 	public ShadowAttributesAsserter<R> assertAny() {
 		assertNotNull("No attributes container in "+desc(), getAttributesContainer());
@@ -178,6 +187,10 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 
 	private <T> PrismProperty<T> findAttribute(QName attrName) {
 		return getAttributes().findProperty(ItemName.fromQName(attrName));
+	}
+	
+	private <T> PrismProperty<T> findAttribute(String attrName) {
+		return getAttributes().findProperty(new ItemName(null, attrName));
 	}
 
 	protected String desc() {

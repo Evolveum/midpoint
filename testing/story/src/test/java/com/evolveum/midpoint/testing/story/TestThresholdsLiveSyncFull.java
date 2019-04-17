@@ -19,6 +19,10 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
@@ -27,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInfor
  * @author katka
  *
  */
+@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholdsLiveSyncFull extends TestThresholds {
 	
 	private static final File TASK_LIVESYNC_OPENDJ_FULL_FILE = new File(TEST_DIR, "task-opendj-livesync-full.xml");
@@ -67,9 +73,29 @@ public class TestThresholdsLiveSyncFull extends TestThresholds {
 	}
 	
 	protected void assertSynchronizationStatisticsActivation(Task taskAfter) {
-		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 5);
+		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnmatched(), 3);
 		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountDeleted(), 0);
 		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountLinked(), 0);
 		assertEquals(taskAfter.getStoredOperationStats().getSynchronizationInformation().getCountUnlinked(), 0);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.testing.story.TestThresholds#assertSynchronizationStatisticsAfterSecondImport(com.evolveum.midpoint.task.api.Task)
+	 */
+	@Override
+	protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception {
+		SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
+		
+		assertSyncToken(taskAfter, 12, taskAfter.getResult());
+		
+		assertEquals(syncInfo.getCountUnmatched(), 5);
+		assertEquals(syncInfo.getCountDeleted(), 0);
+		assertEquals(syncInfo.getCountLinked(), 0);
+		assertEquals(syncInfo.getCountUnlinked(), 0);
+		
+		assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
+		assertEquals(syncInfo.getCountDeletedAfter(), 0);
+		assertEquals(syncInfo.getCountLinkedAfter(), getProcessedUsers());
+		assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
 	}
 }

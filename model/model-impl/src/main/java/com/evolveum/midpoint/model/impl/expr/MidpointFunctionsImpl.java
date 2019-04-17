@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
@@ -52,6 +53,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -88,6 +93,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -1763,7 +1769,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		discriminator.setIntent(intent);
 		
 		SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
-				resource.asPrismObject(), getCurrentTask().getChannel(), getCurrentTask(), getCurrentResult());
+				resource.asPrismObject(), getCurrentTask().getChannel(), getPrismContext(), getCurrentTask(), getCurrentResult());
 		
 		ObjectSynchronizationType applicablePolicy = null;
 		
@@ -1814,5 +1820,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
 		return prismContext.deltaFor(objectClass);
+	}
+
+	// temporary
+	public MessageWrapper wrap(AsyncUpdateMessageType message) {
+		return new MessageWrapper(message);
+	}
+
+	// temporary
+	public Map<String, Object> getMessageBodyAsMap(AsyncUpdateMessageType message) throws IOException {
+		return wrap(message).getBodyAsMap();
 	}
 }

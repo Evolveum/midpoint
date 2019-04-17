@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -259,8 +260,10 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     }
 
     private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<UserType> user) {
+        String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAbstractSelfCredentials.this, "midpoint.default.system.name");
         return new PasswordAccountDto(user.getOid(), user.getName().getOrig(),
-                getString("PageSelfCredentials.resourceMidpoint"), WebComponentUtil.isActivationEnabled(user), true);
+                getString("PageSelfCredentials.resourceMidpoint", customSystemName),
+                WebComponentUtil.isActivationEnabled(user), true);
     }
 
     private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {

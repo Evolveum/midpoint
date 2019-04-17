@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -57,18 +59,25 @@ public class CustomFunctions {
 	
 	private ExpressionFactory expressionFactory;
 	private FunctionLibraryType library;
+	private ExpressionProfile expressionProfile;
 	private OperationResult result;
 	private Task task;
 	private PrismContext prismContext;
+
 	
-	public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, OperationResult result, Task task) {
+	public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, OperationResult result, Task task) {
 		this.library = library;
 		this.expressionFactory = expressionFactory;
+		this.expressionProfile = expressionProfile;
 		this.prismContext = expressionFactory.getPrismContext();
 		this.result = result;
 		this.task = task;
 	}
 	
+	/**
+	 * This method is invoked by the scripts. It is supposed to be only public method exposed
+	 * by this class.
+	 */
 	public <V extends PrismValue, D extends ItemDefinition> Object execute(String functionName, Map<String, Object> params) throws ExpressionEvaluationException {
 		Validate.notNull(functionName, "Function name must be specified");
 		
@@ -83,7 +92,7 @@ public class CustomFunctions {
 			ExpressionVariables variables = new ExpressionVariables();
 			if (MapUtils.isNotEmpty(params)) {
 				for (Map.Entry<String, Object> entry : params.entrySet()) {
-					variables.addVariableDefinition(new QName(entry.getKey()), convertInput(entry, expressionType));
+					variables.put(entry.getKey(), convertInput(entry, expressionType));
 				};
 			}
 			
@@ -102,7 +111,7 @@ public class CustomFunctions {
 				outputDefinition.toMutable().setMaxOccurs(1);
 			}
 			String shortDesc = "custom function execute";
-			Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
+			Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 					shortDesc, task, result);
 
 			ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
@@ -140,31 +149,28 @@ public class CustomFunctions {
 		
 	}
 
-	private Object convertInput(Map.Entry<String, Object> entry, ExpressionType expression) throws SchemaException {
+	private TypedValue convertInput(Map.Entry<String, Object> entry, ExpressionType expression) throws SchemaException {
 	
 		ExpressionParameterType expressionParam = expression.getParameter().stream().filter(param -> param.getName().equals(entry.getKey())).findAny().orElseThrow(SchemaException :: new);
 		
 		QName paramType = expressionParam.getType();
 		Class<?> expressionParameterClass = prismContext.getSchemaRegistry().determineClassForType(paramType);
 			
+		Object value = entry.getValue();
 		if (expressionParameterClass != null && !DOMUtil.XSD_ANYTYPE.equals(paramType) && XmlTypeConverter.canConvert(expressionParameterClass)) {
-			return ExpressionUtil.convertValue(expressionParameterClass, null, entry.getValue(), prismContext.getDefaultProtector(), prismContext);
+			value = ExpressionUtil.convertValue(expressionParameterClass, null, entry.getValue(), prismContext.getDefaultProtector(), prismContext);
 		}
 		
-		return entry.getValue();
+		Class<?> valueClass;
+		if (value == null) {
+			valueClass = expressionParameterClass;
+		} else {
+			valueClass = value.getClass();
+		}
 		
-		// FIXME: awful hack
-//		if (String.class.equals(expressioNParameterClass) && entry.getValue() instanceof PolyString) {
-//			return ((PolyString) entry.getValue()).getOrig();
-//		}
+		ItemDefinition def = ExpressionUtil.determineDefinitionFromValueClass(prismContext, entry.getKey(), valueClass, paramType);
 		
-		//if (expressioNParameterClass != null && !expressioNParameterClass.isAssignableFrom(entry.getValue().getClass())) {
-//		if (expressioNParameterClass != null && !expressioNParameterClass.equals(entry.getValue().getClass())){
-//			throw new SchemaException("Unexpected type of value, expecting " + expressioNParameterClass.getSimpleName() + " but the actual value is " + entry.getValue().getClass().getSimpleName());
-//		}
-		
-//		return entry.getValue();
-		
+		return new TypedValue(value, def);
 	}
 
 }

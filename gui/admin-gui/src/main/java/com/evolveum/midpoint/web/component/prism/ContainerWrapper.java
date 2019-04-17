@@ -235,6 +235,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			PrismValue val = item.getParent();
 			if (val != null && val.getTypeName() != null) {
 				displayName = val.getTypeName().getLocalPart() + "." + displayName;
+				//try to localize display name with newly built key
+				//if no localized value if found, just take the name
+				String localizedDisplayName = localizeName(displayName);
+				if (StringUtils.isEmpty(localizedDisplayName) || localizedDisplayName.equals(displayName)){
+					displayName = name.getLocalPart();
+				}
 			}
 		} else {
 			displayName = item.getDefinition().getTypeName().getLocalPart();

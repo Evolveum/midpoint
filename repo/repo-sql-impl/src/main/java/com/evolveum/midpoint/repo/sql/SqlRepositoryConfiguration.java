@@ -284,6 +284,8 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_USE_ZIP = "useZip";
     public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
+    public static final String PROPERTY_MAX_LIFETIME = "maxLifetime";
+    public static final String PROPERTY_IDLE_TIMEOUT = "idleTimeout";
 
     // concurrency properties
     public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
@@ -350,6 +352,8 @@ public class SqlRepositoryConfiguration {
     private final String dataSource;
     private final int minPoolSize;
     private final int maxPoolSize;
+    private final Long maxLifetime;
+    private final Long idleTimeout;
     private final boolean useZip;
 
     private TransactionIsolation defaultTransactionIsolation;
@@ -456,6 +460,9 @@ public class SqlRepositoryConfiguration {
         dropIfExists = configuration.getBoolean(PROPERTY_DROP_IF_EXISTS, false);
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
         maxPoolSize = configuration.getInt(PROPERTY_MAX_POOL_SIZE, DEFAULT_MAX_POOL_SIZE);
+        maxLifetime = configuration.getLong(PROPERTY_MAX_LIFETIME, null);
+        idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
+
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
 
         // requires asServer, baseDir, fileName, port
@@ -865,7 +872,15 @@ public class SqlRepositoryConfiguration {
         return maxPoolSize;
     }
 
-    public boolean isUseZip() {
+	public Long getMaxLifetime() {
+		return maxLifetime;
+	}
+
+	public Long getIdleTimeout() {
+		return idleTimeout;
+	}
+
+	public boolean isUseZip() {
         return useZip;
     }
 

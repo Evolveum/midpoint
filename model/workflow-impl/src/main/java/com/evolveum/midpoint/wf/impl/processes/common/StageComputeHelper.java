@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,13 +72,13 @@ public class StageComputeHelper {
 			throws SchemaException {
 
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(C_REQUESTER, miscHelper.resolveObjectReference(aCase.getRequestorRef(), result));
-		variables.addVariableDefinition(C_OBJECT, miscHelper.resolveObjectReference(aCase.getObjectRef(), result));
+		variables.put(ExpressionConstants.VAR_REQUESTER, miscHelper.resolveTypedObjectReference(aCase.getRequestorRef(), result));
+		variables.put(ExpressionConstants.VAR_OBJECT, miscHelper.resolveTypedObjectReference(aCase.getObjectRef(), result));
 		// might be null
-		variables.addVariableDefinition(C_TARGET, miscHelper.resolveObjectReference(aCase.getTargetRef(), result));
-		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, getFocusPrimaryDelta(wfContext));
-		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, requestChannel);
-		variables.addVariableDefinition(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext);
+		variables.addVariableDefinition(C_TARGET, miscHelper.resolveTypedObjectReference(aCase.getTargetRef(), result));
+		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, getFocusPrimaryDelta(wfContext), ObjectDelta.class);
+		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, requestChannel, String.class);
+		variables.addVariableDefinition(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext, WfContextType.class);
 		// todo other variables?
 
 		return variables;
@@ -143,7 +143,7 @@ public class StageComputeHelper {
 		ExpressionVariables expressionVariables = null;
 		VariablesProvider enhancedVariablesProvider = () -> {
 			ExpressionVariables variables = variablesProvider.get();
-			variables.addVariableDefinition(ExpressionConstants.VAR_STAGE_DEFINITION, stageDef);
+			variables.put(ExpressionConstants.VAR_STAGE_DEFINITION, stageDef, ApprovalStageDefinitionType.class);
 			return variables;
 		};
 

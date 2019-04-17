@@ -662,6 +662,16 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	<xsd:element name="evaluatedSituationTrigger" type="tns:EvaluatedSituationTriggerType" />
+	
+	<xsd:complexType name="EvaluatedCollectionStatsTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedCollectionStatsTrigger" type="tns:EvaluatedCollectionStatsTriggerType" />
 
 	<xsd:complexType name="EvaluatedPolicyRuleType">
         <xsd:sequence>

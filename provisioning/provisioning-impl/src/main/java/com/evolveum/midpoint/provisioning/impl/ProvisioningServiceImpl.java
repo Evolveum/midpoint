@@ -25,7 +25,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -85,15 +87,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Implementation of provisioning service.
@@ -383,6 +376,67 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 		return processedChanges;
 
+	}
+
+	@Override
+	public String startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+			@NotNull OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		String resourceOid = shadowCoordinates.getResourceOid();
+		Validate.notNull(resourceOid, "Resource oid must not be null.");
+
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".startListeningForAsyncUpdates");
+		result.addParam(OperationResult.PARAM_OID, resourceOid);
+		result.addParam(OperationResult.PARAM_TASK, task.toString());
+
+		String listeningActivityHandle;
+		try {
+			LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
+			listeningActivityHandle = shadowCache.startListeningForAsyncUpdates(shadowCoordinates, task, result);
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+		result.addReturn("listeningActivityHandle", listeningActivityHandle);
+		result.recordSuccess();
+		result.cleanupResult();
+		return listeningActivityHandle;
+	}
+
+	@Override
+	public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".stopListeningForAsyncUpdates");
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
+
+		try {
+			LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
+			shadowCache.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
+		} catch (RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+		result.recordSuccess();
+		result.cleanupResult();
+	}
+
+	@Override
+	public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getAsyncUpdatesListeningActivityInformation");
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
+
+		try {
+			AsyncUpdateListeningActivityInformationType rv = shadowCache.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, result);
+			result.recordSuccess();
+			result.cleanupResult();
+			return rv;
+		} catch (RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -793,7 +847,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		testResult.addParam("resourceOid", resourceOid);
 		testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		PrismObject<ResourceType> resource = null;
+		PrismObject<ResourceType> resource;
 
 		try {
 			resource = getRepoObject(ResourceType.class, resourceOid, null, testResult);

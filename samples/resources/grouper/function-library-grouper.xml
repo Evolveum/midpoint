@@ -1,0 +1,177 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<functionLibrary oid="2eef4181-25fa-420f-909d-846a36ca90f3"
+				 xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				 xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				 xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+				 xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+				 xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+				 xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+	<name>grouper</name>
+	<description>Functions for Grouper AMQP connector</description>
+	<function>
+
+		<!-- Some examples:
+	{
+	  encrypted=false,
+	  esbEvent=[
+	  {
+		sourceId=ldap,
+		membershipType=flattened,
+		fieldName=members,
+		groupId=00000000000000000000000000000001,
+		changeOccurred=false,
+		createdOnMicros=1551884863420000,
+		subjectId=banderson,
+		id=94320942304930294023940329403294,
+		sequenceNumber=1000,
+		eventType=MEMBERSHIP_ADD,
+		groupName=etc:midpointGroups
+	  }
+	]}
+
+
+	 {
+	  "encrypted": false,
+	  "esbEvent": [
+		{
+		  "displayName": "ref:alumni",
+		  "changeOccurred": false,
+		  "createdOnMicros": 1551884850499000,
+		  "parentStemId": "9a7ce40af6c546148b41eec81b8ca18d",
+		  "id": "00000000000000000000000000000002",
+		  "sequenceNumber": "110",
+		  "eventType": "GROUP_ADD",
+		  "name": "ref:alumni"
+		}
+	  ]
+	}
+	 -->
+
+
+		<name>createUcfChange</name>
+		<parameter>
+			<name>message</name>
+			<type>c:AsyncUpdateMessageType</type>
+		</parameter>
+		<parameter>
+			<name>superGroup</name>
+			<type>xsd:string</type>
+		</parameter>
+		<parameter>
+			<name>groupIncludePattern</name>
+			<type>xsd:anyType</type>
+		</parameter>
+		<parameter>
+			<name>groupExcludePattern</name>
+			<type>xsd:anyType</type>
+		</parameter>
+		<parameter>
+			<name>relevantSourceId</name>
+			<type>xsd:string</type>
+		</parameter>
+		<script>
+			<code>
+				import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+				import com.evolveum.prism.xml.ns._public.types_3.*
+				import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+				import com.evolveum.midpoint.schema.util.*
+				import com.evolveum.midpoint.prism.path.*
+
+				esbEvent = midpoint.getMessageBodyAsMap(message)['esbEvent'][0]
+				log.info('esbEvent = {}', esbEvent)
+				eventType = esbEvent['eventType']
+				if (eventType == 'MEMBERSHIP_ADD' || eventType == 'MEMBERSHIP_DELETE') {
+					groupName = esbEvent['groupName']
+					if (groupName == null) {
+						log.warn('No group name in membership change message, ignoring it: {}', esbEvent)
+						return null
+					}
+					isExported = matches(groupName, groupIncludePattern, groupExcludePattern)
+					isSuper = groupName == superGroup
+					if (!isExported &amp;&amp; !isSuper) {
+						log.info('Irrelevant group membership change, ignoring it: {}', groupName)
+						return null
+					}
+					sourceId = esbEvent['sourceId']
+					if (sourceId != relevantSourceId) {
+						log.info('Irrelevant subject source ID in membership change message, ignoring it: {}', sourceId)
+						return null
+					}
+					subjectId = esbEvent['subjectId']
+					log.info('### {} - {} - {}', subjectId, eventType, groupName)
+					identifiers = new HashMap()
+					identifiers.put(ICFS_NAME, subjectId)
+					identifiers.put(ICFS_UID, subjectId)
+					ObjectDeltaType delta
+					if (isExported) {
+						itemDelta = new ItemDeltaType()
+						itemDelta.modificationType = eventType == 'MEMBERSHIP_ADD' ? ModificationTypeType.ADD : ModificationTypeType.DELETE
+						itemDelta.path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, 'group'))
+						itemDelta.value.add(RawType.fromPropertyRealValue(groupName, null, prismContext))
+						delta = new ObjectDeltaType()
+						delta.changeType = ChangeTypeType.MODIFY
+						delta.itemDelta.add(itemDelta)
+					} else {
+						delta = null
+					}
+					return UcfChangeUtil.create(RI_ACCOUNT_OBJECT_CLASS, identifiers, delta, prismContext)
+				} else if (eventType == 'GROUP_ADD' || eventType == 'GROUP_DELETE') {
+					groupName = esbEvent['name']
+					groupId = esbEvent['id']
+					isExported = matches(groupName, groupIncludePattern, groupExcludePattern)
+					if (!isExported) {
+						log.info('Irrelevant group add/delete event, ignoring it: {}', groupName)
+						return null
+					}
+					identifiers = new HashMap()
+					identifiers.put(ICFS_NAME, groupName)
+					identifiers.put(ICFS_UID, groupId)
+					ObjectDeltaType delta
+					if (eventType == 'GROUP_DELETE') {
+						delta = new ObjectDeltaType()
+						delta.changeType = ChangeTypeType.DELETE
+					} else {
+						delta = null
+					}
+					return UcfChangeUtil.create(RI_GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
+				} else {
+					log.warn('Unsupported event type: {} -> {}', eventType, esbEvent)
+					return null
+				}
+
+				def matches(String name, Collection includes, Collection excludes) {
+					matches(name, includes) &amp;&amp; !matches(name, excludes)
+				}
+
+				def matches(String name, Collection patterns) {
+					if (name == null || patterns == null) {
+						false
+					} else {
+						for (pattern in patterns) {
+							if (name ==~ pattern) {
+								return true
+							}
+						}
+						false
+					}
+				}
+			</code>
+		</script>
+		<returnType>c:UcfChangeType</returnType>
+	</function>
+</functionLibrary>

@@ -80,7 +80,9 @@ public enum ObjectTypeGuiDescriptor {
 
     OBJECT_COLLECTION(ObjectTypes.OBJECT_COLLECTION, "ObjectTypeGuiDescriptor.objectCollection", "", ""),      // TODO icons
 
-    ARCHETYPE(ObjectTypes.ARCHETYPE, "ObjectTypeGuiDescriptor.archetype", "", "");      // TODO icons
+    ARCHETYPE(ObjectTypes.ARCHETYPE, "ObjectTypeGuiDescriptor.archetype", "", ""),      // TODO icons
+	
+	DASHBOARD(ObjectTypes.DASHBOARD, "ObjectTypeGuiDescriptor.dashboard", "fa fa-dashboard", "fa fa-dashboard");
 
     public static final String ERROR_ICON = "silk-error";
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";

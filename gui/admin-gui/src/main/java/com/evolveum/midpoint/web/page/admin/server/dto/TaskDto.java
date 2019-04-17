@@ -94,6 +94,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
+    public static final String F_TASK_KIND = "taskKind";
     public static final String F_OID = "oid";
     public static final String F_DESCRIPTION = "description";
     public static final String F_CATEGORY = "category";
@@ -169,7 +170,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
 
 	private PageBase pageBase;
-    //region Construction
+	//region Construction
 
 	// parentTaskBean can be filled-in for optimization purposes (MID-4238); but take care to provide it in a suitable form
 	// (e.g. with subtasks, if they are needed) - a conservative approach to this is implemented in fillInChildren
@@ -646,6 +647,14 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	//endregion
 
     //region Getters for read-only properties
+	public TaskKindType getTaskKind() {
+		if (taskType.getWorkManagement() == null) {
+			return null;
+		}
+		
+		return taskType.getWorkManagement().getTaskKind();
+	}
+	
     public String getCategory() {
         return taskType.getCategory();
     }

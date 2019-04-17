@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ public class FocalMappingSpec implements ShortDumpable, MappingPreExpression {
 		assignmentType.targetRef(role.getOid(), role.asPrismObject().getDefinition().getTypeName(), relation);
 
 		Source<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> source =
-				new Source<>(assignment, null, assignment, FocusType.F_ASSIGNMENT);
+				new Source<>(assignment, null, assignment, FocusType.F_ASSIGNMENT, assignmentDef);
 		return (Source<V, D>) source;
 	}
 	

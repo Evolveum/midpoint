@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -235,5 +236,9 @@ public class PrismUtil {
 	public static void debugDumpWithLabelLn(StringBuilder sb, String label, Containerable cc, int indent) {
 		debugDumpWithLabel(sb, label, cc, indent);
 		sb.append("\n");
+	}
+
+	public static boolean isStructuredType(QName typeName) {
+		return QNameUtil.match(PolyStringType.COMPLEX_TYPE, typeName);
 	}
 }

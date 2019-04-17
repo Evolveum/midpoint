@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -288,8 +289,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task task, OperationResult result) {
         LOGGER.trace(" - considering: {}", itemToApprove);
         ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(SchemaConstants.C_ASSOCIATION, itemToApprove.getAssociation());
-        variables.addVariableDefinition(SchemaConstants.C_SHADOW_DISCRIMINATOR, rsd);
+        variables.put(ExpressionConstants.VAR_ASSOCIATION, itemToApprove.getAssociation(), ShadowAssociationType.class);
+        variables.put(ExpressionConstants.VAR_SHADOW_DISCRIMINATOR, rsd, ResourceShadowDiscriminator.class);
         boolean applicable = primaryChangeAspectHelper.evaluateApplicabilityCondition(
                 config, modelContext, itemToApprove, variables, this, task, result);
         LOGGER.trace("   - result: applicable = {}", applicable);

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
@@ -101,18 +102,20 @@ import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.AssignmentObjectRelationsAsserter;
 import com.evolveum.midpoint.model.test.asserter.AssignmentCandidatesSpecificationAsserter;
 import com.evolveum.midpoint.model.test.asserter.CompiledUserProfileAsserter;
+import com.evolveum.midpoint.model.test.asserter.EvaluatedPolicyRulesAsserter;
 import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -128,6 +131,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -227,6 +231,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected ModelService modelService;
 	@Autowired protected ModelInteractionService modelInteractionService;
 	@Autowired protected ModelDiagnosticService modelDiagnosticService;
+	@Autowired protected DashboardService dashboardService;
 	@Autowired protected ModelAuditService modelAuditService;
 	@Autowired protected ModelPortType modelWeb;
 	@Autowired protected RepositoryService repositoryService;
@@ -242,7 +247,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected SecurityContextManager securityContextManager;
 	@Autowired protected MidpointFunctions libraryMidpointFunctions;
 	@Autowired protected ValuePolicyProcessor valuePolicyProcessor;
-	
+
 	@Autowired(required = false)
 	@Qualifier("modelObjectResolver")
 	protected ObjectResolver modelObjectResolver;
@@ -299,6 +304,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		securityContext.setAuthentication(null);
 	}
 
+	protected void initDummyResource(String name, DummyResourceContoller controller) {
+		dummyResourceCollection.initDummyResource(name, controller);
+	}
+	
 	protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
 			FailableProcessor<DummyResourceContoller> controllerInitLambda,
 			Task task, OperationResult result) throws Exception {
@@ -1739,6 +1748,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 			return;
+		}
+	}
+
+	protected <O extends ObjectType> void assertObjectByName(Class<O> type, String name, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+		SearchResultList<PrismObject<O>> objects = modelService
+				.searchObjects(type, prismContext.queryFor(type).item(ObjectType.F_NAME).eqPoly(name).build(), null, task,
+						result);
+		if (objects.isEmpty()) {
+			fail("Expected that " + type + " " + name + " did exist but it did not");
+		}
+	}
+
+	protected <O extends ObjectType> void assertNoObjectByName(Class<O> type, String name, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+		SearchResultList<PrismObject<O>> objects = modelService
+				.searchObjects(type, prismContext.queryFor(type).item(ObjectType.F_NAME).eqPoly(name).build(), null, task,
+						result);
+		if (!objects.isEmpty()) {
+			fail("Expected that " + type + " " + name + " did not exists but it did: " + objects);
 		}
 	}
 
@@ -3663,7 +3694,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<O> addDelta = object.createAddDelta();
         assertFalse("Immutable object provided?",addDelta.getObjectToAdd().isImmutable());
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(addDelta, options, task, result);
-        object.setOid(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas));
+        object.setOid(ObjectDeltaOperation.findAddDeltaOid(executedDeltas, object));
         return object.getOid();
 	}
 
@@ -4811,6 +4842,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		asserter.display();
 		return asserter;
 	}
+	
+	protected EvaluatedPolicyRulesAsserter<Void> assertEvaluatedPolicyRules(Collection<EvaluatedPolicyRule> evaluatedPolicyRules) {
+		EvaluatedPolicyRulesAsserter<Void> asserter = new EvaluatedPolicyRulesAsserter<>(evaluatedPolicyRules, null, null);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+	
+	protected EvaluatedPolicyRulesAsserter<Void> assertEvaluatedPolicyRules(Collection<EvaluatedPolicyRule> evaluatedPolicyRules, PrismObject<?> sourceObject) {
+		EvaluatedPolicyRulesAsserter<Void> asserter = new EvaluatedPolicyRulesAsserter<>(evaluatedPolicyRules, null, sourceObject.toString());
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
 
 	protected void createSecurityContext(MidPointPrincipal principal) {
 		SecurityContext context = new SecurityContextImpl();
@@ -4977,14 +5022,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void reconcileUser(String oid, ModelExecuteOptions options, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-		ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, oid
-		);
+		ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, oid);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(options), task, result);
 	}
 
 	protected void reconcileOrg(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-		ObjectDelta<OrgType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(OrgType.class, oid
-		);
+		ObjectDelta<OrgType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(OrgType.class, oid);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
 	}
 
@@ -5004,6 +5047,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
+		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
+	}
+
+	protected List<AuditEventRecord> getAuditRecords(int maxRecords, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Map<String,Object> params = new HashMap<>();
+		params.put("setMaxResults", maxRecords);
 		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
 	}
 
@@ -5634,7 +5683,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		asserter.assertOid(oid);
 		return asserter;
 	}
-	
+
+	protected OrgAsserter<Void> assertOrgByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<OrgType> org = findObjectByName(OrgType.class, name);
+		assertNotNull("No org with name '"+name+"'", org);
+		OrgAsserter<Void> asserter = OrgAsserter.forOrg(org, message);
+		initializeAsserter(asserter);
+		asserter.assertName(name);
+		return asserter;
+	}
+
 	protected RoleAsserter<Void> assertRole(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<RoleType> role = getObject(RoleType.class, oid);
 		RoleAsserter<Void> asserter = assertRole(role, message);
@@ -6285,6 +6343,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		initializeAsserter(asserter);
 		asserter.display();
 		return asserter;
+	}
+	
+	protected ExpressionVariables createVariables(Object... params) {
+		return ExpressionVariables.create(prismContext, params);
 	}
 
 }

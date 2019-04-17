@@ -179,6 +179,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
 	}
 
@@ -406,6 +407,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMembers(dummyGroupAtOrange);
         
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 

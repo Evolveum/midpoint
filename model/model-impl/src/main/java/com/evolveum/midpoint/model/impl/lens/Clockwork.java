@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -647,17 +648,20 @@ public class Clockwork {
     	LOGGER.trace("Evaluating {}", shortDesc);
 		// TODO: it would be nice to cache this
 		// null output definition: this script has no output
-		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, expressionFactory, shortDesc, task, result);
+		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, task, result);
 
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
-		variables.addVariableDefinition(ExpressionConstants.VAR_MODEL_CONTEXT, context);
+		variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
+		variables.put(ExpressionConstants.VAR_MODEL_CONTEXT, context, ModelContext.class);
 		LensFocusContext focusContext = context.getFocusContext();
 		PrismObject focus = null;
 		if (focusContext != null) {
-			focus = focusContext.getObjectAny();
+			variables.put(ExpressionConstants.VAR_FOCUS, focusContext.getObjectAny(), focusContext.getObjectDefinition());
+		} else {
+			PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+			variables.put(ExpressionConstants.VAR_FOCUS, null, def);
 		}
-		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
+		
 
 		ModelImplUtils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);
 		LOGGER.trace("Finished evaluation of {}", shortDesc);

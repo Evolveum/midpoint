@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -40,8 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
-import static java.util.Collections.emptyMap;
 
 /**
  * @author mederly
@@ -78,7 +77,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         }
 
         try {
-            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), emptyMap(),
+            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), VariablesMap.emptyMap(),
 		            true, task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());

@@ -83,6 +83,10 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		setKind(kind);
 	}
 
+	public ResourceShadowDiscriminator(String resourceOid) {
+		this.resourceOid = resourceOid;
+	}
+
 	public ResourceShadowDiscriminator(String resourceOid, QName objectClass) {
 		this.resourceOid = resourceOid;
 		this.objectClass = objectClass;

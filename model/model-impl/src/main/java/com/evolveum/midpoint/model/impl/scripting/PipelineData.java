@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -37,8 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyMap;
 
 /**
  * Data that are passed between individual scripting actions.
@@ -73,10 +72,10 @@ public class PipelineData implements DebugDumpable {
     }
 
     public static PipelineData create(PrismValue value) {
-        return create(value, emptyMap());
+        return create(value, VariablesMap.emptyMap());
     }
 
-    public static PipelineData create(PrismValue value, Map<String, Object> variables) {
+    public static PipelineData create(PrismValue value, VariablesMap variables) {
         PipelineData d = createEmpty();
         d.add(new PipelineItem(value, newOperationResult(), variables));
         return d;
@@ -100,14 +99,14 @@ public class PipelineData implements DebugDumpable {
         }
     }
 
-    public void addValue(PrismValue value, Map<String, Object> variables) {
+    public void addValue(PrismValue value, VariablesMap variables) {
 		addValue(value, null, variables);
     }
 
-    public void addValue(PrismValue value, OperationResult result, Map<String, Object> variables) {
+    public void addValue(PrismValue value, OperationResult result, VariablesMap variables) {
 		data.add(new PipelineItem(value,
 				result != null ? result : newOperationResult(),
-				variables != null ? variables : emptyMap()));
+				variables != null ? variables : VariablesMap.emptyMap()));
     }
 
     public String getDataAsSingleString() throws ScriptExecutionException {
@@ -122,7 +121,7 @@ public class PipelineData implements DebugDumpable {
         }
     }
 
-    static PipelineData createItem(@NotNull PrismValue value, Map<String, Object> variables) throws SchemaException {
+    static PipelineData createItem(@NotNull PrismValue value, VariablesMap variables) throws SchemaException {
         PipelineData data = createEmpty();
 	    data.addValue(value, variables);
 	    return data;
@@ -180,7 +179,7 @@ public class PipelineData implements DebugDumpable {
 		return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o, context.getPrismContext())).collect(Collectors.toList());
 	}
 
-	static PipelineData parseFrom(ValueListType input, Map<String, Object> frozenInitialVariables, PrismContext prismContext) {
+	static PipelineData parseFrom(ValueListType input, VariablesMap frozenInitialVariables, PrismContext prismContext) {
 		PipelineData rv = new PipelineData();
 		if (input != null) {
 			for (Object o : input.getValue()) {

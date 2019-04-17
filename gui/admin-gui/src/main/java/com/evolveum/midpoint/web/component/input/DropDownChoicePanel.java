@@ -18,12 +18,14 @@ package com.evolveum.midpoint.web.component.input;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
@@ -49,7 +51,8 @@ public class DropDownChoicePanel<T> extends InputPanel {
                                boolean allowNull) {
         super(id);
 
-        DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model, choices, renderer) {
+        DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model,
+                choices, renderer) {
 
         	private static final long serialVersionUID = 1L;
 
@@ -65,6 +68,12 @@ public class DropDownChoicePanel<T> extends InputPanel {
             @Override
             protected String getNullValidDisplayValue() {
                 return DropDownChoicePanel.this.getNullValidDisplayValue();
+            }
+
+            @Override
+            public IModel<? extends List<? extends T>> getChoicesModel() {
+                IModel<? extends List<? extends T>> choices = super.getChoicesModel();
+                return Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer));
             }
         };
         input.setNullValid(allowNull);

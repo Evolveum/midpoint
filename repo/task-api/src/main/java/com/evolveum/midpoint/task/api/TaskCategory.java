@@ -25,6 +25,7 @@ public class TaskCategory {
     public static final String IMPORTING_ACCOUNTS = "ImportingAccounts";
     public static final String IMPORT_FROM_FILE = "ImportFromFile";
     public static final String LIVE_SYNCHRONIZATION = "LiveSynchronization";
+    public static final String ASYNCHRONOUS_UPDATE = "AsynchronousUpdate";
     public static final String BULK_ACTIONS = "BulkActions";
     public static final String MOCK = "Mock";
     public static final String RECOMPUTATION = "Recomputation";
@@ -36,4 +37,5 @@ public class TaskCategory {
     public static final String CUSTOM = "Custom";
     public static final String ACCESS_CERTIFICATION = "AccessCertification";
     public static final String UTIL = "Utility";
+    public static final String DELETE_NOT_UPDATED_SHADOWS = "deleteNotUpdatedShadows";
 }

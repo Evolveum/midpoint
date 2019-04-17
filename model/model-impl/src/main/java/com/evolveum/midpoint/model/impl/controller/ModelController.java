@@ -36,14 +36,14 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -52,6 +52,7 @@ import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
@@ -80,7 +81,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,7 +157,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private EmulatedSearchProvider emulatedSearchProvider;
 	@Autowired private CacheRegistry cacheRegistry;
 	@Autowired private ClockworkMedic clockworkMedic;
-
+	@Autowired private ChangeNotificationDispatcher dispatcher;
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
@@ -2086,7 +2089,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType scriptExecutionCommand,
-		    @NotNull Map<String, Object> initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
+		    @NotNull VariablesMap initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
 		    @NotNull OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, result);
@@ -2292,4 +2295,69 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	//endregion
 
+	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, Task task, OperationResult parentResult)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException {
+
+		String oldShadowOid = changeDescription.getOldShadowOid();
+		ResourceEventDescription eventDescription = new ResourceEventDescription();
+
+		PrismObject<ShadowType> oldShadow;
+		LOGGER.trace("resolving old object");
+		if (!StringUtils.isEmpty(oldShadowOid)) {
+			oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
+			eventDescription.setOldShadow(oldShadow);
+			LOGGER.trace("old object resolved to: {}", oldShadow.debugDumpLazily());
+		} else {
+			LOGGER.trace("Old shadow null");
+		}
+
+		PrismObject<ShadowType> currentShadow = null;
+		ShadowType currentShadowType = changeDescription.getCurrentShadow();
+		LOGGER.trace("resolving current shadow");
+		if (currentShadowType != null) {
+			prismContext.adopt(currentShadowType);
+			currentShadow = currentShadowType.asPrismObject();
+			LOGGER.trace("current shadow resolved to {}", currentShadow.debugDumpLazily());
+		}
+
+		eventDescription.setCurrentShadow(currentShadow);
+
+		ObjectDeltaType deltaType = changeDescription.getObjectDelta();
+
+		if (deltaType != null) {
+
+			PrismObject<ShadowType> shadowToAdd;
+			ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createEmptyDelta(ShadowType.class, deltaType.getOid(),
+					ChangeType.toChangeType(deltaType.getChangeType()));
+
+			if (delta.getChangeType() == ChangeType.ADD) {
+				if (deltaType.getObjectToAdd() == null) {
+					LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
+					throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
+				}
+				Object objToAdd = deltaType.getObjectToAdd();
+				if (!(objToAdd instanceof ShadowType)) {
+					LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+					throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+				}
+				prismContext.adopt((ShadowType)objToAdd);
+
+				shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
+				LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
+				delta.setObjectToAdd(shadowToAdd);
+			} else {
+				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+				delta.addModifications(modifications);
+			}
+			ModelImplUtils.encrypt(Collections.singletonList(delta), protector, null, parentResult);
+			eventDescription.setDelta(delta);
+		}
+
+		eventDescription.setSourceChannel(changeDescription.getChannel());
+
+		dispatcher.notifyEvent(eventDescription, task, parentResult);
+		parentResult.computeStatus();
+		task.setResult(parentResult);
+	}
 }

@@ -474,7 +474,7 @@ public class ObjectValuePolicyEvaluator {
 			return newPasswordPs == null;
 		}
 		try {
-			return protector.compare(newPasswordPs, currentPassword);
+			return protector.compareCleartext(newPasswordPs, currentPassword);
 		} catch (EncryptionException e) {
 			throw new SystemException("Failed to compare " + shortDesc + ": " + e.getMessage(), e);
 		}

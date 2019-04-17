@@ -87,6 +87,7 @@ import org.w3c.dom.Element;
     "orig",
     "norm",
     "translation",
+    "lang",
     "any"
 })
 public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
@@ -100,6 +101,8 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
     protected String norm;
     
     protected PolyStringTranslationType translation;
+    
+    protected PolyStringLangType lang;
 
     @XmlAnyElement(lax = true)
     protected List<Object> any;
@@ -118,6 +121,11 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
     	this.orig = polyString.getOrig();
     	this.norm = polyString.getNorm();
     	this.translation = polyString.getTranslation();
+    	Map<String, String> polyStringLang = polyString.getLang();
+    	if (polyStringLang != null && !polyStringLang.isEmpty()) {
+    		this.lang = new PolyStringLangType();
+    		this.lang.setLang(new HashMap<>(polyStringLang));
+    	}
     }
 
     /**
@@ -175,6 +183,14 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 	public void setTranslation(PolyStringTranslationType translation) {
 		this.translation = translation;
 	}
+	
+	public PolyStringLangType getLang() {
+		return lang;
+	}
+
+	public void setLang(PolyStringLangType lang) {
+		this.lang = lang;
+	}
 
 	/**
      * Gets the value of the any property.
@@ -218,7 +234,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 	 * Returns true in case that there are language mutations, translation, etc.
 	 */
 	public boolean isSimple() {
-		return translation == null;
+		return translation == null && lang == null;
 	}
     
     /**
@@ -239,7 +255,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
     }
 
     public PolyString toPolyString() {
-    	return new PolyString(orig, norm, translation);
+    	return new PolyString(orig, norm, translation, lang == null ? null : lang.getLang());
     }
 
     /**
@@ -269,6 +285,10 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 			sb.append(";translation=");
 			sb.append(translation.getKey());
 		}
+		if (lang != null) {
+			sb.append(";lang=");
+			sb.append(lang.getLang());
+		}
 		sb.append(")");
 		return sb.toString();
 
@@ -281,6 +301,9 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
         poly.setOrig(getOrig());
         if (translation != null) {
         	poly.setTranslation(translation.clone());
+        }
+        if (lang != null) {
+        	poly.setLang(lang.clone());
         }
         copyContent(getAny(), poly.getAny());
 
@@ -523,49 +546,67 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
         return null;
     }
 
+	// !!! Do NOT autogenerate this method without preserving custom changes !!!
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((any == null || any.isEmpty()) ? 0 : any.hashCode());
+		result = prime * result + ((lang == null) ? 0 : lang.hashCode());
 		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
 		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
 		result = prime * result + ((translation == null) ? 0 : translation.hashCode());
 		return result;
 	}
 
+	// !!! Do NOT autogenerate this method without preserving custom changes !!!
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		PolyStringType other = (PolyStringType) obj;
-		if (any == null) {
-			if (other.any != null && !other.any.isEmpty())          // because any is instantiated on get (so null and empty should be considered equivalent)
+		if (any == null || any.isEmpty()) {     // because any is instantiated on get (so null and empty should be considered equivalent)
+			if (other.any != null && !other.any.isEmpty()) {
 				return false;
-		} else if (any.isEmpty()) {
-            if (other.any != null && !other.any.isEmpty())
-                return false;
-        } else if (!any.equals(other.any))
+			}
+		} else if (!any.equals(other.any)) {
 			return false;
+		}
+		if (lang == null) {
+			if (other.lang != null) {
+				return false;
+			}
+		} else if (!lang.equals(other.lang)) {
+			return false;
+		}
 		if (norm == null) {
-			if (other.norm != null)
+			if (other.norm != null) {
 				return false;
-		} else if (!norm.equals(other.norm))
+			}
+		} else if (!norm.equals(other.norm)) {
 			return false;
+		}
 		if (orig == null) {
-			if (other.orig != null)
+			if (other.orig != null) {
 				return false;
-		} else if (!orig.equals(other.orig))
+			}
+		} else if (!orig.equals(other.orig)) {
 			return false;
+		}
 		if (translation == null) {
-			if (other.translation != null)
+			if (other.translation != null) {
 				return false;
-		} else if (!translation.equals(other.translation))
+			}
+		} else if (!translation.equals(other.translation)) {
 			return false;
+		}
 		return true;
 	}
 

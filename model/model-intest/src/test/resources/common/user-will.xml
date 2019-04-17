@@ -30,7 +30,7 @@
         <targetRef oid="12345678-d34d-b33f-f00d-555555556666" relation="default" type="c:RoleType"/>
     </assignment>
     <assignment>
-        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" relation="manager" type="c:RoleType"/>
+        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" relation="owner" type="c:RoleType"/>
     </assignment>
     <assignment>
         <construction>
