@@ -116,7 +116,7 @@ public class WorkItemEvent extends WorkflowEvent {
     public void createExpressionVariables(VariablesMap variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
         variables.put(ExpressionConstants.VAR_ASSIGNEE, resolveTypedObject(assignee, false, result));
-        variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, WorkItemType.class);
+        variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, CaseWorkItemType.class);
     }
 
     public AbstractWorkItemOutputType getOutput() {
