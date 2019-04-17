@@ -419,7 +419,8 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 
 			@Override
         	protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
-        		return new Label(componentId, Model.of(WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getValue().getTransportSecurity(), null)));//rowModel.getObject().getClass().getName() + "." + rowModel.getObject().getValue().getTransportSecurity().value()));
+				IModel<String> retModel = WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getValue().getTransportSecurity(), null);
+        		return new Label(componentId, retModel != null && retModel.getObject() != null ? retModel.getObject() : "");
         	}
         	
         	@Override
