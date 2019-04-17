@@ -18,6 +18,7 @@ package com.evolveum.midpoint.report;
 import java.io.File;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -75,6 +76,8 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	protected final static File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
 
 	@Autowired protected ReportManager reportManager;
+
+	@Qualifier("reportJasperCreateTaskHandler")
 	@Autowired protected ReportJasperCreateTaskHandler reportTaskHandler;
 	
 	protected PrismObject<UserType> userAdministrator;
