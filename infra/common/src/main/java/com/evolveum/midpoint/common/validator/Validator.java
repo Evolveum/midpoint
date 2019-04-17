@@ -187,6 +187,11 @@ public class Validator {
 			stream = xmlInputFactory.createXMLStreamReader(inputStream);
 
 			int eventType = stream.nextTag();
+			if (eventType == XMLStreamConstants.DTD || eventType == XMLStreamConstants.ENTITY_DECLARATION 
+					|| eventType == XMLStreamConstants.ENTITY_REFERENCE  || eventType == XMLStreamConstants.NOTATION_DECLARATION) {
+				// We do not want those, e.g. we want to void XXE vulnerabilities. Make this check explicit.
+				throw new SystemException("Use of "+eventType+" in XML is prohibited");
+			}
 			if (eventType == XMLStreamConstants.START_ELEMENT) {
 				if (!QNameUtil.match(stream.getName(), SchemaConstants.C_OBJECTS)) {
 					// This has to be an import file with a single objects. Try
