@@ -76,7 +76,7 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	protected final static File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
 
 	@Autowired protected ReportManager reportManager;
-	@Autowired 
+	@Autowired
 	@Qualifier("reportJasperCreateTaskHandler")
 	protected ReportJasperCreateTaskHandler reportTaskHandler;
 	
