@@ -230,7 +230,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		rv.addAll(CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef()));
 		if (!delegateAction.getApproverExpression().isEmpty()) {
 			ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, aCase.getWorkflowContext(), getChannel(opTask), result);
-			variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, WorkItemType.class);
+			variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, CaseWorkItemType.class);
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", opTask, result));
 		}

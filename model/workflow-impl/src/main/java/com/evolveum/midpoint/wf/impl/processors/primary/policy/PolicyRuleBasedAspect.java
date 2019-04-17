@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -142,7 +143,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		if (schemaBuilderResult.approvalDisplayName == null) {
 			return null;
 		}
-		Map<QName, Object> variables = new HashMap<>();
+		ExpressionVariables variables = new ExpressionVariables();
 		ObjectType focusType = ctx.getFocusObjectNewOrOld();
 		variables.put(ExpressionConstants.VAR_OBJECT, focusType, focusType.asPrismObject().getDefinition());
 		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION,

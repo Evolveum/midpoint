@@ -21,9 +21,11 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,6 +66,16 @@ public class MiscHelper {
 		ObjectReferenceType requesterRef = aCase.getRequestorRef();
 		//noinspection unchecked
 		return (PrismObject<UserType>) resolveAndStoreObjectReference(requesterRef, result);
+	}
+
+	public TypedValue<PrismObject> resolveTypedObjectReference(ObjectReferenceType ref, OperationResult result) {
+		PrismObject resolvedObject = resolveObjectReference(ref, false, result);
+		if (resolvedObject == null) {
+			PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+			return new TypedValue<>(null, def);
+		} else {
+			return new TypedValue<>(resolvedObject);
+		}
 	}
 
 	public String getCompleteStageInfo(CaseType aCase) {

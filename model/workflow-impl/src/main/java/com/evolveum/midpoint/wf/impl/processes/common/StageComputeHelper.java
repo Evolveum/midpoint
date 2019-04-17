@@ -75,10 +75,10 @@ public class StageComputeHelper {
 		variables.put(ExpressionConstants.VAR_REQUESTER, miscHelper.resolveTypedObjectReference(aCase.getRequestorRef(), result));
 		variables.put(ExpressionConstants.VAR_OBJECT, miscHelper.resolveTypedObjectReference(aCase.getObjectRef(), result));
 		// might be null
-		variables.addVariableDefinition(C_TARGET, miscHelper.resolveTypedObjectReference(aCase.getTargetRef(), result));
-		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, getFocusPrimaryDelta(wfContext), ObjectDelta.class);
-		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, requestChannel, String.class);
-		variables.addVariableDefinition(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext, WfContextType.class);
+		variables.put(ExpressionConstants.VAR_TARGET, miscHelper.resolveTypedObjectReference(aCase.getTargetRef(), result));
+		variables.put(ExpressionConstants.VAR_OBJECT_DELTA, getFocusPrimaryDelta(wfContext), ObjectDelta.class);
+		variables.put(ExpressionConstants.VAR_CHANNEL, requestChannel, String.class);
+		variables.put(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext, WfContextType.class);
 		// todo other variables?
 
 		return variables;
