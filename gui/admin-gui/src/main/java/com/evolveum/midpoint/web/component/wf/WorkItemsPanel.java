@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProtectedWorkItemId;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -174,7 +175,8 @@ public class WorkItemsPanel extends BasePanel {
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 					PageParameters parameters = new PageParameters();
-					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
+					parameters.add(OnePageParameterEncoder.PARAMETER,
+							ProtectedWorkItemId.createExternalForm(rowModel.getObject().getWorkItem()));
 					PageWorkItem page = Session.get().getPageFactory().newPage(PageWorkItem.class, parameters);
 					page.setPowerDonor(determinePowerDonor());
 					getPageBase().navigateToNext(page);
