@@ -222,6 +222,14 @@ public class AuditEventRecord implements DebugDumpable {
 	public void setSessionIdentifier(String sessionIdentifier) {
 		this.sessionIdentifier = sessionIdentifier;
 	}
+	
+	public String getRequestIdentifier() {
+		return requestIdentifier;
+	}
+	
+	public void setRequestIdentifier(String requestIdentifier) {
+		this.requestIdentifier = requestIdentifier;
+	}
 
 	public String getTaskIdentifier() {
 		return taskIdentifier;
@@ -485,6 +493,7 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setSessionIdentifier(sessionIdentifier);
     	auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwner, true));
     	auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(target, true));
+    	auditRecordType.setRequestIdentifier(requestIdentifier);
     	auditRecordType.setTaskIdentifier(taskIdentifier);
     	auditRecordType.setTaskOID(taskOID);
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
@@ -540,6 +549,7 @@ public class AuditEventRecord implements DebugDumpable {
 		clone.sessionIdentifier = this.sessionIdentifier;
 		clone.target = this.target;
 		clone.targetOwner = this.targetOwner;
+		clone.requestIdentifier = this.requestIdentifier;
 		clone.taskIdentifier = this.taskIdentifier;
 		clone.taskOID = this.taskOID;
 		clone.timestamp = this.timestamp;
@@ -554,7 +564,7 @@ public class AuditEventRecord implements DebugDumpable {
 	@Override
 	public String toString() {
 		return "AUDIT[" + formatTimestamp(timestamp) + " eid=" + eventIdentifier
-				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
+				+ " sid=" + sessionIdentifier + ", rid=" + requestIdentifier + ", tid=" + taskIdentifier
 				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
 				+ ", I=" + formatObject(initiator) + ", A=" + formatObject(attorney)
 				+ ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
@@ -619,6 +629,7 @@ public class AuditEventRecord implements DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Timestamp", formatTimestamp(timestamp), indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Identifier", eventIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Session Identifier", sessionIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Request Identifier", requestIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task Identifier", taskIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOID, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Host Identifier", hostIdentifier, indent + 1);

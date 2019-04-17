@@ -78,6 +78,7 @@ public class RAuditEventRecord implements Serializable {
     private Timestamp timestamp;
     private String eventIdentifier;
     private String sessionIdentifier;
+    private String requestIdentifier;
     private String taskIdentifier;
     private String taskOID;
     private String hostIdentifier;
@@ -258,6 +259,10 @@ public class RAuditEventRecord implements Serializable {
     public String getTargetOwnerOid() {
         return targetOwnerOid;
     }
+    
+    public String getRequestIdentifier() {
+		return requestIdentifier;
+	}
 
     public String getTaskIdentifier() {
         return taskIdentifier;
@@ -384,6 +389,10 @@ public class RAuditEventRecord implements Serializable {
     public void setTargetOwnerOid(String targetOwnerOid) {
         this.targetOwnerOid = targetOwnerOid;
     }
+    
+    public void setRequestIdentifier(String requestIdentifier) {
+		this.requestIdentifier = requestIdentifier;
+	}
 
     public void setTaskIdentifier(String taskIdentifier) {
         this.taskIdentifier = taskIdentifier;
@@ -412,6 +421,7 @@ public class RAuditEventRecord implements Serializable {
             Objects.equals(timestamp, that.timestamp) &&
             Objects.equals(eventIdentifier, that.eventIdentifier) &&
             Objects.equals(sessionIdentifier, that.sessionIdentifier) &&
+            Objects.equals(requestIdentifier, that.requestIdentifier) &&
             Objects.equals(taskIdentifier, that.taskIdentifier) &&
             Objects.equals(taskOID, that.taskOID) &&
             Objects.equals(hostIdentifier, that.hostIdentifier) &&
@@ -444,7 +454,7 @@ public class RAuditEventRecord implements Serializable {
     @Override
     public int hashCode() {
         return Objects
-            .hash(id, timestamp, eventIdentifier, sessionIdentifier, taskIdentifier, taskOID, hostIdentifier,
+            .hash(id, timestamp, eventIdentifier, sessionIdentifier, requestIdentifier, taskIdentifier, taskOID, hostIdentifier,
                 remoteHostAddress, nodeIdentifier, initiatorOid, initiatorName, initiatorType,
                 attorneyOid, attorneyName, targetOid, targetName, targetType, targetOwnerOid,
                 targetOwnerName, targetOwnerType, eventType, eventStage, deltas, channel, outcome, parameter, message,
@@ -480,6 +490,7 @@ public class RAuditEventRecord implements Serializable {
             repo.setOutcome(RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
                 ROperationResultStatus.class));
         }
+        repo.setRequestIdentifier(record.getRequestIdentifier());
         repo.setTaskIdentifier(record.getTaskIdentifier());
         repo.setTaskOID(record.getTaskOID());
         repo.setResult(record.getResult());
@@ -578,6 +589,7 @@ public class RAuditEventRecord implements Serializable {
         audit.setParameter(repo.getParameter());
         audit.setResult(repo.getResult());
         audit.setSessionIdentifier(repo.getSessionIdentifier());
+        audit.setRequestIdentifier(repo.getRequestIdentifier());
         audit.setTaskIdentifier(repo.getTaskIdentifier());
         audit.setTaskOID(repo.getTaskOID());
         if (repo.getTimestamp() != null) {
