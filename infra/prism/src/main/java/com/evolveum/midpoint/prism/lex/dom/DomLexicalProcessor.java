@@ -100,7 +100,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 			}
 		}
 	}
-
+	
 	private List<RootXNode> readObjects(Document document) throws SchemaException{
 		Element root = DOMUtil.getFirstChildElement(document);
 		// TODO: maybe some check if this is a collection of other objects???
