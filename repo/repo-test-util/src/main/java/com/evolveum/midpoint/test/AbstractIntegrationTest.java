@@ -1126,6 +1126,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.build();
 	}
 	
+	protected ObjectQuery createOrgSubtreeQuery(String orgOid) throws SchemaException {
+		return queryFor(ObjectType.class)
+				.isChildOf(orgOid)
+				.build();
+	}
+
 	protected <O extends ObjectType> PrismObjectDefinition<O> getObjectDefinition(Class<O> type) {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 	}

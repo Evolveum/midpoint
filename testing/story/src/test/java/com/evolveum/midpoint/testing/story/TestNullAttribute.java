@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2016 mythoss, Evolveum
+=======
+ * Copyright (c) 2016-2019 mythoss, Evolveum
+>>>>>>> 7fbc331... Attempts to reproduce MID-5114
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +52,8 @@ import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListen
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -59,6 +65,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -107,12 +114,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 	public static final File USER_SMACK_FILE = new File(TEST_DIR, "user-smack.xml");
 	public static final String USER_SMACK_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 
-
-	protected static final String EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-	
-
-	@Autowired(required = true)
-	private ReconciliationTaskHandler reconciliationTaskHandler;
+	@Autowired private ReconciliationTaskHandler reconciliationTaskHandler;
 
 	protected static DummyResource dummyResource;
 	protected static DummyResourceContoller dummyResourceCtl;
@@ -183,6 +185,11 @@ public class TestNullAttribute extends AbstractStoryTest {
 		
 		TestUtil.assertSuccess(testResult);
 		
+		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
+        PrismContainerDefinition<?> userExtensionDef = userDefinition.getExtensionDefinition();
+        display("User extension definition", userExtensionDef);
+        PrismAsserts.assertPropertyDefinition(userExtensionDef, 
+        		new QName(NS_PIRACY, "ship"), DOMUtil.XSD_STRING, 0, 1);
 
 	}
 	
@@ -254,7 +261,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 		@SuppressWarnings("unchecked, raw")
 		Collection<ObjectDelta<? extends ObjectType>> deltas =
 				(Collection) DeltaBuilder.deltaFor(UserType.class, prismContext)
-				.item(UserType.F_EXTENSION, new QName(EXTENSION_NS, "ship")).add("Black Pearl")
+				.item(UserType.F_EXTENSION, new QName(NS_PIRACY, "ship")).add("Black Pearl")
 				.asObjectDeltas(USER_SMACK_OID);
 		modelService.executeChanges(deltas, null, task, result);
 
@@ -309,7 +316,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 		prismContext.adopt(userNewPrism);	
 		if (userNewPrism.getExtension()==null)userNewPrism.createExtension();		
 		PrismContainer<?> ext = userNewPrism.getExtension();
-		ext.setPropertyRealValue(new QName(EXTENSION_NS, "ship"), null);
+		ext.setPropertyRealValue(PIRACY_SHIP_QNAME, null);
 
 		ObjectDelta<UserType> delta = userBefore.diff(userNewPrism);
 		display("Modifying user with delta", delta);

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -46,6 +48,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Radovan Semancik
@@ -74,6 +78,10 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 	
 	protected static final File TASK_VALIDITY_SCANNER_FILE = new File(COMMON_DIR, "task-validity-scanner.xml");
 	protected static final String TASK_VALIDITY_SCANNER_OID = "00000000-0000-0000-0000-000000000006";
+	
+	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+	protected static final QName PIRACY_SHIP_QNAME = new QName(NS_PIRACY, "ship");
+	protected static final ItemPath PATH_EXTENSION_SHIP = new ItemPath(ObjectType.F_EXTENSION, PIRACY_SHIP_QNAME);
 
 	protected MatchingRule<String> caseIgnoreMatchingRule;
 	

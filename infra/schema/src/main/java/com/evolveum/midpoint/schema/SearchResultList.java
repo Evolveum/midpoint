@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import java.util.ListIterator;
  * @author semancik
  *
  */
-public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
+public class SearchResultList<T> implements List<T>, Cloneable, Serializable, ShortDumpable {
 	
 	private List<T> list = null;
 	private SearchResultMetadata metadata = null;
@@ -222,6 +223,26 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
 			list = new ArrayList<>();
 		}
 		return list;
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (metadata == null) {
+			if (list == null) {
+				sb.append("null");
+			} else {
+				sb.append(list.size()).append(" results");
+			}
+		} else {
+			if (list == null) {
+				sb.append("null, metadata=(");
+			} else {
+				sb.append(list.size()).append(" results, metadata=(");
+			}
+			metadata.shortDump(sb);
+			sb.append(")");
+		}
+		
 	}
 
 }
