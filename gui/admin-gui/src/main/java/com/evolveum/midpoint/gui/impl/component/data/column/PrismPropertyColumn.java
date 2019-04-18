@@ -17,24 +17,18 @@
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 
 /**
@@ -47,41 +41,36 @@ public class PrismPropertyColumn<C extends Containerable, T> extends AbstractIte
 	private static final String ID_HEADER = "header";
 	private static final String ID_INPUT = "input";
 	
-	public PrismPropertyColumn(IModel<PrismContainerWrapper<C>> mainModel, ItemPath itemName, PageBase pageBase, boolean readonly) {
-		super(mainModel, itemName, pageBase, readonly);
+	public PrismPropertyColumn(IModel<PrismContainerWrapper<C>> mainModel, ItemPath itemName, ColumnType columnType) {
+		super(mainModel, itemName, columnType);
 	}
 
 	
 	@Override
 	public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
-		return Model.of(new PrismPropertyWrapperModel<C, T>(rowModel, itemName, true));
-	}
-
-	@Override
-	protected String createLabel(PrismPropertyValueWrapper<T> object) {
-		return object.getRealValue().toString();
-	}
-
-	@Override
-	protected Panel createValuePanel(IModel<?> headerModel, PrismPropertyValueWrapper<T> object) {
-		GuiComponentFactory<PrismPropertyPanelContext<T>> factory = getPageBase().getRegistry().findValuePanelFactory((PrismPropertyWrapper<T>) headerModel.getObject());
-		
-		FeedbackPanel feedbackPanel = new FeedbackPanel("feedback");
-		
-		
-		PrismPropertyPanelContext<T> panelCtx = new PrismPropertyPanelContext<>((IModel<PrismPropertyWrapper<T>>)headerModel);
-		panelCtx.setForm(new Form("form"));
-		panelCtx.setFeedbackPanel(feedbackPanel);
-		panelCtx.setComponentId(ID_INPUT);
-		panelCtx.setRealValueModel(new ItemRealValueModel((IModel<PrismPropertyWrapper<T>>) headerModel));
-		return factory.createPanel(panelCtx);
+		return Model.of(PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, itemName));
 	}
 
 	@Override
 	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
-		return new PrismPropertyHeaderPanel<>(componentId, new PrismPropertyWrapperModel<C, T>(mainModel, itemName));
+		return new PrismPropertyHeaderPanel<>(componentId, PrismPropertyWrapperModel.fromContainerWrapper(mainModel, itemName));
 	}
 
+
+	@Override
+	protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+		return new PrismPropertyWrapperColumnPanel<T>(componentId, (IModel<PrismPropertyWrapper<T>>) rowModel, getColumnType()) {
+			
+			@Override
+			protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
+				PrismPropertyColumn.this.onClick(target, (IModel) Model.of(rowModel));
+			}
+		};
+	}
+
+	protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> model) {
+		
+	}
 }
 
 

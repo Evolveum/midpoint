@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
@@ -73,7 +74,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
 
-        columns.add(new PrismContainerWrapperColumn<AssignmentType>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS), getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<AssignmentType>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS)));
         
 //        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()) {
 //					private static final long serialVersionUID = 1L;
@@ -93,7 +94,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 //					}
 //        });
 
-        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_SITUATION), getPageBase(), true));
+        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_SITUATION), ColumnType.STRING));
         
 //        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_SITUATION, getPageBase()) {
 //			private static final long serialVersionUID = 1L;
@@ -114,7 +115,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 //        });
 
         
-        columns.add(new PrismContainerWrapperColumn<AssignmentType>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_ACTIONS), getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<AssignmentType>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_ACTIONS)));
         
 //        columns.add(new AbstractItemWrapperColumn<AssignmentType>(new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_POLICY_RULE, getPageBase()), PolicyRuleType.F_POLICY_ACTIONS, getPageBase()) {
 //			private static final long serialVersionUID = 1L;
@@ -134,7 +135,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 //			}
 //        });
 
-        columns.add(new PrismPropertyColumn<AssignmentType, Integer>(getModel(), AssignmentType.F_ORDER, getPageBase(), true));
+        columns.add(new PrismPropertyColumn<AssignmentType, Integer>(getModel(), AssignmentType.F_ORDER, ColumnType.STRING));
 
         return columns;
     }

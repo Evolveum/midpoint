@@ -32,20 +32,24 @@ public class PrismPropertyWrapperModel<C extends Containerable, T> extends ItemW
 
 	private static final long serialVersionUID = 1L;
 	
-	public PrismPropertyWrapperModel(IModel<? extends PrismContainerWrapper<C>> parent, ItemName path) {
-		super(parent, path);
+	PrismPropertyWrapperModel(IModel<?> parent, ItemPath path, boolean fromContainerWrapper) {
+		super(parent, path, fromContainerWrapper);
 	}
 	
-	public PrismPropertyWrapperModel(IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path) {
-		super(parent, path);
+	public static <C extends Containerable, T> PrismPropertyWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path) {
+		return new PrismPropertyWrapperModel<C,T>(parent, path, false);
 	}
 	
-	public PrismPropertyWrapperModel(IModel<PrismContainerValueWrapper<C>> parent, ItemName path, boolean fromValue) {
-		super(parent, path, fromValue);
+	public static <C extends Containerable, T> PrismPropertyWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemName path) {
+		return new PrismPropertyWrapperModel<C,T>(parent, ItemPath.create(path), false);
 	}
 	
-	public PrismPropertyWrapperModel(IModel<PrismContainerValueWrapper<C>> parent, ItemPath path, boolean fromValue) {
-		super(parent, path, fromValue);
+	public static <C extends Containerable, T> PrismPropertyWrapperModel<C, T> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, ItemPath path) {
+		return new PrismPropertyWrapperModel<>(parent, path, true);
+	}
+	
+	public static <C extends Containerable, T> PrismPropertyWrapperModel<C, T> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, ItemName path) {
+		return new PrismPropertyWrapperModel<>(parent, ItemPath.create(path), true);
 	}
 	
 	

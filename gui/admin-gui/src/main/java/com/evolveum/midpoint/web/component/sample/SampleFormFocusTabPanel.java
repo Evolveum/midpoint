@@ -103,7 +103,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
             // TODO: better error reporting
         }
 
-        PrismContainerWrapperModel<F, AssignmentType> assignmentsModel = new PrismContainerWrapperModel<>(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
+        PrismContainerWrapperModel<F, AssignmentType> assignmentsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
 //        PrismContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
 
         add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, availableRoles));

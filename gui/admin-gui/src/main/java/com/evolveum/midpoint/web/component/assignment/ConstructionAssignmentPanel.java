@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
@@ -63,7 +64,7 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), getPageBase(), true));
+        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING));
 //        columns.add(new PrismPropertyColumn<AssignmentType>(
 //        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
 //        		ConstructionType.F_KIND, getPageBase()) {
@@ -81,7 +82,7 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
 //						item.add(new Label(componentId, kindValue));
 //					}
 //        });
-        columns.add(new PrismPropertyColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), getPageBase(), true));
+        columns.add(new PrismPropertyColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING));
 //        columns.add(new PrismPropertyColumn<AssignmentType>(
 //        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
 //        		ConstructionType.F_INTENT, getPageBase()) {
@@ -114,14 +115,14 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
         AssignmentType assignment = modelObject.getObject().getRealValue();
     	if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-    		return (IModel) new PrismContainerWrapperModel<AssignmentType, ConstructionType>(modelObject, AssignmentType.F_CONSTRUCTION, true);
+    		return (IModel) PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
 //            PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION));
 //
 //            return Model.of(constructionWrapper);
         }
 
         if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-        	return (IModel) new PrismContainerWrapperModel<AssignmentType, PersonaConstructionType>(modelObject, AssignmentType.F_CONSTRUCTION, true);
+        	return (IModel) PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
             //TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
             //but not PolicyRuleType
 //        	PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(AssignmentType.F_PERSONA_CONSTRUCTION));

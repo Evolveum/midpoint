@@ -112,6 +112,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 
 		Object object = null;
 
+		//TODO: FIXME get(PARAM_OID) returns collection
 		for (OperationResult subResult : result.getSubresults()) {
 			if (subResult != null && subResult.getParams() != null) {
 				if (subResult.getParams().get(param) != null
@@ -132,7 +133,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	}
 
 	protected <T> PrismPropertyPanel<T> addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
-		PrismPropertyPanel<T> panel = new PrismPropertyPanel<>(id, new PrismPropertyWrapperModel<O, T>(getObjectWrapperModel(), propertyPath));
+		PrismPropertyPanel<T> panel = new PrismPropertyPanel<>(id, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath));
 				//mainForm, wrapper -> ItemVisibility.VISIBLE);
 		parentComponent.add(panel);
 		return panel;

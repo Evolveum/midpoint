@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
@@ -96,7 +97,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
         
-        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), getPageBase(), true));
+        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING));
 //        columns.add(new PrismPropertyColumn<AssignmentType>(
 //        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
 //        		ConstructionType.F_KIND, getPageBase()) {
@@ -108,7 +109,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 //					}
 //        });
 
-        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), getPageBase(), true));
+        columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING));
 //        columns.add(new PrismPropertyColumn<AssignmentType>(
 //        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
 //        		ConstructionType.F_INTENT, getPageBase()) {
@@ -121,7 +122,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 //					}
 //        });
         
-        columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION)));
         
 //        columns.add(new AbstractItemWrapperColumn<AssignmentType>(
 //        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
@@ -234,7 +235,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
     
     private ConstructionAssociationPanel getConstructionAssociationPanel(IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-    	IModel<PrismContainerWrapper<ConstructionType>> constructionModel = new PrismContainerWrapperModel<AssignmentType, ConstructionType>(model, AssignmentType.F_CONSTRUCTION, true);
+    	IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
 //    	PrismContainerWrapper<ConstructionType> constructionContainer = modelObject.findContainer(modelObject.getPath().append((AssignmentType.F_CONSTRUCTION)));
         ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, constructionModel);
         constructionDetailsPanel.setOutputMarkupId(true);

@@ -47,7 +47,7 @@ public class FocusApplicablePoliciesTabPanel<F extends FocusType> extends Abstra
         add(applicablePoliciesContainer);
 
         ApplicablePolicyConfigPanel applicablePolicyPanel = new ApplicablePolicyConfigPanel(ID_APPLICABLE_POLICIES_PANEL,
-                new PrismContainerWrapperModel<>(getObjectWrapperModel(), FocusType.F_ASSIGNMENT));
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), FocusType.F_ASSIGNMENT));
 
         applicablePoliciesContainer.add(applicablePolicyPanel);
     }

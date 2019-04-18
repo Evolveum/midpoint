@@ -50,7 +50,7 @@
         <commons.lang3.version>3.7</commons.lang3.version>
         <commons.cli>1.2</commons.cli>
         <cxf.version>3.3.1</cxf.version>
-        <cxf-xjc.version>3.2.0</cxf-xjc.version>
+        <cxf-xjc.version>3.3.0</cxf-xjc.version>
         <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
         <jaxb-api.version>2.2.10</jaxb-api.version>
@@ -1037,7 +1037,7 @@
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-plugin-api</artifactId>
-				<version>2.0</version>
+				<version>3.6.0</version>
                 <!--
                 				<version>3.1.0</version>
                 <exclusions>
@@ -1449,7 +1449,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>1.4.1</version>
+				<version>3.0.0-M2</version>
 				<executions>
 					<execution>
 						<id>enforce</id>
@@ -1467,7 +1467,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>3.1.1</version>
 				<executions>
 					<execution>
 						<id>analyze</id>

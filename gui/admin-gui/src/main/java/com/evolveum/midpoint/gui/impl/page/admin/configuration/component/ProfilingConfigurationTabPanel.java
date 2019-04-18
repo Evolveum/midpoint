@@ -167,7 +167,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 		// "", getInputCssClass(), false, true);
 		// add(dropDownProfilingLevel);
 
-		PrismPropertyWrapperModel<ClassLoggerConfigurationType, String> appenders = new PrismPropertyWrapperModel<>(loggerModel,
+		PrismPropertyWrapperModel<ClassLoggerConfigurationType, String> appenders = PrismPropertyWrapperModel.fromContainerWrapper(loggerModel,
 				ClassLoggerConfigurationType.F_APPENDER);
 		// TODO special wrapper with loading predefined values.
 		// PropertyWrapper appenders =

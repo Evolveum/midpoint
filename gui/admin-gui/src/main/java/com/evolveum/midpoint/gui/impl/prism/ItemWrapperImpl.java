@@ -78,6 +78,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	private I oldItem;
 	private I newItem;
 	
+	private boolean column;
+	
 	
 	//consider
 	private boolean readOnly;
@@ -137,6 +139,16 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	@Override
 	public I getItem() {
 		return newItem;
+	}
+	
+	@Override
+	public void setColumn(boolean column) {
+		this.column = column;
+	}
+	
+	@Override
+	public boolean isColumn() {
+		return column;
 	}
 	
 //	@Override

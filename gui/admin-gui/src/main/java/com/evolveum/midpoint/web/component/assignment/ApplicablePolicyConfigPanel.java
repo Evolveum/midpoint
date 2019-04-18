@@ -15,27 +15,26 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.model.api.util.ModelContextUtil;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by honchar.

@@ -46,6 +46,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
@@ -246,10 +247,9 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 //
 //		});
 		
-		LinkPrismPropertyColumn<GlobalPolicyRuleType, String> linkColumn = new LinkPrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, getPageBase()) {
+		PrismPropertyColumn<GlobalPolicyRuleType, String> linkColumn = new PrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, ColumnType.LINK) {
 			
 			@Override
-
 			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
@@ -258,14 +258,29 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 
 			}
+
+			
 		};
+		
+//		LinkPrismPropertyColumn<GlobalPolicyRuleType, String> linkColumn = new LinkPrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, getPageBase()) {
+//			
+//			@Override
+//			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+//				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
+//			}
+//
+//			protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+//				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+//
+//			}
+//		};
 		columns.add(linkColumn);
 		
 		   
         //TODO wrapper form wrapper model
-        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS));
 		
-        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS));
 		
 //        columns.add(new AbstractItemWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()){
 //            private static final long serialVersionUID = 1L;
@@ -289,7 +304,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
         
         //todo property from container model
         
-        columns.add(new PrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, getPageBase(), true));
+        columns.add(new PrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, ColumnType.STRING));
         
 //        columns.add(new AbstractItemWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()){
 //            private static final long serialVersionUID = 1L;

@@ -145,7 +145,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		add(assignmentPanel);
 
 
-		PrismContainerWrapperModel<F, ActivationType> activationModel = new PrismContainerWrapperModel<F, ActivationType>(pageBase.getObjectModel(), AssignmentType.F_ACTIVATION);
+		PrismContainerWrapperModel<F, ActivationType> activationModel = PrismContainerWrapperModel.fromContainerWrapper(pageBase.getObjectModel(), AssignmentType.F_ACTIVATION);
 		PrismContainerPanel<ActivationType> activationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel);
 //		PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<>(ID_ACTIVATION_PANEL, activationModel, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
 		add(activationContainer);

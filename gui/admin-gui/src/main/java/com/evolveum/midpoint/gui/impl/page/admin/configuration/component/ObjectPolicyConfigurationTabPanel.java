@@ -48,6 +48,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditablePrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
@@ -238,20 +239,20 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			}
 		});
 		
-		columns.add(new LinkPrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_TYPE, getPageBase()) {
+		columns.add(new PrismPropertyColumn<ObjectPolicyConfigurationType, QName>(getModel(), ObjectPolicyConfigurationType.F_TYPE, ColumnType.LINK) { 
 			
 			@Override
-			protected void onClick(AjaxRequestTarget target, IModel rowModel) {
+			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 			
 		});
 		
-		columns.add(new PrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_SUBTYPE, getPageBase(), false));
+		columns.add(new PrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_SUBTYPE, ColumnType.VALUE));
 		
-		columns.add(new PrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, getPageBase(), false));
+		columns.add(new PrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, ColumnType.VALUE));
 
-		columns.add(new PrismContainerWrapperColumn<ObjectPolicyConfigurationType>(getModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, getPageBase()));
+		columns.add(new PrismContainerWrapperColumn<ObjectPolicyConfigurationType>(getModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
 //		columns.add(new AbstractItemWrapperColumn<ObjectPolicyConfigurationType>(getModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, getPageBase()){
 //            private static final long serialVersionUID = 1L;
 //

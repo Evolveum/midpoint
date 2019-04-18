@@ -39,7 +39,7 @@ public class InducedEntitlementsTabPanel<R extends AbstractRoleType> extends Abs
 
     private void initLayout() {
         InducedEntitlementsPanel inducementsPanel = new InducedEntitlementsPanel(ID_INDUCED_ENTITLEMENT_PANEL,
-                new PrismContainerWrapperModel<>(getObjectWrapperModel(), AbstractRoleType.F_INDUCEMENT));
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AbstractRoleType.F_INDUCEMENT));
 
         add(inducementsPanel);
     }

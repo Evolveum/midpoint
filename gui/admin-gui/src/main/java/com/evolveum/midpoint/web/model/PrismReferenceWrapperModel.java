@@ -19,9 +19,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author katka
@@ -31,10 +33,27 @@ public class PrismReferenceWrapperModel<C extends Containerable, R extends Refer
 
 	private static final long serialVersionUID = 1L;
 
-	public PrismReferenceWrapperModel(IModel<PrismContainerWrapper<C>> parent, ItemName path) {
-		super(parent, path);
-		
+	PrismReferenceWrapperModel(IModel<?> parent, ItemPath path, boolean fromContainerWrapper) {
+		super(parent, path, fromContainerWrapper);
 	}
+	
+	public static <C extends Containerable, R extends Referencable> PrismReferenceWrapperModel<C, R> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path) {
+		return new PrismReferenceWrapperModel<C,R>(parent, path, false);
+	}
+	
+	public static <C extends Containerable, R extends Referencable> PrismReferenceWrapperModel<C, R> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemName path) {
+		return new PrismReferenceWrapperModel<C,R>(parent, ItemPath.create(path), false);
+	}
+	
+	public static <C extends Containerable, R extends Referencable> PrismReferenceWrapperModel<C, R> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, ItemPath path) {
+		return new PrismReferenceWrapperModel<>(parent, path, true);
+	}
+	
+	public static <C extends Containerable, R extends Referencable> PrismReferenceWrapperModel<C, R> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, ItemName path) {
+		return new PrismReferenceWrapperModel<>(parent, ItemPath.create(path), true);
+	}
+	
+	
 	
 	@Override
 	public PrismReferenceWrapper<R> getObject() {

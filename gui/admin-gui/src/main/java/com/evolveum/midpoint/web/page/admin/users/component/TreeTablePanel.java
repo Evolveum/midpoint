@@ -17,9 +17,12 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -178,9 +181,16 @@ public class TreeTablePanel extends BasePanel<String> {
 					managersQuery, options, searchManagersResult, getPageBase());
 			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
 			for (PrismObject<FocusType> manager : managers) {
-				ObjectWrapperOld<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
-						WebComponentUtil.getEffectiveName(manager, RoleType.F_DISPLAY_NAME), "", manager,
-						ContainerStatus.MODIFYING, task, getPageBase());
+				WrapperContext context = new WrapperContext(task, searchManagersResult);
+				PrismObjectWrapper<FocusType> managerWrapper;
+				try {
+					managerWrapper = getPageBase().getRegistry().getObjectWrapperFactory(manager.getDefinition()).createObjectWrapper(manager, ItemStatus.NOT_CHANGED, context);
+				} catch (SchemaException e) {
+					LoggingUtils.logException(LOGGER, "Cannoot create wrapper for {}" + manager, e);
+					searchManagersResult.recordFatalError("Cannot create wrapper for: " + manager, e);
+					getPageBase().showResult(searchManagersResult);
+					continue;
+				}
 				WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
 
 				FocusSummaryPanel.addSummaryPanel(managerMarkup, manager, managerWrapper, ID_MANAGER_SUMMARY, getPageBase());

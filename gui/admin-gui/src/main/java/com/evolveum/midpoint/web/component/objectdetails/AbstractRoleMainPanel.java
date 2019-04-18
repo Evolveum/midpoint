@@ -197,7 +197,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						new PrismContainerWrapperModel<>(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
+						PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
 					private static final long serialVersionUID = 1L;
 
 					@Override

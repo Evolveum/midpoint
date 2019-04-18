@@ -54,6 +54,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkProperty
 import com.evolveum.midpoint.gui.impl.component.data.column.EditablePrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
@@ -136,7 +137,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     	PageStorage pageStorageLoggers = getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage();
     	
 
-    	PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = new PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType>(getModel(), LoggingConfigurationType.F_CLASS_LOGGER);
+    	PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_CLASS_LOGGER);
     	
 //    	IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> loggerModel =
 //    			new ContainerWrapperFromObjectWrapperModel<ClassLoggerConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER));
@@ -216,7 +217,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     	PageStorage pageStorageAppenders = getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage();
 
 
-		PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel = new PrismContainerWrapperModel<>(getModel(), LoggingConfigurationType.F_APPENDER);
+		PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_APPENDER);
 //    			new ContainerWrapperFromObjectWrapperModel<AppenderConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER));
 
     	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel =
@@ -315,7 +316,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 		};
 		add(appendersMultivalueContainerListPanel);
 		
-		IModel<PrismContainerWrapper<AuditingConfigurationType>> auditModel = new PrismContainerWrapperModel<>(getModel(), LoggingConfigurationType.F_AUDITING);
+		IModel<PrismContainerWrapper<AuditingConfigurationType>> auditModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_AUDITING);
 //    			new ContainerWrapperFromObjectWrapperModel<AuditingConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()),
 //    					ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
 		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel);
@@ -351,7 +352,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
 		});
 		
-		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, getPageBase(), false));
+		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, ColumnType.VALUE));
 		
 //		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, getPageBase()){
 //			
@@ -361,10 +362,10 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 //			}
 //		});
 		
-		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_LEVEL, getPageBase(), false));
+		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_LEVEL, ColumnType.VALUE));
 //		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
 		
-		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_APPENDER, getPageBase(), false));
+		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_APPENDER, ColumnType.VALUE));
 //		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
@@ -496,10 +497,10 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			}
 		});
 		
-		columns.add(new LinkPrismPropertyColumn(appenderModel, AppenderConfigurationType.F_NAME, getPageBase()) {
-			
+		columns.add(new PrismPropertyColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_NAME, ColumnType.LINK) {
+		
 			@Override
-			protected void onClick(AjaxRequestTarget target, IModel rowModel) {
+			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
 				getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 			
@@ -510,7 +511,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 //			}
 		});
 		
-		columns.add(new PrismPropertyColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_PATTERN, getPageBase(), false) {
+		columns.add(new PrismPropertyColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_PATTERN, ColumnType.VALUE) {
 			@Override
 			public String getCssClass() {
 				return " col-md-5 ";

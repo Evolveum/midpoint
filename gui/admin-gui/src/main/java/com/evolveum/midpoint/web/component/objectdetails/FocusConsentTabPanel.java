@@ -30,7 +30,7 @@ public class FocusConsentTabPanel<F extends FocusType> extends AbstractObjectTab
 
 	private void initLayout() {
 		GdprAssignmentPanel consentRoles =  new GdprAssignmentPanel(ID_ROLES,
-				new PrismContainerWrapperModel<F, AssignmentType>(getObjectWrapperModel(), ItemPath.create(FocusType.F_ASSIGNMENT)));
+				PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(FocusType.F_ASSIGNMENT)));
 		add(consentRoles);
 		consentRoles.setOutputMarkupId(true);
 

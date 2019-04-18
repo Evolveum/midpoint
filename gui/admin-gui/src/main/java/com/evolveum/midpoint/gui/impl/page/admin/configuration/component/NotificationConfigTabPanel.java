@@ -24,18 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
-import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -93,6 +81,13 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 
 /**
@@ -143,7 +138,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
 	protected void initLayout() {
 		
-		PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig = new PrismPropertyWrapperModel<>(getModel(), NotificationConfigurationType.F_MAIL);
+		PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig = PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
 //		IModel<PrismPropertyWrapper<MailConfigurationType>> mailConfig = Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_MAIL));
 		
 		
@@ -175,7 +170,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
         
-        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig =  new PrismPropertyWrapperModel<>(getModel(), NotificationConfigurationType.F_FILE);
+        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig =  PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_FILE);
         
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
@@ -519,7 +514,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 			return;
 		}
 		
-		PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfigModel = new PrismPropertyWrapperModel<>(getModel(), NotificationConfigurationType.F_MAIL);
+		PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfigModel = PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
 		
 		PropertyModel<MailConfigurationType> mailConfigType =
 				new PropertyModel<MailConfigurationType>(mailConfigModel, "values[0].value.value");

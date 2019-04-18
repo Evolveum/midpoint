@@ -38,62 +38,62 @@ import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 /**
  * @author skublik
  */
-public class EditablePrismPropertyColumn<C extends Containerable, T> extends AbstractItemWrapperColumn<C, PrismPropertyValueWrapper<T>> {
-
-	/**
-	 * @param mainModel
-	 * @param itemName
-	 * @param pageBase
-	 * @param readonly
-	 */
-	EditablePrismPropertyColumn(IModel<PrismContainerWrapper<C>> mainModel, ItemName itemName, PageBase pageBase,
-			boolean readonly) {
-		super(mainModel, itemName, pageBase, readonly);
-		// TODO Auto-generated constructor stub
-	}
-
-	/* (non-Javadoc)
-	 * @see org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn#getDataModel(org.apache.wicket.model.IModel)
-	 */
-	@Override
-	public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn#createLabel(com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper)
-	 */
-	@Override
-	protected String createLabel(PrismPropertyValueWrapper<T> object) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn#createValuePanel(org.apache.wicket.model.IModel, com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper)
-	 */
-	@Override
-	protected Panel createValuePanel(IModel<?> headerModel, PrismPropertyValueWrapper<T> object) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn#createHeader(org.apache.wicket.model.IModel)
-	 */
-	@Override
-	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	
-//	@Override
-//	public void populateItem(Item<ICellPopulator<ContainerValueWrapper<C>>> cellItem, String componentId,
-//			IModel<ContainerValueWrapper<C>> rowModel) {
-//		PropertyOrReferenceWrapperFromContainerModel property = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), getqNameOfItem());
-//		cellItem.add(new PrismPropertyColumnPanel(componentId, property, new Form("form"), null));
+public class EditablePrismPropertyColumn<C extends Containerable, T> { // extends AbstractItemWrapperColumn<C, PrismPropertyValueWrapper<T>> {
+//
+//	/**
+//	 * @param mainModel
+//	 * @param itemName
+//	 * @param pageBase
+//	 * @param readonly
+//	 */
+//	EditablePrismPropertyColumn(IModel<PrismContainerWrapper<C>> mainModel, ItemName itemName, PageBase pageBase,
+//			boolean readonly) {
+//		super(mainModel, itemName, pageBase, readonly);
+//		// TODO Auto-generated constructor stub
 //	}
+//
+//	/* (non-Javadoc)
+//	 * @see org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn#getDataModel(org.apache.wicket.model.IModel)
+//	 */
+//	@Override
+//	public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	/* (non-Javadoc)
+//	 * @see com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn#createLabel(com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper)
+//	 */
+//	@Override
+//	protected String createLabel(PrismPropertyValueWrapper<T> object) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	/* (non-Javadoc)
+//	 * @see com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn#createValuePanel(org.apache.wicket.model.IModel, com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper)
+//	 */
+//	@Override
+//	protected Panel createValuePanel(IModel<?> headerModel, PrismPropertyValueWrapper<T> object) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	/* (non-Javadoc)
+//	 * @see com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn#createHeader(org.apache.wicket.model.IModel)
+//	 */
+//	@Override
+//	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	
+////	@Override
+////	public void populateItem(Item<ICellPopulator<ContainerValueWrapper<C>>> cellItem, String componentId,
+////			IModel<ContainerValueWrapper<C>> rowModel) {
+////		PropertyOrReferenceWrapperFromContainerModel property = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), getqNameOfItem());
+////		cellItem.add(new PrismPropertyColumnPanel(componentId, property, new Form("form"), null));
+////	}
 	
 }

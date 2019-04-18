@@ -50,7 +50,7 @@ public class FocusAssignmentsTabPanel<F extends AssignmentHolderType> extends Ab
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
-		PrismContainerWrapperModel<F, AssignmentType> model = new PrismContainerWrapperModel<>(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
+		PrismContainerWrapperModel<F, AssignmentType> model = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
 		SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, model);
 
 		assignments.add(panel);

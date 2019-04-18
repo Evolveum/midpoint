@@ -18,41 +18,11 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.MultifunctionalButton;
-import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -102,6 +72,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -118,7 +90,11 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -130,6 +106,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -435,7 +412,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 			@Override
 			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel){
-				AssignmentType assignment = rowModel.getObject().getContainerValue().asContainerable();
+				AssignmentType assignment = rowModel.getObject().getRealValue();
 				if (assignment != null && assignment.getTargetRef() != null && StringUtils.isNotEmpty(assignment.getTargetRef().getOid())){
 					List<ObjectType> targetObjectList = WebComponentUtil.loadReferencedObjectList(Arrays.asList(assignment.getTargetRef()), OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ,
 							AssignmentPanel.this.getPageBase());
@@ -489,7 +466,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			}
 		});
 
-		columns.add(new PrismContainerWrapperColumn<>(getModel(), AssignmentType.F_ACTIVATION, getPageBase()));
+		columns.add(new PrismContainerWrapperColumn<>(getModel(), AssignmentType.F_ACTIVATION));
 		
 		
 //		columns.add(new AbstractItemWrapperColumn<AssignmentType>(getModel(), AssignmentType.F_ACTIVATION, getPageBase()){
@@ -641,6 +618,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		} else if (item.getModelObject().isReadOnly()){
 			item.getModelObject().setReadOnly(false, true);
 		}
+		
 		MultivalueContainerDetailsPanel<AssignmentType> detailsPanel = new  MultivalueContainerDetailsPanel<AssignmentType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
@@ -661,7 +639,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 				Form form = this.findParent(Form.class);
 
 				ItemPath assignmentPath = item.getModelObject().getRealValue().asPrismContainerValue().getPath();
-				PrismContainerWrapperModel<AssignmentType, ActivationType> activationModel = new PrismContainerWrapperModel<AssignmentType, ActivationType>(item.getModel(), AssignmentType.F_ACTIVATION, true);
+				PrismContainerWrapperModel<AssignmentType, ActivationType> activationModel = PrismContainerWrapperModel.fromContainerValueWrapper(item.getModel(), AssignmentType.F_ACTIVATION);
 				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, activationModel);
 //				PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
 				specificContainers.add(acitvationContainer);
@@ -800,7 +778,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		//TODO cannot this be done by inheritance for concrete panel???
 		AssignmentType assignment = modelObject.getObject().getRealValue();
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-			IModel<PrismContainerWrapper<ConstructionType>> constructionModel = new PrismContainerWrapperModel<AssignmentType, ConstructionType>(modelObject, AssignmentType.F_CONSTRUCTION, true);
+			IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
 			return (IModel) constructionModel;
 //			PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
 //					AssignmentType.F_CONSTRUCTION));
@@ -809,7 +787,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		}
 
 		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-			IModel<PrismContainerWrapper<PersonaConstructionType>> constructionModel = new PrismContainerWrapperModel<AssignmentType, PersonaConstructionType>(modelObject, AssignmentType.F_PERSONA_CONSTRUCTION, true);
+			IModel<PrismContainerWrapper<PersonaConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_PERSONA_CONSTRUCTION);
 			return (IModel) constructionModel;
 			//TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
 			//but not PolicyRuleType
@@ -819,7 +797,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 //			return Model.of(personasWrapper);
 		}
 		if (PolicyRuleType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-			IModel<PrismContainerWrapper<PolicyRuleType>> constructionModel = new PrismContainerWrapperModel<AssignmentType, PolicyRuleType>(modelObject, AssignmentType.F_POLICY_RULE, true);
+			IModel<PrismContainerWrapper<PolicyRuleType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_POLICY_RULE);
 			return (IModel) constructionModel;
 //			PrismContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
 //			return Model.of(policyRuleWrapper);

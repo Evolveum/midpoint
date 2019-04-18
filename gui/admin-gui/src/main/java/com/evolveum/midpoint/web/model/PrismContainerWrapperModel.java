@@ -32,22 +32,27 @@ public class PrismContainerWrapperModel<C extends Containerable, T extends Conta
 	private static final long serialVersionUID = 1L;
 
 	
-	public PrismContainerWrapperModel(IModel<? extends PrismContainerWrapper<C>> parent, ItemName path) {
-		super(parent, path);
-	}
-	
-	public PrismContainerWrapperModel(IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path) {
-		super(parent, path);
-	}
-	
-	public PrismContainerWrapperModel(IModel<PrismContainerValueWrapper<C>> parent, ItemName path, boolean fromContainerValue) {
+	PrismContainerWrapperModel(IModel<?> parent, ItemPath path, boolean fromContainerValue) {
 		super(parent, path, fromContainerValue);
 	}
 	
-	public PrismContainerWrapperModel(IModel<PrismContainerValueWrapper<C>> parent, ItemPath path, boolean fromContainerValue) {
-		super(parent, path, fromContainerValue);
+	public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemPath path) {
+		return new PrismContainerWrapperModel<C,T>(parent, path, false);
 	}
-
+	
+	public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerWrapper(IModel<? extends PrismContainerWrapper<C>> parent, ItemName path) {
+		return new PrismContainerWrapperModel<C,T>(parent, ItemPath.create(path), false);
+	}
+	
+	public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, ItemPath path) {
+		return new PrismContainerWrapperModel<C,T>(parent, path, true);
+	}
+	
+	public static <C extends Containerable, T extends Containerable> PrismContainerWrapperModel<C, T> fromContainerValueWrapper(IModel<PrismContainerValueWrapper<C>> parent, ItemName path) {
+		return new PrismContainerWrapperModel<C,T>(parent, ItemPath.create(path), true);
+	}
+	
+	
 	@Override
 	public PrismContainerWrapper<T> getObject() {
 		return getItemWrapper(PrismContainerWrapper.class);
