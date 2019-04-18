@@ -595,10 +595,17 @@ public class SchemaToDomProcessor {
 			LOGGER.trace("Using namespace prefix mapper to serialize schema:\n{}",DebugUtil.dump(namespacePrefixMapper));
 		}
 
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		dbf.setNamespaceAware(true);
-		dbf.setValidating(false);
-		DocumentBuilder db = dbf.newDocumentBuilder();
+		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		documentBuilderFactory.setNamespaceAware(true);
+		documentBuilderFactory.setValidating(false);
+		// XXE
+		documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+		documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		documentBuilderFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		documentBuilderFactory.setXIncludeAware(false);
+		documentBuilderFactory.setExpandEntityReferences(false);
+		DocumentBuilder db = documentBuilderFactory.newDocumentBuilder();
 
 		document = db.newDocument();
 		Element root = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "schema"));
