@@ -137,8 +137,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertUserJack(userJack);
 
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+        assertSuccess(result);
 
         assertSteadyResources();
 	}
@@ -160,8 +159,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertUser(userBarbossa, USER_BARBOSSA_OID, "barbossa", "Hector Barbossa", "Hector", "Barbossa");
 
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+        assertSuccess(result);
 
         userBarbossa.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
 
@@ -1147,8 +1145,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 71);

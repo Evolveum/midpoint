@@ -403,6 +403,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			if (ModelExecuteOptions.isRaw(options)) {
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
+				String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
+				auditRecord.setRequestIdentifier(requestIdentifier);
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
 				auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas, prismContext));
 				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing

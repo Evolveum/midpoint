@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
  *
  */
 public interface ModelContext<F extends ObjectType> extends Serializable, DebugDumpable {
+	
+	String getRequestIdentifier();
 
 	ModelState getState();
 
@@ -92,4 +94,5 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 	<T> T getHookPreviewResult(@NotNull Class<T> clazz);
 
 	boolean isPreview();
+	
 }
