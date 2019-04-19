@@ -652,66 +652,77 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 
 	protected void createFocusMemberPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
-				getPageBase().getMainPopupBodyId()) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getNewMemberObjectTypes();
-			}
-			
-			@Override
-			protected List<QName> getSupportedRelations() {
-				return AbstractRoleMemberPanel.this.getSupportedRelations();
-			}
-
-			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-			    if (type == null){
-                    getSession().warn("No type was selected. Cannot create member");
-                    target.add(this);
-                    target.add(getPageBase().getFeedbackPanel());
-                    return;
-                }
-				if (relations == null || relations.isEmpty()) {
-					getSession().warn("No relation was selected. Cannot create member");
-					target.add(this);
-					target.add(getPageBase().getFeedbackPanel());
-					return;
+		if (relationSpec != null){
+			try {
+				List<ObjectReferenceType> newReferences = new ArrayList<>();
+				ObjectReferenceType memberRef = ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relationSpec.getRelations().get(0));
+				newReferences.add(memberRef);
+				if (CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())) {
+					newReferences.add(relationSpec.getArchetypeRefs().get(0));
 				}
-				AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
-				try {
-					List<ObjectReferenceType> newReferences = new ArrayList<>();
-					for (QName relation : relations) {
-						newReferences.add(ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relation));
+				QName newMemberType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) :
+						getSupportedObjectTypes(false).get(0);
+				WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), newMemberType, newReferences);
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
+		} else {
+			ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
+					getPageBase().getMainPopupBodyId()) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected List<QName> getSupportedObjectTypes() {
+					return AbstractRoleMemberPanel.this.getNewMemberObjectTypes();
+				}
+
+				@Override
+				protected List<QName> getSupportedRelations() {
+					return AbstractRoleMemberPanel.this.getSupportedRelations();
+				}
+
+				protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+					if (type == null) {
+						getSession().warn("No type was selected. Cannot create member");
+						target.add(this);
+						target.add(getPageBase().getFeedbackPanel());
+						return;
 					}
-//					if (collectionView != null && collectionView.getCollection() != null){
-//						newReferences.add(collectionView.getCollection().getCollectionRef());
-//					}
+					if (relations == null || relations.isEmpty()) {
+						getSession().warn("No relation was selected. Cannot create member");
+						target.add(this);
+						target.add(getPageBase().getFeedbackPanel());
+						return;
+					}
+					AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
+					try {
+						List<ObjectReferenceType> newReferences = new ArrayList<>();
+						for (QName relation : relations) {
+							newReferences.add(ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relation));
+						}
+						WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), type, newReferences);
+					} catch (SchemaException e) {
+						throw new SystemException(e.getMessage(), e);
+					}
 
-					WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), type, newReferences);
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(), e);
 				}
 
-			}
-
-			@Override
-			protected QName getDefaultObjectType() {
-				if (relationSpec != null && CollectionUtils.isNotEmpty(relationSpec.getObjectTypes())){
-					return relationSpec.getObjectTypes().get(0);
+				@Override
+				protected QName getDefaultObjectType() {
+					if (relationSpec != null && CollectionUtils.isNotEmpty(relationSpec.getObjectTypes())) {
+						return relationSpec.getObjectTypes().get(0);
+					}
+					return super.getDefaultObjectType();
 				}
-				return super.getDefaultObjectType();
-			}
 
-			@Override
-			protected boolean isFocusTypeSelectorVisible() {
-				return relationSpec == null;
-			}
-		};
+				@Override
+				protected boolean isFocusTypeSelectorVisible() {
+					return relationSpec == null;
+				}
+			};
 
-		getPageBase().showMainPopup(chooseTypePopupContent, target);
-
+			getPageBase().showMainPopup(chooseTypePopupContent, target);
+		}
 	}
 	
 	protected void deleteMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {

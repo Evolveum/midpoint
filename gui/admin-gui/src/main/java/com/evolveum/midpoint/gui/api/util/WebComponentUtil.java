@@ -3390,14 +3390,16 @@ public final class WebComponentUtil {
 			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
 			if (def != null){
 				DisplayType displayType = def.getDisplay();
+				String titleValue = displayType != null && displayType.getTooltip()  != null
+						&& StringUtils.isNotEmpty(displayType.getTooltip().getNorm()) ?
+						displayType.getTooltip().getNorm() : defaultTitle + " " + relation.getLocalPart();
+
 				if (displayType == null || displayType.getIcon() == null){
-					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", defaultTitle);
+					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", titleValue);
 				}
 				if (PolyStringUtils.isEmpty(displayType.getTooltip())){
 					StringBuilder sb = new StringBuilder();
-					sb.append(defaultTitle);
-					sb.append(" ");
-					sb.append(relation.getLocalPart());
+					sb.append(titleValue);
 					displayType.setTooltip(createPolyFromOrigString(sb.toString()));
 				}
 				return displayType;
