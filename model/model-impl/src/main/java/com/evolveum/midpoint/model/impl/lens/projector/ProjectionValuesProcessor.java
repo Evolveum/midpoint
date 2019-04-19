@@ -591,8 +591,8 @@ public class ProjectionValuesProcessor {
 					ItemDelta modification = iterator.next();
 					if (SchemaConstants.PATH_ACTIVATION.equivalent(modification.getParentPath())) {
 						if (fullConflictingShadow != null) {
-							if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS,modification.getElementName())) {
-								if (modification.isRedundant(fullConflictingShadow)) {
+							if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, modification.getElementName())) {
+								if (modification.isRedundant(fullConflictingShadow, false)) {
 									LOGGER.trace("Removing redundant secondary activation delta: {}", modification);
 									iterator.remove();
 								}

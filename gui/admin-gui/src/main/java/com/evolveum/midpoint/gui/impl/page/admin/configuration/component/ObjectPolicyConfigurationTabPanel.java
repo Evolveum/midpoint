@@ -79,8 +79,6 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
     
     public ObjectPolicyConfigurationTabPanel(String id, IModel<ContainerWrapper<ObjectPolicyConfigurationType>> model) {
         super(id, model);
-        
-        
     }
 
     @Override
@@ -252,7 +250,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType> subtypeValue = 
 						new RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType>(rowModel, ObjectPolicyConfigurationType.F_SUBTYPE);
-				item.add(new Label(componentId, Model.of(subtypeValue)));
+				item.add(new Label(componentId, Model.of(subtypeValue == null || subtypeValue.getObject() == null ? "" : subtypeValue.getObject())));
 			}
         });
 

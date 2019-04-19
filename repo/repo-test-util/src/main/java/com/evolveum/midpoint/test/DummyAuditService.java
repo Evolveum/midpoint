@@ -120,6 +120,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		int num = 0;
 		int numRequests = 0;
 		int numExecutions = 0;
+		String requestIdentifier = null;
 		while (iterator.hasNext()) {
 			AuditEventRecord record = iterator.next();
 			num++;
@@ -127,10 +128,14 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
 			if (record.getEventStage() == AuditEventStage.REQUEST) {
 				numRequests++;
+				requestIdentifier = record.getRequestIdentifier();
+				assert requestIdentifier != null : "No request identifier in audit record "+record;
 			}
 			if (record.getEventStage() == AuditEventStage.EXECUTION) {
 				assert numRequests > 0 : "Encountered execution stage audit record without any preceding request: "+record;
 				numExecutions++;
+				assert requestIdentifier != null : "Execution before request? "+record;
+				assert requestIdentifier.equals(record.getRequestIdentifier()) : "Request identifier mismatch between request and execution in "+record+" expected: "+requestIdentifier+", was "+record.getRequestIdentifier();
 			}
 		}
 		assert numRequests <= numExecutions : "Strange number of requests and executions; "+numRequests+" requests, "+numExecutions+" executions";

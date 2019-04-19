@@ -288,8 +288,7 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(0);         // operation is idempotent
         dummyAuditService.assertExecutionSuccess();
 	}
 

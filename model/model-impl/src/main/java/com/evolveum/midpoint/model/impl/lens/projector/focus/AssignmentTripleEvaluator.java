@@ -405,10 +405,12 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 	                	// The only thing that we need to worry about is assignment validity change. That is a cause
 	                	// of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
 	                	// not significant, i.e. reconciliation can handle them.
-	                	boolean isValidOld = LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(),
-	                			assignmentCValOld.asContainerable(), now, activationComputer, focusStateModel);
-	                	boolean isValid = LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
-	                			assignmentCValNew.asContainerable(), now, activationComputer, focusStateModel);
+	                	boolean isValidOld = focusContext.getObjectOld() != null &&
+				                LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(),
+						                assignmentCValOld.asContainerable(), now, activationComputer, focusStateModel);
+		                boolean isValid = focusContext.getObjectNew() != null &&
+				                LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
+						                assignmentCValNew.asContainerable(), now, activationComputer, focusStateModel);
 						ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
 								createAssignmentIdiInternalChange(assignmentCVal, subItemDeltas);
 	                	if (isValid == isValidOld) {

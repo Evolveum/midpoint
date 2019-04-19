@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -129,6 +130,7 @@ public class PageTaskAdd extends PageAdminTasks {
     private static final String ID_MISFIRE_ACTION = "misfireAction";
     private static final String ID_RECURRING = "recurring";
     private static final String ID_CONTAINER = "container";
+    private static final String ID_TIME_CONTAINER = "timeContainer";
     private static final String ID_BOUND_CONTAINER = "boundContainer";
     private static final String ID_BOUND_HELP = "boundHelp";
     private static final String ID_BOUND = "bound";
@@ -455,11 +457,21 @@ public class PageTaskAdd extends PageAdminTasks {
         cronContainer.setOutputMarkupId(true);
         container.add(cronContainer);
 
+        final WebMarkupContainer timeContainer = new WebMarkupContainer(ID_TIME_CONTAINER);
+        timeContainer.setOutputMarkupId(true);
+        mainForm.add(timeContainer);
+        
         AjaxCheckBox recurring = new AjaxCheckBox(ID_RECURRING, recurringCheck) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(container);
+                if(recurringCheck.getObject()) {
+                	timeContainer.add(new AttributeModifier("class", ""));
+                } else {
+                    timeContainer.add(new AttributeModifier("class", "tbody-nth-of-type-even"));
+                }
+                target.add(timeContainer);
             }
         };
         mainForm.add(recurring);
@@ -502,7 +514,7 @@ public class PageTaskAdd extends PageAdminTasks {
             }
         };
         notStartBefore.setOutputMarkupId(true);
-        mainForm.add(notStartBefore);
+        timeContainer.add(notStartBefore);
 
         final DateTimeField notStartAfter = new DateTimeField(ID_NO_START_AFTER_FIELD, new PropertyModel<>(
             model, TaskAddDto.F_NOT_START_AFTER)) {
@@ -512,7 +524,7 @@ public class PageTaskAdd extends PageAdminTasks {
             }
         };
         notStartAfter.setOutputMarkupId(true);
-        mainForm.add(notStartAfter);
+        timeContainer.add(notStartAfter);
 
         mainForm.add(new StartEndDateValidator(notStartBefore, notStartAfter));
         mainForm.add(new ScheduleValidator(getTaskManager(), recurring, bound, interval, cron));

@@ -1486,4 +1486,41 @@ th.countLabel{
 
 .small-box h3{
 	white-space: normal;
+	font-size: 28px;
+}
+
+.tbody-nth-of-type-even>tr:nth-of-type(even) {
+  background-color: #f9f9f9 !important;
+}
+.tbody-nth-of-type-even>tr:nth-of-type(odd) {
+  background-color: inherit !important;
+}    
+
+@media (min-width: 1550px){
+	.small-box h3 {
+		font-size: 35px;
+	}
+}
+
+.dashboard-widgets{
+	display: flex;
+	flex-flow: row wrap;
+}
+
+.dashboard-info-box > .small-box {
+	height:100%;
+}
+
+.dashboard-info-box > .small-box > .small-box-footer {
+	position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
+.dashboard-info-box{
+	height: 100%;
+}
+
+.padding-bottom-20 {
+	padding-bottom: 20px;
 }

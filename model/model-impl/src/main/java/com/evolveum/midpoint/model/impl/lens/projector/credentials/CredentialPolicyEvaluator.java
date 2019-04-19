@@ -278,8 +278,8 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		} else if (focusContext.isModify()) {
 			boolean credentialValueChanged = false;
 			boolean checkMinOccurs = false;
-			ObjectDelta<UserType> focusDelta = focusContext.getDelta();
-			ContainerDelta<R> containerDelta = focusDelta.findContainerDelta(getCredentialsContainerPath());        // e.g. credentials/password
+			ObjectDelta<UserType> focusDelta = focusContext.getWaveDelta(context.getProjectionWave());
+			ContainerDelta<R> containerDelta = focusDelta != null ? focusDelta.findContainerDelta(getCredentialsContainerPath()) : null;        // e.g. credentials/password
 			if (containerDelta != null) {
 				if (containerDelta.isAdd()) {
 					for (PrismContainerValue<R> cVal : containerDelta.getValuesToAdd()) {

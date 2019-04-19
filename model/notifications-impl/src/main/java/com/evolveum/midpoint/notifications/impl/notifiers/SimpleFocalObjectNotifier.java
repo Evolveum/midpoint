@@ -67,6 +67,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         List<ObjectDelta<FocusType>> deltas = ((ModelEvent) event).getFocusDeltas();
         if (deltas.isEmpty()) {
+            LOGGER.trace("No deltas found, skipping the notification");
             return false;
         }
 
@@ -80,6 +81,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             }
         }
 
+        LOGGER.trace("No deltas for non-auxiliary attributes found, skipping the notification");
         return false;
     }
 
