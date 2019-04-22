@@ -162,7 +162,8 @@ public class MemberOperationsHelper {
 
 	}
 	
-	public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target, List<QName> availableRelationList) {
+	public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
+																						List<QName> availableRelationList, List<QName> objectTypes) {
 
 		ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<O, R>(pageBase.getMainPopupBodyId(), availableRelationList) {
 			private static final long serialVersionUID = 1L;
@@ -171,12 +172,18 @@ public class MemberOperationsHelper {
 			protected R getAssignmentTargetRefObject(){
 				return targetRefObject;
 			}
+
+			@Override
+			protected List<QName> getAvailableObjectTypes(){
+				return objectTypes;
+			}
 		};
 		browser.setOutputMarkupId(true);
 		pageBase.showMainPopup(browser, target);
 	}
 	
-	public static <O extends ObjectType> void assignOrgMembers(PageBase pageBase, OrgType targetRefObject, AjaxRequestTarget target, List<QName> availableRelationList) {
+	public static <O extends ObjectType> void assignOrgMembers(PageBase pageBase, OrgType targetRefObject, AjaxRequestTarget target,
+															   List<QName> availableRelationList, List<QName> objectTypes) {
 		ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<O>(pageBase.getMainPopupBodyId(), availableRelationList) {
 			
 			private static final long serialVersionUID = 1L;
@@ -184,6 +191,11 @@ public class MemberOperationsHelper {
 			@Override
 			protected OrgType getAssignmentTargetRefObject(){
 				return targetRefObject;
+			}
+
+			@Override
+			protected List<QName> getAvailableObjectTypes(){
+				return objectTypes;
 			}
 		};
 		

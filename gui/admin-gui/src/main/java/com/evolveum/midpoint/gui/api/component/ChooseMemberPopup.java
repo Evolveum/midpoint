@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -150,11 +151,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
-        //TODO should we have any authorization here?
-        VisibleEnableBehaviour authorization = new VisibleEnableBehaviour(){
-        };
-
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"), authorization) {
+        List<QName> objectTypes = getAvailableObjectTypes();
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"),
+                new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(UserType.COMPLEX_TYPE))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -186,7 +185,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             }
         });
 
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"), authorization) {
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"),
+                new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(RoleType.COMPLEX_TYPE))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -219,7 +219,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         });
 
         tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"), authorization) {
+                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"),
+                        new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -259,7 +260,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 });
 
 
-        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"), authorization) {
+        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
+                new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -293,7 +295,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         });
 
         tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"), authorization) {
+                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"),
+                        new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(ServiceType.COMPLEX_TYPE))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -327,6 +330,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 });
 
         return tabs;
+    }
+
+    protected List<QName> getAvailableObjectTypes(){
+        return null;
     }
 
     protected int getTabPanelSelectedCount(WebMarkupContainer panel){

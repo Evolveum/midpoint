@@ -3383,16 +3383,23 @@ public final class WebComponentUtil {
 		return combinedRelationList;
 	}
 
-	public static DisplayType getAssignmentObjectRelationDisplayType(AssignmentObjectRelation assignmentTargetRelation, String defaultTitle){
+	public static DisplayType getAssignmentObjectRelationDisplayType(PageBase pageBase, AssignmentObjectRelation assignmentTargetRelation, String defaultTitle){
 		QName relation = assignmentTargetRelation != null && !org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
 				assignmentTargetRelation.getRelations().get(0) : null;
+		QName type = assignmentTargetRelation != null && !org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) ?
+				assignmentTargetRelation.getObjectTypes().get(0) : null;
+		String typeName = type != null ? pageBase.createStringResource("ObjectTypeLowercase." + type.getLocalPart()).getString() : null;
 		if (relation != null){
 			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
 			if (def != null){
 				DisplayType displayType = def.getDisplay();
 				String titleValue = displayType != null && displayType.getTooltip()  != null
 						&& StringUtils.isNotEmpty(displayType.getTooltip().getNorm()) ?
-						displayType.getTooltip().getNorm() : defaultTitle + " " + relation.getLocalPart();
+						displayType.getTooltip().getNorm()
+						: defaultTitle + " " + relation.getLocalPart() + " " +
+						pageBase.createStringResource("roleMemberPanel.relation").getString().toLowerCase()
+						+ (StringUtils.isNotEmpty(typeName) ? " " + typeName + " " +
+						pageBase.createStringResource("abstractRoleMemberPanel.type").getString().toLowerCase() : "");
 
 				if (displayType == null || displayType.getIcon() == null){
 					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", titleValue);
@@ -3405,7 +3412,7 @@ public final class WebComponentUtil {
 				return displayType;
 			}
 		}
-		return createDisplayType("", "", "");
+		return createDisplayType("", "", defaultTitle);
 	}
 
 	public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){

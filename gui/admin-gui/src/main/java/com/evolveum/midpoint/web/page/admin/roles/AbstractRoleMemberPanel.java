@@ -227,7 +227,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected DisplayType getNewObjectButtonAdditionalDisplayType(AssignmentObjectRelation relationSpec){
-				return WebComponentUtil.getAssignmentObjectRelationDisplayType(relationSpec,
+				return WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
 					createStringResource("abstractRoleMemberPanel.menu.createMember").getString());
 			}
 
@@ -237,19 +237,14 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			}
 
 			@Override
+			protected DisplayType getNewObjectButtonStandardDisplayType(){
+				return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
+						createStringResource("abstractRoleMemberPanel.menu.createMember").getString());
+			}
+
+			@Override
 			protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-				CompositedIconBuilder builder = new CompositedIconBuilder();
-				QName objectType = relationSpec != null && relationSpec.getObjectTypes() != null && relationSpec.getObjectTypes().size() > 0 ?
-						relationSpec.getObjectTypes().get(0) : null;
-				if (objectType != null) {
-					builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-							.appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-							.appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR)
-							.appendLayerIcon(WebComponentUtil.createDefaultBlackIcon(objectType), IconCssStyle.BOTTOM_LEFT_STYLE);
-					return builder;
-				} else {
-					return null;
-				}
+				return getAdditionalButtonIconBuilder(relationSpec, additionalButtonDisplayType);
 			}
 
             @Override
@@ -271,7 +266,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 					@Override
 					protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
 						AbstractRoleMemberPanel.this.assignMembers(target, relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
-								Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations());
+								Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations(),
+								relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
+								relation.getObjectTypes() : null);
 					}
 
 					@Override
@@ -281,13 +278,18 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 					@Override
 					protected DisplayType getAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation){
-						return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation,
+						return WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), assignmentTargetRelation,
 								createStringResource("abstractRoleMemberPanel.menu.assignMember").getString());
 					}
 
 					@Override
 					protected DisplayType getDefaultObjectButtonDisplayType(){
 						return getAssignMemberButtonDisplayType();
+					}
+
+					@Override
+					protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
+						return getAdditionalButtonIconBuilder(relationSpec, additionalButtonDisplayType);
 					}
 				};
 				assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
@@ -424,6 +426,21 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return resultList;
 	}
 
+	private CompositedIconBuilder getAdditionalButtonIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
+		CompositedIconBuilder builder = new CompositedIconBuilder();
+		QName objectType = relationSpec != null && relationSpec.getObjectTypes() != null && relationSpec.getObjectTypes().size() > 0 ?
+				relationSpec.getObjectTypes().get(0) : null;
+		if (objectType != null) {
+			builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+					.appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
+					.appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR)
+					.appendLayerIcon(WebComponentUtil.createDefaultBlackIcon(objectType), IconCssStyle.BOTTOM_LEFT_STYLE);
+			return builder;
+		} else {
+			return null;
+		}
+	}
+
 	private List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
@@ -437,7 +454,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            assignMembers(target, getSupportedRelations());
+                            assignMembers(target, getSupportedRelations(), null);
                         }
                     };
                 }
@@ -568,8 +585,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return spec;
 	}
 
-	protected void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
-		MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, availableRelationList);
+	protected void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList, List<QName> objectTypes) {
+		MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, availableRelationList, objectTypes);
 	}
 
 	private void unassignMembersPerformed(AjaxRequestTarget target) {
