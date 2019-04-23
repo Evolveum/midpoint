@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015-2018 Evolveum
+  ~ Copyright (c) 2015-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Business Role Three</name>
+    <assignment>
+    	<targetRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/> <!-- Business Role -->
+    </assignment>
     <requestable>true</requestable>
     <subtype>business</subtype>
 </role>

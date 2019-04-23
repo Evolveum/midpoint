@@ -242,8 +242,15 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return this;
 	}
 	
-	public UserAsserter<RA> assertLocality(String expectedOrig) {
-		assertPolyStringProperty(UserType.F_LOCALITY, expectedOrig);
+	@Override
+	public UserAsserter<RA> assertLocality(String expected) {
+		super.assertLocality(expected);
+		return this;
+	}
+
+	@Override
+	public UserAsserter<RA> assertCostCenter(String expected) {
+		super.assertCostCenter(expected);
 		return this;
 	}
 	

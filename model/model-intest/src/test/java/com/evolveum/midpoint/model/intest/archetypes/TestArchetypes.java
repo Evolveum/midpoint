@@ -91,6 +91,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	public static final File COLLECTION_ACTIVE_EMPLOYEES_FILE = new File(TEST_DIR, "collection-active-employees.xml");
 	protected static final String COLLECTION_ACTIVE_EMPLOYEES_OID = "f61bcb4a-f8ae-11e8-9f5c-c3e7f27ee878";
 
+	protected static final File USER_TEMPLATE_ARCHETYPES_GLOBAL_FILE = new File(TEST_DIR, "user-template-archetypes-global.xml");
+	protected static final String USER_TEMPLATE_ARCHETYPES_GLOBAL_OID = "dab200ae-65dc-11e9-a8d3-27e5b1538f19";
 	
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -100,8 +102,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
         repoAddObjectFromFile(ROLE_USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ARCHETYPE_EMPLOYEE_FILE, initResult);
         repoAddObjectFromFile(COLLECTION_ACTIVE_EMPLOYEES_FILE, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_ARCHETYPES_GLOBAL_FILE, initResult);
         
         addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
+        
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_ARCHETYPES_GLOBAL_OID, initResult);
     }
 	
 	@Override
@@ -216,6 +221,8 @@ public class TestArchetypes extends AbstractArchetypesTest {
         		.assertRoleMemberhipRefs(1)
         		.assertArchetype(ARCHETYPE_EMPLOYEE_OID)
         		.end()
+        	// MID-5243
+        	.assertCostCenter(costCenterEmployee())
         	.getObject();
         
         assertArchetypePolicy(userAfter)
@@ -224,6 +231,10 @@ public class TestArchetypes extends AbstractArchetypesTest {
         		.assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
     }
 	
+	private String costCenterEmployee() {
+		return "Archetype " + ARCHETYPE_EMPLOYEE_OID +": archetype:"+ ARCHETYPE_EMPLOYEE_OID + "(Employee) isEmployee: true";
+	}
+
 	@Test
     public void test102SearchEmployeeArchetypeRef() throws Exception {
 		final String TEST_NAME = "test102SearchEmployeeArchetypeRef";
@@ -357,8 +368,10 @@ public class TestArchetypes extends AbstractArchetypesTest {
         		.end()
         	.getObject();
         
+        // Archetype policy derived from system config (global)
         assertArchetypePolicy(userAfter)
-        	.assertNull();
+        	.assertNoDisplay()
+        	.assertObjectTemplate(USER_TEMPLATE_ARCHETYPES_GLOBAL_OID);
     }
 	
 	@Test
@@ -444,8 +457,10 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	    		.end()
 	    	.getObject();
         
+        // Archetype policy derived from system config (global)
         assertArchetypePolicy(userAfter)
-        	.assertNull();
+        	.assertNoDisplay()
+        	.assertObjectTemplate(USER_TEMPLATE_ARCHETYPES_GLOBAL_OID);
         
     	assertAssignmentTargetSpecification(userAfter)
     		.assignmentObjectRelations()

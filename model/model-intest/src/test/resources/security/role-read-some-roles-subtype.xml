@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2017-2019 Evolveum
+  ~ Copyright (c) 2017-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,20 +14,30 @@
   ~ limitations under the License.
   -->
   <!-- MID-3647 -->
-<role oid="7b4a3880-e167-11e6-b38b-2b6a550a03e7"
+<role oid="56f0030c-65d1-11e9-aaba-23d1008d3763"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Read some roles</name>
-    <description>Archetype-based method</description>
+    <name>Read some roles (subtype)</name>
+    <description>Legacy method by using subtype</description>
     <authorization>
     	<name>read-some-roles</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<object>
     		<type>RoleType</type>
-    		<archetypeRef oid="00000000-0000-0000-0000-000000000321"/> <!-- Business Role -->
-    		<archetypeRef oid="32073084-65d0-11e9-baff-bbb479bb05b7"/> <!-- Application Role -->
+    		<filter>
+    			<q:or>
+					<q:equal>
+						<q:path>subtype</q:path>
+						<q:value>application</q:value>
+					</q:equal>
+					<q:equal>
+						<q:path>subtype</q:path>
+						<q:value>business</q:value>
+					</q:equal>
+				</q:or>
+    		</filter>
     	</object>
     </authorization>
 </role>
