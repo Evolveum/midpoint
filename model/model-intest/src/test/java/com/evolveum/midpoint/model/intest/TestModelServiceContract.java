@@ -245,6 +245,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-FAILURE", 0); // This should be called, but it is not implemented now
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 
@@ -1655,6 +1656,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
 
         // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
@@ -1735,6 +1737,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 
@@ -3318,6 +3321,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionSuccess();
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 

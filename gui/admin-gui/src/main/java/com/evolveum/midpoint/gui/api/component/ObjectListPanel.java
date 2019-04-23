@@ -367,7 +367,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition());
+		IColumn<SelectableBean<O>, String> iconColumn = createIconColumn();
 		columns.add(iconColumn);
 
 		IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null);
@@ -638,6 +638,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected abstract IColumn<SelectableBean<O>, String> createCheckboxColumn();
+
+	protected IColumn<SelectableBean<O>, String> createIconColumn(){
+		return (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition());
+	}
 
 	protected abstract IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath);
 

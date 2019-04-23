@@ -1141,7 +1141,7 @@ public abstract class ResourceContentPanel extends Panel {
 								ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
 						((Collection) modifications).add(delta);
-						changeOwnerInternal(owner.getOid(), modifications, target);
+						changeOwnerInternal(owner.getOid(), owner.getClass(), modifications, target);
 					}
 				}
 				break;
@@ -1157,14 +1157,14 @@ public abstract class ResourceContentPanel extends Panel {
 							getFocusDefinition(), ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
 					((Collection) modifications).add(delta);
-					changeOwnerInternal(owner.getOid(), modifications, target);
+					changeOwnerInternal(owner.getOid(), owner.getClass(), modifications, target);
 				}
 				modifications = new ArrayList<>();
 
 				delta = ReferenceDelta.createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
 						ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 				((Collection) modifications).add(delta);
-				changeOwnerInternal(ownerToChange.getOid(), modifications, target);
+				changeOwnerInternal(ownerToChange.getOid(),ownerToChange.getClass(), modifications, target);
 
 				break;
 		}
@@ -1185,11 +1185,11 @@ public abstract class ResourceContentPanel extends Panel {
 		return true;
 	}
 
-	private void changeOwnerInternal(String ownerOid, Collection<? extends ItemDelta> modifications,
+	private void changeOwnerInternal(String ownerOid, Class<? extends FocusType> ownerType, Collection<? extends ItemDelta> modifications,
 			AjaxRequestTarget target) {
 		OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
 		Task task = pageBase.createSimpleTask(OPERATION_CHANGE_OWNER);
-		ObjectDelta objectDelta = ObjectDelta.createModifyDelta(ownerOid, modifications, FocusType.class,
+		ObjectDelta objectDelta = ObjectDelta.createModifyDelta(ownerOid, modifications, ownerType,
 				pageBase.getPrismContext());
 		Collection deltas = new ArrayList<>();
 		deltas.add(objectDelta);

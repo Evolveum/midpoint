@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnectorConfiguration;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * @author semancik
  *
  */
+@Experimental
 public abstract class AbstractManagedConnectorInstance implements ConnectorInstance {
 
 	private ConnectorType connectorObject;
@@ -56,6 +58,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 	private PrismContainerValue<?> connectorConfiguration;
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
+	private boolean configured = false;
 
 	public ConnectorType getConnectorObject() {
 		return connectorObject;
@@ -112,6 +115,21 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 	protected void setCapabilities(Collection<Object> capabilities) {
 		this.capabilities = capabilities;
 	}
+	
+	@Override
+	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities,
+			boolean caseIgnoreAttributeNames, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ConfigurationException {
+
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
+		result.addContext("connector", getConnectorObject().toString());
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, this.getClass());
+
+		setResourceSchema(resourceSchema);
+		setCapabilities(capabilities);
+
+		result.recordSuccessIfUnknown();
+	}
 
 	@Override
 	public void configure(PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
@@ -136,28 +154,21 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 		applyConfigurationToConfigurationClass(configuration);
 
 		// TODO: transform configuration in a subclass
-
-		result.recordSuccessIfUnknown();
-	}
-
-	@Override
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities,
-			boolean caseIgnoreAttributeNames, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, ConfigurationException {
-
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
-		result.addContext("connector", getConnectorObject().toString());
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, this.getClass());
-
-		setResourceSchema(resourceSchema);
-		setCapabilities(capabilities);
+		
+		if (configured) {
+			disconnect(result);
+		}
 
 		connect(result);
+		
+		configured = true;
 
 		result.recordSuccessIfUnknown();
 	}
 
 	protected abstract void connect(OperationResult result);
+	
+	protected abstract void disconnect(OperationResult result);
 
 	protected PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
 		QName configContainerQName = new QName(getConnectorObject().getNamespace(),
@@ -194,5 +205,11 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 			configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValue);
 		}
 		connectorBean.setPropertyValue(connectorConfigurationProp.getName(), configurationObject);
+	}
+	
+	@Override
+	public void dispose() {
+		OperationResult result = new OperationResult(ConnectorInstance.OPERATION_DISPOSE);
+		disconnect(result);
 	}
 }

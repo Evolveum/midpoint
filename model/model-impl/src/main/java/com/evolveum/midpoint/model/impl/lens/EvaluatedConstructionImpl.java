@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,13 +37,15 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     final private ShadowKindType kind;
     final private String intent;
     final private boolean directlyAssigned;
+    final private AssignmentPath assignmentPath;
     final private boolean weak;
 
 	public <F extends FocusType> EvaluatedConstructionImpl(Construction<F> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         resource = construction.getResource(task, result).asPrismObject();
         kind = construction.getKind();
         intent = construction.getIntent();
-        directlyAssigned = construction.getAssignmentPath() == null || construction.getAssignmentPath().size() == 1;
+        assignmentPath = construction.getAssignmentPath();
+        directlyAssigned = assignmentPath == null || assignmentPath.size() == 1;
         weak = construction.isWeak();
     }
     
@@ -64,6 +67,11 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     @Override
     public boolean isDirectlyAssigned() {
         return directlyAssigned;
+    }
+
+    @Override
+    public AssignmentPath getAssignmentPath() {
+        return assignmentPath;
     }
 
     @Override
