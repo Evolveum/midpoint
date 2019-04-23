@@ -127,8 +127,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
     protected List<Component> createToolbarButtonsList(String buttonId){
         List<Component> buttonsList = new ArrayList<>();
-        MultifunctionalButton<S> createNewObjectButton =
-                new MultifunctionalButton<S>(buttonId){
+        MultifunctionalButton<S> createNewObjectButton = new MultifunctionalButton<S>(buttonId){
             private static final long serialVersionUID = 1L;
 
             @Override

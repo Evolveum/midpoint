@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -111,16 +112,21 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 if (isCollectionViewPage()){
                     return new ArrayList<>();
                 }
-                return getCompiledUserProfile().findAllApplicableObjectCollectionViews(getType());
+                return getCompiledUserProfile().findAllApplicableArchetypeViews(ObjectTypes.getObjectType(getType()).getTypeQName());
             }
 
             @Override
             protected DisplayType getNewObjectButtonStandardDisplayType(){
-                if (isCollectionViewPage()){
-                    return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(getCollectionViewObject(), PageAdminObjectList.this);
-                } else {
+                if (!isCollectionViewPage()){
                     return super.getNewObjectButtonStandardDisplayType();
                 }
+
+                CompiledObjectCollectionView view = getCollectionViewObject();
+                if (view.getCollection() != null && view.getCollection().getCollectionRef() != null &&
+                        ArchetypeType.COMPLEX_TYPE.equals(view.getCollection().getCollectionRef().getType())){
+                    return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(getCollectionViewObject(), PageAdminObjectList.this);
+                }
+                return super.getNewObjectButtonStandardDisplayType();
             }
 
             @Override
@@ -193,7 +199,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         try {
             WebComponentUtil.initNewObjectWithReference(PageAdminObjectList.this,
                     WebComponentUtil.classToQName(getPrismContext(), getType()),
-                    collectionViewReference != null ? Arrays.asList(collectionViewReference) : null);
+                    collectionViewReference != null && ArchetypeType.COMPLEX_TYPE.equals(collectionViewReference.getType()) ?
+                            Arrays.asList(collectionViewReference) : null);
         } catch (SchemaException ex){
             getFeedbackPanel().getFeedbackMessages().error(PageAdminObjectList.this, ex.getUserFriendlyMessage());
             target.add(getFeedbackPanel());
