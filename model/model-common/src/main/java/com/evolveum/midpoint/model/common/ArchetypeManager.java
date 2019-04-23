@@ -61,7 +61,7 @@ public class ArchetypeManager {
 		return systemObjectCache.getArchetype(oid, result);
 	}
 	
-	public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+	public <O extends AssignmentHolderType> ObjectReferenceType determineArchetypeRef(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
 		if (assignmentHolder == null) {
 			return null;
 		}
@@ -75,7 +75,14 @@ public class ArchetypeManager {
 		if (archetypeRefs.size() > 1) {
 			throw new SchemaException("Only a single archetype for an object is supported: "+assignmentHolder);
 		}
-		ObjectReferenceType archetypeRef = archetypeRefs.get(0);
+		return archetypeRefs.get(0);
+	}
+	
+	public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+		ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder, result);
+		if (archetypeRef == null) {
+			return null;
+		}
 
 		PrismObject<ArchetypeType> archetype;
 		try {

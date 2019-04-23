@@ -131,6 +131,11 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		assertPolyStringProperty(OrgType.F_LOCALITY, expectedOrig);
 		return this;
 	}
+
+	public FocusAsserter<F,RA> assertCostCenter(String expected) {
+		assertEquals("Wrong costCenter in "+desc(), expected, getObject().asObjectable().getCostCenter());
+		return this;
+	}
 	
 	@Override
 	public FocusAsserter<F,RA> assertLifecycleState(String expected) {

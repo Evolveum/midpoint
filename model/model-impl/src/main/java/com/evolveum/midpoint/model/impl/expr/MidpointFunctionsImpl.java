@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -130,6 +131,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Autowired private LocalizationService localizationService;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
+	@Autowired private ArchetypeManager archetypeManager;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -1809,7 +1811,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	@Override
-	public <T extends ObjectType> void applyDefinition(T object)
+	public <O extends ObjectType> void applyDefinition(O object)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException {
 		if (object instanceof ShadowType || object instanceof ResourceType) {
@@ -1820,6 +1822,53 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
 		return prismContext.deltaFor(objectClass);
+	}
+	
+	// MID-5243
+	@Override
+	public <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
+		if (object == null) {
+			return false;
+		}
+		if (!(object instanceof AssignmentHolderType)) {
+			return archetypeOid == null;
+		}
+		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object).getArchetypeRef();
+		if (archetypeOid == null) {
+			return archetypeRefs.isEmpty();
+		}
+		for (ObjectReferenceType archetypeRef : archetypeRefs) {
+			if (archetypeOid.equals(archetypeRef.getOid())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	// MID-5243
+	@Override
+	public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException {
+		if (object == null || !(object instanceof AssignmentHolderType)) {
+			return null;
+		}
+		PrismObject<ArchetypeType> archetype = archetypeManager.determineArchetype((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
+		if (archetype == null) {
+			return null;
+		}
+		return archetype.asObjectable();
+	}
+	
+	// MID-5243
+	@Override
+	public <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException {
+		if (object == null || !(object instanceof AssignmentHolderType)) {
+			return null;
+		}
+		ObjectReferenceType archetypeRef = archetypeManager.determineArchetypeRef((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
+		if (archetypeRef == null) {
+			return null;
+		}
+		return archetypeRef.getOid();
 	}
 
 	// temporary

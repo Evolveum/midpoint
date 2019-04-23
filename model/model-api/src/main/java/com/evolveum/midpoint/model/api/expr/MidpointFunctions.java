@@ -1167,4 +1167,16 @@ public interface MidpointFunctions {
 			ExpressionEvaluationException;
 
 	<C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
+
+	<O extends ObjectType> boolean hasArchetype(O object, String archetypeOid);
+	
+	/**
+	 * Assumes single archetype. May throw error if used on object that has more than one archetype.
+	 */
+	<O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException;
+
+	/**
+	 * Assumes single archetype. May throw error if used on object that has more than one archetype.
+	 */
+	<O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException;
 }
