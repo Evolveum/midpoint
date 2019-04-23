@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Reviewer</name>
     <description>Role authorizing users to make decisions on certification cases.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000320" type="ArchetypeType"/> <!-- System role -->
+    </assignment>
     <authorization>
     	<name>gui-reviewer-access</name>
     	<description>
