@@ -3384,35 +3384,59 @@ public final class WebComponentUtil {
 	}
 
 	public static DisplayType getAssignmentObjectRelationDisplayType(PageBase pageBase, AssignmentObjectRelation assignmentTargetRelation, String defaultTitle){
-		QName relation = assignmentTargetRelation != null && !org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
+		if (assignmentTargetRelation == null){
+			return createDisplayType("", "", defaultTitle);
+		}
+		QName relation = !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
 				assignmentTargetRelation.getRelations().get(0) : null;
-		QName type = assignmentTargetRelation != null && !org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) ?
-				assignmentTargetRelation.getObjectTypes().get(0) : null;
-		String typeName = type != null ? pageBase.createStringResource("ObjectTypeLowercase." + type.getLocalPart()).getString() : null;
+		StringBuilder titleValue = new StringBuilder();
+		titleValue.append(defaultTitle);
+		if (relation != null) {
+			titleValue.append(" " + relation.getLocalPart());
+			titleValue.append(" " + pageBase.createStringResource("roleMemberPanel.relation").getString().toLowerCase());
+		}
+		if (CollectionUtils.isNotEmpty(assignmentTargetRelation.getArchetypeRefs())){
+			OperationResult result = new OperationResult(pageBase.getClass().getSimpleName() + "." + "loadArchetypeObject");
+			try {
+				ArchetypeType archetype = pageBase.getModelObjectResolver().resolve(assignmentTargetRelation.getArchetypeRefs().get(0), ArchetypeType.class,
+						null, null, pageBase.createSimpleTask(result.getOperation()), result);
+				if (archetype != null) {
+					DisplayType archetypeDisplayType = archetype.getArchetypePolicy() != null ? archetype.getArchetypePolicy().getDisplay() : null;
+					String archetypeTooltip = archetypeDisplayType != null && archetypeDisplayType.getLabel() != null &&
+							StringUtils.isNotEmpty(archetypeDisplayType.getLabel().getNorm()) ?
+							archetypeDisplayType.getLabel().getNorm() :
+							(archetype.getName() != null && StringUtils.isNotEmpty(archetype.getName().getNorm()) ?
+							archetype.getName().getNorm() : null);
+					titleValue.append(StringUtils.isNotEmpty(archetypeTooltip) ? (" " + archetypeTooltip + " " +
+							pageBase.createStringResource("abstractRoleMemberPanel.type").getString().toLowerCase()) : "");
+				}
+			} catch (Exception ex){
+				LOGGER.error("Couldn't load archetype object. " + ex.getLocalizedMessage());
+			}
+		} else if (CollectionUtils.isNotEmpty(assignmentTargetRelation.getObjectTypes())){
+			QName type = !CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) ?
+					assignmentTargetRelation.getObjectTypes().get(0) : null;
+			String typeName = type != null ? pageBase.createStringResource("ObjectTypeLowercase." + type.getLocalPart()).getString() : null;
+			titleValue.append(StringUtils.isNotEmpty(typeName) ? (" " + typeName + " " +
+					pageBase.createStringResource("abstractRoleMemberPanel.type").getString().toLowerCase()) : "");
+		}
+
+
 		if (relation != null){
 			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
 			if (def != null){
 				DisplayType displayType = def.getDisplay();
-				String titleValue = displayType != null && displayType.getTooltip()  != null
-						&& StringUtils.isNotEmpty(displayType.getTooltip().getNorm()) ?
-						displayType.getTooltip().getNorm()
-						: defaultTitle + " " + relation.getLocalPart() + " " +
-						pageBase.createStringResource("roleMemberPanel.relation").getString().toLowerCase()
-						+ (StringUtils.isNotEmpty(typeName) ? " " + typeName + " " +
-						pageBase.createStringResource("abstractRoleMemberPanel.type").getString().toLowerCase() : "");
 
 				if (displayType == null || displayType.getIcon() == null){
-					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", titleValue);
+					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", titleValue.toString());
 				}
 				if (PolyStringUtils.isEmpty(displayType.getTooltip())){
-					StringBuilder sb = new StringBuilder();
-					sb.append(titleValue);
-					displayType.setTooltip(createPolyFromOrigString(sb.toString()));
+					displayType.setTooltip(createPolyFromOrigString(titleValue.toString()));
 				}
 				return displayType;
 			}
 		}
-		return createDisplayType("", "", defaultTitle);
+		return createDisplayType("", "", titleValue.toString());
 	}
 
 	public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){
