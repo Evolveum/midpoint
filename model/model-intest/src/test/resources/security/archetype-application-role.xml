@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014-2019 Evolveum
+  ~ Copyright (c) 2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,14 +13,26 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-0000-0000-00000000aaa1"
+  
+<archetype oid="32073084-65d0-11e9-baff-bbb479bb05b7"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Application Role One</name>
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Application Role</name>
+    <archetypePolicy>
+    	<display>
+    		<label>Application Role</label>
+    		<pluralLabel>Application Roles</pluralLabel>
+    		<icon>
+    			<cssClass>fa fa-street-view</cssClass>
+    			<color>blue</color>
+    		</icon>
+    	</display>
+    </archetypePolicy>
     <assignment>
-    	<targetRef oid="32073084-65d0-11e9-baff-bbb479bb05b7" type="ArchetypeType"/> <!-- Application Role -->
+    	<assignmentRelation>
+    		<holderType>RoleType</holderType>
+    	</assignmentRelation>
     </assignment>
-    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
-    <subtype>application</subtype>
-</role>
+</archetype>

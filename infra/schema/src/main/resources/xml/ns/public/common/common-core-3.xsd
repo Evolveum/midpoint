@@ -13108,6 +13108,19 @@
 		        			</xsd:appinfo>
 		        		</xsd:annotation>
 		        	</xsd:element>
+		        	<xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                  Definition of object with respect to its archetype.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+								<a:since>4.0</a:since>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 		        	<xsd:element name="special" type="tns:SpecialObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
 		        		<xsd:annotation>
 		        			<xsd:documentation>
