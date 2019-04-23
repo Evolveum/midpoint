@@ -193,6 +193,7 @@ public class GuiStyleConstants {
 	public static final String EVO_UNEMPLOYER_ICON = "fe fe-unemployer-icon";
 	public static final String EVO_EMPLOYER_ICON = "fe fe-employer-icon";
 	public static final String EVO_APPROVER_ICON = "fe fe-approver-object";
+	public static final String EVO_MANAGER_ICON = "fe fe-manager-tie-object";
 	public static final String EVO_MP_SHORTER_LINES = "fe fe-midpoint-shorter-lines";
 	public static final String EVO_MP_WHEEL_ICON = "fe fe-midpoint-wheel";
 	public static final String EVO_MP_WITH_LINES_ICON = "fe fe-midpoint-with-lines";
