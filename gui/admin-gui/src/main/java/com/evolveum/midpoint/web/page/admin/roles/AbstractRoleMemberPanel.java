@@ -672,8 +672,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		if (relationSpec != null){
 			try {
 				List<ObjectReferenceType> newReferences = new ArrayList<>();
-				ObjectReferenceType memberRef = ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relationSpec.getRelations().get(0));
-				newReferences.add(memberRef);
+				if (CollectionUtils.isNotEmpty(relationSpec.getRelations())){
+					ObjectReferenceType memberRef = ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relationSpec.getRelations().get(0));
+					newReferences.add(memberRef);
+				}
 				if (CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())) {
 					newReferences.add(relationSpec.getArchetypeRefs().get(0));
 				}
