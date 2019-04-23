@@ -20454,6 +20454,48 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000300">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_USER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000320">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_ROLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000321">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_BUSINESS_ROLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000340">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_MANUAL_CASE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000341">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_OPERATION_REQUEST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000342">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_APPROVAL_CASE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
     
