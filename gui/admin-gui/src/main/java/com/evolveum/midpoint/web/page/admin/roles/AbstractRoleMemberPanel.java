@@ -109,7 +109,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
 	private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
 	protected static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
-	protected static final String OPERATION_LOAD_CANDIDATE_SPECIFICATION = DOT_CLASS + "loadCandidateSpecification";
+	protected static final String OPERATION_LOAD_ARCHETYPE_OBJECT = DOT_CLASS + "loadArchetypeObject";
 
 	protected static final String ID_FORM = "form";
 	
@@ -427,18 +427,35 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 
 	private CompositedIconBuilder getAdditionalButtonIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-		CompositedIconBuilder builder = new CompositedIconBuilder();
-		QName objectType = relationSpec != null && relationSpec.getObjectTypes() != null && relationSpec.getObjectTypes().size() > 0 ?
-				relationSpec.getObjectTypes().get(0) : null;
-		if (objectType != null) {
-			builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-					.appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-					.appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR)
-					.appendLayerIcon(WebComponentUtil.createDefaultBlackIcon(objectType), IconCssStyle.BOTTOM_LEFT_STYLE);
-			return builder;
-		} else {
+		if (relationSpec == null){
 			return null;
 		}
+		CompositedIconBuilder builder = new CompositedIconBuilder();
+		String typeIconStyle = "";
+		if (CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())){
+			try {
+				ArchetypeType archetype = getPageBase().getModelObjectResolver().resolve(relationSpec.getArchetypeRefs().get(0), ArchetypeType.class,
+						null, null, getPageBase().createSimpleTask(OPERATION_LOAD_ARCHETYPE_OBJECT),
+						new OperationResult(OPERATION_LOAD_ARCHETYPE_OBJECT));
+				if (archetype != null && archetype.getArchetypePolicy() != null){
+					DisplayType archetypeDisplayType = archetype.getArchetypePolicy().getDisplay();
+					typeIconStyle = WebComponentUtil.getIconCssClass(archetypeDisplayType);
+				}
+			} catch (Exception ex){
+				LOGGER.error("Couldn't load archetype object, " + ex.getLocalizedMessage());
+			}
+		}
+		QName objectType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) : null;
+		if (StringUtils.isEmpty(typeIconStyle) && objectType != null){
+			typeIconStyle = WebComponentUtil.createDefaultBlackIcon(objectType);
+		}
+		builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+				.appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
+				.appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
+		if (StringUtils.isNotEmpty(typeIconStyle)){
+			builder.appendLayerIcon(typeIconStyle, IconCssStyle.BOTTOM_LEFT_STYLE);
+		}
+		return builder;
 	}
 
 	private List<InlineMenuItem> createRowActions() {
