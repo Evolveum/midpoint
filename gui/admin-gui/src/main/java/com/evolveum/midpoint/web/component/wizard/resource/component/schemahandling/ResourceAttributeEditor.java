@@ -492,7 +492,8 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             }
 
             try {
-                MutableResourceSchema schema = ObjectFactory.createResourceSchema(null, prismContext);
+            	MutableResourceSchema schema = ObjectFactory.createResourceSchema(
+	            		ResourceTypeUtil.getResourceNamespace(resource), prismContext);
                 schema.parseThis(xsdSchema, resource.toString(), prismContext);
                 return schema;
             } catch (SchemaException|RuntimeException e) {
