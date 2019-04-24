@@ -508,7 +508,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
     public static String getDateTime() {
         Date createDate = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss");
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss.SSS");
         return formatDate.format(createDate);
     }
 
@@ -519,13 +519,12 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         }
 
         String output = EXPORT_DIR + reportType.getName().getOrig() + " " + getDateTime();
-
+        
         if (getExport(reportType) == ExportType.XML_EMBED) {
             return output + "_embed.xml";
-        }
+        } 
 
         return output + "." + getExport(reportType).value();
-
     }
 
     protected void saveReportOutputType(String filePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception {

@@ -5315,11 +5315,27 @@
 	<xsd:complexType name="AssignmentRelationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies what types of assignments can be made to the focal object when it is a target of an assignment.
-                This specifies possible relations of the assignment, type of assignment holder and so on.
-                Simply speaking, this specifies "who can have assignment to me" or "who can hold assignment with me as a target".
-                Limitations: assignmentRelation can appear only in archetype. It can appear in assignment or inducements, but 
-                it must not have any order specification (i.e. it must be order 0 or 1).
+            	<p>
+	                Specifies what types of assignments can be made to the focal object when it is a target of an assignment.
+	                This specifies possible relations of the assignment, type of assignment holder and so on.
+	                Simply speaking, this specifies "who can have assignment to me" or "who can hold assignment with me as a target".
+	                Limitations: assignmentRelation can appear only in archetype. It can appear in assignment or inducements, but 
+	                it must not have any order specification (i.e. it must be order 0 or 1).
+                </p>
+                <p>
+                	Assignment relation specification can be "wildcard", i.e. they can apply to a range of conditions.
+                	E.g. if no relation is specified, the specification applies to all the relations. An extreme case is
+                	an empty assignment relation, which is the ultimate wildcard. Such specification means that any
+                	type, any archetype can be assigned with any relation. Which in fact means "open" assignment policy.
+                	However, processing of wildcard assignment relations is limited in midPoint 4.0 (see documentation).
+                </p>
+                <p>
+                	Assignment relation applies only to assignments by default. Therefore it controls when an assignment
+                	can be made. It does not apply to inducements - yet. In later midPoint versions there will be an
+                	element that can specify "order constraints". In that case assignment relation could specify properties
+                	of inducements, including high-order inducements. However, the implementation in midPoint 4.0 is
+                	limited to assignments.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -5337,14 +5353,16 @@
        		<xsd:element name="holderType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
 	   			<xsd:annotation>
     				<xsd:documentation>
-    					TODO
+    					Specification of the holder type. This specifies type of the objects that can
+    					be "holders" of the assignment. If not specified at all then all object types
+    					are applicable.
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="holderArchetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Specification of holder archetype.
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
@@ -5354,10 +5372,11 @@
    			<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
 	   			<xsd:annotation>
     				<xsd:documentation>
-    					TODO
+    					Specification of a relation for the assignment/inducement.
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
+    		<!-- TODO: orderConstraint -->
        </xsd:sequence>
 	</xsd:complexType>
     
