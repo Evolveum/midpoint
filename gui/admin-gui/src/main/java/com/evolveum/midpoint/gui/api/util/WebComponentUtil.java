@@ -50,6 +50,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -3290,6 +3292,40 @@ public final class WebComponentUtil {
 		return displayType;
 	}
 
+	public static CompositedIconBuilder getAssignmentRelationIconBuilder(PageBase pageBase, AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
+		if (relationSpec == null){
+			return null;
+		}
+		CompositedIconBuilder builder = new CompositedIconBuilder();
+		String typeIconStyle = "";
+		if (org.apache.commons.collections.CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())){
+			try {
+				String operation = pageBase.getClass().getSimpleName() + "." + "loadArchetypeObject";
+				ArchetypeType archetype = pageBase.getModelObjectResolver().resolve(relationSpec.getArchetypeRefs().get(0), ArchetypeType.class,
+						null, null, pageBase.createSimpleTask(operation),
+						new OperationResult(operation));
+				if (archetype != null && archetype.getArchetypePolicy() != null){
+					DisplayType archetypeDisplayType = archetype.getArchetypePolicy().getDisplay();
+					typeIconStyle = WebComponentUtil.getIconCssClass(archetypeDisplayType);
+				}
+			} catch (Exception ex){
+				LOGGER.error("Couldn't load archetype object, " + ex.getLocalizedMessage());
+			}
+		}
+		QName objectType = org.apache.commons.collections.CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) : null;
+		if (StringUtils.isEmpty(typeIconStyle) && objectType != null){
+			typeIconStyle = WebComponentUtil.createDefaultBlackIcon(objectType);
+		}
+		builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+				.appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
+				.appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
+		if (StringUtils.isNotEmpty(typeIconStyle)){
+			builder.appendLayerIcon(typeIconStyle, IconCssStyle.BOTTOM_LEFT_STYLE);
+		}
+		return builder;
+	}
+
+
 	public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(O object, PageBase pageBase) {
 		if (object != null) {
 			ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
@@ -3357,7 +3393,7 @@ public final class WebComponentUtil {
 	  * @param initialRelationsList
 	 * @return
 	 */
-	public static List<AssignmentObjectRelation> getRelationsDividedList(List<AssignmentObjectRelation> initialRelationsList){
+	public static List<AssignmentObjectRelation> divideAssignmentRelationsByRelationValue(List<AssignmentObjectRelation> initialRelationsList){
 		if (org.apache.commons.collections.CollectionUtils.isEmpty(initialRelationsList)){
 			return initialRelationsList;
 		}
@@ -3381,6 +3417,64 @@ public final class WebComponentUtil {
 			}
 		});
 		return combinedRelationList;
+	}
+
+	/**
+	 * The idea is to divide the list of AssignmentObjectRelation objects in such way that each AssignmentObjectRelation
+	 * in the list will contain not more than 1 relation, not more than 1 object type and not more than one archetype reference.
+	 * This will simplify creating of a new_assignment_button
+	 *
+	 * @param initialAssignmentRelationsList
+	 * @return
+	 */
+	public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(List<AssignmentObjectRelation> initialAssignmentRelationsList){
+		if (initialAssignmentRelationsList == null){
+			return null;
+		}
+		List<AssignmentObjectRelation> dividedByRelationList = divideAssignmentRelationsByRelationValue(initialAssignmentRelationsList);
+		List<AssignmentObjectRelation> resultList = new ArrayList<>();
+		dividedByRelationList.forEach(assignmentObjectRelation -> {
+			if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getObjectTypes())){
+				assignmentObjectRelation.getObjectTypes().forEach(objectType -> {
+					if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())){
+						assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
+							AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
+							newRelation.setObjectTypes(Arrays.asList(objectType));
+							newRelation.setRelations(assignmentObjectRelation.getRelations());
+							newRelation.setArchetypeRefs(Arrays.asList(archetypeRef));
+							newRelation.setDescription(assignmentObjectRelation.getDescription());
+							resultList.add(newRelation);
+						});
+					} else {
+						AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
+						newRelation.setObjectTypes(Arrays.asList(objectType));
+						newRelation.setRelations(assignmentObjectRelation.getRelations());
+						newRelation.setArchetypeRefs(assignmentObjectRelation.getArchetypeRefs());
+						newRelation.setDescription(assignmentObjectRelation.getDescription());
+						resultList.add(newRelation);
+					}
+				});
+			} else {
+				if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())){
+					assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
+						AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
+						newRelation.setObjectTypes(assignmentObjectRelation.getObjectTypes());
+						newRelation.setRelations(assignmentObjectRelation.getRelations());
+						newRelation.setArchetypeRefs(Arrays.asList(archetypeRef));
+						newRelation.setDescription(assignmentObjectRelation.getDescription());
+						resultList.add(newRelation);
+					});
+				} else {
+					AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
+					newRelation.setObjectTypes(assignmentObjectRelation.getObjectTypes());
+					newRelation.setRelations(assignmentObjectRelation.getRelations());
+					newRelation.setArchetypeRefs(assignmentObjectRelation.getArchetypeRefs());
+					newRelation.setDescription(assignmentObjectRelation.getDescription());
+					resultList.add(newRelation);
+				}
+			}
+		});
+		return resultList;
 	}
 
 	public static DisplayType getAssignmentObjectRelationDisplayType(PageBase pageBase, AssignmentObjectRelation assignmentTargetRelation, String defaultTitle){

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
@@ -162,8 +163,13 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 				if (isInducement()){
 					return null;
 				} else {
-					return WebComponentUtil.getRelationsDividedList(loadAssignmentTargetRelationsList());
+					return WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
 				}
+			}
+
+			@Override
+			protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType) {
+				return WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relationSpec, additionalButtonDisplayType);
 			}
 
 			@Override

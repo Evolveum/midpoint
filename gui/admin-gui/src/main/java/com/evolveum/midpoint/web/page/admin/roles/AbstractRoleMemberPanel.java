@@ -28,10 +28,10 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
@@ -92,7 +92,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import org.apache.wicket.model.ResourceModel;
 
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
@@ -222,7 +221,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-				return prepareAssignmentListForMemberCreation();
+				return WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
 			}
 
 			@Override
@@ -244,7 +243,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-				return getAdditionalButtonIconBuilder(relationSpec, additionalButtonDisplayType);
+				return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relationSpec, additionalButtonDisplayType);
 			}
 
             @Override
@@ -260,7 +259,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 					@Override
 					protected List<AssignmentObjectRelation> getAdditionalButtonsObjects() {
-						return WebComponentUtil.getRelationsDividedList(loadMemberRelationsList());
+						return WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
 					}
 
 					@Override
@@ -289,7 +288,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 					@Override
 					protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-						return getAdditionalButtonIconBuilder(relationSpec, additionalButtonDisplayType);
+						return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(),
+								relationSpec, additionalButtonDisplayType);
 					}
 				};
 				assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
@@ -373,89 +373,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	private DisplayType getAssignMemberButtonDisplayType(){
 		return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
 				AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember").getString());
-	}
-
-	private List<AssignmentObjectRelation> prepareAssignmentListForMemberCreation(){
-		List<AssignmentObjectRelation> relationsList = loadMemberRelationsList();
-		if (relationsList == null){
-			return null;
-		}
-		List<AssignmentObjectRelation> dividedByRelationList = WebComponentUtil.getRelationsDividedList(relationsList);
-		List<AssignmentObjectRelation> resultList = new ArrayList<>();
-		dividedByRelationList.forEach(assignmentObjectRelation -> {
-			if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getObjectTypes())){
-				assignmentObjectRelation.getObjectTypes().forEach(objectType -> {
-					if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())){
-						assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
-							AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
-							newRelation.setObjectTypes(Arrays.asList(objectType));
-							newRelation.setRelations(assignmentObjectRelation.getRelations());
-							newRelation.setArchetypeRefs(Arrays.asList(archetypeRef));
-							newRelation.setDescription(assignmentObjectRelation.getDescription());
-							resultList.add(newRelation);
-						});
-					} else {
-						AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
-						newRelation.setObjectTypes(Arrays.asList(objectType));
-						newRelation.setRelations(assignmentObjectRelation.getRelations());
-						newRelation.setArchetypeRefs(assignmentObjectRelation.getArchetypeRefs());
-						newRelation.setDescription(assignmentObjectRelation.getDescription());
-						resultList.add(newRelation);
-					}
-				});
-			} else {
-				if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())){
-					assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
-						AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
-						newRelation.setObjectTypes(assignmentObjectRelation.getObjectTypes());
-						newRelation.setRelations(assignmentObjectRelation.getRelations());
-						newRelation.setArchetypeRefs(Arrays.asList(archetypeRef));
-						newRelation.setDescription(assignmentObjectRelation.getDescription());
-						resultList.add(newRelation);
-					});
-				} else {
-					AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
-					newRelation.setObjectTypes(assignmentObjectRelation.getObjectTypes());
-					newRelation.setRelations(assignmentObjectRelation.getRelations());
-					newRelation.setArchetypeRefs(assignmentObjectRelation.getArchetypeRefs());
-					newRelation.setDescription(assignmentObjectRelation.getDescription());
-					resultList.add(newRelation);
-				}
-			}
-		});
-		return resultList;
-	}
-
-	private CompositedIconBuilder getAdditionalButtonIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-		if (relationSpec == null){
-			return null;
-		}
-		CompositedIconBuilder builder = new CompositedIconBuilder();
-		String typeIconStyle = "";
-		if (CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())){
-			try {
-				ArchetypeType archetype = getPageBase().getModelObjectResolver().resolve(relationSpec.getArchetypeRefs().get(0), ArchetypeType.class,
-						null, null, getPageBase().createSimpleTask(OPERATION_LOAD_ARCHETYPE_OBJECT),
-						new OperationResult(OPERATION_LOAD_ARCHETYPE_OBJECT));
-				if (archetype != null && archetype.getArchetypePolicy() != null){
-					DisplayType archetypeDisplayType = archetype.getArchetypePolicy().getDisplay();
-					typeIconStyle = WebComponentUtil.getIconCssClass(archetypeDisplayType);
-				}
-			} catch (Exception ex){
-				LOGGER.error("Couldn't load archetype object, " + ex.getLocalizedMessage());
-			}
-		}
-		QName objectType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) : null;
-		if (StringUtils.isEmpty(typeIconStyle) && objectType != null){
-			typeIconStyle = WebComponentUtil.createDefaultBlackIcon(objectType);
-		}
-		builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-				.appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-				.appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
-		if (StringUtils.isNotEmpty(typeIconStyle)){
-			builder.appendLayerIcon(typeIconStyle, IconCssStyle.BOTTOM_LEFT_STYLE);
-		}
-		return builder;
 	}
 
 	private List<InlineMenuItem> createRowActions() {
@@ -689,10 +606,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		if (relationSpec != null){
 			try {
 				List<ObjectReferenceType> newReferences = new ArrayList<>();
-				if (CollectionUtils.isNotEmpty(relationSpec.getRelations())){
-					ObjectReferenceType memberRef = ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relationSpec.getRelations().get(0));
-					newReferences.add(memberRef);
+				if (CollectionUtils.isEmpty(relationSpec.getRelations())){
+					relationSpec.setRelations(Arrays.asList(RelationTypes.MEMBER.getRelation()));
 				}
+				ObjectReferenceType memberRef = ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relationSpec.getRelations().get(0));
+				newReferences.add(memberRef);
 				if (CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())) {
 					newReferences.add(relationSpec.getArchetypeRefs().get(0));
 				}
