@@ -159,7 +159,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-				return WebComponentUtil.getRelationsDividedList(loadAssignmentTargetRelationsList());
+				if (isInducement()){
+					return null;
+				} else {
+					return WebComponentUtil.getRelationsDividedList(loadAssignmentTargetRelationsList());
+				}
 			}
 
 			@Override
