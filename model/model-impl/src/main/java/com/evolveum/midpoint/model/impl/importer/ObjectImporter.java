@@ -396,8 +396,13 @@ public class ObjectImporter {
 		}
 
 		modelService.executeChanges(deltas, modelOptions, task, parentResult);
+		String oidOfAddedObject = deltas.iterator().next().getOid();
+		
+		if (isTrue(importOptions.isFetchResourceSchema()) && object.canRepresent(ResourceType.COMPLEX_TYPE)) {
+			modelService.testResource(oidOfAddedObject, task);
+		}
 
-		return deltas.iterator().next().getOid();
+		return oidOfAddedObject;
     }
 
     /**
