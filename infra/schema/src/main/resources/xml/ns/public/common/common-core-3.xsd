@@ -17218,6 +17218,23 @@
 						</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
+           		<xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	<p>
+	                                The content of this property specifies an order in which the user interface
+	                                feature should be displayed relative to other similar features that are displayed
+	                                together. E.g. this may be used to order views in the menu, widgets on the dashboard
+	                                and so on. These items that do not have any displayOrder definition
+	                                will be displayed last. Items with the same displayOrder
+	                                are displayed in alphabetic order.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
            	</xsd:sequence>	
     </xsd:complexType>
     
@@ -22570,23 +22587,6 @@
 	       					</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
-                    <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    The content of this property specifies an order of collection views displayed
-                                    in the left menu. Collection views will be displayed by sorting them by the values of displayOrder
-                                    property (ascending). These that do not have any displayOrder annotation
-                                    will be displayed last and sorted in alphabetic order. Collection views with the same displayOrder
-                                    are displayed in alphabetic order.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>OrgType.displayOrder</a:displayName>
-                                <a:displayOrder>300</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
 	           	</xsd:sequence>
          	</xsd:extension>
        	</xsd:complexContent>
