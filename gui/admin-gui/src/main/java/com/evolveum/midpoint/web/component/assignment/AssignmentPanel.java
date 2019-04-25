@@ -176,14 +176,13 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			protected DisplayType getNewObjectButtonDisplayType() {
 				return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
 						AssignmentPanel.this.createStringResource(isInducement() ?
-								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle").getString());
+								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
 			}
 
 			@Override
 			protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
 				return WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), assignmentTargetRelation,
-						AssignmentPanel.this.createStringResource(isInducement() ?
-								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle").getString());
+						isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
 			}
 
 			@Override

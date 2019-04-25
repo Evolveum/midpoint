@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.schema.constants;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import org.jetbrains.annotations.NotNull;
@@ -91,5 +92,14 @@ public enum RelationTypes {
 
     public String getDefaultIconStyle() {
         return defaultIconStyle;
+    }
+
+    public static RelationTypes getRelationTypeByRelationValue(QName relation){
+        for (RelationTypes relationType : values()) {
+            if (relationType.getRelation().equals(relation)) {
+                return relationType;
+            }
+        }
+        return null;
     }
 }
