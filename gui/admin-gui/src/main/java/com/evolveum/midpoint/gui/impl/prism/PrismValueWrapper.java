@@ -39,5 +39,5 @@ public interface PrismValueWrapper<T, V extends PrismValue> extends Serializable
 	V getNewValue();
 	<IW extends ItemWrapper> IW getParent();
 	
-	<D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDetla(D delta);
+	<D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta);
 }

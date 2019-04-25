@@ -37,26 +37,5 @@ public class ItemRealValueModel<T> extends PropertyModel<T>{
 		super(modelObject, "realValue");
 	}
 	
-//	@Override
-//	public T getObject() {
-//		if (!isProperty && modelObject instanceof ValueWrapper && ((ValueWrapper)modelObject).getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
-//			PrismReferenceValue refValue = (PrismReferenceValue) ((ValueWrapper)modelObject).getValue();
-//			if (refValue == null) {
-//				return null;
-//			}
-//			return (T) refValue.asReferencable();
-//		}
-//		
-//		return super.getObject();
-//	}
 	
-//	@Override
-//	public void setObject(T object) {
-//		if (modelObject.getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
-//			modelObject.setValue(((Referencable) object).asReferenceValue()); 
-//			return;
-//		}
-//		
-//		super.setObject(object);
-//	}
 }

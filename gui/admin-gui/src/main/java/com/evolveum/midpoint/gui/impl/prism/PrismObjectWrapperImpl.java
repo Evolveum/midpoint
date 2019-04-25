@@ -16,9 +16,12 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -34,8 +37,21 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 	}
 	
 	@Override
-	public ObjectDelta<O> getObjectDelta() {
-		return null;
+	public ObjectDelta<O> getObjectDelta() throws SchemaException {
+		ObjectDelta<O> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass()).asObjectDelta(getObject().getOid());
+		for (ItemWrapper<?, ?, ?, ?> itemWrapper : getValue().getItems()) {
+			ItemDelta delta = itemWrapper.getDelta();
+			if (delta == null) {
+				continue;
+			}
+			objectDelta.addModification(delta);
+		}
+		
+		if (objectDelta.isEmpty()) {
+			return null;
+		}
+		
+		return objectDelta;
 	}
 	
 	@Override

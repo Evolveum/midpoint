@@ -46,15 +46,34 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 	}
 	
 	@Override
-	public <D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDetla(D delta) {
+	public <D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta) {
 		switch (status) {
 			case ADDED:
-				delta.addValueToAdd(newValue);
+				if (newValue.isEmpty()) {
+					break;
+				}
+				if (parent.isSingleValue()) {
+					delta.addValueToReplace((V) newValue.clone());
+				} else {
+					delta.addValueToAdd((V) newValue.clone());
+				}
 				break;
 			case NOT_CHANGED:
-				if (isChanged()) {
-					
+				if (!isChanged()) {
+					break;
 				}
+				
+				if (parent.isSingleValue()) {
+					delta.addValueToReplace((V) newValue.clone());
+					break;
+				}
+				
+				delta.addValueToAdd((V) newValue.clone());
+				delta.addValueToDelete((V) oldValue.clone());
+				break;
+			case DELETED:
+				delta.addValueToDelete((V) oldValue.clone());
+				break;
 			default:
 				break;
 		}

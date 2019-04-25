@@ -23,4 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface PrismObjectValueWrapper<O extends ObjectType> extends PrismContainerValueWrapper<O> {
 
+	
+	
 }

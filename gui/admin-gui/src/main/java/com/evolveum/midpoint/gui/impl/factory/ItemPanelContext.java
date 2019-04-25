@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
-public abstract class ItemPanelContext<T, IW extends ItemWrapper> {
+public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Serializable {
 
 	private String componentId;
 	

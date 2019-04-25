@@ -199,8 +199,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	
 	@Override
 	public boolean isEmpty() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItem().isEmpty();
 	}
 
 	@Override

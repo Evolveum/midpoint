@@ -103,11 +103,29 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	protected <D extends ItemDelta<PV, ID>, O extends ObjectType> D getItemDelta(Class<O> objectClass, Class<D> deltaClass) throws SchemaException {
-		D delta = (D) getPrismContext().deltaFor(objectClass).asItemDelta();
+//		D delta = (D) getPrismContext().deltaFor(objectClass).asItemDelta();
+		D delta = (D) createEmptyDelta(getPath());
 		for (VW value : values) {
-//			value.addToDelta(delta);
+			value.addToDelta(delta);
 		}
-		return null;
+		
+		if (delta.isEmpty()) {
+			return null;
+		}
+		return delta;
+	}
+	
+	@Override
+	public <D extends ItemDelta<PV, ID>> D getDelta() {
+		D delta = (D) createEmptyDelta(getPath());
+		for (VW value : values) {
+			value.addToDelta(delta);
+		}
+		
+		if (delta.isEmpty()) {
+			return null;
+		}
+		return delta;
 	}
 	
 	@Override
@@ -419,7 +437,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 			return def.canRead();
 		}
 		
-		return def.canRead() && def.isEmphasized();
+		return def.canRead() && (def.isEmphasized() || !newItem.isEmpty());
 	}
 	
 	private boolean isVisibleForAdd(ID def) {

@@ -103,6 +103,6 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
 
 	@Override
 	public LookupTableType getPredefinedValues() {
-		return getPredefinedValues();
+		return predefinedValues;
 	}
 }

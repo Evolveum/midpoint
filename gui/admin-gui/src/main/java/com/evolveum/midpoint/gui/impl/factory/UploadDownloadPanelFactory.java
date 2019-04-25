@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.impl.factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
 
@@ -38,11 +39,11 @@ import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
  *
  */
 @Component
-public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T> {
+public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T> implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 
-	@Autowired GuiComponentRegistry registry;
+	@Autowired private transient GuiComponentRegistry registry;
 	
 	@PostConstruct
 	public void register() {
