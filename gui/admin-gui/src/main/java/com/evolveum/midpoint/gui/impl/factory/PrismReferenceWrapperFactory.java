@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferencePanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -36,7 +37,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  *
  */
 @Component
-public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWrapperFactoryImpl<PrismReferenceWrapper<R>, PrismReferenceValue, PrismReference, PrismReferenceValueWrapper<R>>{
+public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWrapperFactoryImpl<PrismReferenceWrapper<R>, PrismReferenceValue, PrismReference, PrismReferenceValueWrapperImpl<R>>{
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {
@@ -65,16 +66,16 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
 	protected PrismReferenceWrapper<R> createWrapper(PrismContainerValueWrapper<?> parent, PrismReference item,
 			ItemStatus status) {
 		PrismReferenceWrapperImpl<R> wrapper = new PrismReferenceWrapperImpl<>(parent, item, status);
-		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
+		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismReferencePanel.class);
 		return wrapper;
 	}
 	
 
 	@Override
-	public PrismReferenceValueWrapper<R> createValueWrapper(PrismReferenceWrapper<R> parent, PrismReferenceValue value, ValueStatus status,
+	public PrismReferenceValueWrapperImpl<R> createValueWrapper(PrismReferenceWrapper<R> parent, PrismReferenceValue value, ValueStatus status,
 			WrapperContext context) throws SchemaException {
 			
-		PrismReferenceValueWrapper<R> refValue = new PrismReferenceValueWrapper<>(parent, value, status);
+		PrismReferenceValueWrapperImpl<R> refValue = new PrismReferenceValueWrapperImpl<>(parent, value, status);
 		return refValue;
 	}
 

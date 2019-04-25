@@ -15,10 +15,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
-import java.util.List;
-
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,17 +29,12 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 
 	private static final long serialVersionUID = 1L;
 	
-//	private PrismObject<O> prismObjectNew;
-//	private PrismObject<O> prismObjectOld;
-//	
 	public PrismObjectWrapperImpl(PrismObject<O> item, ItemStatus status) {
 		super(null, item, status);
-		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
 	public ObjectDelta<O> getObjectDelta() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	
@@ -57,14 +49,6 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 		return (PrismObject<O>) getItem();
 	}
 
-//	/* (non-Javadoc)
-//	 * @see com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper#getContainers()
-//	 */
-//	@Override
-//	public List<PrismContainerWrapper<?>> getContainers() {
-//		return getCon
-//	}
-	
 	@Override
 	public PrismObjectValueWrapper<O> getValue() {
 		return (PrismObjectValueWrapper<O>) getValues().iterator().next();

@@ -60,8 +60,14 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 		
 		PrismContainerPanelContext<C> panelCtx = new PrismContainerPanelContext<>(getModel());
 		Panel panel = componentFactory.createPanel(panelCtx);
+		panel.setOutputMarkupId(true);
 		item.add(panel);
 		 
+	}
+	
+	@Override
+	protected void createButtons(ListItem<PrismContainerValueWrapper<C>> item) {
+		//nothing to do.. buttons are in the prism container panel header/ prism container value header
 	}
 
 }

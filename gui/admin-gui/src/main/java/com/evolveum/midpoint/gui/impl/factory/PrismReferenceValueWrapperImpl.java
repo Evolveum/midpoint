@@ -27,13 +27,13 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class PrismReferenceValueWrapper<T extends Referencable> extends PrismValueWrapperImpl<T, PrismReferenceValue> {
+public class PrismReferenceValueWrapperImpl<T extends Referencable> extends PrismValueWrapperImpl<T, PrismReferenceValue> {
 	
 	private static final long serialVersionUID = 1L;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapper.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapperImpl.class);
 
-	public PrismReferenceValueWrapper(ItemWrapper<?, ?, ?, ?> parent, PrismReferenceValue value, ValueStatus status) {
+	public PrismReferenceValueWrapperImpl(ItemWrapper<?, ?, ?, ?> parent, PrismReferenceValue value, ValueStatus status) {
 		super(parent, value, status);
 	}
 
@@ -41,6 +41,7 @@ public class PrismReferenceValueWrapper<T extends Referencable> extends PrismVal
 	public void setRealValue(T realValue) {
 		LOGGER.trace("Nothing to do");
 	}
+	
 	
 
 }

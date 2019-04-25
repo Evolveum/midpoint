@@ -40,6 +40,7 @@ public class PrismObjectValuePanel<O extends ObjectType> extends BasePanel<Prism
 	protected void onInitialize() {
 		super.onInitialize();
 		initLayout();
+		setOutputMarkupId(true);
 	}
 	
 	private void initLayout() {
@@ -57,6 +58,7 @@ public class PrismObjectValuePanel<O extends ObjectType> extends BasePanel<Prism
 	protected void createValuePanel(String panelId, IModel<PrismObjectValueWrapper<O>> valueModel) {
 		
 		PrismContainerValuePanel<O, PrismObjectValueWrapper<O>> valueWrapper = new PrismContainerValuePanel<>(panelId, valueModel);
+		valueWrapper.setOutputMarkupId(true);
 		add(valueWrapper);
 		
 	}

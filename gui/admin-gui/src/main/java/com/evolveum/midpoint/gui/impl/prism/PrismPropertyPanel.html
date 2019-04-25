@@ -19,10 +19,13 @@
 <wicket:panel>
     <div class="col-md-2 col-xs-12 prism-property-label " wicket:id="header"/>
     <div class="col-md-10 col-xs-12 prism-property-value" wicket:id="values">
-        <div wicket:id="valueContainer" class="row">
-        	<form wicket:id="form">
-	        <div wicket:id="input" class="col-xs-10"/>
-		</form>
+       <div class="row">
+        	<div class="col-xs-10" wicket:id="valueContainer">
+	        	<form wicket:id="form">
+		        	<div wicket:id="input" class="col-xs-10"/>
+		        </form>
+		    </div>
+		
 	        <div wicket:id="buttonContainer" class="col-xs-2">
 	            <span class="btn-group">
 	                <!-- <a class="btn btn-danger btn-sm" wicket:id="removeButton"><i class="glyphicon glyphicon-minus"/></a>

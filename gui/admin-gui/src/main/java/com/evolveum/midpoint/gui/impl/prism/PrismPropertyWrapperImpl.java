@@ -39,132 +39,70 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
 
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * @param parent
-	 * @param item
-	 * @param status
-	 * @param fullPath
-	 * @param prismContext
-	 */
+	private LookupTableType predefinedValues;
+
 	public PrismPropertyWrapperImpl(PrismContainerValueWrapper<?> parent, PrismProperty<T> item, ItemStatus status) {
 		super(parent, item, status);
-		// TODO Auto-generated constructor stub
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#isStripe()
-	 */
-	@Override
-	public boolean isStripe() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismPropertyDefinition#getAllowedValues()
-	 */
+//	public PropertyDelta<T> getDelta() {
+//		
+//	}
+	
 	@Override
 	public Collection<? extends DisplayableValue<T>> getAllowedValues() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getAllowedValues();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismPropertyDefinition#defaultValue()
-	 */
 	@Override
 	public T defaultValue() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().defaultValue();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismPropertyDefinition#getValueType()
-	 */
 	@Override
+	@Deprecated
 	public QName getValueType() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getValueType();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismPropertyDefinition#isIndexed()
-	 */
 	@Override
 	public Boolean isIndexed() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().isIndexed();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismPropertyDefinition#getMatchingRuleQName()
-	 */
 	@Override
 	public QName getMatchingRuleQName() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getMatchingRuleQName();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismPropertyDefinition#createEmptyDelta(com.evolveum.midpoint.prism.path.ItemPath)
-	 */
+	
 	@Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().createEmptyDelta(path);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismPropertyDefinition#clone()
-	 */
 	@Override
 	public PrismPropertyDefinition<T> clone() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().clone();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismPropertyDefinition#toMutable()
-	 */
 	@Override
 	public MutablePrismPropertyDefinition<T> toMutable() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().toMutable();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.ItemWrapperImpl#instantiate()
-	 */
 	@Override
 	public PrismProperty<T> instantiate() {
-		return null;
+		return getItemDefinition().instantiate();
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.ItemWrapperImpl#instantiate(javax.xml.namespace.QName)
-	 */
 	@Override
 	public PrismProperty<T> instantiate(QName name) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().instantiate(name);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper#getPredefinedValues()
-	 */
 	@Override
 	public LookupTableType getPredefinedValues() {
-		// TODO Auto-generated method stub
-		return null;
+		return getPredefinedValues();
 	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#setReadOnly()
-	 */
-	@Override
-	public void setReadOnly() {
-		// TODO Auto-generated method stub
-		
-	}	
-
 }

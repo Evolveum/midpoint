@@ -17,6 +17,10 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.List;
 
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -31,6 +35,10 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author katka
@@ -40,8 +48,15 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
 	private static final long serialVersionUID = 1L;
 	
+	private static final Trace LOGGER = TraceManager.getTrace(ItemPanel.class);
+	
 	private static final String ID_HEADER = "header";
 	private static final String ID_VALUES = "values";
+	
+	private static final String ID_ADD_BUTTON = "addButton";
+	private static final String ID_REMOVE_BUTTON = "removeButton";
+	private static final String ID_BUTTON_CONTAINER = "buttonContainer";
+	
 	
 	public ItemPanel(String id, IModel<IW> model) {
 		super(id, model);
@@ -51,6 +66,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	protected void onInitialize() {
 		super.onInitialize();
 		initLayout();
+		setOutputMarkupId(true);
 	}
 	
 	private void initLayout() {
@@ -76,6 +92,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 				 GuiComponentFactory componentFactory = getPageBase().getRegistry().findValuePanelFactory(ItemPanel.this.getModelObject());
 				 
 				 createValuePanel(item, componentFactory);
+				 createButtons(item);
 			}
 		 
 		 };
@@ -98,5 +115,113 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
 
 	 protected abstract void createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory);
+	 
+	 protected void createButtons(ListItem<VW> item) {
+		 WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
+			buttonContainer.add(new AttributeModifier("class", getButtonsCssClass()));
+			
+			item.add(buttonContainer);
+			// buttons
+			AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					addValue(target);
+				}
+			};
+			addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
+			buttonContainer.add(addButton);
+
+			AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					removeValue(item.getModelObject(), target);
+				}
+			};
+			removeButton.add(new VisibleBehaviour(() -> isRemoveButtonVisible()));
+			buttonContainer.add(removeButton);
+	    	
+
+	        item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+
+	        item.add(new VisibleBehaviour(() -> isVisibleValue(item.getModel())));
+	 }
+	 
+	 
+	 protected String getButtonsCssClass() {
+	        return"col-xs-2";
+	    }
+	 
+	  protected IModel<String> createStyleClassModel(final IModel<VW> value) {
+	        return new IModel<String>() {
+	        	private static final long serialVersionUID = 1L;
+
+	            @Override
+	            public String getObject() {
+	                if (getIndexOfValue(value.getObject()) > 0) {
+	                    return getItemCssClass();
+	                }
+
+	                return null;
+	            }
+	        };
+	    }
+	 
+	  private int getIndexOfValue(VW value) {
+	        IW property = (IW) value.getParent();
+	        List<VW> values = property.getValues();
+	        for (int i = 0; i < values.size(); i++) {
+	            if (values.get(i).equals(value)) {
+	                return i;
+	            }
+	        }
+
+	        return -1;
+	    }
+	  
+	  protected String getItemCssClass() {
+	    	return " col-md-offset-2 prism-value ";
+	    }
+	  
+	 private void addValue(AjaxRequestTarget target) {
+			IW propertyWrapper = getModel().getObject();
+			LOGGER.debug("Adding value of {}", propertyWrapper);
+			target.add(ItemPanel.this);
+		}
+		
+		private void removeValue(VW valueToRemove, AjaxRequestTarget target) {
+			
+			IW itemWrapper = getModel().getObject();
+//			try {
+//				itemWrapper.removeValue(valueToRemove);
+//			} catch (SchemaException e) {
+//				error("Failed to remove value.");
+//			}
+			
+			LOGGER.debug("Removing value of {}", itemWrapper);
+
+			target.add(ItemPanel.this);
+		}
+		
+		private boolean isAddButtonVisible() {
+			return getModelObject().isMultiValue();
+		}
+
+
+		
+		private boolean isRemoveButtonVisible() {
+			return !getModelObject().isReadOnly();
+				
+		}
+		 
+	 
+	  private boolean isVisibleValue(IModel<VW> model) {
+	        VW value = model.getObject();
+	        return !ValueStatus.DELETED.equals(value.getStatus());
+	    }
+	  
 	 
 }

@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
@@ -111,9 +112,9 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 	private void createHelpText(WebMarkupContainer labelContainer) {
 		
 		Label help = new Label(ID_HELP);
-        help.add(AttributeModifier.replace("title", LambdaModel.of(getModel(), IW::getHelp)));
+        help.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "help")));
         help.add(new InfoTooltipBehavior());
-        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getHelp())));
+        help.add(new VisibleBehaviour(() -> getModelObject() != null && StringUtils.isNotEmpty(getModelObject().getHelp())));
         labelContainer.add(help);
 	}
 	
@@ -131,7 +132,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         	
         	
         });
-        experimental.add(new VisibleBehaviour(() -> getModelObject().isExperimental()));
+        experimental.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isExperimental()));
         labelContainer.add(experimental);
 
 	}
@@ -150,13 +151,13 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         	
         	
         });
-        deprecated.add(new VisibleBehaviour(() -> getModelObject().isDeprecated()));
+        deprecated.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isDeprecated()));
         labelContainer.add(deprecated);
 	}
 	
 	private void createRequeired(WebMarkupContainer labelContainer) {
 		WebMarkupContainer required = new WebMarkupContainer(ID_REQUIRED);
-		required.add(new VisibleBehaviour(() -> getModelObject().isMandatory()));
+		required.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isMandatory()));
 		labelContainer.add(required);
 	}
 	
@@ -223,7 +224,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 //	    }
 	
 	public IModel<String> getDeprecatedCss() {
-		return () -> getModelObject().isDeprecated() ? "text-decoration: line-through;" : "text-decoration: none;";
+		return () -> getModelObject() != null && getModelObject().isDeprecated() ? "text-decoration: line-through;" : "text-decoration: none;";
 	}
 	
 	

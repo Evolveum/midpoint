@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
  * @author katka
  *
  */
-public interface PrismReferenceWrapper<R extends Referencable> extends ItemWrapper<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceValueWrapper<R>>, PrismReferenceDefinition {
+public interface PrismReferenceWrapper<R extends Referencable> extends ItemWrapper<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceValueWrapperImpl<R>>, PrismReferenceDefinition {
 
 	ObjectFilter getFilter();
 	List<QName> getTargetTypes();

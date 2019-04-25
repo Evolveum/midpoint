@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *            common superclass for all the options of objects that this panel
  *            should choose
  */
-public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectReferenceType> {
+public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -70,7 +70,7 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_EDIT = "edit";
 	
-	public ValueChoosePanel(String id, IModel<ObjectReferenceType> value) {
+	public ValueChoosePanel(String id, IModel<R> value) {
 		super(id, value);
 		setOutputMarkupId(true);		
 	}
@@ -129,7 +129,7 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 
 	protected void replaceIfEmpty(ObjectType object) {
 		ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext());
-		getModel().setObject(ort);
+		getModel().setObject((R) ort);
 
 	}
 
@@ -178,14 +178,14 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 	}
 
 	protected IModel<String> createTextModel() {
-		final IModel<ObjectReferenceType> model = getModel();
+		final IModel<R> model = getModel();
 		return new IModel<String>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
-				Referencable prv = (Referencable) model.getObject();
+				R prv = model.getObject();
 
 //				if (ort instanceof PrismReferenceValue) {
 //					PrismReferenceValue prv = (PrismReferenceValue) ort;
@@ -243,7 +243,7 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 		};
 	}
 
-	protected void editValuePerformed(AjaxRequestTarget target) {
+	protected <O extends ObjectType> void editValuePerformed(AjaxRequestTarget target) {
 		List<QName> supportedTypes = getSupportedTypes();
 		ObjectFilter filter = createChooseQuery() == null ? null
 				: createChooseQuery().getFilter();
@@ -272,7 +272,7 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 		return WebComponentUtil.createObjectTypeList();
 	}
 
-	protected Class<O> getDefaultType(List<QName> supportedTypes){
+	protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes){
 		return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
 	}
 
@@ -282,7 +282,7 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 	 * selected values array This is a temporary solution until we well be able
 	 * to create "already-chosen" query
 	 */
-	protected void choosePerformed(AjaxRequestTarget target, O object) {
+	protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
 		choosePerformedHook(target, object);
 
 		if (isObjectUnique(object)) {
@@ -302,7 +302,7 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
     protected void initButtons() {
     }
 
-    protected boolean isObjectUnique(O object) {
+    protected <O extends ObjectType> boolean isObjectUnique(O object) {
 
 		Referencable old = getModelObject();
 //		if (modelObject instanceof PrismReferenceValue) {
@@ -329,7 +329,7 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 	 * A custom code in form of hook that can be run on event of choosing new
 	 * object with this chooser component
 	 */
-	protected void choosePerformedHook(AjaxRequestTarget target, O object) {
+	protected <O extends ObjectType> void choosePerformedHook(AjaxRequestTarget target, O object) {
 	}
 
 }

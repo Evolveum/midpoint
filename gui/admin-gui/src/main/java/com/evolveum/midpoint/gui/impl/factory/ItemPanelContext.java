@@ -106,7 +106,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> {
 		return feedbackPanel;
 	}
 	
-	public <V extends PrismValue> void setRealValueModel(IModel<PrismValueWrapper<T, V>> valueWrapper) {
+	public <V extends PrismValue> void setRealValueModel(IModel<? extends PrismValueWrapper<T, V>> valueWrapper) {
 		this.realValueModel = new ItemRealValueModel<T>(valueWrapper);
 	}
 	

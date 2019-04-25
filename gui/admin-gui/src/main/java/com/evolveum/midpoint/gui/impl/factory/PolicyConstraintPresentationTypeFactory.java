@@ -30,6 +30,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
@@ -77,7 +78,7 @@ public class PolicyConstraintPresentationTypeFactory<C extends Containerable> im
 		}
 		
 		PrismContainerWrapper<C> itemWrapper = new PrismContainerWrapperImpl<C>(parent, childItem, status);
-		registry.registerWrapperPanel(childItem.getDefinition().getTypeName(), PrismPropertyPanel.class);
+		registry.registerWrapperPanel(childItem.getDefinition().getTypeName(), PrismContainerPanel.class);
 		
 		List<PrismContainerValueWrapper<C>> valueWrappers  = createValuesWrapper(itemWrapper, childItem, context);
 		LOGGER.trace("valueWrappers {}", itemWrapper.getValues());

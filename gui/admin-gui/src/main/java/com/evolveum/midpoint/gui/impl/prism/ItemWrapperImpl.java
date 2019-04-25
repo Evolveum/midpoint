@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author katka
@@ -80,6 +82,10 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	
 	private boolean column;
 	
+	private boolean stripe;
+	
+	private boolean showEmpty;
+	
 	
 	//consider
 	private boolean readOnly;
@@ -94,6 +100,14 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		this.status = status;
 //		this.readonly = readonly;
 		
+	}
+	
+	protected <D extends ItemDelta<PV, ID>, O extends ObjectType> D getItemDelta(Class<O> objectClass, Class<D> deltaClass) throws SchemaException {
+		D delta = (D) getPrismContext().deltaFor(objectClass).asItemDelta();
+		for (VW value : values) {
+//			value.addToDelta(delta);
+		}
+		return null;
 	}
 	
 	@Override
@@ -150,17 +164,6 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	public boolean isColumn() {
 		return column;
 	}
-	
-//	@Override
-//	public boolean hasOutboundMapping() {
-//		ID def = getItemDefinition();
-//		
-//		if (def instanceof RefinedAttributeDefinition) {
-//			return ((RefinedAttributeDefinition) def).hasOutboundMapping();
-//		}
-//		
-//		return false;
-//	}
 	
 	public PrismContainerValueWrapper<?> getParent() {
 		return parent;
@@ -266,6 +269,28 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 
 
+	private <IW extends ItemWrapper> ItemStatus findObjectStatus() {
+		if (parent == null) {
+			return status;
+		}
+		
+		IW parentWrapper = parent.getParent();
+		
+		return findObjectStatus(parentWrapper);
+	}
+	
+	private <IW extends ItemWrapper> ItemStatus findObjectStatus(IW parent) {
+		if (parent != null) {
+			if (parent instanceof PrismObjectWrapper) {
+				return ((PrismObjectWrapper) parent).getStatus();
+			}
+			if (parent.getParent() != null) {
+				return findObjectStatus(parent.getParent().getParent());
+			}
+		} 
+		return status;
+		
+	}
 
 	
 	@Override
@@ -342,26 +367,14 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return newItem.getDefinition().isMandatory();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#getParent()
-	 */
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#isShowEmpty()
-	 */
 	@Override
 	public boolean isShowEmpty() {
-		// TODO Auto-generated method stub
-		return false;
+		return showEmpty;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#setShowEmpty(boolean, boolean)
-	 */
 	@Override
 	public void setShowEmpty(boolean isShowEmpty, boolean recursive) {
-		// TODO Auto-generated method stub
-		
+		this.showEmpty = isShowEmpty;
 	}
 	
 //	protected boolean isVisible(ItemVisibilityHandler visibilityHandler) {
@@ -384,12 +397,16 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	@Override
 	public boolean isVisible() {
 		
+		if (!getParent().isExpanded()) {
+			return false;
+		}
+		
 		ID def = getItemDefinition();
-		switch (getItemStatus()) {
+		switch (findObjectStatus()) {
 			case NOT_CHANGED:
-				return isNotEmptyAndCanReadAndModify(def) || showEmptyCanReadAndModify(def);
+				return isVisibleForModify(def);
 			case ADDED:
-				return emphasizedAndCanAdd(def) || showEmptyAndCanAdd(def);
+				return isVisibleForAdd(def);
 			case DELETED:
 				return false;
 		}
@@ -397,21 +414,33 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return false;
 	}
 	
-	private boolean isNotEmptyAndCanReadAndModify(ID def) {
-		return def.canRead(); // && def.canModify();
+	private boolean isVisibleForModify(ID def) {
+		if (parent.isShowEmpty()) {
+			return def.canRead();
+		}
+		
+		return def.canRead() && def.isEmphasized();
+	}
+	
+	private boolean isVisibleForAdd(ID def) {
+		if (parent.isShowEmpty()) {
+			return def.canAdd();
+		}
+		
+		return def.isEmphasized() && def.canAdd();
 	}
 
-	private boolean showEmptyCanReadAndModify(ID def) {
-		return def.canRead() && isShowEmpty();// && def.canModify() && isShowEmpty();
-	}
-
-	private boolean showEmptyAndCanAdd(ID def) {
-		return def.canAdd() && isShowEmpty();
-	}
-
-	private boolean emphasizedAndCanAdd(ID def) {
-		return def.canAdd() && def.isEmphasized();
-	}
+//	private boolean showEmptyCanReadAndModify(ID def) {
+//		return def.canRead() && isShowEmpty();// && def.canModify() && isShowEmpty();
+//	}
+//
+//	private boolean showEmptyAndCanAdd(ID def) {
+//		return def.canAdd() && isShowEmpty();
+//	}
+//
+//	private boolean emphasizedAndCanAdd(ID def) {
+//		return def.canAdd() && def.isEmphasized();
+//	}
 	
 	ItemStatus getItemStatus() {
 		return status;
@@ -665,8 +694,12 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
 	@Override
 	public boolean isStripe() {
-		// TODO Auto-generated method stub
-		return false;
+		return stripe;
+	}
+	
+	@Override
+	public void setStripe(boolean stripe) {
+		this.stripe = stripe;
 	}
 	
 }

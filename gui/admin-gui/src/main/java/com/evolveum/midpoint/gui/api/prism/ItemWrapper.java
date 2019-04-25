@@ -66,6 +66,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	List<VW> getValues();
 	
 	boolean isStripe();
+	void setStripe(boolean stripe);
 	
 	I getItem();
 	

@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintPresentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author katka
@@ -90,11 +91,17 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
 		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status);
+		containerValueWrapper.setExpanded(!value.isEmpty());
+		
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
 		for (ItemDefinition<?> def : parent.getDefinitions()) {
 			
 			if (def.isOperational()) {
+				continue;
+			}
+			
+			if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
 				continue;
 			}
 			
@@ -106,6 +113,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		}
 		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
+		containerValueWrapper.sort();
 		return containerValueWrapper;
 	}
 

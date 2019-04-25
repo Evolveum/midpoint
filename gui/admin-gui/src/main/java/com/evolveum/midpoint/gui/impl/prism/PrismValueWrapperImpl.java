@@ -16,7 +16,10 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
@@ -40,6 +43,25 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 		this.newValue = value;
 		this.oldValue = (V) value.clone();
 		this.status = status;
+	}
+	
+	@Override
+	public <D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDetla(D delta) {
+		switch (status) {
+			case ADDED:
+				delta.addValueToAdd(newValue);
+				break;
+			case NOT_CHANGED:
+				if (isChanged()) {
+					
+				}
+			default:
+				break;
+		}
+	}
+	
+	private boolean isChanged() {
+		return !oldValue.equals(newValue, EquivalenceStrategy.REAL_VALUE);
 	}
 	
 	@Override

@@ -15,29 +15,41 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferencePanelContext;
-import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapper;
+import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * @author katka
  *
  */
-public class PrismReferencePanel<R extends Referencable> extends ItemPanel<PrismReferenceValueWrapper<R>, PrismReferenceWrapper<R>>{
+public class PrismReferencePanel<R extends Referencable> extends ItemPanel<PrismReferenceValueWrapperImpl<R>, PrismReferenceWrapper<R>>{
 
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_HEADER = "header";
+	private static final String ID_VALUE = "value";
+	private static final String ID_FEEDBACK = "feedback";
 
 	public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model) {
 		super(id, model);
@@ -49,15 +61,62 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 	}
 
 	@Override
-	protected void createValuePanel(ListItem<PrismReferenceValueWrapper<R>> item, GuiComponentFactory componentFactory) {
-		
-		PrismReferencePanelContext<?> panelCtx = new PrismReferencePanelContext<>(getModel());
-		panelCtx.setComponentId("value");
-		panelCtx.setParentComponent(this);
-		panelCtx.setRealValueModel((IModel)item.getModel());
-		
-		Panel panel = componentFactory.createPanel(panelCtx);
-		item.add(panel);
+	protected void createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory) {
+		if (componentFactory != null) {
+			PrismReferencePanelContext<?> panelCtx = new PrismReferencePanelContext<>(getModel());
+			panelCtx.setComponentId(ID_VALUE);
+			panelCtx.setParentComponent(this);
+			panelCtx.setRealValueModel((IModel)item.getModel());
+			
+			Panel panel = componentFactory.createPanel(panelCtx);
+			item.add(panel);
+		} else {
+			FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+			feedback.setOutputMarkupId(true);
+			item.add(feedback);
+			ValueChoosePanel<R> panel = new ValueChoosePanel<R>(ID_VALUE, new ItemRealValueModel<>(item.getModel())) {
+
+				private static final long serialVersionUID = 1L;
+				
+				@Override
+				protected ObjectFilter createCustomFilter() {
+					return PrismReferencePanel.this.getModelObject().getFilter();
+				}
+
+				@Override
+				protected boolean isEditButtonEnabled() {
+					if (getModel() == null) {
+						return true;
+					}
+					
+					//TODO only is association
+					return getModelObject() == null;
+					
+				}
+
+				@Override
+				public List<QName> getSupportedTypes() {
+					List<QName> targetTypeList = PrismReferencePanel.this.getModelObject().getTargetTypes();
+					if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
+						return Arrays.asList(ObjectType.COMPLEX_TYPE);
+					}
+					return targetTypeList;
+				}
+
+				@Override
+				protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
+					if (AbstractRoleType.COMPLEX_TYPE.equals(PrismReferencePanel.this.getModelObject().getTargetTypeName())) {
+						return (Class<O>) RoleType.class;
+					} else {
+						return super.getDefaultType(supportedTypes);
+					}
+				}
+
+			};
+			
+			feedback.setFilter(new ComponentFeedbackMessageFilter(panel));
+			item.add(panel);
+		}
 	}
 
 }

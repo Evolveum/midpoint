@@ -62,9 +62,8 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		
 		
 		List<VW> valueWrappers  = createValuesWrapper(itemWrapper, childItem, context);
-		LOGGER.trace("valueWrappers {}", itemWrapper.getValues());
 		itemWrapper.getValues().addAll((Collection) valueWrappers);
-		
+		itemWrapper.setShowEmpty(context.isCreateIfEmpty(), false);
 		return itemWrapper;
 	}
 	
@@ -81,6 +80,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 				VW valueWrapper =  factory.createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
 				pvWrappers.add(valueWrapper);
 			}
+			return pvWrappers;
 		}
 		
 		for (PV pcv : (List<PV>)item.getValues()) {
@@ -96,7 +96,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	
 	protected abstract IW createWrapper(PrismContainerValueWrapper<?> parent, I childContainer, ItemStatus status);
 	
-	private boolean shoudCreateEmptyValue(I item, WrapperContext context) {
+	protected boolean shoudCreateEmptyValue(I item, WrapperContext context) {
 		if (item.getDefinition().isEmphasized()) {
 			return true;
 		}
@@ -105,7 +105,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 			return true;
 		}
 		
-		return false;
+		return true;
 	}
 	
 	/**

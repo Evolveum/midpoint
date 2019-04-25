@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
  * @author katka
  *
  */
-public class PrismReferenceWrapperImpl<R extends Referencable> extends ItemWrapperImpl<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceValueWrapper<R>> implements PrismReferenceWrapper<R> {
+public class PrismReferenceWrapperImpl<R extends Referencable> extends ItemWrapperImpl<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceValueWrapperImpl<R>> implements PrismReferenceWrapper<R> {
 
 	/**
 	 * @param parent

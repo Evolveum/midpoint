@@ -50,15 +50,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	
 	private boolean expanded;
 	
-//	private List<PrismContainerValueWrapper<C>> values = new ArrayList<>();
-	
-	/**
-	 * @param parent
-	 * @param item
-	 * @param status
-	 * @param fullPath
-	 * @param prismContext
-	 */
+
 	public PrismContainerWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<C> item, ItemStatus status) {
 		super(parent, item, status);
 		this.expanded = !item.isEmpty();
@@ -76,18 +68,12 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 
 	@Override
 	public void setShowOnTopLevel(boolean setShowOnTopLevel) {
-		this.showOnTopLevel = showOnTopLevel;
+		this.showOnTopLevel = setShowOnTopLevel;
 	}
 
 	@Override
 	public boolean isShowOnTopLevel() {
 		return showOnTopLevel;
-	}
-	
-	@Override
-	public boolean isStripe() {
-		// TODO Auto-generated method stub
-		return false;
 	}
 	
 	@Override
@@ -165,16 +151,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 		return getItemDefinition().findNamedItemDefinition(firstName, rest, clazz);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#setReadOnly()
-	 */
-	@Override
-	public void setReadOnly() {
 		
-	}
-
-
-	
 	//TODO : unify with PrismContainerImpl findContainer();
 	@Override
 	public <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException {
@@ -249,30 +226,5 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	public String debugDump(int indent) {
 		return super.debugDump(indent);
 	}
-	
-//	@Override
-//	public boolean isVisible() {
-//		
-//		
-//		PrismContainerDefinition<C> def = getItemDefinition();
-//
-//		if (def.getProcessing() != null && def.getProcessing() != ItemProcessing.AUTO) {
-//			return false;		
-//		}
-//		
-//		if (def.isOperational() && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
-//			return false;
-//		}
-//		
-//		if (def.isDeprecated() && isEmpty()) {
-//			return false;
-//		}
-//		
-//		
-//
-//		return false;
-//	}
-	
-
-	
+		
 }

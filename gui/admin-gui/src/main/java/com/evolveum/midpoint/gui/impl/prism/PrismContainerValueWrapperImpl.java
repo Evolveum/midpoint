@@ -15,24 +15,25 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapper;
+import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -52,12 +53,13 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
 	private static final long serialVersionUID = 1L;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapper.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapperImpl.class);
 	
 	private boolean expanded;
 	private boolean showMetadata;
 	private boolean sorted; 
 	private boolean showEmpty;
+	private boolean readOnly;
 	
 	private List<ItemWrapper<?, ?, ?,?>> items = new ArrayList<>();
 	
@@ -174,7 +176,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	public List<? extends ItemWrapper<?,?,?,?>> getNonContainers() {
 		List<? extends ItemWrapper<?,?,?,?>> nonContainers = new ArrayList<>();
 		for (ItemWrapper<?,?,?,?> item : items) {
-			if (item instanceof PrismPropertyWrapperImpl<?>) {
+			if (!(item instanceof PrismContainerWrapper)) {
 				((List)nonContainers).add(item);
 			}
 		}
@@ -301,15 +303,13 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
 	@Override
 	public boolean isReadOnly() {
-		// TODO Auto-generated method stub
-		return false;
+		return readOnly;
 	}
 
 
 	@Override
 	public void setReadOnly(boolean readOnly, boolean recursive) {
-		// TODO Auto-generated method stub
-		
+		this.readOnly = readOnly;
 	}
 
 
@@ -322,5 +322,43 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	@Override
 	public void setShowEmpty(boolean showEmpty) {
 		this.showEmpty = showEmpty;
+		computeStripes();
+	}
+	
+	
+	@Override
+	public void sort() {
+		Locale locale = WebModelServiceUtils.getLocale();
+		if (locale == null) {
+			locale = Locale.getDefault();
+		}
+		Collator collator = Collator.getInstance(locale);
+		collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
+		collator.setDecomposition(Collator.FULL_DECOMPOSITION); 
+		
+		Collections.sort(getNonContainers(), new ItemWrapperComparator<>(collator, sorted));
+//		Collections.sort(getContainers(), new ItemWrapperComparator<>(collator));
+		
+		computeStripes();
+	}
+	
+	private void computeStripes() {
+		if (getNonContainers() == null) {
+			return;
+		}
+		int visibleProperties = 0;
+
+ 		for (ItemWrapper<?,?,?,?> item : getNonContainers()) {
+			if (item.isVisible()) {
+				visibleProperties++;
+			}
+			
+			if (visibleProperties % 2 == 0) {
+				item.setStripe(true);
+			} else {
+				item.setStripe(false);
+			}
+			
+		}
 	}
 }

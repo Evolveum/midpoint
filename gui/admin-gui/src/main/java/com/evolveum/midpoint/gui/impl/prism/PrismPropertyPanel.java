@@ -70,10 +70,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 	private static final String ID_HEADER = "header";
 	
 	private static final String ID_FEEDBACK = "feedback";
-	private static final String ID_ADD_BUTTON = "addButton";
-	private static final String ID_REMOVE_BUTTON = "removeButton";
 	private static final String ID_VALUE_CONTAINER = "valueContainer";
-	private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 	
 	private static final String ID_FORM = "form";
 	private static final String ID_INPUT = "input";
@@ -101,41 +98,11 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 		WebMarkupContainer panel = createInputPanel(item, factory);
     	
 
-		WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
-		buttonContainer.add(new AttributeModifier("class", getButtonsCssClass()));
 		
-		panel.add(buttonContainer);
-		// buttons
-		AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				addValue(target);
-			}
-		};
-		addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
-		buttonContainer.add(addButton);
-
-		AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				removeValue(item.getModelObject(), target);
-			}
-		};
-		removeButton.add(new VisibleBehaviour(() -> isRemoveButtonVisible()));
-		buttonContainer.add(removeButton);
-    	
-
-        item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
-
-        item.add(new VisibleBehaviour(() -> isVisibleValue(item.getModel())));
         
 	}
 	
-	 private WebMarkupContainer createInputPanel(ListItem item, GuiComponentFactory factory) {
+	 private WebMarkupContainer createInputPanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory) {
  		
 		WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
 		valueContainer.setOutputMarkupId(true);
@@ -247,9 +214,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
         return"col-xs-10";
     }
     
-    protected String getButtonsCssClass() {
-        return"col-xs-2";
-    }
+   
 
     protected String getValuesClass() {
         return "col-md-6";
@@ -259,73 +224,9 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
         return "row";
     }
 	
-    private void addValue(AjaxRequestTarget target) {
-		PrismPropertyWrapper<T> propertyWrapper = getModel().getObject();
-		LOGGER.debug("Adding value of {}", propertyWrapper);
-		target.add(PrismPropertyPanel.this);
-	}
-	
-	private void removeValue(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) {
-		
-		PrismPropertyWrapper<T> itemWrapper = getModel().getObject();
-//		try {
-//			itemWrapper.removeValue(valueToRemove);
-//		} catch (SchemaException e) {
-//			error("Failed to remove value.");
-//		}
-		
-		LOGGER.debug("Removing value of {}", itemWrapper);
+      
+   
 
-		target.add(PrismPropertyPanel.this);
-	}
-	
-	private boolean isAddButtonVisible() {
-		return getModelObject().isMultiValue();
-	}
-
-
-	
-	private boolean isRemoveButtonVisible() {
-		return !getModelObject().isReadOnly();
-			
-	}
-	    
-    protected IModel<String> createStyleClassModel(final IModel<PrismPropertyValueWrapper<T>> value) {
-        return new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                if (getIndexOfValue(value.getObject()) > 0) {
-                    return getItemCssClass();
-                }
-
-                return null;
-            }
-        };
-    }
-    
-    protected String getItemCssClass() {
-    	return " col-md-offset-2 prism-value ";
-    }
-
-    private int getIndexOfValue(PrismPropertyValueWrapper<T> value) {
-        PrismPropertyWrapper<T> property = value.getParent();
-        List<PrismPropertyValueWrapper<T>> values = property.getValues();
-        for (int i = 0; i < values.size(); i++) {
-            if (values.get(i).equals(value)) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    private boolean isVisibleValue(IModel<PrismPropertyValueWrapper<T>> model) {
-        PrismPropertyValueWrapper<T> value = model.getObject();
-        return !ValueStatus.DELETED.equals(value.getStatus());
-    }
-    
     private <O extends ObjectType, C extends Containerable> O getObject() {
     	
     	return null;

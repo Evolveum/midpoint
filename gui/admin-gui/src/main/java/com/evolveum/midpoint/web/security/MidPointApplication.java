@@ -373,6 +373,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         if (servletContext != null) {
             taskManager.setWebContextPath(servletContext.getContextPath());
         }
+      
     }
 
     public DeploymentInformationType getDeploymentInfo() {

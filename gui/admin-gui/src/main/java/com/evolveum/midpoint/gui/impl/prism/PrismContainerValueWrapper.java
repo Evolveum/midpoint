@@ -84,4 +84,6 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	boolean isShowEmpty();
 	void setShowEmpty(boolean setShowEmpty);
 	
+	void sort();
+	
 }
