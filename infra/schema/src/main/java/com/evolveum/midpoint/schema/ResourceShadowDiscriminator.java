@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -44,28 +45,37 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  */
 public class ResourceShadowDiscriminator implements Serializable, DebugDumpable, HumanReadableDescribable {
 	private static final long serialVersionUID = 346600684011645741L;
-
+	
 	private String resourceOid;
 	private ShadowKindType kind = ShadowKindType.ACCOUNT;
 	private String intent;
+	private String tag;
 	private QName objectClass;
 	private boolean tombstone;
 	private int order = 0;
 	
-	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, boolean tombstone) {
+	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, String tag, boolean tombstone) {
 		this.resourceOid = resourceOid;
 		this.tombstone = tombstone;
+		this.tag = tag;
 		setIntent(intent);
 		setKind(kind);
 	}
-
-	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent) {
-		this(resourceOid, kind, intent, false);
-	}
+	
+//	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, boolean tombstone) {
+//		this.resourceOid = resourceOid;
+//		this.tombstone = tombstone;
+//		setIntent(intent);
+//		setKind(kind);
+//	}
+//
+//	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent) {
+//		this(resourceOid, kind, intent, false);
+//	}
 
 
 	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType) {
-		this(accRefType.getResourceRef().getOid(), accRefType.getKind(), accRefType.getIntent());
+		this(accRefType.getResourceRef().getOid(), accRefType.getKind(), accRefType.getIntent(), accRefType.getTag(), false);
 	}
 
 	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType, String defaultResourceOid, ShadowKindType defaultKind) {
@@ -118,6 +128,14 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 			intent = SchemaConstants.INTENT_DEFAULT;
 		}
 		this.intent = intent;
+	}
+	
+	public String getTag() {
+		return tag;
+	}
+
+	public void setTag(String tag) {
+		this.tag = tag;
 	}
 
 	public QName getObjectClass() {
@@ -180,7 +198,9 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         return new ResourceShadowDiscriminator(
                 resourceShadowDiscriminatorType.getResourceRef() != null ? resourceShadowDiscriminatorType.getResourceRef().getOid() : null,
                 kind,
-                resourceShadowDiscriminatorType.getIntent());
+                resourceShadowDiscriminatorType.getIntent(),
+                resourceShadowDiscriminatorType.getTag(),
+                false);
     }
 
 	@Override
@@ -189,38 +209,63 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		int result = 1;
 		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
 		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
+		result = prime * result + ((objectClass == null) ? 0 : objectClass.hashCode());
 		result = prime * result + order;
-		result = prime * result
-				+ ((resourceOid == null) ? 0 : resourceOid.hashCode());
+		result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
+		result = prime * result + ((tag == null) ? 0 : tag.hashCode());
 		result = prime * result + (tombstone ? 1231 : 1237);
 		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		ResourceShadowDiscriminator other = (ResourceShadowDiscriminator) obj;
 		if (intent == null) {
-			if (other.intent != null)
+			if (other.intent != null) {
 				return false;
-		} else if (!intent.equals(other.intent))
+			}
+		} else if (!intent.equals(other.intent)) {
 			return false;
-		if (kind != other.kind)
+		}
+		if (kind != other.kind) {
 			return false;
-		if (order != other.order)
+		}
+		if (objectClass == null) {
+			if (other.objectClass != null) {
+				return false;
+			}
+		} else if (!objectClass.equals(other.objectClass)) {
 			return false;
+		}
+		if (order != other.order) {
+			return false;
+		}
 		if (resourceOid == null) {
-			if (other.resourceOid != null)
+			if (other.resourceOid != null) {
 				return false;
-		} else if (!resourceOid.equals(other.resourceOid))
+			}
+		} else if (!resourceOid.equals(other.resourceOid)) {
 			return false;
-		if (tombstone != other.tombstone)
+		}
+		if (tag == null) {
+			if (other.tag != null) {
+				return false;
+			}
+		} else if (!tag.equals(other.tag)) {
 			return false;
+		}
+		if (tombstone != other.tombstone) {
+			return false;
+		}
 		return true;
 	}
 
@@ -238,8 +283,12 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		if (intent == null) {
 			if (other.intent != null)
 				return false;
-		} else if (!equalsIntent(this.intent, other.intent))
+		} else if (!equalsIntent(this.intent, other.intent)) {
 			return false;
+		}
+		if (!Objects.equals(this.tag, other.tag)) {
+			return false;
+		}
 		if (resourceOid == null) {
 			if (other.resourceOid != null)
 				return false;
@@ -266,7 +315,11 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
     public String toHumanReadableDescription() {
     	StringBuilder sb = new StringBuilder("RSD(");
     	sb.append(kind==null?"null":kind.value());
-    	sb.append(" (").append(intent).append(")");
+    	sb.append(" (").append(intent);
+    	if (tag != null) {
+    		sb.append("/").append(tag);
+    	}
+    	sb.append(")");
     	if (objectClass != null) {
     		sb.append(": ").append(PrettyPrinter.prettyPrint(objectClass));
     	}
@@ -291,6 +344,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "kind", kind, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "intent", indent, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "tag", tag, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "objectClass", objectClass, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "tombstone", tombstone, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "order", order, indent + 1);

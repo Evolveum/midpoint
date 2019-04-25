@@ -231,7 +231,7 @@ public class ProvisioningContext extends StateReporter {
 	 */
 	public ProvisioningContext spawn(ShadowKindType kind, String intent) {
 		ProvisioningContext ctx = spawnSameResource();
-		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), kind, intent);
+		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), kind, intent, null, false);
 		return ctx;
 	}
 
@@ -240,7 +240,7 @@ public class ProvisioningContext extends StateReporter {
 	 */
 	public ProvisioningContext spawn(QName objectClassQName) throws SchemaException {
 		ProvisioningContext ctx = spawnSameResource();
-		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), null, null);
+		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), null, null, null, false);
 		ctx.shadowCoordinates.setObjectClass(objectClassQName);
 		return ctx;
 	}

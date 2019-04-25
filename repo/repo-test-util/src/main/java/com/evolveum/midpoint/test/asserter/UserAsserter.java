@@ -242,6 +242,11 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return this;
 	}
 	
+	public UserAsserter<RA> assertEmployeeNumber(String expected) {
+		assertEquals("Wrong employeeNumber in "+desc(), expected, getObject().asObjectable().getEmployeeNumber());
+		return this;
+	}
+	
 	@Override
 	public UserAsserter<RA> assertLocality(String expected) {
 		super.assertLocality(expected);

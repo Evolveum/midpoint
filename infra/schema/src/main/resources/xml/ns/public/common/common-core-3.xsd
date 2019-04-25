@@ -6196,6 +6196,13 @@
 					</xsd:appinfo>
                </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="multiplicity" type="tns:ResourceObjectMultiplicityType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6950,6 +6957,16 @@
                     <xsd:documentation>
                         Type of projection that is the target of reference. E.g "default", "admin", "testing"
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tag" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Tag tha distinguished shadows that have the same combination of resource+kind+intent.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>4.0</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
     	</xsd:sequence>
@@ -8017,6 +8034,57 @@
      				</xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
+     	</xsd:sequence>
+     </xsd:complexType>
+     
+     <xsd:complexType name="ResourceObjectMultiplicityType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			TODO
+     		</xsd:documentation>
+     		<xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="maxOccurs" type="xsd:string" minOccurs="0" maxOccurs="1" default="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+		     			Maximum number of instances of that particular projections that can be linked to the same focus.     				
+     				</xsd:documentation>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="tag" type="tns:ShadowTagSpecificationType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    TODO
+	                </xsd:documentation>
+	            </xsd:annotation>
+        	</xsd:element>
+        	
+     	</xsd:sequence>
+     </xsd:complexType>
+     
+     <xsd:complexType name="ShadowTagSpecificationType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			TODO
+     		</xsd:documentation>
+     		<xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<!-- TODO? Some default algorithm? -->
+     		<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    TODO
+	                </xsd:documentation>
+	            </xsd:annotation>
+        	</xsd:element>
      	</xsd:sequence>
      </xsd:complexType>
      
@@ -11298,6 +11366,17 @@
                             <xsd:appinfo>
 		                    	<a:displayName>ShadowType.intent</a:displayName>
 		                    	<a:emphasized>true</a:emphasized>
+		                    </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="tag" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Tag value used to discriminate multiple accounts that have the same resource+kind+intent combination.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>ShadowType.tag</a:displayName>
+		                    	<a:since>4.0</a:since>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

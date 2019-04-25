@@ -17,6 +17,8 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.bouncycastle.util.Arrays;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,6 +41,8 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
 	private final LinksAsserter<F,FA,RA> linksAsserter;
 	private String resourceOid;
 	private Boolean dead;
+	private String tag;
+	private String[] notTags;
 	
 	public LinkFinder(LinksAsserter<F,FA,RA> linksAsserter) {
 		this.linksAsserter = linksAsserter;
@@ -51,6 +55,16 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
 	
 	public LinkFinder<F,FA,RA> dead(boolean dead) {
 		this.dead = dead;
+		return this;
+	}
+	
+	public LinkFinder<F,FA,RA> tag(String tag) {
+		this.tag = tag;
+		return this;
+	}
+	
+	public LinkFinder<F,FA,RA> notTags(String... tags) {
+		this.notTags = tags;
 		return this;
 	}
 
@@ -101,7 +115,19 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
 			} else if (!dead && ShadowUtil.isDead(linkTargetType)) {
 				return false;
 			}
-		}		
+		}
+		
+		if (tag != null) {
+			if (!tag.equals(linkTargetType.getTag())) {
+				return false;
+			}
+		}
+		
+		if (notTags != null) {
+			if (ArrayUtils.contains(notTags, linkTargetType.getTag())) {
+				return false;
+			}
+		}
 		
 		// TODO: more criteria
 		return true;

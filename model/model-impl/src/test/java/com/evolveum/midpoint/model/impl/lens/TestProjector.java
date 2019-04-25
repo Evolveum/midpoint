@@ -156,7 +156,7 @@ public class TestProjector extends AbstractLensTest {
         assert focusSecondaryDelta.equals(userDeltaSecondaryClone) : "focus secondary delta not equal";
 
         assert accountContext == context.findProjectionContext(
-        		new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null))
+        		new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false))
         		: "wrong account context";
         assert accountContext.getPrimaryDelta() == accountDeltaPrimary : "account primary delta replaced";
         assert accountDeltaPrimaryClone.equals(accountDeltaPrimary) : "account primary delta changed";
@@ -177,7 +177,7 @@ public class TestProjector extends AbstractLensTest {
         assert focusSecondaryDelta.equals(userDeltaSecondaryClone) : "focus secondary delta not equal";
 
         assert accountContext == context.findProjectionContext(
-        		new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null))
+        		new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false))
         		: "wrong account context";
         assert accountContext.getPrimaryDelta() == accountDeltaPrimary : "account primary delta replaced";
         display("Orig account primary delta", accountDeltaPrimaryClone);

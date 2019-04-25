@@ -37,7 +37,7 @@ public class RefineryObjectFactory {
     public static <O extends Objectable, X> ShadowDiscriminatorObjectDelta<O> createShadowDiscriminatorModificationReplaceProperty(Class<O> type,
     		String resourceOid, ShadowKindType kind, String intent, ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
     	ShadowDiscriminatorObjectDelta<O> objectDelta = new ShadowDiscriminatorObjectDeltaImpl<>(type, ChangeType.MODIFY, prismContext);
-    	objectDelta.setDiscriminator(new ResourceShadowDiscriminator(resourceOid, kind, intent));
+    	objectDelta.setDiscriminator(new ResourceShadowDiscriminator(resourceOid, kind, intent, null, false));
     	ObjectDeltaFactoryImpl.fillInModificationReplaceProperty(objectDelta, propertyPath, propertyValues);
     	return objectDelta;
     }

@@ -619,6 +619,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 	
 	@Override
+	public ResourceObjectMultiplicityType getMultiplicity() {
+		return refinedObjectClassDefinition.getMultiplicity();
+	}
+	
+	@Override
 	public ProjectionPolicyType getProjection() {
 		return refinedObjectClassDefinition.getProjection();
 	}

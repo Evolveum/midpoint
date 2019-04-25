@@ -608,10 +608,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         	}
         	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
         			FocusTypeUtil.determineConstructionKind(assignmentType),
-        			FocusTypeUtil.determineConstructionIntent(assignmentType));
-			LensProjectionContext accCtx = context.findProjectionContext(rad);
-			if (accCtx != null) {
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+        			FocusTypeUtil.determineConstructionIntent(assignmentType),
+        			null, false);
+			LensProjectionContext projCtx = context.findProjectionContext(rad);
+			if (projCtx != null) {
+				projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 			}
         	return null;
         } catch (ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException  e) {

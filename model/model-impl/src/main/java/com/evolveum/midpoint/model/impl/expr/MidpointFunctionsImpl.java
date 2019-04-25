@@ -296,7 +296,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
 
-		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null);
+		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext projectionContext = ctx.findProjectionContext(rat);
 		if (projectionContext == null) {
 			// but check if it is not among list of deleted contexts

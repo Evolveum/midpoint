@@ -488,7 +488,7 @@ public class AssignmentProcessor {
         ShadowKindType kind = construction.getKind();
         ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
         intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent, null, false);
         return rat;
 	}
 
@@ -578,7 +578,8 @@ public class AssignmentProcessor {
             	}
             	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
             			FocusTypeUtil.determineConstructionKind(evaluatedAssignment.getAssignmentType()),
-            			FocusTypeUtil.determineConstructionIntent(evaluatedAssignment.getAssignmentType()));
+            			FocusTypeUtil.determineConstructionIntent(evaluatedAssignment.getAssignmentType()),
+            			null, false);
     			LensProjectionContext accCtx = context.findProjectionContext(rad);
     			if (accCtx != null) {
     				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
