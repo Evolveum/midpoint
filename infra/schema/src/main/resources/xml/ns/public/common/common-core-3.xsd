@@ -17754,7 +17754,7 @@
             <xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Full enforcement is the default setting.
+                        Relative enforcement is the default setting.
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>ProjectionPolicyType.assignmentPolicyEnforcement</a:displayName>
