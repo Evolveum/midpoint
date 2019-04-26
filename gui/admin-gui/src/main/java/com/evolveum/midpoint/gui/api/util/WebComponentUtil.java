@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -3477,18 +3478,13 @@ public final class WebComponentUtil {
 		return resultList;
 	}
 
-	public static DisplayType getAssignmentObjectRelationDisplayType(PageBase pageBase, AssignmentObjectRelation assignmentTargetRelation, String defaultTitle){
+	public static DisplayType getAssignmentObjectRelationDisplayType(PageBase pageBase, AssignmentObjectRelation assignmentTargetRelation,
+																	 String defaultTitleKey){
 		if (assignmentTargetRelation == null){
-			return createDisplayType("", "", defaultTitle);
+			return createDisplayType("", "", pageBase.createStringResource(defaultTitleKey, "", "").getString());
 		}
-		QName relation = !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
-				assignmentTargetRelation.getRelations().get(0) : null;
-		StringBuilder titleValue = new StringBuilder();
-		titleValue.append(defaultTitle);
-		if (relation != null) {
-			titleValue.append(" " + relation.getLocalPart());
-			titleValue.append(" " + pageBase.createStringResource("roleMemberPanel.relation").getString().toLowerCase());
-		}
+
+		String typeTitle = "";
 		if (CollectionUtils.isNotEmpty(assignmentTargetRelation.getArchetypeRefs())){
 			OperationResult result = new OperationResult(pageBase.getClass().getSimpleName() + "." + "loadArchetypeObject");
 			try {
@@ -3497,12 +3493,12 @@ public final class WebComponentUtil {
 				if (archetype != null) {
 					DisplayType archetypeDisplayType = archetype.getArchetypePolicy() != null ? archetype.getArchetypePolicy().getDisplay() : null;
 					String archetypeTooltip = archetypeDisplayType != null && archetypeDisplayType.getLabel() != null &&
-							StringUtils.isNotEmpty(archetypeDisplayType.getLabel().getNorm()) ?
-							archetypeDisplayType.getLabel().getNorm() :
-							(archetype.getName() != null && StringUtils.isNotEmpty(archetype.getName().getNorm()) ?
-							archetype.getName().getNorm() : null);
-					titleValue.append(StringUtils.isNotEmpty(archetypeTooltip) ? (" " + archetypeTooltip + " " +
-							pageBase.createStringResource("abstractRoleMemberPanel.type").getString().toLowerCase()) : "");
+							StringUtils.isNotEmpty(archetypeDisplayType.getLabel().getOrig()) ?
+							archetypeDisplayType.getLabel().getOrig() :
+							(archetype.getName() != null && StringUtils.isNotEmpty(archetype.getName().getOrig()) ?
+							archetype.getName().getOrig() : null);
+					typeTitle = StringUtils.isNotEmpty(archetypeTooltip) ?
+							pageBase.createStringResource("abstractRoleMemberPanel.withType", archetypeTooltip).getString() : "";
 				}
 			} catch (Exception ex){
 				LOGGER.error("Couldn't load archetype object. " + ex.getLocalizedMessage());
@@ -3511,26 +3507,45 @@ public final class WebComponentUtil {
 			QName type = !CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) ?
 					assignmentTargetRelation.getObjectTypes().get(0) : null;
 			String typeName = type != null ? pageBase.createStringResource("ObjectTypeLowercase." + type.getLocalPart()).getString() : null;
-			titleValue.append(StringUtils.isNotEmpty(typeName) ? (" " + typeName + " " +
-					pageBase.createStringResource("abstractRoleMemberPanel.type").getString().toLowerCase()) : "");
+			typeTitle = StringUtils.isNotEmpty(typeName) ?
+					pageBase.createStringResource("abstractRoleMemberPanel.withType", typeName).getString() : "";
 		}
 
 
+		QName relation = !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ?
+				assignmentTargetRelation.getRelations().get(0) : null;
+
+		String relationValue = "";
+		String relationTitle = "";
 		if (relation != null){
 			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
 			if (def != null){
 				DisplayType displayType = def.getDisplay();
+				if (displayType == null){
+					displayType = new DisplayType();
+				}
+				if (displayType.getLabel() != null && StringUtils.isNotEmpty(displayType.getLabel().getOrig())){
+					relationValue = pageBase.createStringResource(displayType.getLabel().getOrig()).getString();
+				} else {
+					String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
+					relationValue = pageBase.createStringResource(relationValue).getString();
+					if (relationKey.equals(relationValue)){
+						relationValue = relation.getLocalPart();
+					}
+				}
 
-				if (displayType == null || displayType.getIcon() == null){
-					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", titleValue.toString());
+				relationTitle = pageBase.createStringResource("abstractRoleMemberPanel.withRelation", relationValue).getString();
+
+
+				if (displayType.getIcon() == null){
+					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
+							pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString());
 				}
-				if (PolyStringUtils.isEmpty(displayType.getTooltip())){
-					displayType.setTooltip(createPolyFromOrigString(titleValue.toString()));
-				}
+				displayType.setTooltip(createPolyFromOrigString(pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString()));
 				return displayType;
 			}
 		}
-		return createDisplayType("", "", titleValue.toString());
+		return createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString());
 	}
 
 	public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){

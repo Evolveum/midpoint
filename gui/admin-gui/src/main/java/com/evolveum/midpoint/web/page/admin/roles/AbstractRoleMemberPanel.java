@@ -227,7 +227,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			@Override
 			protected DisplayType getNewObjectButtonAdditionalDisplayType(AssignmentObjectRelation relationSpec){
 				return WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
-					createStringResource("abstractRoleMemberPanel.menu.createMember").getString());
+					"abstractRoleMemberPanel.menu.createMember");
 			}
 
 			@Override
@@ -238,7 +238,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			@Override
 			protected DisplayType getNewObjectButtonStandardDisplayType(){
 				return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
-						createStringResource("abstractRoleMemberPanel.menu.createMember").getString());
+						createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
 			}
 
 			@Override
@@ -278,7 +278,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 					@Override
 					protected DisplayType getAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation){
 						return WebComponentUtil.getAssignmentObjectRelationDisplayType(AbstractRoleMemberPanel.this.getPageBase(), assignmentTargetRelation,
-								createStringResource("abstractRoleMemberPanel.menu.assignMember").getString());
+								"abstractRoleMemberPanel.menu.assignMember");
 					}
 
 					@Override
@@ -367,12 +367,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	private DisplayType getCreateMemberButtonDisplayType(){
 		return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
-				AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.createMember").getString());
+				AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.createMember", "", "").getString());
 	}
 
 	private DisplayType getAssignMemberButtonDisplayType(){
 		return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
-				AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember").getString());
+				AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember", "", "").getString());
 	}
 
 	private List<InlineMenuItem> createRowActions() {
