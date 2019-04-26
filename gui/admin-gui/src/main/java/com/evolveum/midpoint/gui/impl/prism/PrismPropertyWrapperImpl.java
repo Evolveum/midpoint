@@ -19,6 +19,8 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
@@ -48,6 +51,18 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
 //	public PropertyDelta<T> getDelta() {
 //		
 //	}
+	
+	PrismPropertyValueWrapper<T> getValue() throws SchemaException {
+		if (CollectionUtils.isEmpty(getValues())) {
+			return null;
+		}
+		
+		if (isMultiValue()) {
+			throw new SchemaException("Attempt to get sngle value from multi-value property.");
+		}
+		
+		return getValues().iterator().next();
+	}
 	
 	@Override
 	public Collection<? extends DisplayableValue<T>> getAllowedValues() {
@@ -104,5 +119,9 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
 	@Override
 	public LookupTableType getPredefinedValues() {
 		return predefinedValues;
+	}
+	
+	public void setPredefinedValues(LookupTableType predefinedValues) {
+		this.predefinedValues = predefinedValues;
 	}
 }

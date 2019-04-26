@@ -48,7 +48,7 @@ public class PrismPropertyColumn<C extends Containerable, T> extends AbstractIte
 	
 	@Override
 	public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
-		return Model.of(PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, itemName));
+		return PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, itemName);
 	}
 
 	@Override
@@ -61,6 +61,8 @@ public class PrismPropertyColumn<C extends Containerable, T> extends AbstractIte
 	protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
 		return new PrismPropertyWrapperColumnPanel<T>(componentId, (IModel<PrismPropertyWrapper<T>>) rowModel, getColumnType()) {
 			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
 				PrismPropertyColumn.this.onClick(target, (IModel) Model.of(rowModel));

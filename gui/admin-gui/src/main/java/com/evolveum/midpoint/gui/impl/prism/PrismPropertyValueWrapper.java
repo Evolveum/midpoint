@@ -15,8 +15,12 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
@@ -39,6 +43,27 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, Prism
 	@Override
 	public void setRealValue(T realValue) {
 		getNewValue().setValue(realValue);
+	}
+	
+	public String toShortString() {
+		if (getRealValue() == null) {
+			return null;
+		}
+		
+		if (getParent() == null) {
+			return getRealValue().toString();
+		}
+		
+		QName typeName = getParent().getTypeName();
+		if (typeName == null) {
+			return getRealValue().toString();
+		}
+		
+		if (QNameUtil.match(DOMUtil.XSD_QNAME, typeName)) {
+			return ((QName)getRealValue()).getLocalPart();
+		}
+		
+		return getRealValue().toString();
 	}
 
 }

@@ -241,6 +241,8 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 		
 		columns.add(new PrismPropertyColumn<ObjectPolicyConfigurationType, QName>(getModel(), ObjectPolicyConfigurationType.F_TYPE, ColumnType.LINK) { 
 			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -46,7 +45,8 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
 	
 	@Override
 	protected String createLabel(PrismPropertyValueWrapper<T> object) {
-		return object.getRealValue().toString();
+		return object.toShortString(); 
+		
 	}
 
 	@Override
@@ -64,17 +64,6 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
 		}
 		
 		return panel;
-//		GuiComponentFactory<PrismPropertyPanelContext<T>> factory = getPageBase().getRegistry().findValuePanelFactory((PrismPropertyWrapper<T>) headerModel.getObject());
-//		
-//		FeedbackPanel feedbackPanel = new FeedbackPanel("feedback");
-//		
-//		
-//		PrismPropertyPanelContext<T> panelCtx = new PrismPropertyPanelContext<>((IModel<PrismPropertyWrapper<T>>)headerModel);
-//		panelCtx.setForm(new Form("form"));
-//		panelCtx.setFeedbackPanel(feedbackPanel);
-//		panelCtx.setComponentId(ID_INPUT);
-//		panelCtx.setRealValueModel(new ItemRealValueModel((IModel<PrismPropertyWrapper<T>>) headerModel));
-//		return factory.createPanel(panelCtx);
 	}
 
 	@Override

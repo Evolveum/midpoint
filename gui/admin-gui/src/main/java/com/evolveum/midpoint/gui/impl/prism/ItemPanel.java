@@ -72,6 +72,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	private void initLayout() {
 		
 		Panel headerPanel = createHeaderPanel();
+		headerPanel.add(new VisibleBehaviour(() -> getModelObject() != null && !getModelObject().isColumn()));
 		add(headerPanel);
 		
 		ListView<VW> valuesPanel = createValuesPanel();

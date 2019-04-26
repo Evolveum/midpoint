@@ -36,6 +36,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -127,10 +129,18 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     }
     
     protected void initLayout() {
-    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = new PrismContainerPanel<>(ID_LOGGING, getModel());
+    	try {
+    		Panel loggingPanel = getPageBase().initPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), false);
+			add(loggingPanel);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for logging: {}", e.getMessage(), e);
+			getSession().error("Cannot create panle for logging");
+		}
+    	
+//    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = new PrismContainerPanel<>(ID_LOGGING, getModel());
 //    	PrismContainerPanelOld<LoggingConfigurationType> loggingPanel = (PrismContainerPanelOld<LoggingConfigurationType>) getModelObject().createPanel(ID_LOGGING, new Form("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
 //    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = new PrismContainerPanel<LoggingConfigurationType>(ID_LOGGING, getModel(), true, new Form<>("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()), getPageBase());
-    	add(loggingPanel);
+    	
     	
 
     	TableId tableIdLoggers = UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
@@ -317,13 +327,20 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 		add(appendersMultivalueContainerListPanel);
 		
 		IModel<PrismContainerWrapper<AuditingConfigurationType>> auditModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_AUDITING);
+		try {
+			Panel auditPanel = getPageBase().initPanel(ID_AUDITING, AuditingConfigurationType.COMPLEX_TYPE, auditModel, false);
+			add(auditPanel);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for auditing: {}", e.getMessage(), e);
+			getSession().error("Cannot create panel for auditing.");
+		}
 //    			new ContainerWrapperFromObjectWrapperModel<AuditingConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()),
 //    					ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
-		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel);
+//		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel);
 //		PrismContainerPanelOld<AuditingConfigurationType> auditPanel = (PrismContainerPanelOld<AuditingConfigurationType>) auditModel.getObject().createPanel(ID_AUDITING, new Form("form"), null);
 //		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel, true,
 //				new Form<>("form"), null, getPageBase());
-    	add(auditPanel);
+    	
 		setOutputMarkupId(true);
 	}
     

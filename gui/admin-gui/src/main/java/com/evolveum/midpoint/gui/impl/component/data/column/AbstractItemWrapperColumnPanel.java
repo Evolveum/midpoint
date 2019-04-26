@@ -58,10 +58,11 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
 	private void initLayout() {
 		ListView<VW> listView = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void populateItem(ListItem<VW> item) {
 				populate(item);
-				
 			}
 		};
 		listView.setReuseItems(true);
