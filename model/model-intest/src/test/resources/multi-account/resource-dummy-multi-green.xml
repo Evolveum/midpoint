@@ -105,6 +105,15 @@
 						<path>$user/fullName</path>
 					</target>
 				</inbound>
+				<inbound>
+					<description>
+						Normal mapping to a multi-value user attribute.
+						Therefore organizationalUnit should have values from all the accounts.
+					</description>
+					<target>
+						<path>organizationalUnit</path>
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:location</ref>
