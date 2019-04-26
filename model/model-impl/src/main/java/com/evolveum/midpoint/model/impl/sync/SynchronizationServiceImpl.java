@@ -250,6 +250,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			return;
 		}
 		RefinedObjectClassDefinition rOcd = syncCtx.findRefinedObjectClassDefinition();
+		if (rOcd == null) {
+			// We probably do not have kind/intent yet.
+			return;
+		}
 		ResourceObjectMultiplicityType multiplicity = rOcd.getMultiplicity();
 		if (multiplicity == null) {
 			return;
