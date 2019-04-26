@@ -39,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> {
 
 	private static final long serialVersionUID = 1L;
-	
 	@Autowired GuiComponentRegistry registry;
 
 	@PostConstruct

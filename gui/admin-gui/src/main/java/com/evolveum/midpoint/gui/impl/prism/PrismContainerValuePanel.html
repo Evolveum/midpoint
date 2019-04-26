@@ -18,8 +18,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 	<div class="row">
+		<div class="pull-left">
+    		<button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                    class="btn btn-box-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
+	   </div>
 		<div class="labelContainer" wicket:id="labelContainer">
-			<q class="prism-title" wicket:id="label"/>
+			<a class="prism-title" wicket:id="label"/>
 			<i class="helpTextIcon" wicket:id="help"/>
 			
 	       	
@@ -38,7 +42,7 @@
 	<div class="prism-properties">
 		<div wicket:id="propertiesLabel">
 	    	<div wicket:id="properties">
-	        	<div class="row prism-property" wicket:id="property"/>
+	        	<div class="row prism-property col-xs-12" wicket:id="property"/>
 			</div>
 		</div>
 		<div class="row">

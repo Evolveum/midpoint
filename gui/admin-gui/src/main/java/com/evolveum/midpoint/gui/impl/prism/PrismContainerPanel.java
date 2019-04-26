@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.PrismContainerPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 
 /**
  * @author katka
@@ -40,6 +42,14 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	 */
 	public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model) {
 		super(id, model);
+	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		if(getModelObject().isShowOnTopLevel()) {
+			add(AttributeModifier.append("class", "top-level-prism-container"));
+		}
 	}
 
 	@Override

@@ -69,11 +69,14 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	protected static final String ID_LABEL_CONTAINER = "labelContainer";
 	protected static final String ID_HELP = "help";
 	
+	
 	private static final String ID_SORT_PROPERTIES = "sortProperties";
     private static final String ID_SHOW_METADATA = "showMetadata";
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
     private static final String ID_REMOVE_CONTAINER = "removeContainer";
     
+    private static final String ID_EXPAND_COLLAPSE_FRAGMENT = "expandCollapseFragment";
+    private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
     private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
     
@@ -286,6 +289,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 	
 	private void initButtons() {
+		initExpandCollapseButton();
 		initMetadataButton();
 		initSortButton();
 		initAddMoreButton();
@@ -468,5 +472,27 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 //			target.add(get(ID_PROPERTIES_LABEL));
 		
 		target.add(getPageBase().getFeedbackPanel());
+	}
+	
+	protected void initExpandCollapseButton() {
+//		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
+		
+		ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
+				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				onExpandClick(target);
+			}
+						
+			@Override
+			public boolean isOn() {
+				return PrismContainerValuePanel.this.getModelObject().isExpanded();
+			}
+        };
+        expandCollapseButton.setOutputMarkupId(true);
+        add(expandCollapseButton);
 	}
 }

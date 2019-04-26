@@ -106,7 +106,6 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
  		
 		WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
 		valueContainer.setOutputMarkupId(true);
-		valueContainer.add(new AttributeModifier("class", getValueCssClass()));
 		item.add(valueContainer);
 		// feedback
 		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
@@ -144,7 +143,6 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
 			try {
 				component = factory.createPanel(panelCtx);
-				component.add(new AttributeModifier("class", getInputCssClass()));
 				form.add(component);
 			} catch (Throwable e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
@@ -208,25 +206,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 		return valueContainer;
 
 	}
-
-	
-	protected String getInputCssClass() {
-        return"col-xs-10";
-    }
     
-   
-
-    protected String getValuesClass() {
-        return "col-md-6";
-    }
-
-    protected String getValueCssClass() {
-        return "row";
-    }
-	
-      
-   
-
     private <O extends ObjectType, C extends Containerable> O getObject() {
     	
     	return null;

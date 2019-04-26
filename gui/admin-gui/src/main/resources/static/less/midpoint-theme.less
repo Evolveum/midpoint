@@ -839,21 +839,17 @@ body .treeview-menu > li > span:hover {
     margin-left: 15px; // aligning multivalue container with superior container
 }
 
-.top-level-prism-container{							// class for first showed container
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	padding-top:10px;								
+//top-level-prism-container is class for first showed container
+.top-level-prism-container > .container-wrapper > .prism-properties > div > 
+.prism-property > .container-fluid > .prism-properties > div > .container-wrapper{
+  border-top: 1px solid #ddd;	// line over area of container
+  margin-left: -45px;			// aligning container on first level with superior container (multivalue container)
+  padding-left: 15px;
 }
-
-.top-level-prism-container > .prism-property > .container-wrapper > .prism-properties .prism-property > .container-fluid { 
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	margin-left: -30px;								// aligning container on first level with superior container (singlevalue container)
-	padding-left: 15px;
-}
-
-.top-level-prism-container > .container-wrapper .prism-properties {//} > .container-wrapper {
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	margin-left: -15px;								// aligning container on first level with superior container (multivalue container)
-	padding-left: 15px;
+.top-level-prism-container > .container-wrapper > .prism-properties > div >
+ .prism-property > .container-fluid {
+   border-top: 1px solid #ddd; // line over area of container
+   padding-top: 5px;
 }
 
 .prism-container {
