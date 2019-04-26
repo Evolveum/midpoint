@@ -47,7 +47,7 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiCom
 
 	@Override
 	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return FocusType.F_DESCRIPTION.equals(wrapper.getName()) || QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()) || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
+		return FocusType.F_DESCRIPTION.equals(wrapper.getName()) || QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()); // || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
 	}
 
 	@Override

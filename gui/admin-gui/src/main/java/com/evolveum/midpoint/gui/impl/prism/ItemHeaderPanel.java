@@ -100,7 +100,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 	
 	private void createTitle(WebMarkupContainer labelContainer) {
-		Component displayName = createTitle(LambdaModel.of(getModel(), IW::getDisplayName));
+		Component displayName = createTitle(new PropertyModel<>(getModel(), "displayName"));//.of(getModel(), IW::getDisplayName));
         displayName.add(new AttributeModifier("style", getDeprecatedCss()));
 
         labelContainer.add(displayName);
@@ -139,7 +139,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 	
 	private void createDeprecated(WebMarkupContainer labelContainer) {
 		Label deprecated = new Label(ID_DEPRECATED);
-        deprecated.add(AttributeModifier.replace("deprecated", LambdaModel.of(getModel(), IW::getDeprecatedSince)));
+        deprecated.add(AttributeModifier.replace("deprecated", new PropertyModel<>(getModel(), "deprecatedSince")));
         deprecated.add(new InfoTooltipBehavior() {
         	
         	private static final long serialVersionUID = 1L;

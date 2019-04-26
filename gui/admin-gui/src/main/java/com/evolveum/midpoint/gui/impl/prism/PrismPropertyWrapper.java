@@ -29,4 +29,6 @@ public interface PrismPropertyWrapper<T> extends ItemWrapper<PrismPropertyValue<
 
 	
 	LookupTableType getPredefinedValues();
+	void setPredefinedValues(LookupTableType lookupTableType);
+	
 }

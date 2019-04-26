@@ -17,21 +17,26 @@
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
@@ -39,8 +44,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurati
 
 /**
  * @author skublik
+ * @deprecated
+ * 
+ * rework to use special wrapper - smth like profiling wrapper which will prepare all the predefined values, profiling level etc.
  */
-
+@Deprecated
 public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrapper<ProfilingConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
@@ -88,23 +96,17 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 			}
 		});
 		add(profilingEnabledNote);
-
-		PrismContainerPanel<ProfilingConfigurationType> profilingPanel = new PrismContainerPanel<>(ID_PROFILING,
-				getProfilingModel());
-		// PrismContainerPanelOld<ProfilingConfigurationType> profilingPanel =
-		// new PrismContainerPanelOld<ProfilingConfigurationType>(ID_PROFILING,
-		// getProfilingModel(), new Form<>("form"), null);
-		add(profilingPanel);
-
-		IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> loggerModel;
+		
 		try {
-			loggerModel = new Model<>(
-					getLoggingModel().getObject().findContainer(ItemPath.create(LoggingConfigurationType.F_CLASS_LOGGER)));
+			Panel panel = getPageBase().initPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), false);
+			add(panel);
 		} catch (SchemaException e) {
-			LOGGER.error("Cannot find class logger container: {}", e.getMessage(), e);
-			loggerModel = null;
+			LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
+			getSession().error("Cannot create profiling panel.");
 		}
 
+		PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), LoggingConfigurationType.F_CLASS_LOGGER);
+		
 		PrismContainerValueWrapper<ClassLoggerConfigurationType> profilingLogger = null;
 
 		if (loggerModel != null) {
@@ -120,68 +122,28 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 
 		// TODO init new value
 		if (profilingLogger == null) {
-			// ItemWrapperFactory<?, ?> factory =
-			// getPageBase().getRegistry().findWrapperFactory(loggerModel.getObject().getDefinition());
-			// WrapperContext context = new WrapperContext(null, null);
-			//// factory.createValueWrapper(loggerModel, value,
-			// ValueStatus.ADDED, context);
-			// profilingLogger =
-			// WebModelServiceUtils.createNewItemContainerValueWrapper(getPageBase(),
-			// loggerModel);
-			// profilingLogger.setShowEmpty(true, true);
-			// loggerModel.getObject().getValues().add(profilingLogger);
-			// new
-			// ItemRealValueModel<ClassLoggerConfigurationType>(profilingLogger).getObject().setPackage(LOGGER_PROFILING);
+			WrapperContext context = new WrapperContext(null, null);
+			PrismContainerValue<ClassLoggerConfigurationType> newValue = loggerModel.getObject().createValue();
+			try {
+				getPageBase().createValueWrapper(loggerModel.getObject(), newValue, ValueStatus.ADDED, context);
+			} catch (SchemaException e) {
+				LOGGER.error("Cannot create new value for profiling. Reason: {}", e.getMessage(), e);
+				getSession().error("Cannot create new value for profiling.");
+			}
 		}
-
-		// TODO: propery/reserence/container models
-
-		// PropertyOrReferenceWrapperFromContainerModel<ClassLoggerConfigurationType>
-		// property = new
-		// PropertyOrReferenceWrapperFromContainerModel<>(profilingLogger,
-		// ClassLoggerConfigurationType.F_LEVEL);
-		// DropDownFormGroup<ProfilingLevel> dropDownProfilingLevel = new
-		// DropDownFormGroup<>(ID_PROFILING_LOGGER_LEVEL, new
-		// Model<ProfilingLevel>() {
-		//
-		// private static final long serialVersionUID = 1L;
-		//
-		// private PropertyModel<LoggingLevelType> levelModel = new
-		// PropertyModel<LoggingLevelType>(property, "values[0].value.value");
-		//
-		// @Override
-		// public ProfilingLevel getObject() {
-		// return ProfilingLevel.fromLoggerLevelType(levelModel.getObject());
-		// }
-		//
-		// @Override
-		// public void setObject(ProfilingLevel object) {
-		// super.setObject(object);
-		// levelModel.setObject(ProfilingLevel.toLoggerLevelType(object));
-		// }
-		//
-		// },
-		// WebComponentUtil.createReadonlyModelFromEnum(ProfilingLevel.class),
-		// new EnumChoiceRenderer<>(this),
-		// createStringResource("LoggingConfigPanel.subsystem.level"),
-		// "", getInputCssClass(), false, true);
-		// add(dropDownProfilingLevel);
 
 		PrismPropertyWrapperModel<ClassLoggerConfigurationType, String> appenders = PrismPropertyWrapperModel.fromContainerWrapper(loggerModel,
 				ClassLoggerConfigurationType.F_APPENDER);
 		// TODO special wrapper with loading predefined values.
-		// PropertyWrapper appenders =
-		// (PropertyWrapper)profilingLogger.findProperty(ClassLoggerConfigurationType.F_APPENDER);
-		// appenders.setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
-
-		PrismPropertyPanel<String> profilingLoggerLevel = new PrismPropertyPanel<String>(ID_PROFILING_LOGGER_APPENDERS,
-				appenders);
-		// PrismPropertyPanel<PropertyWrapper> profilingLoggerLevel = new
-		// PrismPropertyPanel<PropertyWrapper>(ID_PROFILING_LOGGER_APPENDERS,
-		// new Model(appenders), new Form<>("form"), itemWrapper ->
-		// getAppendersPanelVisibility(itemWrapper.getPath()));
-
-		add(profilingLoggerLevel);
+//		 appenders.getObject().setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
+		 
+		 try {
+			Panel profilingLoggerLevel = getPageBase().initPanel(ID_PROFILING_LOGGER_APPENDERS, DOMUtil.XSD_STRING, appenders, false);
+			add(profilingLoggerLevel);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for profiling logger appenders: ", e.getMessage(), e);
+			getSession().error("Cannot create panel for profiling logger appenders.");
+		}
 
 	}
 

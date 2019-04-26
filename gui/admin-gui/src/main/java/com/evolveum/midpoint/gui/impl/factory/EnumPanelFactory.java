@@ -81,7 +81,4 @@ public class EnumPanelFactory<T extends Enum<?>> extends AbstractGuiComponentFac
 
 	}
 
-	
-	
-
 }

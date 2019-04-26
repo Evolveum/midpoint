@@ -52,6 +52,7 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
@@ -115,8 +116,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 	private static final String ID_FILE_PATH = "filePath";
 	private static final String ID_REMOVE_BUTTON = "removeButton";
 	
-	private MailConfigurationType mailConfigType;
-	private List<MailServerConfiguration> mailServers;
+//	private MailConfigurationType mailConfigType;
+//	private List<MailServerConfiguration> mailServers;
 
 	public NotificationConfigTabPanel(String id, IModel<PrismContainerWrapper<NotificationConfigurationType>> model) {
 		super(id, model);
@@ -148,14 +149,16 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 		Form form = new Form<>("form");
 		
 		
-		if(mailConfig != null) {
-			mailConfigType = new PropertyModel<MailConfigurationType>(mailConfig, "values[0].value.value").getObject();
-		}
+//		if(mailConfig != null) {
+//			mailConfigType = new PropertyModel<MailConfigurationType>(mailConfig, "values[0].value.value").getObject();
+//		}
+//		
+//		if(mailConfigType == null) {
+//			mailConfigType = new MailConfigurationType();
+//			((PrismPropertyValue<MailConfigurationType>)((List<PrismPropertyValueWrapper<MailConfigurationType>>)mailConfig.getObject().getValues()).get(0)).setValue(mailConfigType);
+//    	}
 		
-		if(mailConfigType == null) {
-			mailConfigType = new MailConfigurationType();
-			((PrismPropertyValue<MailConfigurationType>)((List<PrismPropertyValueWrapper<MailConfigurationType>>)mailConfig.getObject().getValues()).get(0)).setValue(mailConfigType);
-    	}
+		PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "value"));
 		
 		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
 		
@@ -167,7 +170,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 		
 		add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 		
-        add(initServersTable());
+        add(initServersTable(mailConfigType));
         
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
         
@@ -253,9 +256,9 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         
 	}
 	
-	private BoxedTablePanel<MailServerConfiguration> initServersTable() {
+	private BoxedTablePanel<MailServerConfiguration> initServersTable(PropertyModel<MailConfigurationType> mailConfigType) {
 		
-		mailServers = getListOfMailServerConfiguration(mailConfigType.getServer());
+		List<MailServerConfiguration> mailServers = getListOfMailServerConfiguration(mailConfigType.getObject().getServer());
 		PageStorage pageStorage = getPageBase().getSessionStorage().getNotificationConfigurationTabMailServerTableStorage();
 		ISortableDataProvider<MailServerConfiguration, String> provider = new ListDataProvider<MailServerConfiguration>(this,
                 new ListModel<MailServerConfiguration>(mailServers) {
@@ -265,9 +268,9 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 					@Override
 					public void setObject(List<MailServerConfiguration> object) {
 						super.setObject(object);
-						mailConfigType.getServer().clear();
+						mailConfigType.getObject().getServer().clear();
 						for(MailServerConfiguration value : object) {
-							mailConfigType.server(value.getValue());
+							mailConfigType.getObject().server(value.getValue());
 						}
 						
 					}
@@ -304,7 +307,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						newItemPerformed(target);
+						newItemPerformed(target, mailServers, mailConfigType);
 					}
 				};
 				newObjectIcon.add(AttributeModifier.append("class", Model.of("btn btn-success btn-sm")));
@@ -340,9 +343,9 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 	    return header;
 	}
 	
-	private void newItemPerformed(AjaxRequestTarget target) {
+	private void newItemPerformed(AjaxRequestTarget target, List<MailServerConfiguration> mailServers, PropertyModel<MailConfigurationType> mailConfigType) {
 		MailServerConfigurationType newServerType = new MailServerConfigurationType();
-		mailConfigType.server(newServerType);
+		mailConfigType.getObject().server(newServerType);
 		MailServerConfiguration newServer = new MailServerConfiguration(newServerType);
 		mailServers.add(newServer);
         mailServerEditPerformed(target, Model.of(newServer), null);
@@ -518,13 +521,13 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 		PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfigModel = PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
 		
 		PropertyModel<MailConfigurationType> mailConfigType =
-				new PropertyModel<MailConfigurationType>(mailConfigModel, "values[0].value.value");
+				new ItemRealValueModel<>(new PropertyModel<>(mailConfigModel, "value"));
 		List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
 		
 		toDelete.forEach(value -> {
 			servers.remove(value.getValue());
 		});
-		target.add(this.addOrReplace(initServersTable()));
+		target.add(this.addOrReplace(initServersTable(mailConfigType)));
 		reloadSavePreviewButtons(target);
 	}
 	

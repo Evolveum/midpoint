@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ProfilingLevel;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 
 /**
  * @author katkav
@@ -68,13 +71,13 @@ public class DropDownChoicePanelFactory implements GuiComponentFactory<PrismProp
 			typesList = WebComponentUtil.createObjectTypeList();
 		}
 		
-		
 		DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(panelCtx.getComponentId(), (IModel<QName>) panelCtx.getRealValueModel(),
 				Model.ofList(typesList), new QNameObjectTypeChoiceRenderer(), true);
 		typePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		typePanel.setOutputMarkupId(true);
 		return typePanel;
 	}
+		
 
 	@Override
 	public Integer getOrder() {
