@@ -261,7 +261,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
 
         tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
-                new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE))) {
+                new VisibleBehaviour(() -> isOrgTreeVisible() && (objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE)))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -401,6 +401,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     		QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
     	MemberOperationsHelper.assignMembersPerformed(targetObject, targetType, query,
         		relation, type, target, pageBase);
+    }
+
+    protected boolean isOrgTreeVisible(){
+        return true;
     }
     
     protected abstract T getAssignmentTargetRefObject();
