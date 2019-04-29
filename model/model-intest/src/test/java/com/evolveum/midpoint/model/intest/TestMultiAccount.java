@@ -64,12 +64,23 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
 	protected static final String ACCOUNT_MUAD_DIB_USERNAME = "muaddib";
 	protected static final String ACCOUNT_MUAD_DIB_FULL_NAME = "Muad'Dib";
+
+	protected static final String ACCOUNT_DUKE_USERNAME = "duke";
+	protected static final String ACCOUNT_DUKE_FULL_NAME = "Duke Paul Atreides";
+	protected static final String ACCOUNT_DUKE_TITLE = "duke";
+
+	protected static final String ACCOUNT_MAHDI_USERNAME = "mahdi";
+	protected static final String ACCOUNT_MAHDI_FULL_NAME = "Mahdi Muad'Dib";
+	protected static final String ACCOUNT_MAHDI_TITLE = "mahdi";
+
+	private static final String INTENT_ADMIN = "admin";
 	
-	protected static final String TITLE_DUKE = "Duke";
 
 	private String accountPaulOid;
-
 	private String accountMuaddibOid;
+	private String accountDukeOid;
+
+	private String accountMahdiOid;
 
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -183,7 +194,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         	.displayWithProjections()
         	.assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
         	.assertEmployeeNumber(ACCOUNT_PAUL_ATREIDES_ID)
-        	.assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
+        	// TODO
+//        	.assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
         	.links()
         		.assertLinks(2)
         		.link(accountPaulOid)
@@ -202,6 +214,152 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 		        		.assertKind(ShadowKindType.ACCOUNT)
 		    			.assertIntent(SchemaConstants.INTENT_DEFAULT)
 		    			.assertTagIsOid()
+		    			.getOid();
+	        		
+        
+        assertUsers(getNumberOfUsers() + 1);
+
+	}
+	
+	/**
+	 * Import another account that correlates to Paul. This has the same resource+kind+intent.
+	 * But this is an admin account (title=duke). Therefore it will have different intent.
+	 * And there is a custom tag expression.
+	 */
+	@Test
+    public void test200ImportDuke() throws Exception {
+		final String TEST_NAME = "test200ImportDuke";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyAccount account = new DummyAccount(ACCOUNT_DUKE_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_DUKE_FULL_NAME);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ACCOUNT_PAUL_ATREIDES_ID);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ACCOUNT_DUKE_TITLE);
+		getDummyResource(RESOURCE_DUMMY_MULTI_GREEN_NAME).addAccount(account);
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 1);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        importMultiGreenAccounts(task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        
+        accountDukeOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
+        	.displayWithProjections()
+        	.assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
+        	.assertEmployeeNumber(ACCOUNT_PAUL_ATREIDES_ID)
+        	// TODO
+//        	.assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
+        	.links()
+        		.assertLinks(3)
+        		.link(accountPaulOid)
+        			.resolveTarget()
+        				.display()
+	        			.assertKind(ShadowKindType.ACCOUNT)
+	        			.assertIntent(SchemaConstants.INTENT_DEFAULT)
+	        			.assertTag(accountPaulOid)
+	        			.end()
+	        		.end()
+        		.link(accountMuaddibOid)
+        			.resolveTarget()
+        				.display()
+	        			.assertKind(ShadowKindType.ACCOUNT)
+	        			.assertIntent(SchemaConstants.INTENT_DEFAULT)
+	        			.assertTag(accountMuaddibOid)
+	        			.end()
+	        		.end()
+	        	.by()
+	        		.notTags(accountPaulOid, accountMuaddibOid)
+        		.find()
+        			.resolveTarget()
+        				.display()
+		        		.assertKind(ShadowKindType.ACCOUNT)
+		    			.assertIntent(INTENT_ADMIN)
+		    			.assertTag(ACCOUNT_DUKE_TITLE)
+		    			.getOid();
+	        		
+        
+        assertUsers(getNumberOfUsers() + 1);
+
+	}
+	
+	/**
+	 * Import yet another admin account that correlates to Paul.
+	 */
+	@Test
+    public void test210ImportMahdi() throws Exception {
+		final String TEST_NAME = "test210ImportMahdi";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyAccount account = new DummyAccount(ACCOUNT_MAHDI_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_MAHDI_FULL_NAME);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ACCOUNT_PAUL_ATREIDES_ID);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ACCOUNT_MAHDI_TITLE);
+		getDummyResource(RESOURCE_DUMMY_MULTI_GREEN_NAME).addAccount(account);
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 1);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        importMultiGreenAccounts(task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        
+        accountMahdiOid = assertUserAfterByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME)
+        	.displayWithProjections()
+        	.assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
+        	.assertEmployeeNumber(ACCOUNT_PAUL_ATREIDES_ID)
+        	// TODO
+//        	.assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
+        	.links()
+        		.assertLinks(4)
+        		.link(accountPaulOid)
+        			.resolveTarget()
+        				.display()
+	        			.assertKind(ShadowKindType.ACCOUNT)
+	        			.assertIntent(SchemaConstants.INTENT_DEFAULT)
+	        			.assertTag(accountPaulOid)
+	        			.end()
+	        		.end()
+        		.link(accountMuaddibOid)
+        			.resolveTarget()
+        				.display()
+	        			.assertKind(ShadowKindType.ACCOUNT)
+	        			.assertIntent(SchemaConstants.INTENT_DEFAULT)
+	        			.assertTag(accountMuaddibOid)
+	        			.end()
+	        		.end()
+        		.link(accountDukeOid)
+        			.resolveTarget()
+        				.display()
+	        			.assertKind(ShadowKindType.ACCOUNT)
+	        			.assertIntent(INTENT_ADMIN)
+	        			.assertTag(ACCOUNT_DUKE_TITLE)
+	        			.end()
+	        		.end()
+	        	.by()
+	        		.notTags(accountPaulOid, accountMuaddibOid, ACCOUNT_DUKE_TITLE)
+        		.find()
+        			.resolveTarget()
+        				.display()
+		        		.assertKind(ShadowKindType.ACCOUNT)
+		    			.assertIntent(INTENT_ADMIN)
+		    			.assertTag(ACCOUNT_MAHDI_TITLE)
 		    			.getOid();
 	        		
         

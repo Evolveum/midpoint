@@ -69,7 +69,7 @@
 				<outbound>
 				    <strength>weak</strength>
 				    <source>
-				    	<path>$user/name</path>
+				    	<path>$focus/name</path>
 				    </source>
 					<expression>
 						<script>
@@ -96,13 +96,13 @@
 				<displayName>Full Name</displayName>
 				<outbound>
 					<source>
-						<path>$user/fullName</path>
+						<path>$focus/fullName</path>
 					</source>
 				</outbound>
 				<inbound>
 					<strength>weak</strength>
 					<target>
-						<path>$user/fullName</path>
+						<path>$focus/fullName</path>
 					</target>
 				</inbound>
 				<inbound>
@@ -165,7 +165,7 @@
 					<strength>weak</strength>
 					<source>
 						<path>
-							$user/extension/piracy:weapon
+							$focus/extension/piracy:weapon
 						</path>
 					</source>
 				</outbound>
@@ -196,18 +196,10 @@
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
-            
-            <protected>
-            	<icfs:name>daviejones</icfs:name>
-            </protected>
-            <protected>
-            	<icfs:name>calypso</icfs:name>
-            </protected>
 			
 			<activation>
             	<administrativeStatus>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
@@ -216,7 +208,6 @@
             	</administrativeStatus>
             	<validFrom>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
@@ -225,7 +216,6 @@
             	</validFrom>
             	<validTo>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
@@ -264,9 +254,7 @@
 				<tag>
 					<expression>
 						<script>
-							<code>
-								todo: explicit tag expression;
-							</code>
+							<code>basic.getAttributeValue(projection, "title");</code>
 						</script>
 					</expression>
 				</tag>
@@ -277,28 +265,14 @@
 				<outbound>
 				    <strength>weak</strength>
 				    <source>
-				    	<path>$user/name</path>
+				    	<path>name</path>
 				    </source>
-					<expression>
-						<script>
-							<code>
-								'X' + name
-							</code>
-						</script>
-					</expression>
 				</outbound>
 				<inbound>
 					<!-- This avoids "kickback" of a name from account to a user. -->
 					<strength>weak</strength>
-					<expression>
-						<script>
-							<code>
-								input?.substring(1)
-							</code>
-						</script>
-					</expression>
 					<target>
-						<path>$c:user/c:name</path>
+						<path>name</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -311,64 +285,29 @@
 				<displayName>Full Name</displayName>
 				<outbound>
 					<source>
-						<path>$user/fullName</path>
+						<path>fullName</path>
 					</source>
 				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<displayName>Weapon</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<expression>
-						<value>Administrative Powers</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<inbound>
-					<target>
-						<path>employeeNumber</path>
-					</target>
-				</inbound>
+				<!-- admin accounts do not set (inbound) full name -->
 			</attribute>
 			
 			<activation>
             	<administrativeStatus>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
             		</outbound>
-            		<inbound>
-            			<strength>weak</strength>
-            		</inbound>
             	</administrativeStatus>
             </activation>
 			
 			<credentials>
                 <password>
                     <outbound>
-                    	<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
                     </outbound>
-                    <inbound>
-                    	<strength>weak</strength>
-                        <expression>
-                            <generate/>
-                        </expression>
-                    </inbound>
                 </password>
             </credentials>
             
@@ -391,7 +330,7 @@
 			<condition>
 				<script>
 					<code>
-						title = basic.getAttributeValue(shadow, "title");
+						title = basic.getAttributeValue(projection, "title");
 						log.info("DEFAULT: title: {}", title)
 						title == null
 					</code>
@@ -401,7 +340,7 @@
 				<q:equal>
 					<q:path>employeeNumber</q:path>
 					<expression>
-						<path>$account/attributes/ship</path>
+						<path>$projection/attributes/ship</path>
 					</expression>
 				</q:equal>
 			</correlation>
@@ -440,7 +379,7 @@
 			<condition>
 				<script>
 					<code>
-						title = basic.getAttributeValue(shadow, "title");
+						title = basic.getAttributeValue(projection, "title");
 						log.info("ADMIN: title: {}", title)
 						title != null
 					</code>
@@ -450,7 +389,7 @@
 				<q:equal>
 					<q:path>employeeNumber</q:path>
 					<expression>
-						<path>$account/attributes/ship</path>
+						<path>$projection/attributes/ship</path>
 					</expression>
 				</q:equal>
 			</correlation>

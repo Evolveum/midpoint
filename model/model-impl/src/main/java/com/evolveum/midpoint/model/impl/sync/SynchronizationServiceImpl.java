@@ -102,7 +102,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceImpl.class);
 
 	@Autowired private ActionManager<Action> actionManager;
-	@Autowired private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
+	@Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
 	@Autowired private ContextFactory contextFactory;
 	@Autowired private Clockwork clockwork;
 	@Autowired private ExpressionFactory expressionFactory;
@@ -241,7 +241,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return syncCtx;
 	}
 	
-	private <F extends FocusType> void processTag(SynchronizationContext<F> syncCtx) throws SchemaException {
+	private <F extends FocusType> void processTag(SynchronizationContext<F> syncCtx) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<ShadowType> applicableShadow = syncCtx.getApplicableShadow();
 		if (applicableShadow == null) {
 			return;
@@ -262,8 +262,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (maxOccurs == null || maxOccurs.equals("1")) {
 			return;
 		}
-		// TODO: generate tag: expression
-		String tag = applicableShadow.getOid();
+		String tag = synchronizationExpressionsEvaluator.generateTag(multiplicity, applicableShadow, 
+				syncCtx.getResource(), syncCtx.getSystemConfiguration(), "tag expression for "+applicableShadow, syncCtx.getTask(), syncCtx.getResult());
 		LOGGER.debug("SYNCHRONIZATION: TAG generated: {}", tag);
 		syncCtx.setTag(tag);
 	}
@@ -622,7 +622,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		
 		SynchronizationContext<F> synchronizationContext = loadSynchronizationContext(shadow, shadow, resourceType.asPrismObject(), task.getChannel(), configuration, task, result);
-		return correlationConfirmationEvaluator.matchFocusByCorrelationRule(synchronizationContext, focus);
+		return synchronizationExpressionsEvaluator.matchFocusByCorrelationRule(synchronizationContext, focus);
 	}
 
 	/**
@@ -673,7 +673,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		SynchronizationSituationType state;
 		LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of {} objects based on correlation rule.",
 				syncCtx.getFocusClass().getSimpleName());
-		List<PrismObject<F>> users = correlationConfirmationEvaluator.findFocusesByCorrelationRule(syncCtx.getFocusClass(),
+		List<PrismObject<F>> users = synchronizationExpressionsEvaluator.findFocusesByCorrelationRule(syncCtx.getFocusClass(),
 				resourceShadow.asObjectable(), syncCtx.getCorrelation(), resource,
 				syncCtx.getSystemConfiguration().asObjectable(), task, result);
 		if (users == null) {
@@ -685,7 +685,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
 			} else {
 				LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking objects from correlation with confirmation rule.");
-				users = correlationConfirmationEvaluator.findUserByConfirmationRule(syncCtx.getFocusClass(), users,
+				users = synchronizationExpressionsEvaluator.findUserByConfirmationRule(syncCtx.getFocusClass(), users,
 						resourceShadow.asObjectable(), resource, syncCtx.getSystemConfiguration().asObjectable(),
 						syncCtx.getConfirmation(), task, result);
 			}

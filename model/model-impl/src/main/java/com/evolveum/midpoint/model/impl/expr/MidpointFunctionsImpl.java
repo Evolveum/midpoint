@@ -38,7 +38,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
-import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
 import com.evolveum.midpoint.prism.*;
@@ -130,7 +130,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Autowired private ConstantsManager constantsManager;
 	@Autowired private LocalizationService localizationService;
 	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
+	@Autowired private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
 	@Autowired private ArchetypeManager archetypeManager;
 
 	@Autowired
