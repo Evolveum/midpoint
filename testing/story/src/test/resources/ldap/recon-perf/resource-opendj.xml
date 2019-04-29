@@ -54,9 +54,6 @@
 			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
  			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
- 			<icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes>
- 			<icfcldap:languageTagAttributes>title</icfcldap:languageTagAttributes>
- 			<icfcldap:tolerateMultivalueReduction>true</icfcldap:tolerateMultivalueReduction>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>
@@ -93,16 +90,14 @@
                 </outbound>
             </attribute>
 
-			<!-- The 'cn' attribute is a simple string. It is mapped from polystring (fullName),
-			     but as it is just a string it should be converted and only "orig" should be used.
-			     cf. attribute 'description' below. -->
             <attribute>
                 <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
                 <limitations>
                 	<maxOccurs>1</maxOccurs>
                 </limitations>
-                <displayName>Common Name</displayName>
                 <outbound>
+                	<strength>strong</strength>
                 	<source>
 	                    <path>fullName</path>
                     </source>
@@ -110,10 +105,10 @@
             </attribute>
 
             <attribute>
-                <ref>ri:sn</ref>            
+                <ref>ri:sn</ref>
                 <limitations>
                 	<maxOccurs>1</maxOccurs>
-                </limitations>
+                </limitations>                
                 <outbound>
                 	<source>
                 		<path>familyName</path>
@@ -142,79 +137,6 @@
                 	<source>
                 		<path>name</path>
                 	</source>
-                </outbound>
-            </attribute>
-
-			<!-- The 'description' attribute is a polystring. It is mapped from polystring (fullName),
-			     and as it is also a polystring, all the "lang" variants should be used.
-			     cf. attribute 'cn' above.
-			     This is EXPERIMENTAL functionality. It is not officialy supported. Use only at your own risk. -->
-            <attribute>
-                <ref>ri:description</ref>
-                <limitations>
-                	<!-- Poly-attributes only work with single-value attributes -->
-                	<maxOccurs>1</maxOccurs>
-                </limitations>
-                <!-- PolyString strict matching - to make sure that the langs in polystring get compared. -->
-                <matchingRule>mr:polyStringStrict</matchingRule>
-                <outbound>
-                	<source>
-	                    <path>fullName</path>
-                    </source>
-                </outbound>
-            </attribute>
-            
-            <attribute>
-                <ref>ri:title</ref>
-                <limitations>
-                	<!-- Poly-attributes only work with single-value attributes -->
-                	<maxOccurs>1</maxOccurs>
-                </limitations>
-                <!-- PolyString strict matching - to make sure that the langs in polystring get compared. -->
-                <matchingRule>mr:polyStringStrict</matchingRule>
-                <outbound>
-                	<source>
-                		<!-- Source is NOT a polystring here. It is a container. -->
-	                    <path>extension/titleMap</path>
-                    </source>
-                    <expression>
-                    	<script>
-                    		<relativityMode>absolute</relativityMode>
-                    		<code>
-                    			import com.evolveum.midpoint.prism.polystring.PolyString
-                    			import com.evolveum.midpoint.prism.path.ItemName
-                    			
-                    			log.info("MAP:titleMap: {}", titleMap)
-                    			
-                    			if (titleMap == null) {
-                    				return null
-                    			}
-                    			
-                    			assert titleMap instanceof com.evolveum.midpoint.prism.PrismContainer
-                    			
-                    			def poly
-                    			def lang = [:]
-                    			
-                    			titleMap.values.each {
-                    				log.info("MAP:titleMap:value: {}", it)
-                    				assert it instanceof com.evolveum.midpoint.prism.PrismContainerValue
-                    				def key = it.findProperty(new ItemName('key')).realValue
-                    				def value = it.findProperty(new ItemName('value')).realValue
-                    				log.info("MAP:titleMap: {} -> {}", key, value)
-                    				if (key == "en") {
-                    					poly = new PolyString(value)
-                    				}
-                    				lang.put(key, value)
-                    			}
-                    			
-                    			poly.setLang(lang)
-                    			
-                    			log.info("MAP:titleMap:poly: {}", poly.debugDump())
-                    			
-                    			return poly
-                    		</code>
-                    	</script>
-                    </expression>
                 </outbound>
             </attribute>
 
@@ -255,5 +177,45 @@
 			</cap:activation>
 		</configured>
 	</capabilities>
+	
+	   <synchronization>
+    	<objectSynchronization>
+    		<objectClass>ri:inetOrgPerson</objectClass>
+	        <enabled>true</enabled>
+	        <correlation>
+	            <q:equal>
+	                <q:path>c:name</q:path>
+	                <expression>
+	                	<path>
+	                		declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+	                		$shadow/attributes/ri:uid
+                		</path>
+	                </expression>
+	            </q:equal>
+	        </correlation>
+
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+		</objectSynchronization>
+		
+    </synchronization>
+	
 
 </resource>
