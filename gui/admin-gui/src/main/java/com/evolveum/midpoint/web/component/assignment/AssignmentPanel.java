@@ -518,6 +518,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
 				return AssignmentPanel.this.getModelObject();
 			}
+
+			@Override
+			protected boolean isOrgTreeTabVisible(){
+				return assignmentTargetRelation == null;
+			}
 		};
 		popupPanel.setOutputMarkupId(true);
 		getPageBase().showMainPopup(popupPanel, target);

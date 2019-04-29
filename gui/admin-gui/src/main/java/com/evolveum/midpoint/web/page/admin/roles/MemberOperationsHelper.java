@@ -164,6 +164,13 @@ public class MemberOperationsHelper {
 	
 	public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
 																						List<QName> availableRelationList, List<QName> objectTypes) {
+		assignMembers(pageBase, targetRefObject, target, availableRelationList, objectTypes, true);
+
+	}
+
+	public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
+																						List<QName> availableRelationList, List<QName> objectTypes,
+																					boolean isOrgTreePanelVisible) {
 
 		ChooseMemberPopup<O, R> browser = new ChooseMemberPopup<O, R>(pageBase.getMainPopupBodyId(), availableRelationList) {
 			private static final long serialVersionUID = 1L;
@@ -176,6 +183,11 @@ public class MemberOperationsHelper {
 			@Override
 			protected List<QName> getAvailableObjectTypes(){
 				return objectTypes;
+			}
+
+			@Override
+			protected boolean isOrgTreeVisible(){
+				return isOrgTreePanelVisible;
 			}
 		};
 		browser.setOutputMarkupId(true);

@@ -35,7 +35,7 @@ import static java.util.Collections.singletonList;
  */
 public enum RelationTypes {
 
-	MEMBER(SchemaConstants.ORG_DEFAULT, "", "", RelationKindType.MEMBER, null, ADMINISTRATION, ORGANIZATION, SELF_SERVICE),
+	MEMBER(SchemaConstants.ORG_DEFAULT, "", "fe fe-action-assign", RelationKindType.MEMBER, null, ADMINISTRATION, ORGANIZATION, SELF_SERVICE),
     MANAGER(SchemaConstants.ORG_MANAGER, "Manager", "fe fe-manager-tie-object", RelationKindType.MANAGER, singletonList(RelationKindType.MEMBER), ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
     META(SchemaConstants.ORG_META, "Meta", "", RelationKindType.META, null, POLICY),
     DEPUTY(SchemaConstants.ORG_DEPUTY, "Deputy", "", RelationKindType.DELEGATION, null /* no values */),

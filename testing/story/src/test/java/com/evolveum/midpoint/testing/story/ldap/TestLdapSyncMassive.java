@@ -109,6 +109,11 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
 	}
 
 	@Override
+	protected String getLdapResourceOid() {
+		return RESOURCE_OPENDJ_OID;
+	}
+	
+	@Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
     }
@@ -542,30 +547,6 @@ public  class TestLdapSyncMassive extends AbstractLdapTest {
         lastSyncToken = currentSyncToken;
 	}
 	
-	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		assertLdapConnectorInstances(expectedConnectorInstances, expectedConnectorInstances);
-	}
-	
-	protected void assertLdapConnectorInstances(int expectedConnectorInstancesMin, int expectedConnectorInstancesMax) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		Task task = createTask(TestLdapSyncMassive.class.getName() + ".assertLdapConnectorInstances");
-		OperationResult result = task.getResult();
-		List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(RESOURCE_OPENDJ_OID, task, result);
-		display("Resource connector stats", stats);
-		assertSuccess(result);
-
-		assertEquals("unexpected number of stats", 1, stats.size());
-		ConnectorOperationalStatus stat = stats.get(0);
-
-		int actualConnectorInstances = stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive();
-		
-		if (actualConnectorInstances < expectedConnectorInstancesMin) {
-			fail("Number of LDAP connector instances too low: "+actualConnectorInstances+", expected at least "+expectedConnectorInstancesMin);
-		}
-		if (actualConnectorInstances > expectedConnectorInstancesMax) {
-			fail("Number of LDAP connector instances too high: "+actualConnectorInstances+", expected at most "+expectedConnectorInstancesMax);
-		}
-	}
-
 	@Override
 	protected void dumpLdap() throws DirectoryException {
 		display("LDAP server tree", openDJController.dumpTree());

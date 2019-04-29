@@ -264,10 +264,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 					@Override
 					protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
-						AbstractRoleMemberPanel.this.assignMembers(target, relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
-								Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations(),
-								relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
-								relation.getObjectTypes() : null);
+						List<QName> relations = relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
+								Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations();
+						List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
+								relation.getObjectTypes() : null;
+						MemberOperationsHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target,
+								relations, objectTypes, relation == null);
 					}
 
 					@Override
@@ -388,7 +390,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            assignMembers(target, getSupportedRelations(), null);
+							MemberOperationsHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getSupportedRelations(), null);
                         }
                     };
                 }

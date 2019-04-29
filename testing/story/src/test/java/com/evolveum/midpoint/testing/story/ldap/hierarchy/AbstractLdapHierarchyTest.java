@@ -119,6 +119,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
 	protected String orgRolyulaDiabolicaOid;
 	protected String userGorcOid;
 
+	@Override
+	protected String getLdapResourceOid() {
+		return RESOURCE_OPENDJ_OID;
+	}
+	
 	protected abstract File getTestDir();
 
 	protected File getResourceOpenDjFile() {
