@@ -36,6 +36,8 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
@@ -2621,23 +2623,28 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     	return registry.getPanelClass(typeName);
     }
     
-    public <IW extends ItemWrapper> Panel initPanel(String panelId, QName typeName, IModel<IW> wrapperModel, boolean errorOnNullPanel) throws SchemaException{
+    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemVisibilityHandler visibilityHandler) throws SchemaException{
     	Class<?> panelClass = getWrapperPanel(typeName);
     	
     	if (panelClass == null) {
     		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for" + typeName);
-    		errorPanel.add(new VisibleBehaviour(() -> errorOnNullPanel));
+    		errorPanel.add(new VisibleBehaviour(() -> getApplication().usesDevelopmentConfig()));
     		return errorPanel;
     	}
     	
     	Constructor<?> constructor;
 		try {
-			constructor = panelClass.getConstructor(String.class, IModel.class);
-			Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel);
+			constructor = panelClass.getConstructor(String.class, IModel.class, ItemVisibilityHandler.class);
+			Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel, visibilityHandler);
 			return panel;
 		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new SystemException("Cannot instantiate " + panelClass);
+			throw new SystemException("Cannot instantiate " + panelClass, e);
 		}
+    }
+    
+    public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler) {
+    	//TODO find from registry first
+    	return new PrismContainerValuePanel<>(id, model, visibilityHandler);
     }
 
     public Clock getClock() {

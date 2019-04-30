@@ -168,7 +168,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
 	@Override
 	public int getOrder() {
-		return Integer.MAX_VALUE;
+		return 100;
 	}
 
 }

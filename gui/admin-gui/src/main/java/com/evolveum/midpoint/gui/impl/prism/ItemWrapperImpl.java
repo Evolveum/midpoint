@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -413,12 +414,27 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 //	}
 	
 	@Override
-	public boolean isVisible() {
+	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
 		
 		if (!getParent().isExpanded()) {
 			return false;
 		}
 		
+		
+		if (visibilityHandler != null) {
+			ItemVisibility visible = visibilityHandler.isVisible(this);
+			if (visible != null) {
+				switch (visible) {
+					case VISIBLE:
+						return true;
+					case HIDDEN:
+						return false;
+					default:
+						// automatic, go on ...
+				}
+			}
+		}
+	    
 		ID def = getItemDefinition();
 		switch (findObjectStatus()) {
 			case NOT_CHANGED:
@@ -437,7 +453,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 			return def.canRead();
 		}
 		
-		return def.canRead() && (def.isEmphasized() || !newItem.isEmpty());
+		return def.canRead() && (def.isEmphasized() || !isEmpty());
 	}
 	
 	private boolean isVisibleForAdd(ID def) {
@@ -446,6 +462,14 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		}
 		
 		return def.isEmphasized() && def.canAdd();
+	}
+	
+	protected boolean isEmpty() {
+		if (newItem.isEmpty()) {
+			return true;
+		}
+		
+		return false;
 	}
 
 //	private boolean showEmptyCanReadAndModify(ID def) {

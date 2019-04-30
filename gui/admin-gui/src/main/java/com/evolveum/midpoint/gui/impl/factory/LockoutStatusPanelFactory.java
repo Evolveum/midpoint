@@ -46,7 +46,7 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
 		registry.addToRegistry(this);
 	}
 
-		@Override
+	@Override
 	public Integer getOrder() {
 		return 1000;
 	}

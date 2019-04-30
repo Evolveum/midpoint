@@ -31,7 +31,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferencePanelContext;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
@@ -51,8 +50,8 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 	private static final String ID_VALUE = "value";
 	private static final String ID_FEEDBACK = "feedback";
 
-	public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model) {
-		super(id, model);
+	public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemVisibilityHandler visibilityHandler) {
+		super(id, model, visibilityHandler);
 	}
 	
 	@Override
@@ -61,7 +60,7 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 	}
 
 	@Override
-	protected void createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory) {
+	protected void createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
 		if (componentFactory != null) {
 			PrismReferencePanelContext<?> panelCtx = new PrismReferencePanelContext<>(getModel());
 			panelCtx.setComponentId(ID_VALUE);

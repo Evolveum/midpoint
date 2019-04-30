@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,10 +32,12 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -132,10 +136,18 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		target.add(getFeedbackPanel());
 	}
 
-	protected <T> PrismPropertyPanel<T> addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
-		PrismPropertyPanel<T> panel = new PrismPropertyPanel<>(id, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath));
-				//mainForm, wrapper -> ItemVisibility.VISIBLE);
-		parentComponent.add(panel);
-		return panel;
+	protected Panel addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName typeName, ItemPath propertyPath) {
+		
+		try {
+			//FIXME : really always visible?
+			Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), wrapper -> ItemVisibility.VISIBLE);
+			parentComponent.add(panel);
+			return panel;
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for {}", typeName, e);
+			getSession().error("Cannot create panel for " + typeName + ", reason: " + e.getMessage());
+		}
+		
+		return null;		
 	}
 }

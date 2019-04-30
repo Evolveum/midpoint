@@ -69,11 +69,11 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	private void initLayout() {
 		
 		try {
-			Panel main = getPageBase().initPanel(ID_MAIN_PANEL, getObjectWrapper().getTypeName(), PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.EMPTY_PATH), false);
+			Panel main = getPageBase().initItemPanel(ID_MAIN_PANEL, getObjectWrapper().getTypeName(), PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.EMPTY_PATH), null);
 			add(main);
-			Panel activation = getPageBase().initPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), FocusType.F_ACTIVATION), false);
+			Panel activation = getPageBase().initItemPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), FocusType.F_ACTIVATION), null);
 			add(activation);
-			Panel password = getPageBase().initPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), false);
+			Panel password = getPageBase().initItemPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), null);
 			add(password);
 		} catch (SchemaException e) {
 			LOGGER.error("Could not create focu details panel. Reason: ", e.getMessage(), e);
