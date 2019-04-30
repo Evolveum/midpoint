@@ -2619,7 +2619,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     	
     }
     
-    public Class<?> getWrapperPanel(QName typeName) {
+    private Class<?> getWrapperPanel(QName typeName) {
     	return registry.getPanelClass(typeName);
     }
     
