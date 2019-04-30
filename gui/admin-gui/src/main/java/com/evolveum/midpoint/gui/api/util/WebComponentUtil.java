@@ -3542,20 +3542,20 @@ public final class WebComponentUtil {
 		result.recomputeStatus();
 	}
 
-	public static String getDisplayPolyStringValue(PolyStringType polyString, PageBase pageBase){
+	public static String getDisplayPolyStringValue(PolyString polyString, PageBase pageBase){
 		if (polyString == null){
 			return null;
 		}
 		if ((polyString.getTranslation() == null || StringUtils.isEmpty(polyString.getTranslation().getKey())) &&
-				(polyString.getLang() == null || polyString.getLang().getLang() == null || polyString.getLang().getLang().isEmpty())){
+				(polyString.getLang() == null || polyString.getLang() == null || polyString.getLang().isEmpty())){
 			return polyString.getOrig();
 		}
-		if (polyString.getLang() != null && polyString.getLang().getLang() != null && !polyString.getLang().getLang().isEmpty()){
+		if (polyString.getLang() != null && polyString.getLang() != null && !polyString.getLang().isEmpty()){
 			//check if it's really selected by user or configured through sysconfig locale
 			String currentLocale = getCurrentLocale().getLanguage();
-			for (String language : polyString.getLang().getLang().keySet()){
+			for (String language : polyString.getLang().keySet()){
 				if (currentLocale.equals(language)){
-					return polyString.getLang().getLang().get(language);
+					return polyString.getLang().get(language);
 				}
 			}
 		}

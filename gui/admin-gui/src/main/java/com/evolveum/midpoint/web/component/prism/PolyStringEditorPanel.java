@@ -22,14 +22,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringLangType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationArgumentType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -42,12 +37,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by honchar
  */
-public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
+public class PolyStringEditorPanel extends BasePanel<PolyString>{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_DEFAULT_VALUE_PANEL = "defaultValuePanel";
@@ -58,11 +52,11 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
     private static final String ID_LANGUAGE_NAME = "languageName";
     private static final String ID_TRANSLATION = "translation";
     private static final String ID_SHOW_HIDE_LANGUAGES = "showHideLanguages";
-    private static final String ID_ADD_LANGUAGE_BUTTON = "addLanguageButton";
+    private static final String ID_ADD_LANGUAGE = "addLanguage";
 
     private boolean showFullData = false;
 
-    public PolyStringEditorPanel(String id, IModel<PolyStringType> model){
+    public PolyStringEditorPanel(String id, IModel<PolyString> model){
         super(id, model);
     }
 
@@ -77,7 +71,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
 
         TextPanel<String> defaultValuePanel = new TextPanel<String>(ID_DEFAULT_VALUE_PANEL, Model.of(getDefaultPolyStringValue()));
         defaultValuePanel.setOutputMarkupId(true);
-        defaultValuePanel.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        defaultValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         defaultValuePanel.add(new VisibleBehaviour(() -> !showFullData));
         add(defaultValuePanel);
 
@@ -87,16 +81,16 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
         add(fullDataContainer);
 
         TextPanel<String> origValue = new TextPanel<String>(ID_ORIG_VALUE, Model.of(getDefaultPolyStringValue()));
-        origValue.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        origValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         origValue.setOutputMarkupId(true);
         fullDataContainer.add(origValue);
 
         TextPanel<String> keyValue = new TextPanel<String>(ID_KEY_VALUE, Model.of(getKeyValue()));
-        keyValue.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        keyValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         keyValue.setOutputMarkupId(true);
         fullDataContainer.add(keyValue);
 
-        Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang().getLang() : new HashMap<>();
+        Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang() : new HashMap<>();
         ListView<String> languagesContainer =
                 new ListView<String>(ID_LANGUAGES_REPEATER, getLanguagesListModel()) {
                     private static final long serialVersionUID = 1L;
@@ -105,8 +99,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
                     protected void populateItem(ListItem<String> listItem) {
                         if (StringUtils.isEmpty(listItem.getModelObject())){
                             TextPanel<String> languageName = new TextPanel<String>(ID_LANGUAGE_NAME, Model.of(listItem.getModelObject()));
-                            languageName.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                            languageName.setOutputMarkupId(true);
+                            languageName.getBaseFormComponent().setOutputMarkupId(true);
                             listItem.add(languageName);
                         } else {
                             Label languageName = new Label(ID_LANGUAGE_NAME, Model.of(listItem.getModelObject()));
@@ -115,7 +108,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
                         }
 
                         TextPanel<String> translation = new TextPanel<String>(ID_TRANSLATION, Model.of(languagesMap.get(listItem.getModelObject())));
-                        translation.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                        translation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                         translation.setOutputMarkupId(true);
                         listItem.add(translation);
 
@@ -124,7 +117,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
         languagesContainer.setOutputMarkupId(true);
         fullDataContainer.add(languagesContainer);
 
-        AjaxLink addLanguageButton = new AjaxLink(ID_ADD_LANGUAGE_BUTTON) {
+        AjaxButton addLanguageButton = new AjaxButton(ID_ADD_LANGUAGE, createStringResource("PolyStringEditorPanel.addLanguage")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -132,6 +125,8 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
                 addNewLanguagePerformed(target);
             }
         };
+        addLanguageButton.add(AttributeAppender.append("style", "cursor: pointer;"));
+        addLanguageButton.setOutputMarkupId(true);
         fullDataContainer.add(addLanguageButton);
 
         AjaxButton showHideLanguagesButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES, new LoadableModel<String>() {
@@ -173,7 +168,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
 
             @Override
             protected List<String> load() {
-                Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang().getLang() : new HashMap<>();
+                Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang() : new HashMap<>();
                 return new ArrayList<>(languagesMap.keySet());
             }
         };
@@ -181,12 +176,9 @@ public class PolyStringEditorPanel extends BasePanel<PolyStringType>{
 
     private void addNewLanguagePerformed(AjaxRequestTarget target){
         if (getModelObject().getLang() == null){
-            getModelObject().setLang(new PolyStringLangType());
+            getModelObject().setLang(new HashMap<String, String>());
         }
-        if (getModelObject().getLang().getLang() == null){
-            getModelObject().getLang().setLang(new HashMap<String, String>());
-        }
-        getModelObject().getLang().getLang().put("", "");
+        getModelObject().getLang().put("", "");
         target.add(PolyStringEditorPanel.this);
 
     }
