@@ -16,19 +16,18 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,10 +47,6 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
 		super(parent, item, status);
 	}
 
-//	public PropertyDelta<T> getDelta() {
-//		
-//	}
-	
 	PrismPropertyValueWrapper<T> getValue() throws SchemaException {
 		if (CollectionUtils.isEmpty(getValues())) {
 			return null;
@@ -123,5 +118,20 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
 	
 	public void setPredefinedValues(LookupTableType predefinedValues) {
 		this.predefinedValues = predefinedValues;
+	}
+	
+	@Override
+	protected boolean isEmpty() {
+		if (super.isEmpty()) return true;
+		List<PrismPropertyValue<T>> pVals = getItem().getValues();
+		boolean allEmpty = true;
+		for (PrismPropertyValue<T> pVal : pVals) {
+			if (pVal.getRealValue() != null) {
+				allEmpty = false;
+				break;
+			}
+		}
+		
+		return allEmpty;
 	}
 }

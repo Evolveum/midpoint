@@ -67,7 +67,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	
 	@Override
 	public boolean match(ItemDefinition<?> def) {
-		return !(def instanceof PrismObjectDefinition) && def instanceof PrismContainerDefinition;
+		return  def instanceof PrismContainerDefinition;
 	}
 
 	@PostConstruct

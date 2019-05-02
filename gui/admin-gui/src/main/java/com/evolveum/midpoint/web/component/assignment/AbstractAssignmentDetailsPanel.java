@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -36,6 +37,9 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -57,6 +61,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
  */
 public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extends BasePanel<ContainerValueWrapper<AssignmentType>> {
     private static final long serialVersionUID = 1L;
+    
+    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractAssignmentDetailsPanel.class);
 
     private final static String ID_DISPLAY_NAME = "displayName";
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
@@ -146,9 +152,16 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
 
 		PrismContainerWrapperModel<F, ActivationType> activationModel = PrismContainerWrapperModel.fromContainerWrapper(pageBase.getObjectModel(), AssignmentType.F_ACTIVATION);
-		PrismContainerPanel<ActivationType> activationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel);
+		try {
+			Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, activationModel, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
+			add(activationPanel);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for activation, {}", e.getMessage(), e);
+			getSession().error("Cannot create panel for activation, " + e.getMessage());
+		}
+//		PrismContainerPanel<ActivationType> activationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel);
 //		PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<>(ID_ACTIVATION_PANEL, activationModel, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
-		add(activationContainer);
+		
 		
 		initContainersPanel(form, pageBase);
     }

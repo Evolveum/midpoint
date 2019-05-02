@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -57,9 +58,12 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	private static final String ID_REMOVE_BUTTON = "removeButton";
 	private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 	
+	private ItemVisibilityHandler visibilityHandler;
 	
-	public ItemPanel(String id, IModel<IW> model) {
+	
+	public ItemPanel(String id, IModel<IW> model, ItemVisibilityHandler visibilityHandler) {
 		super(id, model);
+		this.visibilityHandler = visibilityHandler;
 	}
 
 	@Override
@@ -92,7 +96,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 			protected void populateItem(ListItem<VW> item) {
 				 GuiComponentFactory componentFactory = getPageBase().getRegistry().findValuePanelFactory(ItemPanel.this.getModelObject());
 				 
-				 createValuePanel(item, componentFactory);
+				 createValuePanel(item, componentFactory, null);
 				 createButtons(item);
 			}
 		 
@@ -115,7 +119,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 		    //VALUE REGION
 
 
-	 protected abstract void createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory);
+	 protected abstract void createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler);
 	 
 	 protected void createButtons(ListItem<VW> item) {
 		 WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
@@ -224,5 +228,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	        return !ValueStatus.DELETED.equals(value.getStatus());
 	    }
 	  
-	 
+	 public ItemVisibilityHandler getVisibilityHandler() {
+		return visibilityHandler;
+	}
 }

@@ -829,16 +829,20 @@ public final class WebComponentUtil {
 	
 	public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
 		 if (targetTypeFromDef == null || ObjectType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-    		 return WebComponentUtil.createObjectTypeList();
+    		 return createObjectTypeList();
     	 } 
 		 
 		 if (AbstractRoleType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-    		 return WebComponentUtil.createAbstractRoleTypeList();
+    		 return createAbstractRoleTypeList();
     	 } 
 		 
 		 if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-    		 return WebComponentUtil.createFocusTypeList();
+    		 return createFocusTypeList();
     	 } 
+		 
+		 if (AssignmentHolderType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+			 return createAssignmentHolderTypeQnamesList();
+		 }
 
 		 return Arrays.asList(targetTypeFromDef);
 	}
@@ -857,13 +861,13 @@ public final class WebComponentUtil {
 		List<QName> concreteTypes = new ArrayList<>(types.size());
 		for (Class<? extends O> type: types) {
 			if (type == null || type.equals(ObjectType.class)) {
-				MiscUtil.addAllIfNotPresent(concreteTypes, WebComponentUtil.createObjectTypeList());
+				MiscUtil.addAllIfNotPresent(concreteTypes, createObjectTypeList());
 			} else if (type.equals(FocusType.class)) {
-				MiscUtil.addAllIfNotPresent(concreteTypes, WebComponentUtil.createFocusTypeList());
+				MiscUtil.addAllIfNotPresent(concreteTypes, createFocusTypeList());
 	    	} else if (type.equals(AbstractRoleType.class)) {
-	    		MiscUtil.addAllIfNotPresent(concreteTypes, WebComponentUtil.createAbstractRoleTypeList());
+	    		MiscUtil.addAllIfNotPresent(concreteTypes, createAbstractRoleTypeList());
 	    	} else {
-	    		MiscUtil.addIfNotPresent(concreteTypes, WebComponentUtil.classToQName(prismContext, type));
+	    		MiscUtil.addIfNotPresent(concreteTypes, classToQName(prismContext, type));
 	    	}
 		}
 		return concreteTypes;

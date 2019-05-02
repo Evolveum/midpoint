@@ -98,7 +98,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 		add(profilingEnabledNote);
 		
 		try {
-			Panel panel = getPageBase().initPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), false);
+			Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), null);
 			add(panel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
@@ -138,7 +138,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 //		 appenders.getObject().setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
 		 
 		 try {
-			Panel profilingLoggerLevel = getPageBase().initPanel(ID_PROFILING_LOGGER_APPENDERS, DOMUtil.XSD_STRING, appenders, false);
+			Panel profilingLoggerLevel = getPageBase().initItemPanel(ID_PROFILING_LOGGER_APPENDERS, DOMUtil.XSD_STRING, appenders, null);
 			add(profilingLoggerLevel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create panel for profiling logger appenders: ", e.getMessage(), e);

@@ -61,10 +61,11 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     protected void initLayout() {
 
     	try {
-			Panel panel = getPageBase().initPanel(ID_CONTAINER, typeName, getModel(), false);
+			Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), wrapper -> getVisibity(wrapper.getPath()));
 			getModelObject().setShowOnTopLevel(true);
 			add(panel);
 		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for {}, {}", typeName, e.getMessage(), e);
 			getSession().error("Cannot create panel for " + typeName); // TODO opertion result? localization?
 			
 		}

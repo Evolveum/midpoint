@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Item;
@@ -39,11 +40,13 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 //	
 //	void revive(PrismContext prismContext) throws SchemaException;
 //	
+	
+	
 	String debugDump(int indent);
 	
 	boolean hasChanged();
 	
-	boolean isVisible();
+	boolean isVisible(ItemVisibilityHandler visibilityHandler);
 	
 	boolean checkRequired(PageBase pageBase);
 	

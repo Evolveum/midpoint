@@ -131,7 +131,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     
     protected void initLayout() {
     	try {
-    		Panel loggingPanel = getPageBase().initPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), false);
+    		Panel loggingPanel = getPageBase().initItemPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
 			add(loggingPanel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create panel for logging: {}", e.getMessage(), e);
@@ -338,7 +338,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 		
 		IModel<PrismContainerWrapper<AuditingConfigurationType>> auditModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_AUDITING);
 		try {
-			Panel auditPanel = getPageBase().initPanel(ID_AUDITING, AuditingConfigurationType.COMPLEX_TYPE, auditModel, false);
+			Panel auditPanel = getPageBase().initItemPanel(ID_AUDITING, AuditingConfigurationType.COMPLEX_TYPE, auditModel, null);
 			add(auditPanel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create panel for auditing: {}", e.getMessage(), e);

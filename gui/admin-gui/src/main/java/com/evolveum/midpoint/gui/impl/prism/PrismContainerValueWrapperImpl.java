@@ -29,11 +29,11 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -252,7 +252,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 
 	@Override
-	public PrismReferenceWrapper findReference(ItemPath path) throws SchemaException {
+	public <R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException {
 		return findItem(path, PrismReferenceWrapper.class);
 	}
 
@@ -351,7 +351,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		int visibleProperties = 0;
 
  		for (ItemWrapper<?,?,?,?> item : getNonContainers()) {
-			if (item.isVisible()) {
+			if (item.isVisible(null)) {
 				visibleProperties++;
 			}
 			

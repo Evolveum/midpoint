@@ -56,7 +56,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
 		
 		Panel panel;
 		try {
-			panel = getPageBase().initPanel(id, model.getObject().getTypeName(), model, false);
+			panel = getPageBase().initItemPanel(id, model.getObject().getTypeName(), model, null);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create panel for {}", model.getObject());
 			getSession().error("Cannot create panel for: " + model.getObject());
