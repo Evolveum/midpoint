@@ -640,11 +640,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.ocpsoft.prettytime</groupId>
-            <artifactId>prettytime</artifactId>
-        </dependency>
-
         <!-- Xtext DSL: IDE schema support (experimental) -->
         <!--        <dependency>
                     <groupId>com.evolveum.midpoint.msl</groupId>
