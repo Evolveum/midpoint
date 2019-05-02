@@ -59,6 +59,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	private SearchBoxConfigurationType searchBoxConfiguration;
 	private ObjectFilter filter;
 	private ObjectFilter domainFilter;
+	private Integer displayOrder;
 	
 	// Only used to construct "default" view definition. May be not needed later on.
 	public CompiledObjectCollectionView() {
@@ -177,6 +178,14 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		return domainFilter != null;
 	}
 
+	public Integer getDisplayOrder() {
+		return displayOrder;
+	}
+
+	public void setDisplayOrder(Integer displayOrder) {
+		this.displayOrder = displayOrder;
+	}
+
 	public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
 		if (!QNameUtil.match(objectType, expectedObjectType)) {
 			return false;
@@ -214,6 +223,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "searchBoxConfiguration", searchBoxConfiguration, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "filter", filter, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "displayOrder", displayOrder, indent + 1);
 		return sb.toString();
 	}
 	

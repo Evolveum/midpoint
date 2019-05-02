@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.schema.constants;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import org.jetbrains.annotations.NotNull;
@@ -34,23 +35,25 @@ import static java.util.Collections.singletonList;
  */
 public enum RelationTypes {
 
-	MEMBER(SchemaConstants.ORG_DEFAULT, "", RelationKindType.MEMBER, null, ADMINISTRATION, ORGANIZATION, SELF_SERVICE),
-    MANAGER(SchemaConstants.ORG_MANAGER, "Manager", RelationKindType.MANAGER, singletonList(RelationKindType.MEMBER), ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
-    META(SchemaConstants.ORG_META, "Meta", RelationKindType.META, null, POLICY),
-    DEPUTY(SchemaConstants.ORG_DEPUTY, "Deputy", RelationKindType.DELEGATION, null /* no values */),
-    APPROVER(SchemaConstants.ORG_APPROVER, "Approver", RelationKindType.APPROVER, null, ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
-    OWNER(SchemaConstants.ORG_OWNER, "Owner", RelationKindType.OWNER, null, ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
-    CONSENT(SchemaConstants.ORG_CONSENT, "Consent", RelationKindType.CONSENT, null, DATA_PROTECTION);
+	MEMBER(SchemaConstants.ORG_DEFAULT, "", "fe fe-action-assign", RelationKindType.MEMBER, null, ADMINISTRATION, ORGANIZATION, SELF_SERVICE),
+    MANAGER(SchemaConstants.ORG_MANAGER, "Manager", "fe fe-manager-tie-object", RelationKindType.MANAGER, singletonList(RelationKindType.MEMBER), ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
+    META(SchemaConstants.ORG_META, "Meta", "", RelationKindType.META, null, POLICY),
+    DEPUTY(SchemaConstants.ORG_DEPUTY, "Deputy", "", RelationKindType.DELEGATION, null /* no values */),
+    APPROVER(SchemaConstants.ORG_APPROVER, "Approver", "fe fe-approver-object", RelationKindType.APPROVER, null, ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
+    OWNER(SchemaConstants.ORG_OWNER, "Owner", "fe fe-crown-object", RelationKindType.OWNER, null, ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
+    CONSENT(SchemaConstants.ORG_CONSENT, "Consent", "", RelationKindType.CONSENT, null, DATA_PROTECTION);
 
     private final QName relation;
     private final String headerLabel;
     private final RelationKindType defaultFor;
     @NotNull private final Collection<RelationKindType> kinds;
     private final AreaCategoryType[] categories;
+    private final String defaultIconStyle;
 
-    RelationTypes(QName relation, String headerLabel, RelationKindType defaultFor, Collection<RelationKindType> additionalKinds, AreaCategoryType... categories) {
+    RelationTypes(QName relation, String headerLabel, String defaultIconStyle, RelationKindType defaultFor, Collection<RelationKindType> additionalKinds, AreaCategoryType... categories) {
         this.relation = relation;
         this.headerLabel = headerLabel;
+        this.defaultIconStyle = defaultIconStyle;
         this.kinds = new ArrayList<>();
         if (defaultFor != null) {
             kinds.add(defaultFor);
@@ -86,4 +89,17 @@ public enum RelationTypes {
     public AreaCategoryType[] getCategories() {
 		return categories;
 	}
+
+    public String getDefaultIconStyle() {
+        return defaultIconStyle;
+    }
+
+    public static RelationTypes getRelationTypeByRelationValue(QName relation){
+        for (RelationTypes relationType : values()) {
+            if (relationType.getRelation().equals(relation)) {
+                return relationType;
+            }
+        }
+        return null;
+    }
 }

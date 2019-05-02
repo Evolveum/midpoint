@@ -88,6 +88,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  *
@@ -889,6 +890,10 @@ public class ModelImplUtils {
 		}
 		RepoCommonUtils.processErrorCriticality(resourceType, criticality, e, result);
 		return criticality;
+	}
+	
+	public static String generateRequestIdentifier() {
+		return UUID.randomUUID().toString();
 	}
 
 }

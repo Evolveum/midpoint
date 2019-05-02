@@ -118,7 +118,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 	}
 	
 	private void initCaptchaAndButtons(WebMarkupContainer content) {
-		CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA);
+		CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA, this);
 		captcha.setOutputMarkupId(true);
 		content.add(captcha);
 
@@ -199,7 +199,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 	
 	protected void updateCaptcha(AjaxRequestTarget target) {
 
-		CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA);
+		CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA, this);
 		captcha.setOutputMarkupId(true);
 
 		Fragment fragment = (Fragment) get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA));

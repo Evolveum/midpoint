@@ -20,10 +20,12 @@
     <wicket:panel>
             <p>
                 <img wicket:id="image" />
-                <a wicket:id="changeLink">change</a>
+                <a wicket:id="changeLink">
+                	<wicket:container wicket:id="changeLinkLabel" />
+				</a>
             </p>
             <p>
-                Please replicate the text you see above
+            	<wicket:container wicket:id="textDescriptionLabel" />
                 <br />
                 <input wicket:id="text" type="text" size="40" />	
             </p>

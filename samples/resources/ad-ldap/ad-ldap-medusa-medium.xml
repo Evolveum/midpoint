@@ -239,7 +239,7 @@
             <default>true</default>
             <objectClass>ri:group</objectClass>
             <attribute>
-                <ref>dn</ref>
+                <ref>ri:dn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <source>

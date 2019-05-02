@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import groovy.lang.Binding;
+import groovy.lang.GString;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
 import groovy.transform.CompileStatic;
@@ -209,6 +210,14 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
 		Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
 		
 		Object resultObject = scriptResultObject.run();
+		
+		if (resultObject == null) {
+			return null;
+		}
+		
+		if (resultObject instanceof GString) {
+			resultObject = ((GString)resultObject).toString();
+		}
 		
 		return resultObject;
 	}

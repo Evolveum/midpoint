@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -111,21 +112,26 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 if (isCollectionViewPage()){
                     return new ArrayList<>();
                 }
-                return getCompiledUserProfile().findAllApplicableObjectCollectionViews(getType());
+                return getCompiledUserProfile().findAllApplicableArchetypeViews(ObjectTypes.getObjectType(getType()).getTypeQName());
             }
 
             @Override
             protected DisplayType getNewObjectButtonStandardDisplayType(){
-                if (isCollectionViewPage()){
-                    return getCollectionViewDisplayType(getCollectionViewObject());
-                } else {
+                if (!isCollectionViewPage()){
                     return super.getNewObjectButtonStandardDisplayType();
                 }
+
+                CompiledObjectCollectionView view = getCollectionViewObject();
+                if (view.getCollection() != null && view.getCollection().getCollectionRef() != null &&
+                        ArchetypeType.COMPLEX_TYPE.equals(view.getCollection().getCollectionRef().getType())){
+                    return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(getCollectionViewObject(), PageAdminObjectList.this);
+                }
+                return super.getNewObjectButtonStandardDisplayType();
             }
 
             @Override
             protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView collectionView){
-                return getCollectionViewDisplayType(collectionView);
+                return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, PageAdminObjectList.this);
             }
 
             @Override
@@ -193,7 +199,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         try {
             WebComponentUtil.initNewObjectWithReference(PageAdminObjectList.this,
                     WebComponentUtil.classToQName(getPrismContext(), getType()),
-                    collectionViewReference != null ? Arrays.asList(collectionViewReference) : null);
+                    collectionViewReference != null && ArchetypeType.COMPLEX_TYPE.equals(collectionViewReference.getType()) ?
+                            Arrays.asList(collectionViewReference) : null);
         } catch (SchemaException ex){
             getFeedbackPanel().getFeedbackMessages().error(PageAdminObjectList.this, ex.getUserFriendlyMessage());
             target.add(getFeedbackPanel());
@@ -247,20 +254,5 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     private boolean isCollectionViewPage(){
         StringValue collectionNameParam = getCollectionNameParameterValue();
         return collectionNameParam != null && !collectionNameParam.isEmpty() && !collectionNameParam.toString().equals("null");
-    }
-
-    private DisplayType getCollectionViewDisplayType(CompiledObjectCollectionView view){
-        DisplayType displayType = view != null ? view.getDisplay() : null;
-        if (displayType == null){
-            displayType = WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
-        }
-        if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())){
-            StringBuilder sb = new StringBuilder();
-            sb.append(createStringResource("MainObjectListPanel.newObject").getString());
-            sb.append(" ");
-            sb.append(displayType.getLabel().getOrig().toLowerCase());
-            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb.toString()));
-        }
-       return view != null ? view.getDisplay() : null;
     }
 }

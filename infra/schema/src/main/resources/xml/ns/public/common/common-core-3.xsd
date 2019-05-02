@@ -5315,11 +5315,27 @@
 	<xsd:complexType name="AssignmentRelationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies what types of assignments can be made to the focal object when it is a target of an assignment.
-                This specifies possible relations of the assignment, type of assignment holder and so on.
-                Simply speaking, this specifies "who can have assignment to me" or "who can hold assignment with me as a target".
-                Limitations: assignmentRelation can appear only in archetype. It can appear in assignment or inducements, but 
-                it must not have any order specification (i.e. it must be order 0 or 1).
+            	<p>
+	                Specifies what types of assignments can be made to the focal object when it is a target of an assignment.
+	                This specifies possible relations of the assignment, type of assignment holder and so on.
+	                Simply speaking, this specifies "who can have assignment to me" or "who can hold assignment with me as a target".
+	                Limitations: assignmentRelation can appear only in archetype. It can appear in assignment or inducements, but 
+	                it must not have any order specification (i.e. it must be order 0 or 1).
+                </p>
+                <p>
+                	Assignment relation specification can be "wildcard", i.e. they can apply to a range of conditions.
+                	E.g. if no relation is specified, the specification applies to all the relations. An extreme case is
+                	an empty assignment relation, which is the ultimate wildcard. Such specification means that any
+                	type, any archetype can be assigned with any relation. Which in fact means "open" assignment policy.
+                	However, processing of wildcard assignment relations is limited in midPoint 4.0 (see documentation).
+                </p>
+                <p>
+                	Assignment relation applies only to assignments by default. Therefore it controls when an assignment
+                	can be made. It does not apply to inducements - yet. In later midPoint versions there will be an
+                	element that can specify "order constraints". In that case assignment relation could specify properties
+                	of inducements, including high-order inducements. However, the implementation in midPoint 4.0 is
+                	limited to assignments.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -5337,14 +5353,16 @@
        		<xsd:element name="holderType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
 	   			<xsd:annotation>
     				<xsd:documentation>
-    					TODO
+    					Specification of the holder type. This specifies type of the objects that can
+    					be "holders" of the assignment. If not specified at all then all object types
+    					are applicable.
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="holderArchetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Specification of holder archetype.
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
@@ -5354,10 +5372,11 @@
    			<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
 	   			<xsd:annotation>
     				<xsd:documentation>
-    					TODO
+    					Specification of a relation for the assignment/inducement.
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
+    		<!-- TODO: orderConstraint -->
        </xsd:sequence>
 	</xsd:complexType>
     
@@ -13108,6 +13127,19 @@
 		        			</xsd:appinfo>
 		        		</xsd:annotation>
 		        	</xsd:element>
+		        	<xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                  Definition of object with respect to its archetype.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+								<a:since>4.0</a:since>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 		        	<xsd:element name="special" type="tns:SpecialObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
 		        		<xsd:annotation>
 		        			<xsd:documentation>
@@ -17186,6 +17218,23 @@
 						</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
+           		<xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	<p>
+	                                The content of this property specifies an order in which the user interface
+	                                feature should be displayed relative to other similar features that are displayed
+	                                together. E.g. this may be used to order views in the menu, widgets on the dashboard
+	                                and so on. These items that do not have any displayOrder definition
+	                                will be displayed last. Items with the same displayOrder
+	                                are displayed in alphabetic order.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
            	</xsd:sequence>	
     </xsd:complexType>
     
@@ -17705,7 +17754,7 @@
             <xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Full enforcement is the default setting.
+                        Relative enforcement is the default setting.
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>ProjectionPolicyType.assignmentPolicyEnforcement</a:displayName>
@@ -20451,6 +20500,48 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="LOOKUP_LIFECYCLE_STATES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000300">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_USER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000320">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_ROLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000321">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_BUSINESS_ROLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000340">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_MANUAL_CASE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000341">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_OPERATION_REQUEST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000342">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_APPROVAL_CASE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

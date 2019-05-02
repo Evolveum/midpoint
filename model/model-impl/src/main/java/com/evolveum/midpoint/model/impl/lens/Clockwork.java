@@ -28,6 +28,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -469,6 +470,7 @@ public class Clockwork {
 				medic.clockworkStart(context);
 				metadataManager.setRequestMetadataInContext(context, now, task);
 				context.getStats().setRequestTimestamp(now);
+				context.generateRequestIdentifierIfNeeded();
 				// We need to do this BEFORE projection. If we would do that after projection
 				// there will be secondary changes that are not part of the request.
 				audit(context, AuditEventStage.REQUEST, task, result);
@@ -1162,6 +1164,7 @@ public class Clockwork {
 		}
 
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
+		auditRecord.setRequestIdentifier(context.getRequestIdentifier());
 
 		if (primaryObject != null) {
 			auditRecord.setTarget(primaryObject.clone(), prismContext);

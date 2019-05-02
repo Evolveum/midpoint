@@ -2131,30 +2131,34 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, OperationResult result) throws Exception {
-		generateRoles(numberOfRoles, nameFormat, oidFormat, mutator, role -> repositoryService.addObject(role, null, result), result);
+		generateObjects(RoleType.class, numberOfRoles, nameFormat, oidFormat, mutator, role -> repositoryService.addObject(role, null, result), result);
+	}
+	
+	protected void generateUsers(int numberOfUsers, String nameFormat, String oidFormat, BiConsumer<UserType,Integer> mutator, OperationResult result) throws Exception {
+		generateObjects(UserType.class, numberOfUsers, nameFormat, oidFormat, mutator, user -> repositoryService.addObject(user, null, result), result);
 	}
 
-	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, FailableProcessor<PrismObject<RoleType>> adder, OperationResult result) throws Exception {
+	protected <O extends ObjectType> void generateObjects(Class<O> type, int numberOfObjects, String nameFormat, String oidFormat, BiConsumer<O,Integer> mutator, FailableProcessor<PrismObject<O>> adder, OperationResult result) throws Exception {
 		long startMillis = System.currentTimeMillis();
 
-		PrismObjectDefinition<RoleType> roleDefinition = getRoleDefinition();
-		for(int i=0; i < numberOfRoles; i++) {
-			PrismObject<RoleType> role = roleDefinition.instantiate();
-			RoleType roleType = role.asObjectable();
+		PrismObjectDefinition<O> objectDefinition = getObjectDefinition(type);
+		for(int i=0; i < numberOfObjects; i++) {
+			PrismObject<O> object = objectDefinition.instantiate();
+			O objectType = object.asObjectable();
 			String name = String.format(nameFormat, i);
 			String oid = String.format(oidFormat, i);
-			roleType.setName(createPolyStringType(name));
-			roleType.setOid(oid);
+			objectType.setName(createPolyStringType(name));
+			objectType.setOid(oid);
 			if (mutator != null) {
-				mutator.accept(roleType, i);
+				mutator.accept(objectType, i);
 			}
-			LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
-			adder.process(role);
+			LOGGER.info("Adding {}:\n{}", object, object.debugDump(1));
+			adder.process(object);
 		}
 
 		long endMillis = System.currentTimeMillis();
 		long duration = (endMillis - startMillis);
-		display("Roles import", "import of "+numberOfRoles+" roles took "+(duration/1000)+" seconds ("+(duration/numberOfRoles)+"ms per role)");
+		display(type.getSimpleName() + " import", "import of "+numberOfObjects+" roles took "+(duration/1000)+" seconds ("+(duration/numberOfObjects)+"ms per object)");
 	}
 
 	protected String assignmentSummary(PrismObject<UserType> user) {

@@ -414,15 +414,26 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 	}
 
 	/**
-	 * MID-3647
+	 * MID-5245
 	 */
 	@Test
     public void test208AutzJackReadSomeRoles() throws Exception {
-		final String TEST_NAME = "test208AutzJackReadSomeRoles";
+		testAutzJackReadSomeRoles("test208AutzJackReadSomeRoles", ROLE_READ_SOME_ROLES_OID);
+	}
+
+	/**
+	 * MID-3647
+	 */
+	@Test
+    public void test208sAutzJackReadSomeRoles() throws Exception {
+		testAutzJackReadSomeRoles("test208sAutzJackReadSomeRoles", ROLE_READ_SOME_ROLES_SUBTYPE_OID);
+	}
+
+    public void testAutzJackReadSomeRoles(final String TEST_NAME, String roleOid) throws Exception {
         displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_READ_SOME_ROLES_OID);
+        assignRole(USER_JACK_OID, roleOid);
         login(USER_JACK_USERNAME);
 
         // WHEN

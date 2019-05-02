@@ -51,6 +51,16 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="requestIdentifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier of a request (operation).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="state" type="c:ModelStateType">
                 <xsd:annotation>
                     <xsd:documentation>

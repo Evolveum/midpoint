@@ -547,6 +547,10 @@ public class PageSelfDashboard extends PageSelf {
         PrismContainer assignments = user.findContainer(UserType.F_ASSIGNMENT);
         List<PrismContainerValue> values = assignments.getValues();
         for (PrismContainerValue assignment : values) {
+            AssignmentType assignmentType = (AssignmentType)assignment.asContainerable();
+            if (assignmentType.getTargetRef() != null && ArchetypeType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())){
+                continue;
+            }
             AssignmentItemDto item = createAssignmentItem(user, assignment, task, result);
             if (item != null) {
                 list.add(item);

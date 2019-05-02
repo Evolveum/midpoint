@@ -64,8 +64,8 @@
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <spring.boot.version>2.0.3.RELEASE</spring.boot.version>
-        <spring.version>5.0.7.RELEASE</spring.version>
-        <spring.security.version>5.0.6.RELEASE</spring.security.version>
+        <spring.version>5.0.13.RELEASE</spring.version>
+        <spring.security.version>5.0.12.RELEASE</spring.security.version>
         <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.14.3</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -1189,6 +1189,11 @@
 				<artifactId>javax.mail-api </artifactId>
 				<version>1.5.4</version>
 			</dependency>
+			<dependency>
+	            <groupId>org.ocpsoft.prettytime</groupId>
+	            <artifactId>prettytime</artifactId>
+	            <version>4.0.0.Final</version>
+	        </dependency>
 
 			<!-- webjars -->
 	        <dependency>
@@ -1216,6 +1221,21 @@
 	            <artifactId>ionicons</artifactId>
 	            <version>3.0.0</version>
 	        </dependency>
+	        <dependency>
+	            <groupId>org.webjars</groupId>
+	            <artifactId>webjars-locator-core</artifactId>
+	            <version>0.35</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.webjars</groupId>
+	            <artifactId>less</artifactId>
+	            <version>2.5.3</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.webjars</groupId>
+	            <artifactId>swagger-ui</artifactId>
+	            <version>2.2.5</version>
+	        </dependency>
 
             <dependency>
                 <groupId>com.beust</groupId>
@@ -1226,7 +1246,7 @@
             <dependency>
 				<groupId>org.eclipse.jetty</groupId>
 		       	<artifactId>jetty-server</artifactId>
-		       	<version>9.4.12.v20180830</version>
+		       	<version>9.4.17.v20190418</version>
 			</dependency>
             <dependency>
                 <groupId>org.apache.qpid</groupId>
@@ -1243,6 +1263,17 @@
                 <artifactId>qpid-broker-plugins-memory-store</artifactId>
                 <version>${qpid-broker.version}</version>
             </dependency>
+            
+            <dependency>
+	            <groupId>org.jasig.cas.client</groupId>
+	            <artifactId>cas-client-core</artifactId>
+	            <version>3.5.1</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.springframework.security</groupId>
+	            <artifactId>spring-security-cas</artifactId>
+	            <version>${spring.security.version}</version>
+	        </dependency>
         </dependencies>
         
     </dependencyManagement>

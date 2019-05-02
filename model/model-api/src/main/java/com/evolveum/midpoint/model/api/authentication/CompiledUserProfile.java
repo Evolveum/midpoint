@@ -156,6 +156,24 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 	}
 
 	/**
+	 * Find all archetype views that are applicable for a particular object type. Returns views for
+	 * archetypes that are applicable for that type.
+	 */
+	@NotNull
+	public List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull QName objectType) {
+		List<CompiledObjectCollectionView> applicableViews = findAllApplicableObjectCollectionViews(objectType);
+		List<CompiledObjectCollectionView> archetypeViews = new ArrayList<>();
+		for (CompiledObjectCollectionView objectCollectionView : applicableViews) {
+			ObjectReferenceType collectionRef = objectCollectionView.getCollection() != null ? objectCollectionView.getCollection().getCollectionRef() : null;
+			QName collectionRefType = collectionRef != null ? collectionRef.getType() : null;
+			if (collectionRefType != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRefType)){
+				archetypeViews.add(objectCollectionView);
+			}
+		}
+		return archetypeViews;
+	}
+
+	/**
 	 * Find all views that are applicable for a particular object type. Returns views for all collections
 	 * and archetypes that are applicable for that type. Ideal to be used in costructing menus.
 	 */

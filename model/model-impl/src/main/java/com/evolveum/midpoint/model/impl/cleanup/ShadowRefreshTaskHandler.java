@@ -79,14 +79,19 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
     }
 
 	@Override
-	protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-
-		ObjectQuery query = getPrismContext().queryFactory().createQuery();
-		ObjectFilter filter = prismContext.queryFor(ShadowType.class)
-				.exists(ShadowType.F_PENDING_OPERATION)
-			.buildFilter();
-
-		query.setFilter(filter);
+	protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
+		ObjectQuery query = super.createQuery(handler, runResult, coordinatorTask, opResult);
+		
+		if (query == null) {
+			query = getPrismContext().queryFactory().createQuery();
+		}
+		if (query.getFilter() == null) {
+			ObjectFilter filter = prismContext.queryFor(ShadowType.class)
+					.exists(ShadowType.F_PENDING_OPERATION)
+				.buildFilter();
+			query.setFilter(filter);
+		}
+		
 		return query;
 	}
 

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -30,8 +29,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.time.Duration;
-import org.ocpsoft.prettytime.PrettyTime;
-
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanServer;
@@ -174,9 +171,9 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
             @Override
             public String getObject() {
                 SystemInfoDto dto = getModelObject();
-
-                PrettyTime time = new PrettyTime();
-                return time.format(new Date(System.currentTimeMillis() - dto.uptime));
+                int minutes = (int)(dto.uptime / 1000L / 60L);
+                return WebComponentUtil.formatDurationWordsForLocal(minutes < 1 ? dto.uptime : (long)minutes * 1000L * 60L, true, true,
+                        SystemInfoPanel.this.getPageBase());
             }
         };
     }
