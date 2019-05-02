@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.wicket.MarkupContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,10 +44,13 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintPresentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -59,15 +61,17 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  *
  */
 @Component
-public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends ItemWrapperFactoryImpl<PrismContainerWrapper<C>, PrismContainerValue<C>, PrismContainer<C>, PrismContainerValueWrapper<C>> implements PrismContainerWrapperFactory<C>{
+public class ProfilingLoggerWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperFactoryImpl.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(ProfilingLoggerWrapperFactoryImpl.class);
+	
+	public static final String LOGGER_PROFILING = "PROFILING";
 	
 	@Autowired private GuiComponentRegistryImpl registry;
 	
 	@Override
 	public boolean match(ItemDefinition<?> def) {
-		return !(def instanceof PrismObjectDefinition) && def instanceof PrismContainerDefinition;
+		return false;
 	}
 
 	@PostConstruct
@@ -88,43 +92,25 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory#createValueWrapper(com.evolveum.midpoint.prism.PrismValue, com.evolveum.midpoint.web.component.prism.ValueStatus, com.evolveum.midpoint.gui.impl.factory.WrapperContext)
 	 */
-	@Override
-	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
-			throws SchemaException {
-		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status);
-		containerValueWrapper.setExpanded(!value.isEmpty());
-		
-		
-		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
-		for (ItemDefinition<?> def : parent.getDefinitions()) {
-			addItemWrapper(def, containerValueWrapper, context, wrappers);
-		}
-		
-		containerValueWrapper.getItems().addAll((Collection) wrappers);
-		containerValueWrapper.sort();
-		return containerValueWrapper;
-	}
-	
-	protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
-			WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException{
-		if (def.isOperational()) {
-			return;
-		}
-		
-		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
-			return;
-		}
-		
-		ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
-		
-		ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
-		wrappers.add(wrapper);
-	}
-
-	@Override
-	protected PrismContainerValue<C> createNewValue(PrismContainer<C> item) {
-		return item.createNewValue();
-	}
+//	@Override
+//	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
+//			throws SchemaException {
+//		PrismContainerValueWrapper<ClassLoggerConfigurationType> containerValueWrapper =(PrismContainerValueWrapper<ClassLoggerConfigurationType>) createContainerValueWrapper(parent, value, status);
+//		containerValueWrapper.setExpanded(!value.isEmpty());
+//		
+//		System.out.println("XXXXXXXXXXXXXx " + containerValueWrapper.getRealValue().getAppender());
+//		
+//		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
+//		for (ItemDefinition<?> def : parent.getDefinitions()) {
+//			if (QNameUtil.match(def.getTypeName(), ClassLoggerConfigurationType.COMPLEX_TYPE)) {
+//			}
+//			super.addItemWrapper(def, containerValueWrapper, context, wrappers);
+//		}
+//		
+//		containerValueWrapper.getItems().addAll((Collection) wrappers);
+//		containerValueWrapper.sort();
+//		return containerValueWrapper;
+//	}
 
 	@Override
 	protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
@@ -133,10 +119,4 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, childContainer, status);
 	}
 	
-	@Override
-	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status) {
-		return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
-	}
-	
-
 }

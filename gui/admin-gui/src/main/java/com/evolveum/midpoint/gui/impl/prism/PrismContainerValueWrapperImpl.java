@@ -230,8 +230,10 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	        if (items == null) {
 	            return null;
 	        }
+	        System.out.println("XXXXXXXXXXXXXXXX subName " + subName);
 	        IW matching = null;
 	        for (ItemWrapper<?, ?, ?, ?> item : items) {
+	        	System.out.println("XXXXXXXXXXXXXXXX item Name " + item.getName());
 	            if (QNameUtil.match(subName, item.getName())) {
 	                if (matching != null) {
 	                    String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getName()) : "";

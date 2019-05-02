@@ -46,6 +46,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -141,7 +142,16 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 //    	PrismContainerPanelOld<LoggingConfigurationType> loggingPanel = (PrismContainerPanelOld<LoggingConfigurationType>) getModelObject().createPanel(ID_LOGGING, new Form("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
 //    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = new PrismContainerPanel<LoggingConfigurationType>(ID_LOGGING, getModel(), true, new Form<>("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()), getPageBase());
     	
-    	
+    	for(ItemWrapper item : getModel().getObject().getValues().get(0).getItems()) {
+//    		               if(item instanceof PrismContainerWrapper) {
+//    		                       for(ItemWrapper item2 : (List<ItemWrapper>)(((PrismContainerValueWrapper)((PrismContainerWrapper)item).getValues().get(0)).getItems())) {
+//    		                               System.out.println("XXXXXXXXXXXXX " + item.getPath() + "/" +item2.getPath());
+//    	                       }
+//    		               } else {
+    		              System.out.println("XXXXXXXXXXXXX " + item.getPath());
+//    		               }
+    		       }
+
 
     	TableId tableIdLoggers = UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
     	PageStorage pageStorageLoggers = getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage();
