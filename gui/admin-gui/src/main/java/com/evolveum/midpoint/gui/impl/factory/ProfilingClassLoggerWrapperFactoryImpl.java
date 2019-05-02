@@ -29,6 +29,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
@@ -41,11 +42,12 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 
 /**
- * @author katka
+ * @author skublik
  *
  */
 @Component
@@ -55,7 +57,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 	
 	@Autowired private GuiComponentRegistryImpl registry;
 	
-	private static final QName PATH_NAME = new QName("profilingClassLogger");
+	public static final QName PROFILING_LOGGER_PATH = new QName("profilingClassLogger");
 	
 	@Override
 	protected boolean createWrapper(PrismContainerValue<C> value) {
@@ -73,12 +75,22 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 	protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
 			ItemStatus status) {
 		PrismContainer<C> clone = childContainer.clone();
-		clone.setElementName(PATH_NAME);
-		registry.registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
+		clone.setElementName(PROFILING_LOGGER_PATH);
+		registry.registerWrapperPanel(PROFILING_LOGGER_PATH, PrismContainerPanel.class);
 		return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, clone, status) {
 			@Override
 			public ItemName getName() {
-				return PATH_NAME;
+				return ItemName.fromQName(PROFILING_LOGGER_PATH);
+			}
+			
+			@Override
+			public String getDisplayName() {
+				return ColumnUtils.createStringResource("LoggingConfigPanel.profiling.entryExit").getString();
+			}
+			
+			@Override
+			public boolean isMultiValue() {
+				return false;
 			}
 		};
 	}
@@ -104,6 +116,21 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 		}
 		
 		return pvWrappers;
+	}
+	
+	@Override
+	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper,
+			PrismContainerValue<C> objectValue, ValueStatus status) {
+		
+		ClassLoggerConfigurationType logger = (ClassLoggerConfigurationType) objectValue.getRealValue();
+		logger.setPackage(LOGGER_PROFILING);
+		
+		return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status) {
+			@Override
+			public String getDisplayName() {
+				return ColumnUtils.createStringResource("LoggingConfigPanel.profiling.entryExit").getString();
+			}
+		};
 	}
 	
 }

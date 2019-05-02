@@ -52,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * @author katka
+ * @author skublik
  *
  */
 @Component

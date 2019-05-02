@@ -132,7 +132,7 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
 	        registration.setDispatcherTypes(DispatcherType.ERROR, DispatcherType.REQUEST, DispatcherType.FORWARD);
 	        registration.addUrlPatterns("/*");
 	        registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
-	        registration.addInitParameter(Application.CONFIGURATION, "deployment");     // deployment development
+	        registration.addInitParameter(Application.CONFIGURATION, "development");     // deployment development
 	        registration.addInitParameter("applicationBean", "midpointApplication");
 	        registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
 

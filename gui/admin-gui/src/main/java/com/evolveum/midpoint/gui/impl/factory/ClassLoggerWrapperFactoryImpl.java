@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsTyp
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
- * @author katka
+ * @author skublik
  *
  */
 @Component
@@ -67,7 +67,7 @@ public class ClassLoggerWrapperFactoryImpl<C extends Containerable> extends Pris
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ClassLoggerWrapperFactoryImpl.class);
 	
-	protected static final String LOGGER_PROFILING = "PROFILING";
+	public static final String LOGGER_PROFILING = "PROFILING";
 	
 	@Autowired private GuiComponentRegistryImpl registry;
 	
@@ -87,13 +87,6 @@ public class ClassLoggerWrapperFactoryImpl<C extends Containerable> extends Pris
 		return !loggerPackage.equals(LOGGER_PROFILING);
 	}
 
-	@Override
-	protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
-			ItemStatus status) {
-		registry.registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
-		return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, childContainer, status);
-	}
-	
 	@Override
 	protected <ID extends ItemDefinition<PrismContainer<C>>> List<PrismContainerValueWrapper<C>> createValuesWrapper(
 			PrismContainerWrapper<C> itemWrapper, PrismContainer<C> item, WrapperContext context)

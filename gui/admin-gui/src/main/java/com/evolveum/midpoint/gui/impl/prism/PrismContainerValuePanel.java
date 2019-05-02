@@ -106,7 +106,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         
         add(labelContainer);
 
-        LoadableDetachableModel<String> headerLabelModel = StringResourceModel.of(getModel().getObject()::getDisplayName);
+        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
 		AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -126,6 +126,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         //TODO always visible if isObject
 	}
 	
+	protected LoadableDetachableModel<String> getLabelModel() {
+		return StringResourceModel.of(getModel().getObject()::getDisplayName);
+	}
+
 	private void initValues() {
 		
 		createPropertiesPanel();

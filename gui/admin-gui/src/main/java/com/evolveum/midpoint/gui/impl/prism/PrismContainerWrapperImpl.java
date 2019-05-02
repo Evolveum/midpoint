@@ -212,7 +212,6 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     	
 		Long id = path.firstToIdOrNull();
     	PrismContainerValueWrapper<C> cval = findValue(id);
-    	System.out.println("XXXXXXXXXXXXXXXX " + cval);
     	if (cval == null) {
     		return null;
     	}

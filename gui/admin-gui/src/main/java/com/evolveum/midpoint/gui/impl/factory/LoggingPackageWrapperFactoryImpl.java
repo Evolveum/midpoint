@@ -55,7 +55,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * @author katka
+ * @author skublik
  *
  */
 @Component
