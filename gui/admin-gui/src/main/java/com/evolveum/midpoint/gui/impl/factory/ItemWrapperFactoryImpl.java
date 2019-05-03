@@ -54,7 +54,8 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		I childItem = (I) parent.getNewValue().findItem(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;
 		if (childItem == null) {
-			childItem = (I) def.instantiate();
+			childItem = (I) parent.getNewValue().findOrCreateItem(name);
+//			childItem = (I) def.instantiate();
 			status = ItemStatus.ADDED;
 		}
 		

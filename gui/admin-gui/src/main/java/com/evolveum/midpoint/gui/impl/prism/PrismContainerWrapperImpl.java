@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -224,5 +227,36 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	public String debugDump(int indent) {
 		return super.debugDump(indent);
 	}
+	
+	protected <C extends Containerable> void cleanupEmptyContainers(PrismContainer<C> container) {
+		List<PrismContainerValue<C>> values = container.getValues();
+		List<PrismContainerValue<C>> valuesToBeRemoved = new ArrayList<>();
+		for (PrismContainerValue<C> value : values) {
+			List<Item<?,?>> items = value.getItems();
+			if (items != null) {
+				Iterator<Item<?,?>> iterator = items.iterator();
+				while (iterator.hasNext()) {
+					Item<?,?> item = iterator.next();
+
+					if (item instanceof PrismContainer) {
+						cleanupEmptyContainers((PrismContainer) item);
+
+						if (item.isEmpty()) {
+							iterator.remove();
+						}
+					} else {
+//						cleanupEmptyItem()
+					}
+				}
+			}
+
+			if (items == null || value.isEmpty()) {
+				valuesToBeRemoved.add(value);
+			}
+		}
+
+		container.removeAll(valuesToBeRemoved);
+	}
+
 		
 }

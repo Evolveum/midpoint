@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
@@ -77,6 +78,8 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	boolean isColumn();
 	void setColumn(boolean column);
 	
-	<D extends ItemDelta<V, ID>> D getDelta();
+	<D extends ItemDelta<V, ID>> D getDelta(boolean absolute) throws SchemaException;
+	
+	<D extends ItemDelta<V, ID>> void applyDelta(D delta) throws SchemaException;
 	
 }
