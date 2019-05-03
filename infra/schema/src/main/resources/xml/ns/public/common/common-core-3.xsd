@@ -9268,6 +9268,18 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="predefined" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    	  Pre-defined set definition, such as all or none.
+                    	</p> 
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         	<xsd:element name="condition" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -9284,6 +9296,40 @@
                        * reference to schema enumeration -->
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:simpleType name="ValueSetDefinitionPredefinedType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Pre-defined set definition, such as all or none.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		All possible elements will be part of the set. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		No values will be part of the set. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
         
     <xsd:complexType name="ValueFilterType">
         <xsd:annotation>

@@ -525,7 +525,7 @@ public class ContextLoader {
 			}
 			LensProjectionContext existingAccountContext = findAccountContext(oid, context);
 
-			if (!canBeLoaded(context, existingAccountContext)){
+			if (!canBeLoaded(context, existingAccountContext)) {
 				continue;
 			}
 

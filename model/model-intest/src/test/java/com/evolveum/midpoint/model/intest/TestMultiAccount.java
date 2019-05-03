@@ -82,6 +82,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
 	private String accountMahdiOid;
 
+	private String userPaulOid;
+
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -194,8 +196,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         	.displayWithProjections()
         	.assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
         	.assertEmployeeNumber(ACCOUNT_PAUL_ATREIDES_ID)
-        	// TODO
-//        	.assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
+        	.assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
         	.links()
         		.assertLinks(2)
         		.link(accountPaulOid)
@@ -217,6 +218,54 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 		    			.getOid();
 	        		
         
+        assertUsers(getNumberOfUsers() + 1);
+
+	}
+	
+	@Test
+    public void test102ReconcileUserPaul() throws Exception {
+		final String TEST_NAME = "test102ReconcileUserPaul";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        userPaulOid = findUserByUsername(ACCOUNT_PAUL_ATREIDES_USERNAME).getOid();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(userPaulOid, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        
+        accountMuaddibOid = assertUserAfter(userPaulOid)
+        	.displayWithProjections()
+        	.assertFullName(ACCOUNT_PAUL_ATREIDES_FULL_NAME)
+        	.assertEmployeeNumber(ACCOUNT_PAUL_ATREIDES_ID)
+        	// TODO
+        	.assertOrganizationalUnits(ACCOUNT_PAUL_ATREIDES_FULL_NAME, ACCOUNT_MUAD_DIB_FULL_NAME)
+        	.links()
+        		.assertLinks(2)
+        		.link(accountPaulOid)
+        			.resolveTarget()
+        				.display()
+	        			.assertKind(ShadowKindType.ACCOUNT)
+	        			.assertIntent(SchemaConstants.INTENT_DEFAULT)
+	        			.assertTag(accountPaulOid)
+	        			.end()
+	        		.end()
+	        	.by()
+	        		.notTags(accountPaulOid)
+        		.find()
+        			.resolveTarget()
+        				.display()
+		        		.assertKind(ShadowKindType.ACCOUNT)
+		    			.assertIntent(SchemaConstants.INTENT_DEFAULT)
+		    			.assertTagIsOid()
+		    			.getOid();
+	        		
         assertUsers(getNumberOfUsers() + 1);
 
 	}

@@ -62,18 +62,6 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		setKind(kind);
 	}
 	
-//	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, boolean tombstone) {
-//		this.resourceOid = resourceOid;
-//		this.tombstone = tombstone;
-//		setIntent(intent);
-//		setKind(kind);
-//	}
-//
-//	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent) {
-//		this(resourceOid, kind, intent, false);
-//	}
-
-
 	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType) {
 		this(accRefType.getResourceRef().getOid(), accRefType.getKind(), accRefType.getIntent(), accRefType.getTag(), false);
 	}

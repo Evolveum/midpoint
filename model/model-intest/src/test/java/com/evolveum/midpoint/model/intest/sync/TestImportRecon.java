@@ -485,7 +485,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 2, users.size());
 
@@ -545,7 +545,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 2, users.size());
 
@@ -573,7 +573,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
         
         loginImportUser();
 
@@ -609,7 +609,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -646,7 +646,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
         assertNoAssignments(userRappBefore);
 
         assertUsers(getNumberOfUsers() + 4);
@@ -688,9 +688,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATION,
-        		PrismTestUtil.createPolyString(ORG_SCUMM_BAR_NAME));
+        		createPolyString(ORG_SCUMM_BAR_NAME));
 
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -729,9 +729,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATION,
-        		PrismTestUtil.createPolyString(ORG_SCUMM_BAR_NAME));
+        		createPolyString(ORG_SCUMM_BAR_NAME));
         assertAssignedOrg(userRappBefore, ORG_SCUMM_BAR_OID);
         assertAssignments(userRappBefore, 1);
 
@@ -774,7 +774,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
         PrismAsserts.assertNoItem(userRappAfter, UserType.F_ORGANIZATION);
 
         // These are protected accounts, they should not be imported
@@ -829,7 +829,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
@@ -879,7 +879,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
 
@@ -1192,7 +1192,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -1461,7 +1461,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -1570,7 +1570,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
@@ -1668,17 +1668,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        		createPolyString("The crew of The Elaine"));
 
         ObjectDelta<UserType> userRappDelta = prismContext.deltaFactory().object()
 		        .createModificationReplaceProperty(UserType.class, USER_RAPP_OID,
-        		UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The six feet under crew"));
+        		UserType.F_ORGANIZATIONAL_UNIT, createPolyString("The six feet under crew"));
 		repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
 
 		userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before (modified)", userRappBefore);
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The six feet under crew"));
+        		createPolyString("The six feet under crew"));
 
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
@@ -2374,7 +2374,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("User augustus after", userAugustusAfter);
         assertLinks(userAugustusAfter, 1);
         PrismAsserts.assertPropertyValue(userAugustusAfter, UserType.F_ORGANIZATIONAL_UNIT,
-        		PrismTestUtil.createPolyString("The crew of Titanicum Augusticum"));
+        		createPolyString("The crew of Titanicum Augusticum"));
 
         // Check audit
         assertImportAuditModifications(1);
@@ -2443,8 +2443,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAugustusAfter, 2);
         // Gives wrong results now. See MID-2532
 //        PrismAsserts.assertPropertyValue(userAugustusAfter, UserType.F_ORGANIZATIONAL_UNIT,
-//        		PrismTestUtil.createPolyString("The crew of Titanicum Augusticum"),
-//        		PrismTestUtil.createPolyString("The crew of Boatum Mailum"));
+//        		createPolyString("The crew of Titanicum Augusticum"),
+//        		createPolyString("The crew of Boatum Mailum"));
 
         // Check audit
         assertImportAuditModifications(1);

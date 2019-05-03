@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionPredefinedType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionType;
 
 /**
@@ -48,6 +49,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 	private final String shortDesc;
 	private final Task task;
 	private final OperationResult result;
+	private ValueSetDefinitionPredefinedType pre;
 	private final String additionalVariableName;
 	private ExpressionVariables additionalVariables;
 	private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
@@ -65,8 +67,11 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 	}
 
 	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+		pre = setDefinitionType.getPredefined();
 		ExpressionType conditionType = setDefinitionType.getCondition();
-		condition = ExpressionUtil.createCondition(conditionType, expressionProfile, expressionFactory, shortDesc, task, result);
+		if (conditionType != null) {
+			condition = ExpressionUtil.createCondition(conditionType, expressionProfile, expressionFactory, shortDesc, task, result);
+		}
 	}
 
 	public void setAdditionalVariables(ExpressionVariables additionalVariables) {
@@ -74,7 +79,18 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 	}
 
 	public boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return evalCondition(pval);
+		if (pre != null) {
+			switch (pre) {
+				case NONE:
+					return false;
+				case ALL:
+					return true;
+				default:
+					throw new IllegalStateException("Unknown pre value: "+pre);
+			}
+		} else {
+			return evalCondition(pval);
+		}
 	}
 
 	/**

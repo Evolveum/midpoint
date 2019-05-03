@@ -59,13 +59,13 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.DependencyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.InboundProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.InboundProcessor" level="DEBUG"/>
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
