@@ -47,9 +47,9 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
-		if(getModelObject().isShowOnTopLevel()) {
-			add(AttributeModifier.append("class", "top-level-prism-container"));
-		}
+//		if(getModelObject().isShowOnTopLevel()) {
+//			add(AttributeModifier.append("class", "top-level-prism-container"));
+//		}
 	}
 
 	@Override

@@ -332,13 +332,6 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	
 	
 	@Override
-	public boolean hasChanged() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	
-	@Override
 	public List<VW> getValues() {
 		return values;
 	}
@@ -748,9 +741,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
 	
 	@Override
-	public void setReadOnly() {
-		// TODO Auto-generated method stub
-		
+	public void setReadOnly(boolean readOnly) {
+		this.readOnly = readOnly;
 	}
 
 	@Override

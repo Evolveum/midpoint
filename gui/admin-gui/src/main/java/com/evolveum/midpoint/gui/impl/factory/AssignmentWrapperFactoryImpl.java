@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,37 +15,29 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * @author katka
  *
  */
 @Component
-public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<MetadataType>{
-
+public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<AssignmentType> {
 	
 	@Autowired private GuiComponentRegistry registry;
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {
-		return QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName());
+		return AssignmentType.COMPLEX_TYPE.equals(def.getTypeName());
 	}
 
-	@PostConstruct
 	@Override
 	public void register() {
 		registry.addToRegistry(this);
@@ -53,17 +45,19 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
 
 	@Override
 	public int getOrder() {
-		return 10;
+		return 1000;
 	}
 	
-	protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
-			WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException {
-		
-		ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
-		
-		ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
-		wrapper.setReadOnly(true);
-		wrappers.add(wrapper);
+	@Override
+	protected PrismContainerValue<AssignmentType> createNewValue(PrismContainer<AssignmentType> item) {
+		throw new UnsupportedOperationException("New assignment value should not be created while creating wrappers.");
 	}
+
 	
+	@Override
+	protected boolean shoudCreateEmptyValue(PrismContainer<AssignmentType> item, WrapperContext context) {
+		return false;
+	}
+
+
 }

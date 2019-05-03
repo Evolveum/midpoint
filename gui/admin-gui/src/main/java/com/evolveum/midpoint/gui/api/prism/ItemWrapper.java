@@ -45,8 +45,6 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	String debugDump(int indent);
 	
-	boolean hasChanged();
-	
 	boolean isVisible(ItemVisibilityHandler visibilityHandler);
 	
 	boolean checkRequired(PageBase pageBase);
@@ -64,7 +62,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	boolean isReadOnly();
 	
-	void setReadOnly();
+	void setReadOnly(boolean readOnly);
 	
 	ExpressionType getFormComponentValidator();
 	
