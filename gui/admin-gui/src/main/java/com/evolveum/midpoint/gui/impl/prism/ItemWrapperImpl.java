@@ -428,7 +428,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	@Override
 	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
 		
-		if (!getParent().isExpanded()) {
+		if (getParent() != null && !getParent().isExpanded()) {
 			return false;
 		}
 		
@@ -461,7 +461,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	private boolean isVisibleForModify(ID def) {
-		if (parent.isShowEmpty()) {
+		if (parent != null && parent.isShowEmpty()) {
 			return def.canRead();
 		}
 		
@@ -469,7 +469,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	private boolean isVisibleForAdd(ID def) {
-		if (parent.isShowEmpty()) {
+		if (parent != null && parent.isShowEmpty()) {
 			return def.canAdd();
 		}
 		

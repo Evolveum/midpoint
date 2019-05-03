@@ -57,25 +57,32 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		ItemStatus status = ItemStatus.NOT_CHANGED;
 		if (childItem == null) {
 			childItem = (I) parent.getNewValue().findOrCreateItem(name);
-//			childItem = (I) def.instantiate();
 			status = ItemStatus.ADDED;
 		}
 		
-		IW itemWrapper = createWrapper(parent, childItem, status);
-		
-		
-		List<VW> valueWrappers  = createValuesWrapper(itemWrapper, childItem, context);
-		itemWrapper.getValues().addAll((Collection) valueWrappers);
-		itemWrapper.setShowEmpty(context.isCreateIfEmpty(), false);
-		return itemWrapper;
+		return createWrapper(parent, childItem, status, context);
 	}
 	
+	
+	public IW createWrapper(Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
+		return createWrapper(null, (I) childItem, status, context);
+		
+	};
+	
+	private IW createWrapper(PrismContainerValueWrapper<?> parent, I childItem, ItemStatus status, WrapperContext context) throws SchemaException {
+		IW itemWrapper = createWrapper(parent, childItem, status);
+		
+		List<VW> valueWrappers  = createValuesWrapper(itemWrapper, (I) childItem, context);
+		itemWrapper.getValues().addAll((Collection) valueWrappers);
+		itemWrapper.setShowEmpty(context.isCreateIfEmpty(), false);
+		itemWrapper.setReadOnly(context.isReadOnly());
+		return itemWrapper;
+	}
 	
 	protected <ID extends ItemDefinition<I>> List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
 		List<VW> pvWrappers = new ArrayList<>();
 		
 		ID definition = (ID) item.getDefinition();
-//		ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(definition);
 		
 		if (item.isEmpty()) {
 			if (shoudCreateEmptyValue(item, context)) {

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -136,6 +137,13 @@ public class PolicyConstraintPresentationTypeFactory<C extends Containerable> im
 	@Override
 	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper,
 			PrismContainerValue<C> objectValue, ValueStatus status) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PrismContainerWrapper<C> createWrapper(Item childContainer, ItemStatus status, WrapperContext context)
+			throws SchemaException {
 		// TODO Auto-generated method stub
 		return null;
 	}

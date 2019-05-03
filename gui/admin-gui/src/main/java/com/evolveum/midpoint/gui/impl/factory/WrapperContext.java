@@ -65,33 +65,22 @@ public class WrapperContext {
 		this.result = result;
 	}
 	
-	/**
-	 * @return the createIfEmpty
-	 */
 	public boolean isCreateIfEmpty() {
 		return createIfEmpty;
 	}
 	
-	/**
-	 * @param createIfEmpty the createIfEmpty to set
-	 */
 	public void setCreateIfEmpty(boolean createIfEmpty) {
 		this.createIfEmpty = createIfEmpty;
 	};
 	
-	/**
-	 * @return the readOnly
-	 */
 	public boolean isReadOnly() {
 		return readOnly;
 	}
 	
-	/**
-	 * @param readOnly the readOnly to set
-	 */
 	public void setReadOnly(boolean readOnly) {
 		this.readOnly = readOnly;
 	}
+
 
 	public ResourceType getResource() {
 		return resource;
