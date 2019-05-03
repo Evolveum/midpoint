@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 import javax.annotation.PostConstruct;
@@ -36,10 +37,11 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 @Component
-public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> {
+public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	@Autowired GuiComponentRegistry registry;
+	
+	@Autowired transient GuiComponentRegistry registry;
 
 	@PostConstruct
 	public void register() {
@@ -59,7 +61,6 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> {
 			return new TextPanel<>(panelCtx.getComponentId(),
 					panelCtx.getRealValueModel(), panelCtx.getTypeClass());
 		}
-		
 		
 		return new AutoCompleteTextPanel<T>(panelCtx.getComponentId(),
 				panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false, lookupTable) {

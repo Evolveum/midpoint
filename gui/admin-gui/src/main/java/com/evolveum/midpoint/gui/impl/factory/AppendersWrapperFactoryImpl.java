@@ -15,38 +15,41 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 
 /**
  * @author skublik
  *
  */
 @Component
-public class ClassLoggerWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(ClassLoggerWrapperFactoryImpl.class);
+public class AppendersWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
+
+	private static final transient Trace LOGGER = TraceManager.getTrace(AppendersWrapperFactoryImpl.class);
 	
 	@Override
 	public boolean match(ItemDefinition<?> def) {
-		return false;
+		return QNameUtil.match(def.getTypeName(), AppenderConfigurationType.COMPLEX_TYPE);
 	}
-
+	
 	@Override
-	protected boolean canCreateWrapper(PrismContainerValue<C> value) {
-		if(value == null || value.getRealValue() == null) {
-			return true;
+	protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent,
+			PrismContainerValue<C> value) {
+		if(value != null && value.getComplexTypeDefinition() != null
+				&& value.getComplexTypeDefinition().getDefinitions() != null) {
+			return value.getComplexTypeDefinition().getDefinitions();
 		}
-		String loggerPackage = ((ClassLoggerConfigurationType)value.getRealValue()).getPackage();
-		if(loggerPackage == null) {
-			return true;
-		}
-		return !loggerPackage.equals(ProfilingClassLoggerWrapperFactoryImpl.LOGGER_PROFILING);
+		return parent.getDefinitions();
 	}
 }

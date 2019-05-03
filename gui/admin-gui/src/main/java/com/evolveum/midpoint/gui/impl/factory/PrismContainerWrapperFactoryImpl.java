@@ -96,7 +96,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
-		for (ItemDefinition<?> def : parent.getDefinitions()) {
+		for (ItemDefinition<?> def : getItemDefinitions(parent, value)) {
 			addItemWrapper(def, containerValueWrapper, context, wrappers);
 		}
 		
@@ -105,6 +105,10 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		return containerValueWrapper;
 	}
 	
+	protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
+		return parent.getDefinitions();
+	}
+
 	protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
 			WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException{
 		if (def.isOperational()) {

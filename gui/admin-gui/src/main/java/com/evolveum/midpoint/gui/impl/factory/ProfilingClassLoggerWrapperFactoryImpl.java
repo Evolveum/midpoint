@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -25,24 +24,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.gui.impl.prism.ProfilingClassLoggerContainerValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ProfilingClassLoggerContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 
@@ -51,16 +45,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
  *
  */
 @Component
-public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> extends ClassLoggerWrapperFactoryImpl<C>{
+public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
 
+	private static final long serialVersionUID = 1L;
+	
 	private static final transient Trace LOGGER = TraceManager.getTrace(ProfilingClassLoggerWrapperFactoryImpl.class);
 	
-	@Autowired private GuiComponentRegistryImpl registry;
+	@Autowired private GuiComponentRegistry registry;
 	
 	public static final QName PROFILING_LOGGER_PATH = new QName("profilingClassLogger");
 	
+	public static final String LOGGER_PROFILING = "PROFILING";
+	
 	@Override
-	protected boolean createWrapper(PrismContainerValue<C> value) {
+	public boolean match(ItemDefinition<?> def) {
+		return false;
+	}
+	
+	@Override
+	protected boolean canCreateWrapper(PrismContainerValue<C> value) {
 		if(value == null || value.getRealValue() == null) {
 			return false;
 		}
@@ -77,22 +80,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 		PrismContainer<C> clone = childContainer.clone();
 		clone.setElementName(PROFILING_LOGGER_PATH);
 		registry.registerWrapperPanel(PROFILING_LOGGER_PATH, PrismContainerPanel.class);
-		return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, clone, status) {
-			@Override
-			public ItemName getName() {
-				return ItemName.fromQName(PROFILING_LOGGER_PATH);
-			}
-			
-			@Override
-			public String getDisplayName() {
-				return ColumnUtils.createStringResource("LoggingConfigPanel.profiling.entryExit").getString();
-			}
-			
-			@Override
-			public boolean isMultiValue() {
-				return false;
-			}
-		};
+		return new ProfilingClassLoggerContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, clone, status);
 	}
 	
 	@Override
@@ -102,7 +90,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 		List<PrismContainerValueWrapper<C>> pvWrappers = new ArrayList<>();
 		
 		for (PrismContainerValue<C> pcv : (List<PrismContainerValue<C>>)item.getValues()) {
-			if(createWrapper(pcv)) {
+			if(canCreateWrapper(pcv)) {
 				PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
 				pvWrappers.add(valueWrapper);
 			}
@@ -125,12 +113,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 		ClassLoggerConfigurationType logger = (ClassLoggerConfigurationType) objectValue.getRealValue();
 		logger.setPackage(LOGGER_PROFILING);
 		
-		return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status) {
-			@Override
-			public String getDisplayName() {
-				return ColumnUtils.createStringResource("LoggingConfigPanel.profiling.entryExit").getString();
-			}
-		};
+		return new ProfilingClassLoggerContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
 	}
 	
 }

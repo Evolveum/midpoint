@@ -72,25 +72,32 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		List<VW> pvWrappers = new ArrayList<>();
 		
 		ID definition = (ID) item.getDefinition();
-		ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(definition);
+//		ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(definition);
 		
 		if (item.isEmpty()) {
 			if (shoudCreateEmptyValue(item, context)) {
 				PV prismValue = createNewValue(item);
-				VW valueWrapper =  factory.createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
+				VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
 				pvWrappers.add(valueWrapper);
 			}
 			return pvWrappers;
 		}
 		
 		for (PV pcv : (List<PV>)item.getValues()) {
-			VW valueWrapper = factory.createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
-			pvWrappers.add(valueWrapper);
+			if(canCreateWrapper(pcv)){
+				VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
+				pvWrappers.add(valueWrapper);
+			}
 		}
 		
 		return pvWrappers;
 	
 	}
+
+	protected boolean canCreateWrapper(PV pcv) {
+		return true;
+	}
+
 
 	protected abstract PV createNewValue(I item) throws SchemaException;
 	

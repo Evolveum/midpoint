@@ -63,6 +63,11 @@ public class LoggingAppenderWrapperFactoryImpl<T> extends PrismPropertyWrapperFa
 		return def instanceof PrismPropertyDefinition
 				&& QNameUtil.match(def.getName(), ClassLoggerConfigurationType.F_APPENDER);
 	}
+	
+	@Override
+	public int getOrder() {
+		return Integer.MAX_VALUE-1;
+	}
 
 	@Override
 	protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,

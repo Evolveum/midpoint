@@ -131,6 +131,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     
     protected void initLayout() {
     	try {
+    		getModelObject().setShowOnTopLevel(true);
     		Panel loggingPanel = getPageBase().initItemPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
 			add(loggingPanel);
 		} catch (SchemaException e) {
@@ -138,19 +139,11 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			getSession().error("Cannot create panle for logging");
 		}
     	
-//    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = new PrismContainerPanel<>(ID_LOGGING, getModel());
-//    	PrismContainerPanelOld<LoggingConfigurationType> loggingPanel = (PrismContainerPanelOld<LoggingConfigurationType>) getModelObject().createPanel(ID_LOGGING, new Form("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
-//    	PrismContainerPanel<LoggingConfigurationType> loggingPanel = new PrismContainerPanel<LoggingConfigurationType>(ID_LOGGING, getModel(), true, new Form<>("form"), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()), getPageBase());
-    	
     	TableId tableIdLoggers = UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
     	PageStorage pageStorageLoggers = getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage();
     	
 
     	PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_CLASS_LOGGER);
-    	
-//    	IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> loggerModel =
-//    			new ContainerWrapperFromObjectWrapperModel<ClassLoggerConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER));
-
     	
     	MultivalueContainerListPanel<ClassLoggerConfigurationType, S> loggersMultivalueContainerListPanel =
 				new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, loggerModel,
@@ -161,13 +154,13 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			@Override
 			protected List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> postSearch(
 					List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> items) {
-				for (int i = 0; i < items.size(); i++) {
-					PrismContainerValueWrapper<ClassLoggerConfigurationType> logger = items.get(i);
-					if (ProfilingConfigurationTabPanel.LOGGER_PROFILING.equals(((ClassLoggerConfigurationType)logger.getRealValue()).getPackage())) {
-						items.remove(logger);
-						continue;
-					}
-				}
+//				for (int i = 0; i < items.size(); i++) {
+//					PrismContainerValueWrapper<ClassLoggerConfigurationType> logger = items.get(i);
+//					if (ProfilingConfigurationTabPanel.LOGGER_PROFILING.equals(((ClassLoggerConfigurationType)logger.getRealValue()).getPackage())) {
+//						items.remove(logger);
+//						continue;
+//					}
+//				}
 				return items;
 			}
 			
@@ -175,8 +168,6 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			protected void newItemPerformed(AjaxRequestTarget target) {
 				PrismContainerValue<ClassLoggerConfigurationType> newLogger = loggerModel.getObject().getItem().createNewValue();
 		        PrismContainerValueWrapper<ClassLoggerConfigurationType> newLoggerWrapper = getLoggersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newLogger, loggerModel.getObject());
-//		        newLoggerWrapper.setShowEmpty(true, false);
-//		        newLoggerWrapper.computeStripes();
 		        loggerEditPerformed(target, Model.of(newLoggerWrapper), null);
 			}
 			
@@ -227,7 +218,6 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
 
 		PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_APPENDER);
-//    			new ContainerWrapperFromObjectWrapperModel<AppenderConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER));
 
     	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel =
 				new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, appenderModel,
@@ -333,20 +323,13 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			LOGGER.error("Cannot create panel for auditing: {}", e.getMessage(), e);
 			getSession().error("Cannot create panel for auditing.");
 		}
-//    			new ContainerWrapperFromObjectWrapperModel<AuditingConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()),
-//    					ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
-//		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel);
-//		PrismContainerPanelOld<AuditingConfigurationType> auditPanel = (PrismContainerPanelOld<AuditingConfigurationType>) auditModel.getObject().createPanel(ID_AUDITING, new Form("form"), null);
-//		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel, true,
-//				new Form<>("form"), null, getPageBase());
-    	
 		setOutputMarkupId(true);
 	}
     
     private ItemVisibility getLoggingVisibility(ItemPath pathToCheck) {
     	if(pathToCheck.isSubPathOrEquivalent(ItemPath.create(getModelObject().getPath(), LoggingConfigurationType.F_ROOT_LOGGER_APPENDER)) ||
     			pathToCheck.isSubPathOrEquivalent(ItemPath.create(getModelObject().getPath(), LoggingConfigurationType.F_ROOT_LOGGER_LEVEL))){
-			return ItemVisibility.AUTO;
+    		return ItemVisibility.AUTO;
 		}
 		return ItemVisibility.HIDDEN;
 	}
@@ -369,20 +352,8 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 		});
 		
 		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, ColumnType.VALUE));
-		
-//		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, getPageBase()){
-//			
-//			@Override
-//			public String getCssClass() {
-//				return " col-md-5 ";
-//			}
-//		});
-		
 		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_LEVEL, ColumnType.VALUE));
-//		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
-		
 		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_APPENDER, ColumnType.VALUE));
-//		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
@@ -424,8 +395,6 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     	newObjectPolicy.setPrismContext(getPageBase().getPrismContext());
     	
     	PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenders.getModelObject());
-//        newAppenderContainerWrapper.setShowEmpty(true, false);
-//        newAppenderContainerWrapper.computeStripes();
         getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newAppenderContainerWrapper));
 	}
     

@@ -68,6 +68,11 @@ public class LoggingPackageWrapperFactoryImpl<T> extends PrismPropertyWrapperFac
 	}
 
 	@Override
+	public int getOrder() {
+		return Integer.MAX_VALUE-1;
+	}
+	
+	@Override
 	protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
 			ItemStatus status) {
 		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
