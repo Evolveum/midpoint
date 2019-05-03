@@ -109,6 +109,9 @@ public class RelationRegistryImpl implements RelationRegistry {
 		if (StringUtils.isNotEmpty(defaultRelationDefinition.getDefaultIconStyle())){
 			IconType icon = new IconType();
 			icon.setCssClass(defaultRelationDefinition.getDefaultIconStyle());
+			if (StringUtils.isNotEmpty(defaultRelationDefinition.getDefaultIconColor())){
+				icon.setColor(defaultRelationDefinition.getDefaultIconColor());
+			}
 			display.setIcon(icon);
 		}
 		relationDef.setDisplay(display);

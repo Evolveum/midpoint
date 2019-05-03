@@ -185,6 +185,7 @@ public class GuiStyleConstants {
 	public static final String EVO_CROW_ICON = "fe fe-crown-object";
 	public static final String EVO_RIGHT_TOP_ARROW_ICON = "fe fe-arrow";
 	public static final String EVO_ASSIGNMENT_ICON = "fe fe-assignment";
+	public static final String EVO_ASSIGNMENT_ARROW_ICON = "fe fe-action-assign";
 	public static final String EVO_ASSIGNMENT_ICON_A_PIECE = "fe fe-assign_horizontal_A_piece";
 	public static final String EVO_ASSIGNMENT_ICON_B_PIECE = "fe fe-assign_horizontal_B_piece";
 	public static final String EVO_OFFICER_CAP_ICON = "fe fe-officer-cap-object";

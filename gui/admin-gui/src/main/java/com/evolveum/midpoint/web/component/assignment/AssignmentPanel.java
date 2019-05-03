@@ -169,7 +169,8 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType) {
-				return WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relationSpec, additionalButtonDisplayType);
+				return WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relationSpec,
+						additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
 			}
 
 			@Override
