@@ -129,7 +129,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 		addNotoriousRole(initResult);
 
 		// Add these using model, so they have proper roleMembershipRef
-		generateRoles(NUMBER_OF_LEVEL_B_ROLES, ROLE_LEVEL_B_NAME_FORMAT, ROLE_LEVEL_B_OID_FORMAT,
+		generateObjects(RoleType.class, NUMBER_OF_LEVEL_B_ROLES, ROLE_LEVEL_B_NAME_FORMAT, ROLE_LEVEL_B_OID_FORMAT,
 				this::fillLevelBRole,
 				role -> addObject(role, initTask, initResult),
 				initResult);

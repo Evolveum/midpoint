@@ -128,7 +128,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
     private void deleteAssignment(PrismObject<UserType> user, int index, Task task, OperationResult result) {
 		try {
-			login(userAdministrator);
+			login(userAdministrator.clone());       // without cloning there are conflicts on login->getPrincipal->recompute
 			@SuppressWarnings({ "unchecked", "raw" })
 			ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
 					.item(FocusType.F_ASSIGNMENT).delete(user.asObjectable().getAssignment().get(index).clone())

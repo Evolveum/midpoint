@@ -21,8 +21,8 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +36,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensElementContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -453,13 +448,10 @@ public class MappingEvaluator {
 		                valuesToReplace = outputTriple.getPlusSet();
 		            }
 
-		            if (LOGGER.isTraceEnabled()) {
-		            	LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, valuesToReplace={}",
-		            			new Object[]{mappingDesc, hasFullTargetObject,
-		            					mappingOutputStruct.isStrongMappingWasUsed(), valuesToReplace});
-		            }
+					LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, valuesToReplace={}",
+					            mappingDesc, hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(), valuesToReplace);
 
-		        	if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
+		        	if (!valuesToReplace.isEmpty()) {
 
 		                // if what we want to set is the same as is already in the shadow, we skip that
 		                // (we insist on having full shadow, to be sure we work with current data)
@@ -491,7 +483,7 @@ public class MappingEvaluator {
 		        }
 
 		        LOGGER.trace("{} adding new delta for {}: {}", mappingDesc, targetContext, targetItemDelta);
-		        targetContext.swallowToSecondaryDelta(targetItemDelta);
+				targetContext.swallowToSecondaryDelta(targetItemDelta);
 			}
 
 		}
@@ -539,7 +531,7 @@ public class MappingEvaluator {
     private <V extends PrismValue, D extends ItemDefinition> void applyEstematedOldValueInReplaceCase(ItemDelta<V, D> targetItemDelta,
 			PrismValueDeltaSetTriple<V> outputTriple) {
 		Collection<V> nonPositiveValues = outputTriple.getNonPositiveValues();
-		if (nonPositiveValues == null || nonPositiveValues.isEmpty()) {
+		if (nonPositiveValues.isEmpty()) {
 			return;
 		}
 		targetItemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(nonPositiveValues));
@@ -554,9 +546,7 @@ public class MappingEvaluator {
 			// this means: no value produced
 			return true;
 		}
-		if (mappingOutputTriple.getMinusSet() != null &&
-				(mappingOutputTriple.getZeroSet() == null || mappingOutputTriple.getZeroSet().isEmpty()) &&
-				(mappingOutputTriple.getPlusSet() == null || mappingOutputTriple.getPlusSet().isEmpty())) {
+		if (mappingOutputTriple.getZeroSet().isEmpty() && mappingOutputTriple.getPlusSet().isEmpty()) {
 			// Minus deltas are always meaningful, even with hashing (see below)
 			// This may be used e.g. to remove existing password.
 			return true;

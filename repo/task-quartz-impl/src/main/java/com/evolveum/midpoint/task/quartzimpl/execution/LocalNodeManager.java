@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import com.evolveum.midpoint.repo.sql.DataSourceFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
@@ -87,7 +88,13 @@ public class LocalNodeManager {
 
             String MY_DS = "myDS";
             quartzProperties.put("org.quartz.jobStore.dataSource", MY_DS);
-            if (configuration.getDataSource() != null) {
+            if (configuration.isUseRepositoryConnectionProvider()) {
+                DataSourceFactory dataSourceFactory = (DataSourceFactory) taskManager.getBeanFactory().getBean("dataSourceFactory");
+                int index = (int) (Math.random() * Integer.MAX_VALUE);
+                RepositoryConnectionProvider.dataSources.put(index, dataSourceFactory.getDataSource());
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".connectionProvider.class", RepositoryConnectionProvider.class.getName());
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".dataSourceIndex", String.valueOf(index));
+            } else if (configuration.getDataSource() != null) {
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".jndiURL", configuration.getDataSource());
             } else {
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".provider", "hikaricp");
@@ -216,7 +223,10 @@ public class LocalNodeManager {
     private Connection getConnection(TaskManagerConfiguration configuration) throws TaskManagerInitializationException {
         Connection connection;
         try {
-            if (configuration.getDataSource() != null) {
+            if (configuration.isUseRepositoryConnectionProvider()) {
+                DataSourceFactory dataSourceFactory = (DataSourceFactory) taskManager.getBeanFactory().getBean("dataSourceFactory");
+                connection = dataSourceFactory.getDataSource().getConnection();
+            } else if (configuration.getDataSource() != null) {
                 DataSource dataSource;
                 try {
                     InitialContext context = new InitialContext();

@@ -151,6 +151,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -2245,6 +2246,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (objectViews == null) {
             return;
         }
+        objectViews.sort(Comparator.comparing(o -> (o.getDisplay() != null && PolyStringUtils.isNotEmpty(o.getDisplay().getPluralLabel())
+                ? createStringResource(o.getDisplay().getPluralLabel()).getString()
+                : createStringResource("MenuItem.noName").getString() )));
+        objectViews.sort(Comparator.comparingInt(o -> (ObjectUtils.defaultIfNull(o.getDisplayOrder(), Integer.MAX_VALUE))));
         objectViews.forEach(objectView -> {
         	CollectionRefSpecificationType collection = objectView.getCollection();
         	if (collection == null) {

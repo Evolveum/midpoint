@@ -232,6 +232,13 @@
         </xsd:annotation>
         <xsd:sequence>
 			<xsd:element ref="tns:sea"/>
+			<xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed>true</a:indexed>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

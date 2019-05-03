@@ -25,6 +25,7 @@ public interface IconCssStyle {
 	public static final BottomRightIconCssStyle BOTTOM_RIGHT_STYLE = new BottomRightIconCssStyle();
 	public static final CenterIconCssStyle CENTER_STYLE = new CenterIconCssStyle();
 	public static final InRowIconCssStyle IN_ROW_STYLE = new InRowIconCssStyle();
+	public static final TopLeftIconCssStyle TOP_LEFT_STYLE = new TopLeftIconCssStyle();
 
 	public String getBasicCssClass();
 	

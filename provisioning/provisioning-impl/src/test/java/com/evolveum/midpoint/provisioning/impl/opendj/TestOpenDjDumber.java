@@ -20,12 +20,9 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -35,7 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Test for provisioning service implementation using embedded OpenDj instance.
  * This is the same test as TestOpenDj, but the OpenDJ resource configuration is
- * somehow dumber: no shortcut in associations, expclicit duplicity checks, etc.
+ * somehow dumber: no shortcut in associations, explicit duplicity checks, etc.
  *
  * @author Radovan Semancik
  */

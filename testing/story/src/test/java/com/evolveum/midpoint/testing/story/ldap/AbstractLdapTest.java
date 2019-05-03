@@ -18,10 +18,13 @@ package com.evolveum.midpoint.testing.story.ldap;
 
 
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -39,8 +42,11 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -84,9 +90,19 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
 
 	public static final File LDAP_TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
 	
+	protected static final String NS_EXT_LDAP = "http://midpoint.evolveum.com/xml/ns/story/ldap/ext";
+	protected static final ItemName TITLE_MAP_QNAME = new ItemName(NS_EXT_LDAP, "titleMap");
+	protected static final ItemName TITLE_MAP_KEY_QNAME = new ItemName(NS_EXT_LDAP, "key");
+	protected static final ItemName TITLE_MAP_VALUE_QNAME = new ItemName(NS_EXT_LDAP, "value");
+	protected static final ItemPath PATH_EXTENSION_TITLE_MAP = ItemPath.create(ObjectType.F_EXTENSION, TITLE_MAP_QNAME);
+	
 	protected static final String LDAP_ATTRIBUTE_DESCRIPTION = "description";
 	protected static final String LDAP_ATTRIBUTE_CN = "cn";
 
+	protected static final String OBJECTCLASS_INETORGPERSON = "inetOrgPerson";
+
+	protected abstract String getLdapResourceOid();
+	
 	protected void dumpLdap() throws DirectoryException {
 		display("LDAP server tree", openDJController.dumpTree());
 		display("LDAP server content", openDJController.dumpEntries());
@@ -160,6 +176,35 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
 			}
 		}
 	}
+	
+	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		assertLdapConnectorInstances(expectedConnectorInstances, expectedConnectorInstances);
+	}
+	
+	protected void assertLdapConnectorInstances(int expectedConnectorInstancesMin, int expectedConnectorInstancesMax) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = createTask(TestLdapSyncMassive.class.getName() + ".assertLdapConnectorInstances");
+		OperationResult result = task.getResult();
+		List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(getLdapResourceOid(), task, result);
+		display("Resource connector stats", stats);
+		assertSuccess(result);
 
+		assertEquals("unexpected number of stats", 1, stats.size());
+		ConnectorOperationalStatus stat = stats.get(0);
+
+		int actualConnectorInstances = stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive();
+		
+		if (actualConnectorInstances < expectedConnectorInstancesMin) {
+			fail("Number of LDAP connector instances too low: "+actualConnectorInstances+", expected at least "+expectedConnectorInstancesMin);
+		}
+		if (actualConnectorInstances > expectedConnectorInstancesMax) {
+			fail("Number of LDAP connector instances too high: "+actualConnectorInstances+", expected at most "+expectedConnectorInstancesMax);
+		}
+	}
+
+
+	protected void assertLdapAccounts(int expectedNumber) throws DirectoryException {
+		List<? extends Entry> entries = openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON);
+		assertEquals("Wrong number of LDAP accounts ("+OBJECTCLASS_INETORGPERSON+")", expectedNumber, entries.size());
+	}
 
 }

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -198,21 +199,29 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 			@Override
 			protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-				return WebComponentUtil.getRelationsDividedList(loadAssignmentTargetRelationsList());
+				if (isInducement()){
+					return null;
+				} else {
+					return WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+				}
+			}
+
+			@Override
+			protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType) {
+				return WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relationSpec, additionalButtonDisplayType);
 			}
 
 			@Override
 			protected DisplayType getNewObjectButtonDisplayType() {
 				return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
 						AssignmentPanel.this.createStringResource(isInducement() ?
-								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle").getString());
+								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
 			}
 
 			@Override
 			protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
-				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation,
-						AssignmentPanel.this.createStringResource(isInducement() ?
-								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle").getString());
+				return WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), assignmentTargetRelation,
+						isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
 			}
 
 			@Override
@@ -551,6 +560,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			@Override
 			protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
 				return AssignmentPanel.this.getModelObject();
+			}
+
+			@Override
+			protected boolean isOrgTreeTabVisible(){
+				return assignmentTargetRelation == null;
 			}
 		};
 		popupPanel.setOutputMarkupId(true);

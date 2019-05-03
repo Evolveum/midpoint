@@ -81,6 +81,13 @@ public class PropertyDeltaFactoryImpl implements DeltaFactory.Property {
 		return PropertyDeltaImpl.createReplaceDelta(containerDefinition, propertyName, realValues);
 	}
 
+	@Override
+	public final <O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
+			QName propertyName, PrismPropertyValue<T> pValue) {
+		//noinspection unchecked
+		return PropertyDeltaImpl.createReplaceDelta(containerDefinition, propertyName, pValue);
+	}
+
 	@SafeVarargs
 	@Override
 	public final <O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,

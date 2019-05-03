@@ -518,6 +518,15 @@ public class MiscUtil {
 		}
 		return bytes;
 	}
+	
+	public static String hexToUtf8String(String hex) {
+		try {
+			return new String(MiscUtil.hexToBinary(hex), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// Should never happen
+			throw new RuntimeException(e.getMessage(), e);
+		}
+	}
 
 	public static <T> void addAllIfNotPresent(List<T> receivingList, List<T> supplyingList) {
 		if (supplyingList == null) {

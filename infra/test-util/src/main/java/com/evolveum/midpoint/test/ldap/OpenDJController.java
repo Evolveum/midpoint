@@ -510,6 +510,22 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		return op.getSearchEntries().get(0);
 	}
+	
+	public List<? extends Entry> search(String filter) throws DirectoryException {
+		return search(getSuffix(), SearchScope.WHOLE_SUBTREE, filter);
+	}
+	
+	public List<? extends Entry> search(String baseDn, String filter) throws DirectoryException {
+		return search(baseDn, SearchScope.WHOLE_SUBTREE, filter);
+	}
+	
+	public List<? extends Entry> search(String baseDn, SearchScope scope, String filter) throws DirectoryException {
+		InternalSearchOperation op = getInternalConnection().processSearch(
+				baseDn, scope, DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+				0, false, filter, getSearchAttributes());
+
+		return op.getSearchEntries();
+	}
 
 	public Entry searchByUid(String string) throws DirectoryException {
 		return searchSingle("(uid=" + string + ")");
@@ -1020,6 +1036,10 @@ public class OpenDJController extends AbstractResourceController {
 			AssertJUnit.fail("Expected that entry "+entry.getDN()+" will NOT have object class '"+expectedObjectclass
 					+"'. But it was there: "+objectclasses);
 		}
+	}
+
+	public int getNumberOfDefaultAccounts() {
+		return 4;
 	}
 
 }

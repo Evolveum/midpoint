@@ -894,7 +894,7 @@ public class ExpressionUtil {
 	private static ExpressionType getExpression(ExpressionWrapper expressionWrapper, String shortDesc) throws SchemaException {
 		if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
 			throw new SchemaException("Unexpected expression type "
-					+ expressionWrapper.getExpression().getClass() + " in filter in " + shortDesc);
+					+ expressionWrapper.getExpression().getClass() + " in element " + expressionWrapper.getElementName() + " filter in " + shortDesc);
 		}
 		return (ExpressionType) expressionWrapper.getExpression();
 	}

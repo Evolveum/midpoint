@@ -99,8 +99,6 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
     
     public ObjectPolicyConfigurationTabPanel(String id, IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> model) {
         super(id, model);
-        
-        
     }
 
     @Override

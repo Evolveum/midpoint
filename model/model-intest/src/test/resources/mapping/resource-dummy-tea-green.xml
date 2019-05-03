@@ -88,18 +88,6 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 			<attribute>
 				<ref>ri:location</ref>
 				<displayName>Location</displayName>
-				<inbound>
-					<strength>strong</strength>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
-					<expression>
-						<script>
-							<code>'Came from ' + input</code>
-						</script>
-					</expression>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:ship</ref>
@@ -130,9 +118,13 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 				<tolerant>false</tolerant>
 			</attribute>
 			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
+				<ref>ri:proof</ref>
+				<inbound>
+					<strength>strong</strength>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:locker</ref>

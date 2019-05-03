@@ -1607,7 +1607,7 @@ public class TestDelta extends AbstractPrismTest {
 		PrismObject<UserType> user = createUserFoo();
 
 		// WHEN
-		PropertyDelta<String> narrowedDelta = delta.narrow(user);
+		PropertyDelta<String> narrowedDelta = delta.narrow(user, false);
 
 		// THEN
 		System.out.println("Narrowed delta:");
@@ -1635,7 +1635,7 @@ public class TestDelta extends AbstractPrismTest {
 		user.setPropertyRealValue(UserType.F_DESCRIPTION, "bubu");
 
 		// WHEN
-		PropertyDelta<String> narrowedDelta = delta.narrow(user);
+		PropertyDelta<String> narrowedDelta = delta.narrow(user, false);
 
 		// THEN
 		System.out.println("Narrowed delta:");
@@ -1662,7 +1662,7 @@ public class TestDelta extends AbstractPrismTest {
 		user.setPropertyRealValue(UserType.F_DESCRIPTION, "bubu");
 
 		// WHEN
-		PropertyDelta<String> narrowedDelta = delta.narrow(user);
+		PropertyDelta<String> narrowedDelta = delta.narrow(user, false);
 
 		// THEN
 		System.out.println("Narrowed delta:");
@@ -1691,7 +1691,7 @@ public class TestDelta extends AbstractPrismTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1724,7 +1724,7 @@ public class TestDelta extends AbstractPrismTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1757,7 +1757,7 @@ public class TestDelta extends AbstractPrismTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1786,7 +1786,7 @@ public class TestDelta extends AbstractPrismTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1815,7 +1815,7 @@ public class TestDelta extends AbstractPrismTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1845,7 +1845,7 @@ public class TestDelta extends AbstractPrismTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1879,7 +1879,7 @@ public class TestDelta extends AbstractPrismTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
 
 		// THEN
 		displayThen(TEST_NAME);
